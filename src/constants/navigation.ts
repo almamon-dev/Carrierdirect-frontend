@@ -350,7 +350,6 @@ export const navigationMap: Record<string, any[]> = {
             icon: Package,
             items: [
                 { name: 'Orders', path: '/customer/orders', icon: Package },
-                { name: 'Tracking', path: '/customer/orders/tracking', icon: MapPin },
                 { name: 'Details', path: '/customer/orders/details', icon: FileText },
             ]
         },
@@ -362,6 +361,7 @@ export const navigationMap: Record<string, any[]> = {
                 { name: 'Billing', path: '/customer/finance/billing', icon: Receipt },
                 { name: 'Invoices', path: '/customer/finance/invoices', icon: FileText },
                 { name: 'Payments', path: '/customer/finance/payments', icon: CreditCard },
+                { name: 'Pay Later', path: '/customer/finance/pay-later', icon: Clock },
             ]
         },
         { category: 'Main Menu', name: 'Notifications', path: '/customer/notifications', icon: Bell },

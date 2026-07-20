@@ -25,8 +25,10 @@ export interface DataTableProps<T = any> {
     keyExtractor?: (item: T) => number | string;
     actions?: (item: T) => React.ReactNode;
     filterContent?: React.ReactNode;
+    headerTabs?: React.ReactNode;
     compact?: boolean;
     tableId?: string; // Optional ID to persist column state in localStorage
+    expandableContent?: (item: T) => React.ReactNode;
 }
 
 export default function DataTable<T extends Record<string, any>>({ 
@@ -37,12 +39,15 @@ export default function DataTable<T extends Record<string, any>>({
     keyExtractor = (item: any) => item.id,
     actions,
     filterContent,
+    headerTabs,
     compact = false,
-    tableId
+    tableId,
+    expandableContent
 }: DataTableProps<T>) {
     const [search, setSearch] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
+    const [expandedRows, setExpandedRows] = useState<Set<number | string>>(new Set());
     
     // Initialize visible columns from localStorage if tableId is provided
     const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
@@ -111,9 +116,25 @@ export default function DataTable<T extends Record<string, any>>({
         setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
     };
 
+    const toggleExpand = (id: number | string) => {
+        setExpandedRows(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
     return (
         <div className="bg-white rounded-[4px] border border-[#ebebeb] shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
             <div className="animate-in fade-in duration-300">
+                {/* Header Tabs (Inside container) */}
+                {headerTabs && (
+                    <div className="px-4 pt-3 border-b border-[#ebebeb]">
+                        {headerTabs}
+                    </div>
+                )}
+                
                 {/* Toolbar (Polaris Style) */}
                 <TableToolbar 
                     selectedCount={selectedIds.length}
@@ -154,7 +175,7 @@ export default function DataTable<T extends Record<string, any>>({
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-[#f9fafb] border-b border-[#ebebeb] text-[13px] font-bold text-[#6d7175] uppercase tracking-wider">
+                            <tr className="bg-[#f9fafb] border-b border-[#ebebeb] text-[12px] font-semibold text-[#6d7175]">
                                 <th className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2'} w-[40px]`}>
                                     <div className="flex items-center justify-center">
                                         <input 
@@ -167,7 +188,7 @@ export default function DataTable<T extends Record<string, any>>({
                                 {columns.map(col => visibleColumns.includes(col.id) && (
                                     <th key={col.id} className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2'} ${col.className || ''}`}>{col.label}</th>
                                 ))}
-                                {actions && <th className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2'} text-center`}>Actions</th>}
+                                {actions && <th className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2'} text-right`}>Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#ebebeb]">
@@ -182,7 +203,11 @@ export default function DataTable<T extends Record<string, any>>({
                                     const id = keyExtractor(item);
                                     const isSelected = selectedIds.includes(id);
                                     return (
-                                        <tr key={id} className={`transition-colors group ${isSelected ? 'bg-[#f4f6f8]' : 'hover:bg-[#f9fafb]'}`}>
+                                                                                <React.Fragment key={id}>
+                                            <tr 
+                                                onClick={() => expandableContent && toggleExpand(id)}
+                                                className={`transition-colors group ${isSelected ? 'bg-[#f4f6f8]' : 'hover:bg-[#f9fafb]'} ${expandableContent ? 'cursor-pointer' : ''}`}
+                                            >
                                             <td className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'} whitespace-nowrap`}>
                                                 <div className="flex items-center justify-center">
                                                     <input 
@@ -193,18 +218,28 @@ export default function DataTable<T extends Record<string, any>>({
                                                 </div>
                                             </td>
                                             {columns.map(col => visibleColumns.includes(col.id) && (
-                                                <td key={col.id} className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'} whitespace-nowrap text-[14px] text-[#202223] ${col.className || ''}`}>
+                                                <td key={col.id} className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'} whitespace-nowrap text-[13px] text-[#202223] ${col.className || ''}`}>
                                                     {col.render ? col.render(item) : item[col.id]}
                                                 </td>
                                             ))}
                                             {actions && (
-                                                <td className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'} whitespace-nowrap text-center`}>
-                                                    <div className="flex justify-center">
+                                                <td className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'} whitespace-nowrap text-right`}>
+                                                    <div className="flex justify-end">
                                                         {actions(item)}
                                                     </div>
                                                 </td>
                                             )}
-                                        </tr>
+                                                                                    </tr>
+                                            {expandableContent && expandedRows.has(id) && (
+                                                <tr className="bg-[#fafbfc] border-b border-[#ebebeb] shadow-inner">
+                                                    <td colSpan={columns.length + (actions ? 2 : 1)} className="p-0 border-l-4 border-l-indigo-500">
+                                                        <div className="animate-in slide-in-from-top-1 fade-in duration-200">
+                                                            {expandableContent(item)}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
                                     );
                                 })
                             )}

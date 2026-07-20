@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
-    ArrowLeft, Save, Send, MapPin, Truck, Box, FileText, Paperclip, 
-    DollarSign, Settings, CheckCircle2, ChevronRight, Activity, AlertCircle, Plus, Trash2 
+import {
+    ArrowLeft, Save, Send, MapPin, Truck, Box, FileText, Paperclip,
+    DollarSign, Settings, CheckCircle2, ChevronRight, Activity, AlertCircle, Plus, Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/components/ui/button';
@@ -44,7 +44,8 @@ export default function ViewRequestForm() {
         deliveryDate: '2023-11-21',
         deliveryTime: '18:00',
         expectedTransitTime: '3',
-        
+        estDistance: '254',
+
         pickupCompany: 'Tech Corp BD',
         pickupContactName: 'Rahim Uddin',
         pickupPhone: '+8801711223344',
@@ -55,7 +56,7 @@ export default function ViewRequestForm() {
         pickupZip: '1212',
         pickupAddress: 'House 4, Road 2, Banani',
         pickupMapUrl: 'https://maps.google.com/...',
-        pickupInstructions: 'Call before arriving.',
+        pickupInstructions: 'Call before arriving.\nDriver must carry valid ID.\nUse the back entrance for loading.\nBeware of the low clearance gate.\nPlease call 30 mins before arrival.\nEnsure vehicle is clean and odor-free.',
 
         deliveryCompany: 'Ctg Traders',
         deliveryContactName: 'Karim Hasan',
@@ -67,7 +68,7 @@ export default function ViewRequestForm() {
         deliveryZip: '4000',
         deliveryAddress: 'Agrabad Commercial Area',
         deliveryMapUrl: '',
-        deliveryInstructions: 'Deliver to warehouse 3.',
+        deliveryInstructions: 'Deliver to warehouse 3.\nCheck in at the security gate first.\nUnloading will be handled by our forklift operators.\nDo not park in the visitor parking area.\nRequire recipient signature upon delivery.',
 
         vehicleType: 'Box Truck',
         loadType: 'Pallets',
@@ -75,7 +76,11 @@ export default function ViewRequestForm() {
         palletsCount: '5',
         weight: '1200',
         volume: '15.5',
-        dimensions: [{ id: 1, length: '120', width: '100', height: '150', qty: '5', unit: 'CM' }],
+        dimensions: [
+            { id: 1, length: '120', width: '100', height: '150', qty: '5', unit: 'CM' },
+            { id: 2, length: '80', width: '60', height: '80', qty: '12', unit: 'CM' },
+            { id: 3, length: '200', width: '150', height: '200', qty: '2', unit: 'CM' }
+        ],
 
         stackable: true,
         fragile: true,
@@ -102,7 +107,7 @@ export default function ViewRequestForm() {
         customerNotes: 'Please ensure careful handling of fragile items.',
         specialInstructions: 'Driver must have proper ID.',
         internalReference: 'PO-2023-991',
-        
+
         images: [] as File[],
         packingList: null as File | null,
         invoice: null as File | null
@@ -160,7 +165,7 @@ export default function ViewRequestForm() {
     // Calculate selected services count for summary
     const servicesCount = [
         formData.stackable, formData.fragile, formData.hazardous, formData.tempControlled, formData.oversized, formData.perishable,
-        formData.loadingRequired, formData.unloadingRequired, formData.packaging, formData.insurance, 
+        formData.loadingRequired, formData.unloadingRequired, formData.packaging, formData.insurance,
         formData.liftGate, formData.whiteGlove, formData.assembly, formData.insideDelivery, formData.storage
     ].filter(Boolean).length;
 
@@ -213,11 +218,10 @@ export default function ViewRequestForm() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-[14px] font-medium transition-colors border-l-[3px] border-b border-slate-50 last:border-b-0 ${
-                                        isSelected 
-                                            ? 'border-l-indigo-600 bg-indigo-50/50 text-indigo-700' 
+                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-[14px] font-medium transition-colors border-l-[3px] border-b border-slate-50 last:border-b-0 ${isSelected
+                                            ? 'border-l-indigo-600 bg-indigo-50/50 text-indigo-700'
                                             : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                    }`}
+                                        }`}
                                 >
                                     <div className="flex items-center gap-2.5">
                                         <Icon size={15} className={isSelected ? 'text-indigo-600' : 'text-slate-400'} />
@@ -233,33 +237,33 @@ export default function ViewRequestForm() {
                 {/* Main Content Area */}
                 <div className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm w-full">
                     <div className="p-6 md:p-8">
-                        
+
                         {/* 1. Basic Information */}
                         {activeTab === 'general' && (
                             <div className="space-y-3 animate-in fade-in duration-300">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                                     <TabHeader title="Basic Information" icon={FileText} />
-                                    
-                                    <ViewField label="Request Title"  colSpan value={formData.requestTitle} />
-                                    
+
+                                    <ViewField label="Request Title" colSpan value={formData.requestTitle} />
+
                                     <ViewField label="Request Number" value={<span className="font-mono text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">REQ-9824</span>} />
-                                    
+
                                     <ViewField label="Priority" value={<span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700 border border-amber-200 w-fit">{formData.priority}</span>} />
-                                    
-                                    <ViewField label="Shipment Type"  value={formData.shipmentType} />
-                                    
+
+                                    <ViewField label="Shipment Type" value={formData.shipmentType} />
+
                                     <ViewField label="Service Type" value={formData.serviceType} />
-                                    
+
                                     <SectionHeader title="Schedule" icon={Activity} />
-                                    
-                                    <ViewField label="Pickup Date"  value={formData.pickupDate} />
-                                    
-                                    <ViewField label="Pickup Time"  value={formData.pickupTime} />
-                                    
+
+                                    <ViewField label="Pickup Date" value={formData.pickupDate} />
+
+                                    <ViewField label="Pickup Time" value={formData.pickupTime} />
+
                                     <ViewField label="Delivery Date" value={formData.deliveryDate} />
-                                    
+
                                     <ViewField label="Delivery Time" value={formData.deliveryTime} />
-                                    
+
                                     <ViewField label="Transit Time (Days)" value={formData.expectedTransitTime} />
                                 </div>
                             </div>
@@ -270,40 +274,62 @@ export default function ViewRequestForm() {
                             <div className="space-y-3 animate-in fade-in duration-300">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                                     <TabHeader title="Location Information" icon={MapPin} />
-                                    
+
                                     {/* Pickup Info */}
-                                    <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-6 mb-2">
-                                        <h3 className="text-[14px] font-bold text-blue-600 mb-4 flex items-center gap-2"><MapPin size={16}/> Pickup Details</h3>
+                                    <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-5 mb-2">
+                                        <h3 className="text-[14px] font-bold text-blue-600 mb-4 flex items-center gap-2"><MapPin size={16} /> Pickup Details</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                                             <ViewField label="Company Name" value={formData.pickupCompany} />
-                                            <ViewField label="Contact Person"  value={formData.pickupContactName} />
-                                            <ViewField label="Phone Number"  value={formData.pickupPhone} isLink linkHref={`tel:${formData.pickupPhone}`} />
+                                            <ViewField label="Contact Person" value={formData.pickupContactName} />
+                                            <ViewField label="Phone Number" value={formData.pickupPhone} isLink linkHref={`tel:${formData.pickupPhone}`} />
                                             <ViewField label="Email" value={formData.pickupEmail} isLink linkHref={`mailto:${formData.pickupEmail}`} />
                                             <ViewField label="Country" value={formData.pickupCountry} />
                                             <ViewField label="State/Division" value={formData.pickupState} />
                                             <ViewField label="City" value={formData.pickupCity} />
                                             <ViewField label="ZIP Code" value={formData.pickupZip} />
-                                            <ViewField label="Full Address"  colSpan value={formData.pickupAddress} />
+                                            <ViewField label="Full Address" colSpan value={formData.pickupAddress} />
                                             <ViewField label="Google Map URL" colSpan value={formData.pickupMapUrl} isLink linkHref={formData.pickupMapUrl} />
-                                            <ViewField label="Instructions" colSpan value={formData.pickupInstructions} />
+                                            <ViewField label="Instructions" colSpan>
+                                                {formData.pickupInstructions ? (
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2 bg-slate-50 p-3.5 rounded border border-slate-100 mt-1">
+                                                        {formData.pickupInstructions.split('\n').filter(Boolean).map((instruction, idx) => (
+                                                            <div key={idx} className="flex items-start gap-2">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-700 mt-1.5 flex-shrink-0" />
+                                                                <span className="text-[14px] font-semibold text-slate-800 leading-tight">{instruction}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : <span className="text-[13px] text-slate-400 font-normal italic">Not specified</span>}
+                                            </ViewField>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Delivery Info */}
                                     <div className="col-span-1 md:col-span-2">
-                                        <h3 className="text-[14px] font-bold text-emerald-600 mb-4 flex items-center gap-2"><MapPin size={16}/> Delivery Details</h3>
+                                        <h3 className="text-[14px] font-bold text-emerald-600 mb-4 flex items-center gap-2"><MapPin size={16} /> Delivery Details</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                                             <ViewField label="Company Name" value={formData.deliveryCompany} />
-                                            <ViewField label="Contact Person"  value={formData.deliveryContactName} />
-                                            <ViewField label="Phone Number"  value={formData.deliveryPhone} isLink linkHref={`tel:${formData.deliveryPhone}`} />
+                                            <ViewField label="Contact Person" value={formData.deliveryContactName} />
+                                            <ViewField label="Phone Number" value={formData.deliveryPhone} isLink linkHref={`tel:${formData.deliveryPhone}`} />
                                             <ViewField label="Email" value={formData.deliveryEmail} isLink linkHref={`mailto:${formData.deliveryEmail}`} />
                                             <ViewField label="Country" value={formData.deliveryCountry} />
                                             <ViewField label="State/Division" value={formData.deliveryState} />
                                             <ViewField label="City" value={formData.deliveryCity} />
                                             <ViewField label="ZIP Code" value={formData.deliveryZip} />
-                                            <ViewField label="Full Address"  colSpan value={formData.deliveryAddress} />
+                                            <ViewField label="Full Address" colSpan value={formData.deliveryAddress} />
                                             <ViewField label="Google Map URL" colSpan value={formData.deliveryMapUrl} isLink linkHref={formData.deliveryMapUrl} />
-                                            <ViewField label="Instructions" colSpan value={formData.deliveryInstructions} />
+                                            <ViewField label="Instructions" colSpan>
+                                                {formData.deliveryInstructions ? (
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-2 bg-slate-50 p-3.5 rounded border border-slate-100 mt-1">
+                                                        {formData.deliveryInstructions.split('\n').filter(Boolean).map((instruction, idx) => (
+                                                            <div key={idx} className="flex items-start gap-2">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-700 mt-1.5 flex-shrink-0" />
+                                                                <span className="text-[14px] font-semibold text-slate-800 leading-tight">{instruction}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : <span className="text-[13px] text-slate-400 font-normal italic">Not specified</span>}
+                                            </ViewField>
                                         </div>
                                     </div>
                                 </div>
@@ -313,52 +339,69 @@ export default function ViewRequestForm() {
                         {/* 4 & 5. Load & Services */}
                         {activeTab === 'load' && (
                             <div className="space-y-3 animate-in fade-in duration-300">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                                    <TabHeader title="Load & Vehicle Information" icon={Truck} />
-                                    
-                                    <ViewField label="Vehicle Type"  value={formData.vehicleType} />
-                                    
-                                    <ViewField label="Load Type"  value={formData.loadType} />
-                                    
-                                    <ViewField label="Number of Items" value={formData.itemsCount} />
-                                    <ViewField label="Number of Pallets" value={formData.palletsCount} />
-                                    <ViewField label="Total Weight (KG)" value={formData.weight} />
-                                    <ViewField label="Total Volume (CBM)" value={formData.volume} />
-                                    
-                                    <ViewField label="Dimensions" colSpan>
-                                        <div className="flex flex-col gap-2 w-full">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-4">
+                                    <TabHeader title="Load & Vehicle Information" icon={Truck} className="lg:col-span-3 mb-0" />
+
+                                    <div className="flex flex-col gap-y-2">
+                                        <ViewField label="Vehicle Type" value={formData.vehicleType} />
+                                        <ViewField label="Number of Items" value={formData.itemsCount} />
+                                        <ViewField label="Total Weight (KG)" value={formData.weight} />
+                                    </div>
+
+                                    <div className="flex flex-col gap-y-2">
+                                        <ViewField label="Load Type" value={formData.loadType} />
+                                        <ViewField label="Number of Pallets" value={formData.palletsCount} />
+                                        <ViewField label="Total Volume (CBM)" value={formData.volume} />
+                                    </div>
+
+                                    <div className="flex flex-col gap-y-2 lg:pl-6 lg:border-l border-slate-100">
+                                        <div className="grid grid-cols-[110px_10px_1fr] items-start">
+                                            <p className="text-[14px] text-slate-500 font-medium">Dimensions</p>
+                                            <p className="text-[14px] text-slate-400">:</p>
+                                        </div>
+                                        
+                                        <div className="flex flex-col gap-2 w-full mt-1">
                                             {/* Header Row */}
-                                            <div className="grid grid-cols-[1fr_20px_1fr_20px_1fr_80px_100px_40px] gap-3 items-center px-1">
-                                                <span className="text-[11px] font-bold text-slate-500 uppercase">Length</span>
+                                            <div className="grid grid-cols-[1fr_12px_1fr_12px_1fr_40px_35px_20px] gap-1.5 items-center px-1">
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase text-center">L</span>
                                                 <span></span>
-                                                <span className="text-[11px] font-bold text-slate-500 uppercase">Width</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase text-center">W</span>
                                                 <span></span>
-                                                <span className="text-[11px] font-bold text-slate-500 uppercase">Height</span>
-                                                <span className="text-[11px] font-bold text-slate-500 uppercase">Quantity</span>
-                                                <span className="text-[11px] font-bold text-slate-500 uppercase">Unit</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase text-center">H</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase text-center">Qty</span>
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase text-center">Unit</span>
                                                 <span></span>
                                             </div>
                                             
                                             {formData.dimensions.map((dim, index) => (
-                                                <div key={dim.id} className="grid grid-cols-[1fr_20px_1fr_20px_1fr_80px_100px_40px] gap-3 items-center">
-                                                    <div className="text-[14px] font-bold text-slate-800 min-h-[36px] flex items-center py-1">{dim.length || '--'}</div>
-                                                    <span className="font-bold text-slate-400 text-center">×</span>
-                                                    <div className="text-[14px] font-bold text-slate-800 min-h-[36px] flex items-center py-1">{dim.width || '--'}</div>
-                                                    <span className="font-bold text-slate-400 text-center">×</span>
-                                                    <div className="text-[14px] font-bold text-slate-800 min-h-[36px] flex items-center py-1">{dim.height || '--'}</div>
+                                                <div key={dim.id} className="grid grid-cols-[1fr_12px_1fr_12px_1fr_40px_35px_20px] gap-1.5 items-center group">
+                                                    <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-slate-50 py-1 rounded">{dim.length || '--'}</div>
+                                                    <span className="font-bold text-slate-400 text-center text-[12px]">×</span>
+                                                    <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-slate-50 py-1 rounded">{dim.width || '--'}</div>
+                                                    <span className="font-bold text-slate-400 text-center text-[12px]">×</span>
+                                                    <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-slate-50 py-1 rounded">{dim.height || '--'}</div>
                                                     
-                                                    <div className="text-[14px] font-bold text-slate-800 min-h-[36px] flex items-center py-1">{dim.qty || '--'}</div>
+                                                    <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-indigo-50 py-1 rounded">{dim.qty || '--'}</div>
                                                     
-                                                    <div className="text-[14px] font-bold text-slate-800 min-h-[36px] flex items-center py-1">{dim.unit || '--'}</div>
-
-                                                    <div className="flex justify-center"></div>
+                                                    <div className="text-[11px] font-bold text-slate-500 flex items-center justify-center">{dim.unit || '--'}</div>
+                                                    
+                                                    <button 
+                                                        onClick={() => removeDimension(dim.id)}
+                                                        className="text-slate-300 hover:text-red-500 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"
+                                                        title="Remove dimension"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
                                                 </div>
                                             ))}
-                                            {/* Read-only dimensions list ends */}
+                                            {formData.dimensions.length === 0 && (
+                                                <div className="text-[13px] text-slate-400 font-normal italic">Not specified</div>
+                                            )}
                                         </div>
-                                    </ViewField>
+                                    </div>
+                                </div>
 
-                                    <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6 mt-2 pt-4 border-t border-slate-100">
+                                <div className="col-span-1 lg:col-span-3 grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-6 mt-1 border-t border-slate-100">
                                         {/* Load Characteristics */}
                                         <div>
                                             <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
@@ -374,7 +417,7 @@ export default function ViewRequestForm() {
                                                 {formData.perishable ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Perishable</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Perishable</span>}
                                             </div>
                                         </div>
-                                        
+
                                         {/* Additional Services */}
                                         <div>
                                             <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
@@ -395,16 +438,15 @@ export default function ViewRequestForm() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         )}
 
                         {/* 6 & 9. Preferences */}
                         {activeTab === 'preferences' && (
                             <div className="space-y-3 animate-in fade-in duration-300">
-                                <div className="grid grid-cols-1 gap-y-4">
-                                    <TabHeader title="Budget & Preferences" icon={DollarSign} />
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 pt-2">
+                                <div className="grid grid-cols-1">
+                                    <TabHeader title="Budget & Preferences" icon={DollarSign} className="mb-2" />
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
                                         {/* Budget & Expiration */}
                                         <div>
                                             <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
@@ -425,7 +467,7 @@ export default function ViewRequestForm() {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* Quote Preferences */}
                                         <div>
                                             <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
@@ -435,7 +477,7 @@ export default function ViewRequestForm() {
                                             <div className="flex flex-col gap-y-3.5  h-[calc(100%-28px)]">
                                                 {formData.allowNegotiation ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Allow Price Negotiation</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Allow Price Negotiation</span>}
                                                 {formData.receiveMultiple ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Receive Multiple Quotes</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Receive Multiple Quotes</span>}
-                                                
+
                                                 <div className="mt-auto pt-4 flex gap-2 items-start text-[11px] text-slate-500 border-t border-slate-200">
                                                     <AlertCircle size={14} className="text-indigo-500 shrink-0 mt-0.5" />
                                                     <p>Allowing multiple quotes and price negotiation ensures you receive the most competitive offers from suppliers.</p>
@@ -452,8 +494,8 @@ export default function ViewRequestForm() {
                             <div className="space-y-3 animate-in fade-in duration-300">
                                 <div className="grid grid-cols-1 gap-y-2">
                                     <TabHeader title="Attachments & Notes" icon={Paperclip} />
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-2">
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                                         {/* Notes & Instructions */}
                                         <div>
                                             <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-3">
@@ -475,7 +517,7 @@ export default function ViewRequestForm() {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* File Uploads */}
                                         <div>
                                             <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-3">
@@ -529,20 +571,20 @@ export default function ViewRequestForm() {
                         {activeTab === 'review' && (
                             <div className="space-y-4 animate-in fade-in duration-300">
                                 <TabHeader title="Review & Submit" icon={CheckCircle2} />
-                                
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-3">
                                     {/* Left: Detailed Summary (Compact) */}
                                     <div className="lg:col-span-2 space-y-4">
                                         <div className="bg-slate-50 border border-slate-200 rounded-md p-5">
                                             <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-200">
                                                 <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
-                                                    <FileText size={16} className="text-indigo-600"/> Request Summary
+                                                    <FileText size={16} className="text-indigo-600" /> Request Summary
                                                 </h3>
                                                 <span className="text-[12px] font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
                                                     {formData.requestTitle || 'REQ-9824'}
                                                 </span>
                                             </div>
-                                            
+
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
                                                 <div>
                                                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Shipment Type</p>
@@ -556,22 +598,22 @@ export default function ViewRequestForm() {
                                                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Priority</p>
                                                     <p className="text-[13px] font-bold text-amber-600 mt-1">{formData.priority || '--'}</p>
                                                 </div>
-                                                
+
                                                 <div className="col-span-2 md:col-span-3 border-t border-slate-200 my-1 pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <div className="bg-white p-3 rounded border border-slate-100 shadow-sm">
-                                                        <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5"><MapPin size={12}/> Pickup Details</p>
+                                                        <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5"><MapPin size={12} /> Pickup Details</p>
                                                         <p className="text-[13px] font-bold text-slate-900 mt-2">{formData.pickupCity || 'City Not Set'}</p>
                                                         <p className="text-[12px] text-slate-500 mt-0.5">Date: {formData.pickupDate || '--'}</p>
                                                     </div>
                                                     <div className="bg-white p-3 rounded border border-slate-100 shadow-sm">
-                                                        <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5"><MapPin size={12}/> Delivery Details</p>
+                                                        <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5"><MapPin size={12} /> Delivery Details</p>
                                                         <p className="text-[13px] font-bold text-slate-900 mt-2">{formData.deliveryCity || 'City Not Set'}</p>
                                                         <p className="text-[12px] text-slate-500 mt-0.5">Date: {formData.deliveryDate || '--'}</p>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="col-span-2 md:col-span-3 border-t border-slate-200 my-1 pt-4">
-                                                    <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5 mb-3"><Truck size={12}/> Load Information</p>
+                                                    <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5 mb-3"><Truck size={12} /> Load Information</p>
                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white p-3 rounded border border-slate-100 shadow-sm">
                                                         <div><p className="text-[11px] font-bold text-slate-400 uppercase">Vehicle</p><p className="text-[13px] font-bold text-slate-800 mt-1">{formData.vehicleType || '--'}</p></div>
                                                         <div><p className="text-[11px] font-bold text-slate-400 uppercase">Load Type</p><p className="text-[13px] font-bold text-slate-800 mt-1">{formData.loadType || '--'}</p></div>
@@ -589,17 +631,17 @@ export default function ViewRequestForm() {
                                             <div className="bg-slate-800 p-4 border-b border-slate-700">
                                                 <h3 className="text-[14px] font-bold text-white text-center">Ready to Submit</h3>
                                             </div>
-                                            
+
                                             <div className="p-5 space-y-4">
                                                 <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                                                     <span className="text-[13px] text-slate-500 font-medium">Est. Distance</span>
-                                                    <span className="text-[13px] font-bold text-slate-900">-- km</span>
+                                                    <span className="text-[13px] font-bold text-slate-900">{formData.estDistance ? `${formData.estDistance} km` : '-- km'}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                                                     <span className="text-[13px] text-slate-500 font-medium">Expected Budget</span>
                                                     <span className="text-[15px] font-bold text-emerald-600">{formData.budget ? `${formData.currency} ${formData.budget}` : '--'}</span>
                                                 </div>
-                                                
+
                                                 <div className="pt-2 flex flex-col gap-3">
                                                     <Button variant="primary" className="w-full h-[36px] text-[14px]">
                                                         <Send size={16} className="mr-2" /> Submit Request
@@ -608,7 +650,7 @@ export default function ViewRequestForm() {
                                                         <Save size={16} className="mr-2" /> Save as Draft
                                                     </Button>
                                                 </div>
-                                                
+
                                                 <div className="mt-4 bg-amber-50 border border-amber-100 rounded p-3 flex gap-2">
                                                     <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
                                                     <p className="text-[11px] text-amber-700 font-medium leading-tight">
