@@ -4,7 +4,7 @@ import {
     LineChart, Line, Legend
 } from 'recharts';
 import { 
-    DollarSign, FileText, Package, CreditCard, Star,
+    Euro, FileText, Package, CreditCard, Star,
     TrendingUp, Activity, Truck, Bell, Wallet
 } from 'lucide-react';
 import Select from '@/components/ui/select';
@@ -76,12 +76,12 @@ const notificationList = [
     { icon: FileText, text: 'New quote request QR-7845 received', bg: 'bg-purple-100', color: 'text-purple-600', time: '10 min' },
     { icon: Package, text: 'Your quote for QR-7842 was accepted', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '1 hr' },
     { icon: Truck, text: 'ORD-1254 status changed to In Transit', bg: 'bg-blue-100', color: 'text-blue-600', time: '2 hrs' },
-    { icon: DollarSign, text: 'Payment of €1,250 received', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '5 hrs' },
+    { icon: Euro, text: 'Payment of €1,250 received', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '5 hrs' },
     { icon: FileText, text: 'New quote request QR-7842 received', bg: 'bg-purple-100', color: 'text-purple-600', time: '1 day' },
     { icon: Bell, text: 'Customer asked a question on QR-7840', bg: 'bg-amber-100', color: 'text-amber-600', time: '1 day' },
     { icon: Package, text: 'Your quote for QR-7839 was rejected', bg: 'bg-rose-100', color: 'text-rose-600', time: '2 days' },
     { icon: Truck, text: 'ORD-1249 marked as Delivered', bg: 'bg-blue-100', color: 'text-blue-600', time: '3 days' },
-    { icon: DollarSign, text: 'Payment of €450 received', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '3 days' },
+    { icon: Euro, text: 'Payment of €450 received', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '3 days' },
     { icon: Star, text: 'You received a 5-star review', bg: 'bg-amber-100', color: 'text-amber-600', time: '1 week' }
 ];
 
@@ -111,7 +111,7 @@ export default function Dashboard() {
                     title="Total Earnings" 
                     description="View your recent and lifetime earnings overview." 
                     value="€24,580"
-                    icon={DollarSign}
+                    icon={Euro}
                     colorClass="bg-blue-50 text-blue-600"
                 />
                 <MetricCard 

@@ -20,12 +20,12 @@ export default function Negotiation() {
     { 
       id: 'originalAmount', 
       label: 'Original Quote', 
-      render: (row) => <span className="whitespace-nowrap text-slate-400 line-through">BDT {row.originalAmount.toLocaleString()}</span> 
+      render: (row) => <span className="whitespace-nowrap text-slate-400 line-through">€ {row.originalAmount.toLocaleString()}</span> 
     },
     { 
       id: 'yourOffer', 
       label: 'Current Offer', 
-      render: (row) => <span className="whitespace-nowrap text-emerald-600">BDT {row.yourOffer.toLocaleString()}</span>
+      render: (row) => <span className="whitespace-nowrap text-emerald-600">€ {row.yourOffer.toLocaleString()}</span>
     },
     { 
       id: 'savings', 

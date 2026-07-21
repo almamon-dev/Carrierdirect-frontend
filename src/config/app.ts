@@ -5,7 +5,7 @@ export const APP_CONFIG = {
     defaultLanguage: 'en',
     currency: {
         code: 'USD',
-        symbol: '$',
+        symbol: '€',
         position: 'left' // 'left' or 'right'
     },
     date: {

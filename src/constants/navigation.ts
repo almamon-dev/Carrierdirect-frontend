@@ -1,16 +1,8 @@
 import { 
-    LayoutDashboard, Users, ShoppingCart, Package, 
-    FileText, Settings, Briefcase, Calculator, PieChart,
-    FolderKanban, Receipt, Truck, Building2, Brain,
-    Calendar, FileBarChart, HandCoins, UserCircle,
-    UserPlus, Boxes, FileSpreadsheet, Map, ClipboardList, ShieldCheck,
-    Network, Globe, Mail, Webhook, HardDrive, Lock, RefreshCcw, CreditCard,
-    Bell, Headphones, Key, Activity, Clock, Shield, Database, Phone, CheckCircle,
-    RotateCcw, Tags, Layers, Home, Target, Share2, FileCheck, Smartphone, DollarSign,
-    Languages, Cloud, MessageSquare, Link, Workflow, ListTree, Zap, TrendingUp,
-    ListPlus, TextCursorInput, FileCode, MapPin, FolderOpen, UploadCloud, Image, Printer,
-    Bot, TerminalSquare, Gauge, Cpu, Type, Wrench, ListOrdered, Timer, Terminal, Server,
-    AlertTriangle, LineChart, ShieldAlert
+    LayoutDashboard, Users, ShoppingCart, Package,
+    FileText, Settings, Briefcase, Calculator, PieChart, Receipt, Truck, Building2, Brain,
+    Calendar, FileBarChart, HandCoins, UserCircle, UserPlus, Boxes, FileSpreadsheet, Map, ClipboardList, ShieldCheck,
+    Network, Globe, Mail, Webhook, HardDrive, Lock, RefreshCcw, CreditCard, Bell, Key, Activity, Clock, Shield, Database, Phone, CheckCircle, RotateCcw, Tags, Layers, Home, Target, FileCheck, Smartphone, Euro, Languages, Cloud, MessageSquare, Link, Workflow, ListTree, Zap, TrendingUp, ListPlus, TextCursorInput, FileCode, MapPin, FolderOpen, UploadCloud, Image, Printer, Bot, TerminalSquare, Gauge, Cpu, Type, Wrench, ListOrdered, Timer, Terminal, Server, AlertTriangle, LineChart, ShieldAlert
 } from 'lucide-react';
 
 export const navigationMap: Record<string, any[]> = {
@@ -135,7 +127,7 @@ export const navigationMap: Record<string, any[]> = {
                 { name: 'States', path: '/administration/master-data/states', icon: MapPin },
                 { name: 'Cities', path: '/administration/master-data/cities', icon: Map },
                 { name: 'Time Zones', path: '/administration/master-data/timezones', icon: Clock },
-                { name: 'Currencies', path: '/administration/master-data/currencies', icon: DollarSign },
+                { name: 'Currencies', path: '/administration/master-data/currencies', icon: Euro },
             ]
         },
         {
@@ -179,7 +171,7 @@ export const navigationMap: Record<string, any[]> = {
             items: [
                 { name: 'Languages', path: '/administration/localization/languages', icon: Languages },
                 { name: 'Translations', path: '/administration/localization/translations', icon: Type },
-                { name: 'Currency', path: '/administration/localization/currency', icon: DollarSign },
+                { name: 'Currency', path: '/administration/localization/currency', icon: Euro },
                 { name: 'Date Formats', path: '/administration/localization/date-formats', icon: Calendar },
                 { name: 'Time Zones', path: '/administration/localization/time-zones', icon: Clock },
             ]
@@ -304,7 +296,6 @@ export const navigationMap: Record<string, any[]> = {
             items: [
                 { name: 'Active Jobs', path: '/supplier/orders/active-jobs', icon: Activity },
                 { name: 'POD', path: '/supplier/orders/pod', icon: FileCheck },
-                { name: 'Details', path: '/supplier/orders/details', icon: FileText },
             ]
         },
         {
@@ -312,16 +303,23 @@ export const navigationMap: Record<string, any[]> = {
             group: 'Availability',
             icon: Calendar,
             items: [
+                { name: 'Dashboard', path: '/supplier/availability/dashboard', icon: LayoutDashboard },
                 { name: 'Calendar', path: '/supplier/availability/calendar', icon: Calendar },
+                { name: 'Availability Schedule', path: '/supplier/availability/schedule', icon: Calendar },
                 { name: 'Routes', path: '/supplier/availability/routes', icon: Map },
-                { name: 'Create Availability', path: '/supplier/availability/create', icon: Calendar },
+                { name: 'Drivers Availability', path: '/supplier/availability/drivers', icon: UserCircle },
+                { name: 'Vehicles Availability', path: '/supplier/availability/vehicles', icon: Truck },
+                { name: 'Blackout Dates', path: '/supplier/availability/blackout-dates', icon: Calendar },
+                { name: 'Time Slots', path: '/supplier/availability/time-slots', icon: Clock },
+                { name: 'Capacity Management', path: '/supplier/availability/capacity', icon: PieChart },
+                { name: 'Settings', path: '/supplier/availability/settings', icon: Settings },
             ]
         },
-        { category: 'Main Menu', name: 'Employee Management', path: '/supplier/employees', icon: Users },
+        { category: 'Main Menu', name: 'Team Management', path: '/supplier/team', icon: Users },
         {
             category: 'Main Menu',
             group: 'Finance',
-            icon: DollarSign,
+            icon: Euro,
             items: [
                 { name: 'Earnings', path: '/supplier/finance/earnings', icon: HandCoins },
                 { name: 'Withdrawal', path: '/supplier/finance/withdrawal', icon: CreditCard },
@@ -350,13 +348,12 @@ export const navigationMap: Record<string, any[]> = {
             icon: Package,
             items: [
                 { name: 'Orders', path: '/customer/orders', icon: Package },
-                { name: 'Details', path: '/customer/orders/details', icon: FileText },
             ]
         },
         {
             category: 'Main Menu',
             group: 'Finance',
-            icon: DollarSign,
+            icon: Euro,
             items: [
                 { name: 'Billing', path: '/customer/finance/billing', icon: Receipt },
                 { name: 'Invoices', path: '/customer/finance/invoices', icon: FileText },

@@ -83,8 +83,8 @@ export default function InvoiceView() {
                                 <div className="w-8 text-center text-slate-400 font-medium">{item.id}</div>
                                 <div className="flex-1 font-medium text-slate-800">{item.desc}</div>
                                 <div className="w-16 text-center text-slate-600">{item.qty}</div>
-                                <div className="w-24 text-right text-slate-600">BDT {item.rate}</div>
-                                <div className="w-24 text-right font-bold text-slate-900">BDT {item.amount}</div>
+                                <div className="w-24 text-right text-slate-600">€ {item.rate}</div>
+                                <div className="w-24 text-right font-bold text-slate-900">€ {item.amount}</div>
                             </div>
                         ))}
                     </div>
@@ -96,19 +96,19 @@ export default function InvoiceView() {
                         <div className="space-y-1 text-[10.5px]">
                             <div className="flex justify-between text-slate-600">
                                 <span>Subtotal:</span>
-                                <span className="font-medium text-slate-900">BDT 22,500</span>
+                                <span className="font-medium text-slate-900">€ 22,500</span>
                             </div>
                             <div className="flex justify-between text-slate-600">
                                 <span>Discount:</span>
-                                <span className="font-medium text-slate-900">BDT 0</span>
+                                <span className="font-medium text-slate-900">€ 0</span>
                             </div>
                             <div className="flex justify-between text-slate-600">
                                 <span>VAT (15%):</span>
-                                <span className="font-medium text-slate-900">BDT 3,375</span>
+                                <span className="font-medium text-slate-900">€ 3,375</span>
                             </div>
                             <div className="flex justify-between items-end pt-1.5 mt-1.5 border-t border-slate-200">
                                 <span className="text-[11px] font-bold text-slate-900">Total Amount:</span>
-                                <span className="text-[14px] font-black text-indigo-600 leading-none">BDT 25,875</span>
+                                <span className="text-[14px] font-black text-indigo-600 leading-none">€ 25,875</span>
                             </div>
                         </div>
                     </div>

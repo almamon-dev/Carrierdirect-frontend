@@ -6,8 +6,8 @@ import Button from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const mockData = [
-  { id: 'ORD-5591', route: { from: 'Dhaka', to: 'Chittagong' }, supplier: 'Global Transport', driverName: 'Rahim Uddin', driverPhone: '01711-223344', vehicleNo: 'DHA-11-2233', amount: 'BDT 120,000', estArrival: '2026-07-26 10:00 AM', status: 'Assigned Driver' },
-  { id: 'ORD-5582', route: { from: 'Sylhet', to: 'Rajshahi' }, supplier: 'Express Logistics BD', driverName: 'Karim Hasan', driverPhone: '01811-998877', vehicleNo: 'SYL-14-5544', amount: 'BDT 45,000', estArrival: '2026-07-22 06:00 PM', status: 'In Transit' },
+  { id: 'ORD-5591', route: { from: 'Dhaka', to: 'Chittagong' }, supplier: 'Global Transport', driverName: 'Rahim Uddin', driverPhone: '01711-223344', vehicleNo: 'DHA-11-2233', amount: '€ 120,000', estArrival: '2026-07-26 10:00 AM', status: 'Assigned Driver' },
+  { id: 'ORD-5582', route: { from: 'Sylhet', to: 'Rajshahi' }, supplier: 'Express Logistics BD', driverName: 'Karim Hasan', driverPhone: '01811-998877', vehicleNo: 'SYL-14-5544', amount: '€ 45,000', estArrival: '2026-07-22 06:00 PM', status: 'In Transit' },
 ];
 
 export default function Processing() {

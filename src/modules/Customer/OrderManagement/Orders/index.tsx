@@ -6,10 +6,10 @@ import Button from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const mockData = [
-  { id: 'ORD-5591', date: '2026-07-18', deliveryDate: '2026-07-20', route: 'Dhaka → Chittagong', supplier: 'Global Transport', vehicle: 'Covered Van (14ft)', amount: 'BDT 45,000', status: 'Completed', paymentStatus: 'Paid' },
-  { id: 'ORD-5582', date: '2026-07-15', deliveryDate: '2026-07-16', route: 'Sylhet → Rajshahi', supplier: 'Express Logistics BD', vehicle: 'Open Truck (7ft)', amount: 'BDT 32,500', status: 'Completed', paymentStatus: 'Paid' },
-  { id: 'ORD-5570', date: '2026-07-10', deliveryDate: '-', route: 'Khulna → Dhaka', supplier: 'Prime Movers', vehicle: 'Covered Van (20ft)', amount: 'BDT 28,000', status: 'Cancelled', paymentStatus: 'Refunded' },
-  { id: 'ORD-5595', date: '2026-07-20', deliveryDate: 'Est: 2026-07-22', route: 'Barisal → Sylhet', supplier: 'Fast Track BD', vehicle: 'Trailer (40ft)', amount: 'BDT 55,000', status: 'In Transit', paymentStatus: 'Partial Due' },
+  { id: 'ORD-5591', date: '2026-07-18', deliveryDate: '2026-07-20', route: 'Dhaka → Chittagong', supplier: 'Global Transport', vehicle: 'Covered Van (14ft)', amount: '€ 45,000', status: 'Completed', paymentStatus: 'Paid' },
+  { id: 'ORD-5582', date: '2026-07-15', deliveryDate: '2026-07-16', route: 'Sylhet → Rajshahi', supplier: 'Express Logistics BD', vehicle: 'Open Truck (7ft)', amount: '€ 32,500', status: 'Completed', paymentStatus: 'Paid' },
+  { id: 'ORD-5570', date: '2026-07-10', deliveryDate: '-', route: 'Khulna → Dhaka', supplier: 'Prime Movers', vehicle: 'Covered Van (20ft)', amount: '€ 28,000', status: 'Cancelled', paymentStatus: 'Refunded' },
+  { id: 'ORD-5595', date: '2026-07-20', deliveryDate: 'Est: 2026-07-22', route: 'Barisal → Sylhet', supplier: 'Fast Track BD', vehicle: 'Trailer (40ft)', amount: '€ 55,000', status: 'In Transit', paymentStatus: 'Partial Due' },
 ];
 
 export default function Orders() {
@@ -49,7 +49,7 @@ export default function Orders() {
         variant="outline" 
         size="sm" 
         className="h-7 w-7 p-0 text-slate-600 border-slate-200 hover:bg-slate-50" 
-        onClick={() => navigate(`/customer/orders/details`)}
+        onClick={() => navigate(`/customer/orders/${row.id}`, { state: { orderData: row } })}
         title="View Details"
       >
         <Eye size={14} />
@@ -59,7 +59,7 @@ export default function Orders() {
         size="sm" 
         className="h-7 w-7 p-0" 
         disabled={row.status !== 'Completed'}
-        onClick={() => navigate(`/customer/orders/details`)}
+        onClick={() => navigate(`/customer/orders/${row.id}`, { state: { orderData: row } })}
         title="Download Invoice"
       >
         <FileText size={14} />

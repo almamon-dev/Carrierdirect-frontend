@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
     ArrowLeft, Save, Send, MapPin, Truck, Box, FileText, Paperclip, 
-    DollarSign, Settings, CheckCircle2, ChevronRight, Activity, AlertCircle, Plus, Trash2 
+    Euro, Settings, CheckCircle2, ChevronRight, Activity, AlertCircle, Plus, Trash2 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/components/ui/button';
@@ -25,7 +25,7 @@ const CREATE_TABS = [
     { id: 'general', label: 'Basic Information', icon: FileText },
     { id: 'locations', label: 'Pickup & Delivery', icon: MapPin },
     { id: 'load', label: 'Load & Services', icon: Truck },
-    { id: 'preferences', label: 'Budget & Preferences', icon: DollarSign },
+    { id: 'preferences', label: 'Budget & Preferences', icon: Euro },
     { id: 'files', label: 'Attachments & Notes', icon: Paperclip },
     { id: 'review', label: 'Review & Submit', icon: CheckCircle2 },
 ];
@@ -94,7 +94,7 @@ export default function EditRequestForm() {
         storage: false,
 
         budget: '25000',
-        currency: 'BDT',
+        currency: '€',
         allowNegotiation: true,
         receiveMultiple: true,
         autoExpire: '48 Hours',
@@ -454,13 +454,13 @@ export default function EditRequestForm() {
                         {activeTab === 'preferences' && (
                             <div className="space-y-3 animate-in fade-in duration-300">
                                 <div className="grid grid-cols-1 gap-y-4">
-                                    <TabHeader title="Budget & Preferences" icon={DollarSign} />
+                                    <TabHeader title="Budget & Preferences" icon={Euro} />
                                     
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 pt-2">
                                         {/* Budget & Expiration */}
                                         <div>
                                             <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
-                                                <DollarSign size={14} className="text-slate-400" />
+                                                <Euro size={14} className="text-slate-400" />
                                                 Budget Details
                                             </h3>
                                             <div className="grid grid-cols-1 gap-y-4 bg-slate-50 p-4 rounded-md border border-slate-200">
@@ -469,7 +469,7 @@ export default function EditRequestForm() {
                                                     <div className="flex gap-2">
                                                         <Input name="budget" value={formData.budget} onChange={handleChange} type="number" placeholder="0.00" />
                                                         <Select name="currency" value={formData.currency} onChange={(e: any) => handleSelectChange('currency', e.target.value)} className="w-[100px]">
-                                                            <option value="BDT">BDT</option>
+                                                            <option value="€">€</option>
                                                             <option value="USD">USD</option>
                                                             <option value="EUR">EUR</option>
                                                         </Select>

@@ -6,9 +6,9 @@ import Button from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const mockData = [
-  { id: 'QT-8821', requestId: 'REQ-9233', supplier: 'Express Logistics BD', rating: 4.8, reviews: 124, vehicle: 'Covered Van (14ft)', transitTime: '2 Days', amount: 'BDT 45,000', validUntil: '2026-07-25', status: 'Pending' },
-  { id: 'QT-8822', requestId: 'REQ-9233', supplier: 'Prime Movers', rating: 4.5, reviews: 89, vehicle: 'Open Truck (16ft)', transitTime: '3 Days', amount: 'BDT 42,500', validUntil: '2026-07-24', status: 'Negotiating' },
-  { id: 'QT-8823', requestId: 'REQ-9230', supplier: 'Global Transport', rating: 4.9, reviews: 312, vehicle: 'Container (20ft)', transitTime: '1 Day', amount: 'BDT 120,000', validUntil: '2026-07-22', status: 'Accepted' },
+  { id: 'QT-8821', requestId: 'REQ-9233', supplier: 'Express Logistics BD', rating: 4.8, reviews: 124, vehicle: 'Covered Van (14ft)', transitTime: '2 Days', amount: '€ 45,000', validUntil: '2026-07-25', status: 'Pending' },
+  { id: 'QT-8822', requestId: 'REQ-9233', supplier: 'Prime Movers', rating: 4.5, reviews: 89, vehicle: 'Open Truck (16ft)', transitTime: '3 Days', amount: '€ 42,500', validUntil: '2026-07-24', status: 'Negotiating' },
+  { id: 'QT-8823', requestId: 'REQ-9230', supplier: 'Global Transport', rating: 4.9, reviews: 312, vehicle: 'Container (20ft)', transitTime: '1 Day', amount: '€ 120,000', validUntil: '2026-07-22', status: 'Accepted' },
 ];
 
 export default function QuotesReceived() {

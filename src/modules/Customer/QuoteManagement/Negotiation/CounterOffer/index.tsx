@@ -14,12 +14,12 @@ export default function CounterOfferMessage({ msg }: { msg: any }) {
                 <div className="bg-slate-50 rounded-xl p-3 mb-4 flex items-center justify-center gap-5">
                     <div className="text-center">
                         <p className="text-[11px] text-slate-500 font-semibold mb-0.5">Previous</p>
-                        <p className="text-[13px] font-bold text-slate-400 line-through">BDT {msg.previousTotal?.toLocaleString()}</p>
+                        <p className="text-[13px] font-bold text-slate-400 line-through">€ {msg.previousTotal?.toLocaleString()}</p>
                     </div>
                     <div className="w-px h-8 bg-slate-200"></div>
                     <div className="text-center">
                         <p className="text-[11px] text-emerald-600 font-bold mb-0.5">New Offer</p>
-                        <p className="text-[15px] font-black text-emerald-600">BDT {msg.newTotal?.toLocaleString()}</p>
+                        <p className="text-[15px] font-black text-emerald-600">€ {msg.newTotal?.toLocaleString()}</p>
                     </div>
                 </div>
 

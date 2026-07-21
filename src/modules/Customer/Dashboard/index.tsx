@@ -4,7 +4,7 @@ import {
     LineChart, Line
 } from 'recharts';
 import { 
-    DollarSign, FileText, Package, CreditCard, Star,
+    Euro, FileText, Package, CreditCard, Star,
     TrendingUp, Activity, Truck, Bell
 } from 'lucide-react';
 import Select from '@/components/ui/select';
@@ -71,12 +71,12 @@ const notificationList = [
     { icon: FileText, text: 'New quote received for REQ-9234', bg: 'bg-purple-100', color: 'text-purple-600', time: '5 min' },
     { icon: Package, text: 'Your booking for REQ-9233 was confirmed', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '30 min' },
     { icon: Truck, text: 'ORD-3354 status changed to In Transit', bg: 'bg-blue-100', color: 'text-blue-600', time: '1 hr' },
-    { icon: DollarSign, text: 'Payment of €900 sent', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '4 hrs' },
+    { icon: Euro, text: 'Payment of €900 sent', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '4 hrs' },
     { icon: FileText, text: 'New quote received for REQ-9232', bg: 'bg-purple-100', color: 'text-purple-600', time: '12 hrs' },
     { icon: Bell, text: 'Supplier asked a question on REQ-9230', bg: 'bg-amber-100', color: 'text-amber-600', time: '1 day' },
     { icon: Package, text: 'Your booking for REQ-9229 was cancelled', bg: 'bg-rose-100', color: 'text-rose-600', time: '2 days' },
     { icon: Truck, text: 'ORD-3349 marked as Delivered', bg: 'bg-blue-100', color: 'text-blue-600', time: '3 days' },
-    { icon: DollarSign, text: 'Payment of €350 sent', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '4 days' },
+    { icon: Euro, text: 'Payment of €350 sent', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '4 days' },
     { icon: Star, text: 'Please rate your recent delivery', bg: 'bg-amber-100', color: 'text-amber-600', time: '1 week' }
 ];
 
@@ -106,7 +106,7 @@ export default function Dashboard() {
                     title="Total Spending" 
                     description="View your recent and lifetime spending overview." 
                     value="€15,400"
-                    icon={DollarSign}
+                    icon={Euro}
                     colorClass="bg-blue-50 text-blue-600"
                 />
                 <MetricCard 

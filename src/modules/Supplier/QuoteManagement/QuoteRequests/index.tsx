@@ -3,6 +3,8 @@ import { Eye, Send, MapPin, Clock, Truck, Box } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
+import Select from '@/components/ui/select';
+import { useNavigate } from 'react-router-dom';
 
 type QuoteRequest = {
     id: string;
@@ -36,7 +38,7 @@ const mockData: QuoteRequest[] = [
         weight: '2,500 KG',
         pickupDate: '22 Jul 2026',
         deliveryDate: '23 Jul 2026',
-        budget: '$450',
+        budget: '€450',
         status: 'New',
         priority: 'High',
         timeRemaining: '02:15:30',
@@ -72,7 +74,7 @@ const mockData: QuoteRequest[] = [
         weight: '5,000 KG',
         pickupDate: '25 Jul 2026',
         deliveryDate: '26 Jul 2026',
-        budget: '$850',
+        budget: '€850',
         status: 'Quoted',
         priority: 'Urgent',
         timeRemaining: '00:45:10',
@@ -90,7 +92,7 @@ const mockData: QuoteRequest[] = [
         weight: '800 KG',
         pickupDate: '19 Jul 2026',
         deliveryDate: '20 Jul 2026',
-        budget: '$300',
+        budget: '€300',
         status: 'Negotiation',
         priority: 'High',
         timeRemaining: '05:30:00',
@@ -108,7 +110,7 @@ const mockData: QuoteRequest[] = [
         weight: '15,000 KG',
         pickupDate: '16 Jul 2026',
         deliveryDate: '17 Jul 2026',
-        budget: '$1,200',
+        budget: '€1,200',
         status: 'Expired',
         priority: 'Low',
         timeRemaining: '00:00:00',
@@ -117,6 +119,8 @@ const mockData: QuoteRequest[] = [
 ];
 
 export default function QuoteRequests() {
+    const navigate = useNavigate();
+
     const columns: Column<QuoteRequest>[] = [
         { 
             id: 'id', 
@@ -146,8 +150,7 @@ export default function QuoteRequests() {
         { 
             id: 'distance', 
             label: 'Distance',
-            render: (row) => <span className="whitespace-nowrap">{row.distance}</span>,
-            defaultHidden: true
+            render: (row) => <span className="whitespace-nowrap">{row.distance}</span>
         },
         { 
             id: 'vehicleType', 
@@ -178,8 +181,8 @@ export default function QuoteRequests() {
         },
         { 
             id: 'budget', 
-            label: 'Budget',
-            render: (row) => <span className="whitespace-nowrap font-bold text-emerald-600">{row.budget}</span>
+            label: 'Budget (Initial)',
+            render: (row) => row.budget && row.budget !== '-' ? <span className="whitespace-nowrap font-bold text-emerald-600">{row.budget}</span> : <span className="text-slate-400 italic text-xs">Not specified</span>
         },
         { 
             id: 'status', 
@@ -224,14 +227,89 @@ export default function QuoteRequests() {
 
     const renderActions = (row: QuoteRequest) => (
         <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-7 px-2">
+            <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-7 px-2"
+                onClick={() => navigate('/supplier/quotes/submit')}
+            >
                 <Eye size={14} className="mr-1" /> View
             </Button>
             {row.status !== 'Expired' && (
-                <Button variant="primary" size="sm" className="h-7 px-2">
+                <Button 
+                    variant="primary" 
+                    size="sm" 
+                    className="h-7 px-2"
+                    onClick={() => navigate('/supplier/quotes/submit')}
+                >
                     <Send size={14} className="mr-1" /> Quote
                 </Button>
             )}
+        </div>
+    );
+
+    const filterContent = (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 py-2">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Sort By</label>
+                <Select value="newest" showSearch={false}>
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="nearest">Nearest Location</option>
+                    <option value="price_high">Highest Price (Budget)</option>
+                    <option value="price_low">Lowest Price (Budget)</option>
+                </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Status</label>
+                <Select value="all" showSearch={false}>
+                    <option value="all">All Statuses</option>
+                    <option value="new">New</option>
+                    <option value="viewed">Viewed</option>
+                    <option value="quoted">Quoted</option>
+                    <option value="negotiation">Negotiation</option>
+                </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Vehicle Type</label>
+                <Select value="all" showSearch={false}>
+                    <option value="all">All Vehicles</option>
+                    <option value="covered_van">Covered Van</option>
+                    <option value="open_truck">Open Truck</option>
+                    <option value="refrigerated">Refrigerated Van</option>
+                    <option value="trailer">Trailer</option>
+                </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Load Type</label>
+                <Select value="all" showSearch={false}>
+                    <option value="all">All Types</option>
+                    <option value="pallet">Pallet / Box</option>
+                    <option value="fragile">Fragile</option>
+                    <option value="machinery">Machinery</option>
+                    <option value="container">Containers</option>
+                </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Pickup Area</label>
+                <Select value="all" showSearch={true}>
+                    <option value="all">Any Location</option>
+                    <option value="dhaka">Dhaka</option>
+                    <option value="chittagong">Chittagong</option>
+                    <option value="sylhet">Sylhet</option>
+                    <option value="khulna">Khulna</option>
+                </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Delivery Area</label>
+                <Select value="all" showSearch={true}>
+                    <option value="all">Any Location</option>
+                    <option value="dhaka">Dhaka</option>
+                    <option value="chittagong">Chittagong</option>
+                    <option value="sylhet">Sylhet</option>
+                    <option value="khulna">Khulna</option>
+                </Select>
+            </div>
         </div>
     );
 
@@ -245,11 +323,12 @@ export default function QuoteRequests() {
             </div>
 
             <DataTable 
-                key="quote_requests_list_v7"
-                tableId="quote_requests_list_v7"
+                key="quote_requests_list_v9"
+                tableId="quote_requests_list_v9"
                 data={mockData} 
                 columns={columns} 
                 actions={renderActions}
+                filterContent={filterContent}
                 keyExtractor={(item) => item.id}
                 searchPlaceholder="Search by ID, Customer, Location..."
                 compact={true}

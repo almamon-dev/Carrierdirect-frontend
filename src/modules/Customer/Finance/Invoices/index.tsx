@@ -6,10 +6,10 @@ import Button from '@/components/ui/button';
 import InvoiceView from './View';
 
 const mockData = [
-  { id: 'INV-2026-001', date: '2026-07-01', dueDate: '2026-07-15', amount: 'BDT 45,000', status: 'Paid' },
-  { id: 'INV-2026-002', date: '2026-07-05', dueDate: '2026-07-20', amount: 'BDT 32,500', status: 'Paid' },
-  { id: 'INV-2026-003', date: '2026-07-18', dueDate: '2026-07-30', amount: 'BDT 25,500', status: 'Due' },
-  { id: 'INV-2026-004', date: '2026-06-25', dueDate: '2026-07-10', amount: 'BDT 15,000', status: 'Overdue' },
+  { id: 'INV-2026-001', date: '2026-07-01', dueDate: '2026-07-15', amount: '€ 45,000', status: 'Paid' },
+  { id: 'INV-2026-002', date: '2026-07-05', dueDate: '2026-07-20', amount: '€ 32,500', status: 'Paid' },
+  { id: 'INV-2026-003', date: '2026-07-18', dueDate: '2026-07-30', amount: '€ 25,500', status: 'Due' },
+  { id: 'INV-2026-004', date: '2026-06-25', dueDate: '2026-07-10', amount: '€ 15,000', status: 'Overdue' },
 ];
 
 export default function Invoices() {

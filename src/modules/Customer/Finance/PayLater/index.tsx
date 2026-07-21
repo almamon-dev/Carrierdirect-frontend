@@ -5,9 +5,9 @@ import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 
 const mockData = [
-  { id: 'PL-5591', date: '2026-07-01', dueDate: '2026-07-30', amount: 'BDT 45,000', status: 'Pending' },
-  { id: 'PL-5582', date: '2026-06-15', dueDate: '2026-07-15', amount: 'BDT 32,500', status: 'Cleared' },
-  { id: 'PL-5570', date: '2026-05-10', dueDate: '2026-06-10', amount: 'BDT 28,000', status: 'Overdue' },
+  { id: 'PL-5591', date: '2026-07-01', dueDate: '2026-07-30', amount: '€ 45,000', status: 'Pending' },
+  { id: 'PL-5582', date: '2026-06-15', dueDate: '2026-07-15', amount: '€ 32,500', status: 'Cleared' },
+  { id: 'PL-5570', date: '2026-05-10', dueDate: '2026-06-10', amount: '€ 28,000', status: 'Overdue' },
 ];
 
 export default function PayLater() {
@@ -47,12 +47,12 @@ export default function PayLater() {
         <div className="flex items-center gap-4 bg-white border border-slate-200 px-3.5 py-2 rounded-lg shadow-sm">
            <div>
                <p className="text-[10px] font-medium text-slate-500 mb-0.5">Credit Limit</p>
-               <p className="text-[13.5px] font-bold text-slate-900">BDT 1,00,000</p>
+               <p className="text-[13.5px] font-bold text-slate-900">€ 1,00,000</p>
            </div>
            <div className="w-px h-7 bg-slate-200 mx-1"></div>
            <div>
                <p className="text-[10px] font-medium text-slate-500 mb-0.5">Available Balance</p>
-               <p className="text-[13.5px] font-bold text-emerald-600">BDT 55,000</p>
+               <p className="text-[13.5px] font-bold text-emerald-600">€ 55,000</p>
            </div>
         </div>
       </div>

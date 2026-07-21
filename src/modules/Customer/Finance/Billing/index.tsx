@@ -170,7 +170,7 @@ export default function Billing() {
                         <div className="relative z-10">
                             <span className="block text-[10.5px] font-semibold text-slate-500 mb-1">Total Due Amount</span>
                             <div className="flex items-end gap-1.5 mb-3">
-                                <span className="text-[24px] font-black text-rose-600 leading-none">BDT 25,500</span>
+                                <span className="text-[24px] font-black text-rose-600 leading-none">€ 25,500</span>
                             </div>
 
                             <div className="flex items-center justify-between text-[11.5px] mb-4 bg-slate-50 p-2 rounded border border-slate-100">
@@ -191,22 +191,22 @@ export default function Billing() {
                         <div className="space-y-2 mb-3">
                             <div className="flex justify-between items-center text-[11.5px]">
                                 <span className="text-slate-500 font-medium">Plan Fee (Monthly)</span>
-                                <span className="font-bold text-slate-800">BDT 5,000</span>
+                                <span className="font-bold text-slate-800">€ 5,000</span>
                             </div>
                             <div className="flex justify-between items-center text-[11.5px]">
                                 <span className="text-slate-500 font-medium">Additional Services</span>
-                                <span className="font-bold text-slate-800">BDT 0</span>
+                                <span className="font-bold text-slate-800">€ 0</span>
                             </div>
                             <div className="flex justify-between items-center text-[11.5px]">
                                 <span className="text-slate-500 font-medium">VAT/Tax (15%)</span>
-                                <span className="font-bold text-slate-800">BDT 750</span>
+                                <span className="font-bold text-slate-800">€ 750</span>
                             </div>
                         </div>
 
                         <div className="mt-auto">
                             <div className="flex justify-between items-end pt-3 border-t border-slate-100 mb-3">
                                 <span className="text-[11.5px] font-bold text-slate-800">Estimated Total</span>
-                                <span className="text-[16px] font-black text-slate-900 leading-none">BDT 5,750</span>
+                                <span className="text-[16px] font-black text-slate-900 leading-none">€ 5,750</span>
                             </div>
                             <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
                                 <p className="text-[10px] font-medium text-slate-500  tracking-wide">Next Invoice: Aug 10, 2026</p>
@@ -242,9 +242,9 @@ export default function Billing() {
 
                         <div className="space-y-0">
                             {[
-                                { id: 'INV-2026-07', date: '2026-07-10', plan: 'Enterprise Shipper - Monthly', period: 'Jul 1 - Jul 31', method: '•••• 4242', methodType: 'visa', amount: 'BDT 5,750', status: 'Paid' },
-                                { id: 'INV-2026-06', date: '2026-06-10', plan: 'Enterprise Shipper - Monthly', period: 'Jun 1 - Jun 30', method: '01711•••344', methodType: 'bkash', amount: 'BDT 5,750', status: 'Pending' },
-                                { id: 'INV-2026-05', date: '2026-05-10', plan: 'Enterprise Shipper - Monthly', period: 'May 1 - May 31', method: '•••• 4242', methodType: 'visa', amount: 'BDT 5,750', status: 'Failed' },
+                                { id: 'INV-2026-07', date: '2026-07-10', plan: 'Enterprise Shipper - Monthly', period: 'Jul 1 - Jul 31', method: '•••• 4242', methodType: 'visa', amount: '€ 5,750', status: 'Paid' },
+                                { id: 'INV-2026-06', date: '2026-06-10', plan: 'Enterprise Shipper - Monthly', period: 'Jun 1 - Jun 30', method: '01711•••344', methodType: 'bkash', amount: '€ 5,750', status: 'Pending' },
+                                { id: 'INV-2026-05', date: '2026-05-10', plan: 'Enterprise Shipper - Monthly', period: 'May 1 - May 31', method: '•••• 4242', methodType: 'visa', amount: '€ 5,750', status: 'Failed' },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-4 p-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors rounded-md">
                                     <div className="w-20 shrink-0">

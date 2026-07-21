@@ -16,6 +16,7 @@ export default function NegotiationChat() {
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [inputValue, setInputValue] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
     const [openSections, setOpenSections] = useState({
         overview: false,
         logistics: false,
@@ -36,12 +37,28 @@ export default function NegotiationChat() {
         scrollToBottom();
     }, []);
 
+    const chats = [
+        { id: 1, name: 'Prime Movers', avatar: 'P', preview: 'Prime Movers has submitted a new...', time: '10:30 AM', unread: true, active: true },
+        { id: 2, name: 'Fast Track BD', avatar: 'F', preview: 'We can do it for 32,000 €.', time: 'Yesterday', unread: false, active: false },
+        { id: 3, name: 'Safe Logistics', avatar: 'S', preview: 'Could we discuss the insurance part?', time: 'Tue', unread: false, active: false },
+        { id: 4, name: 'Express Cargo', avatar: 'E', preview: 'Your items have been picked up.', time: 'Mon', unread: true, active: false },
+    ];
+
+    const filteredChats = chats.filter(chat => 
+        chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        chat.preview.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     const messages = [
         { id: 1, type: 'system', text: 'Negotiation started for Quote QT-8822', time: '10:00 AM, Today' },
-        { id: 2, type: 'received', sender: 'Prime Movers', text: 'Hello! I saw your request for reducing the base freight. We can offer a maximum discount of 2,500 BDT.', time: '10:05 AM', avatar: 'P' },
-        { id: 3, type: 'sent', text: 'Hi, thanks for reaching out. 2,500 BDT discount is good, but could we round the total down to 40,000 BDT flat?', time: '10:15 AM' },
-        { id: 4, type: 'received', sender: 'Prime Movers', text: 'Let me check with my manager if we can authorize that. Give me a moment.', time: '10:17 AM', avatar: 'P' },
-        { id: 5, type: 'offer', title: 'New Counter Offer Received', text: 'Prime Movers has submitted a new offer for 40,000 BDT total.', time: '10:30 AM', newTotal: 40000, previousTotal: 42500 }
+        { id: 2, type: 'received', sender: 'Prime Movers', text: 'Hello! I saw your request for reducing the base freight.', time: '10:04 AM', avatar: 'P' },
+        { id: 3, type: 'received', sender: 'Prime Movers', text: 'We can offer a maximum discount of 2,500 €.', time: '10:05 AM', avatar: 'P' },
+        { id: 4, type: 'sent', text: 'Hi, thanks for reaching out.', time: '10:14 AM' },
+        { id: 5, type: 'sent', text: '2,500 € discount is good, but could we round the total down to 40,000 € flat?', time: '10:15 AM' },
+        { id: 6, type: 'sent', text: 'That would really help us close this deal quickly.', time: '10:16 AM' },
+        { id: 7, type: 'received', sender: 'Prime Movers', text: 'Let me check with my manager if we can authorize that.', time: '10:17 AM', avatar: 'P' },
+        { id: 8, type: 'received', sender: 'Prime Movers', text: 'Give me a moment.', time: '10:18 AM', avatar: 'P' },
+        { id: 9, type: 'offer', title: 'New Counter Offer Received', text: 'Prime Movers has submitted a new offer for 40,000 € total.', time: '10:30 AM', newTotal: 40000, previousTotal: 42500 }
     ];
 
     return (
@@ -49,7 +66,7 @@ export default function NegotiationChat() {
             <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-[500px] bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             
             {/* Left Sidebar: Chats List */}
-            <div className="hidden lg:flex lg:col-span-4 xl:col-span-3 flex-col h-full bg-white border-r border-slate-200">
+            <div className="hidden lg:flex lg:col-span-4 xl:col-span-3 flex-col min-h-0 h-full bg-white border-r border-slate-200">
                 <div className="px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 rounded-full hover:bg-slate-100 -ml-2" onClick={() => navigate(-1)}>
@@ -62,7 +79,13 @@ export default function NegotiationChat() {
                 <div className="px-4 pb-2">
                     <div className="relative">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input type="text" placeholder="Search Messenger" className="w-full h-[36px] pl-9 pr-4 text-[13px] bg-slate-100 border-none rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-100 text-slate-700 placeholder-slate-500" />
+                        <input 
+                            type="text" 
+                            placeholder="Search Messenger" 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-[36px] pl-9 pr-4 text-[13px] bg-slate-100 border-none rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-100 text-slate-700 placeholder-slate-500" 
+                        />
                     </div>
                 </div>
 
@@ -72,38 +95,31 @@ export default function NegotiationChat() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-2 mt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    <div className="p-2 rounded-lg bg-indigo-50/50 cursor-pointer flex gap-3 items-center group relative">
-                        <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg shrink-0 relative">
-                            P
-                            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>
+                    {filteredChats.map((chat, idx) => (
+                        <div key={chat.id} className={`p-2 rounded-lg cursor-pointer flex gap-3 items-center group relative ${idx > 0 ? 'mt-1' : ''} ${chat.active ? 'bg-indigo-50/50' : 'hover:bg-slate-50'}`}>
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 relative ${chat.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+                                {chat.avatar}
+                                {chat.active && <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className={`text-[14px] truncate ${chat.active ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>{chat.name}</h4>
+                                <p className={`text-[12px] truncate ${chat.unread ? 'font-medium text-slate-600' : 'text-slate-500'}`}>{chat.preview}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-1">
+                                <span className={`text-[10px] ${chat.active ? 'text-slate-500 font-medium' : 'text-slate-400 font-medium'}`}>{chat.time}</span>
+                                {chat.unread && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600"></div>}
+                            </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <h4 className="text-[14px] font-bold text-slate-900 truncate">Prime Movers</h4>
-                            <p className="text-[12px] text-slate-600 truncate font-medium">Prime Movers has submitted a new...</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                            <span className="text-[10px] text-slate-500 font-medium">10:30 AM</span>
-                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600"></div>
-                        </div>
-                    </div>
-
-                    <div className="p-2 rounded-lg hover:bg-slate-50 cursor-pointer flex gap-3 items-center group mt-1">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-lg shrink-0">
-                            F
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <h4 className="text-[14px] font-semibold text-slate-700 truncate">Fast Track BD</h4>
-                            <p className="text-[12px] text-slate-500 truncate">We can do it for 32,000 BDT.</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                            <span className="text-[10px] text-slate-400 font-medium">Yesterday</span>
-                        </div>
-                    </div>
+                    ))}
+                    
+                    {filteredChats.length === 0 && (
+                        <div className="text-center py-8 text-slate-500 text-sm">No chats found.</div>
+                    )}
                 </div>
             </div>
 
             {/* Middle: Chat Area */}
-            <div className="lg:col-span-8 xl:col-span-6 flex flex-col h-full bg-white relative">
+            <div className="lg:col-span-8 xl:col-span-6 flex flex-col min-h-0 h-full bg-white relative">
                 {/* Chat Header */}
                 <div className="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between z-10 sticky top-0 shadow-sm">
                     <div className="flex items-center gap-3">
@@ -131,11 +147,19 @@ export default function NegotiationChat() {
                 </div>
 
                 {/* Chat Messages Area */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    {messages.map((msg) => {
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {messages.map((msg, index) => {
+                        const prevMsg = index > 0 ? messages[index - 1] : null;
+                        const nextMsg = index < messages.length - 1 ? messages[index + 1] : null;
+                        
+                        const isFirstInGroup = !prevMsg || prevMsg.type !== msg.type || prevMsg.sender !== msg.sender;
+                        const isLastInGroup = !nextMsg || nextMsg.type !== msg.type || nextMsg.sender !== msg.sender;
+
+                        const spacingClass = isFirstInGroup ? 'mt-5' : 'mt-1';
+
                         if (msg.type === 'system') {
                             return (
-                                <div key={msg.id} className="flex justify-center">
+                                <div key={msg.id} className={`flex justify-center ${spacingClass}`}>
                                     <span className="text-[11px] font-medium text-slate-400">
                                         {msg.text} • {msg.time}
                                     </span>
@@ -144,33 +168,54 @@ export default function NegotiationChat() {
                         }
 
                         if (msg.type === 'offer') {
-                            return <CounterOfferMessage key={msg.id} msg={msg} />;
+                            return (
+                                <div key={msg.id} className={spacingClass}>
+                                    <CounterOfferMessage msg={msg} />
+                                </div>
+                            );
                         }
 
                         const isSent = msg.type === 'sent';
 
+                        let borderRadiusClasses = 'rounded-2xl';
+                        if (isSent) {
+                            if (!isFirstInGroup && !isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-tr-sm rounded-br-sm';
+                            else if (!isFirstInGroup && isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-tr-sm';
+                            else if (isFirstInGroup && !isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-br-sm';
+                        } else {
+                            if (!isFirstInGroup && !isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-tl-sm rounded-bl-sm';
+                            else if (!isFirstInGroup && isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-tl-sm';
+                            else if (isFirstInGroup && !isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-bl-sm';
+                        }
+
                         return (
-                            <div key={msg.id} className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'}`}>
+                            <div key={msg.id} className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'} ${spacingClass}`}>
                                 {!isSent && (
-                                    <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs shrink-0 mt-auto mb-5">
-                                        {msg.avatar}
+                                    <div className="w-7 h-7 flex-shrink-0 mt-auto">
+                                        {isLastInGroup && (
+                                            <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                                {msg.avatar}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 
                                 <div className={`max-w-[75%] sm:max-w-[65%] flex flex-col ${isSent ? 'items-end' : 'items-start'}`}>
-                                    <div className={`relative px-4 py-2 rounded-2xl text-[14.5px] leading-relaxed ${
+                                    <div className={`relative px-4 py-2 text-[14.5px] leading-relaxed ${borderRadiusClasses} ${
                                         isSent 
                                         ? 'bg-indigo-600 text-white' 
                                         : 'bg-slate-100 text-slate-900'
                                     }`}>
                                         {msg.text}
                                     </div>
-                                    <span className="text-[10px] text-slate-400 font-medium mt-1.5 px-1">{msg.time}</span>
+                                    {isLastInGroup && (
+                                        <span className="text-[10px] text-slate-400 font-medium mt-1.5 px-1">{msg.time}</span>
+                                    )}
                                 </div>
                             </div>
                         );
                     })}
-                    <div ref={messagesEndRef} />
+                    <div ref={messagesEndRef} className="mt-4" />
                 </div>
 
                 {/* Chat Input Area Component */}
@@ -182,7 +227,7 @@ export default function NegotiationChat() {
             </div>
 
             {/* Right Sidebar: Quote Details */}
-            <div className="hidden xl:flex xl:col-span-3 flex-col h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="hidden xl:flex xl:col-span-3 flex-col min-h-0 h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <div className="flex flex-col items-center pt-8 pb-4">
                     <div className="w-20 h-20 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-3xl mb-3 relative">
                         P
@@ -286,20 +331,20 @@ export default function NegotiationChat() {
                                     <div className="space-y-2.5 mb-2.5 pb-2.5 border-b border-slate-100">
                                         <div className="flex justify-between">
                                             <span className="text-slate-500">Base Freight</span>
-                                            <span className="font-medium text-slate-800">BDT 40,000</span>
+                                            <span className="font-medium text-slate-800">€ 40,000</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-slate-500">Load/Unload</span>
-                                            <span className="font-medium text-slate-800">BDT 3,500</span>
+                                            <span className="font-medium text-slate-800">€ 3,500</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-slate-500">Insurance</span>
-                                            <span className="font-medium text-slate-800">BDT 1,500</span>
+                                            <span className="font-medium text-slate-800">€ 1,500</span>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium text-slate-800">Original Total</span>
-                                        <span className="text-[13px] font-bold text-slate-800 line-through text-slate-400">BDT 45,000</span>
+                                        <span className="text-[13px] font-bold text-slate-800 line-through text-slate-400">€ 45,000</span>
                                     </div>
                                 </div>
                             </div>

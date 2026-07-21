@@ -41,7 +41,7 @@ export default function QuoteView() {
             id: 1,
             type: 'Supplier Revision',
             date: '2026-07-19 • 04:30 PM',
-            note: 'Reduced base freight by 2,000 BDT. Cannot reduce loading/unloading charges as we are providing 2 extra laborers.',
+            note: 'Reduced base freight by 2,000 €. Cannot reduce loading/unloading charges as we are providing 2 extra laborers.',
             previousTotal: 47000,
             newTotal: 45000,
             status: 'Revised'
@@ -50,7 +50,7 @@ export default function QuoteView() {
             id: 2,
             type: 'Customer Request',
             date: '2026-07-19 • 10:15 AM',
-            note: 'Can you please reduce the total amount to 43,000 BDT? We are regular customers.',
+            note: 'Can you please reduce the total amount to 43,000 €? We are regular customers.',
             previousTotal: 47000,
             newTotal: 43000,
             status: 'Requested'
@@ -277,22 +277,22 @@ export default function QuoteView() {
                         <div className="space-y-2.5 mb-4">
                             <div className="flex justify-between items-center text-[11.5px]">
                                 <span className="text-slate-500 font-medium">Base Freight</span>
-                                <span className="font-bold text-slate-800">BDT {quote.pricing.baseFreight.toLocaleString()}</span>
+                                <span className="font-bold text-slate-800">€ {quote.pricing.baseFreight.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center text-[11.5px]">
                                 <span className="text-slate-500 font-medium">Loading/Unloading</span>
-                                <span className="font-bold text-slate-800">BDT {quote.pricing.loadingUnloading.toLocaleString()}</span>
+                                <span className="font-bold text-slate-800">€ {quote.pricing.loadingUnloading.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center text-[11.5px]">
                                 <span className="text-slate-500 font-medium">Insurance</span>
-                                <span className="font-bold text-slate-800">BDT {quote.pricing.insurance.toLocaleString()}</span>
+                                <span className="font-bold text-slate-800">€ {quote.pricing.insurance.toLocaleString()}</span>
                             </div>
                         </div>
 
                         <div>
                             <div className="flex justify-between items-end pt-3 border-t border-slate-100">
                                 <span className="text-[11.5px] font-bold text-slate-800">Total</span>
-                                <span className="text-[17px] font-black text-emerald-600 leading-none">BDT {quote.pricing.total.toLocaleString()}</span>
+                                <span className="text-[17px] font-black text-emerald-600 leading-none">€ {quote.pricing.total.toLocaleString()}</span>
                             </div>
                             <div className="mt-3 text-center bg-slate-50 rounded p-1.5 border border-slate-100">
                                 <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wide">Valid until {quote.validUntil}</p>
@@ -330,13 +330,13 @@ export default function QuoteView() {
                                     <div className="flex items-center gap-3 text-[10.5px]">
                                         {event.previousTotal && (
                                             <div className="flex items-center gap-1.5 text-slate-500 line-through">
-                                                <span>Prev: BDT {event.previousTotal.toLocaleString()}</span>
+                                                <span>Prev: € {event.previousTotal.toLocaleString()}</span>
                                             </div>
                                         )}
                                         <div className="flex items-center gap-1.5 font-bold text-slate-800">
                                             {event.previousTotal && <ArrowRight size={11} className="text-slate-400" />}
                                             <span className={event.type === 'Customer Request' ? 'text-amber-600' : 'text-emerald-600'}>
-                                                New: BDT {event.newTotal.toLocaleString()}
+                                                New: € {event.newTotal.toLocaleString()}
                                             </span>
                                         </div>
                                     </div>

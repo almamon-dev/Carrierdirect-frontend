@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-    Search, SlidersHorizontal, RotateCcw, Trash2, X
+    Search, SlidersHorizontal, RotateCcw, Trash2, X, LayoutGrid, List
 } from 'lucide-react';
 import TablePagination from '@/components/tables/table-pagination';
 import EmptyState from '@/components/tables/empty-state';
@@ -29,6 +29,8 @@ export interface DataTableProps<T = any> {
     compact?: boolean;
     tableId?: string; // Optional ID to persist column state in localStorage
     expandableContent?: (item: T) => React.ReactNode;
+    hideViewToggle?: boolean;
+    hidePagination?: boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({ 
@@ -42,12 +44,15 @@ export default function DataTable<T extends Record<string, any>>({
     headerTabs,
     compact = false,
     tableId,
-    expandableContent
+    expandableContent,
+    hideViewToggle = false,
+    hidePagination = false
 }: DataTableProps<T>) {
     const [search, setSearch] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
     const [expandedRows, setExpandedRows] = useState<Set<number | string>>(new Set());
+    const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
     
     // Initialize visible columns from localStorage if tableId is provided
     const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
@@ -76,10 +81,12 @@ export default function DataTable<T extends Record<string, any>>({
 
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
+    const [gridLimit, setGridLimit] = useState(12);
 
     // Reset to page 1 when search changes
     useEffect(() => {
         setCurrentPage(1);
+        setGridLimit(12);
     }, [search]);
 
     // Apply Search Filtering
@@ -156,6 +163,29 @@ export default function DataTable<T extends Record<string, any>>({
                         
                         <div className="w-[1px] h-4 bg-[#ebebeb] mx-1"></div>
 
+                        {!hideViewToggle && (
+                            <>
+                                <div className="flex items-center border border-[#d1d1d1] rounded-[3px] overflow-hidden bg-white shadow-sm">
+                                    <button 
+                                        onClick={() => setViewMode('table')}
+                                        className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'table' ? 'bg-[#f4f6f8] text-[#202223] shadow-inner' : 'text-[#8c9196] hover:bg-[#fafbfc] hover:text-[#202223]'}`}
+                                        title="Table View"
+                                    >
+                                        <List size={14} />
+                                    </button>
+                                    <div className="w-[1px] h-[28px] bg-[#d1d1d1]"></div>
+                                    <button 
+                                        onClick={() => setViewMode('grid')}
+                                        className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-[#f4f6f8] text-[#202223] shadow-inner' : 'text-[#8c9196] hover:bg-[#fafbfc] hover:text-[#202223]'}`}
+                                        title="Grid View"
+                                    >
+                                        <LayoutGrid size={14} />
+                                    </button>
+                                </div>
+                                <div className="w-[1px] h-4 bg-[#ebebeb] mx-1"></div>
+                            </>
+                        )}
+
                         <TableColumnToggle 
                             columns={columns}
                             visibleColumns={visibleColumns}
@@ -171,9 +201,62 @@ export default function DataTable<T extends Record<string, any>>({
                     </div>
                 )}
 
-                {/* Data Table */}
-                <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse">
+                {/* Data View */}
+                {viewMode === 'grid' ? (
+                    <div className="bg-[#f4f6f8] border-b border-[#ebebeb]">
+                        <div className="p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                            {filteredData.length === 0 ? (
+                                <div className="col-span-full">
+                                    <EmptyState />
+                                </div>
+                            ) : (
+                                filteredData.slice(0, gridLimit).map(item => {
+                                const id = keyExtractor(item);
+                                const isSelected = selectedIds.includes(id);
+                                return (
+                                    <div 
+                                        key={id}
+                                        className={`bg-white rounded-[4px] border p-3 shadow-sm transition-all flex flex-col ${isSelected ? 'border-[#008060] ring-1 ring-[#008060]' : 'border-[#d1d1d1]'}`}
+                                    >
+                                        <div className="flex justify-end items-start mb-2 pb-2 border-b border-[#ebebeb]">
+                                            {actions && (
+                                                <div className="flex items-center justify-end">
+                                                    {actions(item)}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+                                                {columns.map(col => visibleColumns.includes(col.id) && (
+                                                    <div key={col.id} className="grid grid-cols-[90px_8px_1fr] items-start">
+                                                        <span className="text-[11px] font-semibold text-[#8c9196]">{col.label}</span>
+                                                        <span className="text-[11px] font-semibold text-[#8c9196]">:</span>
+                                                        <div className="text-[12px] text-[#202223] font-medium break-words">
+                                                            {col.render ? col.render(item) : item[col.id]}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                        </div>
+                        {filteredData.length > gridLimit && (
+                            <div className="py-6 px-4 flex justify-center border-t border-[#ebebeb] bg-[#fcfcfc]">
+                                <button 
+                                    onClick={() => setGridLimit(prev => prev + 12)}
+                                    className="px-6 py-2 bg-white border border-[#d1d1d1] shadow-sm rounded-[3px] hover:bg-[#f6f6f7] hover:border-[#a1a1a1] transition-all text-[13px] font-bold text-[#202223] flex items-center justify-center"
+                                >
+                                    Show More Requests
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-[#f9fafb] border-b border-[#ebebeb] text-[12px] font-semibold text-[#6d7175]">
                                 <th className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2'} w-[40px]`}>
@@ -246,22 +329,25 @@ export default function DataTable<T extends Record<string, any>>({
                         </tbody>
                     </table>
                 </div>
+                )}
                 
                 {/* Pagination */}
-                <TablePagination 
-                    total={totalItems}
-                    fromIdx={totalItems > 0 ? startIndex + 1 : 0}
-                    toIdx={Math.min(startIndex + perPage, totalItems)}
-                    perPage={perPage}
-                    onPerPageChange={(val) => {
-                        setPerPage(Number(val));
-                        setCurrentPage(1);
-                    }}
-                    onPrevPage={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    onNextPage={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    hasPrev={currentPage > 1}
-                    hasNext={currentPage < totalPages}
-                />
+                {viewMode === 'table' && !hidePagination && (
+                    <TablePagination 
+                        total={totalItems}
+                        fromIdx={totalItems > 0 ? startIndex + 1 : 0}
+                        toIdx={Math.min(startIndex + perPage, totalItems)}
+                        perPage={perPage}
+                        onPerPageChange={(val) => {
+                            setPerPage(Number(val));
+                            setCurrentPage(1);
+                        }}
+                        onPrevPage={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        onNextPage={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        hasPrev={currentPage > 1}
+                        hasNext={currentPage < totalPages}
+                    />
+                )}
             </div>
         </div>
     );

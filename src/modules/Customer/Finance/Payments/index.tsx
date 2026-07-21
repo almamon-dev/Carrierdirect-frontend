@@ -5,9 +5,9 @@ import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 
 const mockData = [
-  { id: 'TXN-998822', date: '2026-07-15', method: 'Visa ending in 4242', invoice: 'INV-2026-001', amount: 'BDT 45,000', status: 'Success' },
-  { id: 'TXN-998815', date: '2026-07-10', method: 'bKash Mobile Banking', invoice: 'INV-2026-002', amount: 'BDT 32,500', status: 'Success' },
-  { id: 'TXN-998801', date: '2026-07-02', method: 'Visa ending in 4242', invoice: 'INV-2026-003', amount: 'BDT 25,500', status: 'Failed' },
+  { id: 'TXN-998822', date: '2026-07-15', method: 'Visa ending in 4242', invoice: 'INV-2026-001', amount: '€ 45,000', status: 'Success' },
+  { id: 'TXN-998815', date: '2026-07-10', method: 'bKash Mobile Banking', invoice: 'INV-2026-002', amount: '€ 32,500', status: 'Success' },
+  { id: 'TXN-998801', date: '2026-07-02', method: 'Visa ending in 4242', invoice: 'INV-2026-003', amount: '€ 25,500', status: 'Failed' },
 ];
 
 export default function Payments() {

@@ -38,7 +38,7 @@ export const customerRoutes: RouteObject[] = [
     { path: 'quotes/negotiation/view/:id', element: <QuoteNegotiationChat /> },
     { path: 'orders', element: <Orders /> },
 
-    { path: 'orders/details', element: <OrderDetails /> },
+    { path: 'orders/:id', element: <OrderDetails /> },
     { path: 'finance/billing', element: <Billing /> },
     { path: 'finance/invoices', element: <Invoices /> },
     { path: 'finance/payments', element: <Payments /> },
