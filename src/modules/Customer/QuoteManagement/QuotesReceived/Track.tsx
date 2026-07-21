@@ -52,14 +52,14 @@ export default function TrackBids() {
     });
 
     const columns: Column<any>[] = [
-        { id: 'id', label: 'Quote ID', render: (row) => <span className="text-indigo-600 font-semibold whitespace-nowrap">{row.id}</span> },
+        { id: 'id', label: 'Quote ID', render: (row) => <span className="text-brand font-semibold whitespace-nowrap">{row.id}</span> },
         { 
             id: 'supplier', 
             label: 'Supplier', 
             render: (row) => (
                 <div className="flex items-center gap-1.5 whitespace-nowrap">
                     <span className="font-bold text-slate-800">{row.supplier}</span>
-                    {row.verified && <ShieldCheck size={14} className="text-blue-500" />}
+                    {row.verified && <ShieldCheck size={14} className="text-brand" />}
                 </div>
             ) 
         },
@@ -97,7 +97,7 @@ export default function TrackBids() {
                 <Eye size={14} className="mr-1" /> Details
             </Button>
             {row.status === 'Negotiating' ? (
-                <Button variant="primary" size="sm" className="h-7 px-2 bg-indigo-600 hover:bg-indigo-700">
+                <Button variant="primary" size="sm" className="h-7 px-2 bg-brand hover:bg-brand-hover">
                     <MessageCircle size={14} className="mr-1" /> Reply
                 </Button>
             ) : (
@@ -116,9 +116,9 @@ export default function TrackBids() {
                         <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-slate-600 transition-colors">
                             <ArrowLeft size={20} />
                         </button>
-                        <Badge variant="secondary" className="px-2 py-0.5 text-indigo-700 bg-indigo-50 border-indigo-200">{id || 'REQ-9233'}</Badge>
+                        <Badge variant="secondary" className="px-2 py-0.5 text-indigo-700 bg-brand-light border-indigo-200">{id || 'REQ-9233'}</Badge>
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-1">Track Bids & Quotes</h1>
+                    <h1 className="text-[18px] font-bold text-slate-900 mb-1">Track Bids & Quotes</h1>
                     <p className="text-sm text-slate-500">Compare all supplier quotes received for this specific request.</p>
                 </div>
                 
@@ -194,7 +194,7 @@ export default function TrackBids() {
                             
                             {/* Top row: Icon & Price */}
                             <div className="flex justify-between items-start w-full mb-3">
-                                <div className="w-9 h-9 rounded-md shrink-0 flex items-center justify-center bg-indigo-50 text-indigo-600">
+                                <div className="w-9 h-9 rounded-md shrink-0 flex items-center justify-center bg-brand-light text-brand">
                                     <Truck size={18} strokeWidth={2} />
                                 </div>
                                 <span className="text-[20px] font-black text-slate-800">৳{quote.amount.toLocaleString()}</span>
@@ -202,10 +202,10 @@ export default function TrackBids() {
                             
                             {/* Title: Supplier Name */}
                             <div className="flex items-center gap-1.5 w-full mb-0.5">
-                                <h3 className="font-bold text-[14px] text-slate-900 leading-tight truncate">
+                                <h3 className="text-[13px] font-bold text-slate-800 truncate">
                                     {quote.supplier}
                                 </h3>
-                                {quote.verified && <ShieldCheck size={14} className="text-blue-500 shrink-0" />}
+                                {quote.verified && <ShieldCheck size={14} className="text-brand shrink-0" />}
                             </div>
                             
                             {/* Description: Vehicle & Transit */}
@@ -267,7 +267,7 @@ export default function TrackBids() {
                                 </Button>
                                 
                                 {quote.status === 'Negotiating' ? (
-                                    <Button variant="primary" className="flex-1 h-8 text-[12px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 px-2">
+                                    <Button variant="primary" className="flex-1 h-8 text-[12px] font-semibold bg-brand hover:bg-brand-hover text-white border-brand px-2">
                                         <MessageCircle size={14} className="mr-1.5 opacity-80" /> Reply
                                     </Button>
                                 ) : (

@@ -38,7 +38,7 @@ export default function FeedbackPage() {
       {/* Hero Section */}
       <div className="bg-white border-b border-gray-200 py-8 px-6">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-2">Send us your Feedback</h1>
+          <h1 className="text-[18px] font-bold text-slate-900 tracking-tight mb-2">Send us your Feedback</h1>
           <p className="text-sm text-gray-500 max-w-2xl mx-auto">
             Your feedback helps us refine the Enterprise OS experience. Drop us a message, report a bug, or suggest a new feature.
           </p>
@@ -51,7 +51,7 @@ export default function FeedbackPage() {
         {/* Left Sidebar (Sticky Contact Info) */}
         <aside className="lg:w-72 flex-shrink-0">
           <div className="sticky top-24 bg-white border border-gray-200 rounded-md p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4 px-1">Contact Information</h3>
+            <h3 className="text-[13px] font-bold text-slate-800 mb-4 px-1">Contact Information</h3>
             <div className="space-y-4 px-1">
               <div className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
@@ -77,10 +77,10 @@ export default function FeedbackPage() {
             </div>
 
             <div className="mt-6 pt-5 border-t border-gray-100">
-              <div className="bg-blue-50/50 border border-blue-100/50 rounded-lg p-4">
+              <div className="bg-brand-light/50 border border-blue-100/50 rounded-lg p-4">
                 <h4 className="text-[13px] font-semibold text-blue-900 mb-1">Need instant help?</h4>
                 <p className="text-[11px] text-blue-700 mb-3 leading-relaxed">Check our terms and policies.</p>
-                <Button onClick={() => navigate('/support/terms')} variant="outline" className="w-full text-xs h-8 bg-white text-blue-700 border-blue-200 hover:bg-blue-50 shadow-sm">
+                <Button onClick={() => navigate('/support/terms')} variant="outline" className="w-full text-xs h-8 bg-white text-blue-700 border-blue-200 hover:bg-brand-light shadow-sm">
                   View Terms
                 </Button>
               </div>
@@ -91,11 +91,11 @@ export default function FeedbackPage() {
         {/* Right Content: Feedback Form */}
         <div className="flex-1 bg-white border border-gray-200 rounded-md p-4 lg:p-5 shadow-sm h-fit">
           <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
-            <div className="w-10 h-10 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-md bg-brand-light text-brand flex items-center justify-center shrink-0">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Message Form</h2>
+              <h2 className="text-[15px] font-bold text-slate-800">Message Form</h2>
               <p className="text-[13px] text-gray-500">Please fill out the details below.</p>
             </div>
           </div>

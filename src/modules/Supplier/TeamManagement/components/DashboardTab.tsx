@@ -25,7 +25,7 @@ const MetricCard = ({ title, description, value, icon: Icon, colorClass }: any) 
             </div>
             <span className="text-[20px] font-black text-slate-800">{value}</span>
         </div>
-        <h3 className="font-bold text-[14px] text-slate-900 leading-tight mb-0.5">
+        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">
             {title}
         </h3>
         <p className="text-[12px] text-slate-500 font-medium leading-snug">
@@ -44,7 +44,7 @@ export default function DashboardTab() {
                     description="All registered staff across departments." 
                     value="45"
                     icon={Users}
-                    colorClass="bg-indigo-50 text-indigo-600"
+                    colorClass="bg-brand-light text-brand"
                 />
                 <MetricCard 
                     title="Active Members" 
@@ -65,7 +65,7 @@ export default function DashboardTab() {
                     description="Team members currently logged in." 
                     value="18"
                     icon={MonitorPlay}
-                    colorClass="bg-blue-50 text-blue-600"
+                    colorClass="bg-brand-light text-brand"
                 />
             </div>
 
@@ -76,8 +76,8 @@ export default function DashboardTab() {
                 <div className="lg:col-span-2 bg-white p-4 rounded-lg border border-slate-200 shadow-sm overflow-hidden">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 -mx-4 px-4">
                         <div className="flex items-center gap-2">
-                            <TrendingUp size={16} className="text-indigo-600" />
-                            <h3 className="text-[15px] font-bold text-slate-900">Team Growth</h3>
+                            <TrendingUp size={16} className="text-brand" />
+                            <h3 className="text-[13px] font-bold text-slate-800">Team Growth</h3>
                         </div>
                         <Select 
                             className="w-32"
@@ -101,8 +101,8 @@ export default function DashboardTab() {
                             <AreaChart data={memberGrowthData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorMembers" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
-                                        <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#FF4A1F" stopOpacity={0.2}/>
+                                        <stop offset="95%" stopColor="#FF4A1F" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -112,7 +112,7 @@ export default function DashboardTab() {
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px -2px rgba(0,0,0,0.1)' }}
                                     formatter={(value) => [`${value}`, 'Members']}
                                 />
-                                <Area type="monotone" dataKey="members" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3, fill: '#4f46e5', stroke: '#ffffff', strokeWidth: 2 }} activeDot={{ r: 5 }} fillOpacity={1} fill="url(#colorMembers)" />
+                                <Area type="monotone" dataKey="members" stroke="#FF4A1F" strokeWidth={2} dot={{ r: 3, fill: '#FF4A1F', stroke: '#ffffff', strokeWidth: 2 }} activeDot={{ r: 5 }} fillOpacity={1} fill="url(#colorMembers)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -121,13 +121,13 @@ export default function DashboardTab() {
                 {/* Department Stats Side List */}
                 <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[15px] font-bold text-slate-900">Department Breakdown</h3>
+                        <h3 className="text-[13px] font-bold text-slate-800">Department Breakdown</h3>
                     </div>
                     
                     <div className="flex flex-col gap-3 mt-2">
                         <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
                             <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                                <div className="w-9 h-9 rounded-full bg-indigo-100 text-brand flex items-center justify-center shrink-0">
                                     <Truck size={16} />
                                 </div>
                                 <div>
@@ -169,8 +169,8 @@ export default function DashboardTab() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[15px] font-bold text-slate-900">Recent Invitations</h3>
-                        <button className="text-[12px] font-bold text-indigo-600 hover:underline focus:outline-none transition-colors">Manage All</button>
+                        <h3 className="text-[13px] font-bold text-slate-800">Recent Invitations</h3>
+                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">Manage All</button>
                     </div>
                     <div className="flex flex-col text-[13px] text-slate-500 flex-1">
                         <div className="flex justify-between items-center py-2.5 border-b border-dashed border-slate-300">
@@ -199,8 +199,8 @@ export default function DashboardTab() {
                 
                 <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[15px] font-bold text-slate-900">Recent Activity</h3>
-                        <button className="text-[12px] font-bold text-indigo-600 hover:underline focus:outline-none transition-colors">View Logs</button>
+                        <h3 className="text-[13px] font-bold text-slate-800">Recent Activity</h3>
+                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">View Logs</button>
                     </div>
                     <div className="flex flex-col text-[13px] text-slate-500 flex-1">
                         <div className="flex justify-between items-center py-2.5 border-b border-dashed border-slate-300">

@@ -63,13 +63,13 @@ export default function AvailabilitySettings() {
                     {/* Working Hours & Days */}
                     <Card className="shadow-sm border-slate-200 overflow-visible">
                         <CardHeader className="py-2.5 px-4 border-b border-slate-100 flex flex-row items-center gap-2">
-                            <Clock size={14} className="text-indigo-600" />
+                            <Clock size={14} className="text-brand" />
                             <CardTitle className="text-[13px]">Working Hours & Days</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 space-y-4">
+                        <CardContent className="p-4 space-y-3">
                             {/* Day Tabs */}
                             <div>
-                                <label className="text-[11px] font-bold text-slate-700  mb-2 block">Select Day to Configure</label>
+                                <label className="text-[11px] font-bold text-slate-700 mb-2 block">Select Day to Configure</label>
                                 <div className="flex flex-wrap gap-2">
                                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
                                         const isActiveDay = workingHours[day as keyof typeof workingHours].active;
@@ -77,7 +77,7 @@ export default function AvailabilitySettings() {
                                             <button 
                                                 key={day} 
                                                 onClick={() => setSelectedDay(day)}
-                                                className={`flex items-center justify-center px-3 py-1.5 rounded-[3px] text-[11px] font-bold transition-colors ${selectedDay === day ? 'bg-indigo-600 text-white shadow-sm' : isActiveDay ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                                                className={`flex items-center justify-center px-3 py-1.5 rounded-[3px] text-[11px] font-bold transition-colors ${selectedDay === day ? 'bg-[#FF4A1F] text-white shadow-sm' : isActiveDay ? 'bg-[#FFF0ED] text-[#FF4A1F] hover:bg-[#ffe4de]' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                                             >
                                                 {day}
                                             </button>
@@ -87,14 +87,14 @@ export default function AvailabilitySettings() {
                             </div>
 
                             {/* Configuration Panel for Selected Day */}
-                            <div className="bg-slate-50/50 border border-slate-100 p-3 rounded-md space-y-3">
-                                <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/60 mb-1">
+                            <div className="bg-slate-50/50 border border-slate-100 p-2.5 rounded-md space-y-2">
+                                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 mb-0.5">
                                     <div>
                                         <h4 className="text-[13px] font-bold text-slate-800">Settings for {selectedDay}</h4>
                                         <p className="text-[10px] text-slate-500">Configure hours specifically for {selectedDay}days.</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-bold text-slate-600 ">Working Day</span>
+                                        <span className="text-[11px] font-bold text-slate-600">Working Day</span>
                                         <div onClickCapture={(e) => { e.preventDefault(); e.stopPropagation(); handleUpdateDay('active', !workingHours[selectedDay as keyof typeof workingHours].active); }}>
                                             <Switch 
                                                 defaultChecked={workingHours[selectedDay as keyof typeof workingHours].active}
@@ -104,9 +104,9 @@ export default function AvailabilitySettings() {
                                     </div>
                                 </div>
                                 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-slate-700 ">Start Time</label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-slate-700">Start Time</label>
                                         <input 
                                             type="time" 
                                             value={workingHours[selectedDay as keyof typeof workingHours].start} 
@@ -115,8 +115,8 @@ export default function AvailabilitySettings() {
                                             className="w-full h-8 rounded-[3px] border border-slate-200 px-3 text-[12px] text-slate-800 outline-none focus:border-indigo-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" 
                                         />
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-slate-700 ">End Time</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-slate-700">End Time</label>
                                         <input 
                                             type="time" 
                                             value={workingHours[selectedDay as keyof typeof workingHours].end} 
@@ -125,8 +125,8 @@ export default function AvailabilitySettings() {
                                             className="w-full h-8 rounded-[3px] border border-slate-200 px-3 text-[12px] text-slate-800 outline-none focus:border-indigo-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" 
                                         />
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-slate-700 ">Break Hours</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[11px] font-bold text-slate-700">Break Hours</label>
                                         <input 
                                             type="number" 
                                             value={workingHours[selectedDay as keyof typeof workingHours].break} 
@@ -138,9 +138,9 @@ export default function AvailabilitySettings() {
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5 pt-2">
-                                <label className="text-[11px] font-bold text-slate-700 ">Global Time Zone</label>
-                                <div className="w-full md:w-1/2 h-8">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-700">Global Time Zone</label>
+                                <div className="w-full h-8">
                                     <Select 
                                         value="Europe/London"
                                         options={timezones}
@@ -156,34 +156,34 @@ export default function AvailabilitySettings() {
                             <ShieldAlert size={14} className="text-amber-600" />
                             <CardTitle className="text-[13px]">Booking & Capacity Rules</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                        <CardContent className="p-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-x-4 gap-y-3">
                                 
                                 {/* Capacity */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-slate-700 ">Max Orders Per Slot</label>
+                                    <label className="text-[11px] font-bold text-slate-700 truncate" title="Max Orders Per Slot">Max Orders</label>
                                     <input type="number" defaultValue="5" className="w-full h-8 rounded-[3px] border border-slate-200 px-3 text-[12px] text-slate-800 outline-none focus:border-indigo-500" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-slate-700 ">Max Trips Per Day</label>
+                                    <label className="text-[11px] font-bold text-slate-700 truncate" title="Max Trips Per Day">Max Trips</label>
                                     <input type="number" defaultValue="20" className="w-full h-8 rounded-[3px] border border-slate-200 px-3 text-[12px] text-slate-800 outline-none focus:border-indigo-500" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-slate-700 ">Max Weight Capacity (kg)</label>
+                                    <label className="text-[11px] font-bold text-slate-700 truncate" title="Max Weight Capacity (kg)">Max Wt (kg)</label>
                                     <input type="number" defaultValue="3500" className="w-full h-8 rounded-[3px] border border-slate-200 px-3 text-[12px] text-slate-800 outline-none focus:border-indigo-500" />
                                 </div>
 
                                 {/* Booking */}
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-slate-700 ">Advance Booking Limit (Days)</label>
+                                    <label className="text-[11px] font-bold text-slate-700 truncate" title="Advance Booking Limit (Days)">Adv. Limit</label>
                                     <input type="number" defaultValue="30" className="w-full h-8 rounded-[3px] border border-slate-200 px-3 text-[12px] text-slate-800 outline-none focus:border-indigo-500" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-slate-700 ">Same Day Booking Cutoff</label>
+                                    <label className="text-[11px] font-bold text-slate-700 truncate" title="Same Day Booking Cutoff">Cutoff Time</label>
                                     <input type="time" defaultValue="14:00" className="w-full h-8 rounded-[3px] border border-slate-200 px-3 text-[12px] text-slate-800 outline-none focus:border-indigo-500" />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-slate-700 ">Buffer Between Trips (Mins)</label>
+                                    <label className="text-[11px] font-bold text-slate-700 truncate" title="Buffer Between Trips (Mins)">Trip Buffer</label>
                                     <input type="number" defaultValue="30" className="w-full h-8 rounded-[3px] border border-slate-200 px-3 text-[12px] text-slate-800 outline-none focus:border-indigo-500" />
                                 </div>
                             </div>
@@ -223,7 +223,7 @@ export default function AvailabilitySettings() {
                     {/* Notifications */}
                     <Card className="shadow-sm border-slate-200 bg-slate-50/50">
                         <CardHeader className="py-2.5 px-4 border-b border-slate-100 flex flex-row items-center gap-2">
-                            <Bell size={14} className="text-blue-600" />
+                            <Bell size={14} className="text-brand" />
                             <CardTitle className="text-[13px]">Notifications</CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3">

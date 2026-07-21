@@ -3,7 +3,7 @@
 export default function Notifications() {
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold">Notifications</h1>
+            <h1 className="text-[18px] font-bold text-slate-900">Notifications</h1>
         </div>
     );
 }

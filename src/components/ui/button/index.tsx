@@ -2,26 +2,26 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-    
+
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default:
-          "bg-blue-600 text-white shadow hover:bg-blue-700",
-        primary: 
-          "bg-slate-900 text-white shadow hover:bg-slate-800",
+          "bg-[#FF4A1F] text-white shadow hover:bg-[#D13915] cursor-pointer",
+        primary:
+          "bg-[#FF4A1F] text-white shadow hover:bg-[#D13915] cursor-pointer",
         destructive:
-          "bg-red-500 text-white shadow-sm hover:bg-red-600",
+          "bg-red-500 text-white shadow-sm hover:bg-red-600 cursor-pointer",
         danger:
-          "bg-red-500 text-white shadow-sm hover:bg-red-600",
+          "bg-red-500 text-white shadow-sm hover:bg-red-600 cursor-pointer",
         outline:
-          "border border-slate-200 bg-white shadow-sm hover:bg-slate-100 hover:text-slate-900",
+          "border border-slate-200 bg-white shadow-sm hover:bg-slate-100 hover:text-slate-900 cursor-pointer",
         secondary:
-          "bg-slate-100 text-slate-900 shadow-sm hover:bg-slate-200",
-        ghost: "hover:bg-slate-100 hover:text-slate-900",
-        link: "text-blue-600 underline-offset-4 hover:underline",
+          "bg-slate-100 text-slate-900 shadow-sm hover:bg-slate-200 cursor-pointer",
+        ghost: "hover:bg-slate-100 hover:text-slate-900 cursor-pointer",
+        link: "text-[#FF4A1F] underline-offset-4 hover:underline cursor-pointer",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -40,7 +40,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   isLoading?: boolean
   fullWidth?: boolean
 }

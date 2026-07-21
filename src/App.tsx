@@ -2,7 +2,6 @@ import React from 'react';
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
 import { authRoutes } from './modules/Auth';
 import { supportRoutes } from './modules/Support/routes';
-import ModulesSelectorPage from './modules/Dashboard/pages/ModulesSelectorPage';
 import CustomerLayout from './layouts/CustomerLayout';
 import SupplierLayout from './layouts/SupplierLayout';
 import { customerRoutes } from './modules/Customer/routes';
@@ -15,10 +14,6 @@ const router = createBrowserRouter([
   },
   ...authRoutes,
   ...supportRoutes,
-  {
-    path: '/modules',
-    element: <ModulesSelectorPage />,
-  },
   {
     path: '/customer',
     element: <CustomerLayout />,

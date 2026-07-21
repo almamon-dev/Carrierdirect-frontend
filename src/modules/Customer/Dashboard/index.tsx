@@ -52,10 +52,10 @@ const recentRequests = [
     { id: 'REQ-9233', status: 'Booked', color: 'bg-emerald-50 text-emerald-600' },
     { id: 'REQ-9232', status: 'Action Required', color: 'bg-rose-50 text-rose-600' },
     { id: 'REQ-9231', status: 'Booked', color: 'bg-emerald-50 text-emerald-600' },
-    { id: 'REQ-9230', status: 'Reviewing', color: 'bg-blue-50 text-blue-600' },
+    { id: 'REQ-9230', status: 'Reviewing', color: 'bg-brand-light text-brand' },
     { id: 'REQ-9229', status: 'Cancelled', color: 'bg-slate-100 text-slate-600' },
     { id: 'REQ-9228', status: 'Quoting', color: 'bg-amber-50 text-amber-600' },
-    { id: 'REQ-9227', status: 'Reviewing', color: 'bg-blue-50 text-blue-600' },
+    { id: 'REQ-9227', status: 'Reviewing', color: 'bg-brand-light text-brand' },
     { id: 'REQ-9226', status: 'Booked', color: 'bg-emerald-50 text-emerald-600' }
 ];
 
@@ -63,19 +63,19 @@ const activeOrders = [
     { id: 'ORD-3354', route: 'Dhaka → Chittagong', status: 'In Transit', progress: 65, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' },
     { id: 'ORD-3353', route: 'Sylhet → Dhaka', status: 'Loading', progress: 15, color: 'bg-amber-50 text-amber-600', progressColor: 'bg-amber-500' },
     { id: 'ORD-3351', route: 'Khulna → Rajshahi', status: 'In Transit', progress: 80, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' },
-    { id: 'ORD-3350', route: 'Dhaka → Sylhet', status: 'Pending', progress: 5, color: 'bg-blue-50 text-blue-600', progressColor: 'bg-blue-500' },
+    { id: 'ORD-3350', route: 'Dhaka → Sylhet', status: 'Pending', progress: 5, color: 'bg-brand-light text-brand', progressColor: 'bg-brand' },
     { id: 'ORD-3348', route: 'Rajshahi → Dhaka', status: 'Out for Delivery', progress: 95, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' }
 ];
 
 const notificationList = [
     { icon: FileText, text: 'New quote received for REQ-9234', bg: 'bg-purple-100', color: 'text-purple-600', time: '5 min' },
     { icon: Package, text: 'Your booking for REQ-9233 was confirmed', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '30 min' },
-    { icon: Truck, text: 'ORD-3354 status changed to In Transit', bg: 'bg-blue-100', color: 'text-blue-600', time: '1 hr' },
+    { icon: Truck, text: 'ORD-3354 status changed to In Transit', bg: 'bg-blue-100', color: 'text-brand', time: '1 hr' },
     { icon: Euro, text: 'Payment of €900 sent', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '4 hrs' },
     { icon: FileText, text: 'New quote received for REQ-9232', bg: 'bg-purple-100', color: 'text-purple-600', time: '12 hrs' },
     { icon: Bell, text: 'Supplier asked a question on REQ-9230', bg: 'bg-amber-100', color: 'text-amber-600', time: '1 day' },
     { icon: Package, text: 'Your booking for REQ-9229 was cancelled', bg: 'bg-rose-100', color: 'text-rose-600', time: '2 days' },
-    { icon: Truck, text: 'ORD-3349 marked as Delivered', bg: 'bg-blue-100', color: 'text-blue-600', time: '3 days' },
+    { icon: Truck, text: 'ORD-3349 marked as Delivered', bg: 'bg-blue-100', color: 'text-brand', time: '3 days' },
     { icon: Euro, text: 'Payment of €350 sent', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '4 days' },
     { icon: Star, text: 'Please rate your recent delivery', bg: 'bg-amber-100', color: 'text-amber-600', time: '1 week' }
 ];
@@ -88,7 +88,7 @@ const MetricCard = ({ title, description, value, icon: Icon, colorClass }) => (
             </div>
             <span className="text-[20px] font-black text-slate-800">{value}</span>
         </div>
-        <h3 className="font-bold text-[14px] text-slate-900 leading-tight mb-0.5">
+        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">
             {title}
         </h3>
         <p className="text-[12px] text-slate-500 font-medium leading-snug">
@@ -107,14 +107,14 @@ export default function Dashboard() {
                     description="View your recent and lifetime spending overview." 
                     value="€15,400"
                     icon={Euro}
-                    colorClass="bg-blue-50 text-blue-600"
+                    colorClass="bg-brand-light text-brand"
                 />
                 <MetricCard 
                     title="Active Orders" 
                     description="Track and manage all your currently active orders." 
                     value="12"
                     icon={Package}
-                    colorClass="bg-indigo-50 text-indigo-600"
+                    colorClass="bg-brand-light text-brand"
                 />
                 <MetricCard 
                     title="Active Requests" 
@@ -146,8 +146,8 @@ export default function Dashboard() {
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 -mx-4 px-4">
                         <div className="flex items-center gap-2">
-                            <TrendingUp size={16} className="text-indigo-600" />
-                            <h3 className="text-[15px] font-bold text-slate-900">Spending Overview</h3>
+                            <TrendingUp size={16} className="text-brand" />
+                            <h3 className="text-[13px] font-bold text-slate-800">Spending Overview</h3>
                         </div>
                         <Select 
                             className="w-38"
@@ -171,8 +171,8 @@ export default function Dashboard() {
                             <AreaChart data={spendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
-                                        <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#FF4A1F" stopOpacity={0.2}/>
+                                        <stop offset="95%" stopColor="#FF4A1F" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -182,7 +182,7 @@ export default function Dashboard() {
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px -2px rgba(0,0,0,0.1)' }}
                                     formatter={(value) => [`€${value}`, 'Spending']}
                                 />
-                                <Area type="monotone" dataKey="spend" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3, fill: '#4f46e5', stroke: '#ffffff', strokeWidth: 2 }} activeDot={{ r: 5 }} fillOpacity={1} fill="url(#colorSpend)" />
+                                <Area type="monotone" dataKey="spend" stroke="#FF4A1F" strokeWidth={2} dot={{ r: 3, fill: '#FF4A1F', stroke: '#ffffff', strokeWidth: 2 }} activeDot={{ r: 5 }} fillOpacity={1} fill="url(#colorSpend)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -192,8 +192,8 @@ export default function Dashboard() {
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 -mx-4 px-4">
                         <div className="flex items-center gap-2">
-                            <Activity size={16} className="text-indigo-600" />
-                            <h3 className="text-[15px] font-bold text-slate-900">Request & Order Overview</h3>
+                            <Activity size={16} className="text-brand" />
+                            <h3 className="text-[13px] font-bold text-slate-800">Request & Order Overview</h3>
                         </div>
                         <Select 
                             className="w-38"
@@ -209,7 +209,7 @@ export default function Dashboard() {
 
                     <div className="flex items-center gap-4 mb-4 flex-wrap">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                            <span className="w-2.5 h-2.5 rounded-sm bg-blue-500"></span> Requests Sent
+                            <span className="w-2.5 h-2.5 rounded-sm bg-brand"></span> Requests Sent
                         </div>
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
                             <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> Quotes Received
@@ -228,7 +228,7 @@ export default function Dashboard() {
                                 <Tooltip 
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px -2px rgba(0,0,0,0.1)' }}
                                 />
-                                <Line type="monotone" dataKey="requests" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Requests" />
+                                <Line type="monotone" dataKey="requests" stroke="#FF4A1F" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Requests" />
                                 <Line type="monotone" dataKey="quotes" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Quotes" />
                                 <Line type="monotone" dataKey="booked" stroke="#a855f7" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Booked" />
                             </LineChart>
@@ -241,8 +241,8 @@ export default function Dashboard() {
             {/* Live Tracking - Full Width Horizontal */}
             <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden mb-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 -mx-4 px-4">
-                    <h3 className="text-[15px] font-bold text-slate-900">Live Tracking</h3>
-                    <button className="text-[12px] font-bold text-indigo-600 hover:underline focus:outline-none transition-colors">See All Active Shipments</button>
+                    <h3 className="text-[13px] font-bold text-slate-800">Live Tracking</h3>
+                    <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All Active Shipments</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {activeOrders.slice(0, 4).map((order, idx) => (
@@ -259,7 +259,7 @@ export default function Dashboard() {
                                 <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-visible relative flex items-center">
                                     <div className={`h-1.5 rounded-full ${order.progressColor} relative`} style={{ width: `${order.progress}%` }}>
                                         <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full flex items-center justify-center shadow-sm">
-                                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
+                                            <div className="w-1.5 h-1.5 bg-brand-light0 rounded-full"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -273,8 +273,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[15px] font-bold text-slate-900">Recent Requests</h3>
-                        <button className="text-[12px] font-bold text-indigo-600 hover:underline focus:outline-none transition-colors">See All</button>
+                        <h3 className="text-[13px] font-bold text-slate-800">Recent Requests</h3>
+                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
                     </div>
                     <div className="flex flex-col text-[13px] text-slate-500 flex-1">
                         {recentRequests.slice(0, 5).map((req, idx) => (
@@ -288,8 +288,8 @@ export default function Dashboard() {
                 
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[15px] font-bold text-slate-900">Notifications</h3>
-                        <button className="text-[12px] font-bold text-indigo-600 hover:underline focus:outline-none transition-colors">See All</button>
+                        <h3 className="text-[13px] font-bold text-slate-800">Notifications</h3>
+                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
                     </div>
                     <div className="flex flex-col text-[13px] text-slate-500 flex-1">
                         {notificationList.slice(0, 5).map((notification, idx) => (

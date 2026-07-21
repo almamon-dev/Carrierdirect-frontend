@@ -16,7 +16,7 @@ export default function Spinner({ size = 'md', className = '' }: SpinnerProps) {
     return (
         <Loader2 
             size={sizeMap[size]} 
-            className={`animate-spin text-[#008060] ${className}`} 
+            className={`animate-spin text-[#FF4A1F] ${className}`} 
         />
     );
 }

@@ -72,7 +72,7 @@ export default function SupplierNegotiationChat() {
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 rounded-full hover:bg-slate-100 -ml-2" onClick={() => navigate(-1)}>
                             <ArrowLeft size={18} />
                         </Button>
-                        <h2 className="text-[20px] font-bold text-slate-900 tracking-tight">Chats</h2>
+                        <h2 className="text-[15px] font-bold text-slate-800 tracking-tight">Chats</h2>
                     </div>
                 </div>
                 
@@ -90,13 +90,13 @@ export default function SupplierNegotiationChat() {
                 </div>
 
                 <div className="px-4 py-2 flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-none rounded-full px-3 py-1 font-semibold cursor-pointer">All</Badge>
+                    <Badge variant="secondary" className="bg-brand-light text-indigo-700 hover:bg-indigo-100 border-none rounded-full px-3 py-1 font-semibold cursor-pointer">All</Badge>
                     <Badge variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-200 border-none rounded-full px-3 py-1 font-semibold cursor-pointer whitespace-nowrap">Unread</Badge>
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-2 mt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     {filteredChats.map((chat, idx) => (
-                        <div key={chat.id} className={`p-2 rounded-lg cursor-pointer flex gap-3 items-center group relative ${idx > 0 ? 'mt-1' : ''} ${chat.active ? 'bg-indigo-50/50' : 'hover:bg-slate-50'}`}>
+                        <div key={chat.id} className={`p-2 rounded-lg cursor-pointer flex gap-3 items-center group relative ${idx > 0 ? 'mt-1' : ''} ${chat.active ? 'bg-brand-light/50' : 'hover:bg-slate-50'}`}>
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 relative ${chat.active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
                                 {chat.avatar}
                                 {chat.active && <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>}
@@ -107,7 +107,7 @@ export default function SupplierNegotiationChat() {
                             </div>
                             <div className="flex flex-col items-end gap-1">
                                 <span className={`text-[10px] ${chat.active ? 'text-slate-500 font-medium' : 'text-slate-400 font-medium'}`}>{chat.time}</span>
-                                {chat.unread && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600"></div>}
+                                {chat.unread && <div className="w-2.5 h-2.5 rounded-full bg-brand"></div>}
                             </div>
                         </div>
                     ))}
@@ -128,20 +128,20 @@ export default function SupplierNegotiationChat() {
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
                         </div>
                         <div>
-                            <h2 className="text-[15px] font-bold text-slate-900 leading-tight">ABC Logistics</h2>
+                            <h2 className="text-[15px] font-bold text-slate-800">ABC Logistics</h2>
                             <div className="text-[12px] text-slate-500 font-medium mt-0.5">Active now</div>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-1 sm:gap-2">
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-indigo-600 rounded-full hover:bg-slate-100 hidden sm:flex">
-                            <Phone size={20} fill="currentColor" className="text-indigo-600" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-brand rounded-full hover:bg-slate-100 hidden sm:flex">
+                            <Phone size={20} fill="currentColor" className="text-brand" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-indigo-600 rounded-full hover:bg-slate-100 hidden sm:flex">
-                            <Video size={22} fill="currentColor" className="text-indigo-600" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-brand rounded-full hover:bg-slate-100 hidden sm:flex">
+                            <Video size={22} fill="currentColor" className="text-brand" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-indigo-600 rounded-full hover:bg-slate-100">
-                            <Info size={22} className="text-indigo-600" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-brand rounded-full hover:bg-slate-100">
+                            <Info size={22} className="text-brand" />
                         </Button>
                     </div>
                 </div>
@@ -203,7 +203,7 @@ export default function SupplierNegotiationChat() {
                                 <div className={`max-w-[75%] sm:max-w-[65%] flex flex-col ${isSent ? 'items-end' : 'items-start'}`}>
                                     <div className={`relative px-4 py-2 text-[14.5px] leading-relaxed ${borderRadiusClasses} ${
                                         isSent 
-                                        ? 'bg-indigo-600 text-white' 
+                                        ? 'bg-brand text-white' 
                                         : 'bg-slate-100 text-slate-900'
                                     }`}>
                                         {msg.text}
@@ -233,7 +233,7 @@ export default function SupplierNegotiationChat() {
                         A
                         <div className="absolute bottom-0 right-1 w-5 h-5 bg-emerald-500 border-4 border-white rounded-full"></div>
                     </div>
-                    <h3 className="text-[18px] font-bold text-slate-900">ABC Logistics</h3>
+                    <h3 className="text-[13px] font-bold text-slate-800">ABC Logistics</h3>
                     <p className="text-[12px] text-slate-500 mt-1">Active 20m ago</p>
 
                     <div className="flex items-center gap-6 mt-6">

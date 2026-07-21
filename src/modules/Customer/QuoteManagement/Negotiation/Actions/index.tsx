@@ -71,7 +71,7 @@ export default function ChatInputActions({
                                     <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
                                 </div>
                             ) : (
-                                <div className="w-8 h-8 rounded bg-indigo-50 text-indigo-500 shrink-0 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded bg-brand-light text-indigo-500 shrink-0 flex items-center justify-center">
                                     <FileIcon size={16} />
                                 </div>
                             )}
@@ -104,15 +104,15 @@ export default function ChatInputActions({
                     multiple 
                     onChange={handleFileChange} 
                 />
-                <Button variant="ghost" size="icon" className="h-9 w-9 text-indigo-600 rounded-full hover:bg-slate-100 shrink-0">
-                    <div className="w-5 h-5 rounded-full border-2 border-indigo-600 flex items-center justify-center">
+                <Button variant="ghost" size="icon" className="h-9 w-9 text-brand rounded-full hover:bg-slate-100 shrink-0">
+                    <div className="w-5 h-5 rounded-full border-2 border-brand flex items-center justify-center">
                         <span className="text-lg leading-none font-bold mb-[2px]">+</span>
                     </div>
                 </Button>
                 <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-9 w-9 text-indigo-600 rounded-full hover:bg-slate-100 shrink-0"
+                    className="h-9 w-9 text-brand rounded-full hover:bg-slate-100 shrink-0"
                     onClick={() => imageInputRef.current?.click()}
                 >
                     <ImageIcon size={22} />
@@ -120,7 +120,7 @@ export default function ChatInputActions({
                 <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-9 w-9 text-indigo-600 rounded-full hover:bg-slate-100 shrink-0"
+                    className="h-9 w-9 text-brand rounded-full hover:bg-slate-100 shrink-0"
                     onClick={() => fileInputRef.current?.click()}
                 >
                     <Paperclip size={22} />
@@ -146,7 +146,7 @@ export default function ChatInputActions({
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className={`h-8 w-8 rounded-full shrink-0 ${showEmojiPicker ? 'bg-indigo-100 text-indigo-700' : 'text-indigo-600 hover:bg-slate-200'}`}
+                            className={`h-8 w-8 rounded-full shrink-0 ${showEmojiPicker ? 'bg-indigo-100 text-indigo-700' : 'text-brand hover:bg-slate-200'}`}
                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                         >
                             <Smile size={20} />
@@ -174,10 +174,10 @@ export default function ChatInputActions({
                 <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-9 w-9 rounded-full shrink-0 text-indigo-600 hover:bg-slate-100"
+                    className="h-9 w-9 rounded-full shrink-0 text-brand hover:bg-slate-100"
                     onClick={handleSend}
                 >
-                    <Send size={22} className={(inputValue.trim() || selectedFiles.length > 0) ? 'fill-indigo-600 text-indigo-600' : ''} />
+                    <Send size={22} className={(inputValue.trim() || selectedFiles.length > 0) ? 'fill-indigo-600 text-brand' : ''} />
                 </Button>
             </div>
         </div>

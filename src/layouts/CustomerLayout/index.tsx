@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Bell, Search, Calendar } from 'lucide-react';
 import Sidebar from './Sidebar';
+import GlobalSearch from '@/components/GlobalSearch';
 
 export default function CustomerLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const location = useLocation();
 
     return (
@@ -26,7 +28,7 @@ export default function CustomerLayout() {
                 <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 z-10 shrink-0">
                     <div className="flex items-center gap-6">
                         <button
-                            className="text-slate-600 hover:text-blue-600 transition-colors"
+                            className="text-slate-600 hover:text-brand transition-colors"
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -36,20 +38,20 @@ export default function CustomerLayout() {
                         
                         {/* Module Title */}
                         <div className="hidden lg:block">
-                            <h1 className="text-[20px] font-bold text-[#0B1E43] capitalize tracking-wide">
+                            <h1 className="text-[18px] font-bold text-slate-900 text-[#0B1E43] capitalize tracking-wide">
                                 {location.pathname.split('/')[1] || 'Dashboard'}
                             </h1>
                         </div>
 
                         {/* Search Bar */}
-                        <div className="hidden md:flex items-center bg-gray-50 px-4 py-2.5 rounded-full w-[300px] border border-gray-200 focus-within:border-blue-500 focus-within:bg-white transition-colors">
-                            <Search size={16} className="text-gray-400 mr-2 shrink-0" />
-                            <input
-                                type="text"
-                                placeholder="Search anything..."
-                                className="bg-transparent border-none outline-none text-[13px] w-full text-gray-700 placeholder-gray-400"
-                            />
-                        </div>
+                        <button 
+                            onClick={() => setIsSearchOpen(true)}
+                            className="hidden md:flex items-center bg-gray-50 px-4 py-2.5 rounded-full w-[300px] border border-gray-200 hover:border-[#FF4A1F] hover:bg-white transition-colors text-left group"
+                        >
+                            <Search size={16} className="text-gray-400 mr-2 shrink-0 group-hover:text-[#FF4A1F]" />
+                            <span className="text-[13px] text-gray-400 w-full group-hover:text-gray-600">Search for quotes, orders...</span>
+                            <span className="text-[10px] font-bold text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded ml-auto border border-gray-300">⌘K</span>
+                        </button>
                     </div>
 
                     <div className="flex items-center gap-5">
@@ -76,11 +78,13 @@ export default function CustomerLayout() {
 
                 {/* Main Scrollable Content */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f8fafc] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    <React.Suspense fallback={<div className="flex h-full items-center justify-center p-8"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>}>
+                    <React.Suspense fallback={<div className="flex h-full items-center justify-center p-8"><div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin"></div></div>}>
                         <Outlet />
                     </React.Suspense>
                 </main>
             </div>
+            
+            <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
         </div>
     );
 }

@@ -35,7 +35,7 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
                         <item.icon 
                             size={20} 
                             strokeWidth={1.5}
-                            className={isActiveGroup ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'} 
+                            className={isActiveGroup ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600'} 
                         />
                     )}
                     {isOpen && <span className="whitespace-nowrap">{item.group}</span>}
@@ -59,12 +59,12 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
                                 to={subItem.path}
                                 className={`flex items-center justify-between py-1.5 rounded-md text-[13px] font-medium transition-colors group ${
                                     isActive 
-                                        ? 'text-blue-600 font-semibold' 
+                                        ? 'text-brand font-semibold' 
                                         : 'text-slate-500 hover:text-slate-900'
                                 }`}
                             >
                                 <div className="flex items-center gap-3 whitespace-nowrap">
-                                    <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-blue-600' : 'bg-slate-300 group-hover:bg-slate-400'}`} />
+                                    <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-brand' : 'bg-slate-300 group-hover:bg-slate-400'}`} />
                                     {subItem.name}
                                 </div>
                             </Link>
@@ -89,9 +89,9 @@ export default function Sidebar({ isOpen }: SidebarProps) {
         <aside className={`fixed lg:static inset-y-0 left-0 z-30 bg-white border-r border-slate-200 transform transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:w-[72px] lg:translate-x-0'}`}>
             <div className="h-16 flex items-center justify-center lg:justify-start px-5 border-b border-gray-100 shrink-0 whitespace-nowrap">
                 {isOpen ? (
-                    <img src={LogoBlack} alt="Get It Moving" className="h-8 max-w-[150px] object-contain transition-opacity duration-300" />
+                    <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300" />
                 ) : (
-                    <img src={LogoIcon} alt="Icon" className="w-8 h-8 object-contain shrink-0" />
+                    <img src={LogoIcon} alt="Icon" className="w-10 h-10 object-contain shrink-0" />
                 )}
             </div>
 
@@ -128,7 +128,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                                         <item.icon 
                                             size={20} 
                                             strokeWidth={1.5}
-                                            className={(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'} 
+                                            className={(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600'} 
                                         />
                                         {isOpen && <span className="whitespace-nowrap">{item.name}</span>}
                                     </div>
@@ -140,14 +140,6 @@ export default function Sidebar({ isOpen }: SidebarProps) {
             </div>
 
             <div className="p-4 border-t border-gray-100 shrink-0 space-y-2">
-                <Link 
-                    to="/modules" 
-                    title={!isOpen ? "Modules" : undefined}
-                    className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center'} py-2 w-full rounded-lg text-[13px] font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors`}
-                >
-                    <ArrowLeft size={20} className="text-slate-400" />
-                    {isOpen && <span className="whitespace-nowrap">Back to Modules</span>}
-                </Link>
                 <button 
                     title={!isOpen ? "Logout" : undefined}
                     className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center'} py-2 w-full rounded-lg text-[13px] font-medium text-red-600 hover:bg-red-50 transition-colors`}

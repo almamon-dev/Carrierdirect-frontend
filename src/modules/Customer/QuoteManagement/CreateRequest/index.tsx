@@ -88,7 +88,7 @@ export default function RequestList() {
             id: 'id', 
             label: 'Request', 
             render: (row) => (
-                <span className="text-indigo-600 font-semibold whitespace-nowrap flex items-center gap-2">
+                <span className="text-brand font-semibold whitespace-nowrap flex items-center gap-2">
                     {row.id}
                     {row.hasNew && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="New activity"></span>}
                 </span>
@@ -177,11 +177,11 @@ export default function RequestList() {
     const actions = (row: any) => (
         <div className="flex items-center justify-end gap-2 relative">
             {row.status !== 'Draft' ? (
-                <Button variant="primary" size="sm" className="h-7 px-3 bg-indigo-600 hover:bg-indigo-700" onClick={(e) => { e.stopPropagation(); navigate(`/customer/quotes/received/${row.id}`); }}>
+                <Button variant="primary" size="sm" className="h-7 px-3 bg-brand hover:bg-brand-hover" onClick={(e) => { e.stopPropagation(); navigate(`/customer/quotes/received/${row.id}`); }}>
                     <Activity size={14} className="mr-1.5" /> Track Bids
                 </Button>
             ) : (
-                <Button variant="outline" size="sm" className="h-7 px-3 border-indigo-200 text-indigo-700 hover:bg-indigo-50" onClick={(e) => { e.stopPropagation(); navigate(`/customer/quotes/create/edit/${row.id}`); }}>
+                <Button variant="outline" size="sm" className="h-7 px-3 border-indigo-200 text-indigo-700 hover:bg-brand-light" onClick={(e) => { e.stopPropagation(); navigate(`/customer/quotes/create/edit/${row.id}`); }}>
                     <Edit size={14} className="mr-1.5" /> Edit Draft
                 </Button>
             )}
@@ -244,8 +244,8 @@ export default function RequestList() {
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen" onClick={() => setOpenDropdown(null)}>
             <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl text-slate-900 mb-1">Quote Requests</h1>
-                    <p className="text-sm text-slate-500 ">Manage and track your active transportation quote requests.</p>
+                    <h1 className="text-[18px] font-bold text-slate-900 mb-1">Quote Requests</h1>
+                    <p className="text-sm text-slate-500">Manage and track your active transportation quote requests.</p>
                 </div>
                 <Button variant="primary" onClick={() => navigate('/customer/quotes/create/new')}>
                     <Plus size={16} className="mr-2" /> Create New Request

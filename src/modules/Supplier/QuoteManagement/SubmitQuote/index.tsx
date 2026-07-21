@@ -80,7 +80,7 @@ export default function SubmitQuote() {
                     <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle2 size={32} className="text-emerald-600" />
                     </div>
-                    <h2 className="text-xl font-bold text-slate-900 mb-2">Quote Submitted!</h2>
+                    <h2 className="text-[15px] font-bold text-slate-800 mb-2">Quote Submitted!</h2>
                     <p className="text-[13px] text-slate-500 mb-6">
                         Your quote for <span className="font-semibold text-slate-700">{requestDetails.id}</span> has been successfully sent to the customer. You will be notified if they accept or initiate negotiation.
                     </p>
@@ -100,7 +100,7 @@ export default function SubmitQuote() {
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 mb-1">Submit Quote</h1>
+                        <h1 className="text-[18px] font-bold text-slate-900 mb-1">Submit Quote</h1>
                         <p className="text-sm text-slate-500 font-medium">Review the request details carefully before submitting your offer.</p>
                     </div>
                 </div>
@@ -115,7 +115,7 @@ export default function SubmitQuote() {
                     <div className="flex flex-col md:flex-row justify-between items-center p-3 md:p-4 bg-slate-50/80 gap-3 border-b border-slate-200">
                         <div className="font-black text-slate-800 text-base tracking-tight">Request ID : <span className="text-slate-600 font-bold">{requestDetails.id}</span></div>
                         <div className="flex items-center gap-2">
-                            <Badge className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-50 font-medium px-2.5 py-1">New Request</Badge>
+                            <Badge className="bg-brand-light text-brand border-blue-200 hover:bg-brand-light font-medium px-2.5 py-1">New Request</Badge>
                             <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
                                 <Clock size={12} /> {requestDetails.timeRemaining} Left
                             </div>
@@ -125,7 +125,7 @@ export default function SubmitQuote() {
                     <div className="p-3 md:p-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
                         {/* Customer Info */}
                         <div>
-                            <h3 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider mb-1.5 pb-1 border-b border-slate-200">Customer Info</h3>
+                            <h3 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 pb-1 border-b border-slate-200">Customer Info</h3>
                             <div className="grid grid-cols-[100px_8px_1fr] gap-y-1 text-[12px] items-center">
                                 <span className="text-slate-500 font-medium">Customer</span>
                                 <span className="text-slate-400">:</span>
@@ -143,7 +143,7 @@ export default function SubmitQuote() {
 
                         {/* Routing Info */}
                         <div>
-                            <h3 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider mb-1.5 pb-1 border-b border-slate-200">Routing Info</h3>
+                            <h3 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 pb-1 border-b border-slate-200">Routing Info</h3>
                             <div className="grid grid-cols-[100px_8px_1fr] gap-y-1 text-[12px] items-center">
                                 <span className="text-slate-500 font-medium">Pickup</span>
                                 <span className="text-slate-400">:</span>
@@ -161,7 +161,7 @@ export default function SubmitQuote() {
 
                         {/* Schedule Info */}
                         <div>
-                            <h3 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider mb-1.5 pb-1 border-b border-slate-200">Schedule Info</h3>
+                            <h3 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 pb-1 border-b border-slate-200">Schedule Info</h3>
                             <div className="grid grid-cols-[100px_8px_1fr] gap-y-1 text-[12px] items-center">
                                 <span className="text-slate-500 font-medium">Pickup Date</span>
                                 <span className="text-slate-400">:</span>
@@ -176,7 +176,7 @@ export default function SubmitQuote() {
 
                     {/* Detailed Instructions Area */}
                     <div className="p-3 md:p-4 border-t border-slate-200 bg-white">
-                        <h3 className="text-[14px] font-bold text-slate-800 flex items-center gap-1.5 mb-2.5">
+                        <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-1.5 mb-2.5">
                             <Truck size={14} className="text-slate-500" />
                             Load & Vehicle Information
                         </h3>
@@ -213,7 +213,7 @@ export default function SubmitQuote() {
                                                 <div className="text-[12px] font-bold text-slate-800 flex items-center justify-center bg-slate-50/80 py-1 rounded border border-slate-100">{dim.width}</div>
                                                 <span className="font-bold text-slate-300 text-center text-[12px]">×</span>
                                                 <div className="text-[12px] font-bold text-slate-800 flex items-center justify-center bg-slate-50/80 py-1 rounded border border-slate-100">{dim.height}</div>
-                                                <div className="text-[12px] font-bold text-slate-800 flex items-center justify-center bg-indigo-50 py-1 rounded">{dim.qty}</div>
+                                                <div className="text-[12px] font-bold text-slate-800 flex items-center justify-center bg-brand-light py-1 rounded">{dim.qty}</div>
                                                 <div className="text-[11px] font-bold text-slate-500 flex items-center justify-center">{dim.unit}</div>
                                             </div>
                                         ))}
@@ -261,22 +261,22 @@ export default function SubmitQuote() {
                     {/* Instructions List */}
                     <div className="p-3 md:p-4 border-t border-slate-200 bg-white rounded-b-md">
                         <div className="grid grid-cols-[100px_8px_1fr] items-start">
-                            <h3 className="text-[12px] text-slate-500 font-medium pt-1">Instructions</h3>
+                            <h3 className="text-[13px] font-bold text-slate-800 pt-1">Instructions</h3>
                             <span className="text-[12px] text-slate-400 pt-1">:</span>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 {/* Pickup Instructions */}
                                 <div>
-                                    <h4 className="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-1.5 flex items-center gap-1"><MapPin size={12}/> Pickup</h4>
+                                    <h4 className="text-[11px] font-bold text-brand uppercase tracking-wider mb-1.5 flex items-center gap-1"><MapPin size={12}/> Pickup</h4>
                                     <div>
                                         <div className="flex flex-col gap-y-1">
                                             {(showAllPickup ? requestDetails.pickupInstructions.split('\n').filter(Boolean) : requestDetails.pickupInstructions.split('\n').filter(Boolean).slice(0, 2)).map((instruction, idx) => (
                                                 <div key={`p-${idx}`} className="flex items-start gap-1.5">
-                                                    <div className="w-1 h-1 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
+                                                    <div className="w-1 h-1 rounded-full bg-brand mt-1.5 flex-shrink-0" />
                                                     <span className="text-[12px] font-semibold text-slate-800 leading-tight">{instruction}</span>
                                                 </div>
                                             ))}
                                             {requestDetails.pickupInstructions.split('\n').filter(Boolean).length > 2 && (
-                                                <button onClick={() => setShowAllPickup(!showAllPickup)} className="text-[12px] font-bold text-indigo-600 hover:underline text-left mt-1 w-fit">
+                                                <button onClick={() => setShowAllPickup(!showAllPickup)} className="text-[12px] font-bold text-brand hover:underline text-left mt-1 w-fit">
                                                     {showAllPickup ? 'See Less' : `+${requestDetails.pickupInstructions.split('\n').filter(Boolean).length - 2} see more`}
                                                 </button>
                                             )}
@@ -295,7 +295,7 @@ export default function SubmitQuote() {
                                                 </div>
                                             ))}
                                             {requestDetails.deliveryInstructions.split('\n').filter(Boolean).length > 2 && (
-                                                <button onClick={() => setShowAllDelivery(!showAllDelivery)} className="text-[12px] font-bold text-indigo-600 hover:underline text-left mt-1 w-fit">
+                                                <button onClick={() => setShowAllDelivery(!showAllDelivery)} className="text-[12px] font-bold text-brand hover:underline text-left mt-1 w-fit">
                                                     {showAllDelivery ? 'See Less' : `+${requestDetails.deliveryInstructions.split('\n').filter(Boolean).length - 2} see more`}
                                                 </button>
                                             )}
@@ -310,7 +310,7 @@ export default function SubmitQuote() {
                 {/* RIGHT CARD: Your Quotation Form */}
                 <div className="w-full xl:w-[400px] bg-white border border-slate-200 shadow-sm rounded-md flex flex-col sticky top-6">
                     <div className="px-5 py-4 border-b border-slate-200 bg-slate-50/50">
-                        <h3 className="font-bold text-slate-800 text-[15px]">Your Quotation</h3>
+                        <h3 className="text-[13px] font-bold text-slate-800">Your Quotation</h3>
                     </div>
                     
                     <div className="p-4 space-y-4 flex-1">
@@ -338,7 +338,7 @@ export default function SubmitQuote() {
                                 <FormLabel className="mb-0">Extra Charges</FormLabel>
                                 <button 
                                     onClick={() => setExtraCharges([...extraCharges, {name: '', description: '', amount: ''}])}
-                                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded"
+                                    className="text-[11px] font-bold text-brand hover:text-indigo-800 flex items-center gap-1 bg-brand-light px-2 py-1 rounded"
                                 >
                                     <Plus size={12} /> Add Charge
                                 </button>
@@ -419,7 +419,7 @@ export default function SubmitQuote() {
                                 })}
                                 <div className="pt-2.5 mt-2.5 border-t border-slate-200 flex justify-between items-center">
                                     <span className="font-bold text-slate-900">Total Offer</span>
-                                    <span className="text-lg font-black text-indigo-600">€${calculateTotal()}</span>
+                                    <span className="text-lg font-black text-brand">€${calculateTotal()}</span>
                                 </div>
                             </div>
                         </div>

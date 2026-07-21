@@ -30,12 +30,12 @@ export default function RolesTab() {
                     return (
                         <div key={idx} className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start w-full shadow-sm">
                             <div className="flex justify-between items-start w-full mb-3">
-                                <div className="w-9 h-9 rounded-md shrink-0 flex items-center justify-center bg-indigo-50 text-indigo-600">
+                                <div className="w-9 h-9 rounded-md shrink-0 flex items-center justify-center bg-brand-light text-brand">
                                     <Icon size={18} strokeWidth={2} />
                                 </div>
                                 <span className="text-[18px] font-bold text-slate-700">{role.count}</span>
                             </div>
-                        <h3 className="font-semibold text-[14px] text-slate-800 leading-tight mb-0.5">
+                        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">
                             {role.name}
                         </h3>
                         <p className="text-[12px] text-slate-500 leading-snug mb-4">
@@ -45,7 +45,7 @@ export default function RolesTab() {
                         <div className="mt-auto w-full flex items-center justify-end">
                             <button 
                                 onClick={() => setEditingRole(role)}
-                                className="text-[12px] font-medium text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1.5"
+                                className="text-[12px] font-medium text-brand hover:text-indigo-800 hover:underline flex items-center gap-1.5"
                             >
                                 <Edit size={12} />
                                 Edit Permissions

@@ -14,24 +14,24 @@ export default function Processing() {
   const navigate = useNavigate();
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Order ID', render: (row) => <span className=" text-indigo-600 whitespace-nowrap">{row.id}</span> },
+    { id: 'id', label: 'Order ID', render: (row) => <span className="text-brand whitespace-nowrap">{row.id}</span> },
     { 
       id: 'route', 
       label: 'Route', 
       render: (row) => (
         <div className="flex items-center gap-2 whitespace-nowrap">
-          <span className=" text-slate-800">{row.route.from}</span>
+          <span className="text-slate-800">{row.route.from}</span>
           <Navigation size={12} className="text-slate-400 rotate-90" />
-          <span className=" text-slate-800">{row.route.to}</span>
+          <span className="text-slate-800">{row.route.to}</span>
         </div>
       ) 
     },
     { id: 'supplier', label: 'Supplier', render: (row) => <span className="whitespace-nowrap text-slate-800">{row.supplier}</span> },
     { id: 'driverName', label: 'Driver Name', render: (row) => <span className="whitespace-nowrap">{row.driverName}</span> },
     { id: 'driverPhone', label: 'Driver Phone', render: (row) => <span className="whitespace-nowrap text-slate-600">{row.driverPhone}</span> },
-    { id: 'vehicleNo', label: 'Vehicle No', render: (row) => <span className="whitespace-nowrap font-mono uppercase bg-slate-100 px-1.5 py-0.5 rounded text-sm ">{row.vehicleNo}</span> },
+    { id: 'vehicleNo', label: 'Vehicle No', render: (row) => <span className="whitespace-nowrap font-mono uppercase bg-slate-100 px-1.5 py-0.5 rounded text-sm">{row.vehicleNo}</span> },
     { id: 'amount', label: 'Amount', render: (row) => <span className="whitespace-nowrap text-emerald-600">{row.amount}</span> },
-    { id: 'estArrival', label: 'Est. Arrival', render: (row) => <span className="whitespace-nowrap text-slate-700 ">{row.estArrival}</span> },
+    { id: 'estArrival', label: 'Est. Arrival', render: (row) => <span className="whitespace-nowrap text-slate-700">{row.estArrival}</span> },
     { 
       id: 'status', 
       label: 'Status',
@@ -56,8 +56,8 @@ export default function Processing() {
     <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl text-slate-900 mb-1">Active Processing</h1>
-          <p className="text-sm text-slate-500 ">Track your active shipments, view driver details, and monitor live status.</p>
+          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Active Processing</h1>
+          <p className="text-sm text-slate-500">Track your active shipments, view driver details, and monitor live status.</p>
         </div>
       </div>
       

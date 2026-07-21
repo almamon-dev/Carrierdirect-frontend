@@ -5,14 +5,14 @@ export default function SupplierProfile({ supplier }: { supplier: any }) {
     return (
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-3">
             <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-xl font-black relative shrink-0">
+                <div className="w-12 h-12 rounded-full bg-brand-light text-indigo-700 flex items-center justify-center text-xl font-black relative shrink-0">
                     {supplier.name.charAt(0)}
                     <div className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-[15px] font-bold text-slate-900 truncate">{supplier.name}</h3>
-                        {supplier.verified && <ShieldCheck size={16} className="text-blue-500 shrink-0" />}
+                        <h3 className="text-[13px] font-bold text-slate-800 truncate">{supplier.name}</h3>
+                        {supplier.verified && <ShieldCheck size={16} className="text-brand shrink-0" />}
                     </div>
                     <p className="text-[12px] text-slate-500 mb-1">{supplier.active}</p>
                     <div className="flex items-center gap-1.5 text-[13px] font-bold text-slate-700">

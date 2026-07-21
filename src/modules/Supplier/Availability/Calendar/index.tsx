@@ -6,6 +6,7 @@ import Select from '@/components/ui/select';
 import DataTable from '@/components/tables/data-table';
 import { ChevronLeft, ChevronRight, Plus, Check, X, Clock, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 // Dummy availability data for July 2026
 const AVAILABILITY = {
@@ -47,6 +48,7 @@ const HISTORY_COLUMNS = [
 ];
 
 export default function Calendar() {
+    const navigate = useNavigate();
     const todayDate = new Date();
     const [currentMonth, setCurrentMonth] = useState(new Date(todayDate.getFullYear(), todayDate.getMonth(), 1));
 
@@ -109,11 +111,11 @@ export default function Calendar() {
                     <p className="text-[12px] text-slate-500 mt-0.5">Manage your working days, time-offs, and booking capacity.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm">
+                    <Button variant="outline" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm" onClick={() => navigate('/supplier/availability/settings')}>
                         <CalendarIcon size={14} />
                         Working Hours
                     </Button>
-                    <Button variant="primary" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm">
+                    <Button variant="primary" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm" onClick={() => navigate('/supplier/availability/schedule/create')}>
                         <Plus size={14} />
                         Add Exception
                     </Button>
@@ -167,7 +169,7 @@ export default function Calendar() {
                         {/* Weekday Headers */}
                         <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
                             {WEEKDAYS.map((day, i) => (
-                                <div key={i} className="py-1.5 text-center text-[10px] font-bold text-slate-500  border-r border-slate-100 last:border-r-0">
+                                <div key={i} className="py-1.5 text-center text-[10px] font-bold text-slate-500 border-r border-slate-100 last:border-r-0">
                                     {day}
                                 </div>
                             ))}
@@ -188,7 +190,7 @@ export default function Calendar() {
                                 return (
                                     <div key={i} className={`min-h-[70px] p-1 flex flex-col border-b border-r border-slate-100 last:border-r-0 transition-colors hover:bg-slate-50 cursor-pointer ${isWeekend && !dayData ? 'bg-slate-50/30' : 'bg-white'}`}>
                                         <div className="flex justify-between items-start mb-1.5">
-                                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold ${isToday ? 'bg-indigo-600 text-white' : 'text-slate-700'}`}>
+                                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold ${isToday ? 'bg-brand text-white' : 'text-slate-700'}`}>
                                                 {date.getDate()}
                                             </span>
                                         </div>
@@ -273,7 +275,7 @@ export default function Calendar() {
                 <Card className="lg:col-span-1 flex flex-col shadow-sm border-slate-200">
                     <CardHeader className="border-b border-slate-100 py-2.5 px-3">
                         <CardTitle className="text-[13px] flex items-center gap-2">
-                            <TrendingUp size={14} className="text-indigo-600" />
+                            <TrendingUp size={14} className="text-brand" />
                             Booking Volume
                         </CardTitle>
                     </CardHeader>
@@ -283,7 +285,7 @@ export default function Calendar() {
                         </p>
                         
                         {/* Stats Box */}
-                        <div className="bg-indigo-50/50 border border-indigo-100 rounded-[4px] p-2 mb-3 flex items-center justify-between">
+                        <div className="bg-brand-light/50 border border-indigo-100 rounded-[4px] p-2 mb-3 flex items-center justify-between">
                             <span className="text-[10px] font-bold text-indigo-900">Peak Volume Date</span>
                             <span className="text-[11px] font-black text-indigo-700">July 15th (8 Jobs)</span>
                         </div>
@@ -294,8 +296,8 @@ export default function Calendar() {
                                 <AreaChart data={GRAPH_DATA} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorJobs" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor="#FF4A1F" stopOpacity={0.2}/>
+                                            <stop offset="95%" stopColor="#FF4A1F" stopOpacity={0}/>
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -305,7 +307,7 @@ export default function Calendar() {
                                         contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '6px', fontSize: '11px', color: '#fff' }}
                                         itemStyle={{ color: '#fff' }}
                                     />
-                                    <Area type="monotone" dataKey="jobs" stroke="#4f46e5" strokeWidth={2} fillOpacity={1} fill="url(#colorJobs)" />
+                                    <Area type="monotone" dataKey="jobs" stroke="#FF4A1F" strokeWidth={2} fillOpacity={1} fill="url(#colorJobs)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
@@ -318,7 +320,7 @@ export default function Calendar() {
                 <CardHeader className="border-b border-slate-100 py-2 px-3">
                     <CardTitle className="text-[13px] flex items-center justify-between w-full">
                         <span>Availability Audit Log</span>
-                        <Button variant="ghost" className="h-6 text-[11px] font-bold text-indigo-600 px-2 py-0 hover:bg-indigo-50">
+                        <Button variant="ghost" className="h-6 text-[11px] font-bold text-brand px-2 py-0 hover:bg-brand-light">
                             See All
                         </Button>
                     </CardTitle>

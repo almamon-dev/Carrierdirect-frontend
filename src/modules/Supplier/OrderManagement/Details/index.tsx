@@ -3,7 +3,7 @@
 export default function Details() {
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold">Details</h1>
+            <h1 className="text-[18px] font-bold text-slate-900">Details</h1>
         </div>
     );
 }

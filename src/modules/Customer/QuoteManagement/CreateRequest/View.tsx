@@ -14,7 +14,7 @@ import TabHeader from '@/components/ui/tab-header';
 
 const SectionHeader = ({ title, icon: Icon, className = "col-span-1 md:col-span-2" }: { title: string, icon?: any, className?: string }) => (
     <div className={`${className} mt-4 pt-3 border-t border-slate-100 first:mt-0 first:pt-0 first:border-t-0 mb-2`}>
-        <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
+        <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
             {Icon && <Icon size={16} className="text-slate-400" />}
             {title}
         </h3>
@@ -175,7 +175,7 @@ export default function ViewRequestForm() {
             <p className="text-[14px] text-slate-400">:</p>
             <div className="w-full">
                 {children ? children : isLink ? (
-                    <a href={linkHref} target={linkHref.startsWith('http') ? "_blank" : "_self"} className="text-[14px] font-semibold text-blue-600 hover:underline break-all">
+                    <a href={linkHref} target={linkHref.startsWith('http') ? "_blank" : "_self"} className="text-[14px] font-semibold text-brand hover:underline break-all">
                         {value || 'N/A'}
                     </a>
                 ) : (
@@ -191,8 +191,8 @@ export default function ViewRequestForm() {
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                     <div>
-                        <h1 className="text-[22px] font-bold text-slate-900">View Quote Request</h1>
-                        <p className="text-[14px] font-medium text-indigo-600 mt-1">Review the details of your quote request.</p>
+                        <h1 className="text-[18px] font-bold text-slate-900">View Quote Request</h1>
+                        <p className="text-[14px] font-medium text-brand mt-1">Review the details of your quote request.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -208,7 +208,7 @@ export default function ViewRequestForm() {
                 {/* Sidebar Navigation */}
                 <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
                     <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                        <h3 className="text-[15px] font-bold text-slate-800">Categories</h3>
+                        <h3 className="text-[13px] font-bold text-slate-800">Categories</h3>
                     </div>
                     <div className="flex flex-col">
                         {CREATE_TABS.map((tab) => {
@@ -219,15 +219,15 @@ export default function ViewRequestForm() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center justify-between px-4 py-2.5 text-[14px] font-medium transition-colors border-l-[3px] border-b border-slate-50 last:border-b-0 ${isSelected
-                                            ? 'border-l-indigo-600 bg-indigo-50/50 text-indigo-700'
+                                            ? 'border-l-indigo-600 bg-brand-light/50 text-indigo-700'
                                             : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                         }`}
                                 >
                                     <div className="flex items-center gap-2.5">
-                                        <Icon size={15} className={isSelected ? 'text-indigo-600' : 'text-slate-400'} />
+                                        <Icon size={15} className={isSelected ? 'text-brand' : 'text-slate-400'} />
                                         {tab.label}
                                     </div>
-                                    {isSelected && <ChevronRight size={15} className="text-indigo-600" />}
+                                    {isSelected && <ChevronRight size={15} className="text-brand" />}
                                 </button>
                             );
                         })}
@@ -246,7 +246,7 @@ export default function ViewRequestForm() {
 
                                     <ViewField label="Request Title" colSpan value={formData.requestTitle} />
 
-                                    <ViewField label="Request Number" value={<span className="font-mono text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">REQ-9824</span>} />
+                                    <ViewField label="Request Number" value={<span className="font-mono text-brand font-bold bg-brand-light px-2 py-0.5 rounded">REQ-9824</span>} />
 
                                     <ViewField label="Priority" value={<span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700 border border-amber-200 w-fit">{formData.priority}</span>} />
 
@@ -277,7 +277,7 @@ export default function ViewRequestForm() {
 
                                     {/* Pickup Info */}
                                     <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-5 mb-2">
-                                        <h3 className="text-[14px] font-bold text-blue-600 mb-4 flex items-center gap-2"><MapPin size={16} /> Pickup Details</h3>
+                                        <h3 className="text-[13px] font-bold text-slate-800 text-brand mb-4 flex items-center gap-2"><MapPin size={16} /> Pickup Details</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                                             <ViewField label="Company Name" value={formData.pickupCompany} />
                                             <ViewField label="Contact Person" value={formData.pickupContactName} />
@@ -306,7 +306,7 @@ export default function ViewRequestForm() {
 
                                     {/* Delivery Info */}
                                     <div className="col-span-1 md:col-span-2">
-                                        <h3 className="text-[14px] font-bold text-emerald-600 mb-4 flex items-center gap-2"><MapPin size={16} /> Delivery Details</h3>
+                                        <h3 className="text-[13px] font-bold text-slate-800 text-emerald-600 mb-4 flex items-center gap-2"><MapPin size={16} /> Delivery Details</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                                             <ViewField label="Company Name" value={formData.deliveryCompany} />
                                             <ViewField label="Contact Person" value={formData.deliveryContactName} />
@@ -381,7 +381,7 @@ export default function ViewRequestForm() {
                                                     <span className="font-bold text-slate-400 text-center text-[12px]">×</span>
                                                     <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-slate-50 py-1 rounded">{dim.height || '--'}</div>
                                                     
-                                                    <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-indigo-50 py-1 rounded">{dim.qty || '--'}</div>
+                                                    <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-brand-light py-1 rounded">{dim.qty || '--'}</div>
                                                     
                                                     <div className="text-[11px] font-bold text-slate-500 flex items-center justify-center">{dim.unit || '--'}</div>
                                                     
@@ -408,7 +408,7 @@ export default function ViewRequestForm() {
                                                 <Box size={14} className="text-slate-400" />
                                                 Load Characteristics
                                             </h3>
-                                            <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 ">
+                                            <div className="grid grid-cols-2 gap-y-2.5 gap-x-4">
                                                 {formData.stackable ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Stackable</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Stackable</span>}
                                                 {formData.fragile ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Fragile</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Fragile</span>}
                                                 {formData.hazardous ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Hazardous</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Hazardous</span>}
@@ -424,7 +424,7 @@ export default function ViewRequestForm() {
                                                 <Settings size={14} className="text-slate-400" />
                                                 Additional Services
                                             </h3>
-                                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-2.5 gap-x-4 ">
+                                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-2.5 gap-x-4">
                                                 {formData.loadingRequired ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Loading Req.</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Loading Req.</span>}
                                                 {formData.unloadingRequired ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Unloading Req.</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Unloading Req.</span>}
                                                 {formData.packaging ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Packaging</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Packaging</span>}
@@ -453,7 +453,7 @@ export default function ViewRequestForm() {
                                                 <Euro size={14} className="text-slate-400" />
                                                 Budget Details
                                             </h3>
-                                            <div className="grid grid-cols-1 gap-y-4 ">
+                                            <div className="grid grid-cols-1 gap-y-4">
                                                 <div>
                                                     <label className="text-[12px] font-bold text-slate-700 block mb-1.5">Expected Budget</label>
                                                     <div className="flex gap-2">
@@ -474,7 +474,7 @@ export default function ViewRequestForm() {
                                                 <Settings size={14} className="text-slate-400" />
                                                 Quote Rules
                                             </h3>
-                                            <div className="flex flex-col gap-y-3.5  h-[calc(100%-28px)]">
+                                            <div className="flex flex-col gap-y-3.5 h-[calc(100%-28px)]">
                                                 {formData.allowNegotiation ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Allow Price Negotiation</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Allow Price Negotiation</span>}
                                                 {formData.receiveMultiple ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Receive Multiple Quotes</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Receive Multiple Quotes</span>}
 
@@ -531,7 +531,7 @@ export default function ViewRequestForm() {
                                                     {formData.images.length > 0 && (
                                                         <div className="mt-2 flex flex-col gap-1">
                                                             {formData.images.map((file, idx) => (
-                                                                <a key={idx} href={URL.createObjectURL(file)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-indigo-600 hover:underline truncate w-full inline-block">
+                                                                <a key={idx} href={URL.createObjectURL(file)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand hover:underline truncate w-full inline-block">
                                                                     📄 {file.name}
                                                                 </a>
                                                             ))}
@@ -543,7 +543,7 @@ export default function ViewRequestForm() {
                                                     {/* File Input Removed for View */}
                                                     {formData.packingList && (
                                                         <div className="mt-2">
-                                                            <a href={URL.createObjectURL(formData.packingList)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-indigo-600 hover:underline truncate w-full inline-block">
+                                                            <a href={URL.createObjectURL(formData.packingList)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand hover:underline truncate w-full inline-block">
                                                                 📄 {formData.packingList.name}
                                                             </a>
                                                         </div>
@@ -554,7 +554,7 @@ export default function ViewRequestForm() {
                                                     {/* File Input Removed for View */}
                                                     {formData.invoice && (
                                                         <div className="mt-2">
-                                                            <a href={URL.createObjectURL(formData.invoice)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-indigo-600 hover:underline truncate w-full inline-block">
+                                                            <a href={URL.createObjectURL(formData.invoice)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand hover:underline truncate w-full inline-block">
                                                                 📄 {formData.invoice.name}
                                                             </a>
                                                         </div>
@@ -577,8 +577,8 @@ export default function ViewRequestForm() {
                                     <div className="lg:col-span-2 space-y-4">
                                         <div className="bg-slate-50 border border-slate-200 rounded-md p-5">
                                             <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-200">
-                                                <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
-                                                    <FileText size={16} className="text-indigo-600" /> Request Summary
+                                                <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
+                                                    <FileText size={16} className="text-brand" /> Request Summary
                                                 </h3>
                                                 <span className="text-[12px] font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
                                                     {formData.requestTitle || 'REQ-9824'}
@@ -601,7 +601,7 @@ export default function ViewRequestForm() {
 
                                                 <div className="col-span-2 md:col-span-3 border-t border-slate-200 my-1 pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <div className="bg-white p-3 rounded border border-slate-100 shadow-sm">
-                                                        <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5"><MapPin size={12} /> Pickup Details</p>
+                                                        <p className="text-[11px] font-bold text-brand uppercase tracking-wider flex items-center gap-1.5"><MapPin size={12} /> Pickup Details</p>
                                                         <p className="text-[13px] font-bold text-slate-900 mt-2">{formData.pickupCity || 'City Not Set'}</p>
                                                         <p className="text-[12px] text-slate-500 mt-0.5">Date: {formData.pickupDate || '--'}</p>
                                                     </div>
@@ -613,7 +613,7 @@ export default function ViewRequestForm() {
                                                 </div>
 
                                                 <div className="col-span-2 md:col-span-3 border-t border-slate-200 my-1 pt-4">
-                                                    <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5 mb-3"><Truck size={12} /> Load Information</p>
+                                                    <p className="text-[11px] font-bold text-brand uppercase tracking-wider flex items-center gap-1.5 mb-3"><Truck size={12} /> Load Information</p>
                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white p-3 rounded border border-slate-100 shadow-sm">
                                                         <div><p className="text-[11px] font-bold text-slate-400 uppercase">Vehicle</p><p className="text-[13px] font-bold text-slate-800 mt-1">{formData.vehicleType || '--'}</p></div>
                                                         <div><p className="text-[11px] font-bold text-slate-400 uppercase">Load Type</p><p className="text-[13px] font-bold text-slate-800 mt-1">{formData.loadType || '--'}</p></div>
@@ -629,7 +629,7 @@ export default function ViewRequestForm() {
                                     <div className="lg:col-span-1">
                                         <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden sticky top-6">
                                             <div className="bg-slate-800 p-4 border-b border-slate-700">
-                                                <h3 className="text-[14px] font-bold text-white text-center">Ready to Submit</h3>
+                                                <h3 className="text-[13px] font-bold text-slate-800 text-white text-center">Ready to Submit</h3>
                                             </div>
 
                                             <div className="p-5 space-y-4">

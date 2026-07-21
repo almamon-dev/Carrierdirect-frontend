@@ -15,7 +15,7 @@ export default function QuotesReceived() {
   const navigate = useNavigate();
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Quote ID', render: (row) => <span className=" text-indigo-600 whitespace-nowrap">{row.id}</span> },
+    { id: 'id', label: 'Quote ID', render: (row) => <span className="text-brand whitespace-nowrap">{row.id}</span> },
     { id: 'requestId', label: 'Request ID', render: (row) => <span className="text-slate-500 whitespace-nowrap">{row.requestId}</span> },
     { id: 'supplier', label: 'Supplier', render: (row) => <span className="whitespace-nowrap text-slate-800">{row.supplier}</span> },
     { 
@@ -24,7 +24,7 @@ export default function QuotesReceived() {
       render: (row) => (
         <div className="flex items-center gap-1 whitespace-nowrap">
           <Star size={12} className="text-amber-500 fill-amber-500" />
-          <span className=" text-slate-700">{row.rating}</span>
+          <span className="text-slate-700">{row.rating}</span>
           <span className="text-slate-400">({row.reviews})</span>
         </div>
       ) 
@@ -68,8 +68,8 @@ export default function QuotesReceived() {
     <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl text-slate-900 mb-1">Quotes Received</h1>
-          <p className="text-sm text-slate-500 ">Review and accept quotes from our verified suppliers.</p>
+          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Quotes Received</h1>
+          <p className="text-sm text-slate-500">Review and accept quotes from our verified suppliers.</p>
         </div>
       </div>
       

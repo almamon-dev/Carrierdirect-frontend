@@ -31,7 +31,7 @@ export default function Invoices() {
   }
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Invoice No.', render: (row) => <span className="font-bold text-indigo-600">{row.id}</span> },
+    { id: 'id', label: 'Invoice No.', render: (row) => <span className="font-bold text-brand">{row.id}</span> },
     { id: 'date', label: 'Issue Date', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date}</span> },
     { id: 'dueDate', label: 'Due Date', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.dueDate}</span> },
     { id: 'amount', label: 'Amount', render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount}</span> },
@@ -49,7 +49,7 @@ export default function Invoices() {
 
   const actions = (row: any) => (
     <div className="flex items-center justify-end gap-2">
-      <Button variant="outline" size="sm" className="h-7 px-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50" onClick={() => setSelectedInvoice(row.id)}>
+      <Button variant="outline" size="sm" className="h-7 px-2 text-brand border-indigo-200 hover:bg-brand-light" onClick={() => setSelectedInvoice(row.id)}>
         <ExternalLink size={14} className="mr-1" /> View
       </Button>
       <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-slate-600 border-slate-200 hover:bg-slate-50" title="Download PDF">
@@ -62,7 +62,7 @@ export default function Invoices() {
     <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl text-slate-900 mb-1">Invoices</h1>
+          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Invoices</h1>
           <p className="text-sm text-slate-500">View and download all your past and pending invoices.</p>
         </div>
       </div>

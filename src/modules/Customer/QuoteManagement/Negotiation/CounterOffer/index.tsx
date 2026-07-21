@@ -7,7 +7,7 @@ export default function CounterOfferMessage({ msg }: { msg: any }) {
             <div className="bg-white border border-slate-200 rounded-2xl p-4 w-full max-w-sm mx-auto text-center shadow-[0_2px_8px_rgb(0,0,0,0.04)]">
                 <div className="flex items-center justify-center gap-1.5 mb-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                    <h3 className="text-[14px] font-bold text-slate-900">{msg.title}</h3>
+                    <h3 className="text-[13px] font-bold text-slate-800">{msg.title}</h3>
                 </div>
                 <p className="text-[12px] text-slate-500 mb-4">{msg.time}</p>
                 
@@ -27,7 +27,7 @@ export default function CounterOfferMessage({ msg }: { msg: any }) {
                     <Button variant="outline" className="flex-1 h-9 rounded-full text-slate-700 border-slate-200 hover:bg-slate-100 text-[13px] font-semibold">
                         Reject
                     </Button>
-                    <Button variant="primary" className="flex-1 h-9 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-semibold">
+                    <Button variant="primary" className="flex-1 h-9 rounded-full bg-brand hover:bg-brand-hover text-white text-[13px] font-semibold">
                         Accept Offer
                     </Button>
                 </div>

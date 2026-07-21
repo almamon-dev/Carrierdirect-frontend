@@ -38,7 +38,7 @@ export default function InvitationsTab() {
             render: (row: any) => (
                 <div className="flex items-center justify-end gap-2">
                     {(row.status === 'Pending' || row.status === 'Expired') && (
-                        <Button variant="ghost" size="sm" className="h-7 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                        <Button variant="ghost" size="sm" className="h-7 text-xs font-semibold text-brand hover:text-indigo-800">
                             Resend
                         </Button>
                     )}

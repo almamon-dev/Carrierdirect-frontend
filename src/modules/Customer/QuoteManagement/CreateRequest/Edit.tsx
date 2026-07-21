@@ -14,7 +14,7 @@ import TabHeader from '@/components/ui/tab-header';
 
 const SectionHeader = ({ title, icon: Icon, className = "col-span-1 md:col-span-2" }: { title: string, icon?: any, className?: string }) => (
     <div className={`${className} mt-4 pt-3 border-t border-slate-100 first:mt-0 first:pt-0 first:border-t-0 mb-2`}>
-        <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
+        <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
             {Icon && <Icon size={16} className="text-slate-400" />}
             {title}
         </h3>
@@ -178,8 +178,8 @@ export default function EditRequestForm() {
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                     <div>
-                        <h1 className="text-[22px] font-bold text-slate-900">Edit Quote Request</h1>
-                        <p className="text-[14px] font-medium text-indigo-600 mt-1">Update the required information to modify the request.</p>
+                        <h1 className="text-[18px] font-bold text-slate-900">Edit Quote Request</h1>
+                        <p className="text-[14px] font-medium text-brand mt-1">Update the required information to modify the request.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -195,7 +195,7 @@ export default function EditRequestForm() {
                 {/* Sidebar Navigation */}
                 <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
                     <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                        <h3 className="text-[15px] font-bold text-slate-800">Categories</h3>
+                        <h3 className="text-[13px] font-bold text-slate-800">Categories</h3>
                     </div>
                     <div className="flex flex-col">
                         {CREATE_TABS.map((tab) => {
@@ -207,15 +207,15 @@ export default function EditRequestForm() {
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center justify-between px-4 py-2.5 text-[14px] font-medium transition-colors border-l-[3px] border-b border-slate-50 last:border-b-0 ${
                                         isSelected 
-                                            ? 'border-l-indigo-600 bg-indigo-50/50 text-indigo-700' 
+                                            ? 'border-l-indigo-600 bg-brand-light/50 text-indigo-700' 
                                             : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                     }`}
                                 >
                                     <div className="flex items-center gap-2.5">
-                                        <Icon size={15} className={isSelected ? 'text-indigo-600' : 'text-slate-400'} />
+                                        <Icon size={15} className={isSelected ? 'text-brand' : 'text-slate-400'} />
                                         {tab.label}
                                     </div>
-                                    {isSelected && <ChevronRight size={15} className="text-indigo-600" />}
+                                    {isSelected && <ChevronRight size={15} className="text-brand" />}
                                 </button>
                             );
                         })}
@@ -296,7 +296,7 @@ export default function EditRequestForm() {
                                     
                                     {/* Pickup Info */}
                                     <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-6 mb-2">
-                                        <h3 className="text-[14px] font-bold text-blue-600 mb-4 flex items-center gap-2"><MapPin size={16}/> Pickup Details</h3>
+                                        <h3 className="text-[13px] font-bold text-slate-800 text-brand mb-4 flex items-center gap-2"><MapPin size={16}/> Pickup Details</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                                             <FormRow label="Company Name"><Input name="pickupCompany" value={formData.pickupCompany} onChange={handleChange} placeholder="Pickup Company" /></FormRow>
                                             <FormRow label="Contact Person" required><Input name="pickupContactName" value={formData.pickupContactName} onChange={handleChange} placeholder="Contact Name" /></FormRow>
@@ -314,7 +314,7 @@ export default function EditRequestForm() {
                                     
                                     {/* Delivery Info */}
                                     <div className="col-span-1 md:col-span-2">
-                                        <h3 className="text-[14px] font-bold text-emerald-600 mb-4 flex items-center gap-2"><MapPin size={16}/> Delivery Details</h3>
+                                        <h3 className="text-[13px] font-bold text-slate-800 text-emerald-600 mb-4 flex items-center gap-2"><MapPin size={16}/> Delivery Details</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                                             <FormRow label="Company Name"><Input name="deliveryCompany" value={formData.deliveryCompany} onChange={handleChange} placeholder="Delivery Company" /></FormRow>
                                             <FormRow label="Contact Person" required><Input name="deliveryContactName" value={formData.deliveryContactName} onChange={handleChange} placeholder="Contact Name" /></FormRow>
@@ -404,7 +404,7 @@ export default function EditRequestForm() {
                                                     </div>
                                                 </div>
                                             ))}
-                                            <button type="button" onClick={addDimension} className="flex items-center gap-1.5 text-[13px] font-bold text-indigo-600 hover:text-indigo-700 w-fit mt-2">
+                                            <button type="button" onClick={addDimension} className="flex items-center gap-1.5 text-[13px] font-bold text-brand hover:text-indigo-700 w-fit mt-2">
                                                 <Plus size={14} /> Add Another Item
                                             </button>
                                         </div>
@@ -549,7 +549,7 @@ export default function EditRequestForm() {
                                                     {formData.images.length > 0 && (
                                                         <div className="mt-2 flex flex-col gap-1">
                                                             {formData.images.map((file, idx) => (
-                                                                <a key={idx} href={URL.createObjectURL(file)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-indigo-600 hover:underline truncate w-full inline-block">
+                                                                <a key={idx} href={URL.createObjectURL(file)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand hover:underline truncate w-full inline-block">
                                                                     📄 {file.name}
                                                                 </a>
                                                             ))}
@@ -561,7 +561,7 @@ export default function EditRequestForm() {
                                                     <Input type="file" onChange={(e: any) => handleFileChange(e, 'packingList')} className={`w-full h-[36px] p-0 file:h-full file:mr-4 file:px-4 file:py-0 file:border-0 file:border-r file:font-medium file:cursor-pointer cursor-pointer bg-white transition-all ${formData.packingList ? 'border-[#008060] ring-1 ring-[#008060] file:border-[#008060]/30 file:bg-[#f0f9f6] file:text-[#008060] text-[#008060] hover:file:bg-[#e1f3ec]' : 'file:border-slate-200 file:bg-slate-50 file:text-slate-700 text-slate-500 hover:file:bg-slate-100'}`} />
                                                     {formData.packingList && (
                                                         <div className="mt-2">
-                                                            <a href={URL.createObjectURL(formData.packingList)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-indigo-600 hover:underline truncate w-full inline-block">
+                                                            <a href={URL.createObjectURL(formData.packingList)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand hover:underline truncate w-full inline-block">
                                                                 📄 {formData.packingList.name}
                                                             </a>
                                                         </div>
@@ -572,7 +572,7 @@ export default function EditRequestForm() {
                                                     <Input type="file" onChange={(e: any) => handleFileChange(e, 'invoice')} className={`w-full h-[36px] p-0 file:h-full file:mr-4 file:px-4 file:py-0 file:border-0 file:border-r file:font-medium file:cursor-pointer cursor-pointer bg-white transition-all ${formData.invoice ? 'border-[#008060] ring-1 ring-[#008060] file:border-[#008060]/30 file:bg-[#f0f9f6] file:text-[#008060] text-[#008060] hover:file:bg-[#e1f3ec]' : 'file:border-slate-200 file:bg-slate-50 file:text-slate-700 text-slate-500 hover:file:bg-slate-100'}`} />
                                                     {formData.invoice && (
                                                         <div className="mt-2">
-                                                            <a href={URL.createObjectURL(formData.invoice)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-indigo-600 hover:underline truncate w-full inline-block">
+                                                            <a href={URL.createObjectURL(formData.invoice)} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand hover:underline truncate w-full inline-block">
                                                                 📄 {formData.invoice.name}
                                                             </a>
                                                         </div>
@@ -595,8 +595,8 @@ export default function EditRequestForm() {
                                     <div className="lg:col-span-2 space-y-4">
                                         <div className="bg-slate-50 border border-slate-200 rounded-md p-5">
                                             <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-200">
-                                                <h3 className="text-[15px] font-bold text-slate-800 flex items-center gap-2">
-                                                    <FileText size={16} className="text-indigo-600"/> Request Summary
+                                                <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
+                                                    <FileText size={16} className="text-brand"/> Request Summary
                                                 </h3>
                                                 <span className="text-[12px] font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
                                                     {formData.requestTitle || 'REQ-9824'}
@@ -619,7 +619,7 @@ export default function EditRequestForm() {
                                                 
                                                 <div className="col-span-2 md:col-span-3 border-t border-slate-200 my-1 pt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <div className="bg-white p-3 rounded border border-slate-100 shadow-sm">
-                                                        <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5"><MapPin size={12}/> Pickup Details</p>
+                                                        <p className="text-[11px] font-bold text-brand uppercase tracking-wider flex items-center gap-1.5"><MapPin size={12}/> Pickup Details</p>
                                                         <p className="text-[13px] font-bold text-slate-900 mt-2">{formData.pickupCity || 'City Not Set'}</p>
                                                         <p className="text-[12px] text-slate-500 mt-0.5">Date: {formData.pickupDate || '--'}</p>
                                                     </div>
@@ -631,7 +631,7 @@ export default function EditRequestForm() {
                                                 </div>
                                                 
                                                 <div className="col-span-2 md:col-span-3 border-t border-slate-200 my-1 pt-4">
-                                                    <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5 mb-3"><Truck size={12}/> Load Information</p>
+                                                    <p className="text-[11px] font-bold text-brand uppercase tracking-wider flex items-center gap-1.5 mb-3"><Truck size={12}/> Load Information</p>
                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white p-3 rounded border border-slate-100 shadow-sm">
                                                         <div><p className="text-[11px] font-bold text-slate-400 uppercase">Vehicle</p><p className="text-[13px] font-bold text-slate-800 mt-1">{formData.vehicleType || '--'}</p></div>
                                                         <div><p className="text-[11px] font-bold text-slate-400 uppercase">Load Type</p><p className="text-[13px] font-bold text-slate-800 mt-1">{formData.loadType || '--'}</p></div>
@@ -647,7 +647,7 @@ export default function EditRequestForm() {
                                     <div className="lg:col-span-1">
                                         <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden sticky top-6">
                                             <div className="bg-slate-800 p-4 border-b border-slate-700">
-                                                <h3 className="text-[14px] font-bold text-white text-center">Ready to Submit</h3>
+                                                <h3 className="text-[13px] font-bold text-slate-800 text-white text-center">Ready to Submit</h3>
                                             </div>
                                             
                                             <div className="p-5 space-y-4">

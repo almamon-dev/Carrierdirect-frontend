@@ -16,7 +16,7 @@ export default function Orders() {
   const navigate = useNavigate();
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Order ID', render: (row) => <span className="font-bold text-indigo-600">{row.id}</span> },
+    { id: 'id', label: 'Order ID', render: (row) => <span className="font-bold text-brand">{row.id}</span> },
     { id: 'date', label: 'Order Date', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date}</span> },
     { id: 'route', label: 'Route', render: (row) => <span className="font-medium text-slate-800 whitespace-nowrap">{row.route}</span> },
     { id: 'supplier', label: 'Supplier', render: (row) => <span className="text-slate-700 whitespace-nowrap">{row.supplier}</span> },
@@ -71,7 +71,7 @@ export default function Orders() {
     <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl text-slate-900 mb-1">Order History</h1>
+          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Order History</h1>
           <p className="text-sm text-slate-500">View all your past and present logistics orders in one place.</p>
         </div>
         <Button variant="outline" className="h-9">

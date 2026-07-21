@@ -69,67 +69,55 @@ export default function Earnings() {
             {/* Top Stats Strip - Ultra Compact */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* This Month */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col w-full relative">
-                    <div className="flex justify-between items-start w-full mb-1.5">
-                        <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center bg-indigo-50 text-indigo-600">
+                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-[#FFF0ED] text-[#FF4A1F]">
                             <Euro size={14} strokeWidth={2.5} />
                         </div>
-                        <span className="text-[18px] font-black text-slate-900">€12,450.00</span>
                     </div>
-                    <h3 className="font-bold text-[12px] text-slate-900 leading-tight mb-0.5">
-                        Earned This Month
-                    </h3>
-                    <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 leading-snug mb-1 truncate">
-                        <TrendingUp size={10} /> +8.4% from last month
-                    </p>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">€12,450.00</h3>
+                        <p className="text-[10px] font-semibold text-slate-500">Earned This Month</p>
+                    </div>
                 </div>
 
                 {/* Last Month */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col w-full relative">
-                    <div className="flex justify-between items-start w-full mb-1.5">
-                        <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center bg-slate-100 text-slate-600">
+                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-slate-100 text-slate-600">
                             <Calendar size={14} strokeWidth={2.5} />
                         </div>
-                        <span className="text-[18px] font-black text-slate-900">€11,200.00</span>
                     </div>
-                    <h3 className="font-bold text-[12px] text-slate-900 leading-tight mb-0.5">
-                        Last Month
-                    </h3>
-                    <p className="text-[10px] text-slate-500 leading-snug mb-1 truncate">
-                        Total net earnings in June.
-                    </p>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">€11,200.00</h3>
+                        <p className="text-[10px] font-semibold text-slate-500">Last Month</p>
+                    </div>
                 </div>
 
                 {/* Pending Clearance */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col w-full relative">
-                    <div className="flex justify-between items-start w-full mb-1.5">
-                        <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center bg-amber-50 text-amber-600">
+                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-amber-50 text-amber-600">
                             <Clock size={14} strokeWidth={2.5} />
                         </div>
-                        <span className="text-[18px] font-black text-slate-900">€3,200.00</span>
                     </div>
-                    <h3 className="font-bold text-[12px] text-slate-900 leading-tight mb-0.5">
-                        Pending Clearance
-                    </h3>
-                    <p className="text-[10px] text-slate-500 leading-snug mb-1 truncate">
-                        Awaiting platform release.
-                    </p>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">€3,200.00</h3>
+                        <p className="text-[10px] font-semibold text-slate-500">Pending Clearance</p>
+                    </div>
                 </div>
 
                 {/* Lifetime Earnings */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col w-full relative">
-                    <div className="flex justify-between items-start w-full mb-1.5">
-                        <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center bg-emerald-50 text-emerald-600">
+                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <TrendingUp size={14} strokeWidth={2.5} />
                         </div>
-                        <span className="text-[18px] font-black text-slate-900">€145,280.00</span>
                     </div>
-                    <h3 className="font-bold text-[12px] text-slate-900 leading-tight mb-0.5">
-                        Lifetime Earnings
-                    </h3>
-                    <p className="text-[10px] text-slate-500 leading-snug mb-1 truncate">
-                        Since joining GetItMoving.
-                    </p>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">€145,280.00</h3>
+                        <p className="text-[10px] font-semibold text-slate-500">Lifetime Earnings</p>
+                    </div>
                 </div>
             </div>
 
@@ -140,7 +128,7 @@ export default function Earnings() {
                 <Card className="lg:col-span-1 flex flex-col min-h-[300px]">
                     <CardHeader className="py-3 px-4 border-b border-slate-100 flex flex-row items-center justify-between">
                         <CardTitle className="text-[13px]">Revenue Trend</CardTitle>
-                        <Badge className="bg-indigo-50 text-indigo-700 h-5 px-1.5 text-[9px]">July</Badge>
+                        <Badge className="bg-brand-light text-indigo-700 h-5 px-1.5 text-[9px]">July</Badge>
                     </CardHeader>
                     <div className="p-4 flex-1 flex flex-col">
                         <div className="flex-1 w-full h-[200px]">

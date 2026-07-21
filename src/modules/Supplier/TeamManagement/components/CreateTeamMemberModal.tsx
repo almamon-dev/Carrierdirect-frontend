@@ -25,7 +25,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
                     <div>
-                        <h2 className="text-lg font-bold text-slate-900">Add New Team Member</h2>
+                        <h2 className="text-[15px] font-bold text-slate-800">Add New Team Member</h2>
                         <p className="text-[13px] text-slate-500">Follow the steps to set up a new user account.</p>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
@@ -44,7 +44,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                             return (
                                 <div key={s.id} className="flex items-center gap-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 font-bold text-[12px] transition-colors ${
-                                        isActive ? 'border-indigo-600 bg-indigo-600 text-white' :
+                                        isActive ? 'border-brand bg-brand text-white' :
                                         isCompleted ? 'border-emerald-500 bg-emerald-500 text-white' :
                                         'border-slate-200 text-slate-400 bg-white'
                                     }`}>
@@ -66,7 +66,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                             {/* Step 1: Basic Info */}
                             {step === 1 && (
                                 <div className="space-y-6 max-w-lg">
-                                    <h3 className="text-lg font-bold text-slate-800">Basic Information</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800">Basic Information</h3>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="col-span-2 md:col-span-1">
                                             <label className="block text-[13px] font-semibold text-slate-700 mb-1.5">First Name *</label>
@@ -91,7 +91,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                             {/* Step 2: Company Info */}
                             {step === 2 && (
                                 <div className="space-y-6 max-w-lg">
-                                    <h3 className="text-lg font-bold text-slate-800">Company Information</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800">Company Information</h3>
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-[13px] font-semibold text-slate-700 mb-1.5">Department *</label>
@@ -130,7 +130,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                             {/* Step 3: Role */}
                             {step === 3 && (
                                 <div className="space-y-6 max-w-2xl">
-                                    <h3 className="text-lg font-bold text-slate-800">Assign Role</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800">Assign Role</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {[
                                             { id: 'admin', name: 'Admin', desc: 'Full access to all modules.' },
@@ -138,10 +138,10 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                             { id: 'dispatcher', name: 'Dispatcher', desc: 'Assign drivers and fleet.' },
                                             { id: 'sales', name: 'Sales', desc: 'Manage quotes and customers.' },
                                         ].map((r, i) => (
-                                            <div key={r.id} className={`p-4 rounded-xl border-2 cursor-pointer transition-colors ${i === 1 ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-indigo-300'}`}>
+                                            <div key={r.id} className={`p-4 rounded-xl border-2 cursor-pointer transition-colors ${i === 1 ? 'border-brand bg-brand-light' : 'border-slate-200 hover:border-indigo-300'}`}>
                                                 <div className="flex items-center justify-between mb-1">
                                                     <h4 className="font-bold text-slate-900">{r.name}</h4>
-                                                    {i === 1 && <div className="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center"><CheckCircle size={10} className="text-white" /></div>}
+                                                    {i === 1 && <div className="w-4 h-4 rounded-full bg-brand flex items-center justify-center"><CheckCircle size={10} className="text-white" /></div>}
                                                 </div>
                                                 <p className="text-[12px] text-slate-500">{r.desc}</p>
                                             </div>
@@ -153,7 +153,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                             {/* Step 4: System Access */}
                             {step === 4 && (
                                 <div className="space-y-6 max-w-lg">
-                                    <h3 className="text-lg font-bold text-slate-800">System Access Security</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800">System Access Security</h3>
                                     <div className="space-y-4">
                                         <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-start gap-3">
                                             <input type="radio" name="pass" defaultChecked className="mt-1" />
@@ -176,7 +176,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                             {/* Step 5: Review */}
                             {step === 5 && (
                                 <div className="space-y-6 max-w-lg">
-                                    <h3 className="text-lg font-bold text-slate-800">Review & Send Invitation</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800">Review & Send Invitation</h3>
                                     <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 space-y-4">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">

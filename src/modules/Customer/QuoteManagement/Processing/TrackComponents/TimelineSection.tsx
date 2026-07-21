@@ -6,8 +6,8 @@ export default function TimelineSection({ timeline }: { timeline: any[] }) {
     return (
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm flex-1 flex flex-col">
             <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-xl shrink-0">
-                <h3 className="text-[15px] font-bold text-slate-900">Timeline</h3>
-                <Button variant="ghost" size="sm" className="h-7 text-[12px] text-indigo-600 hover:bg-indigo-50 px-3 font-semibold">View Logs</Button>
+                <h3 className="text-[13px] font-bold text-slate-800">Timeline</h3>
+                <Button variant="ghost" size="sm" className="h-7 text-[12px] text-brand hover:bg-brand-light px-3 font-semibold">View Logs</Button>
             </div>
             
             <div className="p-4 flex-1 overflow-y-auto">
@@ -22,7 +22,7 @@ export default function TimelineSection({ timeline }: { timeline: any[] }) {
                                 <div className="relative z-10 flex flex-col items-center">
                                     <div className={`w-[24px] h-[24px] rounded-full flex items-center justify-center border-2 bg-white ${
                                         step.active 
-                                            ? 'border-indigo-600 text-indigo-600 ring-4 ring-indigo-50' 
+                                            ? 'border-brand text-brand ring-4 ring-indigo-50' 
                                             : step.completed 
                                                 ? 'border-emerald-500 text-emerald-500' 
                                                 : 'border-slate-200 text-slate-300'
@@ -30,7 +30,7 @@ export default function TimelineSection({ timeline }: { timeline: any[] }) {
                                         {step.completed ? (
                                             <CheckCircle2 size={12} fill="currentColor" className="text-white bg-emerald-500 rounded-full" />
                                         ) : step.active ? (
-                                            <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full animate-pulse"></div>
+                                            <div className="w-2.5 h-2.5 bg-brand rounded-full animate-pulse"></div>
                                         ) : (
                                             <div className="w-2 h-2 bg-slate-200 rounded-full"></div>
                                         )}
@@ -58,7 +58,7 @@ export default function TimelineSection({ timeline }: { timeline: any[] }) {
                                     
                                     {/* Extra details for active step */}
                                     {step.active && step.location && (
-                                        <div className="mt-2 bg-indigo-50/50 rounded-lg p-2.5 border border-indigo-50 flex items-center gap-2">
+                                        <div className="mt-2 bg-brand-light/50 rounded-lg p-2.5 border border-indigo-50 flex items-center gap-2">
                                             <MapPin size={14} className="text-indigo-500" />
                                             <p className="text-[12px] font-semibold text-indigo-800">{step.location}</p>
                                         </div>

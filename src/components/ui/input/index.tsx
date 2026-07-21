@@ -23,7 +23,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         "flex h-[36px] w-full rounded-[4px] border bg-white px-3 py-1.5 text-[14px] font-medium text-[#202223] placeholder:text-[#6d7175] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 shadow-none",
                         error
                             ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-[#d82c0d]"
-                            : "border-[#d1d1d1] focus:border-[#008060]",
+                            : "border-[#d1d1d1] focus:border-[#4273f5]",
                         className
                     )}
                     ref={ref}

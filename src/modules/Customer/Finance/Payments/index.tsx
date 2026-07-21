@@ -15,7 +15,7 @@ export default function Payments() {
     { id: 'id', label: 'Transaction ID', render: (row) => <span className="font-bold text-slate-800">{row.id}</span> },
     { id: 'date', label: 'Date', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date}</span> },
     { id: 'method', label: 'Payment Method', render: (row) => <span className="text-slate-600">{row.method}</span> },
-    { id: 'invoice', label: 'Invoice No.', render: (row) => <span className="text-indigo-600 font-medium hover:underline cursor-pointer">{row.invoice}</span> },
+    { id: 'invoice', label: 'Invoice No.', render: (row) => <span className="text-brand font-medium hover:underline cursor-pointer">{row.invoice}</span> },
     { id: 'amount', label: 'Amount', render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount}</span> },
     { 
       id: 'status', 
@@ -42,7 +42,7 @@ export default function Payments() {
     <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl text-slate-900 mb-1">Payment History</h1>
+          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Payment History</h1>
           <p className="text-sm text-slate-500">Track all your transactions and download payment receipts.</p>
         </div>
       </div>

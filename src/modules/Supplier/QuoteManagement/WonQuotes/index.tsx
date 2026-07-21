@@ -121,7 +121,7 @@ export default function WonQuotes() {
         { 
             id: 'id', 
             label: 'Request ID', 
-            render: (row) => <span className="font-bold text-indigo-600 whitespace-nowrap">{row.id}</span>
+            render: (row) => <span className="font-bold text-brand whitespace-nowrap">{row.id}</span>
         },
         { 
             id: 'requestDate', 
@@ -239,7 +239,7 @@ export default function WonQuotes() {
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
             <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-1">Won Quotes</h1>
+                    <h1 className="text-[18px] font-bold text-slate-900 mb-1">Won Quotes</h1>
                     <p className="text-sm text-slate-500 font-medium">View and manage transportation quotes you have successfully won.</p>
                 </div>
             </div>

@@ -26,6 +26,7 @@ const TeamManagement = lazy(() => import('./TeamManagement'));
 const Earnings = lazy(() => import('./Finance/Earnings'));
 const Withdrawal = lazy(() => import('./Finance/Withdrawal'));
 const Payments = lazy(() => import('./Finance/Payments'));
+const Subscription = lazy(() => import('./Subscription'));
 const Notifications = lazy(() => import('./Notifications'));
 const Settings = lazy(() => import('./Settings'));
 
@@ -55,6 +56,7 @@ export const supplierRoutes: RouteObject[] = [
     { path: 'finance/earnings', element: <Earnings /> },
     { path: 'finance/withdrawal', element: <Withdrawal /> },
     { path: 'finance/payments', element: <Payments /> },
+    { path: 'subscription', element: <Subscription /> },
     { path: 'notifications', element: <Notifications /> },
     { path: 'settings', element: <Settings /> },
 ];

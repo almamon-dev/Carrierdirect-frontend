@@ -4,9 +4,9 @@ import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
 import DataTable from '@/components/tables/data-table';
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { 
-    Calendar, CheckCircle, UserCircle, Truck, 
-    Map, Activity, TrendingUp, Briefcase 
+import {
+    Calendar, CheckCircle, UserCircle, Truck,
+    Map, Activity, TrendingUp, Briefcase
 } from 'lucide-react';
 
 const WEEKLY_DATA = [
@@ -33,18 +33,17 @@ const HISTORY_COLUMNS = [
     { id: 'action', label: 'Action Taken', render: (row: any) => <span className="font-medium text-slate-700">{row.action}</span> },
     { id: 'details', label: 'Details' },
     { id: 'user', label: 'Triggered By' },
-    { 
-        id: 'status', 
-        label: 'Status', 
+    {
+        id: 'status',
+        label: 'Status',
         render: (row: any) => (
-            <span className={`px-2 py-1 rounded text-[10px] font-bold ${
-                row.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
-                row.status === 'Warning' ? 'bg-amber-100 text-amber-700' :
-                'bg-blue-100 text-blue-700'
-            }`}>
+            <span className={`px-2 py-1 rounded text-[10px] font-bold ${row.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                    row.status === 'Warning' ? 'bg-amber-100 text-amber-700' :
+                        'bg-blue-100 text-blue-700'
+                }`}>
                 {row.status}
             </span>
-        ) 
+        )
     },
 ];
 
@@ -76,9 +75,9 @@ export default function AvailabilityDashboard() {
             {/* Top Metric Widgets Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
                 {[
-                    { label: 'Available Slots', value: '142', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    { label: 'Available Slots', value: '142', icon: Calendar, color: 'text-brand', bg: 'bg-brand-light' },
                     { label: 'Booked Slots', value: '89', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Available Drivers', value: '24/30', icon: UserCircle, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    { label: 'Available Drivers', value: '24/30', icon: UserCircle, color: 'text-brand', bg: 'bg-brand-light' },
                     { label: 'Available Vehicles', value: '18/25', icon: Truck, color: 'text-purple-600', bg: 'bg-purple-50' },
                     { label: 'Active Routes', value: '12', icon: Map, color: 'text-amber-600', bg: 'bg-amber-50' },
                     { label: "Today's Capacity", value: '85%', icon: Activity, color: 'text-rose-600', bg: 'bg-rose-50' },
@@ -94,8 +93,8 @@ export default function AvailabilityDashboard() {
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-[18px] font-black text-slate-900 leading-tight mb-0.5">{stat.value}</h3>
-                                <p className="text-[10px] font-semibold text-slate-500 ">{stat.label}</p>
+                                <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">{stat.value}</h3>
+                                <p className="text-[10px] font-semibold text-slate-500">{stat.label}</p>
                             </div>
                         </div>
                     );
@@ -104,14 +103,14 @@ export default function AvailabilityDashboard() {
 
             {/* Charts Area */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                
+
                 {/* Availability vs Booked */}
                 <Card className="shadow-sm border-slate-200 lg:col-span-2 overflow-visible">
                     <CardHeader className="py-3 px-4 border-b border-slate-100">
                         <CardTitle className="text-[13px] flex justify-between items-center overflow-visible">
                             <span>Availability vs Bookings</span>
                             <div className="w-28 h-7 font-normal">
-                                <Select 
+                                <Select
                                     value="this_week"
                                     options={[
                                         { id: 'this_week', name: 'This Week' },
@@ -130,7 +129,7 @@ export default function AvailabilityDashboard() {
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                <Tooltip 
+                                <Tooltip
                                     contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '6px', fontSize: '11px', color: '#fff' }}
                                     itemStyle={{ color: '#fff' }}
                                 />
@@ -150,7 +149,7 @@ export default function AvailabilityDashboard() {
                     <CardContent className="p-4 h-[220px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                                <Tooltip 
+                                <Tooltip
                                     contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '6px', fontSize: '11px', color: '#fff' }}
                                 />
                                 <Pie
@@ -180,17 +179,17 @@ export default function AvailabilityDashboard() {
                     <CardHeader className="py-3 px-4 border-b border-slate-100">
                         <CardTitle className="text-[13px] flex items-center justify-between w-full">
                             <span>Recent Availability Changes (History)</span>
-                            <Button variant="ghost" className="h-6 text-[11px] font-bold text-indigo-600 px-2 py-0 hover:bg-indigo-50">
+                            <Button variant="ghost" className="h-6 text-[11px] font-bold text-brand px-2 py-0 hover:bg-brand-light">
                                 See All
                             </Button>
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <DataTable 
+                        <DataTable
                             compact={true}
                             columns={HISTORY_COLUMNS}
                             data={filteredHistory}
-                            hideViewToggle={true} 
+                            hideViewToggle={true}
                             hidePagination={true}
                             searchPlaceholder="Search history..."
                             filterContent={
@@ -198,7 +197,7 @@ export default function AvailabilityDashboard() {
                                     <div className="space-y-1.5">
                                         <label className="text-[11px] font-semibold text-slate-700">Filter by Status</label>
                                         <div className="h-8">
-                                            <Select 
+                                            <Select
                                                 value={statusFilter}
                                                 onChange={(e) => setStatusFilter(e.target.value)}
                                                 options={[

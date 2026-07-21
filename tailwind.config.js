@@ -17,6 +17,11 @@ export default {
         sans: ['"Inter"', '"Segoe UI"', 'SegoeUI', '"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
       },
       colors: {
+        brand: {
+          DEFAULT: '#FF4A1F',
+          hover: '#D13915',
+          light: '#FFF0ED'
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

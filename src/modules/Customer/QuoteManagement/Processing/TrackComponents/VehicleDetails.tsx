@@ -6,7 +6,7 @@ export default function VehicleDetails({ vehicle, supplier }: { vehicle: any, su
         <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
                 <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wide">Vehicle Details</p>
-                <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 bg-brand-light text-brand rounded-lg flex items-center justify-center shrink-0">
                     <Truck size={16} />
                 </div>
             </div>
@@ -30,9 +30,9 @@ export default function VehicleDetails({ vehicle, supplier }: { vehicle: any, su
                 </div>
                 <div className="flex justify-between items-center text-[13px]">
                     <span className="text-slate-500">Supplier</span>
-                    <span className="font-semibold text-indigo-600 flex items-center gap-1">
+                    <span className="font-semibold text-brand flex items-center gap-1">
                         {supplier.name} 
-                        {supplier.verified && <ShieldCheck size={14} className="text-blue-500" />}
+                        {supplier.verified && <ShieldCheck size={14} className="text-brand" />}
                     </span>
                 </div>
             </div>

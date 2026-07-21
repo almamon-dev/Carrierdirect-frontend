@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
+import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     LineChart, Line, Legend
 } from 'recharts';
-import { 
+import {
     Euro, FileText, Package, CreditCard, Star,
     TrendingUp, Activity, Truck, Bell, Wallet
 } from 'lucide-react';
@@ -48,39 +48,39 @@ const orderQuoteData = [
 
 const recentQuotes = [
     { id: 'QR-7845', status: 'New', color: 'bg-red-50 text-red-600' },
-    { id: 'QR-7844', status: 'Viewed', color: 'bg-blue-50 text-blue-600' },
+    { id: 'QR-7844', status: 'Viewed', color: 'bg-brand-light text-brand' },
     { id: 'QR-7843', status: 'Quoted', color: 'bg-emerald-50 text-emerald-600' },
     { id: 'QR-7842', status: 'New', color: 'bg-red-50 text-red-600' },
     { id: 'QR-7841', status: 'Quoted', color: 'bg-emerald-50 text-emerald-600' },
-    { id: 'QR-7840', status: 'Viewed', color: 'bg-blue-50 text-blue-600' },
+    { id: 'QR-7840', status: 'Viewed', color: 'bg-brand-light text-brand' },
     { id: 'QR-7839', status: 'Lost', color: 'bg-slate-100 text-slate-600' },
     { id: 'QR-7838', status: 'New', color: 'bg-red-50 text-red-600' },
-    { id: 'QR-7837', status: 'Viewed', color: 'bg-blue-50 text-blue-600' },
+    { id: 'QR-7837', status: 'Viewed', color: 'bg-brand-light text-brand' },
     { id: 'QR-7836', status: 'Quoted', color: 'bg-emerald-50 text-emerald-600' }
 ];
 
 const activeOrders = [
     { id: 'ORD-1254', status: 'In Transit', color: 'bg-emerald-50 text-emerald-600' },
-    { id: 'ORD-1253', status: 'Pending', color: 'bg-blue-50 text-blue-600' },
+    { id: 'ORD-1253', status: 'Pending', color: 'bg-brand-light text-brand' },
     { id: 'ORD-1252', status: 'Loading', color: 'bg-amber-50 text-amber-600' },
     { id: 'ORD-1251', status: 'In Transit', color: 'bg-emerald-50 text-emerald-600' },
-    { id: 'ORD-1250', status: 'Pending', color: 'bg-blue-50 text-blue-600' },
+    { id: 'ORD-1250', status: 'Pending', color: 'bg-brand-light text-brand' },
     { id: 'ORD-1249', status: 'Delivered', color: 'bg-slate-100 text-slate-600' },
     { id: 'ORD-1248', status: 'Loading', color: 'bg-amber-50 text-amber-600' },
     { id: 'ORD-1247', status: 'In Transit', color: 'bg-emerald-50 text-emerald-600' },
-    { id: 'ORD-1246', status: 'Pending', color: 'bg-blue-50 text-blue-600' },
+    { id: 'ORD-1246', status: 'Pending', color: 'bg-brand-light text-brand' },
     { id: 'ORD-1245', status: 'Loading', color: 'bg-amber-50 text-amber-600' }
 ];
 
 const notificationList = [
     { icon: FileText, text: 'New quote request QR-7845 received', bg: 'bg-purple-100', color: 'text-purple-600', time: '10 min' },
     { icon: Package, text: 'Your quote for QR-7842 was accepted', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '1 hr' },
-    { icon: Truck, text: 'ORD-1254 status changed to In Transit', bg: 'bg-blue-100', color: 'text-blue-600', time: '2 hrs' },
+    { icon: Truck, text: 'ORD-1254 status changed to In Transit', bg: 'bg-blue-100', color: 'text-brand', time: '2 hrs' },
     { icon: Euro, text: 'Payment of €1,250 received', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '5 hrs' },
     { icon: FileText, text: 'New quote request QR-7842 received', bg: 'bg-purple-100', color: 'text-purple-600', time: '1 day' },
     { icon: Bell, text: 'Customer asked a question on QR-7840', bg: 'bg-amber-100', color: 'text-amber-600', time: '1 day' },
     { icon: Package, text: 'Your quote for QR-7839 was rejected', bg: 'bg-rose-100', color: 'text-rose-600', time: '2 days' },
-    { icon: Truck, text: 'ORD-1249 marked as Delivered', bg: 'bg-blue-100', color: 'text-blue-600', time: '3 days' },
+    { icon: Truck, text: 'ORD-1249 marked as Delivered', bg: 'bg-blue-100', color: 'text-brand', time: '3 days' },
     { icon: Euro, text: 'Payment of €450 received', bg: 'bg-emerald-100', color: 'text-emerald-600', time: '3 days' },
     { icon: Star, text: 'You received a 5-star review', bg: 'bg-amber-100', color: 'text-amber-600', time: '1 week' }
 ];
@@ -93,7 +93,7 @@ const MetricCard = ({ title, description, value, icon: Icon, colorClass }) => (
             </div>
             <span className="text-[20px] font-black text-slate-800">{value}</span>
         </div>
-        <h3 className="font-bold text-[14px] text-slate-900 leading-tight mb-0.5">
+        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">
             {title}
         </h3>
         <p className="text-[12px] text-slate-500 font-medium leading-snug">
@@ -107,37 +107,37 @@ export default function Dashboard() {
         <div className="p-4 md:p-5 space-y-4 bg-[#f8fafc] min-h-screen">
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-2">
-                <MetricCard 
-                    title="Total Earnings" 
-                    description="View your recent and lifetime earnings overview." 
+                <MetricCard
+                    title="Total Earnings"
+                    description="View your recent and lifetime earnings overview."
                     value="€24,580"
                     icon={Euro}
-                    colorClass="bg-blue-50 text-blue-600"
+                    colorClass="bg-brand-light text-brand"
                 />
-                <MetricCard 
-                    title="Active Orders" 
-                    description="Track and manage all your currently active orders." 
+                <MetricCard
+                    title="Active Orders"
+                    description="Track and manage all your currently active orders."
                     value="8"
                     icon={Package}
-                    colorClass="bg-indigo-50 text-indigo-600"
+                    colorClass="bg-brand-light text-brand"
                 />
-                <MetricCard 
-                    title="Pending Quotes" 
-                    description="Monitor quotes you've recently sent to clients." 
+                <MetricCard
+                    title="Pending Quotes"
+                    description="Monitor quotes you've recently sent to clients."
                     value="21"
                     icon={FileText}
                     colorClass="bg-orange-50 text-orange-600"
                 />
-                <MetricCard 
-                    title="Withdrawable Balance" 
-                    description="Balance currently available to withdraw." 
+                <MetricCard
+                    title="Withdrawable Balance"
+                    description="Balance currently available to withdraw."
                     value="€8,250"
                     icon={CreditCard}
                     colorClass="bg-emerald-50 text-emerald-600"
                 />
-                <MetricCard 
-                    title="Avg. Rating" 
-                    description="Your average rating based on 342 reviews." 
+                <MetricCard
+                    title="Avg. Rating"
+                    description="Your average rating based on 342 reviews."
                     value="4.9"
                     icon={Star}
                     colorClass="bg-purple-50 text-purple-600"
@@ -146,16 +146,16 @@ export default function Dashboard() {
 
             {/* Charts Row */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
-                
+
                 {/* Area Chart - Earnings Overview */}
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 -mx-4 px-4">
                         <div className="flex items-center gap-2">
-                            <TrendingUp size={16} className="text-indigo-600" />
-                            <h3 className="text-[15px] font-bold text-slate-900">Earnings Overview</h3>
+                            <TrendingUp size={16} className="text-brand" />
+                            <h3 className="text-[13px] font-bold text-slate-800">Earnings Overview</h3>
                         </div>
-                        <Select 
-                            className="w-32"
+                        <Select
+                            className="w-38"
                             value="30_days"
                             showSearch={false}
                             options={[
@@ -176,18 +176,18 @@ export default function Dashboard() {
                             <AreaChart data={earningsData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
-                                        <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#FF4A1F" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#FF4A1F" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dy={10} minTickGap={30} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dx={-10} tickFormatter={(val) => `€${val/1000}k`} />
-                                <Tooltip 
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dx={-10} tickFormatter={(val) => `€${val / 1000}k`} />
+                                <Tooltip
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px -2px rgba(0,0,0,0.1)' }}
                                     formatter={(value) => [`€${value}`, 'Earnings']}
                                 />
-                                <Area type="monotone" dataKey="earnings" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3, fill: '#4f46e5', stroke: '#ffffff', strokeWidth: 2 }} activeDot={{ r: 5 }} fillOpacity={1} fill="url(#colorEarnings)" />
+                                <Area type="monotone" dataKey="earnings" stroke="#FF4A1F" strokeWidth={2} dot={{ r: 3, fill: '#FF4A1F', stroke: '#ffffff', strokeWidth: 2 }} activeDot={{ r: 5 }} fillOpacity={1} fill="url(#colorEarnings)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -197,11 +197,11 @@ export default function Dashboard() {
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 -mx-4 px-4">
                         <div className="flex items-center gap-2">
-                            <Activity size={16} className="text-indigo-600" />
-                            <h3 className="text-[15px] font-bold text-slate-900">Order & Quote Overview</h3>
+                            <Activity size={16} className="text-brand" />
+                            <h3 className="text-[13px] font-bold text-slate-800">Order & Quote Overview</h3>
                         </div>
-                        <Select 
-                            className="w-32"
+                        <Select
+                            className="w-42"
                             value="30_days"
                             showSearch={false}
                             options={[
@@ -214,7 +214,7 @@ export default function Dashboard() {
 
                     <div className="flex items-center gap-4 mb-4 flex-wrap">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                            <span className="w-2.5 h-2.5 rounded-sm bg-blue-500"></span> Quote Requests
+                            <span className="w-2.5 h-2.5 rounded-sm bg-brand"></span> Quote Requests
                         </div>
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
                             <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> Quotes Submitted
@@ -230,10 +230,10 @@ export default function Dashboard() {
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
-                                <Tooltip 
+                                <Tooltip
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px -2px rgba(0,0,0,0.1)' }}
                                 />
-                                <Line type="monotone" dataKey="requests" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Requests" />
+                                <Line type="monotone" dataKey="requests" stroke="#FF4A1F" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Requests" />
                                 <Line type="monotone" dataKey="submitted" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Submitted" />
                                 <Line type="monotone" dataKey="won" stroke="#a855f7" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Won" />
                             </LineChart>
@@ -242,13 +242,13 @@ export default function Dashboard() {
                 </div>
 
             </div>
-            
+
             {/* Footer Lists */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[15px] font-bold text-slate-900">Recent Quote Requests</h3>
-                        <button className="text-[12px] font-bold text-indigo-600 hover:underline focus:outline-none transition-colors">See All</button>
+                        <h3 className="text-[13px] font-bold text-slate-800">Recent Quote Requests</h3>
+                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
                     </div>
                     <div className="flex flex-col text-[13px] text-slate-500 flex-1">
                         {recentQuotes.slice(0, 5).map((quote, idx) => (
@@ -261,8 +261,8 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[15px] font-bold text-slate-900">Active Orders</h3>
-                        <button className="text-[12px] font-bold text-indigo-600 hover:underline focus:outline-none transition-colors">See All</button>
+                        <h3 className="text-[13px] font-bold text-slate-800">Active Orders</h3>
+                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
                     </div>
                     <div className="flex flex-col text-[13px] text-slate-500 flex-1">
                         {activeOrders.slice(0, 5).map((order, idx) => (
@@ -275,8 +275,8 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[15px] font-bold text-slate-900">Notifications</h3>
-                        <button className="text-[12px] font-bold text-indigo-600 hover:underline focus:outline-none transition-colors">See All</button>
+                        <h3 className="text-[13px] font-bold text-slate-800">Notifications</h3>
+                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
                     </div>
                     <div className="flex flex-col text-[13px] text-slate-500 flex-1">
                         {notificationList.slice(0, 4).map((notification, idx) => (

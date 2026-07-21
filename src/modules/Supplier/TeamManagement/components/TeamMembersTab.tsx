@@ -54,7 +54,7 @@ export default function TeamMembersTab() {
             label: 'Actions', 
             render: (row: any) => (
                 <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-indigo-600">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-brand">
                         <Edit size={16} />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-600">

@@ -39,8 +39,8 @@ export default function RoleDetail({ role, onBack }: { role: any, onBack: () => 
                 <div className="flex items-center gap-3">
                     <div>
                         <div className="flex items-center gap-2">
-                            <h2 className="text-[18px] font-bold text-slate-900 leading-none">{role.name}</h2>
-                            <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 h-5 px-1.5 text-[10px]">Role Edit</Badge>
+                            <h2 className="text-[15px] font-bold text-slate-800">{role.name}</h2>
+                            <Badge variant="secondary" className="bg-brand-light text-indigo-700 h-5 px-1.5 text-[10px]">Role Edit</Badge>
                         </div>
                         <p className="text-[12px] text-slate-500 mt-1">Modify permissions and view assigned users.</p>
                     </div>
@@ -56,8 +56,8 @@ export default function RoleDetail({ role, onBack }: { role: any, onBack: () => 
                 {/* Left Column: Role Details & Users */}
                 <div className="lg:col-span-1 space-y-4">
                     <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
-                        <h3 className="font-bold text-[14px] text-slate-800 mb-3 flex items-center gap-1.5">
-                            <Shield size={14} className="text-indigo-600" />
+                        <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                            <Shield size={14} className="text-brand" />
                             Role Details
                         </h3>
                         <div className="space-y-3">
@@ -77,8 +77,8 @@ export default function RoleDetail({ role, onBack }: { role: any, onBack: () => 
 
                     <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
-                            <h3 className="font-bold text-[14px] text-slate-800 flex items-center gap-1.5">
-                                <Users size={14} className="text-indigo-600" />
+                            <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-1.5">
+                                <Users size={14} className="text-brand" />
                                 Assigned Users
                             </h3>
                             <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{assignedUsers.length}</span>
@@ -103,7 +103,7 @@ export default function RoleDetail({ role, onBack }: { role: any, onBack: () => 
                 <div className="lg:col-span-2">
                     <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
                         <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                            <h3 className="font-bold text-[14px] text-slate-800">Module Access & Permissions</h3>
+                            <h3 className="text-[13px] font-bold text-slate-800">Module Access & Permissions</h3>
                             <p className="text-[12px] text-slate-500 mt-0.5">Toggle which modules this role can access and manage.</p>
                         </div>
                         

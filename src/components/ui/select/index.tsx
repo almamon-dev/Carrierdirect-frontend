@@ -25,6 +25,7 @@ export interface SelectProps {
     onCreate?: (name: string) => void;
     icon?: LucideIcon | React.ElementType;
     children?: React.ReactNode;
+    error?: string | boolean;
 }
 
 export default function Select({
@@ -40,6 +41,7 @@ export default function Select({
     direction = "down",
     onCreate: onCreateProp,
     icon: Icon,
+    error,
     children
 }: SelectProps) {
     // Extract options from children if they exist (standard native pattern)
@@ -117,7 +119,8 @@ export default function Select({
                 {({ open }) => (
                     <div className="relative h-full">
                         <Listbox.Button className={cn(
-                            "relative w-full h-full min-h-[32px] cursor-pointer rounded-[3px] border border-[#d1d1d1] bg-white py-1 pr-10 text-left text-[12px] font-medium text-[#202223] outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus:border-[#d1d1d1] transition-all flex items-center",
+                            "relative w-full h-full min-h-[32px] cursor-pointer rounded-[4px] border bg-white py-1 pr-10 text-left text-[14px] font-medium text-[#202223] outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 transition-all flex items-center shadow-none",
+                            error ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-[#d82c0d]" : "border-[#d1d1d1] focus:border-[#4273f5]",
                             Icon ? "pl-9" : "pl-3"
                         )}>
                             {Icon && (
@@ -175,8 +178,8 @@ export default function Select({
                                                         className={({ active: isHovered }) =>
                                                             cn(
                                                                 "relative cursor-pointer select-none py-1.5 px-3 border-b border-slate-50/50 last:border-0",
-                                                                active ? "text-[#008060] font-bold bg-emerald-50/20" : "text-[#202223] font-medium",
-                                                                isHovered ? "bg-slate-50 text-[#008060]" : ""
+                                                                active ? "text-[#4273f5] font-bold bg-[#eef2ff]" : "text-[#202223] font-medium",
+                                                                isHovered ? "bg-slate-50 text-[#4273f5]" : ""
                                                             )
                                                         }
                                                         value={option.id}
@@ -196,7 +199,7 @@ export default function Select({
                                                                     </span>
                                                                 </div>
                                                                 {active && (
-                                                                    <Check size={14} className="text-[#008060]" />
+                                                                    <Check size={14} className="text-[#4273f5]" />
                                                                 )}
                                                             </div>
                                                         )}
@@ -208,7 +211,7 @@ export default function Select({
                                                 <button
                                                     type="button"
                                                     onClick={() => onCreate(searchQuery)}
-                                                    className="w-full text-left py-3 px-10 text-[12px] font-bold text-[#008060] hover:bg-[#e4f1ef] border-t border-slate-50 flex items-center gap-2 mt-1"
+                                                    className="w-full text-left py-3 px-10 text-[12px] font-bold text-[#4273f5] hover:bg-[#eef2ff] border-t border-slate-50 flex items-center gap-2 mt-1"
                                                 >
                                                     <Plus size={14} /> Quick Add "{searchQuery}"
                                                 </button>

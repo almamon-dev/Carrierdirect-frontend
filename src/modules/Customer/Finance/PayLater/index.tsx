@@ -30,7 +30,7 @@ export default function PayLater() {
   const actions = (row: any) => (
     <div className="flex items-center justify-end gap-2">
       {row.status !== 'Cleared' && (
-        <Button variant="outline" size="sm" className="h-7 text-[12px] text-indigo-600 border-indigo-200 hover:bg-indigo-50">
+        <Button variant="outline" size="sm" className="h-7 text-[12px] text-brand border-indigo-200 hover:bg-brand-light">
           Pay Now
         </Button>
       )}
@@ -41,7 +41,7 @@ export default function PayLater() {
     <div className="p-4 md:p-5 w-full min-h-screen">
       <div className="mb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 mb-0.5">Pay Later Management</h1>
+          <h1 className="text-[18px] font-bold text-slate-900 mb-0.5">Pay Later Management</h1>
           <p className="text-[13px] text-slate-500">Track and manage your credit lines and pay later requests.</p>
         </div>
         <div className="flex items-center gap-4 bg-white border border-slate-200 px-3.5 py-2 rounded-lg shadow-sm">

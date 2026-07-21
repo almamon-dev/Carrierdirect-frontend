@@ -5,8 +5,8 @@ import Select from '@/components/ui/select';
 export default function ActivityLogsTab() {
     const logs = [
         { id: 1, user: 'John Doe', action: 'Accepted Quote', target: 'QT-8822', time: '10:30 AM, Today', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { id: 2, user: 'Jane Smith', action: 'Assigned Driver', target: 'Order #1023', time: '09:15 AM, Today', icon: Truck, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { id: 3, user: 'Sarah Lee', action: 'Updated Shipment', target: 'SH-4421', time: 'Yesterday, 04:30 PM', icon: Package, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { id: 2, user: 'Jane Smith', action: 'Assigned Driver', target: 'Order #1023', time: '09:15 AM, Today', icon: Truck, color: 'text-brand', bg: 'bg-brand-light' },
+        { id: 3, user: 'Sarah Lee', action: 'Updated Shipment', target: 'SH-4421', time: 'Yesterday, 04:30 PM', icon: Package, color: 'text-brand', bg: 'bg-brand-light' },
         { id: 4, user: 'John Doe', action: 'Login History', target: 'System Access', time: 'Yesterday, 09:00 AM', icon: LogIn, color: 'text-slate-600', bg: 'bg-slate-100' },
         { id: 5, user: 'Mike Ross', action: 'Password Changed', target: 'Security', time: 'Jul 15, 10:00 AM', icon: Lock, color: 'text-amber-600', bg: 'bg-amber-50' },
         { id: 6, user: 'Admin', action: 'Settings Updated', target: 'Company Profile', time: 'Jul 10, 02:00 PM', icon: Settings, color: 'text-slate-600', bg: 'bg-slate-100' },
@@ -16,7 +16,7 @@ export default function ActivityLogsTab() {
         <div className="p-4 h-full flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm min-h-[500px]">
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h2 className="text-lg font-bold text-slate-800">Activity Logs</h2>
+                    <h2 className="text-[15px] font-bold text-slate-800">Activity Logs</h2>
                     <p className="text-[13px] text-slate-500 mt-1">Recent actions performed by your team members.</p>
                 </div>
                 <div className="flex gap-2">
@@ -54,7 +54,7 @@ export default function ActivityLogsTab() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[13px] text-slate-800 leading-tight">
-                                        <span className="font-bold text-slate-900">{log.user}</span> {log.action.toLowerCase()} <span className="font-medium text-indigo-600">{log.target}</span>
+                                        <span className="font-bold text-slate-900">{log.user}</span> {log.action.toLowerCase()} <span className="font-medium text-brand">{log.target}</span>
                                     </p>
                                     <p className="text-[11px] text-slate-500 mt-0.5 font-medium">{log.time}</p>
                                 </div>

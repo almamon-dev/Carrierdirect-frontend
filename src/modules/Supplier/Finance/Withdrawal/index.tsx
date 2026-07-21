@@ -51,65 +51,56 @@ export default function Withdrawal() {
             {/* Top Stats Strip */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Balance Card */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col w-full relative">
-                    <div className="flex justify-between items-start w-full mb-1.5">
-                        <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center bg-blue-50 text-blue-600">
+                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-[#FFF0ED] text-[#FF4A1F]">
                             <Euro size={14} strokeWidth={2.5} />
                         </div>
-                        <span className="text-[18px] font-black text-slate-900">€12,450.00</span>
                     </div>
-                    <h3 className="font-bold text-[12px] text-slate-900 leading-tight mb-0.5">
-                        Available Balance
-                    </h3>
-                    <p className="text-[10px] text-slate-500 leading-snug mb-2 truncate">
-                        Cleared funds ready for payout.
-                    </p>
-                    <div className="mt-auto pt-1">
+                    <div className="flex items-end justify-between mt-auto">
+                        <div>
+                            <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">€12,450.00</h3>
+                            <p className="text-[10px] font-semibold text-slate-500">Available Balance</p>
+                        </div>
                         <button 
-                            className="text-[11px] text-blue-600 hover:text-blue-700 hover:underline font-semibold flex items-center gap-1 disabled:text-slate-400 disabled:hover:no-underline transition-all" 
+                            className="text-[10px] text-[#FF4A1F] hover:underline font-bold disabled:text-slate-400 disabled:hover:no-underline transition-all flex items-center gap-1" 
                             disabled={!isStripeConnected}
                         >
-                             Withdraw Funds <ArrowUpRight size={12} />
+                             Withdraw <ArrowUpRight size={10} />
                         </button>
                     </div>
                 </div>
 
                 {/* Pending Clearance Card */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col w-full relative">
-                    <div className="flex justify-between items-start w-full mb-1.5">
-                        <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center bg-amber-50 text-amber-600">
+                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-amber-50 text-amber-600">
                             <Clock size={14} strokeWidth={2.5} />
                         </div>
-                        <span className="text-[18px] font-black text-slate-900">€3,200.00</span>
                     </div>
-                    <h3 className="font-bold text-[12px] text-slate-900 leading-tight mb-0.5">
-                        Pending Clearance
-                    </h3>
-                    <p className="text-[10px] text-slate-500 leading-snug mb-2 truncate">
-                        Earnings processing by Stripe.
-                    </p>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">€3,200.00</h3>
+                        <p className="text-[10px] font-semibold text-slate-500">Pending Clearance</p>
+                    </div>
                 </div>
 
                 {/* Total Earnings Card */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col w-full relative">
-                    <div className="flex justify-between items-start w-full mb-1.5">
-                        <div className="w-7 h-7 rounded-md shrink-0 flex items-center justify-center bg-emerald-50 text-emerald-600">
+                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <TrendingUp size={14} strokeWidth={2.5} />
                         </div>
-                        <span className="text-[18px] font-black text-slate-900">€145,280.00</span>
                     </div>
-                    <h3 className="font-bold text-[12px] text-slate-900 leading-tight mb-0.5">
-                        Total Earnings
-                    </h3>
-                    <p className="text-[10px] text-slate-500 leading-snug mb-2 truncate">
-                        Lifetime earnings overview.
-                    </p>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">€145,280.00</h3>
+                        <p className="text-[10px] font-semibold text-slate-500">Total Earnings</p>
+                    </div>
                 </div>
 
                 {/* Stripe Connect Card */}
-                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col w-full relative">
-                    <div className="flex justify-between items-start w-full mb-1.5">
-                        <div className={`w-7 h-7 rounded-md shrink-0 flex items-center justify-center ${isStripeConnected ? 'bg-[#635BFF]/10 text-[#635BFF]' : 'bg-red-50 text-red-500'}`}>
+                <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                        <div className={`w-7 h-7 rounded-md flex items-center justify-center ${isStripeConnected ? 'bg-[#635BFF]/10 text-[#635BFF]' : 'bg-red-50 text-red-500'}`}>
                             {isStripeConnected ? <ShieldCheck size={14} strokeWidth={2.5} /> : <AlertCircle size={14} strokeWidth={2.5} />}
                         </div>
                         {isStripeConnected ? 
@@ -117,25 +108,21 @@ export default function Withdrawal() {
                             <Badge className="bg-red-50 text-red-700 h-4 px-1 text-[8px] font-bold border border-red-100">Action Required</Badge>
                         }
                     </div>
-                    <h3 className="font-bold text-[12px] text-slate-900 leading-tight mb-0.5">
-                        Stripe Connect
-                    </h3>
-                    <p className="text-[10px] text-slate-500 leading-snug mb-2 truncate">
-                        {isStripeConnected ? 'Routed securely to bank.' : 'Connect to receive payouts.'}
-                    </p>
-                    <div className="mt-auto pt-1 flex justify-start">
+                    <div className="flex items-end justify-between mt-auto">
+                        <div>
+                            <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">Stripe Connect</h3>
+                            <p className="text-[10px] font-semibold text-slate-500">{isStripeConnected ? 'Securely linked.' : 'Not connected.'}</p>
+                        </div>
                         {!isStripeConnected ? (
                             <button 
-                                className="text-[11px] text-[#635BFF] hover:text-[#5249EC] hover:underline font-semibold flex items-center gap-1 transition-all" 
+                                className="text-[10px] text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1" 
                                 onClick={() => setIsStripeConnected(true)}
                             >
-                                Setup Stripe
-                                <ArrowUpRight size={12} />
+                                Setup
                             </button>
                         ) : (
-                            <button className="text-[11px] text-[#635BFF] hover:text-[#5249EC] hover:underline font-semibold flex items-center gap-1 transition-all">
-                                View Dashboard
-                                <ExternalLink size={12} />
+                            <button className="text-[10px] text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1">
+                                Dashboard
                             </button>
                         )}
                     </div>

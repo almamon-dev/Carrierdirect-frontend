@@ -37,7 +37,7 @@ export default function TeamManagement() {
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
             <div className="flex items-start justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 mb-1">Team Management</h1>
+                    <h1 className="text-[18px] font-bold text-slate-900 mb-1">Team Management</h1>
                     <p className="text-sm text-slate-500">Manage your organization's staff, roles, and permissions.</p>
                 </div>
 
@@ -72,11 +72,11 @@ export default function TeamManagement() {
                             onClick={() => handleTabChange(tab.id)}
                             className={`flex items-center gap-2 pb-3 border-b-2 font-medium text-[13px] whitespace-nowrap transition-colors ${
                                 isActive 
-                                ? 'border-indigo-600 text-indigo-700' 
+                                ? 'border-brand text-indigo-700' 
                                 : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
                             }`}
                         >
-                            <Icon size={16} className={isActive ? 'text-indigo-600' : 'text-slate-400'} />
+                            <Icon size={16} className={isActive ? 'text-brand' : 'text-slate-400'} />
                             {tab.label}
                         </button>
                     );

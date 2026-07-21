@@ -51,7 +51,7 @@ export default function CreateAvailabilitySchedule() {
                 {/* Sidebar Navigation */}
                 <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
                     <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                        <h3 className="text-[15px] font-bold text-slate-800">Configuration</h3>
+                        <h3 className="text-[13px] font-bold text-slate-800">Configuration</h3>
                     </div>
                     <div className="flex flex-col">
                         {SCHEDULE_TABS.map((tab) => {
@@ -63,15 +63,15 @@ export default function CreateAvailabilitySchedule() {
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center justify-between px-4 py-2.5 text-[14px] font-medium transition-colors border-l-[3px] border-b border-slate-50 last:border-b-0 ${
                                         isSelected 
-                                            ? 'border-l-indigo-600 bg-indigo-50/50 text-indigo-700' 
+                                            ? 'border-l-indigo-600 bg-brand-light/50 text-indigo-700' 
                                             : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                     }`}
                                 >
                                     <div className="flex items-center gap-2.5">
-                                        <Icon size={15} className={isSelected ? 'text-indigo-600' : 'text-slate-400'} />
+                                        <Icon size={15} className={isSelected ? 'text-brand' : 'text-slate-400'} />
                                         {tab.label}
                                     </div>
-                                    {isSelected && <ChevronRight size={15} className="text-indigo-600" />}
+                                    {isSelected && <ChevronRight size={15} className="text-brand" />}
                                 </button>
                             );
                         })}
@@ -88,7 +88,7 @@ export default function CreateAvailabilitySchedule() {
                                 <Card className="shadow-sm border-slate-200">
                                     <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50">
                                         <CardTitle className="text-[13px] flex items-center gap-2">
-                                            <Clock size={14} className="text-indigo-600" />
+                                            <Clock size={14} className="text-brand" />
                                             Basic Information
                                         </CardTitle>
                                     </CardHeader>
@@ -127,7 +127,7 @@ export default function CreateAvailabilitySchedule() {
                                 <Card className="shadow-sm border-slate-200">
                                     <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50">
                                         <CardTitle className="text-[13px] flex items-center gap-2">
-                                            <Calendar size={14} className="text-indigo-600" />
+                                            <Calendar size={14} className="text-brand" />
                                             Schedule Configuration
                                         </CardTitle>
                                     </CardHeader>
@@ -136,11 +136,11 @@ export default function CreateAvailabilitySchedule() {
                                             <label className="block text-[11px] font-semibold text-slate-700 mb-2">Schedule Type</label>
                                             <div className="flex gap-3">
                                                 <label className="flex items-center gap-2 text-[12px] cursor-pointer">
-                                                    <input type="radio" name="scheduleType" value="recurring" checked={scheduleType === 'recurring'} onChange={() => setScheduleType('recurring')} className="text-indigo-600 focus:ring-indigo-500" />
+                                                    <input type="radio" name="scheduleType" value="recurring" checked={scheduleType === 'recurring'} onChange={() => setScheduleType('recurring')} className="text-brand focus:ring-indigo-500" />
                                                     Recurring Weekly
                                                 </label>
                                                 <label className="flex items-center gap-2 text-[12px] cursor-pointer">
-                                                    <input type="radio" name="scheduleType" value="specific" checked={scheduleType === 'specific'} onChange={() => setScheduleType('specific')} className="text-indigo-600 focus:ring-indigo-500" />
+                                                    <input type="radio" name="scheduleType" value="specific" checked={scheduleType === 'specific'} onChange={() => setScheduleType('specific')} className="text-brand focus:ring-indigo-500" />
                                                     Specific Dates
                                                 </label>
                                             </div>
@@ -150,11 +150,11 @@ export default function CreateAvailabilitySchedule() {
                                             <label className="block text-[11px] font-semibold text-slate-700 mb-2">Validity</label>
                                             <div className="flex gap-3 mb-3">
                                                 <label className="flex items-center gap-2 text-[12px] cursor-pointer">
-                                                    <input type="radio" name="validity" value="permanent" checked={validity === 'permanent'} onChange={() => setValidity('permanent')} className="text-indigo-600 focus:ring-indigo-500" />
+                                                    <input type="radio" name="validity" value="permanent" checked={validity === 'permanent'} onChange={() => setValidity('permanent')} className="text-brand focus:ring-indigo-500" />
                                                     Permanent
                                                 </label>
                                                 <label className="flex items-center gap-2 text-[12px] cursor-pointer">
-                                                    <input type="radio" name="validity" value="temporary" checked={validity === 'temporary'} onChange={() => setValidity('temporary')} className="text-indigo-600 focus:ring-indigo-500" />
+                                                    <input type="radio" name="validity" value="temporary" checked={validity === 'temporary'} onChange={() => setValidity('temporary')} className="text-brand focus:ring-indigo-500" />
                                                     Temporary (Date Range)
                                                 </label>
                                             </div>
@@ -188,10 +188,10 @@ export default function CreateAvailabilitySchedule() {
                                 <Card className="shadow-sm border-slate-200 h-full">
                                     <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
                                         <CardTitle className="text-[13px] flex items-center gap-2">
-                                            <Clock size={14} className="text-indigo-600" />
+                                            <Clock size={14} className="text-brand" />
                                             Daily Time Slots
                                         </CardTitle>
-                                        <Button variant="ghost" className="h-6 text-[11px] text-indigo-600 font-semibold px-2 hover:bg-indigo-50">Copy Monday to All</Button>
+                                        <Button variant="ghost" className="h-6 text-[11px] text-brand font-semibold px-2 hover:bg-brand-light">Copy Monday to All</Button>
                                     </CardHeader>
                                     <CardContent className="p-0">
                                         {scheduleType === 'recurring' ? (
@@ -220,7 +220,7 @@ export default function CreateAvailabilitySchedule() {
                                                             </div>
 
                                                             <div className="flex justify-end">
-                                                                <Button variant="ghost" className="h-[24px] w-[24px] p-0 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded">
+                                                                <Button variant="ghost" className="h-[24px] w-[24px] p-0 text-slate-400 hover:text-brand hover:bg-brand-light rounded">
                                                                     <Plus size={13} />
                                                                 </Button>
                                                             </div>

@@ -75,8 +75,8 @@ export default function QuoteView() {
                         <Badge variant="secondary" className="px-2 py-0.5 text-[12px] font-bold">{quote.id}</Badge>
                         <Badge variant={quote.status === 'Pending' ? 'warning' : 'success'} className="px-2 py-0.5 text-[12px] font-bold">{quote.status}</Badge>
                     </div>
-                    <h1 className="text-[18px] font-bold text-slate-900 leading-tight">Quote Details</h1>
-                    <p className="text-[11.5px] text-slate-500 font-medium mt-0.5">Review the complete breakdown of this quote for request <span className="text-indigo-600 font-semibold">{quote.requestId}</span>.</p>
+                    <h1 className="text-[18px] font-bold text-slate-900">Quote Details</h1>
+                    <p className="text-[11.5px] text-slate-500 font-medium mt-0.5">Review the complete breakdown of this quote for request <span className="text-brand font-semibold">{quote.requestId}</span>.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" className="text-slate-600 border-slate-200 hover:bg-slate-50 h-7 px-3 font-semibold text-[12px]">
@@ -94,7 +94,7 @@ export default function QuoteView() {
                 <div className="xl:col-span-5">
                     <div className="bg-white rounded-lg border border-slate-200 p-3.5 lg:p-4 shadow-sm h-full">
                         <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-                            <h2 className="text-[12.5px] font-bold text-slate-900 uppercase tracking-wide">Original Request Requirements</h2>
+                            <h2 className="text-[15px] font-bold text-slate-800 .5px] uppercase tracking-wide">Original Request Requirements</h2>
                             <Badge variant="secondary" className="text-[12px] bg-slate-100 text-slate-500 border-none px-1.5 py-0">~254 km</Badge>
                         </div>
 
@@ -215,13 +215,13 @@ export default function QuoteView() {
                 <div className="xl:col-span-4 flex flex-col gap-3 xl:gap-4">
                     {/* Supplier Info */}
                     <div className="bg-white rounded-lg border border-slate-200 p-3.5 lg:p-4 shadow-sm">
-                        <h2 className="text-[12.5px] font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100 uppercase tracking-wide">Supplier Profile</h2>
+                        <h2 className="text-[15px] font-bold text-slate-800 .5px] mb-3 pb-2 border-b border-slate-100 uppercase tracking-wide">Supplier Profile</h2>
                         <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center font-black text-lg shrink-0 border border-indigo-100">
+                            <div className="w-10 h-10 bg-brand-light text-brand rounded-lg flex items-center justify-center font-black text-lg shrink-0 border border-indigo-100">
                                 {quote.supplier.name.charAt(0)}
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-[14px] font-bold text-slate-900">{quote.supplier.name}</h3>
+                                <h3 className="text-[13px] font-bold text-slate-800">{quote.supplier.name}</h3>
                                 <div className="flex items-center gap-2 mt-1 text-[11.5px] text-slate-600 flex-wrap">
                                     <div className="flex items-center gap-1.5">
                                         <Star size={12} className="text-amber-500 fill-amber-500" />
@@ -241,7 +241,7 @@ export default function QuoteView() {
 
                     {/* Logistics Breakdown */}
                     <div className="bg-white rounded-lg border border-slate-200 p-3.5 lg:p-4 shadow-sm flex-1 flex flex-col">
-                        <h2 className="text-[12.5px] font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100 uppercase tracking-wide">Quote Logistics</h2>
+                        <h2 className="text-[15px] font-bold text-slate-800 .5px] mb-3 pb-2 border-b border-slate-100 uppercase tracking-wide">Quote Logistics</h2>
                         <div className="mt-2 grid grid-cols-[80px_12px_1fr] gap-y-1.5 text-[11.5px]">
                             <span className="text-slate-500 font-medium">Vehicle Type</span>
                             <span className="text-slate-400 text-center">:</span>
@@ -272,7 +272,7 @@ export default function QuoteView() {
                 {/* Column 3: Pricing Breakdown (Span 3) */}
                 <div className="xl:col-span-3">
                     <div className="bg-white p-3.5 lg:p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <h2 className="text-[12.5px] font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100 uppercase tracking-wide">Pricing Breakdown</h2>
+                        <h2 className="text-[15px] font-bold text-slate-800 .5px] mb-3 pb-2 border-b border-slate-100 uppercase tracking-wide">Pricing Breakdown</h2>
 
                         <div className="space-y-2.5 mb-4">
                             <div className="flex justify-between items-center text-[11.5px]">
@@ -309,13 +309,13 @@ export default function QuoteView() {
             {/* Negotiation & Revision History */}
             <div className="mt-3 xl:mt-4">
                 <div className="bg-white p-3.5 lg:p-4 rounded-lg border border-slate-200 shadow-sm">
-                    <h2 className="text-[12.5px] font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 uppercase tracking-wide">Negotiation & Revision History</h2>
+                    <h2 className="text-[15px] font-bold text-slate-800 .5px] mb-4 pb-2 border-b border-slate-100 uppercase tracking-wide">Negotiation & Revision History</h2>
 
                     <div className="relative border-l border-slate-200 ml-3 space-y-4 pb-2">
                         {quoteHistory.map((event) => (
                             <div key={event.id} className="relative pl-4">
                                 {/* Timeline dot */}
-                                <div className={`absolute -left-[4.5px] top-1 w-2 h-2 rounded-full border-2 border-white shadow-sm ${event.type === 'Supplier Revision' ? 'bg-indigo-500' : event.type === 'Customer Request' ? 'bg-amber-500' : 'bg-slate-400'}`}></div>
+                                <div className={`absolute -left-[4.5px] top-1 w-2 h-2 rounded-full border-2 border-white shadow-sm ${event.type === 'Supplier Revision' ? 'bg-brand-light0' : event.type === 'Customer Request' ? 'bg-amber-500' : 'bg-slate-400'}`}></div>
 
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="text-[11.5px] font-bold text-slate-800">{event.type}</span>

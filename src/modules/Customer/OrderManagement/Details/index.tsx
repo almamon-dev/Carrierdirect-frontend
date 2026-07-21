@@ -19,7 +19,7 @@ export default function OrderDetails() {
                     {/* header title with back button and search */}
                     <div className="flex-grow">
                         <div className="mb-2">
-                            <h1 className="text-2xl text-slate-900 font-normal mb-1">Order Details</h1>
+                            <h1 className="text-[18px] font-bold text-slate-900 mb-1">Order Details</h1>
                             <p className="text-sm text-slate-500">View and manage the details of your specific order.</p>
                         </div>
                     </div>
@@ -38,7 +38,7 @@ export default function OrderDetails() {
                     <div className="flex flex-col md:flex-row justify-between items-center p-5 bg-slate-50/80 gap-4 border-b border-slate-200">
                         <div className="font-black text-slate-800 text-base tracking-tight">Order Details : <span className="text-slate-600 font-bold">{orderData.id || 'ORD-2026-000124'}</span></div>
                         <div className="flex items-center gap-2">
-                            <Badge className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-50 font-medium px-2.5 py-1">Processing</Badge>
+                            <Badge className="bg-brand-light text-brand border-blue-200 hover:bg-brand-light font-medium px-2.5 py-1">Processing</Badge>
                             <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-medium px-2.5 py-1 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Paid</Badge>
                         </div>
                     </div>
@@ -53,7 +53,7 @@ export default function OrderDetails() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                                 {/* Supplier Information */}
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-xs mb-3 pb-2 border-b border-slate-200">Supplier Info</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800 mb-3 pb-2 border-b border-slate-200">Supplier Info</h3>
                                     <div className="grid grid-cols-[150px_10px_1fr] gap-y-2 text-[13px] items-center">
                                         <span className="text-slate-500 font-medium">Supplier name</span>
                                         <span className="text-slate-400">:</span>
@@ -79,7 +79,7 @@ export default function OrderDetails() {
 
                                 {/* Customer Information */}
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-xs mb-3 pb-2 border-b border-slate-200">Customer Info</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800 mb-3 pb-2 border-b border-slate-200">Customer Info</h3>
                                     <div className="grid grid-cols-[150px_10px_1fr] gap-y-2 text-[13px] items-center">
                                         <span className="text-slate-500 font-medium">Customer name</span>
                                         <span className="text-slate-400">:</span>
@@ -105,7 +105,7 @@ export default function OrderDetails() {
 
                                 {/* Payment Breakdown */}
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-xs mb-3 pb-2 border-b border-slate-200">Payment Breakdown</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800 mb-3 pb-2 border-b border-slate-200">Payment Breakdown</h3>
                                     <div className="grid grid-cols-[150px_10px_1fr] gap-y-2 text-[13px] items-center">
                                         <span className="text-slate-500 font-medium">Base Freight</span>
                                         <span className="text-slate-400">:</span>
@@ -138,7 +138,7 @@ export default function OrderDetails() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-10">
                                 {/* Shipment Information */}
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-xs mb-3 pb-2 border-b border-slate-200">Shipment Info</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800 mb-3 pb-2 border-b border-slate-200">Shipment Info</h3>
                                     <div className="grid grid-cols-[150px_10px_1fr] gap-y-2 text-[13px] items-center">
                                         <span className="text-slate-500 font-medium">Pickup</span>
                                         <span className="text-slate-400">:</span>
@@ -162,13 +162,13 @@ export default function OrderDetails() {
 
                                         <span className="text-slate-500 font-medium">Shipment</span>
                                         <span className="text-slate-400">:</span>
-                                        <span className={`font-semibold text-right ${orderData.status === 'Completed' ? 'text-emerald-600' : 'text-blue-600'}`}>{orderData.status || 'In Transit'}</span>
+                                        <span className={`font-semibold text-right ${orderData.status === 'Completed' ? 'text-emerald-600' : 'text-brand'}`}>{orderData.status || 'In Transit'}</span>
                                     </div>
                                 </div>
 
                                 {/* Order Information */}
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-xs mb-3 pb-2 border-b border-slate-200">Order Info</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800 mb-3 pb-2 border-b border-slate-200">Order Info</h3>
                                     <div className="grid grid-cols-[150px_10px_1fr] gap-y-2 text-[13px] items-center">
                                         <span className="text-slate-500 font-medium">Order Date</span>
                                         <span className="text-slate-400">:</span>
@@ -180,7 +180,7 @@ export default function OrderDetails() {
 
                                         <span className="text-slate-500 font-medium">Tracking No</span>
                                         <span className="text-slate-400">:</span>
-                                        <span className="text-blue-600 font-bold text-right">TRK-20260720</span>
+                                        <span className="text-brand font-bold text-right">TRK-20260720</span>
 
                                         <span className="text-slate-500 font-medium">Invoice No</span>
                                         <span className="text-slate-400">:</span>
@@ -194,7 +194,7 @@ export default function OrderDetails() {
 
                                 {/* Payment Status */}
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-xs mb-3 pb-2 border-b border-slate-200">Payment Status</h3>
+                                    <h3 className="text-[13px] font-bold text-slate-800 mb-3 pb-2 border-b border-slate-200">Payment Status</h3>
                                     <div className="grid grid-cols-[150px_10px_1fr] gap-y-2 text-[13px] items-center">
                                         <span className="text-slate-500 font-medium">Status</span>
                                         <span className="text-slate-400">:</span>
@@ -226,7 +226,7 @@ export default function OrderDetails() {
 
                         {/* Right Content Area: Live Tracking (Column 4) */}
                         <div className="w-full xl:w-[280px] p-4 md:p-5 border-t xl:border-t-0 xl:border-l border-slate-200">
-                            <h3 className="font-bold text-slate-800 text-xs mb-5 uppercase flex items-center gap-2 tracking-wider">Live Tracking <span className="relative flex h-2 w-2 ml-1"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span></span></h3>
+                            <h3 className="text-[13px] font-bold text-slate-800 mb-5 uppercase flex items-center gap-2 tracking-wider">Live Tracking <span className="relative flex h-2 w-2 ml-1"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-brand"></span></span></h3>
                             
                             <div className="relative border-l-2 border-slate-100 ml-2 space-y-6 flex-1 mt-2">
                                 <div className="relative pl-5">
@@ -261,11 +261,11 @@ export default function OrderDetails() {
 
                                 <div className="relative pl-5">
                                     <div className="absolute -left-[11px] top-0 bg-white py-1">
-                                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center ring-4 ring-blue-50 shadow-sm">
+                                        <div className="w-5 h-5 bg-brand rounded-full flex items-center justify-center ring-4 ring-blue-50 shadow-sm">
                                             <div className="w-2 h-2 bg-white rounded-full"></div>
                                         </div>
                                     </div>
-                                    <p className="font-bold text-slate-900 text-xs text-blue-600">In Transit</p>
+                                    <p className="font-bold text-slate-900 text-xs text-brand">In Transit</p>
                                     <p className="text-[10px] text-slate-500 mt-1">Currently near Dhaka Highway</p>
                                     <p className="text-[10px] text-slate-400">Updated 10 mins ago</p>
                                 </div>

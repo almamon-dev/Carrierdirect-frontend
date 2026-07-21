@@ -14,7 +14,7 @@ export default function POD() {
 
     const columns = [
         { id: 'id', label: 'POD ID', render: (row: any) => <span className="font-semibold text-slate-800">{row.id}</span> },
-        { id: 'jobId', label: 'Job Reference', render: (row: any) => <span className="text-indigo-600 font-medium hover:underline cursor-pointer">{row.jobId}</span> },
+        { id: 'jobId', label: 'Job Reference', render: (row: any) => <span className="text-brand font-medium hover:underline cursor-pointer">{row.jobId}</span> },
         { id: 'customer', label: 'Customer', render: (row: any) => <span className="font-medium text-slate-900">{row.customer}</span> },
         { id: 'driver', label: 'Uploaded By (Driver)', render: (row: any) => <span className="text-slate-600">{row.driver}</span> },
         { id: 'uploadDate', label: 'Upload Date', render: (row: any) => <span className="text-slate-600">{row.uploadDate}</span> },
@@ -31,41 +31,43 @@ export default function POD() {
                 </Badge>
             )
         },
-        { 
-            id: 'actions', 
-            label: 'Actions', 
-            render: (row: any) => (
-                <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-indigo-600" title="View Document">
-                        <FileText size={16} />
-                    </Button>
-                    {row.status === 'Pending Review' && (
-                        <>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-emerald-600" title="Approve">
-                                <CheckCircle size={16} />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-600" title="Reject">
-                                <XCircle size={16} />
-                            </Button>
-                        </>
-                    )}
-                </div>
-            )
-        }
     ];
 
+    const renderActions = (row: any) => (
+        <div className="flex items-center justify-end gap-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-brand hover:bg-brand-light" title="View Document">
+                <FileText size={16} />
+            </Button>
+            {row.status === 'Pending Review' && (
+                <>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50" title="Approve">
+                        <CheckCircle size={16} />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50" title="Reject">
+                        <XCircle size={16} />
+                    </Button>
+                </>
+            )}
+        </div>
+    );
+
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
+            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Proof of Delivery (POD)</h1>
-                    <p className="text-sm text-slate-500 mt-1">Review, approve, and manage POD documents submitted by drivers.</p>
+                    <h1 className="text-[18px] font-bold text-slate-900 mb-1">Proof of Delivery (POD)</h1>
+                    <p className="text-[12px] text-slate-500 font-medium">Review, approve, and manage POD documents submitted by drivers.</p>
                 </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <DataTable columns={columns} data={pods} />
-            </div>
+            <DataTable 
+                columns={columns} 
+                data={pods} 
+                compact={true}
+                searchPlaceholder="Search PODs..."
+                hideViewToggle={true}
+                actions={renderActions}
+            />
         </div>
     );
 }

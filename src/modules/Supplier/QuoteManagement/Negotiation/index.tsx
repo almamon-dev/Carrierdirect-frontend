@@ -14,7 +14,7 @@ export default function Negotiation() {
   const navigate = useNavigate();
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Negotiation ID', render: (row) => <span className=" text-indigo-600 whitespace-nowrap">{row.id}</span> },
+    { id: 'id', label: 'Negotiation ID', render: (row) => <span className="text-brand whitespace-nowrap">{row.id}</span> },
     { id: 'quoteId', label: 'Quote ID', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.quoteId}</span> },
     { id: 'customer', label: 'Customer', render: (row) => <span className="whitespace-nowrap text-slate-800 font-medium">{row.customer}</span> },
     { 
@@ -40,7 +40,7 @@ export default function Negotiation() {
         );
       }
     },
-    { id: 'lastUpdated', label: 'Last Activity', render: (row) => <span className="whitespace-nowrap text-slate-500 ">{row.lastUpdated}</span> },
+    { id: 'lastUpdated', label: 'Last Activity', render: (row) => <span className="whitespace-nowrap text-slate-500">{row.lastUpdated}</span> },
     { 
       id: 'status', 
       label: 'Status',
@@ -73,7 +73,7 @@ export default function Negotiation() {
     <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Negotiation</h1>
+          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Negotiation</h1>
           <p className="text-sm text-slate-500 font-medium">Manage active price negotiations and respond to customer counter-offers.</p>
         </div>
       </div>

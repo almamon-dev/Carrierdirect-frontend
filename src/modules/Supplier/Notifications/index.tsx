@@ -10,8 +10,8 @@ import {
 
 export default function Notifications() {
     const [notifications, setNotifications] = useState([
-        { id: 1, type: 'Quote', title: 'New Quote Request', message: 'You have received a new quote request from Acme Corp for a 3-bedroom house move.', time: '10 mins ago', unread: true, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { id: 2, type: 'Message', title: 'New Message', message: 'TechFlow Inc replied to your quote: "Can we adjust the pickup time?"', time: '1 hour ago', unread: true, icon: MessageSquare, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { id: 1, type: 'Quote', title: 'New Quote Request', message: 'You have received a new quote request from Acme Corp for a 3-bedroom house move.', time: '10 mins ago', unread: true, icon: FileText, color: 'text-brand', bg: 'bg-brand-light' },
+        { id: 2, type: 'Message', title: 'New Message', message: 'TechFlow Inc replied to your quote: "Can we adjust the pickup time?"', time: '1 hour ago', unread: true, icon: MessageSquare, color: 'text-brand', bg: 'bg-brand-light' },
         { id: 3, type: 'Order', title: 'Job Assigned', message: 'Congratulations! Global Logistics has accepted your quote for JOB-9021.', time: '3 hours ago', unread: false, icon: Truck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { id: 4, type: 'Finance', title: 'Payout Processed', message: 'Your payout of €4,225.00 has been successfully processed via Stripe.', time: '1 day ago', unread: false, icon: Euro, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { id: 5, type: 'System', title: 'System Maintenance', message: 'GetItMoving will undergo scheduled maintenance on July 25th at 2:00 AM UTC.', time: '2 days ago', unread: false, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -67,7 +67,7 @@ export default function Notifications() {
             label: 'Status', 
             render: (row: any) => (
                 row.unread ? 
-                <Badge className="bg-blue-600 text-white h-5 px-1.5 text-[9px] font-bold border-none">NEW</Badge> : 
+                <Badge className="bg-brand text-white h-5 px-1.5 text-[9px] font-bold border-none">NEW</Badge> : 
                 <span className="text-[11px] text-slate-400 font-medium">Read</span>
             )
         },
@@ -76,7 +76,7 @@ export default function Notifications() {
             label: '',
             render: (row: any) => (
                 <div className="flex justify-end">
-                     <button className="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="View details">
+                     <button className="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-brand hover:bg-brand-light transition-colors" title="View details">
                         <ExternalLink size={14} />
                     </button>
                 </div>
@@ -94,7 +94,7 @@ export default function Notifications() {
                     <h1 className="text-[18px] font-bold text-slate-900 flex items-center gap-2">
                         Notifications
                         {unreadCount > 0 && (
-                            <Badge className="bg-blue-50 text-blue-700 h-5 px-1.5 text-[10px] font-bold">{unreadCount} Unread</Badge>
+                            <Badge className="bg-brand-light text-blue-700 h-5 px-1.5 text-[10px] font-bold">{unreadCount} Unread</Badge>
                         )}
                     </h1>
                     <p className="text-[12px] text-slate-500 mt-0.5">Manage all your alerts, messages, and system updates.</p>

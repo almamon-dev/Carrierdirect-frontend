@@ -76,7 +76,7 @@ export default function ProcessingTrack() {
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 rounded-full hover:bg-slate-100 -ml-1.5" onClick={() => navigate(-1)}>
                         <ArrowLeft size={18} />
                     </Button>
-                    <h1 className="text-[17px] font-bold text-slate-900 tracking-tight">Order {order.id}</h1>
+                    <h1 className="text-[18px] font-bold text-slate-900 tracking-tight">Order {order.id}</h1>
                     <Badge variant="warning" className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider">{order.status}</Badge>
                 </div>
                 <div className="text-[13px] text-slate-500 flex items-center gap-1.5">
