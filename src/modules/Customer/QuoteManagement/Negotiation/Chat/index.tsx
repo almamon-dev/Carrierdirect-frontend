@@ -269,7 +269,7 @@ export default function NegotiationChat() {
                                         </div>
                                         <div className="flex items-center gap-1 shrink-0 ml-1">
                                             {chat.isPinned && (
-                                                <Pin size={12} className="text-[#FF4A1F] fill-[#FF4A1F] rotate-45 shrink-0" title="Pinned Conversation" />
+                                                <span title="Pinned Conversation"><Pin size={12} className="text-[#FF4A1F] fill-[#FF4A1F] rotate-45 shrink-0" /></span>
                                             )}
                                             <button
                                                 type="button"
