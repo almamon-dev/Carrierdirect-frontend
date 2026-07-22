@@ -217,7 +217,7 @@ export default function QuoteView() {
                     <div className="bg-white rounded-lg border border-slate-200 p-3.5 lg:p-4 shadow-sm">
                         <h2 className="text-[15px] font-bold text-slate-800 .5px] mb-3 pb-2 border-b border-slate-100 uppercase tracking-wide">Supplier Profile</h2>
                         <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-brand-light text-brand rounded-lg flex items-center justify-center font-black text-lg shrink-0 border border-indigo-100">
+                            <div className="w-10 h-10 bg-brand-light text-brand rounded-lg flex items-center justify-center font-bold text-lg shrink-0 border border-indigo-100">
                                 {quote.supplier.name.charAt(0)}
                             </div>
                             <div className="flex-1">
@@ -262,7 +262,7 @@ export default function QuoteView() {
 
                         <div className="mt-auto pt-3 border-t border-slate-100">
                             <span className="block text-[10.5px] font-semibold text-slate-500 mb-1 uppercase">Supplier Notes</span>
-                            <div className="bg-slate-50 p-2.5 rounded-md text-[12px] text-slate-700 border border-slate-200/60 leading-relaxed">
+                            <div className="bg-slate-50 p-2.5 rounded-sm text-[12px] text-slate-700 border border-slate-200/60 leading-relaxed">
                                 {quote.notes}
                             </div>
                         </div>
@@ -292,7 +292,7 @@ export default function QuoteView() {
                         <div>
                             <div className="flex justify-between items-end pt-3 border-t border-slate-100">
                                 <span className="text-[11.5px] font-bold text-slate-800">Total</span>
-                                <span className="text-[17px] font-black text-emerald-600 leading-none">€ {quote.pricing.total.toLocaleString()}</span>
+                                <span className="text-[17px] font-bold text-emerald-600 leading-none">€ {quote.pricing.total.toLocaleString()}</span>
                             </div>
                             <div className="mt-3 text-center bg-slate-50 rounded p-1.5 border border-slate-100">
                                 <p className="text-[9px] font-medium text-slate-500 uppercase tracking-wide">Valid until {quote.validUntil}</p>
@@ -325,7 +325,7 @@ export default function QuoteView() {
                                     </Badge>
                                 </div>
 
-                                <div className="bg-slate-50 border border-slate-100 rounded-md p-2 mt-1">
+                                <div className="bg-slate-50 border border-slate-100 rounded-sm p-2 mt-1">
                                     <p className="text-[12px] text-slate-600 mb-1.5 leading-relaxed">{event.note}</p>
                                     <div className="flex items-center gap-3 text-[10.5px]">
                                         {event.previousTotal && (

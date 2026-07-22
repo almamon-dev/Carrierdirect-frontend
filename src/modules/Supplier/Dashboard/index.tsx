@@ -88,10 +88,10 @@ const notificationList = [
 const MetricCard = ({ title, description, value, icon: Icon, colorClass }) => (
     <div className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start cursor-pointer w-full">
         <div className="flex justify-between items-start w-full mb-3">
-            <div className={`w-9 h-9 rounded-md shrink-0 flex items-center justify-center ${colorClass}`}>
+            <div className={`w-9 h-9 rounded-sm shrink-0 flex items-center justify-center ${colorClass}`}>
                 <Icon size={18} strokeWidth={2} />
             </div>
-            <span className="text-[20px] font-black text-slate-800">{value}</span>
+            <span className="text-[20px] font-bold text-slate-800">{value}</span>
         </div>
         <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">
             {title}
@@ -167,7 +167,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="flex items-baseline gap-3 mb-4">
-                        <span className="text-2xl font-extrabold text-slate-900">€24,580</span>
+                        <span className="text-2xl font-bold text-slate-900">€24,580</span>
                         <span className="text-sm font-bold text-emerald-500">+12.5% <span className="text-slate-400 font-medium">vs previous 30 days</span></span>
                     </div>
 

@@ -68,7 +68,7 @@ export default function Modal({
       {/* Modal Content Wrapper */}
       <div 
         className={cn(
-          "relative bg-white rounded-md shadow-2xl w-full flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200",
+          "relative bg-white rounded-sm shadow-2xl w-full flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200",
           sizeClasses[size],
           size === 'full' ? 'max-h-full' : 'max-h-[90vh]',
           className

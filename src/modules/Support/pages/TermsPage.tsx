@@ -61,7 +61,7 @@ export default function TermsPage() {
                 <button
                   key={section.id}
                   onClick={() => scrollToSection(section.id)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-600 rounded-sm hover:bg-gray-50 hover:text-gray-900 transition-colors text-left"
                 >
                   <section.icon className="w-4 h-4 text-gray-400" />
                   {section.title}
@@ -69,7 +69,7 @@ export default function TermsPage() {
               ))}
             </nav>
             <div className="mt-8 pt-6 border-t border-gray-100">
-              <div className="bg-brand-light/50 border border-blue-100/50 rounded-md p-4">
+              <div className="bg-brand-light/50 border border-blue-100/50 rounded-sm p-4">
                 <h4 className="text-sm font-semibold text-blue-900 mb-1">Need help?</h4>
                 <p className="text-xs text-blue-700 mb-3 leading-relaxed">If you have any questions about these terms.</p>
                 <Button onClick={() => navigate('/support/feedback')} variant="outline" className="w-full text-xs h-8 bg-white text-blue-700 border-blue-200 hover:bg-brand-light shadow-sm">

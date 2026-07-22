@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, LogOut, LayoutDashboard, Settings, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LogOut, LayoutDashboard, Settings, ChevronRight } from 'lucide-react';
 import LogoBlack from '@/assets/Images/LogoBlack.png';
 import LogoIcon from '@/assets/Images/LogoIcon.png';
 import { navigationMap } from '@/constants/navigation';
@@ -15,18 +15,23 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
         (subItem.path !== '/' && location.pathname.startsWith(subItem.path))
     );
 
-    const [isExpanded, setIsExpanded] = useState(false);
+    // Initially off by default unless current route belongs to this group
+    const [isExpanded, setIsExpanded] = useState(isActiveGroup);
+
+    useEffect(() => {
+        if (isActiveGroup) {
+            setIsExpanded(true);
+        }
+    }, [isActiveGroup, location.pathname]);
 
     return (
         <div className="mb-0.5">
             <button
-                onClick={() => {
-                    if (isOpen) setIsExpanded(!isExpanded);
-                }}
+                onClick={() => setIsExpanded(!isExpanded)}
                 title={!isOpen ? item.group : undefined}
-                className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group ${
+                className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group cursor-pointer ${
                     isActiveGroup 
-                        ? 'text-slate-900 font-semibold' 
+                        ? 'text-[#ff4a1f] font-semibold bg-orange-50/50' 
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50/50'
                 }`}
             >
@@ -35,7 +40,7 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
                         <item.icon 
                             size={20} 
                             strokeWidth={1.5}
-                            className={isActiveGroup ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600'} 
+                            className={isActiveGroup ? 'text-[#ff4a1f]' : 'text-slate-400 group-hover:text-slate-600'} 
                         />
                     )}
                     {isOpen && <span className="whitespace-nowrap">{item.group}</span>}
@@ -49,23 +54,30 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
                 )}
             </button>
             
-            {isOpen && isExpanded && (
-                <div className="pl-[34px] pr-3 space-y-1 mb-1.5 mt-0.5">
+            {isExpanded && (
+                <div className={`${isOpen ? 'pl-[34px] pr-3' : 'px-1'} space-y-1 mb-1.5 mt-0.5`}>
                     {item.items.map((subItem: any) => {
                         const isActive = location.pathname === subItem.path || (subItem.path !== '/' && location.pathname.startsWith(subItem.path));
                         return (
                             <Link
                                 key={subItem.name}
                                 to={subItem.path}
-                                className={`flex items-center justify-between py-1.5 rounded-md text-[13px] font-medium transition-colors group ${
+                                className={`flex items-center ${isOpen ? 'justify-between py-1.5 px-2' : 'justify-center py-2'} rounded-sm text-[13px] font-medium transition-colors group ${
                                     isActive 
-                                        ? 'text-brand font-semibold' 
-                                        : 'text-slate-500 hover:text-slate-900'
+                                        ? 'text-[#ff4a1f] font-bold bg-orange-50' 
+                                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
                                 }`}
+                                title={!isOpen ? subItem.name : undefined}
                             >
-                                <div className="flex items-center gap-3 whitespace-nowrap">
-                                    <span className={`w-1 h-1 rounded-full shrink-0 ${isActive ? 'bg-brand' : 'bg-slate-300 group-hover:bg-slate-400'}`} />
-                                    {subItem.name}
+                                <div className={`flex items-center ${isOpen ? 'gap-3' : 'justify-center'} whitespace-nowrap`}>
+                                    {isOpen ? (
+                                        <>
+                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-[#ff4a1f]' : 'bg-slate-300 group-hover:bg-slate-400'}`} />
+                                            {subItem.name}
+                                        </>
+                                    ) : (
+                                        <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#ff4a1f]' : 'bg-slate-300'}`} />
+                                    )}
                                 </div>
                             </Link>
                         );
@@ -78,21 +90,32 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
 
 export default function Sidebar({ isOpen }: SidebarProps) {
     const location = useLocation();
+    const navigate = useNavigate();
     const currentModule = location.pathname.split('/')[1] || 'dashboard';
     
     const navItems = navigationMap[currentModule] || [
-        { name: 'Dashboard', path: `/${currentModule}`, icon: LayoutDashboard },
+        { name: 'Dashboard', path: `/${currentModule}/dashboard`, icon: LayoutDashboard },
         { name: 'Settings', path: `/${currentModule}/settings`, icon: Settings },
     ];
+
+    const handleLogout = () => {
+        localStorage.removeItem('erp_access_token');
+        localStorage.removeItem('erp_user_data');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/');
+    };
 
     return (
         <aside className={`fixed lg:static inset-y-0 left-0 z-30 bg-white border-r border-slate-200 transform transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:w-[72px] lg:translate-x-0'}`}>
             <div className="h-16 flex items-center justify-center lg:justify-start px-5 border-b border-gray-100 shrink-0 whitespace-nowrap">
-                {isOpen ? (
-                    <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300" />
-                ) : (
-                    <img src={LogoIcon} alt="Icon" className="w-10 h-10 object-contain shrink-0" />
-                )}
+                <Link to="/">
+                    {isOpen ? (
+                        <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300 cursor-pointer" />
+                    ) : (
+                        <img src={LogoIcon} alt="Icon" className="w-10 h-10 object-contain shrink-0 cursor-pointer" />
+                    )}
+                </Link>
             </div>
 
             <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 custom-scrollbar">
@@ -120,7 +143,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                                     title={!isOpen ? item.name : undefined}
                                     className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${
                                         (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
-                                            ? 'text-slate-900 font-semibold' 
+                                            ? 'text-[#ff4a1f] font-semibold bg-orange-50/50' 
                                             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50/50'
                                     }`}
                                 >
@@ -128,7 +151,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                                         <item.icon 
                                             size={20} 
                                             strokeWidth={1.5}
-                                            className={(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-brand' : 'text-slate-400 group-hover:text-slate-600'} 
+                                            className={(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-[#ff4a1f]' : 'text-slate-400 group-hover:text-slate-600'} 
                                         />
                                         {isOpen && <span className="whitespace-nowrap">{item.name}</span>}
                                     </div>
@@ -141,8 +164,9 @@ export default function Sidebar({ isOpen }: SidebarProps) {
 
             <div className="p-4 border-t border-gray-100 shrink-0 space-y-2">
                 <button 
+                    onClick={handleLogout}
                     title={!isOpen ? "Logout" : undefined}
-                    className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center'} py-2 w-full rounded-lg text-[13px] font-medium text-red-600 hover:bg-red-50 transition-colors`}
+                    className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center'} py-2 w-full rounded-lg text-[13px] font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer`}
                 >
                     <LogOut size={20} />
                     {isOpen && <span className="whitespace-nowrap">Logout</span>}

@@ -16,7 +16,7 @@ export default function UserMenu({ className = '', user = { name: 'John Doe', em
                 <span className="text-sm font-medium text-gray-700 hidden sm:block">{user.name}</span>
             </button>
             {open && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50 py-1">
+                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-sm shadow-lg z-50 py-1">
                     <div className="px-4 py-2 border-b">
                         <p className="text-sm font-medium text-gray-900">{user.name}</p>
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>

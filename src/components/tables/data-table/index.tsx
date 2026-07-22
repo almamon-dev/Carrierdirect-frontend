@@ -133,7 +133,7 @@ export default function DataTable<T extends Record<string, any>>({
     };
 
     return (
-        <div className="bg-white rounded-[4px] border border-[#ebebeb] shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
+        <div className="bg-white rounded-sm border border-[#ebebeb] shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
             <div className="animate-in fade-in duration-300">
                 {/* Header Tabs (Inside container) */}
                 {headerTabs && (
@@ -216,7 +216,7 @@ export default function DataTable<T extends Record<string, any>>({
                                 return (
                                     <div 
                                         key={id}
-                                        className={`bg-white rounded-[4px] border p-3 shadow-sm transition-all flex flex-col ${isSelected ? 'border-[#008060] ring-1 ring-[#008060]' : 'border-[#d1d1d1]'}`}
+                                        className={`bg-white rounded-sm border p-3 shadow-sm transition-all flex flex-col ${isSelected ? 'border-[#008060] ring-1 ring-[#008060]' : 'border-[#d1d1d1]'}`}
                                     >
                                         <div className="flex justify-end items-start mb-2 pb-2 border-b border-[#ebebeb]">
                                             {actions && (

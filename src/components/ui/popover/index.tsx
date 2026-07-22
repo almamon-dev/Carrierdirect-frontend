@@ -12,7 +12,7 @@ export default function Popover({ className = '', trigger = <button className="p
         <div className={`relative inline-block ${className}`}>
             <div onClick={() => setOpen(!open)}>{trigger}</div>
             {open && (
-                <div className="absolute top-full left-0 mt-2 bg-white border rounded-md shadow-lg z-20 min-w-[200px]">
+                <div className="absolute top-full left-0 mt-2 bg-white border rounded-sm shadow-lg z-20 min-w-[200px]">
                     {content}
                 </div>
             )}

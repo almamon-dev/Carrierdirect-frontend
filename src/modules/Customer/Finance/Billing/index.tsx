@@ -38,7 +38,7 @@ export default function Billing() {
                         </div>
 
                         <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-brand-light text-brand rounded-lg flex items-center justify-center font-black shrink-0 border border-indigo-100">
+                            <div className="w-10 h-10 bg-brand-light text-brand rounded-lg flex items-center justify-center font-bold shrink-0 border border-indigo-100">
                                 <Package size={20} />
                             </div>
                             <div className="flex-1 w-full">
@@ -91,7 +91,7 @@ export default function Billing() {
                                     <div className="w-8 h-6 bg-gradient-to-br from-amber-200 to-amber-400 rounded-sm flex items-center justify-center opacity-90 shadow-sm">
                                         <div className="w-5 h-3 border border-amber-600/30 rounded-[1px]"></div>
                                     </div>
-                                    <span className="text-[13px] font-black italic tracking-wider opacity-90">VISA</span>
+                                    <span className="text-[13px] font-bold italic tracking-wider opacity-90">VISA</span>
                                 </div>
 
                                 <div className="relative z-10 mt-auto">
@@ -170,7 +170,7 @@ export default function Billing() {
                         <div className="relative z-10">
                             <span className="block text-[10.5px] font-semibold text-slate-500 mb-1">Total Due Amount</span>
                             <div className="flex items-end gap-1.5 mb-3">
-                                <span className="text-[24px] font-black text-rose-600 leading-none">€ 25,500</span>
+                                <span className="text-[24px] font-bold text-rose-600 leading-none">€ 25,500</span>
                             </div>
 
                             <div className="flex items-center justify-between text-[11.5px] mb-4 bg-slate-50 p-2 rounded border border-slate-100">
@@ -206,7 +206,7 @@ export default function Billing() {
                         <div className="mt-auto">
                             <div className="flex justify-between items-end pt-3 border-t border-slate-100 mb-3">
                                 <span className="text-[11.5px] font-bold text-slate-800">Estimated Total</span>
-                                <span className="text-[16px] font-black text-slate-900 leading-none">€ 5,750</span>
+                                <span className="text-[16px] font-bold text-slate-900 leading-none">€ 5,750</span>
                             </div>
                             <div className="text-center bg-slate-50 rounded p-1.5 border border-slate-100">
                                 <p className="text-[10px] font-medium text-slate-500 tracking-wide">Next Invoice: Aug 10, 2026</p>
@@ -246,7 +246,7 @@ export default function Billing() {
                                 { id: 'INV-2026-06', date: '2026-06-10', plan: 'Enterprise Shipper - Monthly', period: 'Jun 1 - Jun 30', method: '01711•••344', methodType: 'bkash', amount: '€ 5,750', status: 'Pending' },
                                 { id: 'INV-2026-05', date: '2026-05-10', plan: 'Enterprise Shipper - Monthly', period: 'May 1 - May 31', method: '•••• 4242', methodType: 'visa', amount: '€ 5,750', status: 'Failed' },
                             ].map((item, i) => (
-                                <div key={i} className="flex items-center gap-4 p-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors rounded-md">
+                                <div key={i} className="flex items-center gap-4 p-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors rounded-sm">
                                     <div className="w-20 shrink-0">
                                         <span className="text-[11.5px] font-bold text-brand block">{item.id}</span>
                                     </div>

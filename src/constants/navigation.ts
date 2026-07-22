@@ -11,7 +11,6 @@ export const navigationMap: Record<string, any[]> = {
         { name: 'Analytics', path: '/dashboard/analytics', icon: FileBarChart },
     ],
 
-
     'sales': [
         { category: 'Main Menu', name: 'Customers', path: '/sales/customers', icon: Users },
         { category: 'Main Menu', name: 'Quotations', path: '/sales/quotations', icon: FileText },
@@ -105,9 +104,10 @@ export const navigationMap: Record<string, any[]> = {
                 { name: 'Billing', path: '/customer/finance/billing', icon: Receipt },
                 { name: 'Invoices', path: '/customer/finance/invoices', icon: FileText },
                 { name: 'Payments', path: '/customer/finance/payments', icon: CreditCard },
-                { name: 'Pay Later', path: '/customer/finance/pay-later', icon: Clock },
+                { name: 'Pay Later Facility', path: '/customer/finance/pay-later', icon: Euro },
             ]
         },
+        { category: 'Main Menu', name: 'Subscription', path: '/customer/subscription', icon: ShieldCheck },
         { category: 'Main Menu', name: 'Notifications', path: '/customer/notifications', icon: Bell },
         { category: 'Main Menu', name: 'Settings', path: '/customer/settings', icon: Settings },
     ],

@@ -63,7 +63,7 @@ export default function SelectRolePage() {
                                 className="w-4 h-4 text-[#FF4A1F] border-gray-300 focus:ring-[#FF4A1F]"
                             />
                             <div className="ml-4 flex items-center gap-3">
-                                <div className={`p-2 rounded-md transition-colors ${selectedType === 'customer' ? 'bg-[#FFF0EC] text-[#D13915]' : 'bg-gray-100 text-gray-500'}`}>
+                                <div className={`p-2 rounded-sm transition-colors ${selectedType === 'customer' ? 'bg-[#FFF0EC] text-[#D13915]' : 'bg-gray-100 text-gray-500'}`}>
                                     <User size={18} />
                                 </div>
                                 <div>
@@ -88,7 +88,7 @@ export default function SelectRolePage() {
                                 className="w-4 h-4 text-[#FF4A1F] border-gray-300 focus:ring-[#FF4A1F]"
                             />
                             <div className="ml-4 flex items-center gap-3">
-                                <div className={`p-2 rounded-md transition-colors ${selectedType === 'supplier' ? 'bg-[#FFF0EC] text-[#D13915]' : 'bg-gray-100 text-gray-500'}`}>
+                                <div className={`p-2 rounded-sm transition-colors ${selectedType === 'supplier' ? 'bg-[#FFF0EC] text-[#D13915]' : 'bg-gray-100 text-gray-500'}`}>
                                     <Truck size={18} />
                                 </div>
                                 <div>
@@ -102,7 +102,7 @@ export default function SelectRolePage() {
                     <button
                         onClick={handleContinue}
                         disabled={!selectedType}
-                        className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-semibold transition-all ${selectedType
+                        className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-sm text-sm font-semibold transition-all ${selectedType
                             ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15] shadow-sm'
                             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             }`}

@@ -177,7 +177,7 @@ export default function RequestList() {
     const actions = (row: any) => (
         <div className="flex items-center justify-end gap-2 relative">
             {row.status !== 'Draft' ? (
-                <Button variant="primary" size="sm" className="h-7 px-3 bg-brand hover:bg-brand-hover" onClick={(e) => { e.stopPropagation(); navigate(`/customer/quotes/received/${row.id}`); }}>
+                <Button variant="primary" size="sm" className="h-7 px-3 bg-brand hover:bg-brand-hover" onClick={(e) => { e.stopPropagation(); navigate('/customer/quotes/received'); }}>
                     <Activity size={14} className="mr-1.5" /> Track Bids
                 </Button>
             ) : (
@@ -210,7 +210,7 @@ export default function RequestList() {
 
                 {openDropdown === row.id && createPortal(
                     <div 
-                        className="fixed w-40 bg-white rounded-md shadow-xl border border-slate-200 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100"
+                        className="fixed w-40 bg-white rounded-sm shadow-xl border border-slate-200 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >

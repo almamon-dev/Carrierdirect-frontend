@@ -67,10 +67,10 @@ export default function AvailabilitySchedule() {
             label: 'Actions',
             render: () => (
                 <div className="flex items-center gap-1.5">
-                    <Button variant="ghost" className="h-7 w-7 p-0 text-slate-600 hover:text-indigo-700 bg-slate-50 hover:bg-brand-light border border-slate-200 rounded-[4px]">
+                    <Button variant="ghost" className="h-7 w-7 p-0 text-slate-600 hover:text-indigo-700 bg-slate-50 hover:bg-brand-light border border-slate-200 rounded-sm">
                         <Edit2 size={13} />
                     </Button>
-                    <Button variant="ghost" className="h-7 w-7 p-0 text-slate-600 hover:text-red-700 bg-slate-50 hover:bg-red-50 border border-slate-200 rounded-[4px]">
+                    <Button variant="ghost" className="h-7 w-7 p-0 text-slate-600 hover:text-red-700 bg-slate-50 hover:bg-red-50 border border-slate-200 rounded-sm">
                         <Trash2 size={13} />
                     </Button>
                 </div>

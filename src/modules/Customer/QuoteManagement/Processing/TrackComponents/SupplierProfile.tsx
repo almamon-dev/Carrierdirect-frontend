@@ -5,7 +5,7 @@ export default function SupplierProfile({ supplier }: { supplier: any }) {
     return (
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-3">
             <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-full bg-brand-light text-indigo-700 flex items-center justify-center text-xl font-black relative shrink-0">
+                <div className="w-12 h-12 rounded-full bg-brand-light text-indigo-700 flex items-center justify-center text-xl font-bold relative shrink-0">
                     {supplier.name.charAt(0)}
                     <div className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
                 </div>

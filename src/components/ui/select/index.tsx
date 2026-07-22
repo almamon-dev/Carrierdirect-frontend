@@ -114,12 +114,12 @@ export default function Select({
 
 
     return (
-        <div className={cn("w-full", className, disabled && "opacity-60 cursor-not-allowed pointer-events-none")}>
+        <div className={cn("w-full relative", className, disabled && "opacity-60 cursor-not-allowed pointer-events-none")}>
             <Listbox value={normalizedValue} onChange={handleChange} multiple={multiple} disabled={disabled}>
                 {({ open }) => (
-                    <div className="relative h-full">
+                    <div className={cn("relative h-full", open && "z-[9999]")}>
                         <Listbox.Button className={cn(
-                            "relative w-full h-full min-h-[32px] cursor-pointer rounded-[4px] border bg-white py-1 pr-10 text-left text-[14px] font-medium text-[#202223] outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 transition-all flex items-center shadow-none",
+                            "relative w-full h-full min-h-[32px] cursor-pointer rounded-sm border bg-white py-1 pr-10 text-left text-[14px] font-medium text-[#202223] outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 transition-all flex items-center shadow-none",
                             error ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-[#d82c0d]" : "border-[#d1d1d1] focus:border-[#4273f5]",
                             Icon ? "pl-9" : "pl-3"
                         )}>
@@ -143,7 +143,7 @@ export default function Select({
                             leaveTo="opacity-0 scale-95"
                         >
                             <Listbox.Options className={cn(
-                                "absolute z-[100] max-h-64 w-full overflow-hidden rounded-[3px] bg-white text-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.08),0_0_1px_rgba(0,0,0,0.1)] border border-[#ebebeb] focus:outline-none flex flex-col",
+                                "absolute z-[9999] max-h-64 w-full overflow-hidden rounded-sm bg-white text-[12px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#ebebeb] focus:outline-none flex flex-col",
                                 direction === "up" ? "bottom-full mb-1" : "mt-1"
                             )}>
                                 {/* Search Input Container */}

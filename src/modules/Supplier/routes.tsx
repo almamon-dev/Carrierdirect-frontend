@@ -1,5 +1,5 @@
 import React, { lazy } from 'react';
-import { RouteObject } from 'react-router-dom';
+import { RouteObject, Navigate } from 'react-router-dom';
 
 const Dashboard = lazy(() => import('./Dashboard'));
 const QuoteRequests = lazy(() => import('./QuoteManagement/QuoteRequests'));
@@ -31,6 +31,8 @@ const Notifications = lazy(() => import('./Notifications'));
 const Settings = lazy(() => import('./Settings'));
 
 export const supplierRoutes: RouteObject[] = [
+    { index: true, element: <Navigate to="/supplier/dashboard" replace /> },
+    { path: '', element: <Navigate to="/supplier/dashboard" replace /> },
     { path: 'dashboard', element: <Dashboard /> },
     { path: 'quotes/requests', element: <QuoteRequests /> },
     { path: 'quotes/submit', element: <SubmitQuote /> },

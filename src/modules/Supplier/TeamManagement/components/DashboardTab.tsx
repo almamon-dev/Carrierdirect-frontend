@@ -20,10 +20,10 @@ const memberGrowthData = [
 const MetricCard = ({ title, description, value, icon: Icon, colorClass }: any) => (
     <div className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start cursor-pointer w-full shadow-sm">
         <div className="flex justify-between items-start w-full mb-3">
-            <div className={`w-9 h-9 rounded-md shrink-0 flex items-center justify-center ${colorClass}`}>
+            <div className={`w-9 h-9 rounded-sm shrink-0 flex items-center justify-center ${colorClass}`}>
                 <Icon size={18} strokeWidth={2} />
             </div>
-            <span className="text-[20px] font-black text-slate-800">{value}</span>
+            <span className="text-[20px] font-bold text-slate-800">{value}</span>
         </div>
         <h3 className="text-[13px] font-bold text-slate-800 mb-0.5">
             {title}
@@ -92,7 +92,7 @@ export default function DashboardTab() {
                     </div>
 
                     <div className="flex items-baseline gap-3 mb-4">
-                        <span className="text-2xl font-extrabold text-slate-900">45</span>
+                        <span className="text-2xl font-bold text-slate-900">45</span>
                         <span className="text-sm font-bold text-emerald-500">+13% <span className="text-slate-400 font-medium">vs previous month</span></span>
                     </div>
 
@@ -135,7 +135,7 @@ export default function DashboardTab() {
                                     <p className="text-[11px] text-slate-500 mt-0.5">Fleet and transport staff</p>
                                 </div>
                             </div>
-                            <span className="font-bold text-lg text-slate-900 bg-white border border-slate-200 px-3 py-1 rounded-md shadow-sm">25</span>
+                            <span className="font-bold text-lg text-slate-900 bg-white border border-slate-200 px-3 py-1 rounded-sm shadow-sm">25</span>
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
                             <div className="flex items-center gap-3">
@@ -147,7 +147,7 @@ export default function DashboardTab() {
                                     <p className="text-[11px] text-slate-500 mt-0.5">Inventory and sorting</p>
                                 </div>
                             </div>
-                            <span className="font-bold text-lg text-slate-900 bg-white border border-slate-200 px-3 py-1 rounded-md shadow-sm">12</span>
+                            <span className="font-bold text-lg text-slate-900 bg-white border border-slate-200 px-3 py-1 rounded-sm shadow-sm">12</span>
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
                             <div className="flex items-center gap-3">
@@ -159,7 +159,7 @@ export default function DashboardTab() {
                                     <p className="text-[11px] text-slate-500 mt-0.5">Management and dispatch</p>
                                 </div>
                             </div>
-                            <span className="font-bold text-lg text-slate-900 bg-white border border-slate-200 px-3 py-1 rounded-md shadow-sm">8</span>
+                            <span className="font-bold text-lg text-slate-900 bg-white border border-slate-200 px-3 py-1 rounded-sm shadow-sm">8</span>
                         </div>
                     </div>
                 </div>

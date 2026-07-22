@@ -87,7 +87,7 @@ export default function AvailabilitySettings() {
                             </div>
 
                             {/* Configuration Panel for Selected Day */}
-                            <div className="bg-slate-50/50 border border-slate-100 p-2.5 rounded-md space-y-2">
+                            <div className="bg-slate-50/50 border border-slate-100 p-2.5 rounded-sm space-y-2">
                                 <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 mb-0.5">
                                     <div>
                                         <h4 className="text-[13px] font-bold text-slate-800">Settings for {selectedDay}</h4>

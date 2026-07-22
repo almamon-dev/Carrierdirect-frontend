@@ -7,7 +7,7 @@ export interface ScrollAreaProps {
 
 export default function ScrollArea({ className = '', children }: ScrollAreaProps) {
     return (
-        <div className={`overflow-auto border rounded-md p-4 ${className}`}>
+        <div className={`overflow-auto border rounded-sm p-4 ${className}`}>
             {children || <div className="h-[200px]">Scrollable content goes here...</div>}
         </div>
     );

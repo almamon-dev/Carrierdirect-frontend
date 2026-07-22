@@ -36,7 +36,7 @@ export default function OrderDetails() {
                     
                     {/* Header */}
                     <div className="flex flex-col md:flex-row justify-between items-center p-5 bg-slate-50/80 gap-4 border-b border-slate-200">
-                        <div className="font-black text-slate-800 text-base tracking-tight">Order Details : <span className="text-slate-600 font-bold">{orderData.id || 'ORD-2026-000124'}</span></div>
+                        <div className="font-bold text-slate-800 text-base tracking-tight">Order Details : <span className="text-slate-600 font-bold">{orderData.id || 'ORD-2026-000124'}</span></div>
                         <div className="flex items-center gap-2">
                             <Badge className="bg-brand-light text-brand border-blue-200 hover:bg-brand-light font-medium px-2.5 py-1">Processing</Badge>
                             <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-medium px-2.5 py-1 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Paid</Badge>
@@ -126,7 +126,7 @@ export default function OrderDetails() {
                                         <div className="col-span-3 border-t border-slate-100 mt-1 pt-2 grid grid-cols-[150px_10px_1fr] items-center">
                                             <span className="text-slate-800 font-bold">Total Amount</span>
                                             <span className="text-slate-400 font-bold">:</span>
-                                            <span className="text-indigo-700 font-black text-right text-sm">{orderData.amount || '€ 45,000'}</span>
+                                            <span className="text-indigo-700 font-bold text-right text-sm">{orderData.amount || '€ 45,000'}</span>
                                         </div>
                                     </div>
                                 </div>

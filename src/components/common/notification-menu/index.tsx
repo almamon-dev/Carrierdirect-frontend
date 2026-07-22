@@ -18,7 +18,7 @@ export default function NotificationMenu({ className = '', unreadCount = 3 }: No
                 )}
             </button>
             {open && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border rounded-md shadow-lg z-50 p-4">
+                <div className="absolute right-0 mt-2 w-64 bg-white border rounded-sm shadow-lg z-50 p-4">
                     <h3 className="font-bold text-gray-900 border-b pb-2 mb-2">Notifications</h3>
                     <div className="text-sm text-gray-600 py-2 border-b">New user registered</div>
                     <div className="text-sm text-gray-600 py-2 border-b">System update completed</div>

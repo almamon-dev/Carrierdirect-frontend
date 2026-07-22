@@ -68,7 +68,7 @@ export default function RoleDetail({ role, onBack }: { role: any, onBack: () => 
                             <div>
                                 <label className="block text-[13px] font-semibold text-slate-700 mb-1.5">Description</label>
                                 <textarea 
-                                    className="w-full text-[13px] border border-slate-200 rounded-md p-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 min-h-[60px]"
+                                    className="w-full text-[13px] border border-slate-200 rounded-sm p-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 min-h-[60px]"
                                     defaultValue={role.description}
                                 />
                             </div>

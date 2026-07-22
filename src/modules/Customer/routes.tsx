@@ -1,5 +1,5 @@
 import React, { lazy } from 'react';
-import { RouteObject } from 'react-router-dom';
+import { RouteObject, Navigate } from 'react-router-dom';
 
 const Dashboard = lazy(() => import('./Dashboard'));
 const CreateRequest = lazy(() => import('./QuoteManagement/CreateRequest'));
@@ -20,10 +20,13 @@ const Billing = lazy(() => import('./Finance/Billing'));
 const Invoices = lazy(() => import('./Finance/Invoices'));
 const Payments = lazy(() => import('./Finance/Payments'));
 const PayLater = lazy(() => import('./Finance/PayLater'));
+const Subscription = lazy(() => import('./Subscription'));
 const Notifications = lazy(() => import('./Notifications'));
 const Settings = lazy(() => import('./Settings'));
 
 export const customerRoutes: RouteObject[] = [
+    { index: true, element: <Navigate to="/customer/dashboard" replace /> },
+    { path: '', element: <Navigate to="/customer/dashboard" replace /> },
     { path: 'dashboard', element: <Dashboard /> },
     { path: 'quotes/create', element: <CreateRequest /> },
     { path: 'quotes/create/new', element: <CreateRequestNew /> },
@@ -32,7 +35,7 @@ export const customerRoutes: RouteObject[] = [
     { path: 'quotes/processing', element: <Processing /> },
     { path: 'quotes/processing/track/:id', element: <ProcessingTrack /> },
     { path: 'quotes/received', element: <QuotesReceived /> },
-    { path: 'quotes/received/:id', element: <TrackBids /> },
+    { path: 'quotes/received/:id', element: <Navigate to="/customer/quotes/received" replace /> },
     { path: 'quotes/received/view/:quoteId', element: <QuoteView /> },
     { path: 'quotes/negotiation', element: <QuoteNegotiation /> },
     { path: 'quotes/negotiation/view/:id', element: <QuoteNegotiationChat /> },
@@ -43,6 +46,7 @@ export const customerRoutes: RouteObject[] = [
     { path: 'finance/invoices', element: <Invoices /> },
     { path: 'finance/payments', element: <Payments /> },
     { path: 'finance/pay-later', element: <PayLater /> },
+    { path: 'subscription', element: <Subscription /> },
     { path: 'notifications', element: <Notifications /> },
     { path: 'settings', element: <Settings /> },
 ];

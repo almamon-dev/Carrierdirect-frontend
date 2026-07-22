@@ -53,7 +53,7 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
                     />
                     <button 
                         onClick={onClose}
-                        className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="p-1 rounded-sm text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                     >
                         <X size={20} />
                     </button>

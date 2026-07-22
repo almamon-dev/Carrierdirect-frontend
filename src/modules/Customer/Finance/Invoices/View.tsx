@@ -28,9 +28,9 @@ export default function InvoiceView() {
                     <div>
                         <div className="flex items-center gap-1.5 mb-2">
                             <div className="w-7 h-7 bg-brand rounded flex items-center justify-center">
-                                <span className="text-white font-black text-sm leading-none">G</span>
+                                <span className="text-white font-bold text-sm leading-none">G</span>
                             </div>
-                            <span className="text-[15px] font-black text-slate-900 tracking-tight">GetItMoving</span>
+                            <span className="text-[15px] font-bold text-slate-900 tracking-tight">GetItMoving</span>
                         </div>
                         <div className="text-[10px] text-slate-500 space-y-0.5 leading-tight">
                             <p>123 Logistics Avenue, Industrial Estate</p>
@@ -108,7 +108,7 @@ export default function InvoiceView() {
                             </div>
                             <div className="flex justify-between items-end pt-1.5 mt-1.5 border-t border-slate-200">
                                 <span className="text-[11px] font-bold text-slate-900">Total Amount:</span>
-                                <span className="text-[14px] font-black text-brand leading-none">€ 25,875</span>
+                                <span className="text-[14px] font-bold text-brand leading-none">€ 25,875</span>
                             </div>
                         </div>
                     </div>

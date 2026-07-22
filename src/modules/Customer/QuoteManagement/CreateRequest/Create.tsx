@@ -193,7 +193,7 @@ export default function CreateRequestForm() {
             {/* Layout */}
             <div className="flex flex-col md:flex-row gap-6 items-start">
                 {/* Sidebar Navigation */}
-                <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
+                <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-sm overflow-hidden shadow-sm">
                     <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
                         <h3 className="text-[13px] font-bold text-slate-800">Categories</h3>
                     </div>
@@ -223,7 +223,7 @@ export default function CreateRequestForm() {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm w-full">
+                <div className="flex-1 bg-white border border-slate-200 rounded-sm shadow-sm w-full">
                     <div className="p-6 md:p-8">
                         
                         {/* 1. Basic Information */}
@@ -417,7 +417,7 @@ export default function CreateRequestForm() {
                                                 <Box size={14} className="text-slate-400" />
                                                 Load Characteristics
                                             </h3>
-                                            <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 bg-slate-50 p-3 rounded-md border border-slate-200">
+                                            <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 bg-slate-50 p-3 rounded-sm border border-slate-200">
                                                 <Checkbox name="stackable" checked={formData.stackable} onChange={handleChange} label="Stackable" />
                                                 <Checkbox name="fragile" checked={formData.fragile} onChange={handleChange} label="Fragile" />
                                                 <Checkbox name="hazardous" checked={formData.hazardous} onChange={handleChange} label="Hazardous" />
@@ -433,7 +433,7 @@ export default function CreateRequestForm() {
                                                 <Settings size={14} className="text-slate-400" />
                                                 Additional Services
                                             </h3>
-                                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-2.5 gap-x-4 bg-slate-50 p-3 rounded-md border border-slate-200">
+                                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-2.5 gap-x-4 bg-slate-50 p-3 rounded-sm border border-slate-200">
                                                 <Checkbox name="loadingRequired" checked={formData.loadingRequired} onChange={handleChange} label="Loading Req." />
                                                 <Checkbox name="unloadingRequired" checked={formData.unloadingRequired} onChange={handleChange} label="Unloading Req." />
                                                 <Checkbox name="packaging" checked={formData.packaging} onChange={handleChange} label="Packaging" />
@@ -463,7 +463,7 @@ export default function CreateRequestForm() {
                                                 <Euro size={14} className="text-slate-400" />
                                                 Budget Details
                                             </h3>
-                                            <div className="grid grid-cols-1 gap-y-4 bg-slate-50 p-4 rounded-md border border-slate-200">
+                                            <div className="grid grid-cols-1 gap-y-4 bg-slate-50 p-4 rounded-sm border border-slate-200">
                                                 <div>
                                                     <label className="text-[12px] font-bold text-slate-700 block mb-1.5">Expected Budget</label>
                                                     <div className="flex gap-2">
@@ -492,7 +492,7 @@ export default function CreateRequestForm() {
                                                 <Settings size={14} className="text-slate-400" />
                                                 Quote Rules
                                             </h3>
-                                            <div className="flex flex-col gap-y-3.5 bg-slate-50 p-4 rounded-md border border-slate-200 h-[calc(100%-28px)]">
+                                            <div className="flex flex-col gap-y-3.5 bg-slate-50 p-4 rounded-sm border border-slate-200 h-[calc(100%-28px)]">
                                                 <Checkbox name="allowNegotiation" checked={formData.allowNegotiation} onChange={handleChange} label="Allow Price Negotiation" />
                                                 <Checkbox name="receiveMultiple" checked={formData.receiveMultiple} onChange={handleChange} label="Receive Multiple Quotes" />
                                                 
@@ -593,7 +593,7 @@ export default function CreateRequestForm() {
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                                     {/* Left: Detailed Summary (Compact) */}
                                     <div className="lg:col-span-2 space-y-4">
-                                        <div className="bg-slate-50 border border-slate-200 rounded-md p-5">
+                                        <div className="bg-slate-50 border border-slate-200 rounded-sm p-5">
                                             <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-200">
                                                 <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
                                                     <FileText size={16} className="text-brand"/> Request Summary
@@ -645,7 +645,7 @@ export default function CreateRequestForm() {
 
                                     {/* Right: Submit Action Card */}
                                     <div className="lg:col-span-1">
-                                        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden sticky top-6">
+                                        <div className="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden sticky top-6">
                                             <div className="bg-slate-800 p-4 border-b border-slate-700">
                                                 <h3 className="text-[13px] font-bold text-slate-800 text-white text-center">Ready to Submit</h3>
                                             </div>

@@ -35,7 +35,7 @@ export default function AmountBreakdown({ pricing }: { pricing: any }) {
                 </div>
                 <div className="flex justify-between items-center text-[14px] mt-1 pt-1 border-t border-slate-50">
                     <span className="font-bold text-red-500">Due Amount</span>
-                    <span className="font-black text-red-600">৳ {pricing.due.toLocaleString()}</span>
+                    <span className="font-bold text-red-600">৳ {pricing.due.toLocaleString()}</span>
                 </div>
             </div>
         </div>
