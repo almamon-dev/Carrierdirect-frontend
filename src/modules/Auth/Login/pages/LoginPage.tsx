@@ -76,7 +76,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50/50 relative p-4 sm:p-6">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50/50 relative p-4 sm:p-6">
             
             {/* Top-Left Screen Corner Link */}
             <Link 
@@ -114,32 +114,6 @@ export default function LoginPage() {
                         <p className="mt-1 text-sm text-gray-500">
                             Enter your credentials to continue.
                         </p>
-                    </div>
-
-                    {/* Quick Demo Credentials Autofill Buttons */}
-                    <div className="mb-6 bg-orange-50/70 border border-orange-200/80 rounded-xl p-4">
-                        <p className="text-xs font-bold text-orange-950 mb-2.5">
-                            ⚡ Fast Demo Credentials (Click to Auto-Fill):
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <button
-                                type="button"
-                                onClick={() => handleDemoLogin('customer')}
-                                className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-orange-200 hover:border-[#ff4a1f] text-slate-700 hover:text-[#ff4a1f] rounded-sm text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
-                            >
-                                <UserCheck className="w-4 h-4 text-[#ff4a1f]" />
-                                Customer Account
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => handleDemoLogin('supplier')}
-                                className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-orange-200 hover:border-[#ff4a1f] text-slate-700 hover:text-[#ff4a1f] rounded-sm text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
-                            >
-                                <Truck className="w-4 h-4 text-[#ff4a1f]" />
-                                Supplier / Carrier Account
-                            </button>
-                        </div>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -242,6 +216,34 @@ export default function LoginPage() {
                             Sign Up
                         </Link>
                     </p>
+                </div>
+            </div>
+
+            {/* Quick Demo Credentials - Outside the card */}
+            <div className="w-full max-w-5xl mt-4">
+                <div className="bg-orange-50/80 border border-orange-200/80 rounded-xl p-4">
+                    <p className="text-xs font-bold text-orange-950 mb-2.5 flex items-center gap-1.5">
+                        <span>⚡</span> Fast Demo Credentials (Click to Auto-Fill):
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button
+                            type="button"
+                            onClick={() => handleDemoLogin('customer')}
+                            className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-orange-200 hover:border-[#ff4a1f] text-slate-700 hover:text-[#ff4a1f] rounded-sm text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+                        >
+                            <UserCheck className="w-4 h-4 text-[#ff4a1f]" />
+                            Customer Account
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleDemoLogin('supplier')}
+                            className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-orange-200 hover:border-[#ff4a1f] text-slate-700 hover:text-[#ff4a1f] rounded-sm text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+                        >
+                            <Truck className="w-4 h-4 text-[#ff4a1f]" />
+                            Supplier / Carrier Account
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
