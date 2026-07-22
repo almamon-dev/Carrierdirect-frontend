@@ -195,7 +195,9 @@ export default function SupplierLayout() {
                 {/* Main Scrollable Content */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f8fafc] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <React.Suspense fallback={<div className="flex h-full items-center justify-center p-8"><div className="w-8 h-8 border-4 border-[#ff4a1f] border-t-transparent rounded-full animate-spin"></div></div>}>
-                        <Outlet />
+                        <div className="w-full">
+                            <Outlet />
+                        </div>
                     </React.Suspense>
                 </main>
             </div>
