@@ -20,7 +20,8 @@ export const APP_CONFIG = {
     layout: {
         sidebarWidth: 260,
         sidebarCollapsedWidth: 80,
-
+    }
+};
 
 // Available languages supported by the application
 export const SUPPORTED_LANGUAGES = [

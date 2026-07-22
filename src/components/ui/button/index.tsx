@@ -43,10 +43,11 @@ export interface ButtonProps
   VariantProps<typeof buttonVariants> {
   isLoading?: boolean
   fullWidth?: boolean
+  icon?: React.ReactNode
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, isLoading, fullWidth, children, disabled, ...props }, ref) => {
+  ({ className, variant, size, isLoading, fullWidth, icon, children, disabled, ...props }, ref) => {
     return (
       <button
         className={cn(buttonVariants({ variant, size, className }), fullWidth && "w-full")}
@@ -55,6 +56,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {!isLoading && icon && <span className="mr-2 inline-flex shrink-0">{icon}</span>}
         {children}
       </button>
     )
