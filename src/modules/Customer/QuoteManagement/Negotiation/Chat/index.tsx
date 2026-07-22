@@ -272,6 +272,7 @@ export default function NegotiationChat() {
                                                 <span title="Pinned Conversation"><Pin size={12} className="text-[#FF4A1F] fill-[#FF4A1F] rotate-45 shrink-0" /></span>
                                             )}
                                             <button
+                                            
                                                 type="button"
                                                 onClick={(e) => togglePinChat(e, chat.id)}
                                                 className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-[#FF4A1F] p-0.5 rounded cursor-pointer"
