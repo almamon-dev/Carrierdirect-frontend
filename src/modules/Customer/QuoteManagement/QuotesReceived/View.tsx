@@ -262,7 +262,7 @@ export default function QuoteView() {
 
                         <div className="mt-auto pt-3 border-t border-slate-100">
                             <span className="block text-[10.5px] font-semibold text-slate-500 mb-1 uppercase">Supplier Notes</span>
-                            <div className="bg-slate-50 p-2.5 rounded-sm text-[12px] text-slate-700 border border-slate-200/60 leading-relaxed">
+                            <div className="bg-slate-50 p-2.5 rounded-md text-[12px] text-slate-700 border border-slate-200/60 leading-relaxed">
                                 {quote.notes}
                             </div>
                         </div>
@@ -325,7 +325,7 @@ export default function QuoteView() {
                                     </Badge>
                                 </div>
 
-                                <div className="bg-slate-50 border border-slate-100 rounded-sm p-2 mt-1">
+                                <div className="bg-slate-50 border border-slate-100 rounded-md p-2 mt-1">
                                     <p className="text-[12px] text-slate-600 mb-1.5 leading-relaxed">{event.note}</p>
                                     <div className="flex items-center gap-3 text-[10.5px]">
                                         {event.previousTotal && (

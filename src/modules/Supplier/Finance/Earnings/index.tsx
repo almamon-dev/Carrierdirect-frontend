@@ -71,7 +71,7 @@ export default function Earnings() {
                 {/* This Month */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-[#FFF0ED] text-[#FF4A1F]">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-[#FFF0ED] text-[#FF4A1F]">
                             <Euro size={14} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -84,7 +84,7 @@ export default function Earnings() {
                 {/* Last Month */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-slate-100 text-slate-600">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-slate-100 text-slate-600">
                             <Calendar size={14} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -97,7 +97,7 @@ export default function Earnings() {
                 {/* Pending Clearance */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-amber-50 text-amber-600">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-amber-50 text-amber-600">
                             <Clock size={14} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -110,7 +110,7 @@ export default function Earnings() {
                 {/* Lifetime Earnings */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-emerald-50 text-emerald-600">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <TrendingUp size={14} strokeWidth={2.5} />
                         </div>
                     </div>

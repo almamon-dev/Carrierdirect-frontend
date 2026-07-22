@@ -24,13 +24,15 @@ export default function TableToolbar({
         <div className={`relative z-30 ${className}`}>
             {/* Bulk Action Bar Overlay */}
             {selectedCount > 0 && (
-                <div className="absolute inset-0 bg-blue-50/80 backdrop-blur-sm z-20 flex items-center justify-center px-3 border-b border-blue-100 animate-in fade-in duration-200">
+                <div className="absolute inset-0 bg-slate-100/95 backdrop-blur-xs z-20 flex items-center justify-center px-4 border-b border-slate-200 animate-in fade-in duration-200">
                     <div className="flex items-center gap-1.5 text-[13px]">
-                        <span className="text-blue-800">All <strong>{selectedCount}</strong> items on this page are selected.</span>
+                        <span className="text-slate-800">
+                            All <strong>{selectedCount}</strong> items on this page are selected.
+                        </span>
                         {totalCount > selectedCount && onSelectAll && (
                             <button 
                                 onClick={onSelectAll}
-                                className="text-blue-600 font-bold hover:text-blue-800 underline decoration-blue-300 hover:decoration-blue-600 underline-offset-2 transition-colors ml-1"
+                                className="text-[#FF4A1F] font-bold hover:text-[#E03E15] underline decoration-[#FF4A1F]/40 hover:decoration-[#FF4A1F] underline-offset-2 transition-colors ml-1 cursor-pointer"
                             >
                                 Select all {totalCount} items
                             </button>
@@ -40,7 +42,7 @@ export default function TableToolbar({
                         {onDeleteSelected && (
                             <button 
                                 onClick={onDeleteSelected}
-                                className="h-[28px] px-3 bg-white border border-[#d1d1d1] text-[#d82c0d] rounded-[3px] text-[12px] font-bold hover:bg-[#fff5f5] hover:border-[#d82c0d] transition-all flex items-center gap-1.5 shadow-sm cursor-pointer outline-none"
+                                className="h-[28px] px-3 bg-white border border-slate-300 text-red-600 rounded-md text-[12px] font-bold hover:bg-red-50 hover:border-red-300 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer outline-none"
                             >
                                 <Trash2 size={13} />
                                 Delete
@@ -49,17 +51,17 @@ export default function TableToolbar({
                         {onClearSelection && (
                             <button 
                                 onClick={onClearSelection} 
-                                className="h-[28px] w-[28px] flex items-center justify-center bg-white border border-[#d1d1d1] text-[#6d7175] rounded-[3px] hover:bg-[#f6f6f7] transition-all cursor-pointer outline-none shadow-sm" 
+                                className="h-7 w-7 flex items-center justify-center bg-white border border-slate-300 text-slate-500 rounded-full hover:bg-slate-200/80 hover:text-slate-800 transition-all cursor-pointer outline-none shadow-2xs group" 
                                 title="Clear selection"
                             >
-                                <X size={14} />
+                                <X size={14} className="group-hover:scale-110 transition-transform" />
                             </button>
                         )}
                     </div>
                 </div>
             )}
 
-            <div className={`p-3 border-b border-[#ebebeb] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-opacity ${selectedCount > 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <div className={`p-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-opacity ${selectedCount > 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                 {children}
             </div>
         </div>

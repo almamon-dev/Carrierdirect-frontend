@@ -1,41 +1,48 @@
-import React from 'react';
-import { Eye, MessageSquare, CheckCircle, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, MessageSquare, ArrowDownRight, History, Clock } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
-const mockData = [
-  { id: 'NEG-102', quoteId: 'QT-8822', customer: 'ABC Logistics', originalOffer: 42500, customerCounter: 40000, lastUpdated: '2 hours ago', status: 'Customer Countered' },
-  { id: 'NEG-101', quoteId: 'QT-8815', customer: 'Global Freight', originalOffer: 35000, customerCounter: 32000, lastUpdated: '10 mins ago', status: 'Awaiting Customer' },
+const activeData = [
+  { id: 'NEG-102', quoteId: 'QT-8822', customer: 'Global Shippers Inc.', originalAmount: 45000, currentOffer: 40000, lastUpdated: '2 hours ago', status: 'Counter Received' },
+  { id: 'NEG-101', quoteId: 'QT-8815', customer: 'BD Trade Line', originalAmount: 35000, currentOffer: 32000, lastUpdated: '10 mins ago', status: 'Awaiting Customer' },
 ];
 
-export default function Negotiation() {
+const historyData = [
+  { id: 'NEG-098', quoteId: 'QT-8801', customer: 'Safe Express Co.', originalAmount: 50000, currentOffer: 46000, lastUpdated: '2026-07-15', status: 'Accepted' },
+  { id: 'NEG-095', quoteId: 'QT-8790', customer: 'Euro Cargo LLC', originalAmount: 28000, currentOffer: 22000, lastUpdated: '2026-07-10', status: 'Rejected' },
+  { id: 'NEG-092', quoteId: 'QT-8785', customer: 'Nordic Trans Group', originalAmount: 62000, currentOffer: 58000, lastUpdated: '2026-07-02', status: 'Accepted' },
+];
+
+export default function SupplierNegotiation() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Negotiation ID', render: (row) => <span className="text-brand whitespace-nowrap">{row.id}</span> },
+    { id: 'id', label: 'Negotiation ID', render: (row) => <span className="text-[#FF4A1F] font-bold whitespace-nowrap">{row.id}</span> },
     { id: 'quoteId', label: 'Quote ID', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.quoteId}</span> },
-    { id: 'customer', label: 'Customer', render: (row) => <span className="whitespace-nowrap text-slate-800 font-medium">{row.customer}</span> },
+    { id: 'customer', label: 'Customer / Shipper', render: (row) => <span className="whitespace-nowrap text-slate-800 font-semibold">{row.customer}</span> },
     { 
-      id: 'originalOffer', 
-      label: 'Original Offer', 
-      render: (row) => <span className="whitespace-nowrap text-slate-400 line-through">€ {row.originalOffer.toLocaleString()}</span> 
+      id: 'originalAmount', 
+      label: 'Original Price', 
+      render: (row) => <span className="whitespace-nowrap text-slate-400 line-through">€ {row.originalAmount.toLocaleString()}</span> 
     },
     { 
-      id: 'customerCounter', 
-      label: 'Customer Counter', 
-      render: (row) => <span className="whitespace-nowrap text-amber-600 font-bold">€ {row.customerCounter.toLocaleString()}</span>
+      id: 'currentOffer', 
+      label: 'Negotiated Price', 
+      render: (row) => <span className="whitespace-nowrap text-emerald-600 font-bold">€ {row.currentOffer.toLocaleString()}</span>
     },
     { 
-      id: 'variance', 
-      label: 'Variance', 
+      id: 'savings', 
+      label: 'Discount Given', 
       render: (row) => {
-        const diff = row.originalOffer - row.customerCounter;
-        const diffPercent = ((diff / row.originalOffer) * 100).toFixed(1);
+        const diff = row.originalAmount - row.currentOffer;
+        const savingsPercent = ((diff / row.originalAmount) * 100).toFixed(1);
         return (
-          <div className="flex items-center text-amber-600 whitespace-nowrap font-medium">
-            <ArrowDownRight size={14} className="mr-1" /> {diffPercent}% (-€{diff.toLocaleString()})
+          <div className="flex items-center text-amber-600 font-bold whitespace-nowrap">
+            <ArrowDownRight size={14} className="mr-1 text-amber-600" /> {savingsPercent}% (€ {diff.toLocaleString()})
           </div>
         );
       }
@@ -46,8 +53,10 @@ export default function Negotiation() {
       label: 'Status',
       render: (row) => {
         let variant: any = 'default';
-        if (row.status === 'Awaiting Customer') variant = 'warning';
-        if (row.status === 'Customer Countered') variant = 'info';
+        if (row.status === 'Counter Received') variant = 'warning';
+        if (row.status === 'Awaiting Customer') variant = 'info';
+        if (row.status === 'Accepted') variant = 'success';
+        if (row.status === 'Rejected') variant = 'critical';
         return <Badge variant={variant}>{row.status}</Badge>;
       }
     }
@@ -55,36 +64,62 @@ export default function Negotiation() {
 
   const actions = (row: any) => (
     <div className="flex items-center justify-end gap-2">
-      <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
-        <Eye size={14} className="mr-1" /> View
+      <Button variant="outline" size="sm" className="h-7 px-2 text-xs font-semibold" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
+        <Eye size={13} className="mr-1" /> View
       </Button>
-      <Button variant="primary" size="sm" className="h-7 px-2" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
-        <MessageSquare size={14} className="mr-1" /> Reply
-      </Button>
-      {row.status === 'Customer Countered' && (
-        <Button variant="outline" size="sm" className="h-7 px-2 text-emerald-600 border-emerald-200 hover:bg-emerald-50">
-          <CheckCircle size={14} className="mr-1" /> Accept
+      {activeTab === 'active' && (
+        <Button variant="primary" size="sm" className="h-7 px-2 text-xs font-semibold bg-[#FF4A1F] hover:bg-[#E03E15] text-white" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
+          <MessageSquare size={13} className="mr-1" /> Reply
         </Button>
       )}
     </div>
   );
 
+  const displayData = activeTab === 'active' ? activeData : historyData;
+
   return (
-    <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
-      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Negotiation</h1>
-          <p className="text-sm text-slate-500 font-medium">Manage active price negotiations and respond to customer counter-offers.</p>
+          <h1 className="text-xl font-bold text-slate-900 mb-1">Negotiation Management</h1>
+          <p className="text-xs text-slate-500 font-medium">Manage active customer price counter offers and track negotiation history.</p>
+        </div>
+
+        {/* Tab Switcher: Active vs Negotiation History */}
+        <div className="flex items-center bg-slate-100 p-1 rounded-full border border-slate-200 shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab('active')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'active'
+                ? 'bg-white text-[#FF4A1F] shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Clock size={14} />
+            <span>Active Negotiations ({activeData.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'history'
+                ? 'bg-white text-[#FF4A1F] shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <History size={14} />
+            <span>Negotiation History ({historyData.length})</span>
+          </button>
         </div>
       </div>
       
       <DataTable 
-        tableId="supplier_negotiation_list_v1"
-        data={mockData} 
+        data={displayData} 
         columns={columns} 
         actions={actions}
-        keyExtractor={(item) => item.id}
-        searchPlaceholder="Search negotiations..."
+        searchPlaceholder={activeTab === 'active' ? "Search active negotiations..." : "Search negotiation history..."}
         compact={true}
       />
     </div>

@@ -114,7 +114,7 @@ export default function CreateAvailabilitySchedule() {
                                         <Input 
                                             label="Schedule Name *" 
                                             placeholder="e.g., Summer Operations" 
-                                            className="h-8.5 text-[12px] border-slate-300 focus:border-[#ff4a1f] rounded-sm" 
+                                            className="h-8.5 text-[12px] border-slate-300 focus:border-[#ff4a1f] rounded-md" 
                                             required
                                         />
                                         
@@ -224,7 +224,7 @@ export default function CreateAvailabilitySchedule() {
                                                 
                                                 {/* Left Column - 4 Days (Mon, Tue, Wed, Thu) */}
                                                 <div className="space-y-1">
-                                                    <div className="grid grid-cols-[90px_1fr_1fr] gap-3 px-3 py-2 bg-slate-50/90 rounded-sm border border-slate-200/60 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                                    <div className="grid grid-cols-[90px_1fr_1fr] gap-3 px-3 py-2 bg-slate-50/90 rounded-md border border-slate-200/60 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-2">
                                                         <span>Day</span>
                                                         <span>Start Time</span>
                                                         <span>End Time</span>
@@ -232,7 +232,7 @@ export default function CreateAvailabilitySchedule() {
                                                     
                                                     <div className="space-y-1">
                                                         {leftColumnDays.map((day, idx) => (
-                                                            <div key={day} className={`grid grid-cols-[90px_1fr_1fr] gap-3 items-center px-3 py-1.5 rounded-sm hover:bg-slate-50/80 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                                                            <div key={day} className={`grid grid-cols-[90px_1fr_1fr] gap-3 items-center px-3 py-1.5 rounded-md hover:bg-slate-50/80 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
                                                                 <div className="flex items-center gap-2">
                                                                     <Switch defaultChecked={true} />
                                                                     <span className="text-[12px] font-bold text-slate-800">{day.substring(0, 3)}</span>
@@ -260,7 +260,7 @@ export default function CreateAvailabilitySchedule() {
 
                                                 {/* Right Column - 3 Days (Fri, Sat, Sun) */}
                                                 <div className="space-y-1">
-                                                    <div className="grid grid-cols-[90px_1fr_1fr] gap-3 px-3 py-2 bg-slate-50/90 rounded-sm border border-slate-200/60 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                                    <div className="grid grid-cols-[90px_1fr_1fr] gap-3 px-3 py-2 bg-slate-50/90 rounded-md border border-slate-200/60 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-2">
                                                         <span>Day</span>
                                                         <span>Start Time</span>
                                                         <span>End Time</span>
@@ -268,7 +268,7 @@ export default function CreateAvailabilitySchedule() {
                                                     
                                                     <div className="space-y-1">
                                                         {rightColumnDays.map((day, idx) => (
-                                                            <div key={day} className={`grid grid-cols-[90px_1fr_1fr] gap-3 items-center px-3 py-1.5 rounded-sm hover:bg-slate-50/80 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                                                            <div key={day} className={`grid grid-cols-[90px_1fr_1fr] gap-3 items-center px-3 py-1.5 rounded-md hover:bg-slate-50/80 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
                                                                 <div className="flex items-center gap-2">
                                                                     <Switch defaultChecked={day === 'Friday'} />
                                                                     <span className="text-[12px] font-bold text-slate-800">{day.substring(0, 3)}</span>

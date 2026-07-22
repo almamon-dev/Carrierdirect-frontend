@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 const MetricCard = ({ title, description, value, icon: Icon, colorClass }: { title: string; description: string; value: string; icon: any; colorClass: string }) => (
     <div className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start cursor-pointer w-full">
         <div className="flex justify-between items-start w-full mb-3">
-            <div className={`w-9 h-9 rounded-sm shrink-0 flex items-center justify-center ${colorClass}`}>
+            <div className={`w-9 h-9 rounded-md shrink-0 flex items-center justify-center ${colorClass}`}>
                 <Icon size={18} strokeWidth={2} />
             </div>
             <span className="text-[20px] font-bold text-slate-800">{value}</span>
@@ -35,13 +35,13 @@ export default function PaymentTab() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-sm border border-emerald-200">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-md border border-emerald-200">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Active Facility
             </span>
 
             <Link
               to="/customer/finance/pay-later"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs rounded-sm shadow-sm transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs rounded-md shadow-sm transition-all cursor-pointer"
             >
               Open Credit Hub <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -86,7 +86,7 @@ export default function PaymentTab() {
 
           <button
             type="button"
-            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-sm shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-md shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Add Card
           </button>
@@ -95,9 +95,9 @@ export default function PaymentTab() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           
           {/* Card 1 - Visa */}
-          <div className="p-3.5 rounded-sm border border-slate-200 bg-slate-50/50 flex items-center justify-between">
+          <div className="p-3.5 rounded-md border border-slate-200 bg-slate-50/50 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-7 rounded-sm bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] tracking-wider">
+              <div className="w-10 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] tracking-wider">
                 VISA
               </div>
               <div>
@@ -107,15 +107,15 @@ export default function PaymentTab() {
                 <p className="text-[11px] text-slate-500 mt-0.5">Exp 08 / 2028</p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-0.5 rounded-sm border border-slate-200">
+            <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-0.5 rounded-md border border-slate-200">
               Primary
             </span>
           </div>
 
           {/* Card 2 - Mastercard */}
-          <div className="p-3.5 rounded-sm border border-slate-200 bg-slate-50/50 flex items-center justify-between">
+          <div className="p-3.5 rounded-md border border-slate-200 bg-slate-50/50 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-7 rounded-sm bg-red-600 text-white flex items-center justify-center font-bold text-[10px] tracking-wider">
+              <div className="w-10 h-7 rounded-md bg-red-600 text-white flex items-center justify-center font-bold text-[10px] tracking-wider">
                 MC
               </div>
               <div>

@@ -127,7 +127,7 @@ export default function AddressBookTab() {
     <div className="space-y-4">
       
       {/* Compact Top Bar */}
-      <div className="bg-white p-4 rounded-sm border border-slate-200 shadow-sm flex items-center justify-between">
+      <div className="bg-white p-4 rounded-md border border-slate-200 shadow-sm flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-slate-900">Saved Address Book</h3>
           <p className="text-xs text-slate-500">Save pickup and delivery locations for 1-click quote requests.</p>
@@ -136,7 +136,7 @@ export default function AddressBookTab() {
         {!isAdding && (
           <button
             onClick={() => { setIsAdding(true); setEditingId(null); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs rounded-sm shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs rounded-md shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Add Location
           </button>
@@ -145,7 +145,7 @@ export default function AddressBookTab() {
 
       {/* Add / Edit Form Card */}
       {isAdding && (
-        <form onSubmit={handleSaveAddress} className="bg-white p-4 sm:p-5 rounded-sm border border-orange-200 shadow-sm space-y-4 animate-fade-in">
+        <form onSubmit={handleSaveAddress} className="bg-white p-4 sm:p-5 rounded-md border border-orange-200 shadow-sm space-y-4 animate-fade-in">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <h4 className="text-xs font-bold text-slate-700">
               {editingId ? 'Edit Address Details' : 'Add New Location'}
@@ -224,13 +224,13 @@ export default function AddressBookTab() {
             <button
               type="button"
               onClick={cancelForm}
-              className="h-9 px-4 rounded-sm border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
+              className="h-9 px-4 rounded-md border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="h-9 px-5 rounded-sm bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+              className="h-9 px-5 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
             >
               {editingId ? 'Save Changes' : 'Add Location'}
             </button>
@@ -243,21 +243,21 @@ export default function AddressBookTab() {
         {addresses.map((item) => (
           <div
             key={item.id}
-            className={`bg-white p-4 rounded-sm border transition-all flex flex-col justify-between ${
+            className={`bg-white p-4 rounded-md border transition-all flex flex-col justify-between ${
               item.isDefault ? 'border-[#ff4a1f] shadow-sm' : 'border-slate-200 hover:border-slate-300'
             }`}
           >
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-sm bg-orange-100 text-[#ff4a1f] flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-md bg-orange-100 text-[#ff4a1f] flex items-center justify-center">
                     {item.label.toLowerCase().includes('home') ? <Home className="w-3.5 h-3.5" /> : <Warehouse className="w-3.5 h-3.5" />}
                   </div>
                   <h4 className="font-bold text-slate-900 text-sm">{item.label}</h4>
                 </div>
                 
                 {item.isDefault && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-[#ff4a1f] text-[10px] font-bold rounded-sm border border-orange-200">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-[#ff4a1f] text-[10px] font-bold rounded-md border border-orange-200">
                     <Star className="w-3 h-3 fill-current" /> Default
                   </span>
                 )}
@@ -284,14 +284,14 @@ export default function AddressBookTab() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => startEdit(item)}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-sm hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
                   title="Edit address"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDelete(item.id)}
-                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-sm hover:bg-red-50 transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
                   title="Delete address"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

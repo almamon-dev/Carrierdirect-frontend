@@ -30,7 +30,7 @@ export default function RolesTab() {
                     return (
                         <div key={idx} className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start w-full shadow-sm">
                             <div className="flex justify-between items-start w-full mb-3">
-                                <div className="w-9 h-9 rounded-sm shrink-0 flex items-center justify-center bg-brand-light text-brand">
+                                <div className="w-9 h-9 rounded-md shrink-0 flex items-center justify-center bg-brand-light text-brand">
                                     <Icon size={18} strokeWidth={2} />
                                 </div>
                                 <span className="text-[18px] font-bold text-slate-700">{role.count}</span>

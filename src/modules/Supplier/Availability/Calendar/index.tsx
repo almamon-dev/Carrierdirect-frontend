@@ -285,7 +285,7 @@ export default function Calendar() {
                         </p>
                         
                         {/* Stats Box */}
-                        <div className="bg-brand-light/50 border border-indigo-100 rounded-sm p-2 mb-3 flex items-center justify-between">
+                        <div className="bg-brand-light/50 border border-indigo-100 rounded-md p-2 mb-3 flex items-center justify-between">
                             <span className="text-[10px] font-bold text-indigo-900">Peak Volume Date</span>
                             <span className="text-[11px] font-bold text-indigo-700">July 15th (8 Jobs)</span>
                         </div>

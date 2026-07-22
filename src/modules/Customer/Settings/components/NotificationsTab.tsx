@@ -83,7 +83,7 @@ export default function NotificationsTab() {
         </div>
 
         {savedSuccess && (
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-sm border border-green-200">
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md border border-green-200">
             <Check className="w-3.5 h-3.5" /> Saved!
           </span>
         )}
@@ -166,7 +166,7 @@ export default function NotificationsTab() {
       <div className="pt-2 border-t border-slate-100 flex justify-end">
         <button
           onClick={handleSave}
-          className="h-9 px-5 rounded-sm bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+          className="h-9 px-5 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
         >
           Save Notification Settings
         </button>

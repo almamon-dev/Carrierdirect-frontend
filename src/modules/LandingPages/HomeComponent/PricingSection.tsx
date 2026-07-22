@@ -181,7 +181,7 @@ export default function PricingSection() {
 
                 <Link to="/web/register">
                   <button 
-                    className={`w-full py-2.5 px-4 rounded-sm font-bold text-xs transition-all duration-300 ${
+                    className={`w-full py-2.5 px-4 rounded-md font-bold text-xs transition-all duration-300 ${
                       plan.is_popular
                         ? "bg-[#ff4a1f] text-white hover:bg-[#e63d15] hover:shadow-md"
                         : "bg-gray-50 text-[#0f0400] hover:bg-gray-100 border border-gray-200"

@@ -88,7 +88,7 @@ export default function Billing() {
 
                                 <div className="flex justify-between items-start relative z-10">
                                     {/* Chip icon simulation */}
-                                    <div className="w-8 h-6 bg-gradient-to-br from-amber-200 to-amber-400 rounded-sm flex items-center justify-center opacity-90 shadow-sm">
+                                    <div className="w-8 h-6 bg-gradient-to-br from-amber-200 to-amber-400 rounded-md flex items-center justify-center opacity-90 shadow-sm">
                                         <div className="w-5 h-3 border border-amber-600/30 rounded-[1px]"></div>
                                     </div>
                                     <span className="text-[13px] font-bold italic tracking-wider opacity-90">VISA</span>
@@ -246,7 +246,7 @@ export default function Billing() {
                                 { id: 'INV-2026-06', date: '2026-06-10', plan: 'Enterprise Shipper - Monthly', period: 'Jun 1 - Jun 30', method: '01711•••344', methodType: 'bkash', amount: '€ 5,750', status: 'Pending' },
                                 { id: 'INV-2026-05', date: '2026-05-10', plan: 'Enterprise Shipper - Monthly', period: 'May 1 - May 31', method: '•••• 4242', methodType: 'visa', amount: '€ 5,750', status: 'Failed' },
                             ].map((item, i) => (
-                                <div key={i} className="flex items-center gap-4 p-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors rounded-sm">
+                                <div key={i} className="flex items-center gap-4 p-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors rounded-md">
                                     <div className="w-20 shrink-0">
                                         <span className="text-[11.5px] font-bold text-brand block">{item.id}</span>
                                     </div>

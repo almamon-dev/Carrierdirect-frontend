@@ -134,7 +134,7 @@ export default function TrackBids() {
                                 <button 
                                     key={f.id} 
                                     onClick={() => setFilterMode(f.id)}
-                                    className={`px-2.5 py-1 rounded-sm text-[11px] font-semibold transition-colors border whitespace-nowrap ${filterMode === f.id ? 'bg-slate-800 text-white border-slate-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors border whitespace-nowrap ${filterMode === f.id ? 'bg-slate-800 text-white border-slate-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                                 >
                                     {f.label}
                                 </button>
@@ -142,15 +142,15 @@ export default function TrackBids() {
                         </div>
                     )}
                     
-                    <div className="bg-white border border-slate-200 rounded-sm flex items-center p-0.5 shadow-sm">
+                    <div className="bg-white border border-slate-200 rounded-md flex items-center p-0.5 shadow-sm">
                         <button 
-                            className={`px-2.5 py-1 rounded-sm text-[11px] font-semibold transition-colors ${viewMode === 'card' ? 'bg-slate-100 text-slate-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${viewMode === 'card' ? 'bg-slate-100 text-slate-700' : 'text-slate-500 hover:text-slate-700'}`}
                             onClick={() => setViewMode('card')}
                         >
                             Card View
                         </button>
                         <button 
-                            className={`px-2.5 py-1 rounded-sm text-[11px] font-semibold transition-colors ${viewMode === 'table' ? 'bg-slate-100 text-slate-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${viewMode === 'table' ? 'bg-slate-100 text-slate-700' : 'text-slate-500 hover:text-slate-700'}`}
                             onClick={() => setViewMode('table')}
                         >
                             Table View
@@ -194,7 +194,7 @@ export default function TrackBids() {
                             
                             {/* Top row: Icon & Price */}
                             <div className="flex justify-between items-start w-full mb-3">
-                                <div className="w-9 h-9 rounded-sm shrink-0 flex items-center justify-center bg-brand-light text-brand">
+                                <div className="w-9 h-9 rounded-md shrink-0 flex items-center justify-center bg-brand-light text-brand">
                                     <Truck size={18} strokeWidth={2} />
                                 </div>
                                 <span className="text-[20px] font-bold text-slate-800">৳{quote.amount.toLocaleString()}</span>
@@ -253,7 +253,7 @@ export default function TrackBids() {
                                 </div>
                                 
                                 {quote.remarks && (
-                                    <div className="bg-slate-50 border border-slate-200 p-2 rounded-sm text-[11px] text-slate-600 flex items-start gap-1.5 mt-1 w-full">
+                                    <div className="bg-slate-50 border border-slate-200 p-2 rounded-md text-[11px] text-slate-600 flex items-start gap-1.5 mt-1 w-full">
                                         <Info size={12} className="shrink-0 mt-0.5 text-slate-400" />
                                         <span className="leading-snug">{quote.remarks}</span>
                                     </div>

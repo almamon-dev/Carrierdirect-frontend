@@ -206,7 +206,7 @@ export default function ViewRequestForm() {
             {/* Layout */}
             <div className="flex flex-col md:flex-row gap-6 items-start">
                 {/* Sidebar Navigation */}
-                <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-sm overflow-hidden shadow-sm">
+                <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
                     <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
                         <h3 className="text-[13px] font-bold text-slate-800">Categories</h3>
                     </div>
@@ -235,7 +235,7 @@ export default function ViewRequestForm() {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-sm shadow-sm w-full">
+                <div className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm w-full">
                     <div className="p-6 md:p-8">
 
                         {/* 1. Basic Information */}
@@ -575,7 +575,7 @@ export default function ViewRequestForm() {
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-3">
                                     {/* Left: Detailed Summary (Compact) */}
                                     <div className="lg:col-span-2 space-y-4">
-                                        <div className="bg-slate-50 border border-slate-200 rounded-sm p-5">
+                                        <div className="bg-slate-50 border border-slate-200 rounded-md p-5">
                                             <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-200">
                                                 <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2">
                                                     <FileText size={16} className="text-brand" /> Request Summary
@@ -627,7 +627,7 @@ export default function ViewRequestForm() {
 
                                     {/* Right: Submit Action Card */}
                                     <div className="lg:col-span-1">
-                                        <div className="bg-white border border-slate-200 rounded-sm shadow-sm overflow-hidden sticky top-6">
+                                        <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden sticky top-6">
                                             <div className="bg-slate-800 p-4 border-b border-slate-700">
                                                 <h3 className="text-[13px] font-bold text-slate-800 text-white text-center">Ready to Submit</h3>
                                             </div>

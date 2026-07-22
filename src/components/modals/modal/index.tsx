@@ -58,7 +58,7 @@ export default function Modal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
@@ -68,7 +68,7 @@ export default function Modal({
       {/* Modal Content Wrapper */}
       <div 
         className={cn(
-          "relative bg-white rounded-sm shadow-2xl w-full flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200",
+          "relative bg-white rounded-md shadow-2xl w-full flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200",
           sizeClasses[size],
           size === 'full' ? 'max-h-full' : 'max-h-[90vh]',
           className

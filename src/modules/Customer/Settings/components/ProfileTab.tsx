@@ -61,7 +61,7 @@ export default function ProfileTab() {
     <form onSubmit={handleSubmit} className="space-y-4">
       
       {/* Avatar & Header Card */}
-      <div className="bg-white p-4 rounded-sm border border-slate-200 shadow-sm flex items-center gap-4">
+      <div className="bg-white p-4 rounded-md border border-slate-200 shadow-sm flex items-center gap-4">
         <div className="relative shrink-0">
           <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#ff4a1f] to-orange-400 text-white flex items-center justify-center text-lg font-bold shadow-sm">
             AM
@@ -77,14 +77,14 @@ export default function ProfileTab() {
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-slate-900 truncate">{profile.fullName}</h3>
           <p className="text-xs text-slate-500 truncate">{profile.email}</p>
-          <span className="inline-block mt-1 px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded-sm border border-green-200">
+          <span className="inline-block mt-1 px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold rounded-md border border-green-200">
             Verified Customer
           </span>
         </div>
       </div>
 
       {/* Main Profile Inputs Card */}
-      <div className="bg-white p-4 sm:p-5 rounded-sm border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white p-4 sm:p-5 rounded-md border border-slate-200 shadow-sm space-y-4">
         <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
           Personal Information
         </h3>
@@ -175,14 +175,14 @@ export default function ProfileTab() {
         {/* Submit Bar */}
         <div className="pt-2 flex items-center justify-between border-t border-slate-100 mt-2">
           {savedSuccess ? (
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-sm border border-green-200">
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-md border border-green-200">
               <Check className="w-3.5 h-3.5" /> Updated!
             </span>
           ) : <span />}
 
           <button
             type="submit"
-            className="h-9 px-5 rounded-sm bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+            className="h-9 px-5 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
           >
             Save Profile
           </button>

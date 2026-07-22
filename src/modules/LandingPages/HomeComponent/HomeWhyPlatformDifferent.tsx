@@ -55,9 +55,9 @@ export default function HomeWhyPlatformDifferent() {
             {features.map((f, i) => (
               <div 
                 key={i} 
-                className="bg-white rounded-sm px-4 py-3.5 border border-gray-100 shadow-sm hover:shadow hover:border-[#ff4a1f]/30 transition-all duration-200 group flex flex-col items-start"
+                className="bg-white rounded-md px-4 py-3.5 border border-gray-100 shadow-sm hover:shadow hover:border-[#ff4a1f]/30 transition-all duration-200 group flex flex-col items-start"
               >
-                <div className="w-8 h-8 rounded-sm bg-[#ff4a1f]/5 text-[#ff4a1f] flex items-center justify-center shrink-0 group-hover:bg-[#ff4a1f] group-hover:text-white transition-colors duration-200 mb-2">
+                <div className="w-8 h-8 rounded-md bg-[#ff4a1f]/5 text-[#ff4a1f] flex items-center justify-center shrink-0 group-hover:bg-[#ff4a1f] group-hover:text-white transition-colors duration-200 mb-2">
                   {f.icon}
                 </div>
                 <h3 className="text-[#0f0400] text-sm font-bold mb-1">{f.title}</h3>

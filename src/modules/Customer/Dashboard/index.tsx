@@ -83,7 +83,7 @@ const notificationList = [
 const MetricCard = ({ title, description, value, icon: Icon, colorClass }) => (
     <div className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start cursor-pointer w-full">
         <div className="flex justify-between items-start w-full mb-3">
-            <div className={`w-9 h-9 rounded-sm shrink-0 flex items-center justify-center ${colorClass}`}>
+            <div className={`w-9 h-9 rounded-md shrink-0 flex items-center justify-center ${colorClass}`}>
                 <Icon size={18} strokeWidth={2} />
             </div>
             <span className="text-[20px] font-bold text-slate-800">{value}</span>
@@ -209,13 +209,13 @@ export default function Dashboard() {
 
                     <div className="flex items-center gap-4 mb-4 flex-wrap">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                            <span className="w-2.5 h-2.5 rounded-sm bg-brand"></span> Requests Sent
+                            <span className="w-2.5 h-2.5 rounded-md bg-brand"></span> Requests Sent
                         </div>
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                            <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> Quotes Received
+                            <span className="w-2.5 h-2.5 rounded-md bg-emerald-500"></span> Quotes Received
                         </div>
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                            <span className="w-2.5 h-2.5 rounded-sm bg-purple-500"></span> Orders Booked
+                            <span className="w-2.5 h-2.5 rounded-md bg-purple-500"></span> Orders Booked
                         </div>
                     </div>
 

@@ -39,7 +39,7 @@ export default function SecurityTab() {
           </div>
 
           {statusMsg && (
-            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-sm border ${
+            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-md border ${
               statusMsg.type === 'success' ? 'bg-green-50 text-green-600 border-green-200' : 'bg-red-50 text-red-600 border-red-200'
             }`}>
               {statusMsg.type === 'success' ? <Check className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
@@ -83,7 +83,7 @@ export default function SecurityTab() {
         <div className="flex justify-end pt-1">
           <button
             type="submit"
-            className="h-9 px-5 rounded-sm bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+            className="h-9 px-5 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
           >
             Update Password
           </button>

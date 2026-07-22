@@ -50,7 +50,7 @@ export default function FeedbackPage() {
         
         {/* Left Sidebar (Sticky Contact Info) */}
         <aside className="lg:w-72 flex-shrink-0">
-          <div className="sticky top-24 bg-white border border-gray-200 rounded-sm p-5 shadow-sm">
+          <div className="sticky top-24 bg-white border border-gray-200 rounded-md p-5 shadow-sm">
             <h3 className="text-[13px] font-bold text-slate-800 mb-4 px-1">Contact Information</h3>
             <div className="space-y-4 px-1">
               <div className="flex items-start gap-3">
@@ -89,9 +89,9 @@ export default function FeedbackPage() {
         </aside>
 
         {/* Right Content: Feedback Form */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-sm p-4 lg:p-5 shadow-sm h-fit">
+        <div className="flex-1 bg-white border border-gray-200 rounded-md p-4 lg:p-5 shadow-sm h-fit">
           <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
-            <div className="w-10 h-10 rounded-sm bg-brand-light text-brand flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-md bg-brand-light text-brand flex items-center justify-center shrink-0">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>

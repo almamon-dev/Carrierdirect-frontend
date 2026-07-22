@@ -133,7 +133,7 @@ export default function DataTable<T extends Record<string, any>>({
     };
 
     return (
-        <div className="bg-white rounded-sm border border-[#ebebeb] shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
+        <div className="bg-white rounded-md border border-[#ebebeb] shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
             <div className="animate-in fade-in duration-300">
                 {/* Header Tabs (Inside container) */}
                 {headerTabs && (
@@ -158,7 +158,12 @@ export default function DataTable<T extends Record<string, any>>({
                     <div className="flex items-center gap-1.5">
                         <TableFilter 
                             onFilterClick={() => setShowFilters(!showFilters)} 
-                            onResetClick={() => {}} 
+                            onResetClick={() => {
+                                setSearch('');
+                                setShowFilters(false);
+                            }}
+                            isFilterOpen={showFilters}
+                            isFiltered={Boolean(search)}
                         />
                         
                         <div className="w-[1px] h-4 bg-[#ebebeb] mx-1"></div>
@@ -203,7 +208,7 @@ export default function DataTable<T extends Record<string, any>>({
 
                 {/* Data View */}
                 {viewMode === 'grid' ? (
-                    <div className="bg-[#f4f6f8] border-b border-[#ebebeb]">
+                    <div className="bg-[#f8fafc] border-b border-slate-200">
                         <div className="p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                             {filteredData.length === 0 ? (
                                 <div className="col-span-full">
@@ -216,22 +221,22 @@ export default function DataTable<T extends Record<string, any>>({
                                 return (
                                     <div 
                                         key={id}
-                                        className={`bg-white rounded-sm border p-3 shadow-sm transition-all flex flex-col ${isSelected ? 'border-[#008060] ring-1 ring-[#008060]' : 'border-[#d1d1d1]'}`}
+                                        className="bg-white rounded-md border border-slate-200 p-4 shadow-2xs transition-all flex flex-col hover:shadow-xs hover:border-slate-300"
                                     >
-                                        <div className="flex justify-end items-start mb-2 pb-2 border-b border-[#ebebeb]">
-                                            {actions && (
+                                        {actions && (
+                                            <div className="flex justify-end items-center mb-3 pb-2.5 border-b border-slate-100">
                                                 <div className="flex items-center justify-end">
                                                     {actions(item)}
                                                 </div>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
                                         <div className="flex-1">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                                                 {columns.map(col => visibleColumns.includes(col.id) && (
-                                                    <div key={col.id} className="grid grid-cols-[90px_8px_1fr] items-start">
-                                                        <span className="text-[11px] font-semibold text-[#8c9196]">{col.label}</span>
-                                                        <span className="text-[11px] font-semibold text-[#8c9196]">:</span>
-                                                        <div className="text-[12px] text-[#202223] font-medium break-words">
+                                                    <div key={col.id} className="grid grid-cols-[95px_8px_1fr] items-start">
+                                                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{col.label}</span>
+                                                        <span className="text-[11px] font-semibold text-slate-300">:</span>
+                                                        <div className="text-[12px] text-slate-800 font-medium break-words">
                                                             {col.render ? col.render(item) : item[col.id]}
                                                         </div>
                                                     </div>
@@ -244,10 +249,10 @@ export default function DataTable<T extends Record<string, any>>({
                         )}
                         </div>
                         {filteredData.length > gridLimit && (
-                            <div className="py-6 px-4 flex justify-center border-t border-[#ebebeb] bg-[#fcfcfc]">
+                            <div className="py-5 px-4 flex justify-center border-t border-slate-200 bg-white">
                                 <button 
                                     onClick={() => setGridLimit(prev => prev + 12)}
-                                    className="px-6 py-2 bg-white border border-[#d1d1d1] shadow-sm rounded-[3px] hover:bg-[#f6f6f7] hover:border-[#a1a1a1] transition-all text-[13px] font-bold text-[#202223] flex items-center justify-center"
+                                    className="px-5 py-2 bg-white border border-slate-300 shadow-2xs rounded-md hover:bg-slate-50 hover:border-[#FF4A1F] hover:text-[#FF4A1F] transition-all text-[12px] font-bold text-slate-700 flex items-center justify-center cursor-pointer"
                                 >
                                     Show More Requests
                                 </button>
@@ -258,23 +263,24 @@ export default function DataTable<T extends Record<string, any>>({
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-[#f9fafb] border-b border-[#ebebeb] text-[12px] font-semibold text-[#6d7175]">
-                                <th className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2'} w-[40px]`}>
+                            <tr className="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} w-[40px]`}>
                                     <div className="flex items-center justify-center">
                                         <input 
-                                        type="checkbox" 
-                                        checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
-                                        onChange={toggleSelectAll}
-                                        className="w-4 h-4 text-[#008060] border-[#d1d1d1] rounded-[2px] focus:ring-[#008060] cursor-pointer" />
-                                                </div>
+                                            type="checkbox" 
+                                            checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                                            onChange={toggleSelectAll}
+                                            className="w-4 h-4 text-[#FF4A1F] accent-[#FF4A1F] border-slate-300 rounded-[2px] focus:ring-[#FF4A1F] cursor-pointer" 
+                                        />
+                                    </div>
                                 </th>
                                 {columns.map(col => visibleColumns.includes(col.id) && (
-                                    <th key={col.id} className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2'} ${col.className || ''}`}>{col.label}</th>
+                                    <th key={col.id} className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} ${col.className || ''}`}>{col.label}</th>
                                 ))}
-                                {actions && <th className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2'} text-right`}>Actions</th>}
+                                {actions && <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} text-right`}>Actions</th>}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#ebebeb]">
+                        <tbody className="divide-y divide-slate-100">
                             {paginatedData.length === 0 ? (
                                 <tr>
                                     <td colSpan={columns.length + (actions ? 2 : 1)} className="p-0">
@@ -286,36 +292,37 @@ export default function DataTable<T extends Record<string, any>>({
                                     const id = keyExtractor(item);
                                     const isSelected = selectedIds.includes(id);
                                     return (
-                                                                                <React.Fragment key={id}>
+                                        <React.Fragment key={id}>
                                             <tr 
                                                 onClick={() => expandableContent && toggleExpand(id)}
-                                                className={`transition-colors group ${isSelected ? 'bg-[#f4f6f8]' : 'hover:bg-[#f9fafb]'} ${expandableContent ? 'cursor-pointer' : ''}`}
+                                                className={`transition-colors group ${isSelected ? 'bg-orange-50/40' : 'hover:bg-slate-50/70'} ${expandableContent ? 'cursor-pointer' : ''}`}
                                             >
-                                            <td className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'} whitespace-nowrap`}>
+                                            <td className={`${compact ? 'px-2 py-2' : 'px-3.5 py-2.5'} whitespace-nowrap`}>
                                                 <div className="flex items-center justify-center">
                                                     <input 
-                                                    type="checkbox" 
-                                                    checked={isSelected}
-                                                    onChange={() => toggleSelect(id)}
-                                                    className="w-4 h-4 text-[#008060] border-[#d1d1d1] rounded-[2px] focus:ring-[#008060] cursor-pointer" />
+                                                        type="checkbox" 
+                                                        checked={isSelected}
+                                                        onChange={() => toggleSelect(id)}
+                                                        className="w-4 h-4 text-[#FF4A1F] accent-[#FF4A1F] border-slate-300 rounded-[2px] focus:ring-[#FF4A1F] cursor-pointer" 
+                                                    />
                                                 </div>
                                             </td>
                                             {columns.map(col => visibleColumns.includes(col.id) && (
-                                                <td key={col.id} className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'} whitespace-nowrap text-[13px] text-[#202223] ${col.className || ''}`}>
+                                                <td key={col.id} className={`${compact ? 'px-2 py-2' : 'px-3.5 py-2.5'} whitespace-nowrap text-[13px] text-slate-800 ${col.className || ''}`}>
                                                     {col.render ? col.render(item) : item[col.id]}
                                                 </td>
                                             ))}
                                             {actions && (
-                                                <td className={`${compact ? 'px-2 py-1.5' : 'px-3 py-2.5'} whitespace-nowrap text-right`}>
+                                                <td className={`${compact ? 'px-2 py-2' : 'px-3.5 py-2.5'} whitespace-nowrap text-right`}>
                                                     <div className="flex justify-end">
                                                         {actions(item)}
                                                     </div>
                                                 </td>
                                             )}
-                                                                                    </tr>
+                                            </tr>
                                             {expandableContent && expandedRows.has(id) && (
-                                                <tr className="bg-[#fafbfc] border-b border-[#ebebeb] shadow-inner">
-                                                    <td colSpan={columns.length + (actions ? 2 : 1)} className="p-0 border-l-4 border-l-indigo-500">
+                                                <tr className="bg-slate-50/80 border-b border-slate-200">
+                                                    <td colSpan={columns.length + (actions ? 2 : 1)} className="p-0 border-l-4 border-l-[#FF4A1F]">
                                                         <div className="animate-in slide-in-from-top-1 fade-in duration-200">
                                                             {expandableContent(item)}
                                                         </div>

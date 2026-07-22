@@ -134,16 +134,15 @@ export default function CustomerLayout() {
                         <div className="relative" ref={profileRef}>
                             <button
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className="flex items-center gap-2.5 p-1 rounded-sm hover:bg-slate-100 transition-colors cursor-pointer"
+                                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition-colors cursor-pointer"
                             >
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#ff4a1f] to-orange-400 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                                    AM
+                                <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center">
+                                    <User size={16} />
                                 </div>
-                                <div className="hidden md:block text-left">
-                                    <p className="text-xs font-bold text-slate-800 leading-tight">Alex Morgan</p>
-                                    <p className="text-[10px] text-slate-500 leading-tight">Customer</p>
-                                </div>
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden md:block" />
+                                <span className="text-xs font-bold text-slate-800 hidden sm:inline">
+                                    Alex Morgan
+                                </span>
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                             </button>
 
                             {isProfileOpen && (

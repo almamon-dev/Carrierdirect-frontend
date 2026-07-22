@@ -10,7 +10,7 @@ export default function Accordion({ className = '', items = [] }: AccordionProps
     return (
         <div className={`space-y-2 ${className}`}>
             {items.map((item, index) => (
-                <div key={index} className="border border-gray-200 rounded-sm overflow-hidden">
+                <div key={index} className="border border-gray-200 rounded-md overflow-hidden">
                     <button 
                         className="w-full text-left px-4 py-3 font-medium bg-white hover:bg-gray-50 flex justify-between items-center transition-colors"
                         onClick={() => setActiveIndex(activeIndex === index ? null : index)}

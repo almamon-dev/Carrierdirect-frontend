@@ -210,7 +210,7 @@ export default function RequestList() {
 
                 {openDropdown === row.id && createPortal(
                     <div 
-                        className="fixed w-40 bg-white rounded-sm shadow-xl border border-slate-200 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100"
+                        className="fixed w-40 bg-white rounded-md shadow-xl border border-slate-200 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >

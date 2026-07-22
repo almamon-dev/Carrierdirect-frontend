@@ -59,7 +59,7 @@ const mockCreditHistory: CreditHistoryItem[] = [
 const MetricCard = ({ title, description, value, icon: Icon, colorClass }: { title: string; description: string; value: string; icon: any; colorClass: string }) => (
     <div className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start cursor-pointer w-full">
         <div className="flex justify-between items-start w-full mb-3">
-            <div className={`w-9 h-9 rounded-sm shrink-0 flex items-center justify-center ${colorClass}`}>
+            <div className={`w-9 h-9 rounded-md shrink-0 flex items-center justify-center ${colorClass}`}>
                 <Icon size={18} strokeWidth={2} />
             </div>
             <span className="text-[20px] font-bold text-slate-800">{value}</span>
@@ -118,13 +118,13 @@ export default function PayLaterFacilityPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-sm border border-emerald-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-md border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> {payLaterStatus.status}
           </span>
 
           <button
             onClick={() => setIsRequestModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs rounded-sm shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs rounded-md shadow-sm transition-all cursor-pointer"
           >
             <Send className="w-3.5 h-3.5" /> Request Higher Credit Limit
           </button>
@@ -189,7 +189,7 @@ export default function PayLaterFacilityPage() {
           </div>
 
           {requestSubmitted ? (
-            <div className="p-3 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-sm border border-emerald-200 flex items-center gap-2">
+            <div className="p-3 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-md border border-emerald-200 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" /> Credit Limit Increase Request Submitted! Admin will review shortly.
             </div>
           ) : (
@@ -211,7 +211,7 @@ export default function PayLaterFacilityPage() {
                     value={requestReason}
                     onChange={(e) => setRequestReason(e.target.value)}
                     placeholder="e.g. Scaling monthly logistics volume"
-                    className="flex h-[42px] w-full rounded-sm border border-[#d1d1d1] bg-white px-3 py-1.5 text-[14px] font-medium text-[#202223] focus:outline-none focus:border-[#4273f5]"
+                    className="flex h-[42px] w-full rounded-md border border-[#d1d1d1] bg-white px-3 py-1.5 text-[14px] font-medium text-[#202223] focus:outline-none focus:border-[#4273f5]"
                   />
                 </div>
               </div>
@@ -220,13 +220,13 @@ export default function PayLaterFacilityPage() {
                 <button
                   type="button"
                   onClick={() => setIsRequestModalOpen(false)}
-                  className="h-8 px-3.5 rounded-sm border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
+                  className="h-8 px-3.5 rounded-md border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="h-8 px-4 rounded-sm bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+                  className="h-8 px-4 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
                 >
                   Submit for Admin Review
                 </button>
@@ -248,10 +248,10 @@ export default function PayLaterFacilityPage() {
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-sm text-xs font-bold">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-md text-xs font-bold">
             <button
               onClick={() => setFilterType('all')}
-              className={`px-3 py-1 rounded-sm transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                 filterType === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
@@ -259,7 +259,7 @@ export default function PayLaterFacilityPage() {
             </button>
             <button
               onClick={() => setFilterType('deduction')}
-              className={`px-3 py-1 rounded-sm transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                 filterType === 'deduction' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
@@ -267,7 +267,7 @@ export default function PayLaterFacilityPage() {
             </button>
             <button
               onClick={() => setFilterType('repayment')}
-              className={`px-3 py-1 rounded-sm transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                 filterType === 'repayment' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
               }`}
             >

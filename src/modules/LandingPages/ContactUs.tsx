@@ -70,7 +70,7 @@ const ContactUs = () => {
                   <input 
                     type="text" 
                     id="first_name" 
-                    className="w-full h-12 px-4 rounded-sm border border-gray-300 focus:border-[#ff4a1f] outline-none transition-colors"
+                    className="w-full h-12 px-4 rounded-md border border-gray-300 focus:border-[#ff4a1f] outline-none transition-colors"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -78,7 +78,7 @@ const ContactUs = () => {
                   <input 
                     type="text" 
                     id="last_name" 
-                    className="w-full h-12 px-4 rounded-sm border border-gray-300 focus:border-[#ff4a1f] outline-none transition-colors"
+                    className="w-full h-12 px-4 rounded-md border border-gray-300 focus:border-[#ff4a1f] outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -88,7 +88,7 @@ const ContactUs = () => {
                 <input 
                   type="email" 
                   id="email" 
-                  className="w-full h-12 px-4 rounded-sm border border-gray-300 focus:border-[#ff4a1f] outline-none transition-colors"
+                  className="w-full h-12 px-4 rounded-md border border-gray-300 focus:border-[#ff4a1f] outline-none transition-colors"
                 />
               </div>
 
@@ -97,13 +97,13 @@ const ContactUs = () => {
                 <textarea 
                   id="message" 
                   rows={4}
-                  className="w-full p-4 rounded-sm border border-gray-300 focus:border-[#ff4a1f] outline-none transition-colors resize-none"
+                  className="w-full p-4 rounded-md border border-gray-300 focus:border-[#ff4a1f] outline-none transition-colors resize-none"
                 ></textarea>
               </div>
 
               <button 
                 type="submit" 
-                className="w-full h-12 bg-[#ff4a1f] text-white font-bold rounded-sm hover:bg-[#e63d15] transition-colors"
+                className="w-full h-12 bg-[#ff4a1f] text-white font-bold rounded-md hover:bg-[#e63d15] transition-colors"
               >
                 Send Message
               </button>

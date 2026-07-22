@@ -110,7 +110,7 @@ export default function SubmitQuote() {
             <div className="flex flex-col xl:flex-row gap-6 items-start">
                 
                 {/* LEFT CARD: Request Details */}
-                <div className="flex-1 w-full bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
+                <div className="flex-1 w-full bg-white border border-slate-200 shadow-sm rounded-md overflow-hidden">
                     {/* Details Header */}
                     <div className="flex flex-col md:flex-row justify-between items-center p-3 md:p-4 bg-slate-50/80 gap-3 border-b border-slate-200">
                         <div className="font-bold text-slate-800 text-base tracking-tight">Request ID : <span className="text-slate-600 font-bold">{requestDetails.id}</span></div>
@@ -308,7 +308,7 @@ export default function SubmitQuote() {
                 </div>
 
                 {/* RIGHT CARD: Your Quotation Form */}
-                <div className="w-full xl:w-[400px] bg-white border border-slate-200 shadow-sm rounded-sm flex flex-col sticky top-6">
+                <div className="w-full xl:w-[400px] bg-white border border-slate-200 shadow-sm rounded-md flex flex-col sticky top-6">
                     <div className="px-5 py-4 border-b border-slate-200 bg-slate-50/50">
                         <h3 className="text-[13px] font-bold text-slate-800">Your Quotation</h3>
                     </div>
@@ -440,7 +440,7 @@ export default function SubmitQuote() {
                     <div className="px-5 py-5 border-t border-slate-200 bg-slate-50/50">
                         <Button 
                             variant="primary" 
-                            className="w-full h-11 text-[14px] bg-slate-800 hover:bg-slate-900 text-white shadow-sm rounded-sm"
+                            className="w-full h-11 text-[14px] bg-slate-800 hover:bg-slate-900 text-white shadow-sm rounded-md"
                             icon={<Send size={16} />}
                             onClick={() => setSubmitted(true)}
                             disabled={!price}

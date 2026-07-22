@@ -238,7 +238,7 @@ export default function SupplierRegisterPage() {
 
                             <button
                                 type="submit"
-                                className="w-full h-[42px] flex items-center justify-center px-4 border border-transparent rounded-sm shadow-sm text-[14px] font-bold text-white bg-[#FF4A1F] hover:bg-[#E03E15] focus:outline-none mt-6"
+                                className="w-full h-[42px] flex items-center justify-center px-4 border border-transparent rounded-md shadow-sm text-[14px] font-bold text-white bg-[#FF4A1F] hover:bg-[#E03E15] focus:outline-none mt-6"
                             >
                                 Continue
                             </button>
@@ -256,7 +256,7 @@ export default function SupplierRegisterPage() {
                                 <div className="mt-6">
                                     <button
                                         type="button"
-                                        className="w-full h-[42px] flex items-center justify-center px-4 border border-gray-300 rounded-sm shadow-sm text-[14px] font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                                        className="w-full h-[42px] flex items-center justify-center px-4 border border-gray-300 rounded-md shadow-sm text-[14px] font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
                                     >
                                         <svg className="w-5 h-5 mr-2.5" viewBox="0 0 24 24">
                                             <path
@@ -397,7 +397,7 @@ export default function SupplierRegisterPage() {
                                             type="checkbox"
                                             checked={agreed}
                                             onChange={(e) => handleAgreedChange(e.target.checked)}
-                                            className={`w-4 h-4 rounded cursor-pointer focus:ring-[#FF4A1F] ${errors.agreed ? 'border-[#d82c0d] text-[#d82c0d]' : 'border-gray-300 text-[#FF4A1F]'}`}
+                                            className={`w-4 h-4 rounded cursor-pointer accent-[#FF4A1F] focus:ring-[#FF4A1F] ${errors.agreed ? 'border-[#d82c0d] text-[#d82c0d]' : 'border-gray-300 text-[#FF4A1F]'}`}
                                         />
                                     </div>
                                     <div className="ml-3 text-sm">
@@ -411,7 +411,7 @@ export default function SupplierRegisterPage() {
 
                             <button
                                 type="submit"
-                                className="w-full h-[42px] flex items-center justify-center px-4 border border-transparent rounded-sm shadow-sm text-[14px] font-bold text-white bg-[#FF4A1F] hover:bg-[#E03E15] focus:outline-none"
+                                className="w-full h-[42px] flex items-center justify-center px-4 border border-transparent rounded-md shadow-sm text-[14px] font-bold text-white bg-[#FF4A1F] hover:bg-[#E03E15] focus:outline-none"
                             >
                                 Create Account
                             </button>

@@ -2169,7 +2169,7 @@ body {
   border-radius: var(--radius);
 }
 
-.rounded-sm {
+.rounded-md {
   border-radius: calc(var(--radius) - 2px);
 }
 
@@ -2177,7 +2177,7 @@ body {
   border-radius: 0px;
 }
 
-.rounded-sm {
+.rounded-md {
   border-radius: calc(var(--radius) - 4px);
 }
 

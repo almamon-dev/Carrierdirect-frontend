@@ -116,7 +116,7 @@ export default function Subscription() {
 
         <div className="flex items-center gap-2">
           <Badge className="bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200 px-2.5 py-1">
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Account Verified & Active
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1 shrink-0 inline-block text-emerald-600" /> Account Verified & Active
           </Badge>
         </div>
       </div>

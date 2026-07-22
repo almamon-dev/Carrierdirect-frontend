@@ -83,7 +83,7 @@ export default function Withdrawal() {
                 {/* Balance Card */}
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-orange-50 text-[#ff4a1f]">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-orange-50 text-[#ff4a1f]">
                             <Euro size={15} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -104,7 +104,7 @@ export default function Withdrawal() {
                 {/* Pending Clearance Card */}
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-amber-50 text-amber-600">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-amber-50 text-amber-600">
                             <Clock size={15} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -117,7 +117,7 @@ export default function Withdrawal() {
                 {/* Total Earnings Card */}
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-emerald-50 text-emerald-600">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <TrendingUp size={15} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -134,7 +134,7 @@ export default function Withdrawal() {
                         : 'bg-white border-slate-200 shadow-2xs'
                 }`}>
                     <div className="flex justify-between items-start mb-2">
-                        <div className={`w-7 h-7 rounded-sm flex items-center justify-center ${
+                        <div className={`w-7 h-7 rounded-md flex items-center justify-center ${
                             isStripeConnected ? 'bg-[#635BFF]/10 text-[#635BFF]' : 'bg-red-100 text-red-600'
                         }`}>
                             {isStripeConnected ? <ShieldCheck size={15} strokeWidth={2.5} /> : <AlertCircle size={15} strokeWidth={2.5} />}

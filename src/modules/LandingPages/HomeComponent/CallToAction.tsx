@@ -60,19 +60,19 @@ export default function CallToAction() {
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
             {isLoggedIn ? (
               <Link to={userType === "supplier" ? "/supplier/dashboard" : "/customer/dashboard"}>
-                <button className="w-full sm:w-auto h-10 px-6 rounded-sm bg-[#ff4a1f] text-white font-bold text-xs hover:bg-[#e63d15] hover:shadow-md transition-all duration-200">
+                <button className="w-full sm:w-auto h-10 px-6 rounded-md bg-[#ff4a1f] text-white font-bold text-xs hover:bg-[#e63d15] hover:shadow-md transition-all duration-200">
                   {userType === "supplier" ? "See Quote Requests" : "My Quotes"}
                 </button>
               </Link>
             ) : (
               <>
                 <Link to="/web/register">
-                  <button className="w-full sm:w-auto h-10 px-6 rounded-sm bg-[#ff4a1f] text-[#ffffff] font-bold text-xs hover:bg-[#e63d15] hover:shadow-md transition-all duration-200 whitespace-nowrap">
+                  <button className="w-full sm:w-auto h-10 px-6 rounded-md bg-[#ff4a1f] text-[#ffffff] font-bold text-xs hover:bg-[#e63d15] hover:shadow-md transition-all duration-200 whitespace-nowrap">
                     Create Free Account
                   </button>
                 </Link>
                 <Link to="/web/register">
-                  <button className="w-full sm:w-auto h-10 px-6 rounded-sm border border-white/20 bg-white/5 text-white font-bold text-xs hover:bg-white/10 hover:border-white/40 transition-all duration-200 whitespace-nowrap">
+                  <button className="w-full sm:w-auto h-10 px-6 rounded-md border border-white/20 bg-white/5 text-white font-bold text-xs hover:bg-white/10 hover:border-white/40 transition-all duration-200 whitespace-nowrap">
                     Become a Carrier
                   </button>
                 </Link>

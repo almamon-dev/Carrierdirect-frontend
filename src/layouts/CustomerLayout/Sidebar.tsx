@@ -62,7 +62,7 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
                             <Link
                                 key={subItem.name}
                                 to={subItem.path}
-                                className={`flex items-center ${isOpen ? 'justify-between py-1.5 px-2' : 'justify-center py-2'} rounded-sm text-[13px] font-medium transition-colors group ${
+                                className={`flex items-center ${isOpen ? 'justify-between py-1.5 px-2' : 'justify-center py-2'} rounded-md text-[13px] font-medium transition-colors group ${
                                     isActive 
                                         ? 'text-[#ff4a1f] font-bold bg-orange-50' 
                                         : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
@@ -107,7 +107,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     };
 
     return (
-        <aside className={`fixed lg:static inset-y-0 left-0 z-30 bg-white border-r border-slate-200 transform transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:w-[72px] lg:translate-x-0'}`}>
+        <aside className={`fixed lg:static inset-y-0 left-0 z-30 lg:z-auto bg-white border-r border-slate-200 transform transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:w-[72px] lg:translate-x-0'}`}>
             <div className="h-16 flex items-center justify-center lg:justify-start px-5 border-b border-gray-100 shrink-0 whitespace-nowrap">
                 <Link to="/">
                     {isOpen ? (

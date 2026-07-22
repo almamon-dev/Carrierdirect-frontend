@@ -72,6 +72,7 @@ interface Conversation {
   currentOffer: string;
   originalPrice: string;
   discountBadge: string;
+  isPinned?: boolean;
   unreadCount: number;
   isOnline: boolean;
   messages: ChatMessage[];
@@ -87,6 +88,7 @@ const initialConversations: Conversation[] = [
     currentOffer: '€40,000',
     originalPrice: '€42,500',
     discountBadge: '5.9% OFF',
+    isPinned: true,
     unreadCount: 1,
     isOnline: true,
     messages: [
@@ -556,7 +558,23 @@ export default function NegotiationChatWidget() {
                     </button>
 
                     <button
-                      onClick={() => { setShowMoreActionsMenu(false); alert('Opening History...'); }}
+                      onClick={() => {
+                        setShowMoreActionsMenu(false);
+                        if (activeConv) {
+                          setConversations(prev => prev.map(c => c.id === activeConv.id ? { ...c, isPinned: !c.isPinned } : c));
+                        }
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer font-sans"
+                    >
+                      <Pin className="w-3.5 h-3.5 text-slate-400 rotate-45" />
+                      <span>{activeConv?.isPinned ? 'Unpin Conversation' : 'Pin Conversation'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => { 
+                        setShowMoreActionsMenu(false); 
+                        navigate(`/customer/quotes/negotiation/view/${activeConv?.negId || 1}`);
+                      }}
                       className="w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer font-sans"
                     >
                       <History className="w-3.5 h-3.5 text-slate-400" />
@@ -564,7 +582,7 @@ export default function NegotiationChatWidget() {
                     </button>
 
                     <button
-                      onClick={() => { setShowMoreActionsMenu(false); alert('Downloading PDF...'); }}
+                      onClick={() => setShowMoreActionsMenu(false)}
                       className="w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer font-sans"
                     >
                       <Download className="w-3.5 h-3.5 text-slate-400" />
@@ -572,7 +590,7 @@ export default function NegotiationChatWidget() {
                     </button>
 
                     <button
-                      onClick={() => { setShowMoreActionsMenu(false); alert('Exporting Conversation...'); }}
+                      onClick={() => setShowMoreActionsMenu(false)}
                       className="w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer font-sans"
                     >
                       <FileSpreadsheet className="w-3.5 h-3.5 text-slate-400" />
@@ -712,7 +730,7 @@ export default function NegotiationChatWidget() {
                     value={counterPrice}
                     onChange={(e) => setCounterPrice(e.target.value)}
                     placeholder="e.g. 38000"
-                    className="h-8 text-xs font-semibold border-slate-200 focus:border-[#ff4a1f] rounded-sm font-sans"
+                    className="h-8 text-xs font-semibold border-slate-200 focus:border-[#ff4a1f] rounded-md font-sans"
                     required
                   />
 
@@ -722,7 +740,7 @@ export default function NegotiationChatWidget() {
                     placeholder="e.g. Fast booking"
                     value={counterNote}
                     onChange={(e) => setCounterNote(e.target.value)}
-                    className="h-8 text-xs border-slate-200 focus:border-[#ff4a1f] rounded-sm font-sans"
+                    className="h-8 text-xs border-slate-200 focus:border-[#ff4a1f] rounded-md font-sans"
                   />
                 </div>
 
@@ -741,18 +759,18 @@ export default function NegotiationChatWidget() {
                   </div>
 
                   {extraFees.length === 0 ? (
-                    <div className="p-2.5 bg-slate-50/50 rounded-sm border border-dashed border-slate-200 text-center text-[10.5px] text-slate-400 font-normal font-sans">
+                    <div className="p-2.5 bg-slate-50/50 rounded-md border border-dashed border-slate-200 text-center text-[10.5px] text-slate-400 font-normal font-sans">
                       No extra fees added. Click <span className="font-semibold text-[#ff4a1f] cursor-pointer hover:underline" onClick={handleAddExtraFeeRow}>+ Add Fee</span> to include loading, insurance, or handling fees.
                     </div>
                   ) : (
                     extraFees.map((fee) => (
-                      <div key={fee.id} className="p-2.5 bg-slate-50/70 rounded-sm border border-slate-200/80 space-y-2 font-sans">
+                      <div key={fee.id} className="p-2.5 bg-slate-50/70 rounded-md border border-slate-200/80 space-y-2 font-sans">
                         <div className="flex items-center gap-2">
                           <Input
                             placeholder="Fee Name (e.g. Loading Fee)"
                             value={fee.name}
                             onChange={(e) => handleExtraFeeChange(fee.id, 'name', e.target.value)}
-                            className="h-7 text-[11px] font-medium bg-[#f8fafc] border-slate-200 rounded-sm font-sans"
+                            className="h-7 text-[11px] font-medium bg-[#f8fafc] border-slate-200 rounded-md font-sans"
                           />
                           <div className="w-28 shrink-0">
                             <Input
@@ -760,7 +778,7 @@ export default function NegotiationChatWidget() {
                               placeholder="Amount (€)"
                               value={fee.amount}
                               onChange={(e) => handleExtraFeeChange(fee.id, 'amount', e.target.value)}
-                              className="h-7 text-[11px] font-semibold bg-[#f8fafc] border-slate-200 rounded-sm font-sans"
+                              className="h-7 text-[11px] font-semibold bg-[#f8fafc] border-slate-200 rounded-md font-sans"
                             />
                           </div>
                           <button
@@ -777,15 +795,15 @@ export default function NegotiationChatWidget() {
                           placeholder="Description (e.g. Forklift & 2 helpers)"
                           value={fee.description || ''}
                           onChange={(e) => handleExtraFeeChange(fee.id, 'description', e.target.value)}
-                          className="h-6.5 text-[10.5px] bg-[#f8fafc] border-slate-200 rounded-sm font-sans font-normal"
+                          className="h-6.5 text-[10.5px] bg-[#f8fafc] border-slate-200 rounded-md font-sans font-normal"
                         />
                       </div>
                     ))
                   )}
                 </div>
 
-                {/* Itemized Calculation Summary Card (rounded-sm) */}
-                <div className="bg-slate-50 p-3 rounded-sm border border-slate-200/90 space-y-1.5 text-[11px] font-sans">
+                {/* Itemized Calculation Summary Card (rounded-md) */}
+                <div className="bg-slate-50 p-3 rounded-md border border-slate-200/90 space-y-1.5 text-[11px] font-sans">
                   <div className="flex items-center justify-between text-slate-600 font-normal font-sans">
                     <span>Subtotal (Base Price):</span>
                     <span className="font-semibold text-slate-800 font-sans">€{(parseFloat(counterPrice) || 0).toLocaleString()}</span>
@@ -798,7 +816,7 @@ export default function NegotiationChatWidget() {
 
                   <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between font-bold text-slate-900 font-sans">
                     <span className="text-slate-800 font-bold font-sans">Grand Total:</span>
-                    <span className="font-bold text-xs text-[#ff4a1f] bg-white px-2.5 py-0.5 rounded-sm border border-slate-200 font-sans">
+                    <span className="font-bold text-xs text-[#ff4a1f] bg-white px-2.5 py-0.5 rounded-md border border-slate-200 font-sans">
                       €{liveGrandTotal.toLocaleString()}
                     </span>
                   </div>
@@ -808,13 +826,13 @@ export default function NegotiationChatWidget() {
                   <button
                     type="button"
                     onClick={() => setShowCounterModal(false)}
-                    className="px-3 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 rounded-sm cursor-pointer font-sans"
+                    className="px-3 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer font-sans"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 bg-[#ff4a1f] hover:bg-[#e63d15] text-white text-[11px] font-semibold rounded-sm shadow-2xs cursor-pointer flex items-center gap-1 font-sans"
+                    className="px-4 py-1.5 bg-[#ff4a1f] hover:bg-[#e63d15] text-white text-[11px] font-semibold rounded-md shadow-2xs cursor-pointer flex items-center gap-1 font-sans"
                   >
                     <SendIcon className="w-3 h-3" />
                     <span>Submit Counter</span>
@@ -889,7 +907,7 @@ export default function NegotiationChatWidget() {
                             {msg.extraFeeItems && msg.extraFeeItems.length > 0 && (
                               <div className="pt-1.5 border-t border-emerald-200/60 space-y-1.5 text-[10px] text-emerald-900 font-sans">
                                 {msg.extraFeeItems.map((item, idx) => (
-                                  <div key={idx} className="bg-white/60 p-1.5 rounded-sm border border-emerald-200/40 font-sans">
+                                  <div key={idx} className="bg-white/60 p-1.5 rounded-md border border-emerald-200/40 font-sans">
                                     <div className="flex items-center justify-between font-semibold font-sans">
                                       <span className="flex items-center gap-1 text-emerald-800 font-sans">
                                         <PlusCircle className="w-3 h-3 text-emerald-600 shrink-0" />

@@ -73,19 +73,19 @@ export default function HomeHero() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-14">
             {isLoggedIn ? (
               <Link to={userType === "supplier" ? "/supplier/dashboard" : "/customer/dashboard"}>
-                <button className="h-11 px-6 rounded-sm bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer">
+                <button className="h-11 px-6 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer">
                   {userType === "supplier" ? "See Quote Requests" : "My Quotes"}
                 </button>
               </Link>
             ) : (
               <>
                 <Link to="/web/register" className="w-full sm:w-auto">
-                  <button className="w-full sm:w-auto h-11 px-6 rounded-sm bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer">
+                  <button className="w-full sm:w-auto h-11 px-6 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer">
                     Create a Quote
                   </button>
                 </Link>
                 <Link to="/web/register" className="w-full sm:w-auto">
-                  <button className="w-full sm:w-auto h-11 px-6 rounded-sm border border-white/30 bg-white/5 text-white font-bold text-sm hover:bg-white/10 hover:border-white/60 active:scale-95 transition-all duration-200 cursor-pointer">
+                  <button className="w-full sm:w-auto h-11 px-6 rounded-md border border-white/30 bg-white/5 text-white font-bold text-sm hover:bg-white/10 hover:border-white/60 active:scale-95 transition-all duration-200 cursor-pointer">
                     Become a Supplier
                   </button>
                 </Link>

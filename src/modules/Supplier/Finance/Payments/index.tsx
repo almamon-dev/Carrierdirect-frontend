@@ -58,7 +58,7 @@ export default function Payments() {
                 {/* Outstanding Balance */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-emerald-50 text-emerald-600">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <Receipt size={14} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -71,7 +71,7 @@ export default function Payments() {
                 {/* Total Paid */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-[#FFF0ED] text-[#FF4A1F]">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-[#FFF0ED] text-[#FF4A1F]">
                             <FileText size={14} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -84,7 +84,7 @@ export default function Payments() {
                 {/* Last Payment Date */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-slate-100 text-slate-600">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-slate-100 text-slate-600">
                             <Clock size={14} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -97,7 +97,7 @@ export default function Payments() {
                 {/* Payment Method Card */}
                 <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between border-indigo-100 ring-1 ring-indigo-50">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-slate-900 text-white">
+                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-slate-900 text-white">
                             <CreditCard size={14} strokeWidth={2.5} />
                         </div>
                         <Badge className="bg-emerald-50 text-emerald-700 h-4 px-1 text-[8px] font-bold border border-emerald-100">Default</Badge>

@@ -88,7 +88,7 @@ export default function AvailabilityDashboard() {
                     return (
                         <div key={i} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                             <div className="flex justify-between items-start mb-2">
-                                <div className={`w-7 h-7 rounded-sm flex items-center justify-center ${stat.bg} ${stat.color}`}>
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center ${stat.bg} ${stat.color}`}>
                                     <Icon size={14} strokeWidth={2.5} />
                                 </div>
                             </div>
