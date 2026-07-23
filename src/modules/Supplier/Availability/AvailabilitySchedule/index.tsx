@@ -1,13 +1,25 @@
 import React from 'react';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import Button from '@/components/ui/button';
-import DataTable from '@/components/tables/data-table';
+import Badge from '@/components/ui/badge';
+import DataTable, { Column } from '@/components/tables/data-table';
 import { Plus, Download, Edit2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+export interface ScheduleItem {
+    id: string;
+    name: string;
+    location: string;
+    type: string;
+    timezone: string;
+    days: string;
+    hours: string;
+    validity: string;
+    status: 'Active' | 'Inactive';
+}
+
 export default function AvailabilitySchedule() {
     const navigate = useNavigate();
-    const data = [
+    const data: ScheduleItem[] = [
         {
             id: 'SCH-001',
             name: 'Standard Operations',
@@ -43,56 +55,52 @@ export default function AvailabilitySchedule() {
         }
     ];
 
-    const columns = [
-        { id: 'id', label: 'ID', render: (r: any) => <span className='font-semibold text-slate-800'>{r.id}</span> },
-        { id: 'name', label: 'Schedule Name', render: (r: any) => <span className='font-medium text-slate-900'>{r.name}</span> },
-        { id: 'location', label: 'Location' },
-        { id: 'type', label: 'Type' },
-        { id: 'timezone', label: 'Timezone' },
-        { id: 'days', label: 'Working Days' },
-        { id: 'hours', label: 'Hours' },
-        { id: 'validity', label: 'Validity', render: (r: any) => <span className='text-[11px] text-slate-600'>{r.validity}</span> },
+    const columns: Column<ScheduleItem>[] = [
+        { id: 'id', label: 'ID', render: (r) => <span className='font-bold text-slate-900'>{r.id}</span> },
+        { id: 'name', label: 'Schedule Name', render: (r) => <span className='font-semibold text-slate-800'>{r.name}</span> },
+        { id: 'location', label: 'Location', render: (r) => <span className='text-xs font-medium text-slate-700'>{r.location}</span> },
+        { id: 'type', label: 'Type', render: (r) => <span className='text-xs text-slate-600'>{r.type}</span> },
+        { id: 'timezone', label: 'Timezone', render: (r) => <span className='text-xs text-slate-500 font-mono'>{r.timezone}</span> },
+        { id: 'days', label: 'Working Days', render: (r) => <span className='text-xs font-semibold text-slate-800'>{r.days}</span> },
+        { id: 'hours', label: 'Hours', render: (r) => <span className='text-xs font-medium text-slate-700'>{r.hours}</span> },
+        { id: 'validity', label: 'Validity', render: (r) => <span className='text-xs text-slate-500'>{r.validity}</span> },
         {
             id: 'status',
             label: 'Status',
-            render: (r: any) => (
-                <span className={`text-[10px] px-2 py-1 rounded font-medium ${r.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                    }`}>
+            render: (r) => (
+                <Badge variant="secondary" className={
+                    r.status === 'Active' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'bg-slate-100 text-slate-600 font-semibold'
+                }>
                     {r.status}
-                </span>
+                </Badge>
             )
         },
-        {
-            id: 'actions',
-            label: 'Actions',
-            render: () => (
-                <div className="flex items-center gap-1.5">
-                    <Button variant="ghost" className="h-7 w-7 p-0 text-slate-600 hover:text-indigo-700 bg-slate-50 hover:bg-brand-light border border-slate-200 rounded-md">
-                        <Edit2 size={13} />
-                    </Button>
-                    <Button variant="ghost" className="h-7 w-7 p-0 text-slate-600 hover:text-red-700 bg-slate-50 hover:bg-red-50 border border-slate-200 rounded-md">
-                        <Trash2 size={13} />
-                    </Button>
-                </div>
-            )
-        }
     ];
 
+    const renderActions = (row: ScheduleItem) => (
+        <div className="flex items-center justify-end gap-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-slate-800 cursor-pointer">
+                <Edit2 size={13} />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-600 cursor-pointer">
+                <Trash2 size={13} />
+            </Button>
+        </div>
+    );
+
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
-            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900 mb-1">Availability Schedule</h1>
-                    <p className="text-[12px] text-slate-500 font-medium">Manage your regular and recurring working schedules.</p>
+                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Availability Schedule</h1>
+                    <p className="text-xs text-slate-500 font-medium">Manage your regular and recurring working schedules.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm">
-                        <Download size={14} />
-                        Export
+                    <Button variant="outline" size="sm" className="h-9 text-xs font-semibold" onClick={() => alert('Exporting schedules...')}>
+                        <Download size={13} className="mr-1.5" /> Export
                     </Button>
-                    <Button variant="primary" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm" onClick={() => navigate('/supplier/availability/schedule/create')}>
-                        <Plus size={14} />
-                        Create New
+                    <Button variant="primary" size="sm" className="h-9 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white" onClick={() => navigate('/supplier/availability/schedule/create')}>
+                        <Plus size={13} className="mr-1.5" /> Create New
                     </Button>
                 </div>
             </div>
@@ -101,8 +109,9 @@ export default function AvailabilitySchedule() {
                 columns={columns}
                 data={data}
                 hideViewToggle={true}
-                searchPlaceholder="Search records..."
+                searchPlaceholder="Search schedules by name, location..."
                 compact={true}
+                actions={renderActions}
             />
         </div>
     );

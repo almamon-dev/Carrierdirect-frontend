@@ -19,7 +19,7 @@ export default function LostQuotes() {
             render: (row) => (
                 <button 
                     onClick={() => navigate(`/supplier/quotes/requests/${row.slug}`)}
-                    className="font-bold text-slate-700 hover:text-brand hover:underline text-left whitespace-nowrap"
+                    className="font-bold text-slate-700 hover:text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer"
                 >
                     {row.id}
                 </button>
@@ -28,27 +28,27 @@ export default function LostQuotes() {
         { 
             id: 'requestDate', 
             label: 'Expired Date',
-            render: (row) => <span className="whitespace-nowrap">{row.requestDate}</span>
+            render: (row) => <span className="whitespace-nowrap text-xs text-slate-500">{row.requestDate}</span>
         },
         { 
             id: 'customer', 
             label: 'Customer',
-            render: (row) => <span className="font-medium text-slate-800 whitespace-nowrap">{row.customer}</span>
+            render: (row) => <span className="font-semibold text-slate-900 whitespace-nowrap">{row.customer}</span>
         },
         { 
             id: 'pickup', 
             label: 'Pickup',
-            render: (row) => <span className="whitespace-nowrap font-medium text-slate-700">{row.pickup}</span>
+            render: (row) => <span className="whitespace-nowrap font-medium text-slate-800">{row.pickup}</span>
         },
         { 
             id: 'delivery', 
             label: 'Delivery',
-            render: (row) => <span className="whitespace-nowrap font-medium text-slate-700">{row.delivery}</span>
+            render: (row) => <span className="whitespace-nowrap font-medium text-slate-800">{row.delivery}</span>
         },
         { 
             id: 'vehicleType', 
             label: 'Vehicle Type',
-            render: (row) => <span className="whitespace-nowrap">{row.vehicleType}</span>
+            render: (row) => <span className="whitespace-nowrap text-xs font-semibold text-slate-700">{row.vehicleType}</span>
         },
         { 
             id: 'budget', 
@@ -67,32 +67,31 @@ export default function LostQuotes() {
             <Button 
                 variant="outline" 
                 size="sm" 
-                className="h-7 px-2"
+                className="h-8 px-2.5 text-xs font-semibold"
                 onClick={() => navigate(`/supplier/quotes/requests/${row.slug}`)}
             >
-                <Eye size={14} className="mr-1" /> View Details
+                <Eye size={13} className="mr-1" /> View Details
             </Button>
         </div>
     );
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
-            <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900 mb-1">Lost Quotes</h1>
-                    <p className="text-sm text-slate-500 font-medium">Review past transportation quote requests that were expired or lost.</p>
+                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Lost Quotes</h1>
+                    <p className="text-xs text-slate-500 font-medium">Review past transportation quote requests that were expired or lost.</p>
                 </div>
             </div>
 
             <DataTable 
-                key="lostquotes_list_v2"
-                tableId="lostquotes_list_v2"
                 data={lostData} 
                 columns={columns} 
                 actions={renderActions}
                 keyExtractor={(item) => item.id}
-                searchPlaceholder="Search by ID, Customer, Location..."
+                searchPlaceholder="Search lost quotes by ID, customer, location..."
                 compact={true}
+                hideViewToggle={true}
             />
         </div>
     );

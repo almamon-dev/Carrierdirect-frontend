@@ -3,6 +3,7 @@ import {
   CreditCard, FileText, CheckCircle2, Download, Plus, Receipt, Clock, 
   ArrowUpRight, ShieldCheck, Zap, Sparkles, Check, Building2, Package, Euro
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
 import DataTable from '@/components/tables/data-table';
@@ -10,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Switch from '@/components/ui/switch';
 
 export default function CustomerSubscription() {
+  const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [autoRenew, setAutoRenew] = useState(true);
 
@@ -307,7 +309,17 @@ export default function CustomerSubscription() {
                     </Button>
                   ) : (
                     <Button
-                      onClick={() => alert(`Switching to ${plan.name}`)}
+                      onClick={() => navigate('/customer/subscription/checkout', { 
+                        state: { 
+                          plan: { 
+                            id: plan.id, 
+                            name: plan.name, 
+                            priceMonthly: plan.id === 'starter' ? 0 : plan.id === 'business' ? 49 : 119, 
+                            priceYearly: plan.id === 'starter' ? 0 : plan.id === 'business' ? 39 : 99, 
+                            cycle: billingCycle 
+                          } 
+                        } 
+                      })}
                       className="w-full h-8.5 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e63d15] text-white shadow-2xs cursor-pointer"
                     >
                       Choose Plan

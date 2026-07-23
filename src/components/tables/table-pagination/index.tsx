@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
 export interface TablePaginationProps {
     total: number;
@@ -25,42 +25,58 @@ export default function TablePagination({
     hasNext = false,
 }: TablePaginationProps) {
     return (
-        <div className="flex items-center justify-end gap-6 px-6 py-3 border-t border-[#ebebeb] bg-white">
-            <div className="flex items-center gap-2">
-                <div className="w-[75px]">
-                    <select
-                        value={perPage}
-                        onChange={(e) => onPerPageChange(Number(e.target.value))}
-                        className="w-full h-[30px] px-2 text-[12px] border border-[#d1d1d1] rounded-[3px] focus:border-[#008060] focus:ring-1 focus:ring-[#008060] outline-none"
-                    >
-                        <option value={10}>10</option>
-                        <option value={15}>15</option>
-                        <option value={30}>30</option>
-                        <option value={50}>50</option>
-                        <option value={100}>100</option>
-                    </select>
-                </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200 bg-slate-50/50">
+            {/* Left: Entries Info */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <span>Showing</span>
+                <span className="font-bold text-slate-800 tabular-nums">
+                    {total > 0 ? `${fromIdx}–${toIdx}` : '0'}
+                </span>
+                <span>of</span>
+                <span className="font-bold text-slate-800 tabular-nums">{total}</span>
+                <span>entries</span>
             </div>
 
+            {/* Right: Rows selector & Pagination buttons */}
             <div className="flex items-center gap-4">
-                <span className="text-[12px] text-[#081621] font-bold tabular-nums">
-                    {total > 0 ? `${fromIdx} - ${toIdx} of ${total}` : '0 - 0'}
-                </span>
+                {/* Per Page Selector */}
+                <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500 font-medium hidden sm:inline">Rows per page:</span>
+                    <div className="relative">
+                        <select
+                            value={perPage}
+                            onChange={(e) => onPerPageChange(Number(e.target.value))}
+                            className="h-8 pl-3 pr-7 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-md shadow-2xs focus:border-[#ff4a1f] focus:ring-1 focus:ring-[#ff4a1f] outline-none appearance-none cursor-pointer hover:border-slate-400 transition-colors"
+                        >
+                            <option value={10}>10</option>
+                            <option value={15}>15</option>
+                            <option value={30}>30</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                        <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+                </div>
 
-                <div className="flex gap-1">
+                {/* Prev / Next Buttons */}
+                <div className="flex items-center gap-1.5">
                     <button
                         onClick={onPrevPage}
                         disabled={!hasPrev}
-                        className="w-7 h-7 flex items-center justify-center rounded-[2px] border border-[#d1d1d1] text-[#081621] hover:border-[#008060] hover:text-[#008060] disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+                        aria-label="Previous page"
+                        className="h-8 px-2.5 flex items-center justify-center gap-1 text-xs font-semibold rounded-md border border-slate-300 bg-white text-slate-700 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 disabled:opacity-40 disabled:hover:border-slate-300 disabled:hover:text-slate-700 disabled:hover:bg-white disabled:cursor-not-allowed transition-all shadow-2xs active:scale-95 cursor-pointer"
                     >
-                        <ChevronLeft size={16} />
+                        <ChevronLeft size={15} />
+                        <span className="hidden sm:inline">Prev</span>
                     </button>
                     <button
                         onClick={onNextPage}
                         disabled={!hasNext}
-                        className="w-7 h-7 flex items-center justify-center rounded-[2px] border border-[#d1d1d1] text-[#081621] hover:border-[#008060] hover:text-[#008060] disabled:opacity-30 disabled:cursor-not-allowed transition-all bg-white shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+                        aria-label="Next page"
+                        className="h-8 px-2.5 flex items-center justify-center gap-1 text-xs font-semibold rounded-md border border-slate-300 bg-white text-slate-700 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 disabled:opacity-40 disabled:hover:border-slate-300 disabled:hover:text-slate-700 disabled:hover:bg-white disabled:cursor-not-allowed transition-all shadow-2xs active:scale-95 cursor-pointer"
                     >
-                        <ChevronRight size={16} />
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight size={15} />
                     </button>
                 </div>
             </div>

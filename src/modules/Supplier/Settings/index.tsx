@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, CreditCard, Truck, Bell, Shield, Settings as SettingsIcon } from 'lucide-react';
+import { Building2, CreditCard, Truck, Bell, Shield } from 'lucide-react';
 import CompanyProfileTab from './components/CompanyProfileTab';
 import PayoutStripeTab from './components/PayoutStripeTab';
 import FleetCapacityTab from './components/FleetCapacityTab';
@@ -19,32 +19,32 @@ export default function SupplierSettings() {
 
   return (
     <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen pb-16 font-sans antialiased">
-      {/* Header */}
-      <div className="flex items-center gap-2">
+      {/* Header matching Team Management & Active Jobs */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Supplier Account Settings</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Supplier Account Settings</h1>
+          <p className="text-xs text-slate-500 font-medium">
             Manage your carrier business identity, payouts, fleet capacity, notifications, and security.
           </p>
         </div>
       </div>
 
-      {/* Sleek Minimal Underline Tab Bar (Tight Underline, Even 24px Gap, Natural Font) */}
-      <div className="border-b border-slate-200 flex items-center gap-6 overflow-x-auto custom-scrollbar">
+      {/* Navigation Tabs matching Team Management styling */}
+      <div className="flex gap-6 overflow-x-auto border-b border-slate-200 [&::-webkit-scrollbar]:hidden">
         {SUPPLIER_SETTINGS_TABS.map((tab) => {
           const Icon = tab.icon;
-          const isSelected = activeTab === tab.id;
+          const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 py-2.5 px-0.5 border-b-2 text-[13px] font-medium transition-colors whitespace-nowrap cursor-pointer -mb-px ${
-                isSelected
-                  ? 'border-[#ff4a1f] text-[#ff4a1f] font-semibold'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+              className={`flex items-center gap-2 pb-3 border-b-2 font-medium text-[13px] whitespace-nowrap transition-colors cursor-pointer ${
+                isActive
+                  ? 'border-[#ff4a1f] text-[#ff4a1f]'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isSelected ? 'text-[#ff4a1f]' : 'text-slate-400'}`} />
+              <Icon size={16} className={isActive ? 'text-[#ff4a1f]' : 'text-slate-400'} />
               <span>{tab.label}</span>
             </button>
           );
@@ -52,14 +52,13 @@ export default function SupplierSettings() {
       </div>
 
       {/* Tab Content Renderer */}
-      <div className="pt-2">
+      <div className="min-h-[500px]">
         {activeTab === 'profile' && <CompanyProfileTab />}
         {activeTab === 'payouts' && <PayoutStripeTab />}
         {activeTab === 'fleet' && <FleetCapacityTab />}
         {activeTab === 'notifications' && <NotificationsTab />}
         {activeTab === 'security' && <SecurityTab />}
       </div>
-
     </div>
   );
 }

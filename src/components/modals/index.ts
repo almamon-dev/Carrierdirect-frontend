@@ -12,3 +12,6 @@ export type { DrawerProps } from './drawer';
 
 export { default as SidePanel } from './side-panel';
 export type { SidePanelProps } from './side-panel';
+
+export { default as SubscriptionLockModal } from './subscription-lock-modal';
+export type { SubscriptionLockModalProps } from './subscription-lock-modal';

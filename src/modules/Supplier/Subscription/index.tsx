@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { 
-  CreditCard, FileText, CheckCircle2, Download, Plus, Receipt, Clock, 
-  ArrowUpRight, ShieldCheck, Zap, Sparkles, Check, Building2, AlertCircle, RefreshCw
+  CreditCard, CheckCircle2, Download, Receipt, 
+  Sparkles, Check, Building2, ShieldCheck, Zap
 } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
-import DataTable from '@/components/tables/data-table';
+import DataTable, { Column } from '@/components/tables/data-table';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Switch from '@/components/ui/switch';
 
@@ -21,28 +21,23 @@ export default function Subscription() {
     { id: 'INV-2026-001', date: 'Apr 10, 2025', description: 'Carrier Verification & Onboarding Setup', amount: '€149.00', status: 'Paid', method: 'Visa •••• 4242' },
   ];
 
-  const columns = [
+  const columns: Column<any>[] = [
     { 
       id: 'id', 
-      label: 'Invoice', 
-      render: (row: any) => (
-        <div className="flex items-center gap-2">
-          <Receipt className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-xs font-semibold text-slate-900">{row.id}</span>
-        </div>
-      ) 
+      label: 'Invoice ID', 
+      render: (row) => <span className="font-bold text-slate-900">{row.id}</span> 
     },
-    { id: 'date', label: 'Date', render: (row: any) => <span className="text-xs text-slate-600 font-medium">{row.date}</span> },
-    { id: 'description', label: 'Description', render: (row: any) => <span className="text-xs text-slate-700 font-medium">{row.description}</span> },
-    { id: 'amount', label: 'Amount', render: (row: any) => <span className="text-xs font-bold text-slate-900">{row.amount}</span> },
-    { id: 'method', label: 'Payment Method', render: (row: any) => <span className="text-[11px] text-slate-500 font-normal">{row.method}</span> },
+    { id: 'date', label: 'Date', render: (row) => <span className="text-xs text-slate-500">{row.date}</span> },
+    { id: 'description', label: 'Description', render: (row) => <span className="font-semibold text-slate-800">{row.description}</span> },
+    { id: 'amount', label: 'Amount', render: (row) => <span className="font-bold text-slate-900">{row.amount}</span> },
+    { id: 'method', label: 'Payment Method', render: (row) => <span className="text-xs text-slate-600 font-medium">{row.method}</span> },
     { 
       id: 'status', 
       label: 'Status', 
-      render: (row: any) => (
-        <Badge className={`text-[10px] font-semibold border ${
-          row.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-        }`}>
+      render: (row) => (
+        <Badge variant="secondary" className={
+          row.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'bg-amber-50 text-amber-700 font-semibold'
+        }>
           {row.status}
         </Badge>
       )
@@ -50,12 +45,12 @@ export default function Subscription() {
     { 
       id: 'actions', 
       label: 'Actions', 
-      render: (row: any) => (
+      render: (row) => (
         <button 
           onClick={() => alert(`Downloading Invoice ${row.id}`)}
           className="text-xs text-[#ff4a1f] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
         >
-          <Download className="w-3 h-3" /> PDF
+          <Download size={13} /> PDF Receipt
         </button>
       )
     },
@@ -105,17 +100,17 @@ export default function Subscription() {
   return (
     <div className="p-4 md:p-6 w-full mx-auto space-y-5 font-sans antialiased pb-20 min-h-screen">
       
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-3">
+      {/* Page Header matching Active Jobs & Team Management */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Subscription & Billing Management</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Subscription & Billing Management</h1>
+          <p className="text-xs text-slate-500 font-medium">
             Monitor active plan quotas, billing cycles, payment methods, and invoice receipts.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge className="bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200 px-2.5 py-1">
+          <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 px-2.5 py-1">
             <CheckCircle2 className="w-3.5 h-3.5 mr-1 shrink-0 inline-block text-emerald-600" /> Account Verified & Active
           </Badge>
         </div>
@@ -125,7 +120,7 @@ export default function Subscription() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
         {/* Active Plan Overview Card */}
-        <Card className="shadow-2xs border-slate-200 lg:col-span-1 flex flex-col justify-between">
+        <Card className="shadow-2xs border-slate-200 lg:col-span-1 flex flex-col justify-between rounded-xl">
           <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
               <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
@@ -158,7 +153,7 @@ export default function Subscription() {
         </Card>
 
         {/* Live Quota Usage Trackers */}
-        <Card className="shadow-2xs border-slate-200 lg:col-span-2">
+        <Card className="shadow-2xs border-slate-200 lg:col-span-2 rounded-xl">
           <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50">
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
               <Zap className="w-4 h-4 text-[#ff4a1f]" />
@@ -209,7 +204,7 @@ export default function Subscription() {
       </div>
 
       {/* Subscription Plans Selection Section */}
-      <Card className="shadow-2xs border-slate-200">
+      <Card className="shadow-2xs border-slate-200 rounded-xl">
         <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
@@ -325,7 +320,7 @@ export default function Subscription() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* Registered Payment Method */}
-        <Card className="shadow-2xs border-slate-200">
+        <Card className="shadow-2xs border-slate-200 rounded-xl">
           <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
               <CreditCard className="w-4 h-4 text-[#ff4a1f]" />
@@ -363,7 +358,7 @@ export default function Subscription() {
         </Card>
 
         {/* Billing Address & VAT Details */}
-        <Card className="shadow-2xs border-slate-200">
+        <Card className="shadow-2xs border-slate-200 rounded-xl">
           <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
               <Building2 className="w-4 h-4 text-[#ff4a1f]" />
@@ -388,18 +383,17 @@ export default function Subscription() {
 
       </div>
 
-      {/* Invoice Receipts Table */}
-      <Card className="shadow-2xs border-slate-200">
-        <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50">
-          <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
-            <Receipt className="w-4 h-4 text-[#ff4a1f]" />
-            Billing History & Downloadable Receipts
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <DataTable columns={columns} data={history} hideViewToggle={true} />
-        </CardContent>
-      </Card>
+      {/* Direct Standard DataTable for Billing History & Receipts */}
+      <div className="p-0 space-y-2">
+        <h3 className="text-xs font-bold text-slate-900 px-1">Billing History & Downloadable Receipts</h3>
+        <DataTable 
+          columns={columns} 
+          data={history} 
+          compact={true}
+          searchPlaceholder="Search invoices by ID, date, description..."
+          hideViewToggle={true}
+        />
+      </div>
 
     </div>
   );

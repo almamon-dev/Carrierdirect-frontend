@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Users, Shield, UserPlus, Clock, Settings, LayoutDashboard, Plus, Mail } from 'lucide-react';
+import { Users, Shield, UserPlus, Clock, LayoutDashboard, Plus, Mail } from 'lucide-react';
 import Button from '@/components/ui/button';
 
 import DashboardTab from './components/DashboardTab';
@@ -18,10 +18,6 @@ export default function TeamManagement() {
     const handleTabChange = (tabId: string) => {
         const newParams = new URLSearchParams(searchParams);
         newParams.set('tab', tabId);
-        newParams.set('teamMember', 'dsfsdjf87f87ds78fdsfds7fydfdsnyfdsy7');
-        if (!newParams.has('session_id')) {
-            newParams.set('session_id', 'sess_' + Math.random().toString(36).substr(2, 9));
-        }
         setSearchParams(newParams);
     };
 
@@ -34,35 +30,38 @@ export default function TeamManagement() {
     ];
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
-            <div className="flex items-start justify-between mb-6">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5">
+            {/* Header matching Active Jobs & Shipments */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900 mb-1">Team Management</h1>
-                    <p className="text-sm text-slate-500">Manage your organization's staff, roles, and permissions.</p>
+                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Team Management</h1>
+                    <p className="text-xs text-slate-500 font-medium">Manage your organization staff, access roles, and permissions.</p>
                 </div>
 
-                {activeTab === 'members' && (
-                    <Button variant="primary" className="gap-2" onClick={() => setIsCreateModalOpen(true)}>
-                        <UserPlus size={16} />
-                        <span>Create Team Member</span>
-                    </Button>
-                )}
-                {activeTab === 'roles' && (
-                    <Button variant="primary" className="gap-2">
-                        <Plus size={16} />
-                        <span>Create Custom Role</span>
-                    </Button>
-                )}
-                {activeTab === 'invitations' && (
-                    <Button variant="primary" className="gap-2">
-                        <Mail size={16} />
-                        <span>Invite Member</span>
-                    </Button>
-                )}
+                <div className="flex items-center gap-2">
+                    {activeTab === 'members' && (
+                        <Button variant="primary" size="sm" className="h-9 px-4 text-xs font-semibold gap-2" onClick={() => setIsCreateModalOpen(true)}>
+                            <UserPlus size={14} />
+                            <span>Create Team Member</span>
+                        </Button>
+                    )}
+                    {activeTab === 'roles' && (
+                        <Button variant="primary" size="sm" className="h-9 px-4 text-xs font-semibold gap-2">
+                            <Plus size={14} />
+                            <span>Create Custom Role</span>
+                        </Button>
+                    )}
+                    {activeTab === 'invitations' && (
+                        <Button variant="primary" size="sm" className="h-9 px-4 text-xs font-semibold gap-2">
+                            <Mail size={14} />
+                            <span>Invite Member</span>
+                        </Button>
+                    )}
+                </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex gap-6 overflow-x-auto border-b border-slate-200 mb-6 [&::-webkit-scrollbar]:hidden">
+            {/* Navigation Tabs matching app styling */}
+            <div className="flex gap-6 overflow-x-auto border-b border-slate-200 [&::-webkit-scrollbar]:hidden">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -72,12 +71,12 @@ export default function TeamManagement() {
                             onClick={() => handleTabChange(tab.id)}
                             className={`flex items-center gap-2 pb-3 border-b-2 font-medium text-[13px] whitespace-nowrap transition-colors ${
                                 isActive 
-                                ? 'border-brand text-indigo-700' 
+                                ? 'border-[#ff4a1f] text-[#ff4a1f]' 
                                 : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
                             }`}
                         >
-                            <Icon size={16} className={isActive ? 'text-brand' : 'text-slate-400'} />
-                            {tab.label}
+                            <Icon size={16} className={isActive ? 'text-[#ff4a1f]' : 'text-slate-400'} />
+                            <span>{tab.label}</span>
                         </button>
                     );
                 })}

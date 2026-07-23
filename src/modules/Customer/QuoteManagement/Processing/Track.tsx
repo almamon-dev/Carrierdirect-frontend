@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, ShieldCheck, RefreshCw, Sparkles, MapPin, Truck } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
 
@@ -16,13 +16,13 @@ export default function ProcessingTrack() {
     const navigate = useNavigate();
     const [isPodAccepted, setIsPodAccepted] = useState(false);
 
-    // Mock order details
+    // Order details state
     const order = {
         id: id || 'ORD-5591',
-        status: isPodAccepted ? 'Payment Pending' : 'Delivered (Pending POD)',
-        estArrival: '2026-07-26 10:00 AM',
-        from: 'Dhaka',
-        to: 'Chittagong',
+        status: isPodAccepted ? 'Payment Released' : 'In Transit (Pending POD)',
+        estArrival: 'Jul 26, 2026 • 10:00 AM',
+        from: 'Dhaka (EPZ)',
+        to: 'Chittagong (Port)',
         vehicle: {
             type: 'Covered Van (14ft)',
             number: 'DHA-11-2233',
@@ -30,21 +30,21 @@ export default function ProcessingTrack() {
             goodsType: 'Electronics & Fragile'
         },
         supplier: {
-            name: 'Global Transport',
+            name: 'Global Transport Express',
             verified: true,
             rating: 4.8,
             reviews: 320,
-            active: 'Active 20m ago',
+            active: 'Active 12m ago',
             memberSince: '2023',
             completedOrders: 1540
         },
         pricing: {
-            base: 40000,
-            loading: 3500,
-            insurance: 1500,
-            total: 45000,
-            advancePaid: 13500,
-            due: 31500
+            base: 1250,
+            loading: 150,
+            insurance: 45,
+            total: 1445,
+            advancePaid: 445,
+            due: 1000
         }
     };
 
@@ -52,55 +52,88 @@ export default function ProcessingTrack() {
         { status: 'Order Confirmed', time: 'Jul 24, 09:00 AM', completed: true, active: false },
         { status: 'Driver Assigned', time: 'Jul 24, 11:30 AM', completed: true, active: false },
         { status: 'Goods Picked Up', time: 'Jul 25, 08:15 AM', completed: true, active: false },
-        { status: 'In Transit', time: 'Jul 26, 09:30 AM', completed: true, active: false, location: 'Highway N1, Comilla' },
-        { status: 'Delivered', time: 'Jul 26, 11:45 AM', completed: true, active: false },
+        { status: 'In Transit', time: 'Jul 26, 09:30 AM', completed: true, active: true, location: 'Highway N1, Comilla Checkpoint' },
+        { status: 'Destination Delivery', time: 'Jul 26, 11:45 AM', completed: isPodAccepted, active: false },
         { 
             status: isPodAccepted ? 'POD Accepted' : 'Waiting for POD', 
             time: isPodAccepted ? 'Just now' : 'Action Required', 
             completed: isPodAccepted, 
-            active: !isPodAccepted 
+            active: false 
         },
         { 
             status: 'Order Completed', 
-            time: isPodAccepted ? 'Finished' : 'Locked', 
+            time: isPodAccepted ? 'Finished' : 'Pending', 
             completed: isPodAccepted, 
             active: false 
         },
     ];
 
     return (
-        <div className="p-3 md:p-4 w-full mx-auto flex flex-col min-h-screen">
-            {/* Header */}
-            <div className="mb-3 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 rounded-full hover:bg-slate-100 -ml-1.5" onClick={() => navigate(-1)}>
-                        <ArrowLeft size={18} />
+        <div className="p-4 md:p-6 w-full mx-auto flex flex-col min-h-screen font-sans bg-[#f8f9fa] pb-20">
+            
+            {/* Header Section */}
+            <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 border-b border-slate-200 pb-4">
+                <div className="flex items-center gap-3">
+                    <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-8.5 w-8.5 text-slate-600 rounded-lg hover:bg-slate-100 border-slate-200 cursor-pointer shrink-0" 
+                        onClick={() => navigate(-1)}
+                    >
+                        <ArrowLeft size={16} />
                     </Button>
-                    <h1 className="text-[18px] font-bold text-slate-900 tracking-tight">Order {order.id}</h1>
-                    <Badge variant="warning" className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider">{order.status}</Badge>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-lg font-bold text-slate-900 tracking-tight">Track Order {order.id}</h1>
+                            <Badge className="px-2 py-0.5 text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                {order.status}
+                            </Badge>
+                        </div>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-2">
+                            <span>Route: <strong className="text-slate-800">{order.from}</strong> ➔ <strong className="text-slate-800">{order.to}</strong></span>
+                        </p>
+                    </div>
                 </div>
-                <div className="text-[13px] text-slate-500 flex items-center gap-1.5">
-                    <Clock size={14} /> ETA: <span className="font-semibold text-slate-700">{order.estArrival}</span>
+
+                <div className="flex items-center gap-2">
+                    <Badge className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-2.5 py-1 flex items-center gap-1.5">
+                        <Clock size={13} className="text-[#ff4a1f]" />
+                        <span>ETA: <strong className="text-slate-900">{order.estArrival}</strong></span>
+                    </Badge>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsPodAccepted(!isPodAccepted)}
+                        className="h-8 text-xs font-bold text-[#ff4a1f] border-orange-200 bg-orange-50 hover:bg-orange-100 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    >
+                        <Sparkles size={13} /> {isPodAccepted ? 'Reset Demo POD' : '⚡ Simulate POD Accept'}
+                    </Button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1">
-                {/* Left Column: Map & Info Cards */}
-                <div className="lg:col-span-8 flex flex-col gap-3">
+            {/* Main Content Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-start">
+                
+                {/* Left Column: Interactive Map & Details */}
+                <div className="lg:col-span-8 flex flex-col gap-5">
                     <MapSection order={order} timeline={timeline} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <VehicleDetails vehicle={order.vehicle} supplier={order.supplier} />
                         <AmountBreakdown pricing={order.pricing} />
                     </div>
                 </div>
 
-                {/* Right Column: Supplier Info & Tracking Timeline */}
-                <div className="lg:col-span-4 flex flex-col gap-3 h-full">
+                {/* Right Column: Carrier Profile, POD Action & Timeline */}
+                <div className="lg:col-span-4 flex flex-col gap-5 h-full">
                     <SupplierProfile supplier={order.supplier} />
                     <PODAction isPodAccepted={isPodAccepted} setIsPodAccepted={setIsPodAccepted} />
                     <TimelineSection timeline={timeline} />
                 </div>
+
             </div>
+
         </div>
     );
 }

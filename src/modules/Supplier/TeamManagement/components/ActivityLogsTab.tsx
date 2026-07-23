@@ -1,68 +1,106 @@
-import React from 'react';
-import { Activity, LogIn, Lock, CheckCircle, Package, Truck, CreditCard, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import DataTable, { Column } from '@/components/tables/data-table';
+import Badge from '@/components/ui/badge';
 import Select from '@/components/ui/select';
 
+export interface ActivityLogItem {
+    id: number;
+    user: string;
+    action: string;
+    target: string;
+    category: string;
+    time: string;
+}
+
 export default function ActivityLogsTab() {
-    const logs = [
-        { id: 1, user: 'John Doe', action: 'Accepted Quote', target: 'QT-8822', time: '10:30 AM, Today', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { id: 2, user: 'Jane Smith', action: 'Assigned Driver', target: 'Order #1023', time: '09:15 AM, Today', icon: Truck, color: 'text-brand', bg: 'bg-brand-light' },
-        { id: 3, user: 'Sarah Lee', action: 'Updated Shipment', target: 'SH-4421', time: 'Yesterday, 04:30 PM', icon: Package, color: 'text-brand', bg: 'bg-brand-light' },
-        { id: 4, user: 'John Doe', action: 'Login History', target: 'System Access', time: 'Yesterday, 09:00 AM', icon: LogIn, color: 'text-slate-600', bg: 'bg-slate-100' },
-        { id: 5, user: 'Mike Ross', action: 'Password Changed', target: 'Security', time: 'Jul 15, 10:00 AM', icon: Lock, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { id: 6, user: 'Admin', action: 'Settings Updated', target: 'Company Profile', time: 'Jul 10, 02:00 PM', icon: Settings, color: 'text-slate-600', bg: 'bg-slate-100' },
+    const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+    const [selectedUserFilter, setSelectedUserFilter] = useState<string>('all');
+
+    const logs: ActivityLogItem[] = [
+        { id: 1, user: 'John Doe', action: 'Accepted quote offer', target: 'QT-8822', category: 'Quotes', time: '10:30 AM, Today' },
+        { id: 2, user: 'Jane Smith', action: 'Assigned heavy truck driver to order', target: 'ORD-1023', category: 'Dispatch', time: '09:15 AM, Today' },
+        { id: 3, user: 'Sarah Lee', action: 'Updated warehouse dispatch roster', target: 'WH-East', category: 'Warehouse', time: 'Yesterday, 04:30 PM' },
+        { id: 4, user: 'John Doe', action: 'Logged into supplier portal', target: 'Session IP 192.168.1.45', category: 'Security', time: 'Yesterday, 09:00 AM' },
+        { id: 5, user: 'Mike Ross', action: 'Updated security password & 2FA', target: 'User Profile Security', category: 'Security', time: 'Jul 15, 10:00 AM' },
+        { id: 6, user: 'Alex Rivera', action: 'Exported quarterly payout statement', target: 'FIN-2026-Q2', category: 'Finance', time: 'Jul 12, 11:45 AM' },
+        { id: 7, user: 'Admin User', action: 'Updated Company CMR Insurance Policy', target: 'Company Profile Settings', category: 'Settings', time: 'Jul 10, 02:00 PM' },
     ];
 
-    return (
-        <div className="p-4 h-full flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm min-h-[500px]">
-            <div className="flex items-center justify-between mb-4">
-                <div>
-                    <h2 className="text-[15px] font-bold text-slate-800">Activity Logs</h2>
-                    <p className="text-[13px] text-slate-500 mt-1">Recent actions performed by your team members.</p>
-                </div>
-                <div className="flex gap-2">
-                    <Select 
-                        className="w-[140px]"
-                        value="all"
-                        showSearch={false}
-                        options={[
-                            { id: 'all', name: 'All Members' },
-                            { id: 'john', name: 'John Doe' },
-                            { id: 'jane', name: 'Jane Smith' },
-                        ]}
-                    />
-                    <Select 
-                        className="w-[140px]"
-                        value="all_activity"
-                        showSearch={false}
-                        options={[
-                            { id: 'all_activity', name: 'All Activity' },
-                            { id: 'orders', name: 'Orders' },
-                            { id: 'security', name: 'Security' },
-                        ]}
-                    />
-                </div>
+    const filteredLogs = logs.filter(log => {
+        const matchesCategory = selectedCategoryFilter === 'all' || log.category.toLowerCase() === selectedCategoryFilter.toLowerCase();
+        const matchesUser = selectedUserFilter === 'all' || log.user.toLowerCase().includes(selectedUserFilter.toLowerCase());
+        return matchesCategory && matchesUser;
+    });
+
+    const columns: Column<ActivityLogItem>[] = [
+        { 
+            id: 'user', 
+            label: 'Staff Member', 
+            render: (row) => <span className="font-bold text-slate-900">{row.user}</span> 
+        },
+        { 
+            id: 'action', 
+            label: 'Action Performed', 
+            render: (row) => <span className="text-xs font-semibold text-slate-800">{row.action}</span> 
+        },
+        { 
+            id: 'target', 
+            label: 'Target / Item', 
+            render: (row) => <span className="font-bold text-[#ff4a1f]">{row.target}</span> 
+        },
+        { 
+            id: 'category', 
+            label: 'Category', 
+            render: (row) => (
+                <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-semibold">
+                    {row.category}
+                </Badge>
+            ) 
+        },
+        { 
+            id: 'time', 
+            label: 'Timestamp', 
+            render: (row) => <span className="text-[11px] font-semibold text-slate-500">{row.time}</span> 
+        }
+    ];
+
+    const filterContent = (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600">Category Filter</label>
+                <Select value={selectedCategoryFilter} onChange={(e) => setSelectedCategoryFilter(e.target.value)} showSearch={false}>
+                    <option value="all">All Categories</option>
+                    <option value="quotes">Quotes</option>
+                    <option value="dispatch">Dispatch</option>
+                    <option value="warehouse">Warehouse</option>
+                    <option value="security">Security</option>
+                    <option value="finance">Finance</option>
+                </Select>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
-                <div className="space-y-2">
-                    {logs.map(log => {
-                        const Icon = log.icon;
-                        return (
-                            <div key={log.id} className="flex items-start gap-3 p-3 border border-slate-100 rounded-lg bg-slate-50 hover:bg-white hover:border-slate-200 transition-colors shadow-sm">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${log.bg}`}>
-                                    <Icon size={14} className={log.color} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[13px] text-slate-800 leading-tight">
-                                        <span className="font-bold text-slate-900">{log.user}</span> {log.action.toLowerCase()} <span className="font-medium text-brand">{log.target}</span>
-                                    </p>
-                                    <p className="text-[11px] text-slate-500 mt-0.5 font-medium">{log.time}</p>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600">Staff Filter</label>
+                <Select value={selectedUserFilter} onChange={(e) => setSelectedUserFilter(e.target.value)} showSearch={false}>
+                    <option value="all">All Staff</option>
+                    <option value="john">John Doe</option>
+                    <option value="jane">Jane Smith</option>
+                    <option value="sarah">Sarah Lee</option>
+                    <option value="mike">Mike Ross</option>
+                </Select>
             </div>
+        </div>
+    );
+
+    return (
+        <div className="p-0 space-y-5">
+            <DataTable 
+                columns={columns} 
+                data={filteredLogs} 
+                compact={true}
+                searchPlaceholder="Search activity logs by user, action, target..."
+                hideViewToggle={true}
+                filterContent={filterContent}
+            />
         </div>
     );
 }

@@ -21,9 +21,9 @@ export default function SupplierNegotiation() {
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Negotiation ID', render: (row) => <span className="text-[#FF4A1F] font-bold whitespace-nowrap">{row.id}</span> },
-    { id: 'quoteId', label: 'Quote ID', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.quoteId}</span> },
-    { id: 'customer', label: 'Customer / Shipper', render: (row) => <span className="whitespace-nowrap text-slate-800 font-semibold">{row.customer}</span> },
+    { id: 'id', label: 'Negotiation ID', render: (row) => <span className="text-[#ff4a1f] font-bold whitespace-nowrap">{row.id}</span> },
+    { id: 'quoteId', label: 'Quote ID', render: (row) => <span className="text-slate-600 font-semibold whitespace-nowrap">{row.quoteId}</span> },
+    { id: 'customer', label: 'Customer / Shipper', render: (row) => <span className="whitespace-nowrap text-slate-900 font-bold">{row.customer}</span> },
     { 
       id: 'originalAmount', 
       label: 'Original Price', 
@@ -47,7 +47,7 @@ export default function SupplierNegotiation() {
         );
       }
     },
-    { id: 'lastUpdated', label: 'Last Activity', render: (row) => <span className="whitespace-nowrap text-slate-500">{row.lastUpdated}</span> },
+    { id: 'lastUpdated', label: 'Last Activity', render: (row) => <span className="whitespace-nowrap text-xs text-slate-500">{row.lastUpdated}</span> },
     { 
       id: 'status', 
       label: 'Status',
@@ -64,11 +64,11 @@ export default function SupplierNegotiation() {
 
   const actions = (row: any) => (
     <div className="flex items-center justify-end gap-2">
-      <Button variant="outline" size="sm" className="h-7 px-2 text-xs font-semibold" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
+      <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
         <Eye size={13} className="mr-1" /> View
       </Button>
       {activeTab === 'active' && (
-        <Button variant="primary" size="sm" className="h-7 px-2 text-xs font-semibold bg-[#FF4A1F] hover:bg-[#E03E15] text-white" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
+        <Button variant="primary" size="sm" className="h-8 px-2.5 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
           <MessageSquare size={13} className="mr-1" /> Reply
         </Button>
       )}
@@ -78,10 +78,10 @@ export default function SupplierNegotiation() {
   const displayData = activeTab === 'active' ? activeData : historyData;
 
   return (
-    <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans">
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 mb-1">Negotiation Management</h1>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Negotiation Management</h1>
           <p className="text-xs text-slate-500 font-medium">Manage active customer price counter offers and track negotiation history.</p>
         </div>
 
@@ -92,7 +92,7 @@ export default function SupplierNegotiation() {
             onClick={() => setActiveTab('active')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'active'
-                ? 'bg-white text-[#FF4A1F] shadow-2xs'
+                ? 'bg-white text-[#ff4a1f] shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -105,7 +105,7 @@ export default function SupplierNegotiation() {
             onClick={() => setActiveTab('history')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'history'
-                ? 'bg-white text-[#FF4A1F] shadow-2xs'
+                ? 'bg-white text-[#ff4a1f] shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -121,6 +121,7 @@ export default function SupplierNegotiation() {
         actions={actions}
         searchPlaceholder={activeTab === 'active' ? "Search active negotiations..." : "Search negotiation history..."}
         compact={true}
+        hideViewToggle={true}
       />
     </div>
   );

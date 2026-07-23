@@ -37,15 +37,19 @@ export default function RoleDetail({ role, onBack }: { role: any, onBack: () => 
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
+                    <Button variant="outline" size="sm" onClick={onBack} className="h-9 px-3 gap-1.5 text-slate-600 hover:text-slate-900">
+                        <ArrowLeft size={16} />
+                        <span>Back to Roles</span>
+                    </Button>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h2 className="text-[15px] font-bold text-slate-800">{role.name}</h2>
-                            <Badge variant="secondary" className="bg-brand-light text-indigo-700 h-5 px-1.5 text-[10px]">Role Edit</Badge>
+                            <h2 className="text-base font-bold text-slate-900">{role.name}</h2>
+                            <Badge variant="secondary" className="bg-brand-light text-brand h-5 px-1.5 text-[10px] border border-brand/20">RBAC Matrix</Badge>
                         </div>
-                        <p className="text-[12px] text-slate-500 mt-1">Modify permissions and view assigned users.</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Modify role permissions, module visibility, and assigned staff members.</p>
                     </div>
                 </div>
-                <Button variant="primary" className="gap-2">
+                <Button variant="primary" className="gap-2 shadow-sm" onClick={onBack}>
                     <Save size={16} />
                     <span>Save Changes</span>
                 </Button>

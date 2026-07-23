@@ -1,50 +1,80 @@
 import React, { useState } from 'react';
-import { Euro, ExternalLink, ShieldCheck, AlertCircle, Download, ArrowUpRight, TrendingUp, Clock, ArrowRight } from 'lucide-react';
-import Button from '@/components/ui/button';
+import { Euro, ShieldCheck, AlertCircle, ArrowUpRight, TrendingUp, Clock, ArrowRight } from 'lucide-react';
 import Badge from '@/components/ui/badge';
-import DataTable from '@/components/tables/data-table';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import DataTable, { Column } from '@/components/tables/data-table';
+import Select from '@/components/ui/select';
+
+export interface WithdrawalItem {
+    id: string;
+    date: string;
+    reference: string;
+    amount: string;
+    fee: string;
+    netAmount: string;
+    method: string;
+    status: 'Completed' | 'Processing' | 'Failed';
+}
 
 export default function Withdrawal() {
     const [isStripeConnected, setIsStripeConnected] = useState(false);
+    const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
 
     // Dummy withdrawal history
-    const history = [
+    const history: WithdrawalItem[] = [
         { id: 'WD-89234', date: 'Jul 15, 2026', reference: 'Auto-Payout', amount: '€4,250.00', fee: '€25.00', netAmount: '€4,225.00', method: 'Stripe (**** 4242)', status: 'Completed' },
         { id: 'WD-89230', date: 'Jul 01, 2026', reference: 'Manual Payout', amount: '€3,800.00', fee: '€15.00', netAmount: '€3,785.00', method: 'Stripe (**** 4242)', status: 'Completed' },
         { id: 'WD-89215', date: 'Jun 15, 2026', reference: 'Auto-Payout', amount: '€5,100.00', fee: '€30.00', netAmount: '€5,070.00', method: 'Stripe (**** 4242)', status: 'Completed' },
     ];
 
-    const columns = [
-        { id: 'id', label: 'Transaction ID', render: (row: any) => <span className="text-[13px] font-semibold text-slate-800">{row.id}</span> },
-        { id: 'date', label: 'Date', render: (row: any) => <span className="text-[12px] text-slate-600">{row.date}</span> },
-        { id: 'reference', label: 'Reference', render: (row: any) => <span className="text-[12px] text-slate-500">{row.reference}</span> },
-        { id: 'method', label: 'Destination', render: (row: any) => <span className="text-[12px] text-slate-600">{row.method}</span> },
-        { id: 'amount', label: 'Gross Amount', render: (row: any) => <span className="text-[12px] font-medium text-slate-700">{row.amount}</span> },
-        { id: 'fee', label: 'Fees', render: (row: any) => <span className="text-[12px] text-red-600">-{row.fee}</span> },
-        { id: 'netAmount', label: 'Net Amount', render: (row: any) => <span className="text-[13px] font-bold text-emerald-600">{row.netAmount}</span> },
+    const filteredHistory = history.filter(item => {
+        if (selectedStatusFilter === 'all') return true;
+        return item.status.toLowerCase() === selectedStatusFilter.toLowerCase();
+    });
+
+    const columns: Column<WithdrawalItem>[] = [
+        { id: 'id', label: 'Transaction ID', render: (row) => <span className="font-bold text-slate-900">{row.id}</span> },
+        { id: 'date', label: 'Date', render: (row) => <span className="text-xs text-slate-500">{row.date}</span> },
+        { id: 'reference', label: 'Reference', render: (row) => <span className="text-xs text-slate-500">{row.reference}</span> },
+        { id: 'method', label: 'Destination', render: (row) => <span className="font-semibold text-slate-800">{row.method}</span> },
+        { id: 'amount', label: 'Gross Amount', render: (row) => <span className="font-semibold text-slate-800">{row.amount}</span> },
+        { id: 'fee', label: 'Fees', render: (row) => <span className="font-semibold text-red-600">-{row.fee}</span> },
+        { id: 'netAmount', label: 'Net Amount', render: (row) => <span className="font-bold text-emerald-600">{row.netAmount}</span> },
         { 
             id: 'status', 
             label: 'Status', 
-            render: (row: any) => (
-                <Badge variant="secondary" className={`h-5 px-1.5 text-[10px] ${
+            render: (row) => (
+                <Badge variant="secondary" className={
                     row.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 font-semibold' :
                     row.status === 'Processing' ? 'bg-amber-50 text-amber-700 font-semibold' :
                     'bg-red-50 text-red-700 font-semibold'
-                }`}>
+                }>
                     {row.status}
                 </Badge>
             )
         },
     ];
 
+    const filterContent = (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600">Payout Status</label>
+                <Select value={selectedStatusFilter} onChange={(e) => setSelectedStatusFilter(e.target.value)} showSearch={false}>
+                    <option value="all">All Payouts</option>
+                    <option value="completed">Completed</option>
+                    <option value="processing">Processing</option>
+                    <option value="failed">Failed</option>
+                </Select>
+            </div>
+        </div>
+    );
+
     return (
         <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {/* Header matching Active Jobs & Team Management */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900">Earnings & Payouts</h1>
-                    <p className="text-[12px] text-slate-500 mt-0.5">Manage your Stripe Connect account and payout history.</p>
+                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Earnings & Payouts</h1>
+                    <p className="text-xs text-slate-500 font-medium">Manage your Stripe Connect account and payout history.</p>
                 </div>
             </div>
 
@@ -83,20 +113,20 @@ export default function Withdrawal() {
                 {/* Balance Card */}
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-orange-50 text-[#ff4a1f]">
-                            <Euro size={15} strokeWidth={2.5} />
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-50 text-[#ff4a1f]">
+                            <Euro size={16} strokeWidth={2.5} />
                         </div>
                     </div>
                     <div className="flex items-end justify-between mt-auto">
                         <div>
                             <h3 className="text-base font-bold text-slate-900 mb-0.5">€12,450.00</h3>
-                            <p className="text-[10.5px] font-semibold text-slate-500">Available Balance</p>
+                            <p className="text-xs font-medium text-slate-500">Available Balance</p>
                         </div>
                         <button 
-                            className="text-[11px] text-[#ff4a1f] hover:underline font-bold disabled:text-slate-400 disabled:hover:no-underline transition-all flex items-center gap-1 cursor-pointer" 
+                            className="text-xs text-[#ff4a1f] hover:underline font-bold disabled:text-slate-400 disabled:hover:no-underline transition-all flex items-center gap-1 cursor-pointer" 
                             disabled={!isStripeConnected}
                         >
-                             Withdraw <ArrowUpRight size={11} />
+                             Withdraw <ArrowUpRight size={12} />
                         </button>
                     </div>
                 </div>
@@ -104,47 +134,47 @@ export default function Withdrawal() {
                 {/* Pending Clearance Card */}
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-amber-50 text-amber-600">
-                            <Clock size={15} strokeWidth={2.5} />
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 text-amber-600">
+                            <Clock size={16} strokeWidth={2.5} />
                         </div>
                     </div>
                     <div>
                         <h3 className="text-base font-bold text-slate-900 mb-0.5">€3,200.00</h3>
-                        <p className="text-[10.5px] font-semibold text-slate-500">Pending Clearance</p>
+                        <p className="text-xs font-medium text-slate-500">Pending Clearance</p>
                     </div>
                 </div>
 
                 {/* Total Earnings Card */}
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="w-7 h-7 rounded-md flex items-center justify-center bg-emerald-50 text-emerald-600">
-                            <TrendingUp size={15} strokeWidth={2.5} />
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600">
+                            <TrendingUp size={16} strokeWidth={2.5} />
                         </div>
                     </div>
                     <div>
                         <h3 className="text-base font-bold text-slate-900 mb-0.5">€145,280.00</h3>
-                        <p className="text-[10.5px] font-semibold text-slate-500">Total Earnings</p>
+                        <p className="text-xs font-medium text-slate-500">Total Earnings</p>
                     </div>
                 </div>
 
-                {/* Stripe Connect Card (Highlighted when Action Required) */}
+                {/* Stripe Connect Card */}
                 <div className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
                     !isStripeConnected 
                         ? 'bg-red-50/30 border-red-300 ring-2 ring-red-500/20 shadow-xs' 
                         : 'bg-white border-slate-200 shadow-2xs'
                 }`}>
                     <div className="flex justify-between items-start mb-2">
-                        <div className={`w-7 h-7 rounded-md flex items-center justify-center ${
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                             isStripeConnected ? 'bg-[#635BFF]/10 text-[#635BFF]' : 'bg-red-100 text-red-600'
                         }`}>
-                            {isStripeConnected ? <ShieldCheck size={15} strokeWidth={2.5} /> : <AlertCircle size={15} strokeWidth={2.5} />}
+                            {isStripeConnected ? <ShieldCheck size={16} strokeWidth={2.5} /> : <AlertCircle size={16} strokeWidth={2.5} />}
                         </div>
                         {isStripeConnected ? (
-                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200">
+                            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 font-semibold text-[10px]">
                                 Connected
-                            </span>
+                            </Badge>
                         ) : (
-                            <span className="px-2.5 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-full shadow-2xs animate-pulse">
+                            <span className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-full shadow-2xs animate-pulse">
                                 Action Required
                             </span>
                         )}
@@ -152,19 +182,19 @@ export default function Withdrawal() {
                     <div className="flex items-end justify-between mt-auto">
                         <div>
                             <h3 className="text-base font-bold text-slate-900 mb-0.5">Stripe Connect</h3>
-                            <p className="text-[10.5px] font-semibold text-slate-500">
+                            <p className="text-xs font-medium text-slate-500">
                                 {isStripeConnected ? 'Securely linked.' : 'Setup required for payouts'}
                             </p>
                         </div>
                         {!isStripeConnected ? (
                             <button 
-                                className="text-[11px] text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1 cursor-pointer" 
+                                className="text-xs text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1 cursor-pointer" 
                                 onClick={() => setIsStripeConnected(true)}
                             >
                                 Setup
                             </button>
                         ) : (
-                            <button className="text-[11px] text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1 cursor-pointer">
+                            <button className="text-xs text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1 cursor-pointer">
                                 Dashboard
                             </button>
                         )}
@@ -172,19 +202,17 @@ export default function Withdrawal() {
                 </div>
             </div>
 
-            {/* Table */}
-            <Card className="flex flex-col border-slate-200 shadow-2xs rounded-xl overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between py-3 px-4 bg-slate-50/50 border-b border-slate-100">
-                    <CardTitle className="text-[14px] font-bold text-slate-900">Payout History</CardTitle>
-                    <Button variant="ghost" className="h-7 text-[11px] px-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 gap-1.5 cursor-pointer">
-                        <Download size={13} />
-                        Export
-                    </Button>
-                </CardHeader>
-                <div className="p-0">
-                    <DataTable columns={columns} data={history} hideViewToggle={true} />
-                </div>
-            </Card>
+            {/* Direct DataTable matching Active Jobs & Team Management */}
+            <div className="p-0">
+                <DataTable 
+                    columns={columns} 
+                    data={filteredHistory} 
+                    compact={true} 
+                    searchPlaceholder="Search payouts by transaction ID, method..."
+                    hideViewToggle={true} 
+                    filterContent={filterContent}
+                />
+            </div>
         </div>
     );
 }
