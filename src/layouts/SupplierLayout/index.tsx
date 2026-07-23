@@ -62,7 +62,7 @@ export default function SupplierLayout() {
             {/* Main Content Wrapper */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header */}
-                <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 z-10 shrink-0">
+                <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 shadow-2xs">
                     <div className="flex items-center gap-6">
                         <button
                             className="text-slate-600 hover:text-[#ff4a1f] transition-colors cursor-pointer"
@@ -157,7 +157,7 @@ export default function SupplierLayout() {
 
                             {/* User Profile Dropdown Modal */}
                             {isProfileOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 animate-fade-in text-sm font-medium">
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-[999] animate-fade-in text-sm font-medium">
                                     <Link
                                         to="/supplier/settings"
                                         onClick={() => setIsProfileOpen(false)}

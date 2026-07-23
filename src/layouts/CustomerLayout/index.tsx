@@ -66,7 +66,7 @@ export default function CustomerLayout() {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header Navbar */}
-                <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 z-10 shrink-0 shadow-xs">
+                <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 shadow-2xs">
                     <div className="flex items-center gap-5">
                         <button
                             className="text-slate-600 hover:text-[#ff4a1f] transition-colors cursor-pointer"
@@ -109,7 +109,7 @@ export default function CustomerLayout() {
                             </button>
 
                             {isNotificationOpen && (
-                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg border border-slate-200 shadow-xl z-50 overflow-hidden animate-fade-in text-xs">
+                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl border border-slate-200 shadow-2xl z-[999] overflow-hidden animate-fade-in text-xs">
                                     <div className="px-4 py-3 bg-slate-900 text-white font-bold flex items-center justify-between">
                                         <span>Notifications</span>
                                         <span className="bg-[#ff4a1f] text-white px-1.5 py-0.5 rounded text-[10px]">4 New</span>
@@ -146,7 +146,7 @@ export default function CustomerLayout() {
                             </button>
 
                             {isProfileOpen && (
-                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg border border-slate-200 shadow-xl z-50 overflow-hidden animate-fade-in text-xs py-1">
+                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-2xl z-[999] overflow-hidden animate-fade-in text-xs py-1">
                                     <div className="px-4 py-2.5 border-b border-slate-100">
                                         <p className="font-bold text-slate-900">Alex Morgan</p>
                                         <p className="text-slate-500 text-[11px] truncate">alex.morgan@example.com</p>
