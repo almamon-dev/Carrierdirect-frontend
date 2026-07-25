@@ -9,18 +9,37 @@ import Badge from '@/components/ui/badge';
 import DataTable from '@/components/tables/data-table';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Switch from '@/components/ui/switch';
+import QuotaReminderBanner from '@/components/common/QuotaReminderBanner';
+
+import { AddPaymentMethodModal } from '@/modules/Customer/Settings/components/AddPaymentMethodModal';
 
 export default function CustomerSubscription() {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [autoRenew, setAutoRenew] = useState(true);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [showAllInvoices, setShowAllInvoices] = useState(false);
+  const [primaryCard, setPrimaryCard] = useState({ type: 'VISA', last4: '4242', expiry: '12 / 2028' });
+
+  const handleAddPaymentSuccess = (newCard: any) => {
+    setPrimaryCard({
+      type: newCard.type,
+      last4: newCard.last4,
+      expiry: newCard.expiry
+    });
+  };
 
   // Billing history dataset for Customer
   const history = [
-    { id: 'INV-CST-2026-004', date: 'Jul 01, 2026', description: 'Enterprise Shipper Subscription (Annual)', amount: '€1,188.00', status: 'Paid', method: 'Visa •••• 4242' },
-    { id: 'INV-CST-2026-003', date: 'Jun 15, 2026', description: 'Express Priority Freight Dispatch Fee', amount: '€250.00', status: 'Paid', method: 'Visa •••• 4242' },
-    { id: 'INV-CST-2026-002', date: 'May 01, 2025', description: 'Enterprise Shipper Subscription (Annual)', amount: '€1,188.00', status: 'Paid', method: 'Visa •••• 4242' },
+    { id: 'INV-CST-2026-006', date: 'Jul 01, 2026', description: 'Enterprise Shipper Subscription (Annual)', amount: '€1,188.00', status: 'Paid', method: 'Visa •••• 4242' },
+    { id: 'INV-CST-2026-005', date: 'Jun 15, 2026', description: 'Express Priority Freight Dispatch Fee', amount: '€250.00', status: 'Paid', method: 'Visa •••• 4242' },
+    { id: 'INV-CST-2026-004', date: 'May 01, 2026', description: 'Cargo Escrow Guarantee Deposit', amount: '€420.00', status: 'Paid', method: 'Visa •••• 4242' },
+    { id: 'INV-CST-2026-003', date: 'Apr 10, 2026', description: 'Heavy Cargo Dedicated Logistics Surcharge', amount: '€180.00', status: 'Paid', method: 'Visa •••• 4242' },
+    { id: 'INV-CST-2026-002', date: 'Mar 01, 2026', description: 'Enterprise Shipper Renewal Fee', amount: '€1,188.00', status: 'Paid', method: 'Visa •••• 4242' },
+    { id: 'INV-CST-2026-001', date: 'Jan 15, 2026', description: 'Platform Onboarding & Setup Fee', amount: '€150.00', status: 'Paid', method: 'Visa •••• 4242' },
   ];
+
+  const visibleHistory = showAllInvoices ? history : history.slice(0, 4);
 
   const columns = [
     { 
@@ -70,10 +89,13 @@ export default function CustomerSubscription() {
       priceMonthly: '€0',
       priceYearly: '€0',
       description: 'Free plan for occasional shippers posting occasional cargo requests.',
-      rfqLimit: '10 Cargo Requests / mo',
-      payLaterLimit: 'No Pay Later Facility',
-      support: 'Standard Email Support',
-      features: ['Basic Carrier Matching', 'Standard POD Access', 'Card Payments'],
+      features: [
+        '10 Cargo Requests / mo',
+        'No Pay Later Facility',
+        'Standard Email Support',
+        'Basic Carrier Matching',
+        'Standard POD Access'
+      ],
       isCurrent: false,
     },
     {
@@ -82,10 +104,13 @@ export default function CustomerSubscription() {
       priceMonthly: '€49',
       priceYearly: '€39',
       description: 'Ideal for small-to-medium businesses shipping regular weekly freight.',
-      rfqLimit: '100 Cargo Requests / mo',
-      payLaterLimit: '€10,000 Pay Later Limit',
-      support: 'Priority Chat & Phone',
-      features: ['Live GPS Tracking', 'Direct Supplier Counter-Offers', 'SEPA & Pay Later', 'Multi-User Access'],
+      features: [
+        '100 Cargo Requests / mo',
+        '€10,000 Pay Later Limit',
+        'Priority Chat & Phone Support',
+        'Live GPS Tracking',
+        'Direct Supplier Counter-Offers'
+      ],
       isCurrent: false,
     },
     {
@@ -94,10 +119,13 @@ export default function CustomerSubscription() {
       priceMonthly: '€119',
       priceYearly: '€99',
       description: 'Full enterprise suite for high-volume shippers with custom logistics needs.',
-      rfqLimit: 'Unlimited Cargo Requests',
-      payLaterLimit: '€50,000 Pay Later Credit',
-      support: '24/7 Dedicated Manager',
-      features: ['ERP & TMS API Integrations', 'Custom Payment Terms (Net 30)', 'Dedicated Logistics Coordinator', 'SLA Guarantee'],
+      features: [
+        'Unlimited Cargo Requests',
+        '€50,000 Pay Later Credit',
+        '24/7 Dedicated Manager',
+        'ERP & TMS API Integrations',
+        'Custom Net 30 Payment Terms'
+      ],
       isCurrent: true,
       popular: true,
     },
@@ -122,6 +150,9 @@ export default function CustomerSubscription() {
         </div>
       </div>
 
+      {/* Quota Reminder Banner */}
+      <QuotaReminderBanner quotaUsed={2} maxQuota={5} />
+
       {/* Overview Cards: Current Plan + Quota Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
@@ -132,7 +163,7 @@ export default function CustomerSubscription() {
               <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
               Current Active Plan
             </CardTitle>
-            <Badge className="bg-[#ff4a1f]/10 text-[#ff4a1f] border border-[#ff4a1f]/30 text-[10px] font-bold uppercase">
+            <Badge className="bg-[#ff4a1f]/10 text-[#ff4a1f] border border-[#ff4a1f]/30 text-[10px] font-bold">
               Enterprise Tier
             </Badge>
           </CardHeader>
@@ -175,7 +206,7 @@ export default function CustomerSubscription() {
                 <span className="font-bold text-[#ff4a1f]">Unlimited</span>
               </div>
               <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#ff4a1f] h-full rounded-full transition-all" style={{ width: '100%' }} />
+                <div className="bg-[#ff4a1f] h-full rounded-full" style={{ width: '100%' }} />
               </div>
               <p className="text-[10.5px] text-slate-500 font-normal">Unlimited requests active.</p>
             </div>
@@ -187,7 +218,7 @@ export default function CustomerSubscription() {
                 <span className="font-bold text-slate-800">€ 24,500 / € 50k</span>
               </div>
               <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div className="bg-emerald-600 h-full rounded-full transition-all" style={{ width: '49%' }} />
+                <div className="bg-emerald-600 h-full rounded-full" style={{ width: '49%' }} />
               </div>
               <p className="text-[10.5px] text-slate-500 font-normal">€25,500 available credit.</p>
             </div>
@@ -199,7 +230,7 @@ export default function CustomerSubscription() {
                 <span className="font-bold text-slate-800">8 Users</span>
               </div>
               <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div className="bg-blue-600 h-full rounded-full transition-all" style={{ width: '80%' }} />
+                <div className="bg-blue-600 h-full rounded-full" style={{ width: '80%' }} />
               </div>
               <p className="text-[10.5px] text-slate-500 font-normal">Unlimited team access.</p>
             </div>
@@ -224,7 +255,7 @@ export default function CustomerSubscription() {
           <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
             <button
               onClick={() => setBillingCycle('monthly')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+              className={`px-3 py-1 text-xs font-semibold rounded-md cursor-pointer ${
                 billingCycle === 'monthly' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -232,7 +263,7 @@ export default function CustomerSubscription() {
             </button>
             <button
               onClick={() => setBillingCycle('yearly')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1 text-xs font-semibold rounded-md cursor-pointer flex items-center gap-1 ${
                 billingCycle === 'yearly' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -247,7 +278,7 @@ export default function CustomerSubscription() {
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`p-4 rounded-xl border flex flex-col justify-between transition-all relative ${
+                className={`p-4 rounded-xl border flex flex-col justify-between relative ${
                   plan.isCurrent 
                     ? 'bg-orange-50/40 border-[#ff4a1f] ring-2 ring-[#ff4a1f]/20 shadow-xs' 
                     : 'bg-white border-slate-200 hover:border-slate-300'
@@ -277,22 +308,10 @@ export default function CustomerSubscription() {
                     <span className="text-xs text-slate-500 font-normal">/ month</span>
                   </div>
 
-                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-                      <Check className="w-3.5 h-3.5 text-[#ff4a1f]" />
-                      <span>{plan.rfqLimit}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-                      <Check className="w-3.5 h-3.5 text-[#ff4a1f]" />
-                      <span>{plan.payLaterLimit}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-                      <Check className="w-3.5 h-3.5 text-[#ff4a1f]" />
-                      <span>{plan.support}</span>
-                    </div>
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
                     {plan.features.map((feat, i) => (
-                      <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600 font-normal">
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <div key={i} className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
+                        <Check className="w-3.5 h-3.5 text-[#ff4a1f] shrink-0" />
                         <span>{feat}</span>
                       </div>
                     ))}
@@ -342,29 +361,33 @@ export default function CustomerSubscription() {
               <CreditCard className="w-4 h-4 text-[#ff4a1f]" />
               Primary Payment Method
             </CardTitle>
-            <Button variant="outline" className="h-7 text-xs px-2.5 cursor-pointer">
+            <Button 
+              variant="outline" 
+              className="h-7 text-xs px-2.5 cursor-pointer"
+              onClick={() => setIsPaymentModalOpen(true)}
+            >
               + Add Card
             </Button>
           </CardHeader>
           <CardContent className="p-4">
             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-                  VISA
+                <div className={`w-10 h-10 rounded-lg ${primaryCard.type === 'VISA' ? 'bg-slate-900' : 'bg-red-600'} text-white flex items-center justify-center font-bold text-xs`}>
+                  {primaryCard.type}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-xs font-bold text-slate-900">Visa ending in 4242</h4>
+                    <h4 className="text-xs font-bold text-slate-900">{primaryCard.type} ending in {primaryCard.last4}</h4>
                     <Badge className="bg-emerald-100 text-emerald-800 text-[9.5px] font-bold border border-emerald-200">
                       Default
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-slate-500 font-normal mt-0.5">Expires 12 / 2028</p>
+                  <p className="text-[11px] text-slate-500 font-normal mt-0.5">Expires {primaryCard.expiry}</p>
                 </div>
               </div>
 
               <button 
-                onClick={() => alert('Update Payment Method')}
+                onClick={() => setIsPaymentModalOpen(true)}
                 className="text-xs text-[#ff4a1f] hover:underline font-semibold cursor-pointer"
               >
                 Edit
@@ -401,17 +424,39 @@ export default function CustomerSubscription() {
 
       {/* Downloadable Billing History */}
       <Card className="shadow-2xs border-slate-200">
-        <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50">
+        <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
           <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
             <Receipt className="w-4 h-4 text-[#ff4a1f]" />
             Subscription Invoices & Receipts
           </CardTitle>
+
+          {history.length > 4 && (
+            <button
+              type="button"
+              onClick={() => setShowAllInvoices(!showAllInvoices)}
+              className="text-xs font-bold text-[#ff4a1f] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              {showAllInvoices ? 'Show Less' : 'See All'}
+            </button>
+          )}
         </CardHeader>
+
         <CardContent className="p-0">
-          <DataTable columns={columns} data={history} hideViewToggle={true} />
+          <DataTable
+            columns={columns}
+            data={visibleHistory}
+            hideViewToggle={true}
+            hideToolbar={true}
+            hidePagination={true}
+          />
         </CardContent>
       </Card>
 
+      <AddPaymentMethodModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onAddSuccess={handleAddPaymentSuccess}
+      />
     </div>
   );
 }

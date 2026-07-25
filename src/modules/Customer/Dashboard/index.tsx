@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { 
     Euro, FileText, Package, CreditCard, Star,
-    TrendingUp, Activity, Truck, Bell
+    TrendingUp, Activity, Truck, Bell, MapPin, Navigation
 } from 'lucide-react';
 import Select from '@/components/ui/select';
 
@@ -60,11 +60,11 @@ const recentRequests = [
 ];
 
 const activeOrders = [
-    { id: 'ORD-3354', route: 'Dhaka → Chittagong', status: 'In Transit', progress: 65, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' },
-    { id: 'ORD-3353', route: 'Sylhet → Dhaka', status: 'Loading', progress: 15, color: 'bg-amber-50 text-amber-600', progressColor: 'bg-amber-500' },
-    { id: 'ORD-3351', route: 'Khulna → Rajshahi', status: 'In Transit', progress: 80, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' },
-    { id: 'ORD-3350', route: 'Dhaka → Sylhet', status: 'Pending', progress: 5, color: 'bg-brand-light text-brand', progressColor: 'bg-brand' },
-    { id: 'ORD-3348', route: 'Rajshahi → Dhaka', status: 'Out for Delivery', progress: 95, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' }
+    { id: 'ORD-3354', route: 'Dhaka → Chittagong', lastLocation: 'Comilla Checkpoint', supplier: 'Global Express Ltd.', vehicle: 'Covered Van (14ft)', eta: 'Today, 04:30 PM', status: 'In Transit', progress: 65, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' },
+    { id: 'ORD-3353', route: 'Sylhet → Dhaka', lastLocation: 'Sylhet Hub', supplier: 'Speedy Carrier Co.', vehicle: 'Flatbed Truck (20ft)', eta: 'Tomorrow, 10:00 AM', status: 'Loading', progress: 15, color: 'bg-amber-50 text-amber-600', progressColor: 'bg-amber-500' },
+    { id: 'ORD-3351', route: 'Khulna → Rajshahi', lastLocation: 'Kushtia Bypass', supplier: 'Apex Logistics', vehicle: 'Refrigerated Truck', eta: 'Jul 27, 09:00 AM', status: 'In Transit', progress: 80, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' },
+    { id: 'ORD-3350', route: 'Dhaka → Sylhet', lastLocation: 'Dhaka Depot', supplier: 'FastTrack Transport', vehicle: 'Container (40ft)', eta: 'Jul 27, 02:00 PM', status: 'Pending', progress: 5, color: 'bg-brand-light text-brand', progressColor: 'bg-brand' },
+    { id: 'ORD-3348', route: 'Rajshahi → Dhaka', lastLocation: 'Gazipur Chowrasta', supplier: 'Rapid Haulage', vehicle: 'Pickup Van', eta: 'Today, 06:15 PM', status: 'Out for Delivery', progress: 95, color: 'bg-emerald-50 text-emerald-600', progressColor: 'bg-emerald-500' }
 ];
 
 const notificationList = [
@@ -238,34 +238,60 @@ export default function Dashboard() {
 
             </div>
             
-            {/* Live Tracking - Full Width Horizontal */}
-            <div className="bg-white p-4 rounded-lg border border-slate-200 overflow-hidden mb-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 -mx-4 px-4">
-                    <h3 className="text-[13px] font-bold text-slate-800">Live Tracking</h3>
-                    <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All Active Shipments</button>
+            {/* Live Tracking - Ultra Compact Active Shipments Table */}
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-4">
+                <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                        <Truck size={15} className="text-brand" />
+                        <h3 className="text-[13px] font-bold text-slate-800">Live Active Shipments</h3>
+                    </div>
+                    <button className="text-[11px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {activeOrders.slice(0, 4).map((order, idx) => (
-                        <div key={idx} className="border border-slate-100 rounded-lg p-3 hover:border-slate-300 transition-colors cursor-pointer group">
-                            <div className="flex justify-between items-center mb-3">
-                                <span className="font-bold text-[13px] text-slate-800">{order.id}</span>
-                                <span className={`${order.color} px-2 py-0.5 rounded text-[10px] font-bold`}>{order.status}</span>
-                            </div>
-                            <div className="relative pt-2 pb-1">
-                                <div className="flex justify-between text-[11px] font-bold text-slate-500 mb-2">
-                                    <span>{order.route.split('→')[0].trim()}</span>
-                                    <span>{order.route.split('→')[1].trim()}</span>
-                                </div>
-                                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-visible relative flex items-center">
-                                    <div className={`h-1.5 rounded-full ${order.progressColor} relative`} style={{ width: `${order.progress}%` }}>
-                                        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-white border-2 border-indigo-500 rounded-full flex items-center justify-center shadow-sm">
-                                            <div className="w-1.5 h-1.5 bg-brand-light0 rounded-full"></div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-[12px]">
+                        <thead className="bg-slate-50 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                            <tr>
+                                <th className="py-2 px-3">Order ID</th>
+                                <th className="py-2 px-3">Route & Checkpoint</th>
+                                <th className="py-2 px-3">Carrier</th>
+                                <th className="py-2 px-3">Vehicle</th>
+                                <th className="py-2 px-3">Status</th>
+                                <th className="py-2 px-3">Est. Delivery</th>
+                                <th className="py-2 px-3">Progress</th>
+                                <th className="py-2 px-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                            {activeOrders.map((order, idx) => (
+                                <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                                    <td className="py-2 px-3 font-bold text-slate-900 text-[12px]">{order.id}</td>
+                                    <td className="py-2 px-3">
+                                        <span className="font-semibold text-slate-800">{order.route}</span>
+                                        <span className="text-[10.5px] text-slate-400 font-medium ml-2">({order.lastLocation})</span>
+                                    </td>
+                                    <td className="py-2 px-3 font-medium text-slate-700 text-[12px]">{order.supplier}</td>
+                                    <td className="py-2 px-3 text-slate-600 text-[11.5px]">{order.vehicle}</td>
+                                    <td className="py-2 px-3">
+                                        <span className={`${order.color} px-1.5 py-0.5 rounded text-[10px] font-bold inline-block`}>{order.status}</span>
+                                    </td>
+                                    <td className="py-2 px-3 text-[11.5px] font-medium text-slate-600">{order.eta}</td>
+                                    <td className="py-2 px-3 w-36">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                                <div className={`h-1.5 rounded-full ${order.progressColor}`} style={{ width: `${order.progress}%` }}></div>
+                                            </div>
+                                            <span className="text-[10.5px] font-bold text-slate-500 shrink-0">{order.progress}%</span>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                                    </td>
+                                    <td className="py-2 px-3 text-right">
+                                        <button className="text-[11px] font-bold text-brand hover:text-brand-dark px-2 py-0.5 rounded bg-brand-light/50 hover:bg-brand-light transition-colors whitespace-nowrap">
+                                            Track
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

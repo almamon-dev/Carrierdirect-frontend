@@ -1,9 +1,10 @@
-import React from 'react';
-import { Eye, Map, Download, FileText, RotateCcw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, Download, RotateCcw, Star } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import RatingModal from '@/components/modals/rating-modal';
 
 const mockData = [
   { id: 'ORD-5591', date: '2026-07-18', deliveryDate: '2026-07-20', route: 'Dhaka → Chittagong', supplier: 'Global Transport', vehicle: 'Covered Van (14ft)', amount: '€ 45,000', status: 'Completed', paymentStatus: 'Paid' },
@@ -14,9 +15,16 @@ const mockData = [
 
 export default function Orders() {
   const navigate = useNavigate();
+  const [ratingTarget, setRatingTarget] = useState<{ id: string; supplier: string; route: string } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Completed' | 'In Transit' | 'Cancelled'>('All');
+
+  const filteredOrders = mockData.filter(order => {
+    if (statusFilter === 'All') return true;
+    return order.status === statusFilter;
+  });
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Order ID', render: (row) => <span className="font-bold text-brand">{row.id}</span> },
+    { id: 'id', label: 'Order ID', render: (row) => <span className="font-bold text-[#ff4a1f]">{row.id}</span> },
     { id: 'date', label: 'Order Date', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date}</span> },
     { id: 'route', label: 'Route', render: (row) => <span className="font-medium text-slate-800 whitespace-nowrap">{row.route}</span> },
     { id: 'supplier', label: 'Supplier', render: (row) => <span className="text-slate-700 whitespace-nowrap">{row.supplier}</span> },
@@ -36,7 +44,7 @@ export default function Orders() {
       id: 'status', 
       label: 'Status',
       render: (row) => {
-        if (row.status === 'Completed') return <Badge variant="success">Completed</Badge>;
+        if (row.status === 'Completed') return <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200">Completed</Badge>;
         if (row.status === 'Cancelled') return <Badge variant="destructive">Cancelled</Badge>;
         return <Badge variant="warning">{row.status}</Badge>;
       }
@@ -44,58 +52,103 @@ export default function Orders() {
   ];
 
   const actions = (row: any) => (
-    <div className="flex items-center justify-end gap-2">
+    <div className="flex items-center justify-end gap-1.5">
+      {row.status === 'Completed' && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 px-2 text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 font-bold text-[11px] cursor-pointer"
+          onClick={() => setRatingTarget({ id: row.id, supplier: row.supplier, route: row.route })}
+          title="Rate Supplier"
+        >
+          <Star size={12} className="mr-1 fill-amber-400 text-amber-400" /> Rate
+        </Button>
+      )}
       <Button 
         variant="outline" 
         size="sm" 
-        className="h-7 w-7 p-0 text-slate-600 border-slate-200 hover:bg-slate-50" 
+        className="h-7 w-7 p-0 text-slate-600 border-slate-200 hover:bg-slate-50 cursor-pointer" 
         onClick={() => navigate(`/customer/orders/${row.id}`, { state: { orderData: row } })}
         title="View Details"
       >
-        <Eye size={14} />
+        <Eye size={13} />
       </Button>
       <Button 
         variant="outline" 
         size="sm" 
-        className="h-7 px-2 text-xs text-blue-600 border-blue-200 hover:bg-blue-50 flex items-center gap-1 font-semibold" 
+        className="h-7 px-2 text-xs text-blue-600 border-blue-200 hover:bg-blue-50 flex items-center gap-1 font-semibold cursor-pointer" 
         onClick={() => navigate('/customer/quotes/create/new', { state: { repeatData: row } })}
         title="Repeat Order"
       >
-        <RotateCcw size={13} />
+        <RotateCcw size={12} />
         <span>Repeat</span>
-      </Button>
-      <Button 
-        variant="primary" 
-        size="sm" 
-        className="h-7 w-7 p-0" 
-        disabled={row.status !== 'Completed'}
-        onClick={() => navigate(`/customer/orders/${row.id}`, { state: { orderData: row } })}
-        title="Download Invoice"
-      >
-        <FileText size={14} />
       </Button>
     </div>
   );
 
-  return (
-    <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
-      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Order History</h1>
-          <p className="text-sm text-slate-500">View all your past and present logistics orders in one place.</p>
+  const filterContent = (
+    <div className="flex flex-wrap items-center gap-3 py-1">
+      <div className="flex flex-col gap-1">
+        <label className="text-[11px] font-bold text-slate-600">Order Status</label>
+        <div className="flex items-center gap-1.5">
+          {(['All', 'Completed', 'In Transit', 'Cancelled'] as const).map((tab) => {
+            const count = tab === 'All' ? mockData.length : mockData.filter(i => i.status === tab).length;
+            const isActive = statusFilter === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setStatusFilter(tab)}
+                className={`px-3 py-1 rounded-md text-[11px] font-bold cursor-pointer ${
+                  isActive
+                    ? 'bg-[#ff4a1f] text-white shadow-2xs'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {tab} ({count})
+              </button>
+            );
+          })}
         </div>
-        <Button variant="outline" className="h-9">
-            <Download size={16} className="mr-2" /> Export CSV
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-4 md:p-6 w-full mx-auto min-h-screen space-y-4 font-sans antialiased">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-3">
+        <div>
+          <h1 className="text-lg font-bold text-slate-900 tracking-tight">Order History & Ratings</h1>
+          <p className="text-xs text-slate-500 mt-0.5">View orders, download receipts, and rate logistics suppliers for completed orders.</p>
+        </div>
+        <Button variant="outline" className="h-8 text-xs font-bold cursor-pointer">
+          <Download size={14} className="mr-1.5" /> Export CSV
         </Button>
       </div>
       
       <DataTable 
-        data={mockData} 
+        data={filteredOrders} 
         columns={columns} 
         actions={actions}
+        filterContent={filterContent}
         searchPlaceholder="Search by Order ID or Supplier..."
         compact={true}
       />
+
+      {/* Bidirectional Rating Modal for Completed Orders */}
+      {ratingTarget && (
+        <RatingModal
+          isOpen={Boolean(ratingTarget)}
+          onClose={() => setRatingTarget(null)}
+          orderId={ratingTarget.id}
+          targetName={ratingTarget.supplier}
+          targetRole="Supplier"
+          orderTitle={ratingTarget.route}
+          onSubmit={(data) => {
+            console.log('Submitted rating:', data);
+          }}
+        />
+      )}
     </div>
   );
 }

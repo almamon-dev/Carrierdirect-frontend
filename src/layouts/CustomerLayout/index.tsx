@@ -51,7 +51,7 @@ export default function CustomerLayout() {
     const currentModuleLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Dashboard';
 
     return (
-        <div className="flex h-screen bg-[#f8fafc] overflow-hidden relative">
+        <div className="flex h-screen bg-[#f8fafc] overflow-hidden relative font-sans antialiased">
             {/* Sidebar Overlay */}
             {isSidebarOpen && (
                 <div
@@ -98,21 +98,26 @@ export default function CustomerLayout() {
                     {/* Right Header Controls */}
                     <div className="flex items-center gap-3">
                         
-                        {/* Notification Bell Dropdown */}
+                        {/* Notification Bell Dropdown with Count Badge */}
                         <div className="relative" ref={notifRef}>
                             <button 
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors relative cursor-pointer"
+                                className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200/80 flex items-center justify-center text-slate-700 transition-colors relative cursor-pointer"
+                                title="Notifications"
                             >
-                                <Bell size={16} />
-                                <span className="absolute top-1 right-1 w-2 h-2 bg-[#ff4a1f] rounded-full animate-pulse" />
+                                <Bell size={19} />
+                                <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-[#ff4a1f] text-white text-[11px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-1 ring-[#ff4a1f]/20">
+                                    {mockNotifications.length}
+                                </span>
                             </button>
 
                             {isNotificationOpen && (
                                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl border border-slate-200 shadow-2xl z-[999] overflow-hidden animate-fade-in text-xs">
                                     <div className="px-4 py-3 bg-slate-900 text-white font-bold flex items-center justify-between">
                                         <span>Notifications</span>
-                                        <span className="bg-[#ff4a1f] text-white px-1.5 py-0.5 rounded text-[10px]">4 New</span>
+                                        <span className="bg-[#ff4a1f] text-white px-1.5 py-0.5 rounded text-[10px]">
+                                            {mockNotifications.length} New
+                                        </span>
                                     </div>
                                     <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
                                         {mockNotifications.map((notif) => (
@@ -125,6 +130,17 @@ export default function CustomerLayout() {
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                    <div className="p-2 bg-slate-50 border-t border-slate-100 text-center">
+                                        <button 
+                                            onClick={() => {
+                                                setIsNotificationOpen(false);
+                                                navigate('/customer/notifications');
+                                            }}
+                                            className="text-xs font-bold text-[#ff4a1f] hover:underline cursor-pointer"
+                                        >
+                                            View All Notifications
+                                        </button>
                                     </div>
                                 </div>
                             )}

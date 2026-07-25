@@ -41,12 +41,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         type={type}
                         id={inputId}
                         className={cn(
-                            "flex h-[40px] w-full rounded-md border bg-white px-3 py-1.5 text-[13px] font-normal text-[#202223] placeholder:text-slate-400 focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-50 shadow-none font-sans antialiased",
+                            "flex h-[36px] w-full rounded-sm border bg-white px-3 py-1 text-[13px] font-normal text-[#202223] placeholder:text-slate-400 focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-50 shadow-none font-sans antialiased",
                             icon && "pl-9",
                             rightIcon && "pr-10",
                             error
-                                ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-[#d82c0d]"
-                                : "border-slate-300 focus:border-[#2563eb] focus:ring-[#2563eb]/20",
+                                ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-0"
+                                : "border-slate-300 focus:border-slate-400 focus:ring-0 focus:outline-none",
                             className
                         )}
                         ref={ref}

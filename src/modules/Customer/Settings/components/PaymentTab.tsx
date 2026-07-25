@@ -1,6 +1,7 @@
-import React from 'react';
-import { ShieldCheck, CheckCircle2, ArrowRight, CreditCard, Plus, Euro, Calendar } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldCheck, CheckCircle2, ArrowRight, CreditCard, Plus, Euro } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AddPaymentMethodModal } from './AddPaymentMethodModal';
 
 const MetricCard = ({ title, description, value, icon: Icon, colorClass }: { title: string; description: string; value: string; icon: any; colorClass: string }) => (
     <div className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start cursor-pointer w-full">
@@ -20,6 +21,26 @@ const MetricCard = ({ title, description, value, icon: Icon, colorClass }: { tit
 );
 
 export default function PaymentTab() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cards, setCards] = useState([
+    { id: 1, type: 'VISA', last4: '4092', expiry: '08 / 2028', isPrimary: true },
+    { id: 2, type: 'MC', last4: '8810', expiry: '11 / 2026', isPrimary: false },
+  ]);
+
+  const handleSetPrimary = (id: number) => {
+    setCards(prev => prev.map(c => ({
+      ...c,
+      isPrimary: c.id === id
+    })));
+  };
+
+  const handleAddSuccess = (newCard: any) => {
+    if (newCard.isPrimary) {
+      setCards(prev => prev.map(c => ({ ...c, isPrimary: false })));
+    }
+    setCards(prev => [...prev, newCard]);
+  };
+
   return (
     <div className="space-y-4">
       
@@ -86,6 +107,7 @@ export default function PaymentTab() {
 
           <button
             type="button"
+            onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-md shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Add Card
@@ -93,46 +115,41 @@ export default function PaymentTab() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          
-          {/* Card 1 - Visa */}
-          <div className="p-3.5 rounded-md border border-slate-200 bg-slate-50/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] tracking-wider">
-                VISA
+          {cards.map((card) => (
+            <div key={card.id} className="p-3.5 rounded-md border border-slate-200 bg-slate-50/50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-7 rounded-md ${card.type === 'VISA' ? 'bg-slate-900' : 'bg-red-600'} text-white flex items-center justify-center font-bold text-[10px] tracking-wider`}>
+                  {card.type}
+                </div>
+                <div>
+                  <p className="text-xs font-mono font-bold text-slate-900 tracking-wider">
+                    •••• •••• •••• {card.last4}
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Exp {card.expiry}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-mono font-bold text-slate-900 tracking-wider">
-                  4532 •••• •••• 4092
-                </p>
-                <p className="text-[11px] text-slate-500 mt-0.5">Exp 08 / 2028</p>
-              </div>
+              {card.isPrimary ? (
+                <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-0.5 rounded-md border border-slate-200">
+                  Primary
+                </span>
+              ) : (
+                <button 
+                  onClick={() => handleSetPrimary(card.id)}
+                  className="text-[11px] font-bold text-[#ff4a1f] hover:underline cursor-pointer"
+                >
+                  Set Primary
+                </button>
+              )}
             </div>
-            <span className="text-[11px] font-bold text-slate-600 bg-white px-2.5 py-0.5 rounded-md border border-slate-200">
-              Primary
-            </span>
-          </div>
-
-          {/* Card 2 - Mastercard */}
-          <div className="p-3.5 rounded-md border border-slate-200 bg-slate-50/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-7 rounded-md bg-red-600 text-white flex items-center justify-center font-bold text-[10px] tracking-wider">
-                MC
-              </div>
-              <div>
-                <p className="text-xs font-mono font-bold text-slate-900 tracking-wider">
-                  5412 •••• •••• 8810
-                </p>
-                <p className="text-[11px] text-slate-500 mt-0.5">Exp 11 / 2026</p>
-              </div>
-            </div>
-            <button className="text-[11px] font-bold text-[#ff4a1f] hover:underline cursor-pointer">
-              Set Primary
-            </button>
-          </div>
-
+          ))}
         </div>
       </div>
 
+      <AddPaymentMethodModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddSuccess={handleAddSuccess}
+      />
     </div>
   );
 }

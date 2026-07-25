@@ -21,8 +21,8 @@ export default function Textarea({ label, error, className = '', id, ...props }:
                 className={cn(
                     "w-full h-auto min-h-[80px] rounded-md border bg-white px-3 py-2 text-[12px] font-medium text-[#202223] placeholder:text-[#6d7175] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 shadow-none resize-y",
                     error
-                        ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-[#d82c0d]"
-                        : "border-[#d1d1d1] focus:border-[#2563eb] focus:ring-[#2563eb]/20",
+                        ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-0"
+                        : "border-slate-300 focus:border-slate-400 focus:ring-0 focus:outline-none",
                     className
                 )}
                 {...props}

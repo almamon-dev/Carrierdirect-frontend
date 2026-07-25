@@ -31,6 +31,7 @@ export interface DataTableProps<T = any> {
     expandableContent?: (item: T) => React.ReactNode;
     hideViewToggle?: boolean;
     hidePagination?: boolean;
+    hideToolbar?: boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({ 
@@ -46,7 +47,8 @@ export default function DataTable<T extends Record<string, any>>({
     tableId,
     expandableContent,
     hideViewToggle = false,
-    hidePagination = false
+    hidePagination = false,
+    hideToolbar = false
 }: DataTableProps<T>) {
     const [search, setSearch] = useState('');
     const [showFilters, setShowFilters] = useState(false);
@@ -143,61 +145,63 @@ export default function DataTable<T extends Record<string, any>>({
                 )}
                 
                 {/* Toolbar (Polaris Style) */}
-                <TableToolbar 
-                    selectedCount={selectedIds.length}
-                    totalCount={totalItems}
-                    onClearSelection={() => setSelectedIds([])}
-                    onDeleteSelected={onDeleteSelected ? () => onDeleteSelected(selectedIds as number[]) : undefined}
-                    onSelectAll={handleSelectAll}
-                >
-                    <TableSearch 
-                        value={search} 
-                        onChange={setSearch} 
-                        placeholder={searchPlaceholder} 
-                    />
-                    <div className="flex items-center gap-1.5">
-                        <TableFilter 
-                            onFilterClick={() => setShowFilters(!showFilters)} 
-                            onResetClick={() => {
-                                setSearch('');
-                                setShowFilters(false);
-                            }}
-                            isFilterOpen={showFilters}
-                            isFiltered={Boolean(search)}
+                {!hideToolbar && (
+                    <TableToolbar 
+                        selectedCount={selectedIds.length}
+                        totalCount={totalItems}
+                        onClearSelection={() => setSelectedIds([])}
+                        onDeleteSelected={onDeleteSelected ? () => onDeleteSelected(selectedIds as number[]) : undefined}
+                        onSelectAll={handleSelectAll}
+                    >
+                        <TableSearch 
+                            value={search} 
+                            onChange={setSearch} 
+                            placeholder={searchPlaceholder} 
                         />
-                        
-                        <div className="w-[1px] h-4 bg-[#ebebeb] mx-1"></div>
+                        <div className="flex items-center gap-1.5">
+                            <TableFilter 
+                                onFilterClick={() => setShowFilters(!showFilters)} 
+                                onResetClick={() => {
+                                    setSearch('');
+                                    setShowFilters(false);
+                                }}
+                                isFilterOpen={showFilters}
+                                isFiltered={Boolean(search)}
+                            />
+                            
+                            <div className="w-[1px] h-4 bg-[#ebebeb] mx-1"></div>
 
-                        {!hideViewToggle && (
-                            <>
-                                <div className="flex items-center border border-[#d1d1d1] rounded-[3px] overflow-hidden bg-white shadow-sm">
-                                    <button 
-                                        onClick={() => setViewMode('table')}
-                                        className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'table' ? 'bg-[#f4f6f8] text-[#202223] shadow-inner' : 'text-[#8c9196] hover:bg-[#fafbfc] hover:text-[#202223]'}`}
-                                        title="Table View"
-                                    >
-                                        <List size={14} />
-                                    </button>
-                                    <div className="w-[1px] h-[28px] bg-[#d1d1d1]"></div>
-                                    <button 
-                                        onClick={() => setViewMode('grid')}
-                                        className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-[#f4f6f8] text-[#202223] shadow-inner' : 'text-[#8c9196] hover:bg-[#fafbfc] hover:text-[#202223]'}`}
-                                        title="Grid View"
-                                    >
-                                        <LayoutGrid size={14} />
-                                    </button>
-                                </div>
-                                <div className="w-[1px] h-4 bg-[#ebebeb] mx-1"></div>
-                            </>
-                        )}
+                            {!hideViewToggle && (
+                                <>
+                                    <div className="flex items-center border border-[#d1d1d1] rounded-[3px] overflow-hidden bg-white shadow-sm">
+                                        <button 
+                                            onClick={() => setViewMode('table')}
+                                            className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'table' ? 'bg-[#f4f6f8] text-[#202223] shadow-inner' : 'text-[#8c9196] hover:bg-[#fafbfc] hover:text-[#202223]'}`}
+                                            title="Table View"
+                                        >
+                                            <List size={14} />
+                                        </button>
+                                        <div className="w-[1px] h-[28px] bg-[#d1d1d1]"></div>
+                                        <button 
+                                            onClick={() => setViewMode('grid')}
+                                            className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-[#f4f6f8] text-[#202223] shadow-inner' : 'text-[#8c9196] hover:bg-[#fafbfc] hover:text-[#202223]'}`}
+                                            title="Grid View"
+                                        >
+                                            <LayoutGrid size={14} />
+                                        </button>
+                                    </div>
+                                    <div className="w-[1px] h-4 bg-[#ebebeb] mx-1"></div>
+                                </>
+                            )}
 
-                        <TableColumnToggle 
-                            columns={columns}
-                            visibleColumns={visibleColumns}
-                            onToggleColumn={toggleColumn}
-                        />
-                    </div>
-                </TableToolbar>
+                            <TableColumnToggle 
+                                columns={columns}
+                                visibleColumns={visibleColumns}
+                                onToggleColumn={toggleColumn}
+                            />
+                        </div>
+                    </TableToolbar>
+                )}
 
                 {/* Filter Content Area */}
                 {showFilters && filterContent && (

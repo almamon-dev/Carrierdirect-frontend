@@ -17,66 +17,103 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
     isSubmitting,
     onSubmit,
 }) => {
+    const pickupLocation = [formData.pickupCompany, formData.pickupCity, formData.pickupState, formData.pickupCountry].filter(Boolean).join(', ') || formData.pickupAddress;
+    const deliveryLocation = [formData.deliveryCompany, formData.deliveryCity, formData.deliveryState, formData.deliveryCountry].filter(Boolean).join(', ') || formData.deliveryAddress;
+
     return (
         <div className="space-y-4 animate-in fade-in duration-300">
             <TabHeader title="Review Request Summary" icon={CheckCircle2} />
-            
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 space-y-4 text-xs">
+
+            <div className="bg-slate-50/80 border border-slate-200 rounded-md p-4 space-y-3.5 text-xs">
+                {/* Request Header */}
                 <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                     <div>
-                        <h4 className="font-bold text-slate-900 text-sm">{formData.requestTitle || 'Untitled Quote Request'}</h4>
-                        <p className="text-slate-500 font-medium text-[11px] mt-0.5">Priority: <span className="font-bold text-red-600">{formData.priority}</span> | Type: {formData.shipmentType} ({formData.serviceType})</p>
+                        <h4 className="font-bold text-slate-900 text-sm tracking-tight">
+                            {formData.requestTitle || 'Quote Request'}
+                        </h4>
+                        <div className="flex items-center gap-2 text-slate-500 font-medium text-[11px] mt-1">
+                            <span>Priority: <strong className="text-red-600 font-bold">{formData.priority || 'Normal'}</strong></span>
+                            <span>•</span>
+                            <span>Type: <strong className="text-slate-700">{formData.shipmentType || 'One Way'}</strong> ({formData.serviceType || 'Standard'})</span>
+                        </div>
                     </div>
-                    <span className="text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 text-xs">
+                    <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200 text-xs shadow-2xs">
                         Ready to Post
                     </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-3 bg-white border border-slate-200 rounded">
-                        <span className="font-bold text-purple-700 flex items-center gap-1 mb-1">
-                            <MapPin size={13} /> Pickup Location
+                {/* Locations Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="p-3 bg-white border border-slate-200 rounded-md shadow-2xs">
+                        <span className="font-bold text-purple-700 text-xs flex items-center gap-1.5 mb-1.5">
+                            <MapPin size={13} /> Pickup Details
                         </span>
-                        <p className="font-bold text-slate-900">{formData.pickupCompany || 'Not specified'}</p>
-                        <p className="text-slate-600">{formData.pickupAddress || 'Address not entered'}</p>
-                        <p className="text-slate-500 mt-1">Date: {formData.pickupDate} {formData.pickupTime}</p>
+                        <p className="font-bold text-slate-900 text-[13px]">{pickupLocation || 'Pickup Location Specified'}</p>
+                        {formData.pickupAddress && <p className="text-slate-600 text-[11.5px] mt-0.5">{formData.pickupAddress}</p>}
+                        {(formData.pickupDate || formData.pickupTime) && (
+                            <p className="text-slate-500 font-medium text-[11px] mt-2 pt-1 border-t border-slate-100">
+                                Date: <strong className="text-slate-800">{formData.pickupDate} {formData.pickupTime}</strong>
+                            </p>
+                        )}
                     </div>
 
-                    <div className="p-3 bg-white border border-slate-200 rounded">
-                        <span className="font-bold text-emerald-700 flex items-center gap-1 mb-1">
-                            <MapPin size={13} /> Delivery Location
+                    <div className="p-3 bg-white border border-slate-200 rounded-md shadow-2xs">
+                        <span className="font-bold text-emerald-700 text-xs flex items-center gap-1.5 mb-1.5">
+                            <MapPin size={13} /> Delivery Details
                         </span>
-                        <p className="font-bold text-slate-900">{formData.deliveryCompany || 'Not specified'}</p>
-                        <p className="text-slate-600">{formData.deliveryAddress || 'Address not entered'}</p>
-                        <p className="text-slate-500 mt-1">Date: {formData.deliveryDate} {formData.deliveryTime}</p>
+                        <p className="font-bold text-slate-900 text-[13px]">{deliveryLocation || 'Delivery Location Specified'}</p>
+                        {formData.deliveryAddress && <p className="text-slate-600 text-[11.5px] mt-0.5">{formData.deliveryAddress}</p>}
+                        {(formData.deliveryDate || formData.deliveryTime) && (
+                            <p className="text-slate-500 font-medium text-[11px] mt-2 pt-1 border-t border-slate-100">
+                                Date: <strong className="text-slate-800">{formData.deliveryDate} {formData.deliveryTime}</strong>
+                            </p>
+                        )}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 p-3 bg-white border border-slate-200 rounded">
+                {/* Cargo & Vehicle Specs */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-white border border-slate-200 rounded-md shadow-2xs">
                     <div>
-                        <span className="text-slate-400 block font-medium">Vehicle</span>
-                        <span className="font-bold text-slate-900">{formData.vehicleType || 'Any'}</span>
+                        <span className="text-slate-400 block font-medium text-[11px]">Vehicle Type</span>
+                        <span className="font-bold text-slate-900 text-[12px]">{formData.vehicleType || 'Standard Carrier'}</span>
                     </div>
                     <div>
-                        <span className="text-slate-400 block font-medium">Load & Weight</span>
-                        <span className="font-bold text-slate-900">{formData.weight ? `${formData.weight} KG` : 'N/A'} ({formData.loadType || 'General'})</span>
+                        <span className="text-slate-400 block font-medium text-[11px]">Load & Weight</span>
+                        <span className="font-bold text-slate-900 text-[12px]">
+                            {formData.weight ? `${formData.weight} KG` : ''} {formData.loadType ? `(${formData.loadType})` : ''}
+                            {!formData.weight && !formData.loadType && 'General Cargo'}
+                        </span>
                     </div>
                     <div>
-                        <span className="text-slate-400 block font-medium">Target Budget</span>
-                        <span className="font-bold text-emerald-600 text-sm">€{formData.budget || 'Open'}</span>
+                        <span className="text-slate-400 block font-medium text-[11px]">Target Budget</span>
+                        <span className="font-bold text-emerald-600 text-[13px]">
+                            {formData.budget ? `${formData.currency || '€'}${formData.budget}` : 'Open for Bids'}
+                        </span>
                     </div>
                 </div>
 
-                <div className="p-3 bg-white border border-slate-200 rounded flex items-center justify-between">
-                    <span>Active Services & Requirements: <strong className="text-slate-900">{servicesCount} Selected</strong></span>
-                    <span>Ref ID: <strong className="text-slate-900">{formData.internalReference || 'Auto Generated'}</strong></span>
-                </div>
+                {/* Additional Specs if present */}
+                {(servicesCount > 0 || formData.internalReference || formData.customerNotes) && (
+                    <div className="p-3 bg-white border border-slate-200 rounded-md flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+                        {servicesCount > 0 && (
+                            <span>Selected Services: <strong className="text-slate-900 font-bold">{servicesCount} Options Active</strong></span>
+                        )}
+                        {formData.internalReference && (
+                            <span>Ref ID: <strong className="text-slate-800 font-bold">{formData.internalReference}</strong></span>
+                        )}
+                        {formData.customerNotes && (
+                            <div className="w-full pt-1.5 border-t border-slate-100 text-slate-600 text-[11.5px]">
+                                <strong>Notes:</strong> {formData.customerNotes}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="pt-2 flex justify-end">
-                <Button 
-                    type="button" 
-                    variant="primary" 
+                <Button
+                    type="button"
+                    variant="primary"
                     size="sm"
                     className="h-10 px-6 bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer"
                     onClick={() => onSubmit()}

@@ -97,10 +97,11 @@ export default function SupplierLayout() {
                         <div className="relative" ref={notifRef}>
                             <button 
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors relative cursor-pointer"
+                                className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200/80 flex items-center justify-center text-slate-700 transition-colors relative cursor-pointer"
+                                title="Notifications"
                             >
-                                <Bell size={18} />
-                                <span className="absolute -top-1 -right-1 bg-[#ff4a1f] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                                <Bell size={19} />
+                                <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-[#ff4a1f] text-white text-[11px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-1 ring-[#ff4a1f]/20">
                                     {mockNotifications.length}
                                 </span>
                             </button>

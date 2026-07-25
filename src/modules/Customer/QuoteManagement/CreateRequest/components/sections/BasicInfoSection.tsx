@@ -13,9 +13,26 @@ interface SectionProps {
 }
 
 export const BasicInfoSection: React.FC<SectionProps> = ({ formData, handleChange, handleSelectChange }) => {
+    const PRIORITY_OPTIONS = [
+        { id: 'Normal', name: 'Normal' },
+        { id: 'High', name: 'High' },
+        { id: 'Urgent', name: 'Urgent' },
+    ];
+
+    const SHIPMENT_OPTIONS = [
+        { id: 'One Way', name: 'One Way' },
+        { id: 'Round Trip', name: 'Round Trip' },
+    ];
+
+    const SERVICE_OPTIONS = [
+        { id: 'Standard', name: 'Standard' },
+        { id: 'Express', name: 'Express' },
+        { id: 'Same Day', name: 'Same Day' },
+    ];
+
     return (
         <div className="space-y-3 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
                 <TabHeader title="Basic Information" icon={FileText} />
                 
                 <FormRow label="Request Title" required colSpan>
@@ -27,26 +44,33 @@ export const BasicInfoSection: React.FC<SectionProps> = ({ formData, handleChang
                 </FormRow>
                 
                 <FormRow label="Priority">
-                    <Select name="priority" value={formData.priority} onChange={(e) => handleSelectChange('priority', e.target.value)} showSearch={false}>
-                        <option value="Normal">Normal</option>
-                        <option value="High">High</option>
-                        <option value="Urgent">Urgent</option>
-                    </Select>
+                    <Select 
+                        name="priority" 
+                        value={formData.priority} 
+                        onChange={(e) => handleSelectChange('priority', e.target.value)} 
+                        options={PRIORITY_OPTIONS}
+                        showSearch={false} 
+                    />
                 </FormRow>
                 
                 <FormRow label="Shipment Type" required>
-                    <Select name="shipmentType" value={formData.shipmentType} onChange={(e) => handleSelectChange('shipmentType', e.target.value)} showSearch={false}>
-                        <option value="One Way">One Way</option>
-                        <option value="Round Trip">Round Trip</option>
-                    </Select>
+                    <Select 
+                        name="shipmentType" 
+                        value={formData.shipmentType} 
+                        onChange={(e) => handleSelectChange('shipmentType', e.target.value)} 
+                        options={SHIPMENT_OPTIONS}
+                        showSearch={false} 
+                    />
                 </FormRow>
                 
                 <FormRow label="Service Type">
-                    <Select name="serviceType" value={formData.serviceType} onChange={(e) => handleSelectChange('serviceType', e.target.value)} showSearch={false}>
-                        <option value="Standard">Standard</option>
-                        <option value="Express">Express</option>
-                        <option value="Same Day">Same Day</option>
-                    </Select>
+                    <Select 
+                        name="serviceType" 
+                        value={formData.serviceType} 
+                        onChange={(e) => handleSelectChange('serviceType', e.target.value)} 
+                        options={SERVICE_OPTIONS}
+                        showSearch={false} 
+                    />
                 </FormRow>
                 
                 <SectionHeader title="Schedule" icon={Activity} />

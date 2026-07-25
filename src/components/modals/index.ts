@@ -15,3 +15,7 @@ export type { SidePanelProps } from './side-panel';
 
 export { default as SubscriptionLockModal } from './subscription-lock-modal';
 export type { SubscriptionLockModalProps } from './subscription-lock-modal';
+
+export { default as RatingModal } from './rating-modal';
+export type { RatingModalProps } from './rating-modal/index';
+

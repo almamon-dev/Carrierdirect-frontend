@@ -76,32 +76,38 @@ export default function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-6 py-4 border-b border-slate-100 shrink-0">
-            <div>
-              {title && <h3 className="text-[17px] font-bold text-slate-900">{title}</h3>}
-              {description && <p className="text-[13px] text-slate-500 mt-1">{description}</p>}
+          <div className="flex items-start justify-between px-5 py-3.5 border-b border-slate-100 shrink-0">
+            <div className="flex-1">
+              {typeof title === 'string' ? (
+                <>
+                  <h3 className="text-base font-bold text-slate-900">{title}</h3>
+                  {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+                </>
+              ) : (
+                title
+              )}
             </div>
             
             {showCloseButton && (
               <button 
                 onClick={onClose}
-                className="w-8 h-8 -mr-2 -mt-1 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
+                className="w-7 h-7 -mr-1 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
                 aria-label="Close modal"
               >
-                <X size={18} strokeWidth={2.5} />
+                <X size={16} strokeWidth={2} />
               </button>
             )}
           </div>
         )}
         
         {/* Body */}
-        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+        <div className="p-5 overflow-y-auto flex-1 custom-scrollbar">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-end gap-3 rounded-b-2xl">
+          <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-end gap-3 rounded-b-md">
             {footer}
           </div>
         )}

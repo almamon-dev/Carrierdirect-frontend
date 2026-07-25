@@ -14,15 +14,15 @@ interface SectionProps {
 export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChange }) => {
     return (
         <div className="space-y-3 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
                 <TabHeader title="Location Information" icon={MapPin} />
                 
                 {/* Pickup Info */}
-                <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-6 mb-2">
-                    <h3 className="text-xs font-bold text-[#ff4a1f] uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <MapPin size={16}/> Pickup Details
+                <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-4 mb-1">
+                    <h3 className="text-xs font-bold text-[#ff4a1f] uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <MapPin size={15}/> Pickup Details
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
                         <FormRow label="Company Name"><Input name="pickupCompany" value={formData.pickupCompany} onChange={handleChange} placeholder="Pickup Company Name" /></FormRow>
                         <FormRow label="Contact Person" required><Input name="pickupContactName" value={formData.pickupContactName} onChange={handleChange} placeholder="Contact Person Name" /></FormRow>
                         <FormRow label="Phone Number" required><Input type="text" name="pickupPhone" value={formData.pickupPhone} onChange={handleChange} placeholder="+880 1711-234567" /></FormRow>
@@ -39,10 +39,10 @@ export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChang
                 
                 {/* Delivery Info */}
                 <div className="col-span-1 md:col-span-2">
-                    <h3 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <MapPin size={16}/> Delivery Details
+                    <h3 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <MapPin size={15}/> Delivery Details
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
                         <FormRow label="Company Name"><Input name="deliveryCompany" value={formData.deliveryCompany} onChange={handleChange} placeholder="Delivery Company Name" /></FormRow>
                         <FormRow label="Contact Person" required><Input name="deliveryContactName" value={formData.deliveryContactName} onChange={handleChange} placeholder="Contact Person Name" /></FormRow>
                         <FormRow label="Phone Number" required><Input type="text" name="deliveryPhone" value={formData.deliveryPhone} onChange={handleChange} placeholder="+880 1819-987654" /></FormRow>

@@ -1,125 +1,238 @@
-import React from 'react';
-import { Printer, Download, ArrowLeft, Building2, Phone, Mail } from 'lucide-react';
+import React, { useState } from 'react';
+import { Printer, Download, ArrowLeft, Building2, Phone, Mail, CheckCircle2, ShieldCheck, Star, AlertCircle, Clock } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
+import RatingModal from '@/components/modals/rating-modal';
 
-export default function InvoiceView() {
+interface InvoiceViewProps {
+    onBack?: () => void;
+    invoice?: {
+        id?: string;
+        date?: string;
+        dueDate?: string;
+        amount?: string;
+        status?: string;
+        supplier?: string;
+    };
+}
+
+export default function InvoiceView({ onBack, invoice }: InvoiceViewProps) {
+    const navigate = useNavigate();
+    const [isRatingOpen, setIsRatingOpen] = useState(false);
+
+    const invoiceData = invoice || {
+        id: 'INV-2026-003',
+        date: '2026-07-18',
+        dueDate: '2026-07-30',
+        amount: '€ 2,136.70',
+        status: 'Paid',
+        supplier: 'Express Freight Logistics'
+    };
+
+    const isPaid = invoiceData.status === 'Paid';
+
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+        } else {
+            navigate(-1);
+        }
+    };
+
     return (
-        <div className="p-3 md:p-4 w-full mx-auto min-h-screen bg-slate-50 flex flex-col items-center">
-            {/* Toolbar */}
-            <div className="w-full max-w-3xl flex items-center justify-between mb-3">
-                <Button variant="ghost" className="text-slate-600 hover:text-slate-900 gap-1.5 font-medium h-7 px-2 text-[11px]">
-                    <ArrowLeft size={14} /> Back to Invoices
+        <div className="p-3 md:p-5 w-full mx-auto min-h-screen bg-slate-50/50 flex flex-col items-center font-sans antialiased pb-16">
+            {/* Top Navigation & Action Bar */}
+            <div className="w-full max-w-2xl flex flex-wrap items-center justify-between gap-2 mb-3">
+                <Button 
+                    variant="ghost" 
+                    onClick={handleBack}
+                    className="text-slate-600 hover:text-slate-900 gap-1.5 font-semibold h-7 px-2 text-[11px] cursor-pointer"
+                >
+                    <ArrowLeft size={13} /> Back to Invoices
                 </Button>
-                <div className="flex gap-2">
-                    <Button variant="outline" className="gap-1.5 font-bold bg-white text-slate-700 border-slate-200 h-7 px-3 text-[11px]">
-                        <Printer size={13} /> Print
+
+                <div className="flex items-center gap-1.5">
+                    {/* Rate Supplier Button - ONLY for Paid Invoices */}
+                    {isPaid && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsRatingOpen(true)}
+                            className="gap-1 font-bold bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100 h-7 px-2.5 text-[11px] shadow-2xs cursor-pointer"
+                        >
+                            <Star size={12} className="fill-amber-400 text-amber-400" /> Rate Supplier
+                        </Button>
+                    )}
+                    <Button 
+                        variant="outline" 
+                        onClick={() => window.print()}
+                        className="gap-1 font-bold bg-white text-slate-700 border-slate-200 hover:bg-slate-50 h-7 px-2.5 text-[11px] shadow-2xs cursor-pointer"
+                    >
+                        <Printer size={12} /> Print Invoice
                     </Button>
-                    <Button variant="primary" className="gap-1.5 font-bold bg-brand hover:bg-brand-hover text-white h-7 px-3 text-[11px]">
-                        <Download size={13} /> Download PDF
+                    <Button 
+                        onClick={() => alert(`Downloading Invoice PDF ${invoiceData.id}...`)}
+                        className="gap-1 font-bold bg-[#ff4a1f] hover:bg-[#e63d15] text-white h-7 px-2.5 text-[11px] shadow-2xs cursor-pointer"
+                    >
+                        <Download size={12} /> Download PDF
                     </Button>
                 </div>
             </div>
 
-            {/* Compact A4 Invoice Paper */}
-            <div className="w-full max-w-3xl bg-white shadow-sm rounded border border-slate-200 p-5 md:p-6">
-                {/* Header */}
-                <div className="flex justify-between items-start mb-6">
+            {/* Enterprise Compact Invoice Paper Container */}
+            <div className="w-full max-w-2xl bg-white shadow-2xs rounded-lg border border-slate-200 p-4 md:p-5 space-y-4">
+                {/* Header & Logo */}
+                <div className="flex justify-between items-start gap-4 pb-4 border-b border-slate-100">
                     <div>
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <div className="w-7 h-7 bg-brand rounded flex items-center justify-center">
-                                <span className="text-white font-bold text-sm leading-none">G</span>
+                        <div className="flex items-center gap-1.5 mb-1">
+                            <div className="w-6 h-6 bg-[#ff4a1f] rounded-md flex items-center justify-center shadow-2xs">
+                                <span className="text-white font-black text-xs leading-none">G</span>
                             </div>
-                            <span className="text-[15px] font-bold text-slate-900 tracking-tight">GetItMoving</span>
+                            <span className="text-base font-bold text-slate-900 tracking-tight">GetItMoving</span>
                         </div>
-                        <div className="text-[10px] text-slate-500 space-y-0.5 leading-tight">
-                            <p>123 Logistics Avenue, Industrial Estate</p>
-                            <p>Dhaka 1212, Bangladesh</p>
-                            <p className="flex items-center gap-1 mt-1"><Phone size={10} /> +880 1711-000000</p>
-                            <p className="flex items-center gap-1"><Mail size={10} /> billing@getitmoving.com</p>
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <h1 className="text-[18px] font-bold text-slate-900 tracking-widest mb-2">INVOICE</h1>
-                        <div className="space-y-1 text-[10.5px]">
-                            <p className="flex justify-between gap-6"><span className="text-slate-400 font-medium">Invoice No:</span> <span className="font-bold text-slate-900">INV-2026-003</span></p>
-                            <p className="flex justify-between gap-6"><span className="text-slate-400 font-medium">Issue Date:</span> <span className="font-medium text-slate-900">Jul 18, 2026</span></p>
-                            <p className="flex justify-between gap-6"><span className="text-slate-400 font-medium">Due Date:</span> <span className="font-medium text-slate-900">Jul 30, 2026</span></p>
-                            <p className="flex justify-between gap-6 items-center mt-1.5 pt-1.5 border-t border-slate-100">
-                                <span className="text-slate-400 font-medium">Status:</span> 
-                                <Badge variant="warning" className="px-1.5 py-0 text-[9px]">Due</Badge>
-                            </p>
+                        <div className="text-[11px] text-slate-500 space-y-0.5 leading-tight">
+                            <p className="font-semibold text-slate-700">GetItMoving Logistics Tech Inc.</p>
+                            <p>123 Logistics Avenue, Industrial Park, Dhaka 1212</p>
+                            <div className="flex items-center gap-2 pt-0.5 text-[10.5px] text-slate-500">
+                                <span className="flex items-center gap-0.5"><Phone size={10} /> +880 1711-000000</span>
+                                <span>•</span>
+                                <span className="flex items-center gap-0.5"><Mail size={10} /> billing@getitmoving.com</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Billing Info */}
-                <div className="mb-5 text-[10.5px]">
-                    <div className="bg-slate-50 p-2.5 rounded border border-slate-100 w-1/2">
-                        <h3 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Building2 size={10}/> Billed To</h3>
-                        <p className="font-bold text-slate-900 text-[11.5px] mb-0.5">Walton Group BD</p>
-                        <p className="text-slate-600">Attn: Rahim Uddin (Manager)</p>
-                        <p className="text-slate-600">Plot-1088, Block-I, Bashundhara R/A, Dhaka</p>
-                        <p className="text-slate-600">BIN: 987654321</p>
-                    </div>
-                </div>
+                    <div className="text-right space-y-1">
+                        <div>
+                            <span className="text-[10px] font-bold text-[#ff4a1f] tracking-wider uppercase">TAX INVOICE</span>
+                            <h1 className="text-base font-extrabold text-slate-900 tracking-tight">{invoiceData.id}</h1>
+                        </div>
 
-                {/* Table */}
-                <div className="mb-5">
-                    <div className="flex bg-slate-100 text-slate-600 text-[9px] font-bold uppercase tracking-wider px-2 py-1.5 border border-slate-200 rounded-t">
-                        <div className="w-8 text-center">#</div>
-                        <div className="flex-1">Description</div>
-                        <div className="w-16 text-center">Qty</div>
-                        <div className="w-24 text-right">Rate</div>
-                        <div className="w-24 text-right">Amount</div>
-                    </div>
-                    <div className="border-x border-b border-slate-200 rounded-b">
-                        {[
-                            { id: 1, desc: 'Enterprise Shipper Subscription (Monthly)', qty: 1, rate: '5,000', amount: '5,000' },
-                            { id: 2, desc: 'Additional API Requests (10k Batch)', qty: 2, rate: '2,500', amount: '5,000' },
-                            { id: 3, desc: 'Express Freight Charge (Dhaka to Chittagong)', qty: 1, rate: '12,500', amount: '12,500' },
-                        ].map((item, i) => (
-                            <div key={i} className="flex px-2 py-2 border-b border-slate-100 last:border-0 text-[10.5px]">
-                                <div className="w-8 text-center text-slate-400 font-medium">{item.id}</div>
-                                <div className="flex-1 font-medium text-slate-800">{item.desc}</div>
-                                <div className="w-16 text-center text-slate-600">{item.qty}</div>
-                                <div className="w-24 text-right text-slate-600">€ {item.rate}</div>
-                                <div className="w-24 text-right font-bold text-slate-900">€ {item.amount}</div>
+                        <div className="space-y-0.5 text-[11px]">
+                            <div className="flex justify-end gap-2 text-slate-600">
+                                <span className="font-normal text-slate-400">Issue Date:</span>
+                                <span className="font-semibold text-slate-900">{invoiceData.date}</span>
                             </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Summary */}
-                <div className="flex justify-end mb-6">
-                    <div className="w-64">
-                        <div className="space-y-1 text-[10.5px]">
-                            <div className="flex justify-between text-slate-600">
-                                <span>Subtotal:</span>
-                                <span className="font-medium text-slate-900">€ 22,500</span>
+                            <div className="flex justify-end gap-2 text-slate-600">
+                                <span className="font-normal text-slate-400">Due Date:</span>
+                                <span className="font-semibold text-slate-900">{invoiceData.dueDate}</span>
                             </div>
-                            <div className="flex justify-between text-slate-600">
-                                <span>Discount:</span>
-                                <span className="font-medium text-slate-900">€ 0</span>
-                            </div>
-                            <div className="flex justify-between text-slate-600">
-                                <span>VAT (15%):</span>
-                                <span className="font-medium text-slate-900">€ 3,375</span>
-                            </div>
-                            <div className="flex justify-between items-end pt-1.5 mt-1.5 border-t border-slate-200">
-                                <span className="text-[11px] font-bold text-slate-900">Total Amount:</span>
-                                <span className="text-[14px] font-bold text-brand leading-none">€ 25,875</span>
+                            <div className="flex justify-end gap-2 items-center pt-0.5">
+                                <span className="font-normal text-slate-400">Status:</span>
+                                {invoiceData.status === 'Paid' && (
+                                    <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0 text-[9.5px] font-bold">
+                                        <CheckCircle2 size={10} className="mr-1 inline" /> Paid
+                                    </Badge>
+                                )}
+                                {invoiceData.status === 'Due' && (
+                                    <Badge className="bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0 text-[9.5px] font-bold">
+                                        <Clock size={10} className="mr-1 inline" /> Payment Due
+                                    </Badge>
+                                )}
+                                {invoiceData.status === 'Overdue' && (
+                                    <Badge className="bg-red-50 text-red-700 border border-red-200 px-1.5 py-0 text-[9.5px] font-bold">
+                                        <AlertCircle size={10} className="mr-1 inline" /> Overdue
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Footer Notes */}
-                <div className="border-t border-slate-200 pt-3 text-[9px] text-slate-500 text-center">
-                    <p className="font-semibold text-slate-600 mb-0.5">Payment Instructions</p>
-                    <p>Please make the payment by the due date via Bank Transfer, bKash, or your GetItMoving dashboard.</p>
+                {/* Billed To & Payment Method Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                    <div className="bg-slate-50/80 p-3 rounded-md border border-slate-200/80 space-y-0.5">
+                        <span className="text-[10.5px] font-bold text-slate-500 flex items-center gap-1 mb-1">
+                            <Building2 size={12} className="text-[#ff4a1f]" /> Billed To
+                        </span>
+                        <p className="font-bold text-slate-900 text-xs">Walton Group Logistics BD</p>
+                        <p className="text-slate-600">Attn: Rahim Uddin (Procurement Manager)</p>
+                        <p className="text-slate-500">Plot-1088, Block-I, Bashundhara R/A, Dhaka</p>
+                        <p className="text-slate-500">Supplier: {invoiceData.supplier || 'Express Freight Logistics'}</p>
+                    </div>
+
+                    <div className="bg-slate-50/80 p-3 rounded-md border border-slate-200/80 space-y-0.5">
+                        <span className="text-[10.5px] font-bold text-slate-500 flex items-center gap-1 mb-1">
+                            <ShieldCheck size={12} className="text-[#ff4a1f]" /> Payment Information
+                        </span>
+                        <p className="font-bold text-slate-900">Visa ending in •••• 4242</p>
+                        <p className="text-slate-600">Transaction Ref: TXN-89214710</p>
+                        <p className="text-slate-500">Paid on: {invoiceData.date} at 14:32 UTC</p>
+                        <p className="text-emerald-700 font-semibold text-[10.5px]">Escrow Guaranteed & Verified</p>
+                    </div>
+                </div>
+
+                {/* Itemized Invoice Table */}
+                <div className="rounded-md border border-slate-200 overflow-hidden">
+                    <table className="w-full text-[11px] text-left">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+                            <tr>
+                                <th className="py-2 px-2.5 w-8 text-center">#</th>
+                                <th className="py-2 px-2.5">Item Description</th>
+                                <th className="py-2 px-2.5 text-center w-14">Qty</th>
+                                <th className="py-2 px-2.5 text-right w-20">Rate</th>
+                                <th className="py-2 px-2.5 text-right w-24">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                            {[
+                                { id: 1, desc: 'Freight Transport Logistics Service', qty: 1, rate: invoiceData.amount || '€ 25,500', amount: invoiceData.amount || '€ 25,500' },
+                                { id: 2, desc: 'Priority Cargo Dispatch & Escrow Deposit', qty: 1, rate: '€ 125.00', amount: '€ 125.00' },
+                            ].map((item) => (
+                                <tr key={item.id} className="hover:bg-slate-50/50">
+                                    <td className="py-2 px-2.5 text-center text-slate-400 font-semibold">{item.id}</td>
+                                    <td className="py-2 px-2.5">
+                                        <p className="font-bold text-slate-900">{item.desc}</p>
+                                        <p className="text-[10px] text-slate-500 font-normal">Standard 24/7 priority support & escrow protection included.</p>
+                                    </td>
+                                    <td className="py-2 px-2.5 text-center text-slate-600 font-semibold">{item.qty}</td>
+                                    <td className="py-2 px-2.5 text-right text-slate-600">{item.rate}</td>
+                                    <td className="py-2 px-2.5 text-right font-bold text-slate-900">{item.amount}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Subtotal & Financial Breakdown */}
+                <div className="flex justify-end">
+                    <div className="w-full sm:w-64 space-y-1.5 text-[11px] bg-slate-50/50 p-3 rounded-md border border-slate-200/80">
+                        <div className="flex justify-between text-slate-600">
+                            <span>Subtotal:</span>
+                            <span className="font-semibold text-slate-900">{invoiceData.amount}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-600">
+                            <span>VAT (15%):</span>
+                            <span className="font-semibold text-slate-900">Included</span>
+                        </div>
+                        <div className="flex justify-between items-baseline pt-1.5 border-t border-slate-200">
+                            <span className="text-xs font-bold text-slate-900">Total Amount:</span>
+                            <span className="text-base font-extrabold text-[#ff4a1f]">{invoiceData.amount}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Invoice Footer Notes & Verification Stamp */}
+                <div className="border-t border-slate-100 pt-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10.5px] text-slate-500">
+                    <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Digitally Signed & Issued by GetItMoving SaaS Billing Engine</span>
+                    </div>
+                    <p className="text-slate-400">Questions? Contact support@getitmoving.com</p>
                 </div>
             </div>
+
+            {/* Rating Modal for Invoice View */}
+            {isPaid && (
+                <RatingModal
+                    isOpen={isRatingOpen}
+                    onClose={() => setIsRatingOpen(false)}
+                    orderId={invoiceData.id}
+                    targetName={invoiceData.supplier || 'Express Freight Logistics'}
+                    targetRole="Supplier"
+                    orderTitle="Priority Freight Logistics Dispatch"
+                    onSubmit={(data) => console.log('Invoice rating submitted:', data)}
+                />
+            )}
         </div>
     );
 }

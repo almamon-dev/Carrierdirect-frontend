@@ -119,8 +119,8 @@ export default function Select({
                 {({ open }) => (
                     <div className={cn("relative h-full", open && "z-[9999]")}>
                         <Listbox.Button className={cn(
-                            "relative w-full h-full min-h-[32px] cursor-pointer rounded-md border bg-white py-1 pr-10 text-left text-[14px] font-medium text-[#202223] outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 transition-all flex items-center shadow-none",
-                            error ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-[#d82c0d]" : "border-[#d1d1d1] focus:border-[#4273f5]",
+                            "relative w-full h-[36px] cursor-pointer rounded-sm border bg-white py-1 pr-8 text-left text-[13px] font-medium text-[#202223] outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 transition-all flex items-center shadow-none",
+                            error ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-0" : "border-slate-300 focus:border-slate-400 focus:ring-0 focus:outline-none",
                             Icon ? "pl-9" : "pl-3"
                         )}>
                             {Icon && (

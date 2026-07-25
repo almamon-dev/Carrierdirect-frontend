@@ -7,6 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
 import { SubscriptionLockModal } from '@/components/modals';
+import { QuotaReminderBanner } from '@/components';
 
 import { QuoteFormData } from './types/formTypes';
 import { BasicInfoSection } from './components/sections/BasicInfoSection';
@@ -276,9 +277,20 @@ export default function CreateRequestForm() {
         });
     };
 
+    const [quotaUsed, setQuotaUsed] = useState(2); // Example: 2 of 5 used
+
     const handleSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        setIsLockModalOpen(true);
+        if (quotaUsed >= 5) {
+            setIsLockModalOpen(true);
+        } else {
+            setIsSubmitting(true);
+            setTimeout(() => {
+                setIsSubmitting(false);
+                setQuotaUsed(prev => prev + 1);
+                navigate('/customer/quotes/quotes-received');
+            }, 1000);
+        }
     };
 
     const servicesCount = [
@@ -288,9 +300,9 @@ export default function CreateRequestForm() {
     ].filter(Boolean).length;
 
     return (
-        <div className="p-6 md:p-8 mx-auto bg-[#f8f9fa] min-h-screen pb-24 font-sans antialiased">
+        <div className="p-5 md:p-6 w-full max-w-full bg-[#f8f9fa] min-h-screen pb-20 font-sans antialiased">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 tracking-tight">
                         {isRepeatMode ? 'Repeat Quote Request' : 'Create Quote Request'}
@@ -302,15 +314,6 @@ export default function CreateRequestForm() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button 
-                        variant="outline"
-                        size="sm"
-                        className="h-9 px-3 text-xs font-semibold border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                        onClick={() => setIsLockModalOpen(true)}
-                    >
-                        <Lock size={13} className="text-amber-600" />
-                        <span>Quota Limit: 5 / 5 RFQs</span>
-                    </Button>
                     <Button 
                         variant="primary" 
                         size="sm" 
@@ -326,30 +329,33 @@ export default function CreateRequestForm() {
                 </div>
             </div>
 
+            {/* Reusable Top Free Quote Quota Reminder Banner */}
+            <QuotaReminderBanner quotaUsed={quotaUsed} className="mb-4" />
+
             {/* Repeat Mode Banner */}
             {isRepeatMode && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between gap-3 text-blue-900 shadow-2xs">
+                <div className="mb-4 p-3.5 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between gap-3 text-blue-900 shadow-2xs">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 rounded-md text-blue-600 flex-shrink-0">
-                            <RotateCcw size={20} />
+                            <RotateCcw size={18} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold flex items-center gap-2">
+                            <h4 className="text-xs font-bold flex items-center gap-2">
                                 Repeat Request Active ({repeatSource})
                             </h4>
-                            <p className="text-xs text-blue-700 mt-0.5">
+                            <p className="text-[11px] text-blue-700 mt-0.5">
                                 Form details (pickup & delivery addresses, load specs, vehicle) have been pre-filled from your selected history item.
                             </p>
                         </div>
                     </div>
-                    <Badge variant="primary" className="bg-blue-600 text-white font-semibold text-xs px-2.5 py-1 shrink-0">
+                    <Badge variant="primary" className="bg-blue-600 text-white font-semibold text-xs px-2 py-0.5 shrink-0">
                         Pre-filled
                     </Badge>
                 </div>
             )}
 
             {/* Layout */}
-            <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="flex flex-col md:flex-row gap-5 items-start">
                 {/* Sidebar Navigation */}
                 <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-2xs">
                     <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">

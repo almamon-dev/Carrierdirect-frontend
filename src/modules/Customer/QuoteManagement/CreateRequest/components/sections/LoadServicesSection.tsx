@@ -27,31 +27,53 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
     updateDimension,
     removeDimension,
 }) => {
+    const UNIT_OPTIONS = [
+        { id: 'CM', name: 'CM' },
+        { id: 'INCH', name: 'INCH' },
+        { id: 'M', name: 'M' },
+    ];
+
+    const VEHICLE_OPTIONS = [
+        { id: 'Small Van', name: 'Small Van' },
+        { id: 'Cargo Van', name: 'Cargo Van' },
+        { id: 'Pickup Truck', name: 'Pickup Truck' },
+        { id: 'Box Truck', name: 'Box Truck' },
+        { id: 'Semi Trailer', name: 'Semi Trailer' },
+    ];
+
+    const LOAD_OPTIONS = [
+        { id: 'Boxes', name: 'Boxes' },
+        { id: 'Pallets', name: 'Pallets' },
+        { id: 'Furniture', name: 'Furniture' },
+        { id: 'Machinery', name: 'Machinery' },
+        { id: 'Vehicles', name: 'Vehicles' },
+    ];
+
     return (
         <div className="space-y-3 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
                 <TabHeader title="Load & Vehicle Information" icon={Truck} />
                 
                 <FormRow label="Vehicle Type" required>
-                    <Select name="vehicleType" value={formData.vehicleType} onChange={(e) => handleSelectChange('vehicleType', e.target.value)} showSearch={false}>
-                        <option value="">Select vehicle...</option>
-                        <option value="Small Van">Small Van</option>
-                        <option value="Cargo Van">Cargo Van</option>
-                        <option value="Pickup Truck">Pickup Truck</option>
-                        <option value="Box Truck">Box Truck</option>
-                        <option value="Semi Trailer">Semi Trailer</option>
-                    </Select>
+                    <Select 
+                        name="vehicleType" 
+                        value={formData.vehicleType} 
+                        onChange={(e) => handleSelectChange('vehicleType', e.target.value)} 
+                        options={VEHICLE_OPTIONS}
+                        placeholder="Select vehicle..."
+                        showSearch={false} 
+                    />
                 </FormRow>
                 
                 <FormRow label="Load Type" required>
-                    <Select name="loadType" value={formData.loadType} onChange={(e) => handleSelectChange('loadType', e.target.value)} showSearch={false}>
-                        <option value="">Select load type...</option>
-                        <option value="Boxes">Boxes</option>
-                        <option value="Pallets">Pallets</option>
-                        <option value="Furniture">Furniture</option>
-                        <option value="Machinery">Machinery</option>
-                        <option value="Vehicles">Vehicles</option>
-                    </Select>
+                    <Select 
+                        name="loadType" 
+                        value={formData.loadType} 
+                        onChange={(e) => handleSelectChange('loadType', e.target.value)} 
+                        options={LOAD_OPTIONS}
+                        placeholder="Select load type..."
+                        showSearch={false} 
+                    />
                 </FormRow>
                 
                 <FormRow label="Items Count">
@@ -70,36 +92,56 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                     <Input type="text" inputMode="numeric" name="volume" value={formData.volume} onChange={handleChange} placeholder="e.g. 18" />
                 </FormRow>
 
-                {/* Dimensions Table */}
+                {/* Minimal Cargo Dimensions */}
                 <div className="col-span-1 md:col-span-2 pt-2">
                     <SectionHeader title="Cargo Dimensions (L x W x H)" icon={Box} />
+                    
                     <div className="space-y-2 mt-2">
                         {formData.dimensions.map((dim) => (
-                            <div key={dim.id} className="grid grid-cols-6 gap-2 items-center bg-slate-50 p-2 rounded border border-slate-200 text-xs">
-                                <Input placeholder="Length" value={dim.length} onChange={(e) => updateDimension(dim.id, 'length', e.target.value)} className="h-8 text-xs" />
-                                <Input placeholder="Width" value={dim.width} onChange={(e) => updateDimension(dim.id, 'width', e.target.value)} className="h-8 text-xs" />
-                                <Input placeholder="Height" value={dim.height} onChange={(e) => updateDimension(dim.id, 'height', e.target.value)} className="h-8 text-xs" />
-                                <Input placeholder="Qty" value={dim.qty} onChange={(e) => updateDimension(dim.id, 'qty', e.target.value)} className="h-8 text-xs" />
-                                <Select value={dim.unit} onChange={(e) => updateDimension(dim.id, 'unit', e.target.value)} className="h-8 text-xs" showSearch={false}>
-                                    <option value="CM">CM</option>
-                                    <option value="INCH">INCH</option>
-                                    <option value="M">M</option>
-                                </Select>
-                                <Button 
+                            <div key={dim.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                                <div className="flex-1 min-w-[80px]">
+                                    <Input placeholder="Length" value={dim.length} onChange={(e) => updateDimension(dim.id, 'length', e.target.value)} className="h-8 text-xs" />
+                                </div>
+                                <span className="text-slate-400 text-xs font-semibold select-none">×</span>
+                                <div className="flex-1 min-w-[80px]">
+                                    <Input placeholder="Width" value={dim.width} onChange={(e) => updateDimension(dim.id, 'width', e.target.value)} className="h-8 text-xs" />
+                                </div>
+                                <span className="text-slate-400 text-xs font-semibold select-none">×</span>
+                                <div className="flex-1 min-w-[80px]">
+                                    <Input placeholder="Height" value={dim.height} onChange={(e) => updateDimension(dim.id, 'height', e.target.value)} className="h-8 text-xs" />
+                                </div>
+                                <div className="w-20 shrink-0">
+                                    <Input placeholder="Qty" value={dim.qty} onChange={(e) => updateDimension(dim.id, 'qty', e.target.value)} className="h-8 text-xs text-center" />
+                                </div>
+                                <div className="w-24 shrink-0">
+                                    <Select 
+                                        value={dim.unit} 
+                                        onChange={(e) => updateDimension(dim.id, 'unit', e.target.value)} 
+                                        options={UNIT_OPTIONS}
+                                        className="h-8 text-xs" 
+                                        showSearch={false} 
+                                    />
+                                </div>
+                                <button 
                                     type="button" 
-                                    variant="ghost" 
-                                    size="sm"
                                     onClick={() => removeDimension(dim.id)}
                                     disabled={formData.dimensions.length === 1}
-                                    className="h-8 text-red-500 hover:bg-red-50 cursor-pointer"
+                                    className="p-1.5 text-slate-400 hover:text-red-500 rounded transition-colors disabled:opacity-20 cursor-pointer shrink-0"
+                                    title="Remove"
                                 >
                                     <Trash2 size={14} />
-                                </Button>
+                                </button>
                             </div>
                         ))}
-                        <Button type="button" variant="outline" size="sm" onClick={addDimensionRow} className="h-8 text-xs font-semibold cursor-pointer">
-                            <Plus size={13} className="mr-1" /> Add Dimension Row
-                        </Button>
+                        
+                        <button 
+                            type="button" 
+                            onClick={addDimensionRow} 
+                            className="text-xs font-bold text-[#ff4a1f] hover:underline inline-flex items-center gap-1 mt-1 cursor-pointer"
+                        >
+                            <Plus size={13} />
+                            <span>Add Dimension Row</span>
+                        </button>
                     </div>
                 </div>
 

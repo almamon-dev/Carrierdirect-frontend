@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Eye, Truck, MapPin, CheckCircle2, Clock, Upload } from 'lucide-react';
+import { Search, Eye, Truck, MapPin, CheckCircle2, Clock, Upload, Star } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Badge from '@/components/ui/badge';
 import Select from '@/components/ui/select';
 import DataTable, { Column } from '@/components/tables/data-table';
+import RatingModal from '@/components/modals/rating-modal';
 import { mockSupplierOrders, SupplierOrder } from '../data/ordersData';
 
 export default function ActiveJobs() {
     const navigate = useNavigate();
     const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
+    const [ratingTarget, setRatingTarget] = useState<{ id: string; customer: string; route: string } | null>(null);
 
     const filteredJobs = mockSupplierOrders.filter(job => {
         if (selectedStatusFilter === 'all') return true;
@@ -24,7 +26,7 @@ export default function ActiveJobs() {
             render: (row) => (
                 <button 
                     onClick={() => navigate(`/supplier/orders/details/${row.slug}`)}
-                    className="font-bold text-slate-900 hover:text-[#ff4a1f] hover:underline text-left"
+                    className="font-bold text-slate-900 hover:text-[#ff4a1f] hover:underline text-left cursor-pointer"
                 >
                     {row.id}
                 </button>
@@ -99,14 +101,25 @@ export default function ActiveJobs() {
     ];
 
     const renderActions = (row: SupplierOrder) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-1.5">
+            {row.status === 'Delivered' && (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2 text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 font-bold text-[11px] cursor-pointer"
+                    onClick={() => setRatingTarget({ id: row.id, customer: row.customer, route: `${row.pickup} → ${row.delivery}` })}
+                    title="Rate Customer"
+                >
+                    <Star size={12} className="mr-1 fill-amber-400 text-amber-400" /> Rate Customer
+                </Button>
+            )}
             <Button 
                 variant="outline" 
                 size="sm" 
-                className="h-8 text-xs px-2.5 font-semibold"
+                className="h-7 text-xs px-2.5 font-semibold cursor-pointer"
                 onClick={() => navigate(`/supplier/orders/details/${row.slug}`)}
             >
-                <Eye size={13} className="mr-1" /> View Details
+                <Eye size={13} className="mr-1" /> Details
             </Button>
         </div>
     );
@@ -129,8 +142,8 @@ export default function ActiveJobs() {
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Active Jobs & Shipments</h1>
-                    <p className="text-xs text-slate-500 font-medium">Monitor and manage all active deliveries and assigned drivers.</p>
+                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Active Jobs & Deliveries</h1>
+                    <p className="text-xs text-slate-500 font-medium">Monitor active deliveries, submit PODs, and rate customer shippers.</p>
                 </div>
             </div>
 
@@ -143,6 +156,21 @@ export default function ActiveJobs() {
                 actions={renderActions}
                 filterContent={filterContent}
             />
+
+            {/* Rating Modal for Supplier Rating Customer */}
+            {ratingTarget && (
+                <RatingModal
+                    isOpen={Boolean(ratingTarget)}
+                    onClose={() => setRatingTarget(null)}
+                    orderId={ratingTarget.id}
+                    targetName={ratingTarget.customer}
+                    targetRole="Customer"
+                    orderTitle={ratingTarget.route}
+                    onSubmit={(data) => {
+                        console.log('Supplier rated customer:', data);
+                    }}
+                />
+            )}
         </div>
     );
 }

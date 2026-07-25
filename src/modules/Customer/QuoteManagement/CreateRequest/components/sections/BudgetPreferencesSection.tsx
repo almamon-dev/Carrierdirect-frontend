@@ -20,21 +20,29 @@ export const BudgetPreferencesSection: React.FC<SectionProps> = ({
     handleSelectChange,
     handleCheckboxChange,
 }) => {
+    const EXPIRE_OPTIONS = [
+        { id: '24 Hours', name: '24 Hours' },
+        { id: '48 Hours', name: '48 Hours' },
+        { id: '7 Days', name: '7 Days' },
+    ];
+
     return (
         <div className="space-y-3 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
                 <TabHeader title="Budget & Bidding Preferences" icon={Euro} />
                 
-                <FormRow label="Target Budget (€)" required>
-                    <Input type="text" inputMode="numeric" name="budget" value={formData.budget} onChange={handleChange} placeholder="e.g. 1450" />
+                <FormRow label="Target Budget (€)">
+                    <Input type="text" inputMode="numeric" name="budget" value={formData.budget} onChange={handleChange} placeholder="e.g. 1450 (Optional)" />
                 </FormRow>
                 
                 <FormRow label="Auto Expire RFQ">
-                    <Select name="autoExpire" value={formData.autoExpire} onChange={(e) => handleSelectChange('autoExpire', e.target.value)} showSearch={false}>
-                        <option value="24 Hours">24 Hours</option>
-                        <option value="48 Hours">48 Hours</option>
-                        <option value="7 Days">7 Days</option>
-                    </Select>
+                    <Select 
+                        name="autoExpire" 
+                        value={formData.autoExpire} 
+                        onChange={(e) => handleSelectChange('autoExpire', e.target.value)} 
+                        options={EXPIRE_OPTIONS}
+                        showSearch={false} 
+                    />
                 </FormRow>
 
                 <div className="col-span-1 md:col-span-2 pt-2 space-y-3">
