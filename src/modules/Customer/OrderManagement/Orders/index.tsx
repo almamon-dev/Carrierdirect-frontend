@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Map, Download, FileText } from 'lucide-react';
+import { Eye, Map, Download, FileText, RotateCcw } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
@@ -53,6 +53,16 @@ export default function Orders() {
         title="View Details"
       >
         <Eye size={14} />
+      </Button>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="h-7 px-2 text-xs text-blue-600 border-blue-200 hover:bg-blue-50 flex items-center gap-1 font-semibold" 
+        onClick={() => navigate('/customer/quotes/create/new', { state: { repeatData: row } })}
+        title="Repeat Order"
+      >
+        <RotateCcw size={13} />
+        <span>Repeat</span>
       </Button>
       <Button 
         variant="primary" 

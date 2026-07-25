@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Printer, Download, User, Building2, FileText, ChevronLeft, Edit, X, Copy, Package, Truck, CreditCard, Banknote, ShieldAlert, Phone, Mail, CheckCircle2, Navigation } from 'lucide-react';
+import { Printer, Download, User, Building2, FileText, ChevronLeft, Edit, X, Copy, Package, Truck, CreditCard, Banknote, ShieldAlert, Phone, Mail, CheckCircle2, Navigation, RotateCcw } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
 
@@ -24,6 +24,13 @@ export default function OrderDetails() {
                         </div>
                     </div>
                     
+                    <Button 
+                        variant="primary" 
+                        className="h-9 px-4 bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-sm font-semibold flex items-center gap-1.5"
+                        onClick={() => navigate('/customer/quotes/create/new', { state: { repeatData: { ...orderData, id: id || orderData.id } } })}
+                    >
+                        <RotateCcw size={16} /> Repeat Order
+                    </Button>
                     <Button variant="outline" className="h-9 px-4 bg-white text-slate-600 border-slate-300 shadow-sm hover:bg-slate-50 font-medium">
                         <Printer size={16} className="mr-1.5" /> Print
                     </Button>

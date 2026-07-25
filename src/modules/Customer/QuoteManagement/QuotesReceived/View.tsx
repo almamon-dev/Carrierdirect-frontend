@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, Star, MapPin, Truck, ShieldCheck, CheckCircle, MessageSquare, 
-  ArrowRight, Box, Calendar, FileText, Clock, Building2, ChevronDown, ChevronUp, Navigation, History
+  ArrowRight, Box, Calendar, FileText, Clock, Building2, ChevronDown, ChevronUp, Navigation, History, RotateCcw
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Badge from '@/components/ui/badge';
@@ -133,14 +133,25 @@ export default function QuoteView() {
                     </p>
                 </div>
 
-                <Button 
-                    variant="outline" 
-                    size="sm"
-                    icon={<ArrowLeft size={14} />}
-                    onClick={() => navigate(-1)}
-                >
-                    Back to Quotes
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button 
+                        variant="primary" 
+                        size="sm"
+                        className="bg-[#ff4a1f] hover:bg-[#e03e15] text-white flex items-center gap-1.5"
+                        icon={<RotateCcw size={14} />}
+                        onClick={() => navigate('/customer/quotes/create/new', { state: { repeatData: quote } })}
+                    >
+                        Repeat Request
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        size="sm"
+                        icon={<ArrowLeft size={14} />}
+                        onClick={() => navigate(-1)}
+                    >
+                        Back to Quotes
+                    </Button>
+                </div>
             </div>
 
             {/* Quick Metrics Strip */}
