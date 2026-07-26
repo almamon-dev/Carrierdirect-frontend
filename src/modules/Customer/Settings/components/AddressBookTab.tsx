@@ -1,308 +1,278 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, Edit3, Star, Home, Warehouse, Globe } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Home, MapPin, Loader2, AlertCircle, Globe } from 'lucide-react';
 import Input from '@/components/ui/input';
 import Select from '@/components/ui/select';
+import apiClient from '@/lib/axios';
+import { ENDPOINTS } from '@/config/api';
+import { useToastStore } from '@/stores/useToastStore';
 
-interface AddressItem {
-  id: string;
-  label: string;
-  isDefault: boolean;
-  street: string;
-  city: string;
-  province: string;
-  postcode: string;
-  country: string;
+// ── Types ────────────────────────────────────────────────────────────────────
+interface AddressData {
+  address_line_1: string;
+  address_line_2: string;
+  city:           string;
+  state:          string;
+  zip_code:       string;
+  country:        string;
 }
 
-const defaultAddresses: AddressItem[] = [
-  {
-    id: '1',
-    label: 'Home Address',
-    isDefault: true,
-    street: '142 Oxford Street, Suite 4B',
-    city: 'London',
-    province: 'Greater London',
-    postcode: 'W1D 1LU',
-    country: 'United Kingdom'
-  },
-  {
-    id: '2',
-    label: 'Main Warehouse',
-    isDefault: false,
-    street: 'Unit 8, Kingsland Trading Estate',
-    city: 'Manchester',
-    province: 'Greater Manchester',
-    postcode: 'M1 2WD',
-    country: 'United Kingdom'
-  }
+interface AddressesResponse {
+  permanent: AddressData | null;
+  present: AddressData | null;
+}
+
+const BLANK: AddressData = {
+  address_line_1: '',
+  address_line_2: '',
+  city:           '',
+  state:          '',
+  zip_code:       '',
+  country:        'Bangladesh',
+};
+
+const COUNTRY_OPTIONS = [
+  { id: 'Bangladesh', name: 'Bangladesh' },
+  { id: 'United Kingdom', name: 'United Kingdom' },
+  { id: 'United States', name: 'United States' },
+  { id: 'India', name: 'India' },
+  { id: 'Australia', name: 'Australia' },
+  { id: 'Canada', name: 'Canada' },
+  { id: 'Germany', name: 'Germany' },
+  { id: 'France', name: 'France' },
 ];
 
-export default function AddressBookTab() {
-  const [addresses, setAddresses] = useState<AddressItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('customer_saved_addresses');
-      return saved ? JSON.parse(saved) : defaultAddresses;
-    } catch {
-      return defaultAddresses;
+const CACHE_KEY = 'customer_addresses_cache';
+
+function getCachedAddresses(): AddressesResponse {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : { permanent: null, present: null };
+  } catch {
+    return { permanent: null, present: null };
+  }
+}
+
+// ── Single address form card ──────────────────────────────────────────────────
+function AddressCard({
+  type,
+  title,
+  icon: Icon,
+  accentColor,
+  initialData,
+  onSaveSuccess,
+}: {
+  type: 'permanent' | 'present';
+  title: string;
+  icon: React.ElementType;
+  accentColor: string;
+  initialData: AddressData | null;
+  onSaveSuccess: (updated: AddressData) => void;
+}) {
+  const [data, setData]       = useState<AddressData>(initialData || BLANK);
+  const [saving, setSaving]   = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
+
+  const showToast = useToastStore(state => state.showToast);
+
+  // Keep state in sync if parent initialData updates
+  useEffect(() => {
+    if (initialData) {
+      setData({
+        address_line_1: initialData.address_line_1 ?? '',
+        address_line_2: initialData.address_line_2 ?? '',
+        city:           initialData.city           ?? '',
+        state:          initialData.state          ?? '',
+        zip_code:       initialData.zip_code       ?? '',
+        country:        initialData.country        ?? 'Bangladesh',
+      });
     }
-  });
+  }, [initialData]);
 
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const [formData, setFormData] = useState<Omit<AddressItem, 'id' | 'isDefault'>>({
-    label: '',
-    street: '',
-    city: '',
-    province: '',
-    postcode: '',
-    country: 'United Kingdom'
-  });
-
-  const countryOptions = [
-    { id: 'United Kingdom', name: 'United Kingdom' },
-    { id: 'Ireland', name: 'Ireland' },
-    { id: 'France', name: 'France' },
-    { id: 'Germany', name: 'Germany' },
-    { id: 'Netherlands', name: 'Netherlands' },
-    { id: 'United States', name: 'United States' },
-  ];
-
-  const saveToStorage = (list: AddressItem[]) => {
-    setAddresses(list);
-    localStorage.setItem('customer_saved_addresses', JSON.stringify(list));
-  };
-
-  const handleSetDefault = (id: string) => {
-    const updated = addresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === id
-    }));
-    saveToStorage(updated);
-  };
-
-  const handleDelete = (id: string) => {
-    const updated = addresses.filter(a => a.id !== id);
-    saveToStorage(updated);
-  };
-
-  const handleSaveAddress = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingId) {
-      const updated = addresses.map(a => a.id === editingId ? { ...a, ...formData } : a);
-      saveToStorage(updated);
-      setEditingId(null);
-    } else {
-      const newAddr: AddressItem = {
-        id: Date.now().toString(),
-        isDefault: addresses.length === 0,
-        ...formData
-      };
-      saveToStorage([...addresses, newAddr]);
-      setIsAdding(false);
+    setSaving(true);
+    setSaveErr(null);
+    try {
+      await apiClient.post(`${ENDPOINTS.CUSTOMER.ADDRESSES}/${type}`, data);
+      const label = type === 'permanent' ? 'Permanent' : 'Present';
+      onSaveSuccess(data);
+      showToast(`${label} address saved successfully!`, 'success');
+    } catch (err: any) {
+      const msg = err.data?.message || err.message || 'Failed to save address. Please try again.';
+      setSaveErr(msg);
+      showToast(msg, 'error');
+    } finally {
+      setSaving(false);
     }
-    setFormData({ label: '', street: '', city: '', province: '', postcode: '', country: 'United Kingdom' });
   };
 
-  const startEdit = (item: AddressItem) => {
-    setFormData({
-      label: item.label,
-      street: item.street,
-      city: item.city,
-      province: item.province,
-      postcode: item.postcode,
-      country: item.country
+  const set = (field: keyof AddressData, val: string) =>
+    setData(prev => ({ ...prev, [field]: val }));
+
+  return (
+    <form
+      onSubmit={handleSave}
+      className={`bg-white rounded-xl border shadow-sm overflow-hidden ${accentColor}`}
+    >
+      {/* Card Header */}
+      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+          type === 'permanent' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
+        }`}>
+          <Icon className="w-4 h-4" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+          <p className="text-[11px] text-slate-500">
+            {type === 'permanent'
+              ? 'Your permanent / home address'
+              : 'Your current / mailing address'}
+          </p>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="p-5 space-y-3.5">
+        {saveErr && (
+          <div className="flex items-center gap-2 p-2.5 bg-red-50 border border-red-200 rounded-md text-xs text-red-700">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            {saveErr}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="sm:col-span-2">
+            <Input
+              label="Address Line 1"
+              type="text"
+              placeholder="House no., Road no., Area"
+              value={data.address_line_1}
+              onChange={e => set('address_line_1', e.target.value)}
+              icon={<MapPin className="w-4 h-4 text-slate-400" />}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <Input
+              label="Address Line 2"
+              type="text"
+              placeholder="Apartment, suite, block (optional)"
+              value={data.address_line_2}
+              onChange={e => set('address_line_2', e.target.value)}
+              icon={<MapPin className="w-4 h-4 text-slate-300" />}
+            />
+          </div>
+          <Input
+            label="City / Town"
+            type="text"
+            placeholder="Dhaka"
+            value={data.city}
+            onChange={e => set('city', e.target.value)}
+          />
+          <Input
+            label="State / Division"
+            type="text"
+            placeholder="Dhaka Division"
+            value={data.state}
+            onChange={e => set('state', e.target.value)}
+          />
+          <Input
+            label="ZIP / Postal Code"
+            type="text"
+            placeholder="1212"
+            value={data.zip_code}
+            onChange={e => set('zip_code', e.target.value)}
+          />
+          <div className="flex flex-col gap-1">
+            <label className="text-[14px] font-bold text-[#202223]">Country</label>
+            <Select
+              value={data.country}
+              onChange={opt => set('country', typeof opt === 'object' ? opt.id : opt)}
+              options={COUNTRY_OPTIONS}
+              icon={Globe}
+              showSearch={false}
+              placeholder="Select country..."
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-end bg-slate-50/40">
+        <button
+          type="submit"
+          disabled={saving}
+          className="h-9 px-5 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-60 flex items-center gap-1.5"
+        >
+          {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          {saving ? 'Saving…' : 'Save Address'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// ── Main Tab ──────────────────────────────────────────────────────────────────
+export default function AddressBookTab() {
+  const [addresses, setAddresses] = useState<AddressesResponse>(getCachedAddresses);
+
+  // Single parent-level fetch on mount
+  useEffect(() => {
+    async function loadAllAddresses() {
+      try {
+        const res = await apiClient.get(ENDPOINTS.CUSTOMER.ADDRESSES);
+        const dataObj = res.data ?? res;
+
+        const updated: AddressesResponse = {
+          permanent: dataObj.permanent ?? null,
+          present:   dataObj.present   ?? null,
+        };
+
+        setAddresses(updated);
+        localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+      } catch {
+        // Keep cached/default data
+      }
+    }
+    loadAllAddresses();
+  }, []);
+
+  const handleUpdate = (type: 'permanent' | 'present', updated: AddressData) => {
+    setAddresses(prev => {
+      const next = { ...prev, [type]: updated };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(next));
+      return next;
     });
-    setEditingId(item.id);
-    setIsAdding(true);
-  };
-
-  const cancelForm = () => {
-    setIsAdding(false);
-    setEditingId(null);
-    setFormData({ label: '', street: '', city: '', province: '', postcode: '', country: 'United Kingdom' });
   };
 
   return (
-    <div className="space-y-4">
-      
-      {/* Compact Top Bar */}
-      <div className="bg-white p-4 rounded-md border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-bold text-slate-900">Saved Address Book</h3>
-          <p className="text-xs text-slate-500">Save pickup and delivery locations for 1-click quote requests.</p>
-        </div>
-
-        {!isAdding && (
-          <button
-            onClick={() => { setIsAdding(true); setEditingId(null); }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs rounded-md shadow-sm transition-all cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" /> Add Location
-          </button>
-        )}
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="bg-white p-4 rounded-md border border-slate-200 shadow-sm">
+        <h3 className="text-sm font-bold text-slate-900">Address Book</h3>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Keep your permanent and present addresses up to date for faster quote requests and deliveries.
+        </p>
       </div>
 
-      {/* Add / Edit Form Card */}
-      {isAdding && (
-        <form onSubmit={handleSaveAddress} className="bg-white p-4 sm:p-5 rounded-md border border-orange-200 shadow-sm space-y-4 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-            <h4 className="text-xs font-bold text-slate-700">
-              {editingId ? 'Edit Address Details' : 'Add New Location'}
-            </h4>
-            <span className="text-[11px] font-semibold text-slate-500">
-              <span className="text-red-500 font-bold">*</span> All fields required
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="sm:col-span-2">
-              <Input
-                label="Address Label / Name *"
-                type="text"
-                placeholder="e.g. Home, Main Warehouse, Storage Unit"
-                value={formData.label}
-                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <Input
-                label="Street Address *"
-                type="text"
-                placeholder="142 Oxford Street, Suite 4B"
-                value={formData.street}
-                onChange={(e) => setFormData({ ...formData, street: e.target.value })}
-                required
-              />
-            </div>
-
-            <Input
-              label="City / Town *"
-              type="text"
-              placeholder="London"
-              value={formData.city}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              required
-            />
-
-            <Input
-              label="State / Province / County *"
-              type="text"
-              placeholder="Greater London"
-              value={formData.province}
-              onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-              required
-            />
-
-            <Input
-              label="Postcode / ZIP Code *"
-              type="text"
-              placeholder="W1D 1LU"
-              value={formData.postcode}
-              onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-              required
-            />
-
-            <div className="flex flex-col gap-1">
-              <label className="text-[14px] font-bold text-[#202223]">
-                Country <span className="text-red-500 font-bold ml-0.5">*</span>
-              </label>
-              <Select
-                value={formData.country}
-                onChange={(opt) => setFormData({ ...formData, country: typeof opt === 'object' ? opt.id : opt })}
-                options={countryOptions}
-                icon={Globe}
-                showSearch={false}
-                placeholder="Select country..."
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={cancelForm}
-              className="h-9 px-4 rounded-md border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-all cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="h-9 px-5 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
-            >
-              {editingId ? 'Save Changes' : 'Add Location'}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* Compact Address List Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {addresses.map((item) => (
-          <div
-            key={item.id}
-            className={`bg-white p-4 rounded-md border transition-all flex flex-col justify-between ${
-              item.isDefault ? 'border-[#ff4a1f] shadow-sm' : 'border-slate-200 hover:border-slate-300'
-            }`}
-          >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-md bg-orange-100 text-[#ff4a1f] flex items-center justify-center">
-                    {item.label.toLowerCase().includes('home') ? <Home className="w-3.5 h-3.5" /> : <Warehouse className="w-3.5 h-3.5" />}
-                  </div>
-                  <h4 className="font-bold text-slate-900 text-sm">{item.label}</h4>
-                </div>
-                
-                {item.isDefault && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-[#ff4a1f] text-[10px] font-bold rounded-md border border-orange-200">
-                    <Star className="w-3 h-3 fill-current" /> Default
-                  </span>
-                )}
-              </div>
-
-              <div className="text-xs text-slate-600 space-y-0.5 pl-1">
-                <p className="font-medium">{item.street}</p>
-                <p>{item.city}, {item.province} {item.postcode}</p>
-                <p className="font-semibold text-slate-400">{item.country}</p>
-              </div>
-            </div>
-
-            {/* Compact Action Footer */}
-            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
-              {!item.isDefault ? (
-                <button
-                  onClick={() => handleSetDefault(item.id)}
-                  className="text-xs font-bold text-slate-500 hover:text-[#ff4a1f] transition-colors cursor-pointer"
-                >
-                  Set as Default
-                </button>
-              ) : <span />}
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => startEdit(item)}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
-                  title="Edit address"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
-                  title="Delete address"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-          </div>
-        ))}
+      {/* Two Address Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <AddressCard
+          type="permanent"
+          title="Permanent Address"
+          icon={Home}
+          accentColor="border-slate-200 hover:border-blue-200 transition-colors"
+          initialData={addresses.permanent}
+          onSaveSuccess={updated => handleUpdate('permanent', updated)}
+        />
+        <AddressCard
+          type="present"
+          title="Present Address"
+          icon={MapPin}
+          accentColor="border-slate-200 hover:border-emerald-200 transition-colors"
+          initialData={addresses.present}
+          onSaveSuccess={updated => handleUpdate('present', updated)}
+        />
       </div>
-
     </div>
   );
 }

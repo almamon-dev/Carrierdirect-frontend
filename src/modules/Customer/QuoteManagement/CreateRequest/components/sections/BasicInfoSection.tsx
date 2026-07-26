@@ -10,9 +10,10 @@ interface SectionProps {
     formData: QuoteFormData;
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     handleSelectChange: (name: keyof QuoteFormData, value: string) => void;
+    requestNumber?: string;
 }
 
-export const BasicInfoSection: React.FC<SectionProps> = ({ formData, handleChange, handleSelectChange }) => {
+export const BasicInfoSection: React.FC<SectionProps> = ({ formData, handleChange, handleSelectChange, requestNumber }) => {
     const PRIORITY_OPTIONS = [
         { id: 'Normal', name: 'Normal' },
         { id: 'High', name: 'High' },
@@ -40,7 +41,7 @@ export const BasicInfoSection: React.FC<SectionProps> = ({ formData, handleChang
                 </FormRow>
                 
                 <FormRow label="Request Number">
-                    <Input value="REQ-9824" disabled className="bg-slate-50 text-slate-500 font-semibold" />
+                    <Input value={requestNumber || "Auto-generated (REQ-NEW)"} disabled className="bg-slate-50 text-slate-500 font-semibold" />
                 </FormRow>
                 
                 <FormRow label="Priority">

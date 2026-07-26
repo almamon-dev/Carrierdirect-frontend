@@ -10,6 +10,10 @@ export const registerRoutes: RouteObject[] = [
         element: <RegisterPage />,
     },
     {
+        path: 'select-role',
+        element: <RegisterPage />,
+    },
+    {
         path: 'register/customer',
         element: <CustomerRegisterPage />,
     },

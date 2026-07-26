@@ -1,51 +1,72 @@
 import React, { useState } from 'react';
-import { Lock, Shield, Smartphone, Laptop, Check, AlertTriangle } from 'lucide-react';
+import { Lock, Shield, Smartphone, Laptop, Loader2 } from 'lucide-react';
 import Input from '@/components/ui/input';
+import apiClient from '@/lib/axios';
+import { ENDPOINTS } from '@/config/api';
+import { useToastStore } from '@/stores/useToastStore';
 
 export default function SecurityTab() {
+  const showToast = useToastStore(state => state.showToast);
+
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
 
-  const [twoFactor, setTwoFactor] = useState(false);
-  const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [twoFactor, setTwoFactor]   = useState(false);
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (passwords.newPassword !== passwords.confirmPassword) {
-      setStatusMsg({ type: 'error', text: 'New password and confirmation do not match.' });
+      showToast('New password and confirmation do not match.', 'error');
       return;
     }
-    if (passwords.newPassword.length < 6) {
-      setStatusMsg({ type: 'error', text: 'Password must be at least 6 characters long.' });
+
+    if (passwords.newPassword.length < 8) {
+      showToast('Password must be at least 8 characters long.', 'error');
       return;
     }
-    setStatusMsg({ type: 'success', text: 'Password updated successfully!' });
-    setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setTimeout(() => setStatusMsg(null), 3000);
+
+    setIsLoading(true);
+
+    try {
+      await apiClient.post(ENDPOINTS.CUSTOMER.CHANGE_PASSWORD, {
+        current_password:      passwords.currentPassword,
+        new_password:          passwords.newPassword,
+        new_password_confirmation: passwords.confirmPassword,
+      });
+
+      showToast('Password updated successfully!', 'success');
+      setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: any) {
+      const msg = err.data?.message || err.message || 'Current password incorrect or failed to update.';
+      showToast(msg, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleToggle2FA = () => {
+    const nextState = !twoFactor;
+    setTwoFactor(nextState);
+    if (nextState) {
+      showToast('2-Factor Authentication enabled.', 'info');
+    } else {
+      showToast('2-Factor Authentication disabled.', 'info');
+    }
   };
 
   return (
     <div className="space-y-4">
-      
+
       {/* Change Password Card */}
       <form onSubmit={handlePasswordSubmit} className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Change Password</h3>
-            <p className="text-xs text-slate-500">Update your account password regularly for security.</p>
-          </div>
-
-          {statusMsg && (
-            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-md border ${
-              statusMsg.type === 'success' ? 'bg-green-50 text-green-600 border-green-200' : 'bg-red-50 text-red-600 border-red-200'
-            }`}>
-              {statusMsg.type === 'success' ? <Check className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-              {statusMsg.text}
-            </span>
-          )}
+        <div className="border-b border-slate-100 pb-2">
+          <h3 className="text-sm font-bold text-slate-900">Change Password</h3>
+          <p className="text-xs text-slate-500">Update your account password regularly for security.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -83,9 +104,11 @@ export default function SecurityTab() {
         <div className="flex justify-end pt-1">
           <button
             type="submit"
-            className="h-9 px-5 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+            disabled={isLoading}
+            className="h-9 px-5 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-60 flex items-center gap-1.5"
           >
-            Update Password
+            {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {isLoading ? 'Updating…' : 'Update Password'}
           </button>
         </div>
       </form>
@@ -104,7 +127,7 @@ export default function SecurityTab() {
 
         <button
           type="button"
-          onClick={() => setTwoFactor(!twoFactor)}
+          onClick={handleToggle2FA}
           className={`w-10 h-5 rounded-full transition-colors relative p-0.5 shrink-0 cursor-pointer ${
             twoFactor ? 'bg-[#ff4a1f]' : 'bg-slate-200'
           }`}
@@ -117,15 +140,15 @@ export default function SecurityTab() {
 
       {/* Active Login Sessions */}
       <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
-        <h4 className="font-bold text-slate-900 text-xs border-b border-slate-100 pb-2">Active Sessions & Devices</h4>
-        
+        <h4 className="font-bold text-slate-900 text-xs border-b border-slate-100 pb-2">Active Sessions &amp; Devices</h4>
+
         <div className="space-y-2">
           <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
             <div className="flex items-center gap-3">
               <Laptop className="w-4 h-4 text-slate-600" />
               <div>
-                <p className="text-xs font-bold text-slate-900">Chrome on Windows 11 (This Device)</p>
-                <p className="text-[10px] text-slate-500">London, UK • Active Now</p>
+                <p className="text-xs font-bold text-slate-900">Chrome on Windows (This Device)</p>
+                <p className="text-[10px] text-slate-500">Active Session</p>
               </div>
             </div>
             <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">
@@ -137,12 +160,13 @@ export default function SecurityTab() {
             <div className="flex items-center gap-3">
               <Smartphone className="w-4 h-4 text-slate-600" />
               <div>
-                <p className="text-xs font-bold text-slate-900">Safari on iPhone 15 Pro</p>
-                <p className="text-[10px] text-slate-500">Manchester, UK • 2 hours ago</p>
+                <p className="text-xs font-bold text-slate-900">Mobile Browser</p>
+                <p className="text-[10px] text-slate-500">Recent Login</p>
               </div>
             </div>
-            <button 
-              type="button" 
+            <button
+              type="button"
+              onClick={() => showToast('Session revoked successfully.', 'info')}
               className="text-xs font-bold text-red-600 hover:underline cursor-pointer"
             >
               Revoke

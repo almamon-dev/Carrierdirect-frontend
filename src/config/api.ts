@@ -26,6 +26,7 @@ export const ENDPOINTS = {
     AUTH: {
         LOGIN: '/auth/login',
         REGISTER: '/auth/register',
+        VERIFY_EMAIL: '/auth/verify-email',
         LOGOUT: '/auth/logout',
         REFRESH_TOKEN: '/auth/refresh',
         ME: '/auth/me',
@@ -54,5 +55,26 @@ export const ENDPOINTS = {
     DASHBOARD: {
         STATS: '/dashboard/stats',
         CHART_DATA: '/dashboard/chart',
-    }
+    },
+    CUSTOMER: {
+        PROFILE:         '/customer/profile',
+        CHANGE_PASSWORD: '/customer/change-password',
+        ADDRESSES:       '/customer/addresses',
+        NOTIFICATIONS:   '/customer/notifications',
+        INVOICES:        '/customer/invoices',
+        ORDERS:          '/customer/orders',
+        QUOTE_REQUESTS:  '/customer/quote-requests',
+        QUOTE_REQUEST_DETAIL: (id: string | number) => `/customer/quote-requests/${id}`,
+        REQUEST_QUOTES:  (id: string | number) => `/customer/quote-requests/${id}/quotes`,
+    },
+    SUPPLIER: {
+        PROFILE:         '/supplier/profile',
+        CHANGE_PASSWORD: '/supplier/profile/change-password',
+        NOTIFICATIONS:   '/supplier/notifications',
+        ORDERS:          '/supplier/orders',
+        QUOTES:          '/supplier/quotes',
+        AVAILABLE_REQUESTS: '/supplier/available-requests',
+        REQUEST_DETAIL: (id: string | number) => `/supplier/requests/${id}`,
+        SUBMIT_QUOTE: (id: string | number) => `/supplier/requests/${id}/quote`,
+    },
 };

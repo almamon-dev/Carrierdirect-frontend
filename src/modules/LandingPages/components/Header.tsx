@@ -1,47 +1,89 @@
-import React, { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Menu, X, ChevronDown, LogOut, LayoutDashboard, User } from "lucide-react";
 import { AllImages } from "@/components/AllPhotos/AllImages";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { TOKEN_CONFIG } from "@/config/auth";
+import authService from "@/services/authService";
 
 const NavigationLink = [
-  { id: 1, navigationText: "Home", sectionId: "home" },
-  { id: 2, navigationText: "Features", sectionId: "features" },
-  { id: 3, navigationText: "Pricing", sectionId: "pricing" },
+  { id: 1, navigationText: "Home",       sectionId: "home" },
+  { id: 2, navigationText: "Features",   sectionId: "features" },
+  { id: 3, navigationText: "Pricing",    sectionId: "pricing" },
   { id: 4, navigationText: "How it Works", sectionId: "how-it-works" },
-  { id: 5, navigationText: "Carriers", sectionId: "supplier" },
+  { id: 5, navigationText: "Carriers",   sectionId: "supplier" },
 ];
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isScrolled,   setIsScrolled]   = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const { pathname } = useLocation();
-  const navigate = useNavigate();
+  const navigate     = useNavigate();
+  const dropdownRef  = useRef<HTMLDivElement>(null);
 
-  const [authState] = useState(() => {
-    try {
-      const token = localStorage.getItem('erp_access_token') || localStorage.getItem('token');
-      const userStr = localStorage.getItem('erp_user_data') || localStorage.getItem('user');
-      const user = userStr ? JSON.parse(userStr) : null;
-      return { userToken: token, userType: user?.user_type || user?.role };
-    } catch {
-      return { userToken: null, userType: null };
-    }
-  });
-
-  const { userToken, userType } = authState;
-  const dashboardPath = userType === "supplier" ? "/supplier/dashboard" : "/customer/dashboard";
+  // ── Live auth state (re-reads localStorage on every render) ───────────────
+  const [currentUser, setCurrentUser] = useState<{
+    name: string;
+    email: string;
+    user_type: string;
+  } | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+    const readAuth = () => {
+      const token   = localStorage.getItem(TOKEN_CONFIG.accessTokenKey);
+      const userStr = localStorage.getItem(TOKEN_CONFIG.userKey);
+      if (!token || !userStr) { setCurrentUser(null); return; }
+      try {
+        const u = JSON.parse(userStr);
+        setCurrentUser({ name: u.name ?? "User", email: u.email ?? "", user_type: u.user_type ?? "customer" });
+      } catch {
+        setCurrentUser(null);
+      }
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    readAuth();
+
+    // Re-sync when another tab changes localStorage
+    window.addEventListener("storage", readAuth);
+    return () => window.removeEventListener("storage", readAuth);
   }, []);
 
+  const dashboardPath =
+    currentUser?.user_type === "supplier"
+      ? "/supplier/dashboard"
+      : currentUser?.user_type === "admin"
+      ? "/admin/dashboard"
+      : "/customer/dashboard";
+
+  // ── Scroll handler ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // ── Close dropdown on outside click ───────────────────────────────────────
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  // ── Nav scroll helper ──────────────────────────────────────────────────────
   const handleNavClick = (e: React.MouseEvent, sectionId?: string) => {
     if (!sectionId) return;
-
     if (pathname === "/") {
       e.preventDefault();
       if (sectionId === "home") {
@@ -50,8 +92,7 @@ export default function Header() {
       } else {
         const el = document.getElementById(sectionId);
         if (el) {
-          const yOffset = -80;
-          const y = el.getBoundingClientRect().top + window.scrollY + yOffset;
+          const y = el.getBoundingClientRect().top + window.scrollY - 80;
           window.scrollTo({ top: y, behavior: "smooth" });
           window.history.pushState(null, "", `/#${sectionId}`);
         }
@@ -59,16 +100,110 @@ export default function Header() {
     } else {
       navigate(`/#${sectionId}`);
     }
-
     if (isMobileOpen) setIsMobileOpen(false);
   };
 
+  // ── Logout ─────────────────────────────────────────────────────────────────
+  const handleLogout = async () => {
+    await authService.logout();
+    setCurrentUser(null);
+    setDropdownOpen(false);
+    navigate("/web/login");
+  };
+
+  // ── Text colour helpers ────────────────────────────────────────────────────
+  const navTextCls  = isScrolled ? "text-slate-700 hover:text-[#ff4a1f]" : "text-white/80 hover:text-white";
+  const loginBtnCls = isScrolled
+    ? "border-slate-300 text-slate-700 hover:border-[#ff4a1f] hover:text-[#ff4a1f]"
+    : "border-white/40 text-white hover:border-white hover:bg-white/10";
+
+  // ── Authenticated right-side widget ───────────────────────────────────────
+  const AuthWidget = ({ mobile = false }: { mobile?: boolean }) =>
+    currentUser ? (
+      <div ref={dropdownRef} className={`relative ${mobile ? "w-full" : ""}`}>
+        <button
+          onClick={() => setDropdownOpen((p) => !p)}
+          className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full font-semibold text-sm transition-all cursor-pointer ${
+            isScrolled || mobile
+              ? "bg-slate-100 hover:bg-slate-200 text-slate-800"
+              : "bg-white/10 hover:bg-white/20 text-white"
+          } ${mobile ? "w-full justify-between" : ""}`}
+        >
+          {/* Avatar initials */}
+          <span className="h-7 w-7 rounded-full bg-[#ff4a1f] text-white text-xs font-bold flex items-center justify-center shrink-0">
+            {getInitials(currentUser.name)}
+          </span>
+          <span className="max-w-[110px] truncate">{currentUser.name}</span>
+          <ChevronDown
+            size={14}
+            className={`transition-transform shrink-0 ${dropdownOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {/* Dropdown */}
+        {dropdownOpen && (
+          <div
+            className={`absolute ${mobile ? "bottom-full mb-2 left-0" : "right-0 mt-2 top-full"} w-52 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden`}
+          >
+            {/* User info */}
+            <div className="px-4 py-3 border-b border-slate-100">
+              <p className="text-[13px] font-bold text-slate-800 truncate">{currentUser.name}</p>
+              <p className="text-[11px] text-slate-400 truncate">{currentUser.email}</p>
+              <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-orange-50 text-[#ff4a1f]">
+                {currentUser.user_type}
+              </span>
+            </div>
+
+            {/* Actions */}
+            <Link
+              to={dashboardPath}
+              onClick={() => setDropdownOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <LayoutDashboard size={15} className="text-slate-400" />
+              Dashboard
+            </Link>
+            <Link
+              to={`${dashboardPath.split("/dashboard")[0]}/settings`}
+              onClick={() => setDropdownOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <User size={15} className="text-slate-400" />
+              Profile
+            </Link>
+            <div className="border-t border-slate-100" />
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+            >
+              <LogOut size={15} />
+              Log Out
+            </button>
+          </div>
+        )}
+      </div>
+    ) : (
+      <div className={`flex ${mobile ? "flex-col" : "items-center"} gap-3 ${mobile ? "w-full" : ""}`}>
+        <Link to="/web/login" onClick={() => setIsMobileOpen(false)} className={mobile ? "w-full" : ""}>
+          <button
+            className={`${mobile ? "w-full py-2.5" : "px-6 py-2"} rounded-full font-bold border transition-all duration-200 cursor-pointer text-sm ${loginBtnCls}`}
+          >
+            Log In
+          </button>
+        </Link>
+        <Link to="/web/register" onClick={() => setIsMobileOpen(false)} className={mobile ? "w-full" : ""}>
+          <button className={`${mobile ? "w-full py-2.5" : "px-6 py-2"} rounded-full bg-[#ff4a1f] hover:bg-[#e63d15] text-white text-sm font-bold shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer`}>
+            Get Started
+          </button>
+        </Link>
+      </div>
+    );
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-colors duration-200 py-4 ${
-        isScrolled
-          ? "bg-white border-b border-slate-100"
-          : "bg-transparent"
+        isScrolled ? "bg-white border-b border-slate-100" : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -84,7 +219,7 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Desktop Nav Links */}
+        {/* Desktop Nav */}
         <div className="hidden lg:flex items-center justify-center flex-1 px-8">
           <ul className="flex items-center gap-8 xl:gap-12">
             {NavigationLink.map((item) => (
@@ -92,11 +227,7 @@ export default function Header() {
                 <a
                   href={`/#${item.sectionId}`}
                   onClick={(e) => handleNavClick(e, item.sectionId)}
-                  className={`text-sm font-semibold transition-colors duration-200 cursor-pointer ${
-                    isScrolled
-                      ? "text-slate-700 hover:text-[#ff4a1f]"
-                      : "text-white/80 hover:text-white"
-                  }`}
+                  className={`text-sm font-semibold transition-colors duration-200 cursor-pointer ${navTextCls}`}
                 >
                   {item.navigationText}
                 </a>
@@ -105,37 +236,12 @@ export default function Header() {
           </ul>
         </div>
 
-        {/* Right CTA Buttons */}
+        {/* Desktop CTA */}
         <div className="hidden sm:flex items-center gap-3">
-          {userToken ? (
-            <Link to={dashboardPath}>
-              <button className="px-6 py-2 rounded-full bg-[#ff4a1f] hover:bg-[#e63d15] text-white text-sm font-bold shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer">
-                Dashboard
-              </button>
-            </Link>
-          ) : (
-            <>
-              <Link to="/web/login">
-                <button
-                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-200 cursor-pointer border ${
-                    isScrolled
-                      ? "border-slate-300 text-slate-700 hover:border-[#ff4a1f] hover:text-[#ff4a1f]"
-                      : "border-white/40 text-white hover:border-white hover:bg-white/10"
-                  }`}
-                >
-                  Log In
-                </button>
-              </Link>
-              <Link to="/web/register">
-                <button className="px-6 py-2 rounded-full bg-[#ff4a1f] hover:bg-[#e63d15] text-white text-sm font-bold shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer">
-                  Get Started
-                </button>
-              </Link>
-            </>
-          )}
+          <AuthWidget />
         </div>
 
-        {/* Mobile Toggle Button */}
+        {/* Mobile Toggle */}
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           aria-label="Toggle menu"
@@ -149,44 +255,24 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {isMobileOpen && (
-        <div className={`lg:hidden px-6 py-6 space-y-4 shadow-xl ${
-          isScrolled ? "bg-white text-slate-900 border-t border-slate-100" : "bg-[#0f0400] text-white"
-        }`}>
+        <div
+          className={`lg:hidden px-6 py-6 space-y-4 shadow-xl ${
+            isScrolled ? "bg-white text-slate-900 border-t border-slate-100" : "bg-[#0f0400] text-white"
+          }`}
+        >
           {NavigationLink.map((item) => (
             <a
               key={item.id}
               href={`/#${item.sectionId}`}
               onClick={(e) => handleNavClick(e, item.sectionId)}
-              className={`block text-base font-semibold py-1 transition-colors ${
-                isScrolled ? "text-slate-700 hover:text-[#ff4a1f]" : "text-white/80 hover:text-white"
-              }`}
+              className={`block text-base font-semibold py-1 transition-colors ${navTextCls}`}
             >
               {item.navigationText}
             </a>
           ))}
-          <div className="pt-4 border-t border-slate-200/40 flex flex-col gap-3">
-            {userToken ? (
-              <Link to={dashboardPath} onClick={() => setIsMobileOpen(false)}>
-                <button className="w-full py-3 rounded-full bg-[#ff4a1f] text-white font-bold hover:bg-[#e63d15] shadow-sm transition-all">
-                  Dashboard
-                </button>
-              </Link>
-            ) : (
-              <>
-                <Link to="/web/login" onClick={() => setIsMobileOpen(false)}>
-                  <button className={`w-full py-2.5 rounded-full font-bold border transition-all ${
-                    isScrolled ? "border-slate-300 text-slate-700 hover:border-[#ff4a1f]" : "border-white/40 text-white"
-                  }`}>
-                    Log In
-                  </button>
-                </Link>
-                <Link to="/web/register" onClick={() => setIsMobileOpen(false)}>
-                  <button className="w-full py-2.5 rounded-full bg-[#ff4a1f] text-white font-bold hover:bg-[#e63d15] shadow-sm transition-all">
-                    Get Started
-                  </button>
-                </Link>
-              </>
-            )}
+
+          <div className="pt-4 border-t border-slate-200/40">
+            <AuthWidget mobile />
           </div>
         </div>
       )}

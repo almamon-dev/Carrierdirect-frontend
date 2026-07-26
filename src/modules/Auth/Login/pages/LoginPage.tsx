@@ -1,38 +1,114 @@
-import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Logo from '../../../../assets/Images/LogoBlack.png';
 import Input from '../../../../components/ui/input';
+import authService from '../../../../services/authService';
+import { TOKEN_CONFIG } from '../../../../config/auth';
 
+// ─── Full-screen processing overlay ─────────────────────────────────────────
+function ProcessingOverlay({ userType }: { userType: string | null }) {
+    const label =
+        userType === 'supplier'
+            ? 'Redirecting to Supplier Dashboard…'
+            : userType === 'admin'
+            ? 'Redirecting to Admin Panel…'
+            : 'Redirecting to Customer Dashboard…';
+
+    return (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
+            {/* Animated ring */}
+            <div className="relative flex items-center justify-center mb-8">
+                {/* Outer slow pulse ring */}
+                <span className="absolute inline-flex h-24 w-24 rounded-full bg-[#FF4A1F] opacity-10 animate-ping" />
+                {/* Spinner ring */}
+                <svg
+                    className="animate-spin h-16 w-16 text-[#FF4A1F]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                        className="opacity-20"
+                        cx="12" cy="12" r="10"
+                        stroke="currentColor" strokeWidth="3"
+                    />
+                    <path
+                        className="opacity-90"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                </svg>
+                {/* Center logo dot */}
+                <span className="absolute h-8 w-8 rounded-full bg-[#FF4A1F] flex items-center justify-center shadow-lg">
+                    <span className="h-3 w-3 rounded-full bg-white" />
+                </span>
+            </div>
+
+            <h2 className="text-slate-800 text-lg font-bold tracking-tight mb-1">
+                Login Successful!
+            </h2>
+            <p className="text-sm text-slate-500 font-medium animate-pulse">
+                {label}
+            </p>
+
+            {/* Progress bar */}
+            <div className="mt-8 w-48 h-1 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-[#FF4A1F] rounded-full animate-[progress_1.2s_ease-in-out_forwards]" />
+            </div>
+
+            <style>{`
+                @keyframes progress {
+                    from { width: 0% }
+                    to   { width: 100% }
+                }
+            `}</style>
+        </div>
+    );
+}
+
+// ─── Login Page ──────────────────────────────────────────────────────────────
 export default function LoginPage() {
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({ email: '', password: '' });
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword]         = useState(false);
+    const [formData, setFormData]                 = useState({ email: '', password: '' });
+    const [errors, setErrors]                     = useState<Record<string, string>>({});
+    const [isLoading, setIsLoading]               = useState(false);
+    const [processing, setProcessing]             = useState(false);
+    const [redirectUserType, setRedirectUserType] = useState<string | null>(null);
+
+    // ── Guard: redirect already-authenticated users ───────────────────────────
+    useEffect(() => {
+        const token   = localStorage.getItem(TOKEN_CONFIG.accessTokenKey);
+        const userStr = localStorage.getItem(TOKEN_CONFIG.userKey);
+        if (!token || !userStr) return;
+
+        try {
+            const user = JSON.parse(userStr);
+            const role = user?.user_type;
+            if (role === 'admin') {
+                window.location.href = '/admin/dashboard';
+            } else if (role === 'supplier') {
+                navigate('/supplier/dashboard', { replace: true });
+            } else if (role === 'customer') {
+                navigate('/customer/dashboard', { replace: true });
+            }
+        } catch {
+            // Corrupt data — clear and stay on login
+            localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
+            localStorage.removeItem(TOKEN_CONFIG.userKey);
+        }
+    }, [navigate]);
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) {
+        if (errors[field] || errors.general) {
             setErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[field];
-                return newErrors;
+                const e = { ...prev };
+                delete e[field];
+                delete e.general;
+                return e;
             });
-        }
-    };
-
-    const handleDemoLogin = (type: 'customer' | 'supplier') => {
-        if (type === 'customer') {
-            const demoData = { email: 'customer@getitmoving.com', password: 'password123' };
-            setFormData(demoData);
-            localStorage.setItem('erp_access_token', 'demo_customer_token_123');
-            localStorage.setItem('erp_user_data', JSON.stringify({ user_type: 'customer', name: 'Demo Customer', email: demoData.email }));
-        } else {
-            const demoData = { email: 'supplier@getitmoving.com', password: 'password123' };
-            setFormData(demoData);
-            localStorage.setItem('erp_access_token', 'demo_supplier_token_123');
-            localStorage.setItem('erp_user_data', JSON.stringify({ user_type: 'supplier', name: 'Demo Supplier', email: demoData.email }));
         }
     };
 
@@ -45,199 +121,191 @@ export default function LoginPage() {
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = 'Please enter a valid email address';
         }
-        
         if (!formData.password) {
             newErrors.password = 'Password is required';
         }
 
         setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) return;
 
-        if (Object.keys(newErrors).length === 0) {
-            setIsLoading(true);
-            try {
-                await new Promise((resolve) => setTimeout(resolve, 600));
-                
-                const isSupplier = formData.email.includes('supplier');
-                if (isSupplier) {
-                    localStorage.setItem('erp_access_token', 'supplier_token');
-                    localStorage.setItem('erp_user_data', JSON.stringify({ user_type: 'supplier', email: formData.email }));
+        setIsLoading(true);
+        try {
+            const res = await authService.login({
+                email:    formData.email,
+                password: formData.password,
+            });
+
+            if (res.requiresPayment && res.checkoutUrl) {
+                window.location.href = res.checkoutUrl;
+                return;
+            }
+
+            const userType = res.user?.user_type || 'customer';
+
+            // Show processing overlay, then redirect
+            setRedirectUserType(userType);
+            setProcessing(true);
+
+            setTimeout(() => {
+                if (userType === 'admin') {
+                    // Admin dashboard is at Laravel Inertia, open in same tab
+                    window.location.href = '/admin/dashboard';
+                } else if (userType === 'supplier') {
                     navigate('/supplier/dashboard');
                 } else {
-                    localStorage.setItem('erp_access_token', 'customer_token');
-                    localStorage.setItem('erp_user_data', JSON.stringify({ user_type: 'customer', email: formData.email }));
                     navigate('/customer/dashboard');
                 }
-            } catch (error) {
-                console.error('Login error', error);
-            } finally {
-                setIsLoading(false);
-            }
+            }, 1400);
+
+        } catch (error: any) {
+            console.error('Login error:', error);
+            const apiMsg =
+                error.data?.message  ||
+                error.data?.error    ||
+                error.message        ||
+                'Invalid email or password. Please try again.';
+            setErrors({ general: apiMsg });
+            setIsLoading(false);
         }
     };
 
+    // ── Render ───────────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50/50 relative p-4 sm:p-6">
-            
-            {/* Top-Left Screen Corner Link */}
-            <Link 
-                to="/" 
-                className="absolute top-5 left-5 sm:top-8 sm:left-8 z-30 inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#ff4a1f] hover:underline transition-colors"
-            >
-                <ArrowLeft className="w-4 h-4 text-[#ff4a1f]" />
-                Back to Home
-            </Link>
+        <>
+            {/* Processing overlay */}
+            {processing && <ProcessingOverlay userType={redirectUserType} />}
 
-            {/* Main Card Container */}
-            <div className="flex flex-col md:flex-row w-full max-w-5xl bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden min-h-[600px]">
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 relative p-4 font-sans">
 
-                {/* Left Side - Logo & Background */}
-                <div className="hidden md:flex md:w-5/12 bg-[#f8fafc] flex-col items-center justify-center p-10 relative border-r border-gray-100">
-                    <div className="absolute inset-0 opacity-[0.4]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-                    <div className="relative z-10 flex flex-col items-center w-full">
-                        <Link to="/">
-                            <img src={Logo} alt="GetItMoving Logo" className="w-full max-w-[280px] object-contain" />
-                        </Link>
-                        <h2 className="text-xl font-bold text-slate-800 mt-10 text-center tracking-tight">Welcome Back!</h2>
-                        <p className="mt-3 text-sm text-gray-500 text-center leading-relaxed">
-                            Sign in to access your shipping portal, track deliveries, and manage your account.
-                        </p>
-                    </div>
+                {/* Back button */}
+                <div className="absolute top-6 left-6 z-20">
+                    <Link to="/" className="flex items-center text-sm font-medium text-[#FF4A1F] hover:text-[#D13915] transition-colors">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Home
+                    </Link>
                 </div>
 
-                {/* Right Side - Form */}
-                <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center">
-                    
-                    <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-slate-800">
-                            Log In to your account
-                        </h2>
-                        <p className="mt-1 text-sm text-gray-500">
-                            Enter your credentials to continue.
-                        </p>
-                    </div>
+                <div className="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden min-h-[520px]">
 
-                    {/* Simple CodeCanyon Style Demo Login Bar */}
-                    <div className="mb-6 p-3.5 bg-slate-50 border border-slate-200 rounded-md">
-                        <div className="text-[11px] font-bold text-slate-500 mb-2">
-                            Demo Accounts:
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-2">
-                            <button
-                                type="button"
-                                onClick={() => handleDemoLogin('customer')}
-                                className="flex-1 px-3 py-2 bg-white border border-slate-200 hover:border-[#ff4a1f] text-slate-700 rounded-md text-xs font-semibold transition-colors text-left flex items-center justify-between gap-2 cursor-pointer group"
-                            >
-                                <div className="flex flex-col min-w-0">
-                                    <span className="text-[11px] text-slate-900 font-bold group-hover:text-[#ff4a1f]">Customer</span>
-                                    <span className="text-[11px] text-slate-500 font-normal truncate">customer@getitmoving.com</span>
-                                </div>
-                                <span className="text-[10.5px] text-[#ff4a1f] font-bold whitespace-nowrap shrink-0 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">Fill &rarr;</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleDemoLogin('supplier')}
-                                className="flex-1 px-3 py-2 bg-white border border-slate-200 hover:border-[#ff4a1f] text-slate-700 rounded-md text-xs font-semibold transition-colors text-left flex items-center justify-between gap-2 cursor-pointer group"
-                            >
-                                <div className="flex flex-col min-w-0">
-                                    <span className="text-[11px] text-slate-900 font-bold group-hover:text-[#ff4a1f]">Supplier</span>
-                                    <span className="text-[11px] text-slate-500 font-normal truncate">supplier@getitmoving.com</span>
-                                </div>
-                                <span className="text-[10.5px] text-[#ff4a1f] font-bold whitespace-nowrap shrink-0 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">Fill &rarr;</span>
-                            </button>
+                    {/* Left panel */}
+                    <div className="md:w-1/2 bg-[#f8fafc] flex flex-col items-center justify-center p-12 relative border-r border-gray-100">
+                        <div className="absolute inset-0 opacity-[0.4]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                        <div className="relative z-10 flex flex-col items-center w-full">
+                            <Link to="/">
+                                <img src={Logo} alt="GetItMoving Logo" className="w-full max-w-[320px] md:max-w-[380px] object-contain scale-110" />
+                            </Link>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Email Address Field */}
-                        <div>
-                            <label className="block text-[13px] font-bold text-gray-700 mb-1">
-                                Email Address <span className="text-red-500">*</span>
-                            </label>
+                    {/* Right panel — Form */}
+                    <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+
+                        <div className="mb-6">
+                            <h2 className="text-[15px] font-bold text-slate-800">Log In to Your Account</h2>
+                            <p className="mt-1 text-sm text-gray-500">Welcome back! Please enter your details to continue.</p>
+                        </div>
+
+                        {/* General error */}
+                        {errors.general && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-xs font-semibold text-red-600">
+                                {errors.general}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
                             <Input
+                                label="Email Address *"
                                 type="email"
-                                icon={<Mail className="h-4 w-4 text-gray-400" />}
-                                placeholder="you@example.com"
+                                placeholder="name@company.com"
                                 value={formData.email}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
+                                icon={<Mail size={16} className="text-gray-400" />}
                                 error={errors.email}
                             />
-                        </div>
 
-                        {/* Password Field */}
-                        <div>
-                            <div className="flex justify-between items-center mb-1">
-                                <label className="block text-[13px] font-bold text-gray-700">
-                                    Password <span className="text-red-500">*</span>
-                                </label>
-                                <Link to="/web/forgot-password" className="text-xs text-[#FF4A1F] hover:underline font-semibold">
-                                    Forgot password?
-                                </Link>
+                            <div>
+                                <Input
+                                    label="Password *"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="••••••••"
+                                    value={formData.password}
+                                    onChange={(e) => handleInputChange('password', e.target.value)}
+                                    icon={<Lock size={16} className="text-gray-400" />}
+                                    rightIcon={
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    }
+                                    error={errors.password}
+                                />
+                                <div className="flex justify-end mt-1.5">
+                                    <Link to="/forgot-password" className="text-xs font-medium text-[#FF4A1F] hover:underline">
+                                        Forgot password?
+                                    </Link>
+                                </div>
                             </div>
-                            <Input
-                                type={showPassword ? "text" : "password"}
-                                icon={<Lock className="h-4 w-4 text-gray-400" />}
-                                rightIcon={
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="text-gray-400 hover:text-[#FF4A1F] focus:outline-none cursor-pointer"
-                                    >
-                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </button>
-                                }
-                                placeholder="••••••••"
-                                value={formData.password}
-                                onChange={(e) => handleInputChange('password', e.target.value)}
-                                error={errors.password}
-                            />
-                        </div>
 
-                        <div className="pt-2">
+                            {/* Submit button */}
                             <button
                                 type="submit"
-                                disabled={isLoading}
-                                className="w-full h-[42px] flex items-center justify-center px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-[#FF4A1F] hover:bg-[#E03E15] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                                disabled={isLoading || processing}
+                                className="w-full py-3 px-4 bg-[#FF4A1F] hover:bg-[#E03E15] text-white font-bold text-sm rounded-md transition-all shadow-sm active:scale-[0.99] disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2 mt-2"
                             >
-                                {isLoading ? 'Signing In...' : 'Sign In'}
+                                {isLoading ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                        </svg>
+                                        <span>Signing in…</span>
+                                    </>
+                                ) : (
+                                    <span>Log In</span>
+                                )}
                             </button>
-                        </div>
-                    </form>
+                        </form>
 
-                    <div className="mt-6">
-                        <div className="relative">
+                        {/* Divider */}
+                        <div className="relative my-3">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-gray-200" />
                             </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white text-gray-500 font-medium">Or continue with</span>
+                            <div className="relative flex justify-center text-[11px] uppercase">
+                                <span className="bg-white px-2 text-gray-400 font-semibold">Or continue with</span>
                             </div>
                         </div>
 
-                        <div className="mt-6">
-                            <button
-                                type="button"
-                                className="w-full h-[42px] flex items-center justify-center px-4 border border-gray-300 rounded-md shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all cursor-pointer"
-                            >
-                                <svg className="w-5 h-5 mr-2.5" viewBox="0 0 24 24">
-                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                                </svg>
-                                Sign in with Google
-                            </button>
+                        {/* Google Sign-In */}
+                        <button
+                            type="button"
+                            onClick={() => window.location.href = '/auth/google'}
+                            className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-bold text-xs rounded-md transition-all shadow-2xs cursor-pointer"
+                        >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.27v3.13C3.26 21.3 7.31 24 12 24z"/>
+                                <path fill="#FBBC05" d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.63H1.27C.46 8.24 0 10.06 0 12s.46 3.76 1.27 5.37l4.01-3.13z"/>
+                                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.27 6.63l4.01 3.13c.95-2.85 3.6-4.96 6.72-4.96z"/>
+                            </svg>
+                            <span>Sign in with Google</span>
+                        </button>
+
+                        {/* Footer */}
+                        <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                            <div className="flex items-center justify-between text-xs text-gray-600">
+                                <span>Don't have an account?</span>
+                                <Link to="/select-role" className="font-bold text-[#FF4A1F] hover:underline">
+                                    Create Account
+                                </Link>
+                            </div>
                         </div>
                     </div>
-
-                    <p className="mt-6 text-center text-sm text-gray-600">
-                        Don't have an account?{' '}
-                        <Link to="/web/register" className="font-semibold text-[#FF4A1F] hover:text-[#D13915] transition-colors">
-                            Sign Up
-                        </Link>
-                    </p>
                 </div>
             </div>
-
-        </div>
+        </>
     );
 }

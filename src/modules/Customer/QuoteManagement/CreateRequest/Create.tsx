@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { 
     FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2, 
-    ChevronRight, Sparkles, Lock, RotateCcw 
+    ChevronRight, Lock, RotateCcw, Sparkles 
 } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
 import { SubscriptionLockModal } from '@/components/modals';
 import { QuotaReminderBanner } from '@/components';
+
+import apiClient from '@/lib/axios';
+import { ENDPOINTS } from '@/config/api';
+import { useToastStore } from '@/stores/useToastStore';
 
 import { QuoteFormData } from './types/formTypes';
 import { BasicInfoSection } from './components/sections/BasicInfoSection';
@@ -29,9 +33,13 @@ const CREATE_TABS = [
 export default function CreateRequestForm() {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
     const repeatData = location.state?.repeatData || location.state?.initialData;
     
-    const [activeTab, setActiveTab] = useState('general');
+    const activeTab = searchParams.get('tab') || 'general';
+    const setActiveTab = (tab: string) => {
+        setSearchParams({ tab }, { replace: true });
+    };
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLockModalOpen, setIsLockModalOpen] = useState(false);
     const [isRepeatMode, setIsRepeatMode] = useState(false);
@@ -163,6 +171,87 @@ export default function CreateRequestForm() {
         }
     }, [repeatData]);
 
+    const fillSampleData = () => {
+        setFormData({
+            requestTitle: '5 Pallets of Industrial Machinery from Gazipur to Ctg Port',
+            priority: 'High',
+            shipmentType: 'One Way',
+            serviceType: 'Express',
+            pickupDate: '2026-07-28',
+            pickupTime: '09:00',
+            deliveryDate: '2026-07-30',
+            deliveryTime: '17:00',
+            expectedTransitTime: '2',
+            
+            pickupCompany: 'Prime Industrial Ltd.',
+            pickupContactName: 'Kamal Hossain',
+            pickupPhone: '+8801711234567',
+            pickupEmail: 'dispatch@primeind.bd',
+            pickupCountry: 'Bangladesh',
+            pickupState: 'Dhaka Division',
+            pickupCity: 'Dhaka (Gazipur)',
+            pickupZip: '1700',
+            pickupAddress: 'Plot 42, Gazipur Industrial Area, Dhaka',
+            pickupMapUrl: 'https://maps.google.com/?q=Gazipur+Industrial+Area',
+            pickupInstructions: 'Call before arriving.\nDriver must carry valid national ID.\nUse gate 2 loading dock.',
+
+            deliveryCompany: 'Chittagong Port Terminal',
+            deliveryContactName: 'Rahim Uddin',
+            deliveryPhone: '+8801819987654',
+            deliveryEmail: 'cargo@ctgport.com',
+            deliveryCountry: 'Bangladesh',
+            deliveryState: 'Chittagong Division',
+            deliveryCity: 'Chittagong Port',
+            deliveryZip: '4000',
+            deliveryAddress: 'Berth 5, Terminal 2, Chittagong Port Authority',
+            deliveryMapUrl: 'https://maps.google.com/?q=Chittagong+Port',
+            deliveryInstructions: 'Report to port security first.\nUnloading will be handled by terminal crane.',
+
+            vehicleType: 'Covered Van (20ft)',
+            loadType: 'Pallets',
+            itemsCount: '25',
+            palletsCount: '5',
+            weight: '2500',
+            volume: '15.5',
+            dimensions: [
+                { id: 1, length: '120', width: '100', height: '150', qty: '2', unit: 'CM' },
+                { id: 2, length: '100', width: '80', height: '120', qty: '2', unit: 'CM' },
+                { id: 3, length: '80', width: '60', height: '90', qty: '1', unit: 'CM' }
+            ],
+
+            stackable: true,
+            fragile: false,
+            hazardous: false,
+            tempControlled: false,
+            oversized: false,
+            perishable: false,
+            loadingRequired: true,
+            unloadingRequired: true,
+            packaging: true,
+            insurance: true,
+            liftGate: false,
+            whiteGlove: false,
+            assembly: false,
+            insideDelivery: false,
+            storage: false,
+
+            budget: '48000',
+            currency: '৳',
+            allowNegotiation: true,
+            receiveMultiple: true,
+            autoExpire: '48 Hours',
+
+            customerNotes: 'Heavy industrial machinery parts boxed on wooden pallets.',
+            specialInstructions: 'Call driver 1 hour before pickup. Ensure vehicle floor is dry.',
+            internalReference: 'REF-GAZ-CTG-2026',
+
+            images: [],
+            packingList: null,
+            invoice: null
+        });
+        useToastStore.getState().showToast('All fields have been auto-filled with sample dummy data!', 'success');
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -176,8 +265,14 @@ export default function CreateRequestForm() {
         setFormData(prev => ({ ...prev, [name]: checked }));
     };
 
-    const handleFileUpload = (field: 'packingList' | 'invoice', file: File | null) => {
-        setFormData(prev => ({ ...prev, [field]: file }));
+    const handleFileUpload = (field: 'packingList' | 'invoice' | 'images', file: any) => {
+        if (field === 'images') {
+            if (!file) return;
+            const filesArray = Array.from(file as FileList);
+            setFormData(prev => ({ ...prev, images: filesArray }));
+        } else {
+            setFormData(prev => ({ ...prev, [field]: file }));
+        }
     };
 
     const addDimensionRow = () => {
@@ -201,95 +296,160 @@ export default function CreateRequestForm() {
         }));
     };
 
-    const fillSampleData = () => {
-        setFormData({
-            requestTitle: '5 Pallets Heavy Machinery Parts - Dhaka EPZ to Chittagong Port',
-            priority: 'High',
-            shipmentType: 'One Way',
-            serviceType: 'Express',
-            pickupDate: '2026-07-28',
-            pickupTime: '09:00',
-            deliveryDate: '2026-07-29',
-            deliveryTime: '17:00',
-            expectedTransitTime: '1',
-            
-            pickupCompany: 'Prime Logistics EPZ Depot',
-            pickupContactName: 'Kamal Hossain',
-            pickupPhone: '+8801711234567',
-            pickupEmail: 'dispatch@primelogistics.bd',
-            pickupCountry: 'Bangladesh',
-            pickupState: 'Dhaka Division',
-            pickupCity: 'Dhaka (Gazipur EPZ)',
-            pickupZip: '1700',
-            pickupAddress: 'Plot 42, Sector 4, Gazipur Industrial Area, Dhaka',
-            pickupMapUrl: 'https://maps.google.com/?q=Gazipur+EPZ',
-            pickupInstructions: 'Report to Gate 3 loading dock.',
+    const showToast = useToastStore(state => state.showToast);
+    const [quotaUsed, setQuotaUsed] = useState(0);
 
-            deliveryCompany: 'Chittagong Maritime Terminal Hub',
-            deliveryContactName: 'Rahim Uddin',
-            deliveryPhone: '+8801819987654',
-            deliveryEmail: 'cargo@ctgport.com',
-            deliveryCountry: 'Bangladesh',
-            deliveryState: 'Chittagong Division',
-            deliveryCity: 'Chittagong (Port Area)',
-            deliveryZip: '4000',
-            deliveryAddress: 'Terminal 2, Berth 5, Chittagong Port Authority Zone',
-            deliveryMapUrl: 'https://maps.google.com/?q=Chittagong+Port',
-            deliveryInstructions: 'Delivery permitted between 08:00 AM and 06:00 PM.',
+    useEffect(() => {
+        async function fetchQuota() {
+            try {
+                const res = await apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS);
+                const rawItems = res.data?.data || res.data || res.items || res;
+                if (Array.isArray(rawItems)) {
+                    setQuotaUsed(rawItems.length);
+                } else if (typeof res.data?.total === 'number') {
+                    setQuotaUsed(res.data.total);
+                }
+            } catch {
+                setQuotaUsed(0);
+            }
+        }
+        fetchQuota();
+    }, []);
 
-            vehicleType: 'Semi Trailer',
-            loadType: 'Pallets',
-            itemsCount: '25',
-            palletsCount: '5',
-            weight: '4500',
-            volume: '18',
-            dimensions: [{ id: 1, length: '120', width: '100', height: '150', qty: '5', unit: 'CM' }],
-
-            stackable: true,
-            fragile: false,
-            hazardous: false,
-            tempControlled: false,
-            oversized: true,
-            perishable: false,
-            loadingRequired: true,
-            unloadingRequired: true,
-            packaging: true,
-            insurance: true,
-            liftGate: false,
-            whiteGlove: false,
-            assembly: false,
-            insideDelivery: false,
-            storage: false,
-
-            budget: '1450',
-            currency: '€',
-            allowNegotiation: true,
-            receiveMultiple: true,
-            autoExpire: '48 Hours',
-
-            customerNotes: 'Heavy industrial parts boxed on heat-treated wooden pallets.',
-            specialInstructions: 'Driver must wear safety boots and reflective vest.',
-            internalReference: 'PO-2026-99218',
-            
-            images: [],
-            packingList: null,
-            invoice: null
-        });
-    };
-
-    const [quotaUsed, setQuotaUsed] = useState(2); // Example: 2 of 5 used
-
-    const handleSubmit = (e?: React.FormEvent) => {
+    const handleSubmit = async (e?: React.FormEvent, targetStatus: 'active' | 'pending' = 'active') => {
         if (e) e.preventDefault();
-        if (quotaUsed >= 5) {
+        if (targetStatus === 'active' && quotaUsed >= 5) {
             setIsLockModalOpen(true);
         } else {
             setIsSubmitting(true);
-            setTimeout(() => {
+            try {
+                const pickupLoc = [formData.pickupAddress, formData.pickupCity, formData.pickupCountry].filter(Boolean).join(', ') || 'Dhaka';
+                const deliveryLoc = [formData.deliveryAddress, formData.deliveryCity, formData.deliveryCountry].filter(Boolean).join(', ') || 'Chittagong';
+
+                const payload = {
+                    status: targetStatus,
+                    request_title: formData.requestTitle || `Quote Request: ${pickupLoc} -> ${deliveryLoc}`,
+                    priority: formData.priority || 'Normal',
+                    shipment_type: formData.shipmentType || 'One Way',
+                    service_type: formData.serviceType || 'Standard',
+                    expected_transit_time: formData.expectedTransitTime || null,
+
+                    pickup_address: pickupLoc,
+                    pickup_company: formData.pickupCompany || null,
+                    pickup_contact_name: formData.pickupContactName || null,
+                    pickup_phone: formData.pickupPhone || null,
+                    pickup_email: formData.pickupEmail || null,
+                    pickup_country: formData.pickupCountry || 'Bangladesh',
+                    pickup_state: formData.pickupState || null,
+                    pickup_city: formData.pickupCity || null,
+                    pickup_zip: formData.pickupZip || null,
+                    pickup_map_url: formData.pickupMapUrl || null,
+                    pickup_instructions: formData.pickupInstructions || null,
+
+                    delivery_address: deliveryLoc,
+                    delivery_company: formData.deliveryCompany || null,
+                    delivery_contact_name: formData.deliveryContactName || null,
+                    delivery_phone: formData.deliveryPhone || null,
+                    delivery_email: formData.deliveryEmail || null,
+                    delivery_country: formData.deliveryCountry || 'Bangladesh',
+                    delivery_state: formData.deliveryState || null,
+                    delivery_city: formData.deliveryCity || null,
+                    delivery_zip: formData.deliveryZip || null,
+                    delivery_map_url: formData.deliveryMapUrl || null,
+                    delivery_instructions: formData.deliveryInstructions || null,
+
+                    pickup_date: formData.pickupDate || new Date().toISOString().split('T')[0],
+                    delivery_date: formData.deliveryDate || null,
+                    pickup_time_from: formData.pickupTime || '09:00',
+                    pickup_time_till: '17:00',
+                    delivery_time_from: formData.deliveryTime || null,
+
+                    vehicle_type: formData.vehicleType || 'Covered Van',
+                    load_type: formData.loadType || 'Pallets',
+                    items_count: parseInt(formData.itemsCount || '1', 10),
+                    pallets_count: parseInt(formData.palletsCount || '1', 10),
+                    weight: parseFloat(formData.weight || '0'),
+                    volume: parseFloat(formData.volume || '0'),
+
+                    stackable: formData.stackable,
+                    fragile: formData.fragile,
+                    hazardous: formData.hazardous,
+                    temp_controlled: formData.tempControlled,
+                    oversized: formData.oversized,
+                    perishable: formData.perishable,
+
+                    loading_required: formData.loadingRequired,
+                    unloading_required: formData.unloadingRequired,
+                    packaging: formData.packaging,
+                    insurance: formData.insurance,
+                    lift_gate: formData.liftGate,
+                    white_glove: formData.whiteGlove,
+                    assembly: formData.assembly,
+                    inside_delivery: formData.insideDelivery,
+                    storage: formData.storage,
+
+                    budget: parseFloat(formData.budget || '0'),
+                    currency: formData.currency || '€',
+                    allow_negotiation: formData.allowNegotiation,
+                    receive_multiple: formData.receiveMultiple,
+                    auto_expire: formData.autoExpire || '48 Hours',
+
+                    additional_notes: [formData.requestTitle, formData.customerNotes, formData.specialInstructions].filter(Boolean).join(' | '),
+                    customer_notes: formData.customerNotes || null,
+                    special_instructions: formData.specialInstructions || null,
+                    internal_reference: formData.internalReference || null,
+
+                    items: [
+                        {
+                            item_type: formData.loadType || 'Pallets',
+                            quantity: parseInt(formData.palletsCount || formData.itemsCount || '1', 10),
+                            weight: parseFloat(formData.weight || '0'),
+                            length: parseFloat(formData.dimensions[0]?.length || '0'),
+                            width: parseFloat(formData.dimensions[0]?.width || '0'),
+                            height: parseFloat(formData.dimensions[0]?.height || '0'),
+                        }
+                    ]
+                };
+
+                const hasFiles = Boolean((formData.packingList instanceof File) || (formData.invoice instanceof File) || (formData.images && formData.images.some((img: any) => img instanceof File)));
+                let submitData: any = payload;
+                let headers = {};
+                if (hasFiles) {
+                    const fd = new FormData();
+                    Object.entries(payload).forEach(([key, val]) => {
+                        if (key === 'items' && Array.isArray(val)) {
+                            val.forEach((item: any, idx: number) => {
+                                Object.entries(item).forEach(([k, v]) => {
+                                    if (v !== null && v !== undefined) fd.append(`items[${idx}][${k}]`, String(v));
+                                });
+                            });
+                        } else if (val !== null && val !== undefined) {
+                            fd.append(key, typeof val === 'boolean' ? (val ? '1' : '0') : String(val));
+                        }
+                    });
+                    if (formData.packingList instanceof File) fd.append('packing_list', formData.packingList);
+                    if (formData.invoice instanceof File) fd.append('invoice', formData.invoice);
+                    if (formData.images && formData.images.length > 0) {
+                        formData.images.forEach((file: any) => {
+                            if (file instanceof File) fd.append('images[]', file);
+                        });
+                    }
+                    submitData = fd;
+                }
+
+                await apiClient.post(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS, submitData);
+                const toastMsg = targetStatus === 'pending' ? 'Quote request saved as draft!' : 'Quote request posted successfully!';
+                showToast(toastMsg, 'success');
+                if (targetStatus === 'active') {
+                    setQuotaUsed(prev => prev + 1);
+                }
+                navigate('/customer/quotes');
+            } catch (err: any) {
+                const msg = err.data?.message || err.message || 'Failed to post quote request. Please try again.';
+                showToast(msg, 'error');
+            } finally {
                 setIsSubmitting(false);
-                setQuotaUsed(prev => prev + 1);
-                navigate('/customer/quotes/quotes-received');
-            }, 1000);
+            }
         }
     };
 
@@ -314,14 +474,25 @@ export default function CreateRequestForm() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button 
-                        variant="primary" 
-                        size="sm" 
-                        className="h-9 px-3.5 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-sm flex items-center gap-1.5 cursor-pointer"
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 px-3 text-xs font-semibold border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 flex items-center gap-1.5 cursor-pointer"
                         onClick={fillSampleData}
                     >
-                        <Sparkles size={14} />
-                        <span>Auto-Fill Demo Data</span>
+                        <Sparkles size={14} className="text-amber-600" />
+                        Auto Fill Sample Data
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 px-3 text-xs font-semibold border-slate-300 text-slate-700 bg-white hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer"
+                        onClick={() => handleSubmit(undefined, 'pending')}
+                        disabled={isSubmitting}
+                    >
+                        Save Draft
                     </Button>
                     <Button variant="outline" size="sm" className="h-9 px-3 text-xs font-semibold cursor-pointer" onClick={() => navigate(-1)}>
                         Cancel

@@ -8,6 +8,7 @@ import TableSearch from '@/components/tables/table-search';
 import TableFilter from '@/components/tables/table-filter';
 import TableColumnToggle from '@/components/tables/table-column-toggle';
 import TableToolbar from '@/components/tables/table-toolbar';
+import Skeleton from '@/components/ui/skeleton';
 
 export interface Column<T = any> {
     id: string;
@@ -32,6 +33,8 @@ export interface DataTableProps<T = any> {
     hideViewToggle?: boolean;
     hidePagination?: boolean;
     hideToolbar?: boolean;
+    isLoading?: boolean;
+    emptyState?: React.ReactNode;
 }
 
 export default function DataTable<T extends Record<string, any>>({ 
@@ -48,7 +51,9 @@ export default function DataTable<T extends Record<string, any>>({
     expandableContent,
     hideViewToggle = false,
     hidePagination = false,
-    hideToolbar = false
+    hideToolbar = false,
+    isLoading = false,
+    emptyState,
 }: DataTableProps<T>) {
     const [search, setSearch] = useState('');
     const [showFilters, setShowFilters] = useState(false);
@@ -214,9 +219,23 @@ export default function DataTable<T extends Record<string, any>>({
                 {viewMode === 'grid' ? (
                     <div className="bg-[#f8fafc] border-b border-slate-200">
                         <div className="p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                            {filteredData.length === 0 ? (
+                            {isLoading ? (
+                                [1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div key={i} className="bg-white rounded-md border border-slate-200 p-4 shadow-2xs space-y-3 animate-pulse">
+                                        <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
+                                            <Skeleton className="h-5 w-28 rounded" />
+                                            <Skeleton className="h-7 w-20 rounded" />
+                                        </div>
+                                        <div className="space-y-2 pt-1">
+                                            <Skeleton className="h-4 w-3/4 rounded" />
+                                            <Skeleton className="h-4 w-1/2 rounded" />
+                                            <Skeleton className="h-4 w-2/3 rounded" />
+                                        </div>
+                                    </div>
+                                ))
+                            ) : filteredData.length === 0 ? (
                                 <div className="col-span-full">
-                                    <EmptyState />
+                                    {emptyState ?? <EmptyState />}
                                 </div>
                             ) : (
                                 filteredData.slice(0, gridLimit).map(item => {
@@ -285,10 +304,28 @@ export default function DataTable<T extends Record<string, any>>({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {paginatedData.length === 0 ? (
+                            {isLoading ? (
+                                [1, 2, 3, 4, 5].map((i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td className={`${compact ? 'px-2 py-3' : 'px-3.5 py-3'}`}>
+                                            <Skeleton className="h-4 w-4 mx-auto rounded" />
+                                        </td>
+                                        {columns.map(col => visibleColumns.includes(col.id) && (
+                                            <td key={col.id} className={`${compact ? 'px-2 py-3' : 'px-3.5 py-3'}`}>
+                                                <Skeleton className="h-4 w-24 rounded" />
+                                            </td>
+                                        ))}
+                                        {actions && (
+                                            <td className={`${compact ? 'px-2 py-3' : 'px-3.5 py-3'} text-right`}>
+                                                <Skeleton className="h-7 w-20 rounded ml-auto" />
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))
+                            ) : paginatedData.length === 0 ? (
                                 <tr>
                                     <td colSpan={columns.length + (actions ? 2 : 1)} className="p-0">
-                                        <EmptyState />
+                                        {emptyState ?? <EmptyState />}
                                     </td>
                                 </tr>
                             ) : (

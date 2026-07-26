@@ -8,6 +8,7 @@ import Badge from '@/components/ui/badge';
 import DataTable, { Column } from '@/components/tables/data-table';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Switch from '@/components/ui/switch';
+import QuotaReminderBanner from '@/components/common/QuotaReminderBanner';
 
 export default function Subscription() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
@@ -100,7 +101,7 @@ export default function Subscription() {
   return (
     <div className="p-4 md:p-6 w-full mx-auto space-y-5 font-sans antialiased pb-20 min-h-screen">
       
-      {/* Page Header matching Active Jobs & Team Management */}
+      {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Subscription & Billing Management</h1>
@@ -115,6 +116,16 @@ export default function Subscription() {
           </Badge>
         </div>
       </div>
+
+      {/* Quota Reminder Banner */}
+      <QuotaReminderBanner 
+        quotaUsed={142} 
+        maxQuota={250} 
+        unitLabel="monthly RFQ quote responses"
+        title="Carrier Plan Quota Reminder"
+        targetUrl="/supplier/subscription"
+        buttonText="Upgrade Carrier Plan"
+      />
 
       {/* Overview Cards: Current Plan + Quota Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -203,7 +214,7 @@ export default function Subscription() {
 
       </div>
 
-      {/* Subscription Plans Selection Section */}
+      {/* Subscription Plans Selection Section (SubscriptionGrid) */}
       <Card className="shadow-2xs border-slate-200 rounded-xl">
         <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>

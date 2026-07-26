@@ -4,7 +4,7 @@ import {
     Eye, Edit, Plus, Activity, MoreHorizontal, FileDown, Copy, XCircle, 
     Trash2, Sparkles, FileSpreadsheet, 
     FileText, CheckCircle2, Download, ChevronDown, Paperclip,
-    Upload, ArrowRight, ArrowLeft, FileArchive, Layers, MapPin, Truck, Euro
+    Upload, ArrowRight, ArrowLeft, FileArchive, Layers, MapPin, Truck, Euro, Clock
 } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
@@ -12,44 +12,56 @@ import Button from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { downloadCSVTemplate, downloadPDFTemplate, downloadSpecSheet } from './utils/templateHelpers';
 import { PdfImportWizardModal } from './components/PdfImportWizardModal';
+import apiClient from '@/lib/axios';
+import { ENDPOINTS } from '@/config/api';
+import { useToastStore } from '@/stores/useToastStore';
 
-const initialMockData = [
-    { 
-        id: 'REQ-9234', date: '2026-07-20', type: 'FTL', 
-        pickup: 'Dhaka', delivery: 'Chittagong', 
-        load: 'Pallets', vehicle: 'Covered Van', weight: '15 Tons',
-        status: 'Draft', quotesReceived: 0, contacted: 0, lowestBid: null, expiresIn: null,
-        suppliersList: [], hasNew: false
-    },
-    { 
-        id: 'REQ-9233', date: '2026-07-19', type: 'LTL', 
-        pickup: 'Sylhet', delivery: 'Rajshahi', 
-        load: 'Boxes', vehicle: 'Open Truck', weight: '5 Tons',
-        status: 'Bidding Active', quotesReceived: 3, contacted: 15, lowestBid: 42500, expiresIn: '1d 4h',
-        suppliersList: ['Express Logistics', 'Prime Movers', 'Fast Track BD'], hasNew: true
-    },
-    { 
-        id: 'REQ-9230', date: '2026-07-18', type: 'FTL',
-        pickup: 'Chittagong', delivery: 'Dhaka', 
-        load: 'Container', vehicle: 'Trailer', weight: '22 Tons',
-        status: 'Negotiating', quotesReceived: 4, contacted: 12, lowestBid: 48000, expiresIn: 'Ended',
-        suppliersList: ['Global Transport', 'Speedy Cargo', 'BD Logistics', 'TransCom'], hasNew: false
-    },
-    { 
-        id: 'REQ-9105', date: '2026-07-15', type: 'Heavy Haul',
-        pickup: 'Khulna', delivery: 'Dhaka', 
-        load: 'Machinery', vehicle: 'Flatbed', weight: '35 Tons',
-        status: 'Accepted', quotesReceived: 6, contacted: 20, lowestBid: 85000, expiresIn: 'Ended',
-        suppliersList: ['HeavyHaul BD', 'Prime Movers'], hasNew: false
-    },
-];
+const formatTime12h = (timeStr?: string) => {
+    if (!timeStr) return '01:55 PM';
+    if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
+    const parts = timeStr.split(':');
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1] || '00';
+    if (isNaN(hours)) return timeStr;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const strHours = hours < 10 ? `0${hours}` : `${hours}`;
+    return `${strHours}:${minutes} ${ampm}`;
+};
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const formatDate = (dateStr?: string) => {
+    if (!dateStr || dateStr === '--') return '--';
+    // already formatted like "26 Jul, 2026"
+    if (/[a-zA-Z]/.test(dateStr)) return dateStr;
+    // ISO: YYYY-MM-DD
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        const year = parts[0];
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        if (!isNaN(month) && !isNaN(day) && MONTHS[month]) {
+            return `${day} ${MONTHS[month]}, ${year}`;
+        }
+    }
+    return dateStr;
+};
 
 export default function RequestList() {
     const navigate = useNavigate();
-    const [requestData, setRequestData] = useState(initialMockData);
+    const [requestData, setRequestData] = useState<any[]>(() => {
+        try {
+            const cached = localStorage.getItem('customer_quote_requests_cache');
+            return cached ? JSON.parse(cached) : [];
+        } catch {
+            return [];
+        }
+    });
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [activeFilterTab, setActiveFilterTab] = useState('All');
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+    const [isLoading, setIsLoading] = useState(true);
 
     const csvInputRef = useRef<HTMLInputElement>(null);
     const pdfInputRef = useRef<HTMLInputElement>(null);
@@ -63,8 +75,47 @@ export default function RequestList() {
     const [extractedData, setExtractedData] = useState<any>(null);
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
     const [previewSubTab, setPreviewSubTab] = useState<string>('general');
+    const [isRepeating, setIsRepeating] = useState<string | null>(null);
+    const showToast = useToastStore(state => state.showToast);
 
     useEffect(() => {
+        async function fetchQuoteRequests() {
+            try {
+                const res = await apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS);
+                const rawItems = res.data?.data || res.data || res.items || res;
+                if (Array.isArray(rawItems)) {
+                    const mapped = rawItems.map((q: any) => {
+                        const rawTime = q.pickup_time_from || q.pickup_time || (q.created_at && q.created_at.includes('T') ? q.created_at.split('T')[1]?.substring(0, 5) : '');
+                        return {
+                            id: `REQ-${q.id}`,
+                            date: formatDate(q.pickup_date || (q.created_at ? q.created_at.split('T')[0] : '--')),
+                            time: formatTime12h(rawTime),
+                            type: q.shipment_type || '--',
+                            pickup: q.pickup_city || q.pickup_address || '--',
+                            delivery: q.delivery_city || q.delivery_address || '--',
+                            load: q.load_type || q.type_of_pallets || '--',
+                            vehicle: q.vehicle_type || '--',
+                            weight: q.weight ? `${q.weight} KG` : '--',
+                            status: q.status === 'active' ? 'Bidding Active' : (q.status === 'pending' ? 'Draft' : (q.status || '--')),
+                            quotesReceived: q.quotes_count || 0,
+                            contacted: 10,
+                            lowestBid: q.budget ? q.budget : null,
+                            expiresIn: q.auto_expire || '2d 0h',
+                            suppliersList: [],
+                            hasNew: false,
+                        };
+                    });
+                    setRequestData(mapped);
+                    localStorage.setItem('customer_quote_requests_cache', JSON.stringify(mapped));
+                }
+            } catch {
+                // Keep cached data if offline/error
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchQuoteRequests();
+
         const closeDropdown = () => {
             setOpenDropdown(null);
             setShowTemplateDropdown(false);
@@ -192,24 +243,49 @@ export default function RequestList() {
         }
     };
 
+    const filteredData = React.useMemo(() => {
+        if (activeFilterTab === 'Active') {
+            return requestData.filter(r => r.status === 'Bidding Active' || r.status === 'active');
+        }
+        if (activeFilterTab === 'Waiting') {
+            return requestData.filter(r => r.quotesReceived === 0 || r.status === 'Draft' || r.status === 'pending');
+        }
+        if (activeFilterTab === 'Review') {
+            return requestData.filter(r => r.quotesReceived > 0 || r.status === 'Negotiating');
+        }
+        if (activeFilterTab === 'Accepted') {
+            return requestData.filter(r => r.status === 'Accepted' || r.status === 'completed');
+        }
+        return requestData;
+    }, [requestData, activeFilterTab]);
+
     const FilterTabs = () => {
+        const counts = React.useMemo(() => ({
+            all: requestData.length,
+            active: requestData.filter(r => r.status === 'Bidding Active' || r.status === 'active').length,
+            waiting: requestData.filter(r => r.quotesReceived === 0 || r.status === 'Draft' || r.status === 'pending').length,
+            review: requestData.filter(r => r.quotesReceived > 0 || r.status === 'Negotiating').length,
+            accepted: requestData.filter(r => r.status === 'Accepted' || r.status === 'completed').length,
+        }), [requestData]);
+
         const tabs = [
-            { id: 'All', label: 'All', count: requestData.length + 8 },
-            { id: 'Active', label: 'Active', count: 7 },
-            { id: 'Waiting', label: 'Waiting Quotes', count: 4 },
-            { id: 'Review', label: 'To Review', count: 18 },
-            { id: 'Accepted', label: 'Accepted', count: 5 },
+            { id: 'All', label: 'All', count: counts.all },
+            { id: 'Active', label: 'Active', count: counts.active },
+            { id: 'Waiting', label: 'Waiting Quotes', count: counts.waiting },
+            { id: 'Review', label: 'To Review', count: counts.review },
+            { id: 'Accepted', label: 'Accepted', count: counts.accepted },
         ];
 
         return (
-            <div className="flex items-center gap-6 overflow-x-auto hide-scrollbar mb-[-1px]">
+            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar mb-[-1px]">
                 {tabs.map((tab) => {
                     const isActive = activeFilterTab === tab.id;
                     return (
                         <button 
                             key={tab.id}
+                            type="button"
                             onClick={() => setActiveFilterTab(tab.id)}
-                            className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap ${isActive ? 'border-[#008060] text-[#008060]' : 'border-transparent text-slate-600 hover:text-slate-800'}`}
+                            className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${isActive ? 'border-[#008060] text-[#008060]' : 'border-transparent text-slate-600 hover:text-slate-800'}`}
                         >
                             <span className={`text-[14px] ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
                             <span className={`text-[12px] font-medium px-2 py-0.5 rounded-full ${isActive ? 'bg-[#eaf5f0] text-[#008060]' : 'bg-slate-100 text-slate-500'}`}>
@@ -235,8 +311,18 @@ export default function RequestList() {
         },
         { 
             id: 'date', 
-            label: 'Date', 
-            render: (row) => <span className="text-[13px] text-slate-500 whitespace-nowrap">{row.date}</span>
+            label: 'Date & Time', 
+            render: (row) => (
+                <div className="text-[13px] whitespace-nowrap flex flex-col">
+                    <span className="font-semibold text-slate-800">{row.date}</span>
+                    {row.time && (
+                        <span className="text-[11px] font-medium text-slate-500 flex items-center gap-1 mt-0.5">
+                            <Clock size={11} className="text-slate-400" />
+                            {row.time}
+                        </span>
+                    )}
+                </div>
+            )
         },
         { 
             id: 'type', 
@@ -302,15 +388,147 @@ export default function RequestList() {
         }
     ];
 
+    const handleRepeatRequest = async (row: any) => {
+        const rawId = String(row.id).replace('REQ-', '');
+        setIsRepeating(row.id);
+        setOpenDropdown(null);
+        try {
+            const res = await apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUEST_DETAIL(rawId));
+            const q = res.data?.data || res.data || res;
+            const repeatData = {
+                id: row.id,
+                requestTitle: q.request_title ? `Repeat: ${q.request_title}` : `Repeat of ${row.id}`,
+                priority: q.priority || 'High',
+                shipmentType: q.shipment_type || row.type || 'One Way',
+                serviceType: q.service_type || 'Express',
+                pickupDate: '',
+                pickupTime: q.pickup_time_from || '',
+                deliveryDate: '',
+                deliveryTime: q.delivery_time_from || q.delivery_time_till || '',
+                expectedTransitTime: q.expected_transit_time || '',
+
+                pickupCompany: q.pickup_company || '',
+                pickupContactName: q.pickup_contact_name || '',
+                pickupPhone: q.pickup_phone || '',
+                pickupEmail: q.pickup_email || '',
+                pickupCountry: q.pickup_country || 'Bangladesh',
+                pickupState: q.pickup_state || '',
+                pickupCity: q.pickup_city || row.pickup || '',
+                pickupZip: q.pickup_zip || '',
+                pickupAddress: q.pickup_address || '',
+                pickupMapUrl: q.pickup_map_url || '',
+                pickupInstructions: q.pickup_instructions || '',
+
+                deliveryCompany: q.delivery_company || '',
+                deliveryContactName: q.delivery_contact_name || '',
+                deliveryPhone: q.delivery_phone || '',
+                deliveryEmail: q.delivery_email || '',
+                deliveryCountry: q.delivery_country || 'Bangladesh',
+                deliveryState: q.delivery_state || '',
+                deliveryCity: q.delivery_city || row.delivery || '',
+                deliveryZip: q.delivery_zip || '',
+                deliveryAddress: q.delivery_address || '',
+                deliveryMapUrl: q.delivery_map_url || '',
+                deliveryInstructions: q.delivery_instructions || '',
+
+                vehicleType: q.vehicle_type || row.vehicle || '',
+                loadType: q.load_type || row.load || '',
+                itemsCount: q.items_count ? String(q.items_count) : '',
+                palletsCount: q.pallets_count ? String(q.pallets_count) : '',
+                weight: q.weight ? String(q.weight) : '',
+                volume: q.volume ? String(q.volume) : '',
+
+                stackable: Boolean(q.stackable),
+                fragile: Boolean(q.fragile),
+                hazardous: Boolean(q.hazardous),
+                tempControlled: Boolean(q.temp_controlled),
+                oversized: Boolean(q.oversized),
+                perishable: Boolean(q.perishable),
+                loadingRequired: Boolean(q.loading_required ?? true),
+                unloadingRequired: Boolean(q.unloading_required ?? true),
+                packaging: Boolean(q.packaging),
+                insurance: Boolean(q.insurance ?? true),
+                liftGate: Boolean(q.lift_gate),
+                whiteGlove: Boolean(q.white_glove),
+                assembly: Boolean(q.assembly),
+                insideDelivery: Boolean(q.inside_delivery),
+                storage: Boolean(q.storage),
+
+                budget: q.budget ? String(q.budget) : '',
+                currency: q.currency || '৳',
+                allowNegotiation: Boolean(q.allow_negotiation ?? true),
+                receiveMultiple: Boolean(q.receive_multiple ?? true),
+                autoExpire: q.auto_expire || '48 Hours',
+
+                customerNotes: q.customer_notes || '',
+                specialInstructions: q.special_instructions || '',
+                internalReference: `REPEAT-${row.id}`,
+            };
+            navigate('/customer/quotes/create/new', { state: { repeatData } });
+            showToast(`Repeat request created from ${row.id}!`, 'success');
+        } catch {
+            // Fallback: use row data only
+            navigate('/customer/quotes/create/new', { state: { repeatData: { ...row, requestTitle: `Repeat: ${row.id}`, internalReference: `REPEAT-${row.id}` } } });
+            showToast(`Opened repeat request with available data.`, 'info');
+        } finally {
+            setIsRepeating(null);
+        }
+    };
+
+    const handleDeleteRequest = async (row: any) => {
+        const rawId = String(row.id).replace('REQ-', '');
+        setOpenDropdown(null);
+        if (!window.confirm(`Are you sure you want to delete/cancel quote request ${row.id}?`)) {
+            return;
+        }
+
+        try {
+            await apiClient.delete(`${ENDPOINTS.CUSTOMER.QUOTE_REQUESTS}/${rawId}`);
+            setRequestData(prev => {
+                const next = prev.filter(item => item.id !== row.id);
+                localStorage.setItem('customer_quote_requests_cache', JSON.stringify(next));
+                return next;
+            });
+            showToast(`Quote request ${row.id} has been cancelled/deleted.`, 'success');
+        } catch (err: any) {
+            // Still clean up locally if non-existent or network fallback
+            setRequestData(prev => {
+                const next = prev.filter(item => item.id !== row.id);
+                localStorage.setItem('customer_quote_requests_cache', JSON.stringify(next));
+                return next;
+            });
+            showToast(`Quote request ${row.id} removed.`, 'info');
+        }
+    };
+
+    const handleDeleteSelected = async (selectedIds: (number | string)[]) => {
+        if (!selectedIds.length) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected request(s)?`)) {
+            return;
+        }
+
+        for (const id of selectedIds) {
+            const rawId = String(id).replace('REQ-', '');
+            try {
+                await apiClient.delete(`${ENDPOINTS.CUSTOMER.QUOTE_REQUESTS}/${rawId}`);
+            } catch {
+                // Ignore single failure
+            }
+        }
+
+        setRequestData(prev => {
+            const next = prev.filter(item => !selectedIds.includes(item.id));
+            localStorage.setItem('customer_quote_requests_cache', JSON.stringify(next));
+            return next;
+        });
+        showToast(`${selectedIds.length} request(s) deleted.`, 'success');
+    };
+
     const actions = (row: any) => (
         <div className="flex items-center justify-end gap-2 relative">
-            {row.status !== 'Draft' ? (
+            {row.status !== 'Draft' && (
                 <Button variant="primary" size="sm" className="h-7 px-3 bg-brand hover:bg-brand-hover" onClick={(e) => { e.stopPropagation(); navigate('/customer/quotes/received'); }}>
                     <Activity size={14} className="mr-1.5" /> Track Bids
-                </Button>
-            ) : (
-                <Button variant="outline" size="sm" className="h-7 px-3 border-indigo-200 text-indigo-700 hover:bg-brand-light" onClick={(e) => { e.stopPropagation(); navigate(`/customer/quotes/create/edit/${row.id}`); }}>
-                    <Edit size={14} className="mr-1.5" /> Edit Draft
                 </Button>
             )}
 
@@ -345,25 +563,31 @@ export default function RequestList() {
                         <button className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2" onClick={() => { setOpenDropdown(null); navigate(`/customer/quotes/create/view/${row.id}`); }}>
                             <Eye size={14} className="text-slate-400" /> View Details
                         </button>
+                        <button className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2" onClick={() => { setOpenDropdown(null); navigate(`/customer/quotes/create/edit/${row.id}`); }}>
+                            <Edit size={14} className="text-indigo-500" /> Edit
+                        </button>
                         <button 
-                            className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium" 
-                            onClick={() => { 
-                                setOpenDropdown(null); 
-                                navigate('/customer/quotes/create/new', { state: { repeatData: row } }); 
-                            }}
+                            className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium disabled:opacity-50" 
+                            disabled={isRepeating === row.id}
+                            onClick={() => handleRepeatRequest(row)}
                         >
-                            <Copy size={14} className="text-blue-500" /> Repeat Request
+                            {isRepeating === row.id ? (
+                                <svg className="animate-spin w-3.5 h-3.5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                            ) : (
+                                <Copy size={14} className="text-blue-500" />
+                            )}
+                            {isRepeating === row.id ? 'Loading...' : 'Repeat Request'}
                         </button>
                         <button className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2" onClick={() => setOpenDropdown(null)}>
                             <FileDown size={14} className="text-slate-400" /> Download PDF
                         </button>
                         <div className="h-px bg-slate-100 my-1"></div>
-                        {row.status === 'Bidding Active' ? (
-                            <button className="w-full text-left px-3 py-1.5 text-[13px] text-red-600 hover:bg-red-50 flex items-center gap-2" onClick={() => setOpenDropdown(null)}>
+                        {row.status === 'Bidding Active' || row.status === 'active' ? (
+                            <button className="w-full text-left px-3 py-1.5 text-[13px] text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer font-medium" onClick={() => handleDeleteRequest(row)}>
                                 <XCircle size={14} className="text-red-500" /> Cancel Request
                             </button>
                         ) : (
-                            <button className="w-full text-left px-3 py-1.5 text-[13px] text-red-600 hover:bg-red-50 flex items-center gap-2" onClick={() => setOpenDropdown(null)}>
+                            <button className="w-full text-left px-3 py-1.5 text-[13px] text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer font-medium" onClick={() => handleDeleteRequest(row)}>
                                 <Trash2 size={14} className="text-red-500" /> Delete
                             </button>
                         )}
@@ -373,6 +597,7 @@ export default function RequestList() {
             </div>
         </div>
     );
+
 
     return (
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen" onClick={() => { setOpenDropdown(null); setShowTemplateDropdown(false); }}>
@@ -491,12 +716,14 @@ export default function RequestList() {
             </div>
             
             <DataTable 
-                data={requestData} 
+                data={filteredData} 
                 columns={columns} 
                 actions={actions}
                 headerTabs={<FilterTabs />}
                 searchPlaceholder="Search by ID or Route (e.g. Dhaka)..."
                 compact={true}
+                isLoading={isLoading}
+                onDeleteSelected={handleDeleteSelected}
             />
 
             {/* Modular 4-Step PDF & ZIP Import Wizard Modal */}

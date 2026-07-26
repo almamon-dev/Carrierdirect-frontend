@@ -93,7 +93,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                 </FormRow>
 
                 {/* Minimal Cargo Dimensions */}
-                <div className="col-span-1 md:col-span-2 pt-2">
+                <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-slate-200/80">
                     <SectionHeader title="Cargo Dimensions (L x W x H)" icon={Box} />
                     
                     <div className="space-y-2 mt-2">
@@ -146,7 +146,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                 </div>
 
                 {/* Logistics Handling Checkboxes */}
-                <div className="col-span-1 md:col-span-2 pt-2">
+                <div className="col-span-1 md:col-span-2 mt-6 pt-5 border-t border-slate-200/80">
                     <SectionHeader title="Special Cargo Requirements & Services" icon={Truck} />
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2 text-xs font-semibold text-slate-700">
                         {[

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, MessageSquare, Bell, Check } from 'lucide-react';
+import { Mail, MessageSquare, Bell } from 'lucide-react';
+import { useToastStore } from '@/stores/useToastStore';
 
 interface NotificationSetting {
   id: string;
@@ -46,6 +47,8 @@ const defaultNotifs: NotificationSetting[] = [
 ];
 
 export default function NotificationsTab() {
+  const showToast = useToastStore(state => state.showToast);
+
   const [settings, setSettings] = useState<NotificationSetting[]>(() => {
     try {
       const saved = localStorage.getItem('customer_notif_settings');
@@ -54,8 +57,6 @@ export default function NotificationsTab() {
       return defaultNotifs;
     }
   });
-
-  const [savedSuccess, setSavedSuccess] = useState(false);
 
   const toggleSetting = (id: string, channel: 'email' | 'sms' | 'push') => {
     const updated = settings.map(item => {
@@ -69,24 +70,15 @@ export default function NotificationsTab() {
 
   const handleSave = () => {
     localStorage.setItem('customer_notif_settings', JSON.stringify(settings));
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    showToast('Notification preferences updated successfully!', 'success');
   };
 
   return (
     <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-      
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div>
-          <h3 className="text-sm font-bold text-slate-900">Notification Preferences</h3>
-          <p className="text-xs text-slate-500">Control which channels notify you about shipping updates and billing.</p>
-        </div>
 
-        {savedSuccess && (
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md border border-green-200">
-            <Check className="w-3.5 h-3.5" /> Saved!
-          </span>
-        )}
+      <div className="border-b border-slate-100 pb-3">
+        <h3 className="text-sm font-bold text-slate-900">Notification Preferences</h3>
+        <p className="text-xs text-slate-500">Control which channels notify you about shipping updates and billing.</p>
       </div>
 
       {/* Notification Table Header */}

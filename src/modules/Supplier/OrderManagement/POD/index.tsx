@@ -149,7 +149,7 @@ export default function POD() {
                 data={filteredOrders} 
                 compact={true}
                 searchPlaceholder="Search by Job ID, customer, driver..."
-                hideViewToggle={true}
+                hideViewToggle={false}
                 actions={renderActions}
                 filterContent={filterContent}
             />

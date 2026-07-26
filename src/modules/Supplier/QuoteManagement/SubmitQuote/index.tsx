@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
     ArrowLeft, Send, CheckCircle2, Euro, Clock, Plus, Trash2, MapPin, 
@@ -11,22 +12,119 @@ import Textarea from '@/components/ui/textarea';
 import Badge from '@/components/ui/badge';
 import FormLabel from '@/components/ui/label';
 import Select from '@/components/ui/select';
-import { getQuoteRequestBySlug, QuoteRequest } from '../data/quoteRequestsData';
+import { QuoteRequest } from '../data/quoteRequestsData';
+import { apiClient } from '@/lib/axios';
+import { ENDPOINTS } from '@/config/api';
+import SubmitQuoteSkeleton from './SubmitQuoteSkeleton';
 
 export default function SubmitQuote() {
     const navigate = useNavigate();
     const { slug } = useParams<{ slug?: string }>();
 
-    // Load matching quote request based on slug
-    const [requestDetails, setRequestDetails] = useState<QuoteRequest>(() => getQuoteRequestBySlug(slug));
+    const [loading, setLoading] = useState(true);
+    const [requestDetails, setRequestDetails] = useState<QuoteRequest>({
+        id: '', slug: '', requestDate: '', customer: '', pickup: '', delivery: '',
+        distance: '', budget: 'Open', status: 'active', priority: 'Normal',
+        dimensions: [], cargoItems: [], documents: []
+    } as unknown as QuoteRequest);
+    // Extra raw fields from backend not in the type
+    const [apiData, setApiData] = useState<Record<string, any>>({});
 
     useEffect(() => {
-        setRequestDetails(getQuoteRequestBySlug(slug));
+        let isMounted = true;
+        const cleanId = slug ? slug.replace('REQ-', '') : '';
+        if (!cleanId) { setLoading(false); return; }
+
+        apiClient.get(ENDPOINTS.SUPPLIER.REQUEST_DETAIL(cleanId))
+            .then(res => {
+                const raw = res.data?.data || res.data || res;
+                const d = raw.quote_details || {};
+                if (!isMounted) return;
+
+                setApiData({ ...d, id: raw.id, quote_submitted: raw.quote_submitted });
+                setRequestDetails(prev => ({
+                    ...prev,
+                    id: `REQ-${raw.id || cleanId}`,
+                    slug: String(raw.id || cleanId),
+                    customer: d.client_name || 'Verified Shipper',
+                    customerPhone: d.client_phone || '',
+                    customerOrdersCount: d.client_orders_count ?? 0,
+                    requestDate: d.request_created_at || d.requested_date || '',
+                    pickup: d.origin || '—',
+                    pickupFullAddress: d.origin || '',
+                    pickupTimeWindow: d.pickup_time_from && d.pickup_time_till
+                        ? `${d.pickup_time_from} – ${d.pickup_time_till}`
+                        : '',
+                    delivery: d.destination || '—',
+                    deliveryFullAddress: d.destination || '',
+                    deliveryTimeWindow: d.delivery_time_from && d.delivery_time_till
+                        ? `${d.delivery_time_from} – ${d.delivery_time_till}`
+                        : '',
+                    distance: d.distance_miles ? `${d.distance_miles} km` : '—',
+                    pickupDate: d.pickup_date || '',
+                    deliveryDate: d.delivery_date || '',
+                    weight: d.total_weight || '—',
+                    notes: d.additional_notes || '',
+                    budget: d.budget ? `€${d.budget}` : 'Open / Flexible',
+                    vehicleType: d.vehicle_type || '—',
+                    loadType: d.pallet_type || d.load_type || '—',
+                    itemsCount: d.items_summary || '—',
+                    dimensions: Array.isArray(d.items) ? d.items.map((item: any, i: number) => ({
+                        id: item.id ?? i + 1,
+                        length: item.length != null ? String(item.length) : '—',
+                        width:  item.width  != null ? String(item.width)  : '—',
+                        height: item.height != null ? String(item.height) : '—',
+                        qty:    String(item.quantity ?? '—'),
+                        unit:   'CM',
+                    })) : [],
+                    cargoItems: Array.isArray(d.items) ? d.items.map((item: any, i: number) => ({
+                        id: item.id ?? i + 1,
+                        name: item.item_type || 'Item',
+                        category: item.item_type || '—',
+                        qty: String(item.quantity ?? '—'),
+                        weight: item.weight != null ? `${item.weight} kg` : '—',
+                        dimensions: (item.length && item.width && item.height)
+                            ? `${item.length} × ${item.width} × ${item.height} cm`
+                            : '—',
+                    })) : [],
+                    documents: [
+                        ...(d.attachment_url  ? [{ id: 1, name: 'Attachment',   size: '', type: 'PDF', url: d.attachment_url  }] : []),
+                        ...(d.packing_list_url? [{ id: 2, name: 'Packing List', size: '', type: 'PDF', url: d.packing_list_url }] : []),
+                        ...(d.invoice_url     ? [{ id: 3, name: 'Invoice',      size: '', type: 'PDF', url: d.invoice_url      }] : []),
+                    ],
+                    // Cargo characteristics
+                    stackable:       !!d.stackable,
+                    fragile:         !!d.fragile,
+                    hazardous:       !!d.hazardous,
+                    tempControlled:  !!d.temp_controlled,
+                    oversized:       !!d.oversized,
+                    perishable:      !!d.perishable,
+                    // Additional services
+                    loadingRequired:   !!d.loading_required,
+                    unloadingRequired: !!d.unloading_required,
+                    packaging:         !!d.packaging,
+                    insurance:         !!d.insurance,
+                    liftGate:          !!d.lift_gate,
+                    whiteGlove:        !!d.white_glove,
+                    assembly:          !!d.assembly,
+                    insideDelivery:    !!d.inside_delivery,
+                    storage:           !!d.storage,
+                    // Instructions
+                    pickupInstructions:   d.pickup_instructions   || '',
+                    deliveryInstructions: d.delivery_instructions || '',
+                }));
+            })
+            .catch(err => {
+                console.error('Failed to load supplier request detail', err);
+            })
+            .finally(() => { if (isMounted) setLoading(false); });
+
+        return () => { isMounted = false; };
     }, [slug]);
 
     // Form state
     const [price, setPrice] = useState<string>('');
-    const [extraCharges, setExtraCharges] = useState<{ name: string; description: string; amount: string }[]>([]);
+    const [extraCharges, setExtraCharges] = useState<{ type: string; customName: string; amount: string }[]>([]);
     const [notes, setNotes] = useState<string>('');
     const [validity, setValidity] = useState<string>('48h');
     const [paymentTerm, setPaymentTerm] = useState<string>('net15');
@@ -64,6 +162,10 @@ export default function SubmitQuote() {
         if (notes.includes(noteText)) return;
         setNotes(prev => prev ? `${prev}\n• ${noteText}` : `• ${noteText}`);
     };
+
+    if (loading) {
+        return <SubmitQuoteSkeleton />;
+    }
 
     if (submitted) {
         return (
@@ -200,10 +302,20 @@ export default function SubmitQuote() {
                                 <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
                                     <span>{requestDetails.customer}</span>
                                     <span title="Verified Shipper"><ShieldCheck size={15} className="text-blue-600" /></span>
-                                    <span className="text-slate-500 text-xs font-normal">★ {requestDetails.customerRating} ({requestDetails.customerOrdersCount} orders)</span>
+                                    <span className="text-slate-500 text-xs font-normal">
+                                        ★ ({requestDetails.customerOrdersCount ?? 0} orders)
+                                    </span>
                                 </div>
-                                <p className="text-xs text-slate-500 mt-0.5">
-                                    Date: {requestDetails.requestDate} • Phone: {requestDetails.customerPhone}
+                                <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                                    {requestDetails.requestDate && (
+                                        <span>📅 Requested: <strong className="text-slate-700">{requestDetails.requestDate}</strong></span>
+                                    )}
+                                    {requestDetails.customerPhone && (
+                                        <>
+                                            <span className="text-slate-300">•</span>
+                                            <span>📞 <strong className="text-slate-700">{requestDetails.customerPhone}</strong></span>
+                                        </>
+                                    )}
                                 </p>
                             </div>
                             <div className="text-right">
@@ -302,7 +414,7 @@ export default function SubmitQuote() {
                                         : 'border-transparent text-slate-600 hover:text-slate-900'
                                 }`}
                             >
-                                <FileText size={14} /> Instructions & Docs ({requestDetails.documents.length})
+                                <FileText size={14} /> Notes & Files ({requestDetails.documents.length})
                             </button>
                         </div>
 
@@ -415,9 +527,13 @@ export default function SubmitQuote() {
                                             { label: 'Oversized', active: requestDetails.oversized },
                                             { label: 'Perishable', active: requestDetails.perishable },
                                         ].map((item, i) => (
-                                            <div key={i} className={`p-2.5 rounded border flex items-center gap-2 font-medium ${item.active ? 'bg-slate-50 border-slate-300 text-slate-900 font-bold' : 'bg-white border-slate-200 text-slate-400 line-through'}`}>
-                                                <Check size={13} className={item.active ? 'text-slate-800' : 'text-slate-300'} />
-                                                <span>{item.label}</span>
+                                            <div key={i} className={`p-2.5 rounded border flex items-center gap-2 font-medium transition-colors ${
+                                                item.active
+                                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                                                    : 'bg-white border-slate-200 text-slate-400 line-through'
+                                            }`}>
+                                                <Check size={13} className={item.active ? 'text-emerald-600' : 'text-slate-300'} />
+                                                <span className={item.active ? 'font-semibold' : ''}>{item.label}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -438,9 +554,13 @@ export default function SubmitQuote() {
                                             { label: 'Assembly / Installation', active: requestDetails.assembly },
                                             { label: 'Inside Delivery', active: requestDetails.insideDelivery },
                                         ].map((srv, idx) => (
-                                            <div key={idx} className={`p-2.5 rounded border flex items-center gap-2 font-medium ${srv.active ? 'bg-slate-50 border-slate-300 text-slate-900 font-bold' : 'bg-white border-slate-200 text-slate-400 line-through'}`}>
-                                                <Check size={13} className={srv.active ? 'text-slate-800' : 'text-slate-300'} />
-                                                <span>{srv.label}</span>
+                                            <div key={idx} className={`p-2.5 rounded border flex items-center gap-2 font-medium transition-colors ${
+                                                srv.active
+                                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                                                    : 'bg-white border-slate-200 text-slate-400 line-through'
+                                            }`}>
+                                                <Check size={13} className={srv.active ? 'text-emerald-600' : 'text-slate-300'} />
+                                                <span className={srv.active ? 'font-semibold' : ''}>{srv.label}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -451,46 +571,73 @@ export default function SubmitQuote() {
                         {/* TAB 4: Instructions & Docs */}
                         {activeTab === 'instructions' && (
                             <div className="p-5 space-y-5">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                                    <div className="p-3.5 rounded border border-slate-200 bg-slate-50/50">
-                                        <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-1">
-                                            <MapPin size={13} /> Pickup Instructions
-                                        </h4>
-                                        <p className="text-slate-700 whitespace-pre-line leading-relaxed">
-                                            {requestDetails.pickupInstructions}
-                                        </p>
-                                    </div>
-
-                                    <div className="p-3.5 rounded border border-slate-200 bg-slate-50/50">
-                                        <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-1">
-                                            <MapPin size={13} /> Delivery Instructions
-                                        </h4>
-                                        <p className="text-slate-700 whitespace-pre-line leading-relaxed">
-                                            {requestDetails.deliveryInstructions}
-                                        </p>
-                                    </div>
+                                <div className="space-y-2.5">
+                                    {[
+                                        { label: 'Pickup Instructions', text: requestDetails.pickupInstructions, color: 'border-blue-400 bg-blue-50', labelColor: 'text-blue-700', icon: '📦' },
+                                        { label: 'Delivery Instructions', text: requestDetails.deliveryInstructions, color: 'border-emerald-400 bg-emerald-50', labelColor: 'text-emerald-700', icon: '🚚' },
+                                    ].map((item, i) => (
+                                        <div key={i} className={`flex gap-3 p-3.5 rounded-lg border-l-4 ${item.color} border border-slate-200`}>
+                                            <div className="flex flex-col items-center gap-1 shrink-0">
+                                                <span className="text-base leading-none">{item.icon}</span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <span className={`text-[11px] font-bold uppercase tracking-wide ${item.labelColor} block mb-1`}>
+                                                    {item.label}
+                                                </span>
+                                                <p className="text-xs text-slate-700 whitespace-pre-line leading-relaxed">
+                                                    {item.text || <span className="text-slate-400 italic">No instructions provided</span>}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
 
                                 <div>
-                                    <h4 className="text-xs font-bold text-slate-800 mb-2">
-                                        Attached Documents
+                                    <h4 className="text-xs font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                                        <FileText size={13} className="text-slate-500" /> Attached Documents
+                                        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                                            {requestDetails.documents.length}
+                                        </span>
                                     </h4>
-                                    <div className="space-y-2">
-                                        {requestDetails.documents.map((doc) => (
-                                            <div key={doc.id} className="flex items-center justify-between p-3 rounded border border-slate-200 bg-white">
-                                                <div className="flex items-center gap-2.5">
-                                                    <FileText size={16} className="text-slate-500" />
-                                                    <div>
-                                                        <p className="text-xs font-bold text-slate-900">{doc.name}</p>
-                                                        <p className="text-[11px] text-slate-400">{doc.type} • {doc.size}</p>
+                                    {requestDetails.documents.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-6 rounded-lg border border-dashed border-slate-200 bg-slate-50 text-slate-400">
+                                            <FileText size={22} className="mb-1.5 text-slate-300" />
+                                            <span className="text-xs">No documents attached</span>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {requestDetails.documents.map((doc) => {
+                                                const colorMap: Record<string, { bg: string; icon: string; badge: string }> = {
+                                                    'Attachment':   { bg: 'bg-blue-50 border-blue-200',   icon: 'text-blue-600',   badge: 'bg-blue-100 text-blue-700' },
+                                                    'Packing List': { bg: 'bg-violet-50 border-violet-200', icon: 'text-violet-600', badge: 'bg-violet-100 text-violet-700' },
+                                                    'Invoice':      { bg: 'bg-amber-50 border-amber-200',  icon: 'text-amber-600',  badge: 'bg-amber-100 text-amber-700' },
+                                                };
+                                                const colors = colorMap[doc.name] || { bg: 'bg-slate-50 border-slate-200', icon: 'text-slate-500', badge: 'bg-slate-100 text-slate-600' };
+                                                return (
+                                                    <div key={doc.id} className={`flex items-center gap-3 p-3 rounded-lg border ${colors.bg}`}>
+                                                        <div className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 ${colors.badge} bg-opacity-40`}>
+                                                            <FileText size={17} className={colors.icon} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-bold text-slate-900 truncate">{doc.name}</p>
+                                                            <span className={`inline-block mt-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded ${colors.badge}`}>
+                                                                {doc.type || 'PDF'}
+                                                            </span>
+                                                        </div>
+                                                        <a
+                                                            href={doc.url || '#'}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:border-slate-400 px-2 py-1 rounded transition-colors"
+                                                        >
+                                                            <Download size={11} />
+                                                            Download
+                                                        </a>
                                                     </div>
-                                                </div>
-                                                <Button variant="outline" size="sm" className="h-7 text-xs px-2.5" onClick={() => alert(`Downloading ${doc.name}...`)}>
-                                                    <Download size={12} className="mr-1" /> Download
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -555,7 +702,7 @@ export default function SubmitQuote() {
                             <FormLabel className="mb-0 text-xs font-semibold text-slate-800">Extra Charges</FormLabel>
                             <button 
                                 type="button"
-                                onClick={() => setExtraCharges([...extraCharges, { name: '', description: '', amount: '' }])}
+                                onClick={() => setExtraCharges([...extraCharges, { type: '', customName: '', amount: '' }])}
                                 className="text-xs font-semibold text-slate-900 hover:underline flex items-center gap-1"
                             >
                                 <Plus size={12} /> Add Charge
@@ -565,40 +712,64 @@ export default function SubmitQuote() {
                         {extraCharges.length > 0 && (
                             <div className="space-y-2 mb-3">
                                 {extraCharges.map((charge, idx) => (
-                                    <div key={idx} className="flex items-center gap-2">
-                                        <Input 
-                                            placeholder="Charge Name (e.g. Tolls)" 
-                                            className="text-xs h-7 bg-white flex-1"
-                                            value={charge.name}
-                                            onChange={(e) => {
-                                                const newArr = [...extraCharges];
-                                                newArr[idx].name = e.target.value;
-                                                setExtraCharges(newArr);
-                                            }}
-                                        />
-                                        <div className="relative w-20 shrink-0">
-                                            <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-slate-400 text-xs">
-                                                €
-                                            </div>
-                                            <Input 
-                                                type="number" 
-                                                placeholder="0.00" 
-                                                className="pl-5 text-xs h-7 font-bold bg-white"
-                                                value={charge.amount}
+                                    <div key={idx} className="space-y-1.5 p-2.5 bg-slate-50 rounded border border-slate-200">
+                                        <div className="flex items-center gap-2">
+                                            <Select
+                                                value={charge.type}
                                                 onChange={(e) => {
                                                     const newArr = [...extraCharges];
-                                                    newArr[idx].amount = e.target.value;
+                                                    newArr[idx].type = e.target.value;
+                                                    if (e.target.value !== 'Custom') newArr[idx].customName = '';
+                                                    setExtraCharges(newArr);
+                                                }}
+                                                showSearch={false}
+                                                className="text-xs h-7 flex-1"
+                                            >
+                                                <option value="">Select type...</option>
+                                                <option value="Toll">🛣️ Toll Charges</option>
+                                                <option value="Fuel Surcharge">⛽ Fuel Surcharge</option>
+                                                <option value="Loading/Unloading">📦 Loading / Unloading</option>
+                                                <option value="Insurance">🛡️ Insurance</option>
+                                                <option value="Hazardous">⚠️ Hazardous Handling</option>
+                                                <option value="Storage">🏭 Storage Fee</option>
+                                                <option value="Custom">✏️ Custom</option>
+                                            </Select>
+                                            <div className="relative w-20 shrink-0">
+                                                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-slate-400 text-xs">
+                                                    €
+                                                </div>
+                                                <Input 
+                                                    type="number" 
+                                                    placeholder="0.00" 
+                                                    className="pl-5 text-xs h-7 font-bold bg-white"
+                                                    value={charge.amount}
+                                                    onChange={(e) => {
+                                                        const newArr = [...extraCharges];
+                                                        newArr[idx].amount = e.target.value;
+                                                        setExtraCharges(newArr);
+                                                    }}
+                                                />
+                                            </div>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setExtraCharges(extraCharges.filter((_, i) => i !== idx))}
+                                                className="shrink-0 text-slate-400 hover:text-red-600 transition-colors"
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </div>
+                                        {charge.type === 'Custom' && (
+                                            <Input
+                                                placeholder="Custom charge name (e.g. Parking Fee)"
+                                                className="text-xs h-7 bg-white w-full"
+                                                value={charge.customName}
+                                                onChange={(e) => {
+                                                    const newArr = [...extraCharges];
+                                                    newArr[idx].customName = e.target.value;
                                                     setExtraCharges(newArr);
                                                 }}
                                             />
-                                        </div>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setExtraCharges(extraCharges.filter((_, i) => i !== idx))}
-                                            className="shrink-0 text-slate-400 hover:text-red-600 transition-colors"
-                                        >
-                                            <Trash2 size={13} />
-                                        </button>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -611,9 +782,9 @@ export default function SubmitQuote() {
                             <span>Base Rate:</span>
                             <span className="font-semibold text-slate-900">€{parseFloat(price || '0').toFixed(2)}</span>
                         </div>
-                        {extraCharges.map((ch, i) => ch.name && (
+                        {extraCharges.map((ch, i) => ch.type && (
                             <div key={i} className="flex justify-between items-center">
-                                <span>{ch.name}:</span>
+                                <span>{ch.type === 'Custom' ? (ch.customName || 'Custom Charge') : ch.type}:</span>
                                 <span className="font-semibold text-slate-900">€{parseFloat(ch.amount || '0').toFixed(2)}</span>
                             </div>
                         ))}
@@ -669,7 +840,28 @@ export default function SubmitQuote() {
                             variant="primary" 
                             className="w-full h-10 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-2xs"
                             icon={<Send size={14} />}
-                            onClick={() => setSubmitted(true)}
+                            onClick={async () => {
+                                const cleanId = slug ? slug.replace('REQ-', '') : '1';
+                                try {
+                                    await apiClient.post(ENDPOINTS.SUPPLIER.SUBMIT_QUOTE(cleanId), {
+                                        amount: parseFloat(calculateTotal()),
+                                        base_amount: parseFloat(price) || 0,
+                                        estimated_time: validity === '24h' ? '1 day' : '2-3 days',
+                                        notes: notes || 'Standard offer',
+                                        extra_charges: extraCharges
+                                            .filter(c => c.type && parseFloat(c.amount) > 0)
+                                            .map(c => ({
+                                                type: c.type,
+                                                custom_name: c.type === 'Custom' ? c.customName : c.type,
+                                                amount: parseFloat(c.amount) || 0
+                                            }))
+                                    });
+                                } catch (err: any) {
+                                    console.error('Failed to submit quote via API', err);
+                                } finally {
+                                    setSubmitted(true);
+                                }
+                            }}
                             disabled={!price || parseFloat(price) <= 0}
                         >
                             Submit Offer (€{calculateTotal()})
@@ -679,9 +871,9 @@ export default function SubmitQuote() {
             </div>
 
             {/* Decline Modal */}
-            {showDeclineModal && (
-                <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-2xs flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg max-w-md w-full p-6 border border-slate-200 shadow-md space-y-4">
+            {showDeclineModal && createPortal(
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-2xs flex items-center justify-center p-4 z-[99999]">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6 border border-slate-200 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
                         <div className="flex items-center gap-2 text-red-600 font-bold">
                             <XCircle size={20} />
                             <h3 className="text-sm font-bold text-slate-900">Decline Quote Request</h3>
@@ -703,12 +895,13 @@ export default function SubmitQuote() {
                             <Button variant="outline" size="sm" onClick={() => setShowDeclineModal(false)}>
                                 Cancel
                             </Button>
-                            <Button variant="primary" size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => { setShowDeclineModal(false); setDeclined(true); }}>
+                            <Button variant="primary" size="sm" className="bg-red-600 hover:bg-red-700 text-white cursor-pointer" onClick={() => { setShowDeclineModal(false); setDeclined(true); }}>
                                 Confirm Decline
                             </Button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

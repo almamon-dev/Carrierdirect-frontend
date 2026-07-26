@@ -6,6 +6,7 @@ import CustomerLayout from './layouts/CustomerLayout';
 import SupplierLayout from './layouts/SupplierLayout';
 import { customerRoutes } from './modules/Customer/routes';
 import { supplierRoutes } from './modules/Supplier/routes';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 import Home from './modules/LandingPages/Home';
 import ContactUs from './modules/LandingPages/ContactUs';
@@ -74,6 +75,14 @@ const router = createBrowserRouter([
     element: <Navigate to="/web/register" replace />,
   },
   {
+    path: '/select-role',
+    element: <Navigate to="/web/register" replace />,
+  },
+  {
+    path: '/web/select-role',
+    element: <Navigate to="/web/register" replace />,
+  },
+  {
     path: '/auth/login',
     element: <Navigate to="/web/login" replace />,
   },
@@ -85,12 +94,20 @@ const router = createBrowserRouter([
   ...supportRoutes,
   {
     path: '/customer',
-    element: <CustomerLayout />,
+    element: (
+      <ProtectedRoute allowedRole="customer">
+        <CustomerLayout />
+      </ProtectedRoute>
+    ),
     children: customerRoutes,
   },
   {
     path: '/supplier',
-    element: <SupplierLayout />,
+    element: (
+      <ProtectedRoute allowedRole="supplier">
+        <SupplierLayout />
+      </ProtectedRoute>
+    ),
     children: supplierRoutes,
   },
   {
@@ -103,9 +120,12 @@ const router = createBrowserRouter([
   },
 ]);
 
+import GlobalToast from './components/ui/GlobalToast';
+
 export default function App() {
   return (
     <ErrorBoundary>
+      <GlobalToast />
       <RouterProvider router={router} />
     </ErrorBoundary>
   );

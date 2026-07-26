@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, CheckCircle2, ArrowRight, CreditCard, Plus, Euro } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AddPaymentMethodModal } from './AddPaymentMethodModal';
+import { useToastStore } from '@/stores/useToastStore';
 
 const MetricCard = ({ title, description, value, icon: Icon, colorClass }: { title: string; description: string; value: string; icon: any; colorClass: string }) => (
     <div className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors flex flex-col items-start cursor-pointer w-full">
@@ -21,6 +22,8 @@ const MetricCard = ({ title, description, value, icon: Icon, colorClass }: { tit
 );
 
 export default function PaymentTab() {
+  const showToast = useToastStore(state => state.showToast);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cards, setCards] = useState([
     { id: 1, type: 'VISA', last4: '4092', expiry: '08 / 2028', isPrimary: true },
@@ -32,6 +35,7 @@ export default function PaymentTab() {
       ...c,
       isPrimary: c.id === id
     })));
+    showToast('Primary payment method updated.', 'success');
   };
 
   const handleAddSuccess = (newCard: any) => {
@@ -39,11 +43,12 @@ export default function PaymentTab() {
       setCards(prev => prev.map(c => ({ ...c, isPrimary: false })));
     }
     setCards(prev => [...prev, newCard]);
+    showToast('Payment method added successfully!', 'success');
   };
 
   return (
     <div className="space-y-4">
-      
+
       {/* Pay Later Facility Banner Header */}
       <div className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
@@ -71,7 +76,7 @@ export default function PaymentTab() {
 
         {/* Metric Cards Grid matching Dashboard Style */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-          <MetricCard 
+          <MetricCard
             title="Approved Limit"
             description="Admin approved corporate credit limit."
             value="€ 5,000"
@@ -79,7 +84,7 @@ export default function PaymentTab() {
             colorClass="bg-brand-light text-brand"
           />
 
-          <MetricCard 
+          <MetricCard
             title="Currently Used"
             description="Active Net 30 due invoices."
             value="€ 1,250"
@@ -87,7 +92,7 @@ export default function PaymentTab() {
             colorClass="bg-orange-50 text-orange-600"
           />
 
-          <MetricCard 
+          <MetricCard
             title="Available Balance"
             description="Balance available for instant booking."
             value="€ 3,750"
@@ -133,7 +138,7 @@ export default function PaymentTab() {
                   Primary
                 </span>
               ) : (
-                <button 
+                <button
                   onClick={() => handleSetPrimary(card.id)}
                   className="text-[11px] font-bold text-[#ff4a1f] hover:underline cursor-pointer"
                 >

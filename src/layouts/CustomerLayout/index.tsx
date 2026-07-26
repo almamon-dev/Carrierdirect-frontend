@@ -4,6 +4,29 @@ import { Bell, Search, User, Settings, LogOut, ChevronDown, CheckCircle2, Packag
 import Sidebar from './Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
+import { TOKEN_CONFIG } from '@/config/auth';
+
+// ── Helper: read auth user from localStorage ─────────────────────────────────
+function getAuthUser() {
+    try {
+        const raw = localStorage.getItem(TOKEN_CONFIG.userKey);
+        if (!raw) return null;
+        return JSON.parse(raw) as { name?: string; email?: string; user_type?: string };
+    } catch {
+        return null;
+    }
+}
+
+// Returns up-to-2-char initials for an avatar
+function initials(name?: string): string {
+    if (!name) return 'U';
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(w => w[0].toUpperCase())
+        .join('');
+}
 
 const mockNotifications = [
   { id: 1, title: 'Quote Received', desc: 'FastFreight submitted a quote of £420.', time: '5m ago', icon: Package },
@@ -17,6 +40,7 @@ export default function CustomerLayout() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [authUser, setAuthUser] = useState(getAuthUser);
     
     const location = useLocation();
     const navigate = useNavigate();
@@ -38,12 +62,19 @@ export default function CustomerLayout() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Re-read auth user if localStorage changes (e.g. after login in another tab)
+    useEffect(() => {
+        const sync = () => setAuthUser(getAuthUser());
+        window.addEventListener('storage', sync);
+        return () => window.removeEventListener('storage', sync);
+    }, []);
+
     const handleLogout = () => {
-        localStorage.removeItem('erp_access_token');
-        localStorage.removeItem('erp_user_data');
+        localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
+        localStorage.removeItem(TOKEN_CONFIG.userKey);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        navigate('/');
+        navigate('/web/login');
     };
 
     // Calculate current route label for Header Title
@@ -146,32 +177,44 @@ export default function CustomerLayout() {
                             )}
                         </div>
 
-                        {/* Profile Dropdown Modal */}
+                        {/* Profile Dropdown */}
                         <div className="relative" ref={profileRef}>
                             <button
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition-colors cursor-pointer"
                             >
-                                <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center">
-                                    <User size={16} />
+                                {/* Avatar: initials or icon */}
+                                <div className="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center text-[11px] font-black shrink-0">
+                                    {authUser?.name ? initials(authUser.name) : <User size={14} />}
                                 </div>
-                                <span className="text-xs font-bold text-slate-800 hidden sm:inline">
-                                    Alex Morgan
+                                <span className="text-xs font-bold text-slate-800 hidden sm:inline max-w-[120px] truncate">
+                                    {authUser?.name || 'Account'}
                                 </span>
                                 <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                             </button>
 
                             {isProfileOpen && (
-                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-2xl z-[999] overflow-hidden animate-fade-in text-xs py-1">
-                                    <div className="px-4 py-2.5 border-b border-slate-100">
-                                        <p className="font-bold text-slate-900">Alex Morgan</p>
-                                        <p className="text-slate-500 text-[11px] truncate">alex.morgan@example.com</p>
+                                <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl border border-slate-200 shadow-2xl z-[999] overflow-hidden animate-fade-in text-xs py-1">
+                                    {/* User info header */}
+                                    <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-slate-700 text-white flex items-center justify-center text-sm font-black shrink-0">
+                                            {authUser?.name ? initials(authUser.name) : <User size={16} />}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-slate-900 truncate">{authUser?.name || 'Guest User'}</p>
+                                            <p className="text-slate-500 text-[11px] truncate">{authUser?.email || ''}</p>
+                                            {authUser?.user_type && (
+                                                <span className="inline-block mt-0.5 text-[10px] font-bold text-[#FF4A1F] bg-orange-50 px-1.5 py-0.5 rounded capitalize">
+                                                    {authUser.user_type}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <Link
                                         to="/customer/settings?tab=profile"
                                         onClick={() => setIsProfileOpen(false)}
-                                        className="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#ff4a1f] transition-colors"
+                                        className="flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 hover:text-[#ff4a1f] transition-colors"
                                     >
                                         <User size={15} />
                                         My Profile
@@ -180,7 +223,7 @@ export default function CustomerLayout() {
                                     <Link
                                         to="/customer/settings"
                                         onClick={() => setIsProfileOpen(false)}
-                                        className="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#ff4a1f] transition-colors"
+                                        className="flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 hover:text-[#ff4a1f] transition-colors"
                                     >
                                         <Settings size={15} />
                                         Account Settings
@@ -189,10 +232,7 @@ export default function CustomerLayout() {
                                     <div className="border-t border-slate-100 my-1" />
 
                                     <button
-                                        onClick={() => {
-                                            setIsProfileOpen(false);
-                                            handleLogout();
-                                        }}
+                                        onClick={() => { setIsProfileOpen(false); handleLogout(); }}
                                         className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors text-left font-bold cursor-pointer"
                                     >
                                         <LogOut size={15} />

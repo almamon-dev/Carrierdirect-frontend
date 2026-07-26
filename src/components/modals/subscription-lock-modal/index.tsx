@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Lock, Check, ArrowRight, X } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
@@ -40,8 +41,8 @@ export default function SubscriptionLockModal({
     navigate(targetPath);
   };
 
-  return (
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
+  return createPortal(
+    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fade-in font-sans">
       <div className="bg-white rounded-xl max-w-md w-full border border-slate-200 shadow-xl overflow-hidden relative">
         
         {/* Clean Header */}
@@ -115,6 +116,7 @@ export default function SubscriptionLockModal({
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

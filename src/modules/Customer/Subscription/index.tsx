@@ -13,6 +13,9 @@ import QuotaReminderBanner from '@/components/common/QuotaReminderBanner';
 
 import { AddPaymentMethodModal } from '@/modules/Customer/Settings/components/AddPaymentMethodModal';
 
+import apiClient from '@/lib/axios';
+import { ENDPOINTS } from '@/config/api';
+
 export default function CustomerSubscription() {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
@@ -20,6 +23,22 @@ export default function CustomerSubscription() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [showAllInvoices, setShowAllInvoices] = useState(false);
   const [primaryCard, setPrimaryCard] = useState({ type: 'VISA', last4: '4242', expiry: '12 / 2028' });
+  const [quotaUsed, setQuotaUsed] = useState(0);
+
+  React.useEffect(() => {
+    async function fetchQuota() {
+      try {
+        const res = await apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS);
+        const rawItems = res.data?.data || res.data || res.items || res;
+        if (Array.isArray(rawItems)) {
+          setQuotaUsed(rawItems.length);
+        }
+      } catch {
+        setQuotaUsed(0);
+      }
+    }
+    fetchQuota();
+  }, []);
 
   const handleAddPaymentSuccess = (newCard: any) => {
     setPrimaryCard({
@@ -151,7 +170,7 @@ export default function CustomerSubscription() {
       </div>
 
       {/* Quota Reminder Banner */}
-      <QuotaReminderBanner quotaUsed={2} maxQuota={5} />
+      <QuotaReminderBanner quotaUsed={quotaUsed} maxQuota={5} />
 
       {/* Overview Cards: Current Plan + Quota Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

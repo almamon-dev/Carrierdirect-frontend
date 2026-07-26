@@ -76,7 +76,7 @@ export interface QuoteFormData {
     specialInstructions: string;
     internalReference: string;
 
-    images: File[];
-    packingList: File | null;
-    invoice: File | null;
+    images: any[];
+    packingList: any | null;
+    invoice: any | null;
 }
