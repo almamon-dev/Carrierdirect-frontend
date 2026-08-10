@@ -24,10 +24,10 @@ export default function HomeWhyPlatformDifferent() {
           ref={heading.ref}
           className={`mb-12 text-center reveal ${heading.isVisible ? "visible" : ""}`}
         >
-          <h2 className="text-[#0f0400] text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+          <h2 className="text-[#0f0400] dark:text-slate-100 text-3xl sm:text-4xl font-bold tracking-tight mb-4">
             Why Choose Carrierdirect?
           </h2>
-          <p className="text-gray-500 text-sm sm:text-base max-w-2xl mx-auto">
+          <p className="text-gray-500 dark:text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
             We've engineered the ultimate freight matching platform, combining AI-driven logistics with uncompromising security to streamline your entire supply chain.
           </p>
         </div>
@@ -37,7 +37,7 @@ export default function HomeWhyPlatformDifferent() {
           className={`grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center reveal ${content.isVisible ? "visible" : ""}`}
         >
           
-          <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-xl bg-white w-full">
+          <div className="relative rounded-2xl overflow-hidden border border-gray-100 dark:border-[#2b313a] shadow-xl dark:shadow-none bg-white dark:bg-[#1e2329] w-full">
             <div className="bg-[#0f0400] px-4 py-3 flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-red-500"></span>
               <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
@@ -55,13 +55,13 @@ export default function HomeWhyPlatformDifferent() {
             {features.map((f, i) => (
               <div 
                 key={i} 
-                className="bg-white rounded-md px-4 py-3.5 border border-gray-100 shadow-sm hover:shadow hover:border-[#ff4a1f]/30 transition-all duration-200 group flex flex-col items-start"
+                className="bg-white dark:bg-[#1e2329] rounded-md px-4 py-3.5 border border-gray-100 dark:border-[#2b313a] shadow-sm dark:shadow-none hover:shadow hover:border-[#ff4a1f]/30 dark:hover:border-[#ff4a1f]/50 transition-all duration-200 group flex flex-col items-start"
               >
-                <div className="w-8 h-8 rounded-md bg-[#ff4a1f]/5 text-[#ff4a1f] flex items-center justify-center shrink-0 group-hover:bg-[#ff4a1f] group-hover:text-white transition-colors duration-200 mb-2">
+                <div className="w-8 h-8 rounded-md bg-[#ff4a1f]/10 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] flex items-center justify-center shrink-0 group-hover:bg-[#ff4a1f] group-hover:text-white transition-colors duration-200 mb-2">
                   {f.icon}
                 </div>
-                <h3 className="text-[#0f0400] text-sm font-bold mb-1">{f.title}</h3>
-                <p className="text-gray-500 text-[13px] leading-tight">{f.description}</p>
+                <h3 className="text-[#0f0400] dark:text-slate-100 text-sm font-bold mb-1">{f.title}</h3>
+                <p className="text-gray-500 dark:text-slate-400 text-[13px] leading-tight">{f.description}</p>
               </div>
             ))}
           </div>

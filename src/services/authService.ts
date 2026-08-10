@@ -33,10 +33,9 @@ export interface AuthUser {
 
 export const authService = {
     async login(payload: LoginPayload) {
-       
         const response = await apiClient.post(ENDPOINTS.AUTH.LOGIN, payload);
 
-        const token: string  = response.access_token || response.token || response.data?.access_token;
+        const token: string = response.access_token || response.token || response.data?.access_token;
         const user: AuthUser = response.data?.user || response.user;
 
         if (token) {
@@ -49,7 +48,7 @@ export const authService = {
         return {
             user,
             token,
-            checkoutUrl:     response.data?.checkout_url     ?? null,
+            checkoutUrl: response.data?.checkout_url ?? null,
             requiresPayment: response.data?.requires_payment ?? false,
             raw: response,
         };
@@ -64,8 +63,8 @@ export const authService = {
         // Link-based verification: send email + token from URL query params
         const response = await apiClient.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { email, token });
 
-        const authToken: string  = response.access_token || response.token || response.data?.access_token;
-        const user: AuthUser     = response.data?.user || response.user;
+        const authToken: string = response.access_token || response.token || response.data?.access_token;
+        const user: AuthUser = response.data?.user || response.user;
 
         if (authToken) {
             localStorage.setItem(TOKEN_CONFIG.accessTokenKey, authToken);
@@ -77,7 +76,7 @@ export const authService = {
         return {
             user,
             token: authToken,
-            checkoutUrl:     response.data?.checkout_url     ?? null,
+            checkoutUrl: response.data?.checkout_url ?? null,
             requiresPayment: response.data?.requires_payment ?? false,
             raw: response,
         };

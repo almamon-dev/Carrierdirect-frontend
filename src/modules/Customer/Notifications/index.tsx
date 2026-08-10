@@ -33,7 +33,7 @@ export default function Notifications() {
             color: 'text-[#ff4a1f]', 
             bg: 'bg-orange-50 border-orange-200',
             category: 'quotes',
-            link: '/customer/quotes'
+            link: '/customer/quotes/create'
         },
         { 
             id: 2, 
@@ -46,7 +46,7 @@ export default function Notifications() {
             color: 'text-[#ff4a1f]', 
             bg: 'bg-orange-50 border-orange-200',
             category: 'quotes',
-            link: '/customer/quotes'
+            link: '/customer/quotes/create'
         },
         { 
             id: 3, 

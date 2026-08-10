@@ -8,6 +8,8 @@ import TabHeader from '@/components/ui/tab-header';
 import { QuoteFormData } from '../../types/formTypes';
 import { FormRow, SectionHeader } from '../FormHelpers';
 
+import { useDropdownOptions } from '@/hooks/useDropdownOptions';
+
 interface SectionProps {
     formData: QuoteFormData;
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -27,27 +29,36 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
     updateDimension,
     removeDimension,
 }) => {
-    const UNIT_OPTIONS = [
+    const { getOptions } = useDropdownOptions();
+
+    const UNIT_OPTIONS = getOptions('dimension_unit', [
         { id: 'CM', name: 'CM' },
         { id: 'INCH', name: 'INCH' },
         { id: 'M', name: 'M' },
-    ];
+    ]);
 
-    const VEHICLE_OPTIONS = [
+    const VEHICLE_OPTIONS = getOptions('vehicle_type', [
         { id: 'Small Van', name: 'Small Van' },
         { id: 'Cargo Van', name: 'Cargo Van' },
         { id: 'Pickup Truck', name: 'Pickup Truck' },
         { id: 'Box Truck', name: 'Box Truck' },
         { id: 'Semi Trailer', name: 'Semi Trailer' },
-    ];
+    ]);
 
-    const LOAD_OPTIONS = [
+    const LOAD_OPTIONS = getOptions('load_type', [
         { id: 'Boxes', name: 'Boxes' },
         { id: 'Pallets', name: 'Pallets' },
         { id: 'Furniture', name: 'Furniture' },
         { id: 'Machinery', name: 'Machinery' },
         { id: 'Vehicles', name: 'Vehicles' },
-    ];
+    ]);
+
+    const INSURANCE_OPTIONS = getOptions('insurance_type', [
+        { id: 'Basic Goods Coverage', name: 'Basic Goods Coverage' },
+        { id: 'All-Risk Transit Insurance', name: 'All-Risk Transit Insurance' },
+        { id: 'Standard Liability', name: 'Standard Liability' },
+        { id: 'Comprehensive Cargo Insurance', name: 'Comprehensive Cargo Insurance' },
+    ]);
 
     return (
         <div className="space-y-3 animate-in fade-in duration-300">
@@ -170,6 +181,20 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                             </label>
                         ))}
                     </div>
+
+                    {formData.insurance && (
+                        <div className="mt-3 bg-[#fff7ed] p-3 rounded-md border border-[#ffedd5] space-y-2 animate-in fade-in duration-200">
+                            <FormRow label="Insurance Type *">
+                                <Select
+                                    name="insuranceType"
+                                    value={formData.insuranceType || 'Basic Goods Coverage'}
+                                    onChange={(e) => handleSelectChange('insuranceType', e.target.value)}
+                                    options={INSURANCE_OPTIONS}
+                                    showSearch={false}
+                                />
+                            </FormRow>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

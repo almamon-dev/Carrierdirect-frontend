@@ -1,19 +1,19 @@
 export const API_CONFIG = {
     // API Base URL from environment variables
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-    
+    baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://alesha-unagile-sveltely.ngrok-free.dev/api',
+
     // API Version
     version: 'v1',
-    
+
     // Request Timeout (30 seconds)
     timeout: 30000,
-    
+
     // Default Headers
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
-    
+
     // Auto Retry Configuration for failed requests
     retry: {
         attempts: 2,
@@ -27,6 +27,7 @@ export const ENDPOINTS = {
         LOGIN: '/auth/login',
         REGISTER: '/auth/register',
         VERIFY_EMAIL: '/auth/verify-email',
+        RESEND_OTP: '/auth/resend-otp',
         LOGOUT: '/auth/logout',
         REFRESH_TOKEN: '/auth/refresh',
         ME: '/auth/me',
@@ -57,24 +58,27 @@ export const ENDPOINTS = {
         CHART_DATA: '/dashboard/chart',
     },
     CUSTOMER: {
-        PROFILE:         '/customer/profile',
+        PROFILE: '/customer/profile',
         CHANGE_PASSWORD: '/customer/change-password',
-        ADDRESSES:       '/customer/addresses',
-        NOTIFICATIONS:   '/customer/notifications',
-        INVOICES:        '/customer/invoices',
-        ORDERS:          '/customer/orders',
-        QUOTE_REQUESTS:  '/customer/quote-requests',
+        ADDRESSES: '/customer/addresses',
+        NOTIFICATIONS: '/customer/notifications',
+        INVOICES: '/customer/invoices',
+        ORDERS: '/customer/orders',
+        QUOTE_REQUESTS: '/customer/quote-requests',
         QUOTE_REQUEST_DETAIL: (id: string | number) => `/customer/quote-requests/${id}`,
-        REQUEST_QUOTES:  (id: string | number) => `/customer/quote-requests/${id}/quotes`,
+        REQUEST_QUOTES: (id: string | number) => `/customer/quote-requests/${id}/quotes`,
     },
     SUPPLIER: {
-        PROFILE:         '/supplier/profile',
+        PROFILE: '/supplier/profile',
         CHANGE_PASSWORD: '/supplier/profile/change-password',
-        NOTIFICATIONS:   '/supplier/notifications',
-        ORDERS:          '/supplier/orders',
-        QUOTES:          '/supplier/quotes',
+        NOTIFICATIONS: '/supplier/notifications',
+        ORDERS: '/supplier/orders',
+        QUOTES: '/supplier/quotes',
         AVAILABLE_REQUESTS: '/supplier/available-requests',
         REQUEST_DETAIL: (id: string | number) => `/supplier/requests/${id}`,
         SUBMIT_QUOTE: (id: string | number) => `/supplier/requests/${id}/quote`,
+    },
+    MASTER_DATA: {
+        DROPDOWNS: '/dropdown-options',
     },
 };

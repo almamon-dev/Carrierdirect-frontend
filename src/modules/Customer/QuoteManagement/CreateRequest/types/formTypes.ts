@@ -60,6 +60,7 @@ export interface QuoteFormData {
     unloadingRequired: boolean;
     packaging: boolean;
     insurance: boolean;
+    insuranceType: string;
     liftGate: boolean;
     whiteGlove: boolean;
     assembly: boolean;

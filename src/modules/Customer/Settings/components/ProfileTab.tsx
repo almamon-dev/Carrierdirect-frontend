@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Globe, DollarSign, Camera, Check, Loader2, AlertCircle, Building2, Briefcase } from 'lucide-react';
 import Input from '@/components/ui/input';
+import PhoneInput from '@/components/ui/phone-input';
 import Select from '@/components/ui/select';
 import { TOKEN_CONFIG } from '@/config/auth';
 import apiClient from '@/lib/axios';
@@ -272,23 +273,25 @@ export default function ProfileTab() {
             disabled
           />
 
-          <Input
-            label="Primary Phone Number"
-            type="tel"
-            icon={<Phone className="w-4 h-4 text-slate-400" />}
-            value={profile.phone}
-            onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-            placeholder="+44 7000 000000"
-          />
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[13px] font-semibold text-slate-700 font-sans">Primary Phone Number</label>
+            <PhoneInput
+              name="phone"
+              value={profile.phone}
+              onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+              placeholder="7000 000000"
+            />
+          </div>
 
-          <Input
-            label="Secondary Phone Number"
-            type="tel"
-            icon={<Phone className="w-4 h-4 text-slate-400" />}
-            value={profile.secondaryPhone}
-            onChange={(e) => setProfile({ ...profile, secondaryPhone: e.target.value })}
-            placeholder="+44 20 0000 0000"
-          />
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[13px] font-semibold text-slate-700 font-sans">Secondary Phone Number</label>
+            <PhoneInput
+              name="secondaryPhone"
+              value={profile.secondaryPhone}
+              onChange={(e) => setProfile({ ...profile, secondaryPhone: e.target.value })}
+              placeholder="20 0000 0000"
+            />
+          </div>
 
           <Input
             label="Company Name"

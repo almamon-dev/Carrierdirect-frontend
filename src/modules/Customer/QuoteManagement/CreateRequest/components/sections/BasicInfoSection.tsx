@@ -6,6 +6,8 @@ import TabHeader from '@/components/ui/tab-header';
 import { QuoteFormData } from '../../types/formTypes';
 import { FormRow, SectionHeader } from '../FormHelpers';
 
+import { useDropdownOptions } from '@/hooks/useDropdownOptions';
+
 interface SectionProps {
     formData: QuoteFormData;
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -14,22 +16,24 @@ interface SectionProps {
 }
 
 export const BasicInfoSection: React.FC<SectionProps> = ({ formData, handleChange, handleSelectChange, requestNumber }) => {
-    const PRIORITY_OPTIONS = [
+    const { getOptions } = useDropdownOptions();
+
+    const PRIORITY_OPTIONS = getOptions('priority', [
         { id: 'Normal', name: 'Normal' },
         { id: 'High', name: 'High' },
         { id: 'Urgent', name: 'Urgent' },
-    ];
+    ]);
 
-    const SHIPMENT_OPTIONS = [
+    const SHIPMENT_OPTIONS = getOptions('shipment_type', [
         { id: 'One Way', name: 'One Way' },
         { id: 'Round Trip', name: 'Round Trip' },
-    ];
+    ]);
 
-    const SERVICE_OPTIONS = [
+    const SERVICE_OPTIONS = getOptions('service_type', [
         { id: 'Standard', name: 'Standard' },
         { id: 'Express', name: 'Express' },
         { id: 'Same Day', name: 'Same Day' },
-    ];
+    ]);
 
     return (
         <div className="space-y-3 animate-in fade-in duration-300">

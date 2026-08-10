@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, LayoutDashboard, Settings, ChevronRight } from 'lucide-react';
 import LogoBlack from '@/assets/Images/LogoBlack.png';
+import LogoWhite from '@/assets/Images/Logo.png';
 import LogoIcon from '@/assets/Images/LogoIcon.png';
 import { navigationMap } from '@/constants/navigation';
 
@@ -111,7 +112,10 @@ export default function Sidebar({ isOpen }: SidebarProps) {
             <div className="h-16 flex items-center justify-center lg:justify-start px-5 border-b border-gray-100 shrink-0 whitespace-nowrap">
                 <Link to="/">
                     {isOpen ? (
-                        <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300 cursor-pointer" />
+                        <>
+                            <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300 cursor-pointer dark:hidden" />
+                            <img src={LogoWhite} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300 cursor-pointer hidden dark:block" />
+                        </>
                     ) : (
                         <img src={LogoIcon} alt="Icon" className="w-10 h-10 object-contain shrink-0 cursor-pointer" />
                     )}

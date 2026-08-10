@@ -119,19 +119,19 @@ export default function Select({
                 {({ open }) => (
                     <div className={cn("relative h-full", open && "z-[9999]")}>
                         <Listbox.Button className={cn(
-                            "relative w-full h-[36px] cursor-pointer rounded-sm border bg-white py-1 pr-8 text-left text-[13px] font-medium text-[#202223] outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 transition-all flex items-center shadow-none",
-                            error ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-0" : "border-slate-300 focus:border-slate-400 focus:ring-0 focus:outline-none",
+                            "relative w-full h-[36px] cursor-pointer rounded-sm border bg-white dark:bg-[#1e2329] py-1 pr-8 text-left text-[13px] font-medium text-[#202223] dark:text-white outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 transition-all flex items-center shadow-none",
+                            error ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-0" : "border-slate-300 dark:border-[#384150] focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 focus:outline-none",
                             Icon ? "pl-9" : "pl-3"
                         )}>
                             {Icon && (
-                                <span className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-[#8c9196]">
+                                <span className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-[#8c9196] dark:text-slate-400">
                                     <Icon size={14} aria-hidden="true" />
                                 </span>
                             )}
                             <span className={cn("block", multiple ? "break-words whitespace-normal pb-0.5" : "truncate")}>
                                 {getSelectedDisplay()}
                             </span>
-                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400">
+                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 dark:text-slate-500">
                                 <ChevronDown size={14} aria-hidden="true" />
                             </span>
                         </Listbox.Button>
@@ -143,19 +143,19 @@ export default function Select({
                             leaveTo="opacity-0 scale-95"
                         >
                             <Listbox.Options className={cn(
-                                "absolute z-[9999] max-h-64 w-full overflow-hidden rounded-md bg-white text-[12px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-[#ebebeb] focus:outline-none flex flex-col",
+                                "custom-select-menu absolute z-[9999] max-h-64 w-full overflow-hidden rounded-md text-[12px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] border focus:outline-none flex flex-col",
                                 direction === "up" ? "bottom-full mb-1" : "mt-1"
                             )}>
                                 {/* Search Input Container */}
                                 {showSearch && (
-                                    <div className="p-1.5 bg-[#F3F4F7] shrink-0 border-b border-[#EEEEEE]">
+                                    <div className="custom-select-search shrink-0">
                                         <input
                                             type="text"
                                             autoFocus
                                             placeholder="Search..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full h-7 px-2.5 text-[12px] bg-[#F3F4F7] border-none focus:ring-0 outline-none placeholder:text-slate-400 font-medium"
+                                            className="w-full text-[12px] outline-none font-medium focus:ring-0"
                                             onKeyDown={(e) => e.stopPropagation()}
                                         />
                                     </div>
@@ -164,7 +164,7 @@ export default function Select({
                                 {/* Options List */}
                                 <div className="overflow-y-auto py-1 flex-1 max-h-[300px] custom-scrollbar">
                                     {filteredOptions.length === 0 && !onCreateProp ? (
-                                        <div className="py-10 px-4 flex flex-col items-center justify-center text-slate-400 gap-2">
+                                        <div className="py-10 px-4 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-2">
                                             <SearchX size={32} strokeWidth={1} />
                                             <span className="text-[11px] font-medium uppercase tracking-wider">No results found</span>
                                         </div>
@@ -177,9 +177,9 @@ export default function Select({
                                                         key={idx}
                                                         className={({ active: isHovered }) =>
                                                             cn(
-                                                                "relative cursor-pointer select-none py-1.5 px-3 border-b border-slate-50/50 last:border-0",
-                                                                active ? "text-[#4273f5] font-bold bg-[#eef2ff]" : "text-[#202223] font-medium",
-                                                                isHovered ? "bg-slate-50 text-[#4273f5]" : ""
+                                                                "custom-select-option relative cursor-pointer select-none py-2 px-3 border-b border-slate-100/30 dark:border-slate-800/30 last:border-0",
+                                                                active ? "is-selected font-bold" : "font-medium",
+                                                                isHovered && !active ? "bg-slate-100 dark:bg-slate-800/80 text-[#FF4A1F]" : ""
                                                             )
                                                         }
                                                         value={option.id}
@@ -194,12 +194,12 @@ export default function Select({
                                                                             alt=""
                                                                         />
                                                                     )}
-                                                                    <span className="block truncate">
+                                                                    <span className="block truncate text-gray-800 dark:text-slate-100">
                                                                         {option.name}
                                                                     </span>
                                                                 </div>
                                                                 {active && (
-                                                                    <Check size={14} className="text-[#4273f5]" />
+                                                                    <Check size={14} className="text-[#FF4A1F]" />
                                                                 )}
                                                             </div>
                                                         )}
@@ -211,7 +211,7 @@ export default function Select({
                                                 <button
                                                     type="button"
                                                     onClick={() => onCreate(searchQuery)}
-                                                    className="w-full text-left py-3 px-10 text-[12px] font-bold text-[#4273f5] hover:bg-[#eef2ff] border-t border-slate-50 flex items-center gap-2 mt-1"
+                                                    className="w-full text-left py-3 px-10 text-[12px] font-bold text-[#FF4A1F] hover:bg-[#FFF2ED] dark:hover:bg-slate-800/70 border-t border-slate-50 dark:border-slate-800 flex items-center gap-2 mt-1"
                                                 >
                                                     <Plus size={14} /> Quick Add "{searchQuery}"
                                                 </button>

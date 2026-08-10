@@ -29,6 +29,7 @@ const Payments = lazy(() => import('./Finance/Payments'));
 const Subscription = lazy(() => import('./Subscription'));
 const Notifications = lazy(() => import('./Notifications'));
 const Settings = lazy(() => import('./Settings'));
+const CompleteProfile = lazy(() => import('./CompleteProfile/CompleteProfilePage'));
 
 export const supplierRoutes: RouteObject[] = [
     { index: true, element: <Navigate to="/supplier/dashboard" replace /> },

@@ -14,6 +14,8 @@ import PrivacyPolicy from './modules/LandingPages/PrivacyPolicy';
 import TermsAndConditions from './modules/LandingPages/TermsAndConditions';
 import PayLaterFacility from './modules/LandingPages/PayLaterFacility';
 
+const SupplierCompleteProfilePage = React.lazy(() => import('./modules/Supplier/CompleteProfile/CompleteProfilePage'));
+
 // Error boundary to catch lazy import failures (e.g., during hot reload)
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -100,6 +102,16 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: customerRoutes,
+  },
+  {
+    path: '/supplier/complete-profile',
+    element: (
+      <ProtectedRoute allowedRole="supplier">
+        <React.Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center text-xs text-slate-500 font-medium">Loading...</div>}>
+          <SupplierCompleteProfilePage />
+        </React.Suspense>
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/supplier',

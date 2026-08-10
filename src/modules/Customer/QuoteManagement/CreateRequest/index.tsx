@@ -716,6 +716,7 @@ export default function RequestList() {
             </div>
             
             <DataTable 
+                tableId="customer_quote_requests"
                 data={filteredData} 
                 columns={columns} 
                 actions={actions}

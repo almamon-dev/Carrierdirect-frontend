@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Building2, CreditCard, Truck, Bell, Shield } from 'lucide-react';
 import CompanyProfileTab from './components/CompanyProfileTab';
 import PayoutStripeTab from './components/PayoutStripeTab';
@@ -15,7 +16,15 @@ const SUPPLIER_SETTINGS_TABS = [
 ];
 
 export default function SupplierSettings() {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTabParam = searchParams.get('tab');
+
+  const isValidTab = SUPPLIER_SETTINGS_TABS.some(t => t.id === currentTabParam);
+  const activeTab = isValidTab ? currentTabParam! : 'profile';
+
+  const handleTabChange = (tabId: string) => {
+    setSearchParams({ tab: tabId }, { replace: true });
+  };
 
   return (
     <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen pb-16 font-sans antialiased">
@@ -37,7 +46,7 @@ export default function SupplierSettings() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-2 pb-3 border-b-2 font-medium text-[13px] whitespace-nowrap transition-colors cursor-pointer ${
                 isActive
                   ? 'border-[#ff4a1f] text-[#ff4a1f]'

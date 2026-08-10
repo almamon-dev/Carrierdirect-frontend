@@ -1,79 +1,117 @@
 import React from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, Sparkles } from "lucide-react";
 import useScrollReveal from "@/Hooks/useScrollReveal";
 
-const traditional = [
-  "Hidden Fees & Markups",
-  "Slow Manual Quotes",
-  "Limited Carrier Network",
-  "Endless Phone Calls",
-  "Paperwork & Emails",
-];
-
-const platform = [
-  "Transparent Flat Pricing",
-  "Instant AI-Powered Quotes",
-  "Thousands of Verified Carriers",
-  "All-in-One Dashboard",
-  "Fully Automated Workflows",
+const comparisons = [
+  {
+    traditional: "Hidden Fees & Broker Markups",
+    platform: "Transparent Flat-Rate Pricing",
+  },
+  {
+    traditional: "Slow Manual Email Quotes (2-24 hrs)",
+    platform: "Instant AI-Powered Digital Quotes",
+  },
+  {
+    traditional: "Limited Regional Carrier Access",
+    platform: "10,000+ Verified Carrier Fleet Network",
+  },
+  {
+    traditional: "Endless Phone Calls & Status Checks",
+    platform: "All-in-One Real-Time SaaS Dashboard",
+  },
+  {
+    traditional: "Manual Paper PODs & Invoicing",
+    platform: "Fully Automated Digital Workflows",
+  },
 ];
 
 export default function ComparisonTable() {
   const reveal = useScrollReveal();
 
   return (
-    <section className="w-full bg-transparent pt-12 pb-4 px-4 overflow-hidden relative">
+    <section className="w-full bg-transparent pt-12 pb-6 px-4 overflow-hidden relative">
       <div className="relative max-w-7xl mx-auto">
 
-        <div className="text-center mb-8">
-          <h2 className="text-[#0f0400] text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+        {/* Section Title */}
+        <div className="text-center mb-10">
+          <span className="text-[#ff4a1f] font-semibold tracking-wider uppercase text-xs mb-2 block">
+            Why Switch
+          </span>
+          <h2 className="text-[#0f0400] dark:text-slate-100 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
             The Smart Choice
           </h2>
-          <p className="text-gray-500 text-sm max-w-xl mx-auto">
+          <p className="text-gray-500 dark:text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
             See why modern shippers are abandoning traditional freight brokers for our completely digital platform.
           </p>
         </div>
 
+        {/* Comparison Matrix Container */}
         <div 
           ref={reveal.ref}
-          className={`relative grid grid-cols-1 md:grid-cols-2 gap-0 items-center reveal ${reveal.isVisible ? "visible" : ""}`}
+          className={`rounded-2xl border border-gray-200 dark:border-[#384150] bg-white dark:bg-[#181a20] shadow-xl dark:shadow-none overflow-hidden reveal ${reveal.isVisible ? "visible" : ""}`}
         >
-
-          <div className="flex flex-col bg-gray-50 rounded-2xl md:rounded-r-none md:rounded-l-2xl overflow-hidden border border-gray-200 border-r-0">
-            <div className="px-6 py-4 text-center border-b border-gray-200 bg-gray-100/50">
-              <h3 className="text-gray-400 font-bold text-[11px] uppercase tracking-widest">Traditional Brokers</h3>
+          {/* Header Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 border-b border-gray-200 dark:border-[#384150]">
+            
+            {/* Left Header */}
+            <div className="px-6 py-4 bg-gray-100/70 dark:bg-[#14181f] flex items-center justify-between border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#384150]">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                <h3 className="text-gray-600 dark:text-slate-400 font-bold text-xs uppercase tracking-wider">
+                  Traditional Brokers
+                </h3>
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-200/70 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
+                Legacy
+              </span>
             </div>
-            <div className="flex flex-col divide-y divide-gray-200/60 p-1">
-              {traditional.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 px-5 py-3.5">
-                  <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-                    <X className="w-3 h-3 text-gray-500 stroke-[3]" />
+
+            {/* Right Header */}
+            <div className="px-6 py-4 bg-[#0f0400] dark:bg-[#1c2128] flex items-center justify-between relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#ff4a1f]/20 via-transparent to-[#ff4a1f]/10 pointer-events-none"></div>
+              <div className="flex items-center gap-2 relative z-10">
+                <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
+                <h3 className="text-white font-bold text-xs uppercase tracking-wider">
+                  Carrierdirect Platform
+                </h3>
+              </div>
+              <span className="relative z-10 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#ff4a1f] text-white shadow-sm">
+                Recommended
+              </span>
+            </div>
+
+          </div>
+
+          {/* Comparison Rows */}
+          <div className="divide-y divide-gray-100 dark:divide-transparent">
+            {comparisons.map((row, idx) => (
+              <div 
+                key={idx}
+                className="grid grid-cols-1 md:grid-cols-2 group hover:bg-gray-50/50 dark:hover:bg-slate-800/20 transition-colors"
+              >
+                
+                {/* Traditional Side */}
+                <div className="px-6 py-4 flex items-center gap-3 bg-gray-50/40 dark:bg-[#14181f]/40 md:border-r border-gray-200 dark:border-[#384150]">
+                  <span className="w-5 h-5 rounded-full bg-gray-200/80 dark:bg-red-500/10 flex items-center justify-center shrink-0 border border-transparent dark:border-red-500/20">
+                    <X className="w-3 h-3 text-gray-500 dark:text-red-400 stroke-[3]" />
                   </span>
-                  <span className="text-gray-500 text-xs font-medium">{item}</span>
+                  <span className="text-gray-500 dark:text-slate-400 text-xs font-medium">
+                    {row.traditional}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-gray-100 shadow-sm items-center justify-center z-20 text-[#ff4a1f] font-bold text-[10px]">
-            VS
-          </div>
-
-          <div className="flex flex-col bg-white rounded-2xl md:rounded-2xl overflow-hidden shadow-lg border-2 border-[#ff4a1f] relative z-10 -mt-2 md:mt-0 md:-translate-x-1">
-            <div className="bg-[#0f0400] px-6 py-4 text-center relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-[#ff4a1f] opacity-20 blur-[20px] -translate-y-1/2 translate-x-1/2"></div>
-              <h3 className="text-white font-bold text-sm tracking-wide relative z-10">Carrierdirect Platform</h3>
-            </div>
-            <div className="flex flex-col divide-y divide-gray-50 p-1">
-              {platform.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 px-5 py-3.5 hover:bg-orange-50/30 transition-colors">
-                  <span className="w-5 h-5 rounded-full bg-[#ff4a1f]/10 flex items-center justify-center shrink-0 border border-[#ff4a1f]/20">
+                {/* Carrierdirect Side */}
+                <div className="px-6 py-4 flex items-center gap-3 bg-white dark:bg-[#181a20] group-hover:bg-orange-50/30 dark:group-hover:bg-[#ff4a1f]/10 transition-colors">
+                  <span className="w-5 h-5 rounded-full bg-[#ff4a1f]/10 dark:bg-[#ff4a1f]/20 flex items-center justify-center shrink-0 border border-[#ff4a1f]/30">
                     <Check className="w-3 h-3 text-[#ff4a1f] stroke-[3]" />
                   </span>
-                  <span className="text-[#0f0400] text-xs font-bold">{item}</span>
+                  <span className="text-[#0f0400] dark:text-white text-xs font-bold">
+                    {row.platform}
+                  </span>
                 </div>
-              ))}
-            </div>
+
+              </div>
+            ))}
           </div>
 
         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2, 
-    ChevronRight, Lock, RotateCcw, Sparkles 
+import {
+    FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2,
+    ChevronRight, Lock, RotateCcw, Sparkles
 } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Button from '@/components/ui/button';
@@ -35,11 +35,34 @@ export default function CreateRequestForm() {
     const location = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
     const repeatData = location.state?.repeatData || location.state?.initialData;
-    
-    const activeTab = searchParams.get('tab') || 'general';
-    const setActiveTab = (tab: string) => {
-        setSearchParams({ tab }, { replace: true });
+
+    const getQuoteSessionId = (): string => {
+        let sid = sessionStorage.getItem('quote_request_session_id');
+        if (!sid) {
+            const randHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+            sid = `sess_${randHex}_${Date.now()}`;
+            sessionStorage.setItem('quote_request_session_id', sid);
+        }
+        return sid;
     };
+
+    const activeTab = searchParams.get('tab') || searchParams.get('slug') || 'general';
+    const activeSessionId = searchParams.get('session_id') || getQuoteSessionId();
+
+    const setActiveTab = (tab: string) => {
+        const sid = searchParams.get('session_id') || getQuoteSessionId();
+        setSearchParams({ tab, slug: tab, session_id: sid }, { replace: true });
+    };
+
+    useEffect(() => {
+        if (!searchParams.get('session_id') || !searchParams.get('tab')) {
+            const sid = getQuoteSessionId();
+            setSearchParams({ tab: activeTab, slug: activeTab, session_id: sid }, { replace: true });
+        }
+    }, []);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLockModalOpen, setIsLockModalOpen] = useState(false);
     const [isRepeatMode, setIsRepeatMode] = useState(false);
@@ -55,7 +78,7 @@ export default function CreateRequestForm() {
         deliveryDate: '',
         deliveryTime: '',
         expectedTransitTime: '',
-        
+
         pickupCompany: '',
         pickupContactName: '',
         pickupPhone: '',
@@ -98,6 +121,7 @@ export default function CreateRequestForm() {
         unloadingRequired: false,
         packaging: false,
         insurance: false,
+        insuranceType: '',
         liftGate: false,
         whiteGlove: false,
         assembly: false,
@@ -113,7 +137,7 @@ export default function CreateRequestForm() {
         customerNotes: '',
         specialInstructions: '',
         internalReference: '',
-        
+
         images: [],
         packingList: null,
         invoice: null
@@ -136,13 +160,13 @@ export default function CreateRequestForm() {
                 priority: repeatData.priority || 'High',
                 shipmentType: repeatData.shipmentType || 'One Way',
                 serviceType: repeatData.serviceType || 'Express',
-                
+
                 pickupDate: repeatData.pickupDate || repeatData.logistics?.pickupDate || '2026-07-28',
                 pickupTime: repeatData.pickupTime || '09:00',
                 deliveryDate: repeatData.deliveryDate || repeatData.logistics?.deliveryDate || '2026-07-30',
                 deliveryTime: repeatData.deliveryTime || '17:00',
                 expectedTransitTime: repeatData.expectedTransitTime || repeatData.logistics?.transitTime || '2 Days',
-                
+
                 pickupCompany: repeatData.pickup?.company || repeatData.pickupCompany || 'Prime Logistics EPZ Depot',
                 pickupContactName: repeatData.pickup?.contact || repeatData.pickupContactName || 'Kamal Hossain',
                 pickupPhone: repeatData.pickupPhone || '+8801711234567',
@@ -182,7 +206,7 @@ export default function CreateRequestForm() {
             deliveryDate: '2026-07-30',
             deliveryTime: '17:00',
             expectedTransitTime: '2',
-            
+
             pickupCompany: 'Prime Industrial Ltd.',
             pickupContactName: 'Kamal Hossain',
             pickupPhone: '+8801711234567',
@@ -443,7 +467,7 @@ export default function CreateRequestForm() {
                 if (targetStatus === 'active') {
                     setQuotaUsed(prev => prev + 1);
                 }
-                navigate('/customer/quotes');
+                navigate('/customer/quotes/create');
             } catch (err: any) {
                 const msg = err.data?.message || err.message || 'Failed to post quote request. Please try again.';
                 showToast(msg, 'error');
@@ -455,7 +479,7 @@ export default function CreateRequestForm() {
 
     const servicesCount = [
         formData.stackable, formData.fragile, formData.hazardous, formData.tempControlled, formData.oversized, formData.perishable,
-        formData.loadingRequired, formData.unloadingRequired, formData.packaging, formData.insurance, 
+        formData.loadingRequired, formData.unloadingRequired, formData.packaging, formData.insurance,
         formData.liftGate, formData.whiteGlove, formData.assembly, formData.insideDelivery, formData.storage
     ].filter(Boolean).length;
 
@@ -468,8 +492,8 @@ export default function CreateRequestForm() {
                         {isRepeatMode ? 'Repeat Quote Request' : 'Create Quote Request'}
                     </h1>
                     <p className="text-xs font-medium text-slate-500 mt-0.5">
-                        {isRepeatMode 
-                            ? `Pre-filled from previous quote/order (${repeatSource}). Review dates and details before posting.` 
+                        {isRepeatMode
+                            ? `Pre-filled from previous quote/order (${repeatSource}). Review dates and details before posting.`
                             : 'Fill in the required shipping details to post a request for carriers.'}
                     </p>
                 </div>
@@ -540,11 +564,10 @@ export default function CreateRequestForm() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-semibold transition-colors border-l-[3px] border-b border-slate-100 last:border-b-0 cursor-pointer ${
-                                        isSelected 
-                                            ? 'border-l-[#ff4a1f] bg-orange-50/50 text-[#ff4a1f]' 
+                                    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-semibold transition-colors border-l-[3px] border-b border-slate-100 last:border-b-0 cursor-pointer ${isSelected
+                                            ? 'border-l-[#ff4a1f] bg-orange-50/50 text-[#ff4a1f]'
                                             : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                    }`}
+                                        }`}
                                 >
                                     <div className="flex items-center gap-2.5">
                                         <Icon size={15} className={isSelected ? 'text-[#ff4a1f]' : 'text-slate-400'} />
@@ -561,24 +584,24 @@ export default function CreateRequestForm() {
                 <div className="flex-1 bg-white border border-slate-200 rounded-md shadow-2xs w-full">
                     <div className="p-6 md:p-8">
                         {activeTab === 'general' && (
-                            <BasicInfoSection 
-                                formData={formData} 
-                                handleChange={handleChange} 
-                                handleSelectChange={handleSelectChange} 
+                            <BasicInfoSection
+                                formData={formData}
+                                handleChange={handleChange}
+                                handleSelectChange={handleSelectChange}
                             />
                         )}
 
                         {activeTab === 'locations' && (
-                            <LocationsSection 
-                                formData={formData} 
-                                handleChange={handleChange} 
+                            <LocationsSection
+                                formData={formData}
+                                handleChange={handleChange}
                             />
                         )}
 
                         {activeTab === 'load' && (
-                            <LoadServicesSection 
-                                formData={formData} 
-                                handleChange={handleChange} 
+                            <LoadServicesSection
+                                formData={formData}
+                                handleChange={handleChange}
                                 handleSelectChange={handleSelectChange}
                                 handleCheckboxChange={handleCheckboxChange}
                                 addDimensionRow={addDimensionRow}
@@ -588,25 +611,25 @@ export default function CreateRequestForm() {
                         )}
 
                         {activeTab === 'preferences' && (
-                            <BudgetPreferencesSection 
-                                formData={formData} 
-                                handleChange={handleChange} 
+                            <BudgetPreferencesSection
+                                formData={formData}
+                                handleChange={handleChange}
                                 handleSelectChange={handleSelectChange}
                                 handleCheckboxChange={handleCheckboxChange}
                             />
                         )}
 
                         {activeTab === 'files' && (
-                            <AttachmentsNotesSection 
-                                formData={formData} 
-                                handleChange={handleChange} 
+                            <AttachmentsNotesSection
+                                formData={formData}
+                                handleChange={handleChange}
                                 handleFileUpload={handleFileUpload}
                             />
                         )}
 
                         {activeTab === 'review' && (
-                            <ReviewSubmitSection 
-                                formData={formData} 
+                            <ReviewSubmitSection
+                                formData={formData}
                                 servicesCount={servicesCount}
                                 isSubmitting={isSubmitting}
                                 onSubmit={handleSubmit}
@@ -617,7 +640,7 @@ export default function CreateRequestForm() {
             </div>
 
             {/* Quota Lock Modal */}
-            <SubscriptionLockModal 
+            <SubscriptionLockModal
                 isOpen={isLockModalOpen}
                 onClose={() => setIsLockModalOpen(false)}
                 title="Create Quote Request Quota Reached"

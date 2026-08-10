@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, User, Briefcase, Shield, Key, CheckCircle, ArrowRight, ArrowLeft, Send } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
+import PhoneInput from '@/components/ui/phone-input';
 import Select from '@/components/ui/select';
 
 export default function CreateTeamMemberModal({ onClose }: { onClose: () => void }) {
@@ -136,10 +137,9 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                                 </div>
                                                 <div className="col-span-2">
                                                     <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile Phone Number</label>
-                                                    <Input 
-                                                        type="tel" 
-                                                        placeholder="+1 (555) 000-0000" 
-                                                        className="h-9 text-xs" 
+                                                    <PhoneInput 
+                                                        name="phone"
+                                                        placeholder="555 000-0000" 
                                                         value={formData.phone}
                                                         onChange={(e) => handleChange('phone', e.target.value)}
                                                     />

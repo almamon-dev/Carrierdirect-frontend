@@ -2,13 +2,14 @@ import React from 'react';
 import { MapPin } from 'lucide-react';
 import Input from '@/components/ui/input';
 import Textarea from '@/components/ui/textarea';
+import PhoneInput from '@/components/ui/phone-input';
 import TabHeader from '@/components/ui/tab-header';
 import { QuoteFormData } from '../../types/formTypes';
 import { FormRow } from '../FormHelpers';
 
 interface SectionProps {
     formData: QuoteFormData;
-    handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    handleChange: (e: any) => void;
 }
 
 export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChange }) => {
@@ -25,7 +26,7 @@ export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChang
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
                         <FormRow label="Company Name"><Input name="pickupCompany" value={formData.pickupCompany} onChange={handleChange} placeholder="Pickup Company Name" /></FormRow>
                         <FormRow label="Contact Person" required><Input name="pickupContactName" value={formData.pickupContactName} onChange={handleChange} placeholder="Contact Person Name" /></FormRow>
-                        <FormRow label="Phone Number" required><Input type="text" name="pickupPhone" value={formData.pickupPhone} onChange={handleChange} placeholder="+880 1711-234567" /></FormRow>
+                        <FormRow label="Phone Number" required><PhoneInput name="pickupPhone" value={formData.pickupPhone} onChange={handleChange} placeholder="1711-234567" /></FormRow>
                         <FormRow label="Email"><Input name="pickupEmail" value={formData.pickupEmail} onChange={handleChange} type="email" placeholder="Email Address" /></FormRow>
                         <FormRow label="Country"><Input name="pickupCountry" value={formData.pickupCountry} onChange={handleChange} /></FormRow>
                         <FormRow label="State/Division"><Input name="pickupState" value={formData.pickupState} onChange={handleChange} placeholder="State / Division" /></FormRow>
@@ -45,7 +46,7 @@ export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChang
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
                         <FormRow label="Company Name"><Input name="deliveryCompany" value={formData.deliveryCompany} onChange={handleChange} placeholder="Delivery Company Name" /></FormRow>
                         <FormRow label="Contact Person" required><Input name="deliveryContactName" value={formData.deliveryContactName} onChange={handleChange} placeholder="Contact Person Name" /></FormRow>
-                        <FormRow label="Phone Number" required><Input type="text" name="deliveryPhone" value={formData.deliveryPhone} onChange={handleChange} placeholder="+880 1819-987654" /></FormRow>
+                        <FormRow label="Phone Number" required><PhoneInput name="deliveryPhone" value={formData.deliveryPhone} onChange={handleChange} placeholder="1819-987654" /></FormRow>
                         <FormRow label="Email"><Input name="deliveryEmail" value={formData.deliveryEmail} onChange={handleChange} type="email" placeholder="Email Address" /></FormRow>
                         <FormRow label="Country"><Input name="deliveryCountry" value={formData.deliveryCountry} onChange={handleChange} /></FormRow>
                         <FormRow label="State/Division"><Input name="deliveryState" value={formData.deliveryState} onChange={handleChange} placeholder="State / Division" /></FormRow>

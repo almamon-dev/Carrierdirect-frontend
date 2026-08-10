@@ -46,6 +46,7 @@ export default function QuoteRequests() {
                 if (isMounted) setRequests(mapped);
             } catch (err) {
                 console.error('Failed to fetch available requests', err);
+                if (isMounted) setRequests(mockQuoteRequests);
             } finally {
                 if (isMounted) setIsLoading(false);
             }

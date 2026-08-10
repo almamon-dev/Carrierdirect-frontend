@@ -36,7 +36,12 @@ const mockNotifications = [
 ];
 
 export default function CustomerLayout() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return window.innerWidth >= 1024;
+        }
+        return true;
+    });
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -47,6 +52,13 @@ export default function CustomerLayout() {
 
     const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
+
+    // Auto-close sidebar on mobile when route changes
+    useEffect(() => {
+        if (window.innerWidth < 1024) {
+            setIsSidebarOpen(false);
+        }
+    }, [location.pathname]);
 
     // Close dropdowns on outside click
     useEffect(() => {

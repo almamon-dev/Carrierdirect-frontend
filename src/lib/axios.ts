@@ -1,15 +1,35 @@
 import { API_CONFIG } from '../config/api';
 import { TOKEN_CONFIG } from '../config/auth';
+import { toast } from '@/hooks/use-toast';
 
 interface RequestOptions extends RequestInit {
     params?: Record<string, string | number | boolean>;
+}
+
+let lastNetworkErrorToastTime = 0;
+function notifyNetworkError(message = "Network error: Unable to connect to the API server.") {
+    const now = Date.now();
+    if (now - lastNetworkErrorToastTime > 3500) {
+        lastNetworkErrorToastTime = now;
+        toast({
+            variant: "destructive",
+            title: "Network Error",
+            description: message,
+        });
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('offline', () => {
+        notifyNetworkError("Network connection lost. Please check your internet connection.");
+    });
 }
 
 class ApiClient {
     private baseURL: string;
 
     constructor() {
-        this.baseURL = API_CONFIG.baseURL;
+        this.baseURL = API_CONFIG.baseURL || '';
     }
 
     private getHeaders(customHeaders?: HeadersInit): HeadersInit {
@@ -17,6 +37,7 @@ class ApiClient {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
             ...(customHeaders as Record<string, string>),
         };
 
@@ -27,14 +48,20 @@ class ApiClient {
         return headers;
     }
 
-    private buildUrl(endpoint: string, params?: Record<string, string | number | boolean>): string {
-        const cleanBaseUrl = this.baseURL.replace(/\/+$/, '');
-        const cleanEndpoint = endpoint.replace(/^\/+/, '');
-        let url = `${cleanBaseUrl}/${cleanEndpoint}`;
+    private buildUrl(endpoint: string = '', params?: Record<string, any>): string {
+        const baseUrl = this.baseURL || API_CONFIG.baseURL || '';
+        const cleanBaseUrl = baseUrl ? String(baseUrl).replace(/\/+$/, '') : '';
+        const cleanEndpoint = endpoint ? String(endpoint).replace(/^\/+/, '') : '';
+        let url = cleanBaseUrl ? `${cleanBaseUrl}/${cleanEndpoint}` : `/${cleanEndpoint}`;
 
-        if (params && Object.keys(params).length > 0) {
+        let actualParams = params;
+        if (params && typeof params === 'object' && 'params' in params && params.params && typeof params.params === 'object') {
+            actualParams = params.params;
+        }
+
+        if (actualParams && Object.keys(actualParams).length > 0) {
             const searchParams = new URLSearchParams();
-            Object.entries(params).forEach(([key, value]) => {
+            Object.entries(actualParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null) {
                     searchParams.append(key, String(value));
                 }
@@ -75,6 +102,28 @@ class ApiClient {
                     }
                 }
 
+                if (response.status === 403) {
+                    if (data.code === 'EMAIL_UNVERIFIED') {
+                        const userStr = localStorage.getItem(TOKEN_CONFIG.userKey);
+                        let email = '';
+                        try {
+                            const u = userStr ? JSON.parse(userStr) : null;
+                            email = u?.email || '';
+                        } catch { }
+                        if (!window.location.pathname.includes('/verify-email')) {
+                            window.location.href = `/web/verify-email-notice?email=${encodeURIComponent(email)}`;
+                        }
+                    } else if (data.code === 'PROFILE_INCOMPLETE') {
+                        if (!window.location.pathname.includes('/supplier/complete-profile')) {
+                            window.location.href = '/supplier/complete-profile';
+                        }
+                    }
+                }
+
+                if ([502, 503, 504].includes(response.status)) {
+                    notifyNetworkError("Network error: Server unreachable or service unavailable.");
+                }
+
                 const errorMessage = data.message || data.error || `HTTP Error ${response.status}`;
                 const error = new Error(errorMessage) as any;
                 error.status = response.status;
@@ -85,6 +134,23 @@ class ApiClient {
             return data;
         } catch (error: any) {
             console.error(`API Error [${options.method || 'GET'} ${endpoint}]:`, error);
+
+            // Handle network failure (e.g. server offline, connection refused, fetch failed)
+            const isConnectionError =
+                !error.status ||
+                error instanceof TypeError ||
+                error?.name === 'TypeError' ||
+                (error?.message && typeof error.message === 'string' && (
+                    error.message.toLowerCase().includes('failed to fetch') ||
+                    error.message.toLowerCase().includes('networkerror') ||
+                    error.message.toLowerCase().includes('network error')
+                )) ||
+                (typeof navigator !== 'undefined' && !navigator.onLine);
+
+            if (isConnectionError) {
+                notifyNetworkError("Network error: Unable to connect to the API server.");
+            }
+
             throw error;
         }
     }
@@ -118,3 +184,4 @@ class ApiClient {
 
 export const apiClient = new ApiClient();
 export default apiClient;
+

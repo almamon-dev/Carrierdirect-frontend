@@ -1,16 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
-import Logo from '../../../../assets/Images/LogoBlack.png';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import LogoBlack from '../../../../assets/Images/LogoBlack.png';
+import LogoWhite from '../../../../assets/Images/Logo.png';
 import Input from '../../../../components/ui/input';
+import Button from '../../../../components/ui/button';
+
+import apiClient from '../../../../lib/axios';
+import { ENDPOINTS } from '../../../../config/api';
+import { TOKEN_CONFIG } from '../../../../config/auth';
+import { useToastStore } from '../../../../stores/useToastStore';
 
 export default function CustomerRegisterPage() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [agreed, setAgreed] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({ fullName: '', email: '', password: '', confirmPassword: '' });
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const getRegisterSessionId = (): string => {
+        let sid = sessionStorage.getItem('customer_register_session_id');
+        if (!sid) {
+            const randHex = crypto.randomUUID();
+            sid = `sess_${randHex}_${Date.now()}`;
+            sessionStorage.setItem('customer_register_session_id', sid);
+        }
+        return sid;
+    };
+
+    useEffect(() => {
+        const activeSlug = searchParams.get('slug') || 'customer-register';
+        const sid = searchParams.get('session_id') || getRegisterSessionId();
+        setSearchParams({ slug: activeSlug, session_id: sid }, { replace: true });
+    }, []);
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -34,7 +59,7 @@ export default function CustomerRegisterPage() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
 
@@ -44,26 +69,43 @@ export default function CustomerRegisterPage() {
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = 'Please enter a valid email address';
         }
-        
+
         if (!formData.password) {
             newErrors.password = 'Password is required';
         } else if (formData.password.length < 8) {
             newErrors.password = 'Password must be at least 8 characters';
         }
-        
+
         if (!formData.confirmPassword) {
             newErrors.confirmPassword = 'Please confirm your password';
         } else if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
         }
-        
+
         if (!agreed) newErrors.agreed = 'You must agree to the Terms & Privacy Policy';
 
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            // Handle registration logic here
-            navigate('/customer/dashboard');
+            setIsLoading(true);
+            try {
+                await apiClient.post(ENDPOINTS.AUTH.REGISTER, {
+                    user_type: 'customer',
+                    name: formData.fullName,
+                    company_name: formData.fullName,
+                    email: formData.email,
+                    password: formData.password,
+                    password_confirmation: formData.confirmPassword,
+                });
+
+                navigate(`/web/verify-email-notice?email=${encodeURIComponent(formData.email)}`);
+            } catch (err: any) {
+                console.error('Customer registration error:', err);
+                const msg = err.data?.message || err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+                useToastStore.getState().showToast(msg, 'error');
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -84,7 +126,8 @@ export default function CustomerRegisterPage() {
                 <div className="hidden md:flex md:w-8/12 bg-[#f8fafc] flex-col items-center justify-center p-10 relative border-r border-gray-100">
                     <div className="absolute inset-0 opacity-[0.4]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                     <div className="relative z-10 flex flex-col items-center w-full">
-                        <img src={Logo} alt="GetItMoving Logo" className="w-full max-w-[400px] object-contain" />
+                        <img src={LogoBlack} alt="GetItMoving Logo" className="w-full max-w-[400px] object-contain dark:hidden" />
+                        <img src={LogoWhite} alt="GetItMoving Logo" className="w-full max-w-[400px] object-contain hidden dark:block" />
                         <h2 className="text-[15px] font-bold text-slate-800 mt-10 text-center tracking-tight">Customer Portal</h2>
                         <p className="mt-3 text-sm text-gray-500 text-center leading-relaxed">
                             Find top-rated movers and request moving quotes instantly.
@@ -95,7 +138,7 @@ export default function CustomerRegisterPage() {
                 {/* Right Side - Form */}
                 <div className="w-full md:w-8/12 p-8 md:p-12 flex flex-col justify-center">
                     <div className="mb-8">
-                        <h2 className="text-[15px] font-bold text-slate-800">
+                        <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
                             Create your account
                         </h2>
                         <p className="mt-2 text-sm text-gray-500">
@@ -206,12 +249,14 @@ export default function CustomerRegisterPage() {
                             {errors.agreed && <span className="text-[12px] text-[#d82c0d] mt-1 ml-7">{errors.agreed}</span>}
                         </div>
 
-                        <button
+                        <Button
                             type="submit"
-                            className="w-full h-[42px] flex items-center justify-center px-4 border border-transparent rounded-md shadow-sm text-[14px] font-bold text-white bg-[#FF4A1F] hover:bg-[#E03E15] focus:outline-none"
+                            isLoading={isLoading}
+                            fullWidth={true}
+                            className="mt-4"
                         >
                             Create Account
-                        </button>
+                        </Button>
                     </form>
 
                     <div className="mt-6">

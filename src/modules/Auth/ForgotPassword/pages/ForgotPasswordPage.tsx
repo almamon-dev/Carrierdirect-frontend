@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Logo from '../../../../assets/Images/LogoBlack.png';
+import LogoBlack from '../../../../assets/Images/LogoBlack.png';
+import LogoWhite from '../../../../assets/Images/Logo.png';
 import Input from '../../../../components/ui/input';
 
 export default function ForgotPasswordPage() {
@@ -55,7 +56,8 @@ export default function ForgotPasswordPage() {
                     <div className="absolute inset-0 opacity-[0.4]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                     <div className="relative z-10 flex flex-col items-center w-full">
                         <Link to="/">
-                            <img src={Logo} alt="GetItMoving Logo" className="w-full max-w-[240px] object-contain" />
+                            <img src={LogoBlack} alt="GetItMoving Logo" className="w-full max-w-[240px] object-contain dark:hidden" />
+                            <img src={LogoWhite} alt="GetItMoving Logo" className="w-full max-w-[240px] object-contain hidden dark:block" />
                         </Link>
                         <h2 className="text-xl font-bold text-slate-800 mt-8 text-center tracking-tight">Password Recovery</h2>
                         <p className="mt-2 text-sm text-gray-500 text-center leading-relaxed">

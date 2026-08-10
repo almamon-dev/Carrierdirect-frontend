@@ -39,6 +39,19 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
         try {
             const user = JSON.parse(userStr);
             userRole = user?.user_type || user?.role || null;
+
+            // ── 2a. Check Email Verification ──────────────────────────
+            if (user && !user.email_verified_at && !location.pathname.startsWith('/web/verify-email')) {
+                return <Navigate to={`/web/verify-email-notice?email=${encodeURIComponent(user.email || '')}`} replace />;
+            }
+
+            // ── 2b. Check Supplier Profile Completion ─────────────────
+            if (userRole === 'supplier' && location.pathname !== '/supplier/complete-profile') {
+                const isProfileIncomplete = !user.country || !user.city || !user.zip_code;
+                if (isProfileIncomplete) {
+                    return <Navigate to="/supplier/complete-profile" replace />;
+                }
+            }
         } catch {
             // Corrupt data — clear and redirect to login
             localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);

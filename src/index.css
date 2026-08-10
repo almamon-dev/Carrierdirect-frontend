@@ -38,34 +38,406 @@
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 220 14% 11%;
+    --foreground: 220 9% 93%;
  
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 215 15% 14%;
+    --card-foreground: 220 9% 93%;
  
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 215 15% 14%;
+    --popover-foreground: 220 9% 93%;
  
-    --primary: 142.1 70.6% 45.3%;
-    --primary-foreground: 144.9 80.4% 10%;
+    --primary: 14 100% 56%;
+    --primary-foreground: 0 0% 100%;
  
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 216 15% 20%;
+    --secondary-foreground: 220 9% 93%;
  
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 216 15% 20%;
+    --muted-foreground: 215 10% 56%;
  
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 216 15% 20%;
+    --accent-foreground: 220 9% 93%;
  
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
  
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 142.1 70.6% 45.3%;
+    --border: 216 15% 20%;
+    --input: 216 15% 20%;
+    --ring: 14 100% 56%;
   }
+}
+
+/* ═══════════════════════════════════════════════════════
+   BINANCE DARK MODE - GLOBAL OVERRIDES
+   Covers: Auth Pages + Landing Page sections
+═══════════════════════════════════════════════════════ */
+
+html.dark body {
+  background-color: #181a20 !important;
+  color: #eaecef !important;
+}
+
+/* ── White backgrounds → dark card ── */
+html.dark .bg-white {
+  background-color: #1e2329 !important;
+}
+
+/* ── Light gray backgrounds → dark surface ── */
+html.dark .bg-gray-50,
+html.dark .bg-slate-50,
+html.dark .bg-gray-50\/50,
+html.dark .bg-slate-50\/50 {
+  background-color: #181a20 !important;
+}
+
+html.dark .bg-gray-100,
+html.dark .bg-slate-100,
+html.dark .bg-zinc-100,
+html.dark .bg-neutral-100 {
+  background-color: #2b313a !important;
+}
+
+html.dark .bg-gray-200,
+html.dark .bg-slate-200 {
+  background-color: #363c47 !important;
+}
+
+/* ── Landing page specific section backgrounds ── */
+html.dark section,
+html.dark .section-wrapper {
+  background-color: #181a20;
+}
+
+/* Sections that have explicit white/light backgrounds */
+html.dark [class*="bg-white"],
+html.dark [class*="bg-gray-50"],
+html.dark [class*="bg-slate-50"],
+html.dark [class*="bg-gray-100"],
+html.dark [class*="bg-slate-100"],
+html.dark [class*="bg-zinc-50"],
+html.dark [class*="bg-neutral-50"] {
+  background-color: #1e2329 !important;
+  color: #eaecef !important;
+}
+
+/* ── Text overrides ── */
+html.dark .text-gray-900,
+html.dark .text-slate-900,
+html.dark .text-gray-800,
+html.dark .text-slate-800,
+html.dark .text-gray-700,
+html.dark .text-slate-700,
+html.dark .text-zinc-900,
+html.dark .text-zinc-800,
+html.dark .text-zinc-700,
+html.dark .text-neutral-900,
+html.dark .text-neutral-800 {
+  color: #eaecef !important;
+}
+
+html.dark .text-gray-600,
+html.dark .text-slate-600,
+html.dark .text-gray-500,
+html.dark .text-slate-500,
+html.dark .text-gray-400,
+html.dark .text-slate-400,
+html.dark .text-zinc-600,
+html.dark .text-zinc-500,
+html.dark .text-neutral-600,
+html.dark .text-neutral-500 {
+  color: #848e9c !important;
+}
+
+/* ── Border overrides ── */
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300,
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80,
+html.dark .border-zinc-100,
+html.dark .border-zinc-200,
+html.dark .border-neutral-100,
+html.dark .border-neutral-200,
+html.dark [class*="border-gray-"],
+html.dark [class*="border-slate-"] {
+  border-color: #2b313a !important;
+}
+
+html.dark [class*="divide-gray-"],
+html.dark [class*="divide-slate-"] {
+  border-color: transparent !important;
+}
+
+html.dark [class*="divide-transparent"],
+html.dark .divide-transparent,
+html.dark [class*="border-transparent"],
+html.dark .border-transparent {
+  border-color: transparent !important;
+}
+
+/* ── Form elements ── */
+html.dark label {
+  color: #e2e8f0 !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #1e2329 !important;
+  border-color: #384150 !important;
+  color: #ffffff !important;
+}
+
+html.dark select option {
+  background-color: #1e2329 !important;
+  color: #ffffff !important;
+}
+
+html.dark input[type="file"]::file-selector-button,
+html.dark input[type="file"]::-webkit-file-upload-button {
+  background-color: #2b313a !important;
+  color: #e2e8f0 !important;
+  border-color: #384150 !important;
+}
+
+html.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.9);
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 1 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #848e9c !important;
+  opacity: 1 !important;
+}
+
+/* ── Checkboxes in Dark Mode ── */
+html.dark input[type="checkbox"] {
+  background-color: #1e2329 !important;
+  border-color: #384150 !important;
+  color-scheme: dark;
+}
+html.dark input[type="checkbox"]:checked {
+  background-color: #FF4A1F !important;
+  border-color: #FF4A1F !important;
+}
+
+/* ── Card shadows & crisp borders in Dark Mode ── */
+html.dark [class*="shadow-"] {
+  box-shadow: none !important;
+}
+
+html.dark .rounded-xl,
+html.dark .rounded-2xl,
+html.dark .rounded-lg {
+  --tw-ring-color: #2b313a;
+}
+
+/* Specific overrides for cards that use rounded + shadow pattern */
+html.dark .rounded-xl.bg-white,
+html.dark .rounded-2xl.bg-white,
+html.dark .rounded-lg.bg-white,
+html.dark .rounded-xl[class*="bg-white"],
+html.dark .rounded-2xl[class*="bg-white"],
+html.dark .rounded-lg[class*="bg-white"],
+html.dark div[class*="shadow-"] {
+  background-color: #1e2329 !important;
+  border: 1px solid #384150 !important;
+  box-shadow: none !important;
+}
+
+.main-auth-card {
+  border: 1px solid #e2e8f0 !important;
+}
+html.dark .main-auth-card {
+  border: 1px solid #384150 !important;
+}
+
+html.dark .role-card-selected,
+.role-card-selected {
+  border-color: #FF4A1F !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  box-shadow: none !important;
+}
+
+/* ── Custom Select Component Dark Mode Styling ── */
+.custom-select-menu {
+  background-color: #ffffff !important;
+  border-color: #ebebeb !important;
+  color: #202223 !important;
+}
+html.dark .custom-select-menu {
+  background-color: #1e2329 !important;
+  border-color: #384150 !important;
+  color: #ffffff !important;
+}
+
+.custom-select-search {
+  padding: 6px 8px !important;
+  background-color: transparent !important;
+  border-bottom: 1px solid #ebebeb !important;
+}
+html.dark .custom-select-search {
+  background-color: transparent !important;
+  border-bottom: 1px solid #2b313a !important;
+}
+
+.custom-select-search input {
+  height: 32px !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  padding: 0 10px !important;
+  color: #1e293b !important;
+}
+.custom-select-search input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.dark .custom-select-search input {
+  background-color: #12161c !important;
+  border: 1px solid #384150 !important;
+  color: #ffffff !important;
+}
+html.dark .custom-select-search input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.custom-select-option {
+  color: #202223 !important;
+}
+html.dark .custom-select-option {
+  color: #e2e8f0 !important;
+}
+.custom-select-option.is-selected {
+  color: #FF4A1F !important;
+  background-color: #FFF2ED !important;
+}
+html.dark .custom-select-option.is-selected {
+  color: #FF4A1F !important;
+  background-color: rgba(255, 74, 31, 0.2) !important;
+}
+
+/* ── Keep brand orange untouched ── */
+html.dark .text-\[\#ff4a1f\],
+html.dark .text-\[\#FF4A1F\],
+html.dark .bg-\[\#ff4a1f\],
+html.dark .bg-\[\#FF4A1F\] {
+  /* keep as-is */
+}
+
+/* ── Scrollbar dark ── */
+html.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #2b313a;
+}
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #444d59;
+}
+
+/* ── Auth & Landing Page Arbitrary Class Overrides for Dark Mode ── */
+html.dark [class*="bg-[#fafaf9]"],
+html.dark .bg-\[\#fafaf9\],
+html.dark [class*="bg-[#f8fafc]"],
+html.dark .bg-\[\#f8fafc\],
+html.dark .bg-gray-50,
+html.dark .bg-slate-50 {
+  background-color: #181a20 !important;
+  border-color: #2b313a !important;
+}
+
+html.dark [class*="bg-[#FFF2ED]"],
+html.dark .bg-\[\#FFF2ED\] {
+  background-color: rgba(255, 74, 31, 0.15) !important;
+}
+
+html.dark [class*="via-[#FFF2ED]"],
+html.dark [class*="from-[#FFF2ED]"] {
+  background-image: none !important;
+  background-color: #1e2329 !important;
+}
+
+html.dark [class*="text-[#9B250B]"],
+html.dark .text-\[\#9B250B\],
+html.dark [class*="text-[#D13915]"],
+html.dark .text-\[\#D13915\] {
+  color: #ff8c70 !important;
+}
+
+html.dark [class*="text-[#0f0400]"],
+html.dark .text-\[\#0f0400\] {
+  color: #eaecef !important;
+}
+
+/* ── Radial dot grid background pattern inversion in dark mode ── */
+html.dark [style*="radial-gradient"] {
+  opacity: 0.15 !important;
+}
+
+/* ── Selection Cards & Hover States ── */
+html.dark .hover\:bg-gray-50:hover {
+  background-color: #2b313a !important;
+}
+
+html.dark .hover\:bg-slate-50:hover {
+  background-color: #2b313a !important;
+}
+
+/* ── Radio / Custom Inputs Styling ── */
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  border: 1.5px solid #cbd5e1;
+  background-color: #ffffff;
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  outline: none;
+  margin: 0;
+  flex-shrink: 0;
+  transition: all 0.15s ease-in-out;
+}
+
+input[type="radio"]::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  background-color: #ff4a1f;
+}
+
+input[type="radio"]:checked {
+  border-color: #ff4a1f !important;
+  background-color: #ffffff !important;
+}
+
+input[type="radio"]:checked::before {
+  transform: scale(1);
+}
+
+html.dark input[type="radio"] {
+  border-color: #475569 !important;
+  background-color: #1e2329 !important;
+}
+
+html.dark input[type="radio"]:checked {
+  border-color: #ff4a1f !important;
+  background-color: #1e2329 !important;
+}
+
+html.dark input[type="radio"]:checked::before {
+  background-color: #ff4a1f !important;
 }
 
 @layer base {
@@ -101,11 +473,46 @@ html, body, #root {
 }
 
 @layer utilities {
+  @keyframes equalizer {
+    0%, 100% {
+      height: 4px;
+      opacity: 0.35;
+    }
+    50% {
+      height: 16px;
+      opacity: 1;
+    }
+  }
+  .animate-equalizer {
+    animation: equalizer 0.75s infinite ease-in-out;
+  }
+}
+
+/* Custom smooth scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.custom-scrollbar {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
-.custom-scrollbar::-webkit-scrollbar,
 .no-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar,
 ::-webkit-scrollbar-button {
   display: none !important;
   width: 0 !important;
@@ -113,8 +520,8 @@ html, body, #root {
 }
 
 /* Hide scrollbar for IE, Edge and Firefox */
-.custom-scrollbar,
-.no-scrollbar {
+.no-scrollbar,
+.hide-scrollbar {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }

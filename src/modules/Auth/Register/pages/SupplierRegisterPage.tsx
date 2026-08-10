@@ -1,16 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Mail, Lock, Eye, EyeOff, Upload, Calendar, Building2, Hash } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
-import Logo from '../../../../assets/Images/LogoBlack.png';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import LogoBlack from '../../../../assets/Images/LogoBlack.png';
+import LogoWhite from '../../../../assets/Images/Logo.png';
 import Input from '../../../../components/ui/input';
 import Select from '../../../../components/ui/select';
+import Button from '../../../../components/ui/button';
+import { useDropdownOptions } from '../../../../hooks/useDropdownOptions';
+
+import apiClient from '../../../../lib/axios';
+import { ENDPOINTS } from '../../../../config/api';
+import { TOKEN_CONFIG } from '../../../../config/auth';
+import { useToastStore } from '../../../../stores/useToastStore';
 
 export default function SupplierRegisterPage() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const { getOptions } = useDropdownOptions();
     const [step, setStep] = useState(1);
     const [agreed, setAgreed] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isStep1Loading, setIsStep1Loading] = useState(false);
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -20,14 +32,53 @@ export default function SupplierRegisterPage() {
         insuranceProviderName: '',
         policyNumber: '',
         policyExpiryDate: '',
-        insuranceDocument: '',
-        licenses: ''
+        insuranceDocument: null as any,
+        licenses: null as any
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const handleInputChange = (field: string, value: string) => {
+    const getRegisterSessionId = (): string => {
+        let sid = sessionStorage.getItem('supplier_register_session_id');
+        if (!sid) {
+            const randHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+            sid = `sess_${randHex}_${Date.now()}`;
+            sessionStorage.setItem('supplier_register_session_id', sid);
+        }
+        return sid;
+    };
+
+    useEffect(() => {
+        const selectedSlug = step === 1 ? 'account-info' : (formData.insuranceType || 'compliance-documents');
+        const sid = searchParams.get('session_id') || getRegisterSessionId();
+        setSearchParams({ slug: selectedSlug, session_id: sid }, { replace: true });
+    }, [step, formData.insuranceType]);
+
+    const isPolicyDateValid = (dateStr: string): boolean => {
+        if (!dateStr) return false;
+        const selectedDate = new Date(dateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return selectedDate >= today;
+    };
+
+    const handleInputChange = (field: string, value: string | File) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) {
+
+        if (field === 'policyExpiryDate' && typeof value === 'string') {
+            if (!value) {
+                setErrors(prev => ({ ...prev, policyExpiryDate: 'Policy Expiry Date is required' }));
+            } else if (!isPolicyDateValid(value)) {
+                setErrors(prev => ({ ...prev, policyExpiryDate: 'Expiry date must be today or a future date' }));
+            } else {
+                setErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.policyExpiryDate;
+                    return newErrors;
+                });
+            }
+        } else if (errors[field]) {
             setErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors[field];
@@ -51,7 +102,7 @@ export default function SupplierRegisterPage() {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
 
-        if (!formData.fullName.trim()) newErrors.fullName = 'Company Name is required';
+        if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required';
         if (!formData.email.trim()) {
             newErrors.email = 'Email Address is required';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -73,11 +124,15 @@ export default function SupplierRegisterPage() {
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            setStep(2);
+            setIsStep1Loading(true);
+            setTimeout(() => {
+                setIsStep1Loading(false);
+                setStep(2);
+            }, 750);
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
 
@@ -103,18 +158,50 @@ export default function SupplierRegisterPage() {
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            navigate('/supplier/dashboard');
+            setIsLoading(true);
+            try {
+                const registerPayload = new FormData();
+                registerPayload.append('user_type', 'supplier');
+                registerPayload.append('company_name', formData.fullName);
+                registerPayload.append('name', formData.fullName);
+                registerPayload.append('email', formData.email);
+                registerPayload.append('password', formData.password);
+                registerPayload.append('password_confirmation', formData.confirmPassword);
+                registerPayload.append('insurance_type', formData.insuranceType);
+                registerPayload.append('insurance_provider_name', formData.insuranceProviderName);
+                registerPayload.append('policy_number', formData.policyNumber);
+                registerPayload.append('policy_expiry_date', formData.policyExpiryDate);
+
+                if (formData.insuranceDocument instanceof File) {
+                    registerPayload.append('insurance_document', formData.insuranceDocument);
+                }
+                if (formData.licenses instanceof File) {
+                    registerPayload.append('license_document', formData.licenses);
+                }
+
+                await apiClient.post(ENDPOINTS.AUTH.REGISTER, registerPayload, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                navigate(`/web/verify-email-notice?email=${encodeURIComponent(formData.email)}`);
+            } catch (err: any) {
+                console.error('Supplier registration error:', err);
+                const msg = err.data?.message || err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+                useToastStore.getState().showToast(msg, 'error');
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
-    const insuranceOptions = [
+    const insuranceOptions = getOptions('insurance_type', [
         { id: 'liability', name: 'General Liability' },
         { id: 'cargo', name: 'Cargo Insurance' },
         { id: 'auto', name: 'Commercial Auto' }
-    ];
+    ]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 relative p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0e1117] relative p-4">
             {/* Top Left Back Button */}
             <div className="absolute top-6 left-6">
                 <button
@@ -127,27 +214,28 @@ export default function SupplierRegisterPage() {
             </div>
 
             {/* The Main Centered Card */}
-            <div className="flex flex-col md:flex-row w-full max-w-5xl bg-white rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden min-h-[700px]">
+            <div className="main-auth-card flex flex-col md:flex-row w-full max-w-5xl bg-white dark:bg-[#181a20] rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none overflow-hidden min-h-[700px]">
 
                 {/* Left Side - Logo & Background */}
-                <div className="hidden md:flex md:w-8/12 bg-[#f8fafc] flex-col items-center justify-center p-10 relative border-r border-gray-100">
-                    <div className="absolute inset-0 opacity-[0.4]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                <div className="hidden md:flex md:w-8/12 bg-[#f8fafc] dark:bg-[#12161c] flex-col items-center justify-center p-10 relative border-r border-gray-100 dark:border-[#384150]">
+                    <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.1]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                     <div className="relative z-10 flex flex-col items-center w-full">
-                        <img src={Logo} alt="GetItMoving Logo" className="w-full max-w-[400px] object-contain" />
-                        <h2 className="text-[15px] font-bold text-slate-800 mt-10 text-center tracking-tight">Supplier Portal</h2>
-                        <p className="mt-3 text-sm text-gray-500 text-center leading-relaxed">
+                        <img src={LogoBlack} alt="GetItMoving Logo" className="w-full max-w-[400px] object-contain dark:hidden" />
+                        <img src={LogoWhite} alt="GetItMoving Logo" className="w-full max-w-[400px] object-contain hidden dark:block" />
+                        <h2 className="text-[15px] font-bold text-slate-800 dark:text-slate-200 mt-10 text-center tracking-tight">Supplier Portal</h2>
+                        <p className="mt-3 text-sm text-gray-500 dark:text-slate-400 text-center leading-relaxed">
                             Join as a moving partner and get access to exclusive moving requests.
                         </p>
                     </div>
                 </div>
 
                 {/* Right Side - Form */}
-                <div className="w-full md:w-8/12 p-8 md:p-12 flex flex-col justify-center">
+                <div className="w-full md:w-8/12 p-8 md:p-12 flex flex-col justify-center bg-white dark:bg-[#181a20]">
                     <div className="mb-8">
-                        <h2 className="text-[15px] font-bold text-slate-800">
+                        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                             {step === 1 ? 'Create your account' : 'Compliance & Verification'}
                         </h2>
-                        <p className="mt-2 text-sm text-gray-500">
+                        <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
                             {step === 1 ? 'It only takes a minute to get started.' : 'Please provide your insurance and licensing details.'}
                         </p>
                     </div>
@@ -155,7 +243,7 @@ export default function SupplierRegisterPage() {
                     {step === 1 ? (
                         <form onSubmit={handleContinue} className="space-y-3">
                             <div>
-                                <label className="block text-[13px] font-bold text-gray-700 mb-1">Company Name / Full Name <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-gray-700 dark:text-slate-200 mb-1">Full Name <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <div className="absolute top-0 left-0 h-[42px] pl-3 flex items-center pointer-events-none z-10">
                                         <User className="h-4 w-4 text-gray-400" />
@@ -163,7 +251,7 @@ export default function SupplierRegisterPage() {
                                     <Input
                                         type="text"
                                         className="pl-9 bg-white"
-                                        placeholder="Company Name"
+                                        placeholder="Full Name"
                                         value={formData.fullName}
                                         onChange={(e) => handleInputChange('fullName', e.target.value)}
                                         error={errors.fullName}
@@ -172,7 +260,7 @@ export default function SupplierRegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[13px] font-bold text-gray-700 mb-1">Email Address <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-gray-700 dark:text-slate-200 mb-1">Email Address <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <div className="absolute top-0 left-0 h-[42px] pl-3 flex items-center pointer-events-none z-10">
                                         <Mail className="h-4 w-4 text-gray-400" />
@@ -189,7 +277,7 @@ export default function SupplierRegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[13px] font-bold text-gray-700 mb-1">Password <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-gray-700 dark:text-slate-200 mb-1">Password <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <div className="absolute top-0 left-0 h-[42px] pl-3 flex items-center pointer-events-none z-10">
                                         <Lock className="h-4 w-4 text-gray-400" />
@@ -213,7 +301,7 @@ export default function SupplierRegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[13px] font-bold text-gray-700 mb-1">Confirm Password <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-gray-700 dark:text-slate-200 mb-1">Confirm Password <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <div className="absolute top-0 left-0 h-[42px] pl-3 flex items-center pointer-events-none z-10">
                                         <Lock className="h-4 w-4 text-gray-400" />
@@ -236,12 +324,14 @@ export default function SupplierRegisterPage() {
                                 </div>
                             </div>
 
-                            <button
+                            <Button
                                 type="submit"
-                                className="w-full h-[42px] flex items-center justify-center px-4 border border-transparent rounded-md shadow-sm text-[14px] font-bold text-white bg-[#FF4A1F] hover:bg-[#E03E15] focus:outline-none mt-6"
+                                isLoading={isStep1Loading}
+                                fullWidth={true}
+                                className="mt-6"
                             >
                                 Continue
-                            </button>
+                            </Button>
 
                             <div className="mt-6">
                                 <div className="relative">
@@ -290,7 +380,7 @@ export default function SupplierRegisterPage() {
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-[13px] font-bold text-[#4d5e75] mb-1.5">Insurance Type <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1.5">Insurance Type <span className="text-red-500">*</span></label>
                                 <Select
                                     value={formData.insuranceType}
                                     onChange={(e) => handleInputChange('insuranceType', e.target.value)}
@@ -303,7 +393,7 @@ export default function SupplierRegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[13px] font-bold text-[#4d5e75] mb-1.5">Insurance Provider Name <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1.5">Insurance Provider Name <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <Input
                                         type="text"
@@ -320,7 +410,7 @@ export default function SupplierRegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[13px] font-bold text-[#4d5e75] mb-1.5">Policy Number <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1.5">Policy Number <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <Input
                                         type="text"
@@ -337,10 +427,10 @@ export default function SupplierRegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[13px] font-bold text-[#4d5e75] mb-1.5">Policy Expiry Date <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1.5">Policy Expiry Date <span className="text-red-500">*</span></label>
                                 <Input
                                     type="date"
-                                    className="bg-white pr-3 text-gray-500"
+                                    className="bg-white pr-3"
                                     placeholder="mm/dd/yyyy"
                                     value={formData.policyExpiryDate}
                                     onChange={(e) => handleInputChange('policyExpiryDate', e.target.value)}
@@ -350,7 +440,7 @@ export default function SupplierRegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[13px] font-bold text-[#4d5e75] mb-1.5">Insurance Document <span className="text-red-500">*</span></label>
+                                <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1.5">Insurance Document <span className="text-red-500">*</span></label>
                                 <Input
                                     type="file"
                                     className="bg-white file:border-0 file:bg-[#F3F4F7] file:px-3 file:py-1 file:rounded-[3px] file:text-xs file:font-semibold file:text-gray-700 hover:file:bg-[#E5E7EB] cursor-pointer pt-[6px]"
@@ -370,7 +460,7 @@ export default function SupplierRegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-[13px] font-bold text-[#4d5e75] mb-1.5">Licenses / Certifications</label>
+                                <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1.5">Licenses / Certifications</label>
                                 <Input
                                     type="file"
                                     className="bg-white file:border-0 file:bg-[#F3F4F7] file:px-3 file:py-1 file:rounded-[3px] file:text-xs file:font-semibold file:text-gray-700 hover:file:bg-[#E5E7EB] cursor-pointer pt-[6px]"
@@ -397,11 +487,11 @@ export default function SupplierRegisterPage() {
                                             type="checkbox"
                                             checked={agreed}
                                             onChange={(e) => handleAgreedChange(e.target.checked)}
-                                            className={`w-4 h-4 rounded cursor-pointer accent-[#FF4A1F] focus:ring-[#FF4A1F] ${errors.agreed ? 'border-[#d82c0d] text-[#d82c0d]' : 'border-gray-300 text-[#FF4A1F]'}`}
+                                            className={`w-4 h-4 rounded cursor-pointer accent-[#FF4A1F] focus:ring-[#FF4A1F] ${errors.agreed ? 'border-[#d82c0d] text-[#d82c0d]' : 'border-gray-300 dark:border-slate-600 text-[#FF4A1F]'}`}
                                         />
                                     </div>
                                     <div className="ml-3 text-sm">
-                                        <label htmlFor="terms" className="font-medium text-gray-700">
+                                        <label htmlFor="terms" className="font-medium text-gray-700 dark:text-slate-300">
                                             I agree to the <a href="#" className="text-[#FF4A1F] hover:underline font-semibold">Terms of Service</a> and <a href="#" className="text-[#FF4A1F] hover:underline font-semibold">Privacy Policy</a>
                                         </label>
                                     </div>
@@ -409,12 +499,26 @@ export default function SupplierRegisterPage() {
                                 {errors.agreed && <span className="text-[12px] text-[#d82c0d] mt-1 ml-7">{errors.agreed}</span>}
                             </div>
 
-                            <button
-                                type="submit"
-                                className="w-full h-[42px] flex items-center justify-center px-4 border border-transparent rounded-md shadow-sm text-[14px] font-bold text-white bg-[#FF4A1F] hover:bg-[#E03E15] focus:outline-none"
-                            >
-                                Create Account
-                            </button>
+                            {(() => {
+                                const isStep2Disabled = !formData.insuranceType ||
+                                    !formData.insuranceProviderName.trim() ||
+                                    !formData.policyNumber.trim() ||
+                                    !formData.policyExpiryDate ||
+                                    !isPolicyDateValid(formData.policyExpiryDate) ||
+                                    !formData.insuranceDocument ||
+                                    !agreed;
+
+                                return (
+                                    <Button
+                                        type="submit"
+                                        disabled={isStep2Disabled}
+                                        isLoading={isLoading}
+                                        fullWidth={true}
+                                    >
+                                        Create Account
+                                    </Button>
+                                );
+                            })()}
                         </form>
                     )}
                 </div>

@@ -92,20 +92,20 @@ export default function PricingSection() {
           className={`text-center max-w-3xl mx-auto mb-12 reveal ${heading.isVisible ? "visible" : ""}`}
         >
           <span className="text-[#ff4a1f] font-semibold tracking-wider uppercase text-sm mb-3 block">Simple Pricing</span>
-          <h2 className="text-[#0f0400] text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+          <h2 className="text-[#0f0400] dark:text-slate-100 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
             Transparent Pricing for Everyone
           </h2>
-          <p className="text-gray-500 text-sm sm:text-base mb-8">
+          <p className="text-gray-500 dark:text-slate-400 text-sm sm:text-base mb-8">
             Whether you're shipping one pallet or managing a fleet of trucks, we have a plan that fits your business.
           </p>
 
-          <div className="inline-flex bg-white rounded-full p-1.5 shadow-sm border border-gray-200">
+          <div className="inline-flex bg-white dark:bg-[#1e2329] rounded-full p-1.5 shadow-sm dark:shadow-none border border-gray-200 dark:border-[#2b313a]">
             <button
               onClick={() => setActiveRole("customer")}
               className={`px-6 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 ${
                 activeRole === "customer" 
-                  ? "bg-[#0f0400] text-white shadow-md" 
-                  : "text-gray-500 hover:text-[#0f0400]"
+                  ? "bg-[#0f0400] dark:bg-[#ff4a1f] text-white shadow-md" 
+                  : "text-gray-500 dark:text-slate-400 hover:text-[#0f0400] dark:hover:text-white"
               }`}
             >
               For Shippers
@@ -114,8 +114,8 @@ export default function PricingSection() {
               onClick={() => setActiveRole("supplier")}
               className={`px-6 py-2.5 rounded-full text-sm font-bold transition-colors duration-300 ${
                 activeRole === "supplier" 
-                  ? "bg-[#0f0400] text-white shadow-md" 
-                  : "text-gray-500 hover:text-[#0f0400]"
+                  ? "bg-[#0f0400] dark:bg-[#ff4a1f] text-white shadow-md" 
+                  : "text-gray-500 dark:text-slate-400 hover:text-[#0f0400] dark:hover:text-white"
               }`}
             >
               For Carriers
@@ -130,8 +130,8 @@ export default function PricingSection() {
                 key={plan.id || i} 
                 className={`relative rounded-2xl p-6 border transition-all duration-300 flex flex-col h-full ${
                   plan.is_popular 
-                    ? "bg-[#0f0400] border-[#ff4a1f] shadow-lg md:-translate-y-2 z-10 text-white" 
-                    : "bg-white border-gray-200 shadow-sm hover:shadow hover:border-[#ff4a1f]/30 text-[#0f0400]"
+                    ? "bg-[#0f0400] dark:bg-[#1e2329] border-[#ff4a1f] shadow-lg dark:shadow-none md:-translate-y-2 z-10 text-white" 
+                    : "bg-white dark:bg-[#1e2329] border-gray-200 dark:border-[#2b313a] shadow-sm dark:shadow-none hover:shadow hover:border-[#ff4a1f]/30 text-[#0f0400] dark:text-slate-100"
                 }`}
               >
                 {plan.is_popular && (
@@ -143,20 +143,20 @@ export default function PricingSection() {
                 )}
 
                 <div className="mb-5">
-                  <h3 className={`text-lg font-bold mb-1 ${plan.is_popular ? "text-white" : "text-[#0f0400]"}`}>
+                  <h3 className={`text-lg font-bold mb-1 ${plan.is_popular ? "text-white" : "text-[#0f0400] dark:text-slate-100"}`}>
                     {plan.name}
                   </h3>
-                  <p className={`text-xs min-h-[36px] leading-relaxed ${plan.is_popular ? "text-gray-400" : "text-gray-500"}`}>
+                  <p className={`text-xs min-h-[36px] leading-relaxed ${plan.is_popular ? "text-gray-400" : "text-gray-500 dark:text-slate-400"}`}>
                     {plan.description || "The perfect plan to grow your business."}
                   </p>
                 </div>
 
                 <div className="mb-6 pb-6 border-b border-gray-100/10">
                   <div className="flex items-baseline gap-1">
-                    <span className={`text-3xl font-bold ${plan.is_popular ? "text-white" : "text-[#0f0400]"}`}>
+                    <span className={`text-3xl font-bold ${plan.is_popular ? "text-white" : "text-[#0f0400] dark:text-slate-100"}`}>
                       £{plan.price}
                     </span>
-                    <span className={`text-xs ${plan.is_popular ? "text-gray-400" : "text-gray-500"}`}>
+                    <span className={`text-xs ${plan.is_popular ? "text-gray-400" : "text-gray-500 dark:text-slate-400"}`}>
                       {plan.billing_period || "/mo"}
                     </span>
                   </div>
@@ -167,11 +167,11 @@ export default function PricingSection() {
                     {plan.features?.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2.5">
                         <span className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                          plan.is_popular ? "bg-[#ff4a1f]/20 text-[#ff4a1f]" : "bg-green-50 text-green-500"
+                          plan.is_popular ? "bg-[#ff4a1f]/20 text-[#ff4a1f]" : "bg-green-50 dark:bg-emerald-950/40 text-green-500 dark:text-emerald-400"
                         }`}>
                           <Check className="w-2.5 h-2.5 stroke-[3]" />
                         </span>
-                        <span className={`text-xs leading-relaxed ${plan.is_popular ? "text-gray-300" : "text-gray-600"}`}>
+                        <span className={`text-xs leading-relaxed ${plan.is_popular ? "text-gray-300" : "text-gray-600 dark:text-slate-300"}`}>
                           {feature}
                         </span>
                       </li>
@@ -184,7 +184,7 @@ export default function PricingSection() {
                     className={`w-full py-2.5 px-4 rounded-md font-bold text-xs transition-all duration-300 ${
                       plan.is_popular
                         ? "bg-[#ff4a1f] text-white hover:bg-[#e63d15] hover:shadow-md"
-                        : "bg-gray-50 text-[#0f0400] hover:bg-gray-100 border border-gray-200"
+                        : "bg-gray-50 dark:bg-slate-800 text-[#0f0400] dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-[#2b313a]"
                     }`}
                   >
                     {plan.buttonText || "Choose Plan"}

@@ -4,6 +4,7 @@ import { AllImages } from "@/components/AllPhotos/AllImages";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { TOKEN_CONFIG } from "@/config/auth";
 import authService from "@/services/authService";
+import ThemeSwitcher from "@/components/common/theme-switcher";
 
 const NavigationLink = [
   { id: 1, navigationText: "Home",       sectionId: "home" },
@@ -112,7 +113,7 @@ export default function Header() {
   };
 
   // ── Text colour helpers ────────────────────────────────────────────────────
-  const navTextCls  = isScrolled ? "text-slate-700 hover:text-[#ff4a1f]" : "text-white/80 hover:text-white";
+  const navTextCls  = isScrolled ? "text-slate-700 dark:text-slate-200 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f]" : "text-white/80 hover:text-white";
   const loginBtnCls = isScrolled
     ? "border-slate-300 text-slate-700 hover:border-[#ff4a1f] hover:text-[#ff4a1f]"
     : "border-white/40 text-white hover:border-white hover:bg-white/10";
@@ -211,11 +212,26 @@ export default function Header() {
         {/* Logo */}
         <div className="shrink-0">
           <Link to="/" onClick={(e) => handleNavClick(e, "home")}>
-            <img
-              src={isScrolled ? AllImages.LogoBlack : AllImages.Logo}
-              alt="GetItMoving Logo"
-              className="h-8 sm:h-9 md:h-10 w-auto object-contain"
-            />
+            {isScrolled ? (
+              <>
+                <img
+                  src={AllImages.LogoBlack}
+                  alt="GetItMoving Logo"
+                  className="h-8 sm:h-9 md:h-10 w-auto object-contain dark:hidden"
+                />
+                <img
+                  src={AllImages.Logo}
+                  alt="GetItMoving Logo"
+                  className="h-8 sm:h-9 md:h-10 w-auto object-contain hidden dark:block"
+                />
+              </>
+            ) : (
+              <img
+                src={AllImages.Logo}
+                alt="GetItMoving Logo"
+                className="h-8 sm:h-9 md:h-10 w-auto object-contain"
+              />
+            )}
           </Link>
         </div>
 
@@ -238,6 +254,7 @@ export default function Header() {
 
         {/* Desktop CTA */}
         <div className="hidden sm:flex items-center gap-3">
+          <ThemeSwitcher />
           <AuthWidget />
         </div>
 
@@ -271,7 +288,10 @@ export default function Header() {
             </a>
           ))}
 
-          <div className="pt-4 border-t border-slate-200/40">
+          <div className="pt-4 border-t border-slate-200/40 space-y-3">
+            <div className="flex justify-start">
+              <ThemeSwitcher showText />
+            </div>
             <AuthWidget mobile />
           </div>
         </div>

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Clock, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Logo from '../../../../assets/Images/LogoBlack.png';
+import LogoBlack from '../../../../assets/Images/LogoBlack.png';
+import LogoWhite from '../../../../assets/Images/Logo.png';
 
 export default function SessionExpiredPage() {
     return (
@@ -24,7 +25,8 @@ export default function SessionExpiredPage() {
                     <div className="absolute inset-0 opacity-[0.4]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                     <div className="relative z-10 flex flex-col items-center w-full">
                         <Link to="/">
-                            <img src={Logo} alt="GetItMoving Logo" className="w-full max-w-[280px] object-contain" />
+                            <img src={LogoBlack} alt="GetItMoving Logo" className="w-full max-w-[280px] object-contain dark:hidden" />
+                            <img src={LogoWhite} alt="GetItMoving Logo" className="w-full max-w-[280px] object-contain hidden dark:block" />
                         </Link>
                         <h2 className="text-xl font-bold text-slate-800 mt-10 text-center tracking-tight">Security Timeout</h2>
                         <p className="mt-3 text-sm text-gray-500 text-center leading-relaxed">

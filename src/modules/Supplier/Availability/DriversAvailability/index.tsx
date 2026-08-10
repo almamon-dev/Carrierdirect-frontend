@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Download, User, Phone, Truck, Check, Search, Trash2, Edit2, ShieldCheck } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
+import PhoneInput from '@/components/ui/phone-input';
 import Badge from '@/components/ui/badge';
 import Select from '@/components/ui/select';
 import FormLabel from '@/components/ui/label';
@@ -192,7 +193,7 @@ export default function DriversAvailability() {
                             </div>
                             <div>
                                 <FormLabel className="text-xs">Phone Number</FormLabel>
-                                <Input required placeholder="e.g. +880 1812-334455" className="text-xs h-8" value={phone} onChange={e => setPhone(e.target.value)} />
+                                <PhoneInput name="phone" placeholder="1812-334455" value={phone} onChange={e => setPhone(e.target.value)} />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>

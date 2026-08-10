@@ -7,6 +7,8 @@ import TabHeader from '@/components/ui/tab-header';
 import { QuoteFormData } from '../../types/formTypes';
 import { FormRow } from '../FormHelpers';
 
+import { useDropdownOptions } from '@/hooks/useDropdownOptions';
+
 interface SectionProps {
     formData: QuoteFormData;
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -20,11 +22,13 @@ export const BudgetPreferencesSection: React.FC<SectionProps> = ({
     handleSelectChange,
     handleCheckboxChange,
 }) => {
-    const EXPIRE_OPTIONS = [
+    const { getOptions } = useDropdownOptions();
+
+    const EXPIRE_OPTIONS = getOptions('auto_expire', [
         { id: '24 Hours', name: '24 Hours' },
         { id: '48 Hours', name: '48 Hours' },
         { id: '7 Days', name: '7 Days' },
-    ];
+    ]);
 
     return (
         <div className="space-y-3 animate-in fade-in duration-300">
