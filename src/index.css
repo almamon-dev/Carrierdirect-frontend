@@ -202,8 +202,17 @@ html.dark input[type="file"]::-webkit-file-upload-button {
   border-color: #384150 !important;
 }
 
-html.dark input[type="date"]::-webkit-calendar-picker-indicator {
+html.dark input[type="date"]::-webkit-calendar-picker-indicator,
+html.dark input[type="time"]::-webkit-calendar-picker-indicator,
+html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   filter: invert(0.9);
+  cursor: pointer;
+}
+
+html.dark input[type="date"],
+html.dark input[type="time"],
+html.dark input[type="datetime-local"] {
+  color-scheme: dark !important;
 }
 
 input::placeholder,

@@ -7,11 +7,11 @@ import authService from "@/services/authService";
 import ThemeSwitcher from "@/components/common/theme-switcher";
 
 const NavigationLink = [
-  { id: 1, navigationText: "Home",       sectionId: "home" },
-  { id: 2, navigationText: "Features",   sectionId: "features" },
-  { id: 3, navigationText: "Pricing",    sectionId: "pricing" },
+  { id: 1, navigationText: "Home", sectionId: "home" },
+  { id: 2, navigationText: "Features", sectionId: "features" },
+  { id: 3, navigationText: "Pricing", sectionId: "pricing" },
   { id: 4, navigationText: "How it Works", sectionId: "how-it-works" },
-  { id: 5, navigationText: "Carriers",   sectionId: "supplier" },
+  { id: 5, navigationText: "Carriers", sectionId: "supplier" },
 ];
 
 function getInitials(name: string): string {
@@ -24,11 +24,11 @@ function getInitials(name: string): string {
 
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isScrolled,   setIsScrolled]   = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { pathname } = useLocation();
-  const navigate     = useNavigate();
-  const dropdownRef  = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // ── Live auth state (re-reads localStorage on every render) ───────────────
   const [currentUser, setCurrentUser] = useState<{
@@ -39,7 +39,7 @@ export default function Header() {
 
   useEffect(() => {
     const readAuth = () => {
-      const token   = localStorage.getItem(TOKEN_CONFIG.accessTokenKey);
+      const token = localStorage.getItem(TOKEN_CONFIG.accessTokenKey);
       const userStr = localStorage.getItem(TOKEN_CONFIG.userKey);
       if (!token || !userStr) { setCurrentUser(null); return; }
       try {
@@ -61,12 +61,13 @@ export default function Header() {
     currentUser?.user_type === "supplier"
       ? "/supplier/dashboard"
       : currentUser?.user_type === "admin"
-      ? "/admin/dashboard"
-      : "/customer/dashboard";
+        ? "/admin/dashboard"
+        : "/customer/dashboard";
 
   // ── Scroll handler ─────────────────────────────────────────────────────────
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 40);
+    const onScroll = () => setIsScrolled(window.scrollY > 5);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -113,10 +114,13 @@ export default function Header() {
   };
 
   // ── Text colour helpers ────────────────────────────────────────────────────
-  const navTextCls  = isScrolled ? "text-slate-700 dark:text-slate-200 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f]" : "text-white/80 hover:text-white";
+  const navTextCls = isScrolled
+    ? "text-slate-700 dark:text-slate-200 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f]"
+    : "text-slate-100 hover:text-[#ff4a1f] dark:text-slate-200 dark:hover:text-[#ff4a1f]";
+
   const loginBtnCls = isScrolled
-    ? "border-slate-300 text-slate-700 hover:border-[#ff4a1f] hover:text-[#ff4a1f]"
-    : "border-white/40 text-white hover:border-white hover:bg-white/10";
+    ? "border-slate-300 text-slate-700 hover:border-[#ff4a1f] hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:border-slate-700 dark:text-slate-200 dark:hover:border-[#ff4a1f] dark:hover:text-[#ff4a1f] dark:hover:bg-[#ff4a1f]/15"
+    : "border-white/50 text-white hover:border-white hover:bg-white/10 dark:border-slate-600 dark:text-slate-100 dark:hover:border-slate-400 dark:hover:bg-white/10";
 
   // ── Authenticated right-side widget ───────────────────────────────────────
   const AuthWidget = ({ mobile = false }: { mobile?: boolean }) =>
@@ -124,14 +128,13 @@ export default function Header() {
       <div ref={dropdownRef} className={`relative ${mobile ? "w-full" : ""}`}>
         <button
           onClick={() => setDropdownOpen((p) => !p)}
-          className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full font-semibold text-sm transition-all cursor-pointer ${
-            isScrolled || mobile
-              ? "bg-slate-100 hover:bg-slate-200 text-slate-800"
-              : "bg-white/10 hover:bg-white/20 text-white"
-          } ${mobile ? "w-full justify-between" : ""}`}
+          className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full font-semibold text-sm transition-all cursor-pointer border ${isScrolled || mobile
+              ? "bg-slate-100/90 border-slate-200/80 hover:bg-slate-200/80 text-slate-800 dark:bg-[#1e2329] dark:border-slate-700/80 dark:text-slate-100"
+              : "bg-white/10 border-white/20 hover:bg-white/20 text-white dark:bg-[#1e2329]/80 dark:border-slate-700/80 dark:text-slate-100"
+            } ${mobile ? "w-full justify-between" : ""}`}
         >
           {/* Avatar initials */}
-          <span className="h-7 w-7 rounded-full bg-[#ff4a1f] text-white text-xs font-bold flex items-center justify-center shrink-0">
+          <span className="h-7 w-7 rounded-full bg-[#ff4a1f] text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow-xs">
             {getInitials(currentUser.name)}
           </span>
           <span className="max-w-[110px] truncate">{currentUser.name}</span>
@@ -144,42 +147,44 @@ export default function Header() {
         {/* Dropdown */}
         {dropdownOpen && (
           <div
-            className={`absolute ${mobile ? "bottom-full mb-2 left-0" : "right-0 mt-2 top-full"} w-52 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden`}
+            className={`absolute ${mobile ? "bottom-full mb-2 left-0" : "right-0 mt-2 top-full"} w-56 bg-white dark:bg-[#1e2329] rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-700/80 z-50 overflow-hidden text-slate-800 dark:text-slate-100`}
           >
             {/* User info */}
-            <div className="px-4 py-3 border-b border-slate-100">
-              <p className="text-[13px] font-bold text-slate-800 truncate">{currentUser.name}</p>
-              <p className="text-[11px] text-slate-400 truncate">{currentUser.email}</p>
-              <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-orange-50 text-[#ff4a1f]">
+            <div className="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50">
+              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{currentUser.name}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{currentUser.email}</p>
+              <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-orange-100/70 text-[#ff4a1f] dark:bg-[#ff4a1f]/15 dark:text-[#ff4a1f] border border-orange-200/50 dark:border-orange-500/20">
                 {currentUser.user_type}
               </span>
             </div>
 
             {/* Actions */}
-            <Link
-              to={dashboardPath}
-              onClick={() => setDropdownOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-            >
-              <LayoutDashboard size={15} className="text-slate-400" />
-              Dashboard
-            </Link>
-            <Link
-              to={`${dashboardPath.split("/dashboard")[0]}/settings`}
-              onClick={() => setDropdownOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-            >
-              <User size={15} className="text-slate-400" />
-              Profile
-            </Link>
-            <div className="border-t border-slate-100" />
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-            >
-              <LogOut size={15} />
-              Log Out
-            </button>
+            <div className="p-1.5 space-y-0.5">
+              <Link
+                to={dashboardPath}
+                onClick={() => setDropdownOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-colors"
+              >
+                <LayoutDashboard size={15} className="text-slate-400 dark:text-slate-400" />
+                Dashboard
+              </Link>
+              <Link
+                to={`${dashboardPath.split("/dashboard")[0]}/settings`}
+                onClick={() => setDropdownOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-colors"
+              >
+                <User size={15} className="text-slate-400 dark:text-slate-400" />
+                Profile
+              </Link>
+              <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+              >
+                <LogOut size={15} />
+                Log Out
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -193,7 +198,7 @@ export default function Header() {
           </button>
         </Link>
         <Link to="/web/register" onClick={() => setIsMobileOpen(false)} className={mobile ? "w-full" : ""}>
-          <button className={`${mobile ? "w-full py-2.5" : "px-6 py-2"} rounded-full bg-[#ff4a1f] hover:bg-[#e63d15] text-white text-sm font-bold shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer`}>
+          <button className={`${mobile ? "w-full py-2.5" : "px-6 py-2"} rounded-full bg-[#ff4a1f] hover:bg-[#e63d15] dark:bg-[#ff4a1f] dark:hover:bg-[#ff5a2d] text-white text-sm font-bold shadow-sm dark:shadow-[0_0_14px_rgba(255,74,31,0.4)] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer`}>
             Get Started
           </button>
         </Link>
@@ -203,9 +208,10 @@ export default function Header() {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-50 transition-colors duration-200 py-4 ${
-        isScrolled ? "bg-white border-b border-slate-100" : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 py-3.5 ${isScrolled
+          ? "bg-white/95 dark:bg-[#12161c]/95 border-b border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-md"
+          : "bg-transparent border-b border-transparent shadow-none"
+        }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8">
 
@@ -254,7 +260,7 @@ export default function Header() {
 
         {/* Desktop CTA */}
         <div className="hidden sm:flex items-center gap-3">
-          <ThemeSwitcher />
+          <ThemeSwitcher variant={isScrolled ? 'default' : 'hero'} />
           <AuthWidget />
         </div>
 
@@ -262,9 +268,10 @@ export default function Header() {
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           aria-label="Toggle menu"
-          className={`lg:hidden p-2 rounded-lg transition-colors ${
-            isScrolled ? "text-slate-900 hover:bg-slate-100" : "text-white hover:bg-white/10"
-          }`}
+          className={`lg:hidden p-2 rounded-xl transition-colors ${isScrolled
+              ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              : "text-white hover:bg-white/10 dark:text-slate-200 dark:hover:bg-slate-800/60"
+            }`}
         >
           {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -273,9 +280,10 @@ export default function Header() {
       {/* Mobile Menu */}
       {isMobileOpen && (
         <div
-          className={`lg:hidden px-6 py-6 space-y-4 shadow-xl ${
-            isScrolled ? "bg-white text-slate-900 border-t border-slate-100" : "bg-[#0f0400] text-white"
-          }`}
+          className={`lg:hidden px-6 py-6 space-y-4 shadow-2xl border-t transition-all ${isScrolled
+              ? "bg-white/95 dark:bg-[#12161c]/95 text-slate-900 dark:text-slate-100 border-slate-200/80 dark:border-slate-800 backdrop-blur-md"
+              : "bg-[#0f0400]/95 dark:bg-[#12161c]/95 text-white dark:text-slate-100 border-white/10 dark:border-slate-800 backdrop-blur-md"
+            }`}
         >
           {NavigationLink.map((item) => (
             <a
@@ -288,9 +296,9 @@ export default function Header() {
             </a>
           ))}
 
-          <div className="pt-4 border-t border-slate-200/40 space-y-3">
+          <div className="pt-4 border-t border-slate-200/40 dark:border-slate-800 space-y-3">
             <div className="flex justify-start">
-              <ThemeSwitcher showText />
+              <ThemeSwitcher showText variant={isScrolled ? 'default' : 'hero'} />
             </div>
             <AuthWidget mobile />
           </div>

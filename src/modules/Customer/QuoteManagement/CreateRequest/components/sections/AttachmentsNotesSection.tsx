@@ -38,13 +38,13 @@ export const AttachmentsNotesSection: React.FC<SectionProps> = ({
 
                 <FormRow label="Packing List PDF" colSpan>
                     <div className="flex items-center gap-3">
-                        <label className="px-3.5 py-1.5 bg-white border border-slate-300 rounded-sm text-xs font-bold cursor-pointer hover:bg-slate-50 inline-flex items-center gap-2 text-slate-700 shadow-2xs transition-colors shrink-0">
-                            <Upload size={14} className="text-slate-500" />
+                        <label className="px-3.5 py-1.5 bg-white dark:bg-[#1e2329] border border-slate-300 dark:border-slate-700 rounded-sm text-xs font-bold cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-2 text-slate-700 dark:text-slate-200 shadow-2xs transition-colors shrink-0">
+                            <Upload size={14} className="text-slate-500 dark:text-slate-400" />
                             <span>Choose Packing List</span>
                             <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => handleFileUpload('packingList', e.target.files?.[0] || null)} />
                         </label>
                         <div className="flex flex-col min-w-0">
-                            <span className="text-[11px] font-semibold text-slate-600 truncate max-w-[260px]">
+                            <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 truncate max-w-[260px]">
                                 {formData.packingList ? formData.packingList.name : 'No file chosen (.pdf, .doc)'}
                             </span>
                             {formData.packingList && (
@@ -64,13 +64,13 @@ export const AttachmentsNotesSection: React.FC<SectionProps> = ({
 
                 <FormRow label="Commercial Invoice" colSpan>
                     <div className="flex items-center gap-3">
-                        <label className="px-3.5 py-1.5 bg-white border border-slate-300 rounded-sm text-xs font-bold cursor-pointer hover:bg-slate-50 inline-flex items-center gap-2 text-slate-700 shadow-2xs transition-colors shrink-0">
-                            <Upload size={14} className="text-slate-500" />
+                        <label className="px-3.5 py-1.5 bg-white dark:bg-[#1e2329] border border-slate-300 dark:border-slate-700 rounded-sm text-xs font-bold cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-2 text-slate-700 dark:text-slate-200 shadow-2xs transition-colors shrink-0">
+                            <Upload size={14} className="text-slate-500 dark:text-slate-400" />
                             <span>Choose Invoice File</span>
                             <input type="file" accept=".pdf,.jpg,.png" className="hidden" onChange={(e) => handleFileUpload('invoice', e.target.files?.[0] || null)} />
                         </label>
                         <div className="flex flex-col min-w-0">
-                            <span className="text-[11px] font-semibold text-slate-600 truncate max-w-[260px]">
+                            <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 truncate max-w-[260px]">
                                 {formData.invoice ? formData.invoice.name : 'No file chosen (.pdf, .jpg, .png)'}
                             </span>
                             {formData.invoice && (

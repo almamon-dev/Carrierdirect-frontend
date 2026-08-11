@@ -50,7 +50,7 @@ export const BudgetPreferencesSection: React.FC<SectionProps> = ({
                 </FormRow>
 
                 <div className="col-span-1 md:col-span-2 pt-2 space-y-3">
-                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2.5 rounded border border-slate-200 hover:bg-slate-100 transition-colors text-xs font-semibold text-slate-800">
+                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-[#1e2329] p-2.5 rounded border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs font-semibold text-slate-800 dark:text-slate-200">
                         <Checkbox 
                             checked={formData.allowNegotiation} 
                             onChange={(e) => handleCheckboxChange('allowNegotiation', e.target.checked)} 
@@ -58,7 +58,7 @@ export const BudgetPreferencesSection: React.FC<SectionProps> = ({
                         <span>Allow rate negotiation (Carriers can submit counter-offers)</span>
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2.5 rounded border border-slate-200 hover:bg-slate-100 transition-colors text-xs font-semibold text-slate-800">
+                    <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-[#1e2329] p-2.5 rounded border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs font-semibold text-slate-800 dark:text-slate-200">
                         <Checkbox 
                             checked={formData.receiveMultiple} 
                             onChange={(e) => handleCheckboxChange('receiveMultiple', e.target.checked)} 

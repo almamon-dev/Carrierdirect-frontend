@@ -104,7 +104,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                 </FormRow>
 
                 {/* Minimal Cargo Dimensions */}
-                <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-slate-200/80">
+                <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-slate-200/80 dark:border-slate-800">
                     <SectionHeader title="Cargo Dimensions (L x W x H)" icon={Box} />
                     
                     <div className="space-y-2 mt-2">
@@ -113,11 +113,11 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                                 <div className="flex-1 min-w-[80px]">
                                     <Input placeholder="Length" value={dim.length} onChange={(e) => updateDimension(dim.id, 'length', e.target.value)} className="h-8 text-xs" />
                                 </div>
-                                <span className="text-slate-400 text-xs font-semibold select-none">×</span>
+                                <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold select-none">×</span>
                                 <div className="flex-1 min-w-[80px]">
                                     <Input placeholder="Width" value={dim.width} onChange={(e) => updateDimension(dim.id, 'width', e.target.value)} className="h-8 text-xs" />
                                 </div>
-                                <span className="text-slate-400 text-xs font-semibold select-none">×</span>
+                                <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold select-none">×</span>
                                 <div className="flex-1 min-w-[80px]">
                                     <Input placeholder="Height" value={dim.height} onChange={(e) => updateDimension(dim.id, 'height', e.target.value)} className="h-8 text-xs" />
                                 </div>
@@ -137,7 +137,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                                     type="button" 
                                     onClick={() => removeDimension(dim.id)}
                                     disabled={formData.dimensions.length === 1}
-                                    className="p-1.5 text-slate-400 hover:text-red-500 rounded transition-colors disabled:opacity-20 cursor-pointer shrink-0"
+                                    className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 rounded transition-colors disabled:opacity-20 cursor-pointer shrink-0"
                                     title="Remove"
                                 >
                                     <Trash2 size={14} />
@@ -157,9 +157,9 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                 </div>
 
                 {/* Logistics Handling Checkboxes */}
-                <div className="col-span-1 md:col-span-2 mt-6 pt-5 border-t border-slate-200/80">
+                <div className="col-span-1 md:col-span-2 mt-6 pt-5 border-t border-slate-200/80 dark:border-slate-800">
                     <SectionHeader title="Special Cargo Requirements & Services" icon={Truck} />
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2 text-xs font-semibold text-slate-700">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
                         {[
                             { name: 'stackable', label: 'Stackable Cargo' },
                             { name: 'fragile', label: 'Fragile Handling' },
@@ -172,7 +172,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                             { name: 'packaging', label: 'Packaging Service' },
                             { name: 'insurance', label: 'Cargo Insurance' },
                         ].map((chk) => (
-                            <label key={chk.name} className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2 rounded border border-slate-200 hover:bg-slate-100 transition-colors">
+                            <label key={chk.name} className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-[#1e2329] p-2 rounded border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-colors">
                                 <Checkbox 
                                     checked={Boolean(formData[chk.name as keyof QuoteFormData])} 
                                     onChange={(e) => handleCheckboxChange(chk.name as keyof QuoteFormData, e.target.checked)} 
@@ -183,7 +183,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                     </div>
 
                     {formData.insurance && (
-                        <div className="mt-3 bg-[#fff7ed] p-3 rounded-md border border-[#ffedd5] space-y-2 animate-in fade-in duration-200">
+                        <div className="mt-3 bg-[#fff7ed] dark:bg-[#ff4a1f]/10 p-3 rounded-md border border-[#ffedd5] dark:border-[#ff4a1f]/30 space-y-2 animate-in fade-in duration-200">
                             <FormRow label="Insurance Type *">
                                 <Select
                                     name="insuranceType"

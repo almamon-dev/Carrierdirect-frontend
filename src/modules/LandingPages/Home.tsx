@@ -31,14 +31,14 @@ export default function Home() {
       {/* 1. Hero */}
       <HomeHero />
 
-      {/* 2. Trusted brand logos marquee strip */}
-      <HomeMarquee />
-
-      {/* 3. Features: Why This Platform Is Different */}
+      {/* 2. Features: Why This Platform Is Different */}
       <HomeWhyPlatformDifferent />
 
-      {/* 4. Features: Comparison Table */}
+      {/* 3. Features: Comparison Table */}
       <ComparisonTable />
+
+      {/* 4. How It Works */}
+      <HowItWorks />
 
       {/* Supplier Availabilities */}
       <SupplierAvailabilities />
@@ -46,8 +46,8 @@ export default function Home() {
       {/* 5. Pricing */}
       <PricingSection />
 
-      {/* 6. How It Works */}
-      <HowItWorks />
+      {/* 6. Trusted brand logos marquee strip */}
+      <HomeMarquee />
 
       {/* 7. Carriers / Testimonials */}
       <TrustedbyRealShippersCarriers />

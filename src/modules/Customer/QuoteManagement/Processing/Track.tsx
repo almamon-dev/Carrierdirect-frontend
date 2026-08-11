@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Clock, ShieldCheck, RefreshCw, Sparkles, MapPin, Truck } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
@@ -14,27 +14,55 @@ import TimelineSection from './TrackComponents/TimelineSection';
 export default function ProcessingTrack() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [isPodAccepted, setIsPodAccepted] = useState(false);
+    const [dbOrder, setDbOrder] = useState<any | null>(null);
+
+    // Fetch order directly from Database API
+    useEffect(() => {
+        if (!id) return;
+        const cleanId = String(id).replace('ORD-', '');
+        async function fetchSingleOrder() {
+            try {
+                const res = await apiClient.get(`${ENDPOINTS.CUSTOMER.ORDERS}/${cleanId}`);
+                const data = res.data?.data || res.data;
+                if (data) {
+                    setDbOrder(data);
+                }
+            } catch {
+                // Keep location state or cache fallback
+            }
+        }
+        fetchSingleOrder();
+    }, [id]);
+
+    // Dynamic order lookup from DB state, location state, or localStorage cache
+    const cachedOrdersStr = typeof window !== 'undefined' ? localStorage.getItem('customer_processing_orders_cache') : null;
+    const cachedOrders = cachedOrdersStr ? JSON.parse(cachedOrdersStr) : [];
+    const foundOrder = dbOrder || location.state?.order || cachedOrders.find((o: any) => o.id === id);
+
+    const fromCity = foundOrder?.pickup_city || foundOrder?.route?.from || foundOrder?.from || 'Dhaka';
+    const toCity = foundOrder?.delivery_city || foundOrder?.route?.to || foundOrder?.to || 'Chittagong';
 
     // Order details state
     const order = {
-        id: id || 'ORD-5591',
-        status: isPodAccepted ? 'Payment Released' : 'In Transit (Pending POD)',
-        estArrival: 'Jul 26, 2026 • 10:00 AM',
-        from: 'Dhaka (EPZ)',
-        to: 'Chittagong (Port)',
+        id: id || foundOrder?.id || 'ORD-5591',
+        status: isPodAccepted ? 'Payment Released (POD Accepted)' : (foundOrder?.status || 'In Transit (Pending POD)'),
+        estArrival: foundOrder?.est_arrival || foundOrder?.estArrival || 'Jul 26, 2026 • 10:00 AM',
+        from: fromCity.includes('(') ? fromCity : `${fromCity} (EPZ)`,
+        to: toCity.includes('(') ? toCity : `${toCity} (Port)`,
         vehicle: {
-            type: 'Covered Van (14ft)',
-            number: 'DHA-11-2233',
-            capacity: '1.5 Ton',
-            goodsType: 'Electronics & Fragile'
+            type: foundOrder?.vehicle_type || foundOrder?.vehicleType || foundOrder?.vehicle?.type || 'Covered Van (14ft)',
+            number: foundOrder?.vehicle_plate || foundOrder?.vehicleNo || foundOrder?.vehicle?.number || 'DHA-11-2233',
+            capacity: foundOrder?.cargoWeight || '1.5 Ton',
+            goodsType: foundOrder?.goods_type || foundOrder?.goodsType || 'General Freight & Logistics'
         },
         supplier: {
-            name: 'Global Transport Express',
+            name: foundOrder?.supplier_name || foundOrder?.supplier || foundOrder?.supplier?.name || 'Global Transport Express',
             verified: true,
             rating: 4.8,
             reviews: 320,
-            active: 'Active 12m ago',
+            active: 'Active 5m ago',
             memberSince: '2023',
             completedOrders: 1540
         },
@@ -42,7 +70,7 @@ export default function ProcessingTrack() {
             base: 1250,
             loading: 150,
             insurance: 45,
-            total: 1445,
+            total: foundOrder?.total_amount || (foundOrder?.amount ? (typeof foundOrder.amount === 'number' ? foundOrder.amount : parseInt(String(foundOrder.amount).replace(/[^0-9]/g, '')) || 1445) : 1445),
             advancePaid: 445,
             due: 1000
         }

@@ -285,10 +285,10 @@ export default function RequestList() {
                             key={tab.id}
                             type="button"
                             onClick={() => setActiveFilterTab(tab.id)}
-                            className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${isActive ? 'border-[#008060] text-[#008060]' : 'border-transparent text-slate-600 hover:text-slate-800'}`}
+                            className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${isActive ? 'border-brand text-brand dark:border-brand dark:text-brand' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
                         >
                             <span className={`text-[14px] ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
-                            <span className={`text-[12px] font-medium px-2 py-0.5 rounded-full ${isActive ? 'bg-[#eaf5f0] text-[#008060]' : 'bg-slate-100 text-slate-500'}`}>
+                            <span className={`text-[12px] font-medium px-2 py-0.5 rounded-full ${isActive ? 'bg-orange-50 dark:bg-brand/20 text-brand dark:text-orange-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                                 {tab.count}
                             </span>
                         </button>
@@ -314,10 +314,10 @@ export default function RequestList() {
             label: 'Date & Time', 
             render: (row) => (
                 <div className="text-[13px] whitespace-nowrap flex flex-col">
-                    <span className="font-semibold text-slate-800">{row.date}</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{row.date}</span>
                     {row.time && (
-                        <span className="text-[11px] font-medium text-slate-500 flex items-center gap-1 mt-0.5">
-                            <Clock size={11} className="text-slate-400" />
+                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                            <Clock size={11} className="text-slate-400 dark:text-slate-500" />
                             {row.time}
                         </span>
                     )}
@@ -327,16 +327,16 @@ export default function RequestList() {
         { 
             id: 'type', 
             label: 'Type', 
-            render: (row) => <span className="text-[13px] font-medium text-slate-700">{row.type}</span>
+            render: (row) => <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{row.type}</span>
         },
         { 
             id: 'pickup', 
             label: 'Route', 
             render: (row) => (
                 <div className="text-[13px] whitespace-nowrap">
-                    <span className="font-semibold text-slate-900">{row.pickup}</span>
-                    <span className="text-slate-400 mx-1">→</span>
-                    <span className="font-semibold text-slate-900">{row.delivery}</span>
+                    <span className="font-semibold text-slate-900 dark:text-slate-200">{row.pickup}</span>
+                    <span className="text-slate-400 dark:text-slate-500 mx-1">→</span>
+                    <span className="font-semibold text-slate-900 dark:text-slate-200">{row.delivery}</span>
                 </div>
             ) 
         },
@@ -345,21 +345,21 @@ export default function RequestList() {
             label: 'Load / Cargo', 
             render: (row) => (
                 <div className="text-[13px] whitespace-nowrap">
-                    <span className="font-medium text-slate-800">{row.load}</span>
-                    <span className="text-slate-400 text-xs ml-1">({row.weight})</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200">{row.load}</span>
+                    <span className="text-slate-400 dark:text-slate-500 text-xs ml-1">({row.weight})</span>
                 </div>
             ) 
         },
         { 
             id: 'vehicle', 
             label: 'Vehicle', 
-            render: (row) => <span className="text-[13px] text-slate-600 whitespace-nowrap">{row.vehicle}</span>
+            render: (row) => <span className="text-[13px] text-slate-600 dark:text-slate-400 whitespace-nowrap">{row.vehicle}</span>
         },
         { 
             id: 'quotesReceived', 
             label: 'Quotes', 
             render: (row) => (
-                <span className={`text-[13px] font-bold ${row.quotesReceived > 0 ? 'text-brand' : 'text-slate-400'}`}>
+                <span className={`text-[13px] font-bold ${row.quotesReceived > 0 ? 'text-brand' : 'text-slate-400 dark:text-slate-500'}`}>
                     {row.quotesReceived} Bids
                 </span>
             ) 
@@ -378,7 +378,7 @@ export default function RequestList() {
                     <div className="flex items-center gap-2 whitespace-nowrap">
                         <Badge variant={variant}>{row.status}</Badge>
                         {row.expiresIn && row.expiresIn !== 'Ended' && (
-                            <span className="text-[11px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
+                            <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/50">
                                 {row.expiresIn}
                             </span>
                         )}
@@ -536,7 +536,7 @@ export default function RequestList() {
                 <Button 
                     variant="outline" 
                     size="sm" 
-                    className="h-7 w-7 p-0 text-slate-500 border-slate-200"
+                    className="h-7 w-7 p-0 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                     onClick={(e) => {
                         e.stopPropagation();
                         if (openDropdown === row.id) {
@@ -545,7 +545,7 @@ export default function RequestList() {
                             const rect = e.currentTarget.getBoundingClientRect();
                             setDropdownPos({
                                 top: rect.bottom + 4,
-                                left: rect.right - 160
+                                left: rect.right - 168
                             });
                             setOpenDropdown(row.id);
                         }
@@ -556,39 +556,39 @@ export default function RequestList() {
 
                 {openDropdown === row.id && createPortal(
                     <div 
-                        className="fixed w-40 bg-white rounded-md shadow-xl border border-slate-200 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100"
+                        className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2" onClick={() => { setOpenDropdown(null); navigate(`/customer/quotes/create/view/${row.id}`); }}>
-                            <Eye size={14} className="text-slate-400" /> View Details
+                        <button className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium" onClick={() => { setOpenDropdown(null); navigate(`/customer/quotes/create/view/${row.id}`); }}>
+                            <Eye size={14} className="text-slate-400 dark:text-slate-400" /> View Details
                         </button>
-                        <button className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2" onClick={() => { setOpenDropdown(null); navigate(`/customer/quotes/create/edit/${row.id}`); }}>
-                            <Edit size={14} className="text-indigo-500" /> Edit
+                        <button className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium" onClick={() => { setOpenDropdown(null); navigate(`/customer/quotes/create/edit/${row.id}`); }}>
+                            <Edit size={14} className="text-indigo-500 dark:text-indigo-400" /> Edit
                         </button>
                         <button 
-                            className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium disabled:opacity-50" 
+                            className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 font-medium disabled:opacity-50 transition-colors" 
                             disabled={isRepeating === row.id}
                             onClick={() => handleRepeatRequest(row)}
                         >
                             {isRepeating === row.id ? (
                                 <svg className="animate-spin w-3.5 h-3.5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
                             ) : (
-                                <Copy size={14} className="text-blue-500" />
+                                <Copy size={14} className="text-blue-500 dark:text-blue-400" />
                             )}
                             {isRepeating === row.id ? 'Loading...' : 'Repeat Request'}
                         </button>
-                        <button className="w-full text-left px-3 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 flex items-center gap-2" onClick={() => setOpenDropdown(null)}>
-                            <FileDown size={14} className="text-slate-400" /> Download PDF
+                        <button className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium" onClick={() => setOpenDropdown(null)}>
+                            <FileDown size={14} className="text-slate-400 dark:text-slate-400" /> Download PDF
                         </button>
-                        <div className="h-px bg-slate-100 my-1"></div>
+                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
                         {row.status === 'Bidding Active' || row.status === 'active' ? (
-                            <button className="w-full text-left px-3 py-1.5 text-[13px] text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer font-medium" onClick={() => handleDeleteRequest(row)}>
-                                <XCircle size={14} className="text-red-500" /> Cancel Request
+                            <button className="w-full text-left px-3.5 py-2 text-[13px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 flex items-center gap-2.5 cursor-pointer font-medium transition-colors" onClick={() => handleDeleteRequest(row)}>
+                                <XCircle size={14} className="text-red-500 dark:text-red-400" /> Cancel Request
                             </button>
                         ) : (
-                            <button className="w-full text-left px-3 py-1.5 text-[13px] text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer font-medium" onClick={() => handleDeleteRequest(row)}>
-                                <Trash2 size={14} className="text-red-500" /> Delete
+                            <button className="w-full text-left px-3.5 py-2 text-[13px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 flex items-center gap-2.5 cursor-pointer font-medium transition-colors" onClick={() => handleDeleteRequest(row)}>
+                                <Trash2 size={14} className="text-red-500 dark:text-red-400" /> Delete
                             </button>
                         )}
                     </div>,
@@ -634,8 +634,8 @@ export default function RequestList() {
 
             <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 mb-1 tracking-tight">Quote Requests</h1>
-                    <p className="text-sm text-slate-500">Manage, track, or import transportation quote requests.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">Quote Requests</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Manage, track, or import transportation quote requests.</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -644,38 +644,38 @@ export default function RequestList() {
                         <Button 
                             variant="outline" 
                             size="sm"
-                            className="h-9 px-3 text-xs font-semibold text-slate-700 bg-white border-slate-300 hover:bg-slate-50 flex items-center gap-1.5"
+                            className="h-9 px-3 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setShowTemplateDropdown(!showTemplateDropdown);
                             }}
                         >
-                            <Download size={14} className="text-slate-500" />
+                            <Download size={14} className="text-slate-500 dark:text-slate-400" />
                             <span>Download Template</span>
-                            <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                            <ChevronDown size={13} className="text-slate-400 dark:text-slate-500 ml-0.5" />
                         </Button>
 
                         {showTemplateDropdown && (
-                            <div className="absolute right-0 mt-1 w-52 bg-white rounded-md shadow-lg border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-                                <div className="px-3 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Select Format</div>
+                            <div className="absolute right-0 mt-1 w-52 bg-white dark:bg-[#1e2329] rounded-md shadow-lg border border-slate-200 dark:border-slate-700 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                                <div className="px-3 py-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Select Format</div>
                                 <button 
-                                    className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium"
+                                    className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium"
                                     onClick={handleDownloadCSVTemplate}
                                 >
-                                    <FileSpreadsheet size={15} className="text-emerald-600" />
+                                    <FileSpreadsheet size={15} className="text-emerald-600 dark:text-emerald-400" />
                                     <div>
-                                        <div className="font-bold text-slate-900">CSV Template</div>
-                                        <div className="text-[11px] text-slate-500">Formatted spreadsheet table</div>
+                                        <div className="font-bold text-slate-900 dark:text-slate-100">CSV Template</div>
+                                        <div className="text-[11px] text-slate-500 dark:text-slate-400">Formatted spreadsheet table</div>
                                     </div>
                                 </button>
                                 <button 
-                                    className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium border-t border-slate-100"
+                                    className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium border-t border-slate-100 dark:border-slate-800"
                                     onClick={handleDownloadPDFTemplate}
                                 >
-                                    <FileText size={15} className="text-red-500" />
+                                    <FileText size={15} className="text-red-500 dark:text-red-400" />
                                     <div>
-                                        <div className="font-bold text-slate-900">PDF Template</div>
-                                        <div className="text-[11px] text-slate-500">Standard PDF request form</div>
+                                        <div className="font-bold text-slate-900 dark:text-slate-100">PDF Template</div>
+                                        <div className="text-[11px] text-slate-500 dark:text-slate-400">Standard PDF request form</div>
                                     </div>
                                 </button>
                             </div>
@@ -685,20 +685,20 @@ export default function RequestList() {
                     <Button 
                         variant="outline" 
                         size="sm" 
-                        className="h-9 px-3 text-xs font-semibold border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 flex items-center gap-1.5 shadow-2xs"
+                        className="h-9 px-3 text-xs font-semibold border-emerald-300 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center gap-1.5 shadow-2xs"
                         onClick={() => triggerFileSelect('csv')}
                     >
-                        <FileSpreadsheet size={14} className="text-emerald-600" />
+                        <FileSpreadsheet size={14} className="text-emerald-600 dark:text-emerald-400" />
                         <span>Upload CSV</span>
                     </Button>
 
                     <Button 
                         variant="outline" 
                         size="sm" 
-                        className="h-9 px-3 text-xs font-bold border-purple-300 text-purple-900 bg-purple-50 hover:bg-purple-100 flex items-center gap-1.5 shadow-2xs"
+                        className="h-9 px-3 text-xs font-bold border-purple-300 dark:border-purple-800/80 text-purple-900 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 flex items-center gap-1.5 shadow-2xs"
                         onClick={() => openImportWizard('pdf')}
                     >
-                        <Sparkles size={14} className="text-purple-600 animate-pulse" />
+                        <Sparkles size={14} className="text-purple-600 dark:text-purple-400 animate-pulse" />
                         <span>Upload PDF / ZIP Bundle</span>
                     </Button>
 

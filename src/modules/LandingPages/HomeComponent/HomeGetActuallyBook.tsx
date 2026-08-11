@@ -23,35 +23,35 @@ export default function HomeGetActuallyBook() {
   const text = useScrollReveal();
 
   return (
-    <section className="w-full section-spacing px-4 relative overflow-hidden bg-white">
+    <section className="w-full section-spacing px-4 relative overflow-hidden bg-white dark:bg-[#12161c] transition-colors duration-200">
       <div className="relative max-w-6xl mx-auto py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div
             ref={image.ref}
             className={`order-2 lg:order-1 reveal ${image.isVisible ? "visible" : ""}`}
           >
-            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-2xl bg-white">
-              <div className="flex items-center gap-1.5 bg-gray-100 px-3 py-2 border-b border-gray-200">
+            <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-slate-800 shadow-2xl bg-white dark:bg-[#1e2329]">
+              <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-[#181a20] px-3 py-2 border-b border-gray-200 dark:border-slate-800">
                 <span className="w-2 h-2 rounded-full bg-red-400"></span>
                 <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
                 <span className="w-2 h-2 rounded-full bg-green-400"></span>
-                <span className="ml-3 flex-1 bg-white rounded px-2 py-0.5 text-xs text-gray-400 font-mono">
+                <span className="ml-3 flex-1 bg-white dark:bg-[#1e2329] rounded px-2 py-0.5 text-xs text-gray-400 dark:text-slate-400 font-mono">
                   app.getitmoving.com/quotes
                 </span>
               </div>
               <img
                 src={AllImages.ShippersDashboard}
-                className="w-full h-auto block"
+                className="w-full h-auto block dark:brightness-90 dark:contrast-105"
                 alt="Quotes Dashboard"
               />
             </div>
-            <div className="mt-4 bg-orange-50 border border-orange-100 rounded-xl p-4 flex items-center gap-3">
+            <div className="mt-4 bg-orange-50 dark:bg-[#1e2329] border border-orange-100 dark:border-slate-800 rounded-xl p-4 flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-[#ff4a1f] flex items-center justify-center shrink-0 shadow-md shadow-[#ff4a1f]/30">
                 <Check className="w-4 h-4 text-white" strokeWidth={3} />
               </div>
               <div>
-                <p className="text-[#0f0400] text-sm font-semibold">Instant Quote Matching</p>
-                <p className="text-gray-400 text-xs">Avg. response time under 2 hours</p>
+                <p className="text-[#0f0400] dark:text-slate-100 text-sm font-semibold">Instant Quote Matching</p>
+                <p className="text-gray-400 dark:text-slate-400 text-xs">Avg. response time under 2 hours</p>
               </div>
             </div>
           </div>
@@ -63,11 +63,11 @@ export default function HomeGetActuallyBook() {
             <span className="inline-block text-[#ff4a1f] text-xs font-bold uppercase tracking-widest mb-4">
               For Shippers
             </span>
-            <h2 className="text-[#0f0400] text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6">
+            <h2 className="text-[#0f0400] dark:text-slate-100 text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6">
               Get quotes you can{" "}
               <span className="text-[#ff4a1f]">actually book</span>
             </h2>
-            <p className="text-gray-500 text-base sm:text-lg leading-relaxed mb-10">
+            <p className="text-gray-500 dark:text-slate-400 text-base sm:text-lg leading-relaxed mb-10">
               No more chasing unavailable carriers or receiving quotes from suppliers who can't deliver.
             </p>
             <ul className="space-y-6">
@@ -77,8 +77,8 @@ export default function HomeGetActuallyBook() {
                     <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                   </span>
                   <div>
-                    <p className="text-[#0f0400] font-semibold text-base leading-snug">{item.title}</p>
-                    <p className="mt-1.5 text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                    <p className="text-[#0f0400] dark:text-slate-100 font-semibold text-base leading-snug">{item.title}</p>
+                    <p className="mt-1.5 text-gray-400 dark:text-slate-400 text-sm leading-relaxed">{item.desc}</p>
                   </div>
                 </li>
               ))}

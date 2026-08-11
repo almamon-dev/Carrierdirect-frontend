@@ -69,6 +69,31 @@ export default function QuoteAcceptCheckout() {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
+      
+      // Save new order to processing cache
+      try {
+        const cached = localStorage.getItem('customer_processing_orders_cache');
+        const existingOrders = cached ? JSON.parse(cached) : [];
+        const newOrder = {
+          id: 'ORD-2026-9918',
+          route: { from: quote.pickupCity, to: quote.deliveryCity },
+          supplier: quote.supplier,
+          driverName: 'Rafiqul Islam',
+          driverPhone: '01755-667788',
+          vehicleNo: 'DHA-14-9918',
+          amount: `€ ${quote.totalAmount.toLocaleString()}`,
+          estArrival: `${quote.deliveryDate} 04:00 PM`,
+          status: 'In Transit',
+          vehicleType: quote.vehicleType,
+          cargoWeight: quote.weight,
+          paymentStatus: paymentOption === 'pay_later' ? 'Net-30 Invoice' : 'Escrow Hold'
+        };
+        const updated = [newOrder, ...existingOrders.filter((o: any) => o.id !== 'ORD-2026-9918')];
+        localStorage.setItem('customer_processing_orders_cache', JSON.stringify(updated));
+      } catch (err) {
+        console.error('Failed to sync processing orders cache:', err);
+      }
+
       setIsBookingSuccess(true);
     }, 800);
   };

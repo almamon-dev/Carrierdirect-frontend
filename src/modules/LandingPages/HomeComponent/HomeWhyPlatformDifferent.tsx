@@ -47,7 +47,7 @@ export default function HomeWhyPlatformDifferent() {
             <img 
               src={AllImages.HeroCard} 
               alt="Platform Dashboard" 
-              className="w-full h-auto object-cover" 
+              className="w-full h-auto object-cover dark:brightness-90 dark:contrast-105" 
             />
           </div>
 

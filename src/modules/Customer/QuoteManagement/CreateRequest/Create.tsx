@@ -484,14 +484,14 @@ export default function CreateRequestForm() {
     ].filter(Boolean).length;
 
     return (
-        <div className="p-5 md:p-6 w-full max-w-full bg-[#f8f9fa] min-h-screen pb-20 font-sans antialiased">
+        <div className="p-5 md:p-6 w-full max-w-full bg-[#f8f9fa] dark:bg-[#0b0e12] min-h-screen pb-20 font-sans antialiased">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         {isRepeatMode ? 'Repeat Quote Request' : 'Create Quote Request'}
                     </h1>
-                    <p className="text-xs font-medium text-slate-500 mt-0.5">
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                         {isRepeatMode
                             ? `Pre-filled from previous quote/order (${repeatSource}). Review dates and details before posting.`
                             : 'Fill in the required shipping details to post a request for carriers.'}
@@ -502,23 +502,23 @@ export default function CreateRequestForm() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 px-3 text-xs font-semibold border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 flex items-center gap-1.5 cursor-pointer"
+                        className="h-9 px-3 text-xs font-semibold border-amber-300 dark:border-amber-800/80 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 flex items-center gap-1.5 cursor-pointer"
                         onClick={fillSampleData}
                     >
-                        <Sparkles size={14} className="text-amber-600" />
+                        <Sparkles size={14} className="text-amber-600 dark:text-amber-400" />
                         Auto Fill Sample Data
                     </Button>
                     <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 px-3 text-xs font-semibold border-slate-300 text-slate-700 bg-white hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer"
+                        className="h-9 px-3 text-xs font-semibold border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer"
                         onClick={() => handleSubmit(undefined, 'pending')}
                         disabled={isSubmitting}
                     >
                         Save Draft
                     </Button>
-                    <Button variant="outline" size="sm" className="h-9 px-3 text-xs font-semibold cursor-pointer" onClick={() => navigate(-1)}>
+                    <Button variant="outline" size="sm" className="h-9 px-3 text-xs font-semibold border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer" onClick={() => navigate(-1)}>
                         Cancel
                     </Button>
                 </div>
@@ -529,16 +529,16 @@ export default function CreateRequestForm() {
 
             {/* Repeat Mode Banner */}
             {isRepeatMode && (
-                <div className="mb-4 p-3.5 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between gap-3 text-blue-900 shadow-2xs">
+                <div className="mb-4 p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-lg flex items-center justify-between gap-3 text-blue-900 dark:text-blue-200 shadow-2xs">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-md text-blue-600 flex-shrink-0">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-md text-blue-600 dark:text-blue-400 flex-shrink-0">
                             <RotateCcw size={18} />
                         </div>
                         <div>
                             <h4 className="text-xs font-bold flex items-center gap-2">
                                 Repeat Request Active ({repeatSource})
                             </h4>
-                            <p className="text-[11px] text-blue-700 mt-0.5">
+                            <p className="text-[11px] text-blue-700 dark:text-blue-300 mt-0.5">
                                 Form details (pickup & delivery addresses, load specs, vehicle) have been pre-filled from your selected history item.
                             </p>
                         </div>
@@ -552,9 +552,9 @@ export default function CreateRequestForm() {
             {/* Layout */}
             <div className="flex flex-col md:flex-row gap-5 items-start">
                 {/* Sidebar Navigation */}
-                <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-2xs">
-                    <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Categories</h3>
+                <div className="w-full md:w-[260px] flex-shrink-0 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden shadow-2xs">
+                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#181d24]">
+                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Categories</h3>
                     </div>
                     <div className="flex flex-col">
                         {CREATE_TABS.map((tab) => {
@@ -564,13 +564,13 @@ export default function CreateRequestForm() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-semibold transition-colors border-l-[3px] border-b border-slate-100 last:border-b-0 cursor-pointer ${isSelected
-                                            ? 'border-l-[#ff4a1f] bg-orange-50/50 text-[#ff4a1f]'
-                                            : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                    className={`w-full flex items-center justify-between px-4 py-3 text-xs font-semibold transition-colors border-l-[3px] border-b border-slate-100 dark:border-slate-800/80 last:border-b-0 cursor-pointer ${isSelected
+                                            ? 'border-l-[#ff4a1f] bg-orange-50/50 dark:bg-[#ff4a1f]/10 text-[#ff4a1f]'
+                                            : 'border-l-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
                                         }`}
                                 >
                                     <div className="flex items-center gap-2.5">
-                                        <Icon size={15} className={isSelected ? 'text-[#ff4a1f]' : 'text-slate-400'} />
+                                        <Icon size={15} className={isSelected ? 'text-[#ff4a1f]' : 'text-slate-400 dark:text-slate-500'} />
                                         {tab.label}
                                     </div>
                                     {isSelected && <ChevronRight size={15} className="text-[#ff4a1f]" />}
@@ -581,7 +581,7 @@ export default function CreateRequestForm() {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-md shadow-2xs w-full">
+                <div className="flex-1 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-md shadow-2xs w-full">
                     <div className="p-6 md:p-8">
                         {activeTab === 'general' && (
                             <BasicInfoSection

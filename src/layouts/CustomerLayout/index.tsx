@@ -4,6 +4,7 @@ import { Bell, Search, User, Settings, LogOut, ChevronDown, CheckCircle2, Packag
 import Sidebar from './Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
+import ThemeSwitcher from '@/components/common/theme-switcher';
 import { TOKEN_CONFIG } from '@/config/auth';
 
 // ── Helper: read auth user from localStorage ─────────────────────────────────
@@ -46,12 +47,14 @@ export default function CustomerLayout() {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [authUser, setAuthUser] = useState(getAuthUser);
+    const [isScrolled, setIsScrolled] = useState(false);
     
     const location = useLocation();
     const navigate = useNavigate();
 
     const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
+    const mainRef = useRef<HTMLElement>(null);
 
     // Auto-close sidebar on mobile when route changes
     useEffect(() => {
@@ -79,6 +82,19 @@ export default function CustomerLayout() {
         const sync = () => setAuthUser(getAuthUser());
         window.addEventListener('storage', sync);
         return () => window.removeEventListener('storage', sync);
+    }, []);
+
+    // Track scroll position on main container to trigger header border
+    useEffect(() => {
+        const mainEl = mainRef.current;
+        if (!mainEl) return;
+        const handleScroll = () => {
+            setIsScrolled(mainEl.scrollTop > 5);
+        };
+        // Check initial scroll state
+        handleScroll();
+        mainEl.addEventListener('scroll', handleScroll, { passive: true });
+        return () => mainEl.removeEventListener('scroll', handleScroll);
     }, []);
 
     const handleLogout = () => {
@@ -109,10 +125,14 @@ export default function CustomerLayout() {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header Navbar */}
-                <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 shadow-2xs">
+                <header className={`h-16 bg-white dark:bg-[#12161c] flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 transition-all duration-300 ${
+                    isScrolled
+                        ? 'border-b border-slate-200 dark:border-slate-800 shadow-sm'
+                        : 'border-b border-transparent shadow-none'
+                }`}>
                     <div className="flex items-center gap-5">
                         <button
-                            className="text-slate-600 hover:text-[#ff4a1f] transition-colors cursor-pointer"
+                            className="text-slate-600 dark:text-slate-300 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors cursor-pointer"
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -122,7 +142,7 @@ export default function CustomerLayout() {
                         
                         {/* Module Title */}
                         <div className="hidden lg:block">
-                            <h1 className="text-[18px] font-bold text-slate-900 capitalize tracking-wide">
+                            <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100 capitalize tracking-wide">
                                 {currentModuleLabel}
                             </h1>
                         </div>
@@ -130,51 +150,53 @@ export default function CustomerLayout() {
                         {/* Search Bar */}
                         <button 
                             onClick={() => setIsSearchOpen(true)}
-                            className="hidden md:flex items-center bg-slate-50 px-4 py-1.5 rounded-full w-[280px] border border-slate-200 hover:border-[#ff4a1f] hover:bg-white transition-colors text-left group cursor-pointer"
+                            className="hidden md:flex items-center bg-slate-50 dark:bg-[#1e2329] px-4 py-1.5 rounded-full w-[280px] border border-slate-200 dark:border-slate-700/80 hover:border-[#ff4a1f] dark:hover:border-[#ff4a1f] hover:bg-white dark:hover:bg-[#252b33] transition-colors text-left group cursor-pointer"
                         >
-                            <Search size={15} className="text-slate-400 mr-2 shrink-0 group-hover:text-[#ff4a1f]" />
-                            <span className="text-[13px] text-slate-400 w-full group-hover:text-slate-600">Search loads, quotes...</span>
-                            <span className="text-[10px] font-bold text-slate-400 bg-slate-200 px-1.5 py-0.5 rounded ml-auto border border-slate-300">⌘K</span>
+                            <Search size={15} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0 group-hover:text-[#ff4a1f]" />
+                            <span className="text-[13px] text-slate-400 dark:text-slate-400 w-full group-hover:text-slate-600 dark:group-hover:text-slate-200">Search loads, quotes...</span>
+                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded ml-auto border border-slate-300 dark:border-slate-700">⌘K</span>
                         </button>
                     </div>
 
                     {/* Right Header Controls */}
                     <div className="flex items-center gap-3">
+                        {/* Theme Switcher */}
+                        <ThemeSwitcher />
                         
                         {/* Notification Bell Dropdown with Count Badge */}
                         <div className="relative" ref={notifRef}>
                             <button 
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200/80 flex items-center justify-center text-slate-700 transition-colors relative cursor-pointer"
+                                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors relative cursor-pointer"
                                 title="Notifications"
                             >
                                 <Bell size={19} />
-                                <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-[#ff4a1f] text-white text-[11px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-1 ring-[#ff4a1f]/20">
+                                <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-[#ff4a1f] text-white text-[11px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#12161c] shadow-sm ring-1 ring-[#ff4a1f]/20">
                                     {mockNotifications.length}
                                 </span>
                             </button>
 
                             {isNotificationOpen && (
-                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl border border-slate-200 shadow-2xl z-[999] overflow-hidden animate-fade-in text-xs">
-                                    <div className="px-4 py-3 bg-slate-900 text-white font-bold flex items-center justify-between">
+                                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#1e2329] rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-2xl z-[999] overflow-hidden text-xs">
+                                    <div className="px-4 py-3 bg-slate-900 dark:bg-[#12161c] text-white font-bold flex items-center justify-between border-b border-slate-800">
                                         <span>Notifications</span>
-                                        <span className="bg-[#ff4a1f] text-white px-1.5 py-0.5 rounded text-[10px]">
+                                        <span className="bg-[#ff4a1f] text-white px-2 py-0.5 rounded-full text-[10px]">
                                             {mockNotifications.length} New
                                         </span>
                                     </div>
-                                    <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+                                    <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-72 overflow-y-auto">
                                         {mockNotifications.map((notif) => (
-                                            <div key={notif.id} className="p-3 hover:bg-slate-50 transition-colors flex gap-2.5 items-start">
+                                            <div key={notif.id} className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors flex gap-3 items-start">
                                                 <notif.icon className="w-4 h-4 text-[#ff4a1f] shrink-0 mt-0.5" />
                                                 <div>
-                                                    <p className="font-bold text-slate-900">{notif.title}</p>
-                                                    <p className="text-slate-500 text-[11px]">{notif.desc}</p>
-                                                    <span className="text-[10px] text-slate-400 mt-1 block">{notif.time}</span>
+                                                    <p className="font-bold text-slate-900 dark:text-slate-100">{notif.title}</p>
+                                                    <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">{notif.desc}</p>
+                                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">{notif.time}</span>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="p-2 bg-slate-50 border-t border-slate-100 text-center">
+                                    <div className="p-2.5 bg-slate-50 dark:bg-[#181a20] border-t border-slate-100 dark:border-slate-800 text-center">
                                         <button 
                                             onClick={() => {
                                                 setIsNotificationOpen(false);
@@ -193,63 +215,65 @@ export default function CustomerLayout() {
                         <div className="relative" ref={profileRef}>
                             <button
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition-colors cursor-pointer"
+                                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-[#282f38] transition-colors cursor-pointer"
                             >
                                 {/* Avatar: initials or icon */}
-                                <div className="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center text-[11px] font-black shrink-0">
+                                <div className="w-7 h-7 rounded-full bg-[#ff4a1f] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-xs">
                                     {authUser?.name ? initials(authUser.name) : <User size={14} />}
                                 </div>
-                                <span className="text-xs font-bold text-slate-800 hidden sm:inline max-w-[120px] truncate">
+                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[120px] sm:max-w-[160px] truncate">
                                     {authUser?.name || 'Account'}
                                 </span>
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                             </button>
 
                             {isProfileOpen && (
-                                <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl border border-slate-200 shadow-2xl z-[999] overflow-hidden animate-fade-in text-xs py-1">
+                                <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-[#1e2329] rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-2xl z-[999] overflow-hidden text-xs py-1.5">
                                     {/* User info header */}
-                                    <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-slate-700 text-white flex items-center justify-center text-sm font-black shrink-0">
+                                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-[#181a20]/50">
+                                        <div className="w-9 h-9 rounded-full bg-slate-700 dark:bg-[#ff4a1f] text-white flex items-center justify-center text-sm font-black shrink-0">
                                             {authUser?.name ? initials(authUser.name) : <User size={16} />}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-bold text-slate-900 truncate">{authUser?.name || 'Guest User'}</p>
-                                            <p className="text-slate-500 text-[11px] truncate">{authUser?.email || ''}</p>
+                                            <p className="font-bold text-slate-900 dark:text-slate-100 truncate">{authUser?.name || 'Guest User'}</p>
+                                            <p className="text-slate-500 dark:text-slate-400 text-[11px] truncate">{authUser?.email || ''}</p>
                                             {authUser?.user_type && (
-                                                <span className="inline-block mt-0.5 text-[10px] font-bold text-[#FF4A1F] bg-orange-50 px-1.5 py-0.5 rounded capitalize">
+                                                <span className="inline-block mt-0.5 text-[10px] font-bold text-[#FF4A1F] bg-orange-50 dark:bg-[#ff4a1f]/15 px-1.5 py-0.5 rounded capitalize">
                                                     {authUser.user_type}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    <Link
-                                        to="/customer/settings?tab=profile"
-                                        onClick={() => setIsProfileOpen(false)}
-                                        className="flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 hover:text-[#ff4a1f] transition-colors"
-                                    >
-                                        <User size={15} />
-                                        My Profile
-                                    </Link>
+                                    <div className="p-1.5 space-y-0.5">
+                                        <Link
+                                            to="/customer/settings?tab=profile"
+                                            onClick={() => setIsProfileOpen(false)}
+                                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors"
+                                        >
+                                            <User size={15} />
+                                            My Profile
+                                        </Link>
 
-                                    <Link
-                                        to="/customer/settings"
-                                        onClick={() => setIsProfileOpen(false)}
-                                        className="flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 hover:text-[#ff4a1f] transition-colors"
-                                    >
-                                        <Settings size={15} />
-                                        Account Settings
-                                    </Link>
+                                        <Link
+                                            to="/customer/settings"
+                                            onClick={() => setIsProfileOpen(false)}
+                                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors"
+                                        >
+                                            <Settings size={15} />
+                                            Account Settings
+                                        </Link>
 
-                                    <div className="border-t border-slate-100 my-1" />
+                                        <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
 
-                                    <button
-                                        onClick={() => { setIsProfileOpen(false); handleLogout(); }}
-                                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors text-left font-bold cursor-pointer"
-                                    >
-                                        <LogOut size={15} />
-                                        Logout
-                                    </button>
+                                        <button
+                                            onClick={() => { setIsProfileOpen(false); handleLogout(); }}
+                                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left font-bold cursor-pointer"
+                                        >
+                                            <LogOut size={15} />
+                                            Logout
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -258,7 +282,7 @@ export default function CustomerLayout() {
                 </header>
 
                 {/* Main Scrollable Content */}
-                <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f8fafc] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f8fafc] dark:bg-[#181a20] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <React.Suspense fallback={<div className="flex h-full items-center justify-center p-8"><div className="w-8 h-8 border-4 border-[#ff4a1f] border-t-transparent rounded-full animate-spin"></div></div>}>
                         <div className="w-full">
                             <Outlet />

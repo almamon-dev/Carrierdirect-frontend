@@ -13,14 +13,14 @@ const HomeMarquee = () => {
   ];
 
   return (
-    <div className="py-6 bg-white border-y border-slate-200 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-around flex-wrap gap-8 opacity-75">
+    <div className="py-6 bg-white dark:bg-[#12161c] border-y border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 flex items-center justify-around flex-wrap gap-8 opacity-75 dark:opacity-90">
         {reviews.map((review) => (
           <img
             key={review.id}
             src={review.svg}
             alt={`Brand ${review.id}`}
-            className="h-8 object-contain hover:scale-105 transition-transform"
+            className="h-8 object-contain hover:scale-105 transition-transform dark:brightness-200 dark:contrast-125 dark:invert"
           />
         ))}
       </div>

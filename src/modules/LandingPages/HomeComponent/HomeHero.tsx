@@ -33,13 +33,13 @@ export default function HomeHero() {
         <img
           src={AllImages.Hero}
           alt="Freight Truck"
-          className="w-full h-full object-cover object-right sm:object-center"
+          className="w-full h-full object-cover object-right sm:object-center transition-all duration-300 dark:brightness-[0.75] dark:contrast-[1.1]"
         />
         
-        {/* Soft Dark Gradient on Left Only (For Text Legibility) - Lets Golden Sunset Shine Through */}
-        <div className="absolute inset-0 z-1 bg-gradient-to-r from-[#0b0300]/90 via-[#0b0300]/40 to-transparent w-full md:w-1/2 pointer-events-none" />
+        {/* Soft Dark Gradient on Left Only (For Text Legibility) */}
+        <div className="absolute inset-0 z-1 bg-gradient-to-r from-[#0b0300]/90 dark:from-[#060200]/98 via-[#0b0300]/40 dark:via-[#060200]/75 to-transparent w-full md:w-1/2 pointer-events-none" />
 
-        {/* Fine Dark Grid Pattern (Match Screenshot Grid) */}
+        {/* Fine Dark Grid Pattern */}
         <div 
           className="absolute inset-0 z-10 opacity-25 pointer-events-none"
           style={{
@@ -49,7 +49,7 @@ export default function HomeHero() {
         />
 
         {/* Subtle Bottom Blend Gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0b0300] to-transparent z-20 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0b0300] dark:from-[#12161c] to-transparent z-20 pointer-events-none" />
       </div>
 
       {/* Hero Content Container */}
