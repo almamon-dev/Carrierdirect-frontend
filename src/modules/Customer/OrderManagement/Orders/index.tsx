@@ -1,52 +1,97 @@
-import React, { useState } from 'react';
-import { Eye, Download, RotateCcw, Star } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, Download, RotateCcw, Star, PackageSearch } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
+import EmptyState from '@/components/tables/empty-state';
 import { useNavigate } from 'react-router-dom';
 import RatingModal from '@/components/modals/rating-modal';
-
-const mockData = [
-  { id: 'ORD-5591', date: '2026-07-18', deliveryDate: '2026-07-20', route: 'Dhaka → Chittagong', supplier: 'Global Transport', vehicle: 'Covered Van (14ft)', amount: '€ 45,000', status: 'Completed', paymentStatus: 'Paid' },
-  { id: 'ORD-5582', date: '2026-07-15', deliveryDate: '2026-07-16', route: 'Sylhet → Rajshahi', supplier: 'Express Logistics BD', vehicle: 'Open Truck (7ft)', amount: '€ 32,500', status: 'Completed', paymentStatus: 'Paid' },
-  { id: 'ORD-5570', date: '2026-07-10', deliveryDate: '-', route: 'Khulna → Dhaka', supplier: 'Prime Movers', vehicle: 'Covered Van (20ft)', amount: '€ 28,000', status: 'Cancelled', paymentStatus: 'Refunded' },
-  { id: 'ORD-5595', date: '2026-07-20', deliveryDate: 'Est: 2026-07-22', route: 'Barisal → Sylhet', supplier: 'Fast Track BD', vehicle: 'Trailer (40ft)', amount: '€ 55,000', status: 'In Transit', paymentStatus: 'Partial Due' },
-];
+import apiClient from '@/lib/axios';
 
 export default function Orders() {
   const navigate = useNavigate();
+  const [orders, setOrders] = useState<any[]>([]);
   const [ratingTarget, setRatingTarget] = useState<{ id: string; supplier: string; route: string } | null>(null);
   const [statusFilter, setStatusFilter] = useState<'All' | 'Completed' | 'In Transit' | 'Cancelled'>('All');
 
-  const filteredOrders = mockData.filter(order => {
+  const fetchOrders = async () => {
+    try {
+      const res = await apiClient.get('/customer/orders');
+      const list = res.data?.data || res.data || [];
+      setOrders(Array.isArray(list) ? list : []);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+      setOrders([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const filteredOrders = orders.filter(order => {
     if (statusFilter === 'All') return true;
-    return order.status === statusFilter;
+    const st = (order.status || order.status_raw || '').toLowerCase();
+    if (statusFilter === 'Completed') return st === 'completed';
+    if (statusFilter === 'Cancelled') return st === 'cancelled';
+    if (statusFilter === 'In Transit') return st === 'in transit' || st === 'in_transit' || st === 'confirmed' || st === 'in_progress' || st === 'picked_up';
+    return true;
   });
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Order ID', render: (row) => <span className="font-bold text-[#ff4a1f]">{row.id}</span> },
-    { id: 'date', label: 'Order Date', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date}</span> },
-    { id: 'route', label: 'Route', render: (row) => <span className="font-medium text-slate-800 whitespace-nowrap">{row.route}</span> },
-    { id: 'supplier', label: 'Supplier', render: (row) => <span className="text-slate-700 whitespace-nowrap">{row.supplier}</span> },
-    { id: 'vehicle', label: 'Vehicle', render: (row) => <span className="text-slate-500 text-[13px]">{row.vehicle}</span> },
-    { id: 'deliveryDate', label: 'Delivery', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.deliveryDate}</span> },
-    { id: 'amount', label: 'Total Amount', render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount}</span> },
+    { 
+      id: 'id', 
+      label: 'Order ID', 
+      render: (row) => <span className="font-bold text-[#ff4a1f]">{row.order_id || row.order_number || `ORD-${row.id}`}</span> 
+    },
+    { 
+      id: 'date', 
+      label: 'Order Date', 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date || row.created_at_formatted || 'N/A'}</span> 
+    },
+    { 
+      id: 'route', 
+      label: 'Route', 
+      render: (row) => <span className="font-medium text-slate-800 whitespace-nowrap">{row.route || `${row.pickup_address || 'Origin'} → ${row.delivery_address || 'Destination'}`}</span> 
+    },
+    { 
+      id: 'supplier', 
+      label: 'Supplier', 
+      render: (row) => <span className="text-slate-700 whitespace-nowrap">{row.supplier_name || row.supplier?.company_name || row.supplier?.name || 'Supplier'}</span> 
+    },
+    { 
+      id: 'vehicle', 
+      label: 'Vehicle', 
+      render: (row) => <span className="text-slate-500 text-[13px]">{row.vehicle || row.vehicle_type || 'N/A'}</span> 
+    },
+    { 
+      id: 'deliveryDate', 
+      label: 'Delivery', 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.delivery_date || row.estimated_time || 'Pending'}</span> 
+    },
+    { 
+      id: 'amount', 
+      label: 'Total Amount', 
+      render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount || row.total_amount_formatted || `€ ${row.total_amount}`}</span> 
+    },
     { 
       id: 'paymentStatus', 
       label: 'Payment',
       render: (row) => {
-        if (row.paymentStatus === 'Paid') return <span className="text-emerald-600 font-semibold text-[13px]">Paid</span>;
-        if (row.paymentStatus === 'Refunded') return <span className="text-slate-400 font-semibold text-[13px]">Refunded</span>;
-        return <span className="text-amber-600 font-semibold text-[13px]">{row.paymentStatus}</span>;
+        const ps = (row.payment_status || 'Paid').toLowerCase();
+        if (ps === 'paid') return <span className="text-emerald-600 font-semibold text-[13px]">Paid</span>;
+        if (ps === 'refunded') return <span className="text-slate-400 font-semibold text-[13px]">Refunded</span>;
+        return <span className="text-amber-600 font-semibold text-[13px]">{row.payment_status || 'Pending'}</span>;
       }
     },
     { 
       id: 'status', 
       label: 'Status',
       render: (row) => {
-        if (row.status === 'Completed') return <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200">Completed</Badge>;
-        if (row.status === 'Cancelled') return <Badge variant="destructive">Cancelled</Badge>;
-        return <Badge variant="warning">{row.status}</Badge>;
+        const st = (row.status || '').toLowerCase();
+        if (st === 'completed') return <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200">Completed</Badge>;
+        if (st === 'cancelled') return <Badge variant="destructive">Cancelled</Badge>;
+        return <Badge variant="warning">{row.status || 'In Transit'}</Badge>;
       }
     }
   ];
@@ -58,7 +103,7 @@ export default function Orders() {
           variant="outline"
           size="sm"
           className="h-7 px-2 text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 font-bold text-[11px] cursor-pointer"
-          onClick={() => setRatingTarget({ id: row.id, supplier: row.supplier, route: row.route })}
+          onClick={() => setRatingTarget({ id: String(row.id), supplier: row.supplier_name || row.supplier?.name || 'Supplier', route: row.route })}
           title="Rate Supplier"
         >
           <Star size={12} className="mr-1 fill-amber-400 text-amber-400" /> Rate
@@ -92,7 +137,13 @@ export default function Orders() {
         <label className="text-[11px] font-bold text-slate-600">Order Status</label>
         <div className="flex items-center gap-1.5">
           {(['All', 'Completed', 'In Transit', 'Cancelled'] as const).map((tab) => {
-            const count = tab === 'All' ? mockData.length : mockData.filter(i => i.status === tab).length;
+            const count = tab === 'All' ? orders.length : orders.filter(i => {
+              const st = (i.status || i.status_raw || '').toLowerCase();
+              if (tab === 'Completed') return st === 'completed';
+              if (tab === 'Cancelled') return st === 'cancelled';
+              if (tab === 'In Transit') return st === 'in transit' || st === 'in_transit' || st === 'confirmed' || st === 'in_progress' || st === 'picked_up';
+              return true;
+            }).length;
             const isActive = statusFilter === tab;
             return (
               <button
@@ -133,6 +184,15 @@ export default function Orders() {
         filterContent={filterContent}
         searchPlaceholder="Search by Order ID or Supplier..."
         compact={true}
+        emptyState={
+          <EmptyState
+            icon={PackageSearch}
+            title="No Orders Found"
+            description="You haven't placed any logistics orders yet. Accept a quote from received quotes to place an order."
+            actionLabel="View Received Quotes"
+            onAction={() => navigate('/customer/quotes/received')}
+          />
+        }
       />
 
       {/* Bidirectional Rating Modal for Completed Orders */}
@@ -144,8 +204,13 @@ export default function Orders() {
           targetName={ratingTarget.supplier}
           targetRole="Supplier"
           orderTitle={ratingTarget.route}
-          onSubmit={(data) => {
-            console.log('Submitted rating:', data);
+          onSubmit={async (data) => {
+            try {
+              await apiClient.post(`/customer/orders/${ratingTarget.id}/review`, data);
+              fetchOrders();
+            } catch (err: any) {
+              console.error('Failed to submit review:', err);
+            }
           }}
         />
       )}

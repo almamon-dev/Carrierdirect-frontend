@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
+import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { 
+import {
     Users, UserCheck, Clock, ShieldCheck, Truck, Package, MonitorPlay, TrendingUp, UserPlus, Mail, ArrowUpRight, CheckCircle, Zap
 } from 'lucide-react';
 import Select from '@/components/ui/select';
@@ -19,9 +19,9 @@ const memberGrowthData = [
 ];
 
 const MetricCard = ({ title, description, value, trend, icon: Icon, colorClass, badgeText }: any) => (
-    <div className="bg-white p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition-all flex flex-col justify-between shadow-sm hover:shadow-md group">
+    <div className="bg-white p-4 rounded-md border border-slate-200 hover:border-slate-300 transition-all flex flex-col justify-between shadow-sm hover:shadow-md group">
         <div className="flex justify-between items-start w-full mb-3">
-            <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center transition-transform group-hover:scale-105 ${colorClass}`}>
+            <div className={`w-10 h-10 rounded-md shrink-0 flex items-center justify-center transition-transform group-hover:scale-105 ${colorClass}`}>
                 <Icon size={20} strokeWidth={2} />
             </div>
             {badgeText && (
@@ -69,35 +69,35 @@ export default function DashboardTab() {
         <div className="space-y-5">
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <MetricCard 
-                    title="Total Team Members" 
-                    description="Registered staff across 5 departments." 
+                <MetricCard
+                    title="Total Team Members"
+                    description="Registered staff across 5 departments."
                     value="45"
                     trend="+13% mo/mo"
                     icon={Users}
                     colorClass="bg-brand-light text-brand"
                     badgeText="5 Seats Free"
                 />
-                <MetricCard 
-                    title="Active Operational Staff" 
-                    description="Members currently available for duty." 
+                <MetricCard
+                    title="Active Operational Staff"
+                    description="Members currently available for duty."
                     value="42"
                     trend="93% uptime"
                     icon={UserCheck}
                     colorClass="bg-emerald-50 text-emerald-600"
                     badgeText="3 On Leave"
                 />
-                <MetricCard 
-                    title="Pending Invitations" 
-                    description="Invites awaiting team confirmation." 
+                <MetricCard
+                    title="Pending Invitations"
+                    description="Invites awaiting team confirmation."
                     value="3"
                     icon={Clock}
                     colorClass="bg-amber-50 text-amber-600"
                     badgeText="Action Needed"
                 />
-                <MetricCard 
-                    title="Online Session Count" 
-                    description="Logins recorded in the past hour." 
+                <MetricCard
+                    title="Online Session Count"
+                    description="Logins recorded in the past hour."
                     value="18"
                     icon={MonitorPlay}
                     colorClass="bg-indigo-50 text-indigo-600"
@@ -107,9 +107,9 @@ export default function DashboardTab() {
 
             {/* Charts & Quick Invite Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                
+
                 {/* Area Chart - Team Growth */}
-                <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="lg:col-span-2 bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div>
                         <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                             <div className="flex items-center gap-2">
@@ -121,7 +121,7 @@ export default function DashboardTab() {
                                     <p className="text-[11px] text-slate-500">Monthly staff additions vs active rate</p>
                                 </div>
                             </div>
-                            <Select 
+                            <Select
                                 className="w-32 h-8 text-xs"
                                 value="this_month"
                                 showSearch={false}
@@ -150,18 +150,18 @@ export default function DashboardTab() {
                             <AreaChart data={memberGrowthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorMembers" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#FF4A1F" stopOpacity={0.25}/>
-                                        <stop offset="95%" stopColor="#FF4A1F" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#FF4A1F" stopOpacity={0.25} />
+                                        <stop offset="95%" stopColor="#FF4A1F" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
-                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
-                                <Tooltip 
+                                <Tooltip
                                     contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 4px 14px -2px rgba(0,0,0,0.08)' }}
                                 />
                                 <Area type="monotone" dataKey="members" stroke="#FF4A1F" strokeWidth={2.5} dot={{ r: 4, fill: '#FF4A1F' }} fill="url(#colorMembers)" />
@@ -172,13 +172,13 @@ export default function DashboardTab() {
                 </div>
 
                 {/* Department Distribution Side Card */}
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div>
                         <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                             <h3 className="text-xs font-bold text-slate-900">Department Distribution</h3>
                             <span className="text-[10px] font-bold text-brand bg-brand-light px-2 py-0.5 rounded">5 Active Teams</span>
                         </div>
-                        
+
                         <div className="space-y-3.5">
                             <div>
                                 <div className="flex justify-between items-center text-xs mb-1">
@@ -220,14 +220,14 @@ export default function DashboardTab() {
 
                     {/* Quick Invite Box */}
                     <div className="mt-5 pt-4 border-t border-slate-100">
-                        <form onSubmit={handleQuickInvite} className="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                        <form onSubmit={handleQuickInvite} className="bg-slate-50 p-3 rounded-md border border-slate-200/80">
                             <label className="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
                                 <Zap size={13} className="text-brand" /> Quick Invite Staff Member
                             </label>
                             <div className="flex gap-2">
-                                <Input 
+                                <Input
                                     type="email"
-                                    placeholder="colleague@company.com" 
+                                    placeholder="colleague@company.com"
                                     className="h-8 text-xs bg-white"
                                     value={quickEmail}
                                     onChange={(e) => setQuickEmail(e.target.value)}
@@ -246,12 +246,12 @@ export default function DashboardTab() {
                     </div>
                 </div>
             </div>
-            
+
             {/* Bottom Row - Recent Invitations & Audit Logs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                
+
                 {/* Recent Invitations */}
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
                         <div className="flex items-center gap-2">
                             <UserPlus size={16} className="text-brand" />
@@ -271,11 +271,10 @@ export default function DashboardTab() {
                                     <p className="font-bold text-slate-900 text-xs">{inv.email}</p>
                                     <p className="text-[11px] text-slate-500">{inv.role} • Sent on {inv.date}</p>
                                 </div>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                    inv.status === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                                    inv.status === 'Accepted' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                                    'bg-red-50 text-red-700 border border-red-200'
-                                }`}>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${inv.status === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                                        inv.status === 'Accepted' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                                            'bg-red-50 text-red-700 border border-red-200'
+                                    }`}>
                                     {inv.status}
                                 </span>
                             </div>
@@ -284,7 +283,7 @@ export default function DashboardTab() {
                 </div>
 
                 {/* Audit Activity */}
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                <div className="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
                         <div className="flex items-center gap-2">
                             <Clock size={16} className="text-brand" />

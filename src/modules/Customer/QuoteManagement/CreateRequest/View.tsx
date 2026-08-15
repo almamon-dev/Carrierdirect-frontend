@@ -149,7 +149,7 @@ export default function ViewRequestForm() {
                         deliveryTime: q.delivery_time_from || q.deliveryTime || '',
                         expectedTransitTime: q.expected_transit_time || q.expectedTransitTime || '2 Days',
                         estDistance: q.est_distance || q.distance_miles || q.estDistance || '245',
-                        
+
                         pickupCompany: q.pickup_company || q.pickupCompany || 'Prime Industrial Ltd.',
                         pickupContactName: q.pickup_contact_name || q.pickupContactName || 'Kamal Hossain',
                         pickupPhone: q.pickup_phone || q.pickupPhone || '+8801711234567',
@@ -180,7 +180,7 @@ export default function ViewRequestForm() {
                         palletsCount: q.pallets_count || q.palletsCount ? String(q.pallets_count || q.palletsCount) : '5',
                         weight: q.weight ? String(q.weight) : '2500',
                         volume: q.volume ? String(q.volume) : '15.5',
-                        dimensions: Array.isArray(q.items) && q.items.length > 0 
+                        dimensions: Array.isArray(q.items) && q.items.length > 0
                             ? q.items.map((it: any, idx: number) => ({
                                 id: it.id || idx + 1,
                                 length: it.length ? String(it.length) : '120',
@@ -188,7 +188,7 @@ export default function ViewRequestForm() {
                                 height: it.height ? String(it.height) : '150',
                                 qty: it.quantity ? String(it.quantity) : '1',
                                 unit: 'CM'
-                              }))
+                            }))
                             : [{ id: 1, length: '120', width: '100', height: '150', qty: '5', unit: 'CM' }],
 
                         stackable: Boolean(q.stackable ?? true),
@@ -216,7 +216,7 @@ export default function ViewRequestForm() {
                         specialInstructions: q.special_instructions || q.specialInstructions || 'Call driver 1 hour before pickup.',
                         internalReference: q.internal_reference || q.internalReference || `REF-${cleanId}`,
                         images: Array.isArray(q.images_urls) && q.images_urls.length > 0
-                            ? q.images_urls.map((u: string, idx: number) => ({ name: `Attachment_${idx+1}`, url: u }))
+                            ? q.images_urls.map((u: string, idx: number) => ({ name: `Attachment_${idx + 1}`, url: u }))
                             : (Array.isArray(q.images) ? q.images : []),
                         packingList: q.packing_list_url || q.packing_list_path
                             ? { name: 'Packing_List.pdf', url: q.packing_list_url || q.packing_list_path }
@@ -357,8 +357,8 @@ export default function ViewRequestForm() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center justify-between px-4 py-2.5 text-[14px] font-medium transition-colors border-l-[3px] border-b border-slate-50 last:border-b-0 ${isSelected
-                                            ? 'border-l-indigo-600 bg-brand-light/50 text-indigo-700'
-                                            : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                        ? 'border-l-indigo-600 bg-brand-light/50 text-indigo-700'
+                                        : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                         }`}
                                 >
                                     <div className="flex items-center gap-2.5">
@@ -497,7 +497,7 @@ export default function ViewRequestForm() {
                                             <p className="text-[14px] text-slate-500 font-medium">Dimensions</p>
                                             <p className="text-[14px] text-slate-400">:</p>
                                         </div>
-                                        
+
                                         <div className="flex flex-col gap-2 w-full mt-1">
                                             {/* Header Row */}
                                             <div className="grid grid-cols-[1fr_12px_1fr_12px_1fr_40px_35px_20px] gap-1.5 items-center px-1">
@@ -510,7 +510,7 @@ export default function ViewRequestForm() {
                                                 <span className="text-[10px] font-bold text-slate-500 uppercase text-center">Unit</span>
                                                 <span></span>
                                             </div>
-                                            
+
                                             {formData.dimensions.map((dim, index) => (
                                                 <div key={dim.id} className="grid grid-cols-[1fr_12px_1fr_12px_1fr_40px_35px_20px] gap-1.5 items-center group">
                                                     <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-slate-50 py-1 rounded">{dim.length || '--'}</div>
@@ -518,12 +518,12 @@ export default function ViewRequestForm() {
                                                     <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-slate-50 py-1 rounded">{dim.width || '--'}</div>
                                                     <span className="font-bold text-slate-400 text-center text-[12px]">×</span>
                                                     <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-slate-50 py-1 rounded">{dim.height || '--'}</div>
-                                                    
+
                                                     <div className="text-[13px] font-bold text-slate-800 flex items-center justify-center bg-brand-light py-1 rounded">{dim.qty || '--'}</div>
-                                                    
+
                                                     <div className="text-[11px] font-bold text-slate-500 flex items-center justify-center">{dim.unit || '--'}</div>
-                                                    
-                                                    <button 
+
+                                                    <button
                                                         onClick={() => removeDimension(dim.id)}
                                                         className="text-slate-300 hover:text-red-500 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"
                                                         title="Remove dimension"
@@ -540,42 +540,42 @@ export default function ViewRequestForm() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr] gap-8 pt-6 border-t border-slate-200/80 mt-2">
-                                        {/* Load Characteristics */}
-                                        <div>
-                                            <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
-                                                <Box size={14} className="text-slate-400" />
-                                                Load Characteristics
-                                            </h3>
-                                            <div className="grid grid-cols-2 gap-y-2.5 gap-x-4">
-                                                {formData.stackable ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Stackable</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Stackable</span>}
-                                                {formData.fragile ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Fragile</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Fragile</span>}
-                                                {formData.hazardous ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Hazardous</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Hazardous</span>}
-                                                {formData.tempControlled ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Temp Control</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Temp Control</span>}
-                                                {formData.oversized ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Oversized</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Oversized</span>}
-                                                {formData.perishable ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Perishable</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Perishable</span>}
-                                            </div>
+                                    {/* Load Characteristics */}
+                                    <div>
+                                        <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
+                                            <Box size={14} className="text-slate-400" />
+                                            Load Characteristics
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-2.5 gap-x-4">
+                                            {formData.stackable ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Stackable</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Stackable</span>}
+                                            {formData.fragile ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Fragile</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Fragile</span>}
+                                            {formData.hazardous ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Hazardous</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Hazardous</span>}
+                                            {formData.tempControlled ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Temp Control</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Temp Control</span>}
+                                            {formData.oversized ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Oversized</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Oversized</span>}
+                                            {formData.perishable ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Perishable</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Perishable</span>}
                                         </div>
+                                    </div>
 
-                                        {/* Additional Services */}
-                                        <div>
-                                            <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
-                                                <Settings size={14} className="text-slate-400" />
-                                                Additional Services
-                                            </h3>
-                                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-2.5 gap-x-4">
-                                                {formData.loadingRequired ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Loading Req.</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Loading Req.</span>}
-                                                {formData.unloadingRequired ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Unloading Req.</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Unloading Req.</span>}
-                                                {formData.packaging ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Packaging</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Packaging</span>}
-                                                {formData.insurance ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Insurance</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Insurance</span>}
-                                                {formData.liftGate ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Lift Gate</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Lift Gate</span>}
-                                                {formData.whiteGlove ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> White Glove</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> White Glove</span>}
-                                                {formData.assembly ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Assembly</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Assembly</span>}
-                                                {formData.insideDelivery ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Inside Delivery</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Inside Delivery</span>}
-                                                {formData.storage ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Storage</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Storage</span>}
-                                            </div>
+                                    {/* Additional Services */}
+                                    <div>
+                                        <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-2.5">
+                                            <Settings size={14} className="text-slate-400" />
+                                            Additional Services
+                                        </h3>
+                                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-2.5 gap-x-4">
+                                            {formData.loadingRequired ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Loading Req.</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Loading Req.</span>}
+                                            {formData.unloadingRequired ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Unloading Req.</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Unloading Req.</span>}
+                                            {formData.packaging ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Packaging</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Packaging</span>}
+                                            {formData.insurance ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Insurance</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Insurance</span>}
+                                            {formData.liftGate ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Lift Gate</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Lift Gate</span>}
+                                            {formData.whiteGlove ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> White Glove</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> White Glove</span>}
+                                            {formData.assembly ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Assembly</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Assembly</span>}
+                                            {formData.insideDelivery ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Inside Delivery</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Inside Delivery</span>}
+                                            {formData.storage ? <span className="text-[13px] font-medium text-slate-800 flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /> Storage</span> : <span className="text-[13px] font-medium text-slate-400 flex items-center gap-2 line-through"><CheckCircle2 size={14} className="text-slate-300" /> Storage</span>}
                                         </div>
                                     </div>
                                 </div>
+                            </div>
                         )}
 
                         {/* 6 & 9. Preferences */}
@@ -586,7 +586,7 @@ export default function ViewRequestForm() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
                                         {/* Budget & Expiration */}
-                                        <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4">
+                                        <div className="bg-slate-50/70 border border-slate-200/80 rounded-md p-4">
                                             <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-3 pb-2 border-b border-slate-200/60">
                                                 <Euro size={14} className="text-emerald-600" />
                                                 Budget Details
@@ -610,7 +610,7 @@ export default function ViewRequestForm() {
                                         </div>
 
                                         {/* Quote Preferences */}
-                                        <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 flex flex-col justify-between">
+                                        <div className="bg-slate-50/70 border border-slate-200/80 rounded-md p-4 flex flex-col justify-between">
                                             <div>
                                                 <h3 className="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-3 pb-2 border-b border-slate-200/60">
                                                     <Settings size={14} className="text-indigo-600" />
@@ -690,7 +690,7 @@ export default function ViewRequestForm() {
                                                         <div className="mt-2 flex flex-col gap-1">
                                                             {formData.images.map((file: any, idx: number) => (
                                                                 <a key={idx} href={file.url || (file instanceof File ? URL.createObjectURL(file) : typeof file === 'string' ? file : '#')} target="_blank" rel="noopener noreferrer" className="text-[12px] font-bold text-[#ff4a1f] hover:underline truncate w-full inline-flex items-center gap-1.5">
-                                                                    📄 {file.name || `Attachment_${idx+1}`}
+                                                                    📄 {file.name || `Attachment_${idx + 1}`}
                                                                 </a>
                                                             ))}
                                                         </div>

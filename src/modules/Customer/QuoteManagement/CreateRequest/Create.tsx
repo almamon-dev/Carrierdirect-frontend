@@ -64,6 +64,7 @@ export default function CreateRequestForm() {
     }, []);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submittingStatus, setSubmittingStatus] = useState<'active' | 'pending' | null>(null);
     const [isLockModalOpen, setIsLockModalOpen] = useState(false);
     const [isRepeatMode, setIsRepeatMode] = useState(false);
     const [repeatSource, setRepeatSource] = useState('');
@@ -253,6 +254,7 @@ export default function CreateRequestForm() {
             unloadingRequired: true,
             packaging: true,
             insurance: true,
+            insuranceType: 'Comprehensive',
             liftGate: false,
             whiteGlove: false,
             assembly: false,
@@ -322,30 +324,51 @@ export default function CreateRequestForm() {
 
     const showToast = useToastStore(state => state.showToast);
     const [quotaUsed, setQuotaUsed] = useState(0);
+    const [hasActivePlan, setHasActivePlan] = useState(false);
+    const [maxQuota, setMaxQuota] = useState(5);
 
     useEffect(() => {
-        async function fetchQuota() {
+        async function fetchQuotaAndSub() {
             try {
-                const res = await apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS);
-                const rawItems = res.data?.data || res.data || res.items || res;
-                if (Array.isArray(rawItems)) {
-                    setQuotaUsed(rawItems.length);
-                } else if (typeof res.data?.total === 'number') {
-                    setQuotaUsed(res.data.total);
+                const [reqRes, subRes] = await Promise.allSettled([
+                    apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS),
+                    apiClient.get('/subscription/status')
+                ]);
+
+                if (reqRes.status === 'fulfilled') {
+                    const rawItems = reqRes.value.data?.data || reqRes.value.data || reqRes.value.items || reqRes.value;
+                    if (Array.isArray(rawItems)) {
+                        setQuotaUsed(rawItems.length);
+                    } else if (typeof reqRes.value.data?.total === 'number') {
+                        setQuotaUsed(reqRes.value.data.total);
+                    }
+                }
+
+                if (subRes.status === 'fulfilled') {
+                    const sub = subRes.value.data?.data || subRes.value.data;
+                    const planId = (sub?.plan_id || sub?.plan?.slug || '').toLowerCase();
+                    const isPaid = sub?.status === 'active' && planId !== 'starter' && planId !== 'free' && planId !== '';
+                    setHasActivePlan(isPaid);
+                    if (isPaid) {
+                        setMaxQuota(-1);
+                    }
                 }
             } catch {
                 setQuotaUsed(0);
             }
         }
-        fetchQuota();
+        fetchQuotaAndSub();
     }, []);
 
     const handleSubmit = async (e?: React.FormEvent, targetStatus: 'active' | 'pending' = 'active') => {
         if (e) e.preventDefault();
-        if (targetStatus === 'active' && quotaUsed >= 5) {
+        const isQuotaExceeded = !hasActivePlan && maxQuota !== -1 && quotaUsed >= maxQuota;
+        if (targetStatus === 'active' && isQuotaExceeded) {
             setIsLockModalOpen(true);
+            return;
         } else {
             setIsSubmitting(true);
+            setSubmittingStatus(targetStatus);
             try {
                 const pickupLoc = [formData.pickupAddress, formData.pickupCity, formData.pickupCountry].filter(Boolean).join(', ') || 'Dhaka';
                 const deliveryLoc = [formData.deliveryAddress, formData.deliveryCity, formData.deliveryCountry].filter(Boolean).join(', ') || 'Chittagong';
@@ -473,6 +496,7 @@ export default function CreateRequestForm() {
                 showToast(msg, 'error');
             } finally {
                 setIsSubmitting(false);
+                setSubmittingStatus(null);
             }
         }
     };
@@ -514,6 +538,7 @@ export default function CreateRequestForm() {
                         size="sm"
                         className="h-9 px-3 text-xs font-semibold border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer"
                         onClick={() => handleSubmit(undefined, 'pending')}
+                        isLoading={isSubmitting && submittingStatus === 'pending'}
                         disabled={isSubmitting}
                     >
                         Save Draft
@@ -632,6 +657,7 @@ export default function CreateRequestForm() {
                                 formData={formData}
                                 servicesCount={servicesCount}
                                 isSubmitting={isSubmitting}
+                                submittingStatus={submittingStatus}
                                 onSubmit={handleSubmit}
                             />
                         )}

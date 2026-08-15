@@ -129,8 +129,8 @@ export default function Header() {
         <button
           onClick={() => setDropdownOpen((p) => !p)}
           className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full font-semibold text-sm transition-all cursor-pointer border ${isScrolled || mobile
-              ? "bg-slate-100/90 border-slate-200/80 hover:bg-slate-200/80 text-slate-800 dark:bg-[#1e2329] dark:border-slate-700/80 dark:text-slate-100"
-              : "bg-white/10 border-white/20 hover:bg-white/20 text-white dark:bg-[#1e2329]/80 dark:border-slate-700/80 dark:text-slate-100"
+            ? "bg-slate-100/90 border-slate-200/80 hover:bg-slate-200/80 text-slate-800 dark:bg-[#1e2329] dark:border-slate-700/80 dark:text-slate-100"
+            : "bg-white/10 border-white/20 hover:bg-white/20 text-white dark:bg-[#1e2329]/80 dark:border-slate-700/80 dark:text-slate-100"
             } ${mobile ? "w-full justify-between" : ""}`}
         >
           {/* Avatar initials */}
@@ -209,8 +209,8 @@ export default function Header() {
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 py-3.5 ${isScrolled
-          ? "bg-white/95 dark:bg-[#12161c]/95 border-b border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-md"
-          : "bg-transparent border-b border-transparent shadow-none"
+        ? "bg-white/95 dark:bg-[#12161c]/95 border-b border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-md"
+        : "bg-transparent border-b border-transparent shadow-none"
         }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -268,9 +268,9 @@ export default function Header() {
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           aria-label="Toggle menu"
-          className={`lg:hidden p-2 rounded-xl transition-colors ${isScrolled
-              ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-              : "text-white hover:bg-white/10 dark:text-slate-200 dark:hover:bg-slate-800/60"
+          className={`lg:hidden p-2 rounded-md transition-colors ${isScrolled
+            ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+            : "text-white hover:bg-white/10 dark:text-slate-200 dark:hover:bg-slate-800/60"
             }`}
         >
           {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -281,8 +281,8 @@ export default function Header() {
       {isMobileOpen && (
         <div
           className={`lg:hidden px-6 py-6 space-y-4 shadow-2xl border-t transition-all ${isScrolled
-              ? "bg-white/95 dark:bg-[#12161c]/95 text-slate-900 dark:text-slate-100 border-slate-200/80 dark:border-slate-800 backdrop-blur-md"
-              : "bg-[#0f0400]/95 dark:bg-[#12161c]/95 text-white dark:text-slate-100 border-white/10 dark:border-slate-800 backdrop-blur-md"
+            ? "bg-white/95 dark:bg-[#12161c]/95 text-slate-900 dark:text-slate-100 border-slate-200/80 dark:border-slate-800 backdrop-blur-md"
+            : "bg-[#0f0400]/95 dark:bg-[#12161c]/95 text-white dark:text-slate-100 border-white/10 dark:border-slate-800 backdrop-blur-md"
             }`}
         >
           {NavigationLink.map((item) => (

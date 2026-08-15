@@ -1,23 +1,15 @@
 import React, { useState } from 'react';
-import { CreditCard, ExternalLink, ShieldCheck, Euro, Clock, ArrowRight, CheckCircle2, Building } from 'lucide-react';
-import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
-import Select from '@/components/ui/select';
+import { CreditCard, Clock, Euro, Building, ExternalLink, CheckCircle2 } from 'lucide-react';
 import Badge from '@/components/ui/badge';
+import Button from '@/components/ui/button';
+import Select from '@/components/ui/select';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function PayoutStripeTab() {
   const [isStripeConnected, setIsStripeConnected] = useState(true);
   const [payoutSchedule, setPayoutSchedule] = useState('weekly');
-  const [currency, setCurrency] = useState('EUR');
   const [paymentTerms, setPaymentTerms] = useState('net15');
   const [isSaved, setIsSaved] = useState(false);
-
-  const currencyOptions = [
-    { id: 'EUR', name: '€ EUR - Euro (EU Carriers)' },
-    { id: 'GBP', name: '£ GBP - British Pound (UK Fleet)' },
-    { id: 'USD', name: '$ USD - US Dollar (International)' },
-  ];
 
   const paymentTermsOptions = [
     { id: 'instant', name: 'Instant Clearance (Upon Delivery Proof)' },
@@ -126,36 +118,23 @@ export default function PayoutStripeTab() {
         </CardContent>
       </Card>
 
-      {/* Currency & Invoicing */}
+      {/* Invoicing Terms */}
       <Card className="shadow-2xs border-slate-200">
         <CardHeader className="py-2.5 px-3.5 border-b border-slate-100 bg-slate-50/50">
           <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
             <Building className="w-3.5 h-3.5 text-[#ff4a1f]" />
-            Currency & Invoicing Terms
+            Invoicing Terms
           </CardTitle>
         </CardHeader>
         <CardContent className="p-3.5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-700">Primary Payout Currency *</label>
-              <Select
-                value={currency}
-                onChange={(opt) => setCurrency(typeof opt === 'object' ? opt.id : opt)}
-                options={currencyOptions}
-                icon={Euro}
-                showSearch={false}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-slate-700">Standard Payment Term *</label>
-              <Select
-                value={paymentTerms}
-                onChange={(opt) => setPaymentTerms(typeof opt === 'object' ? opt.id : opt)}
-                options={paymentTermsOptions}
-                showSearch={false}
-              />
-            </div>
+          <div className="flex flex-col gap-1 max-w-md">
+            <label className="text-xs font-semibold text-slate-700">Standard Payment Term *</label>
+            <Select
+              value={paymentTerms}
+              onChange={(opt) => setPaymentTerms(typeof opt === 'object' ? opt.id : opt)}
+              options={paymentTermsOptions}
+              showSearch={false}
+            />
           </div>
         </CardContent>
       </Card>

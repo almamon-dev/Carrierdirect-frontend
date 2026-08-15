@@ -32,15 +32,15 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
         { name: 'Settings', path: '/supplier/settings', icon: Settings },
     ];
 
-    const filteredLinks = query.trim() === '' 
-        ? quickLinks 
+    const filteredLinks = query.trim() === ''
+        ? quickLinks
         : quickLinks.filter(link => link.name.toLowerCase().includes(query.toLowerCase()));
 
     return (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] sm:pt-[20vh] px-4">
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
-            
-            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+
+            <div className="relative bg-white rounded-md shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex items-center px-4 py-4 border-b border-slate-100">
                     <Search className="text-[#FF4A1F] mr-3 shrink-0" size={20} />
                     <input
@@ -51,7 +51,7 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                     />
-                    <button 
+                    <button
                         onClick={onClose}
                         className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                     >
@@ -65,7 +65,7 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
                             Suggested Quick Links
                         </div>
                     )}
-                    
+
                     {filteredLinks.length > 0 ? (
                         <div className="space-y-1">
                             {filteredLinks.map((link, i) => (
@@ -90,7 +90,7 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
                         </div>
                     )}
                 </div>
-                
+
                 <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 text-xs text-slate-500 flex items-center gap-4">
                     <span className="flex items-center gap-1">
                         <kbd className="bg-white border border-slate-200 rounded px-1.5 py-0.5 font-sans font-bold shadow-sm">esc</kbd> to close

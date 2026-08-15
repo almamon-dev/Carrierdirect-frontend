@@ -4,9 +4,9 @@ import Badge from '@/components/ui/badge';
 
 export default function SupplierProfile({ supplier }: { supplier: any }) {
     return (
-        <div className="bg-white border border-slate-200 rounded-xl shadow-2xs p-4 space-y-3 font-sans">
+        <div className="bg-white border border-slate-200 rounded-md shadow-2xs p-4 space-y-3 font-sans">
             <div className="flex items-start gap-3">
-                <div className="w-11 h-11 rounded-xl bg-orange-50 text-[#ff4a1f] border border-orange-200 flex items-center justify-center text-lg font-bold relative shrink-0">
+                <div className="w-11 h-11 rounded-md bg-orange-50 text-[#ff4a1f] border border-orange-200 flex items-center justify-center text-lg font-bold relative shrink-0">
                     {supplier.name.charAt(0)}
                     <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>
                 </div>
@@ -23,7 +23,7 @@ export default function SupplierProfile({ supplier }: { supplier: any }) {
                     </div>
                 </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 text-xs">
                 <div className="p-2 bg-slate-50 rounded-lg border border-slate-100">
                     <p className="text-[10.5px] font-medium text-slate-500">Completed shipments</p>

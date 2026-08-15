@@ -333,10 +333,10 @@ export default function RequestList() {
             id: 'pickup', 
             label: 'Route', 
             render: (row) => (
-                <div className="text-[13px] whitespace-nowrap">
-                    <span className="font-semibold text-slate-900 dark:text-slate-200">{row.pickup}</span>
-                    <span className="text-slate-400 dark:text-slate-500 mx-1">→</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-200">{row.delivery}</span>
+                <div className="text-[13px] max-w-[210px] flex items-center gap-1 overflow-hidden" title={`${row.pickup} → ${row.delivery}`}>
+                    <span className="font-semibold text-slate-900 dark:text-slate-200 truncate max-w-[95px]" title={row.pickup}>{row.pickup}</span>
+                    <span className="text-slate-400 dark:text-slate-500 mx-0.5 shrink-0">→</span>
+                    <span className="font-semibold text-slate-900 dark:text-slate-200 truncate max-w-[95px]" title={row.delivery}>{row.delivery}</span>
                 </div>
             ) 
         },

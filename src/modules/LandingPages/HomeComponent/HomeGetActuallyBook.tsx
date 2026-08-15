@@ -30,7 +30,7 @@ export default function HomeGetActuallyBook() {
             ref={image.ref}
             className={`order-2 lg:order-1 reveal ${image.isVisible ? "visible" : ""}`}
           >
-            <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-slate-800 shadow-2xl bg-white dark:bg-[#1e2329]">
+            <div className="rounded-md overflow-hidden border border-gray-200 dark:border-slate-800 shadow-2xl bg-white dark:bg-[#1e2329]">
               <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-[#181a20] px-3 py-2 border-b border-gray-200 dark:border-slate-800">
                 <span className="w-2 h-2 rounded-full bg-red-400"></span>
                 <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
@@ -45,7 +45,7 @@ export default function HomeGetActuallyBook() {
                 alt="Quotes Dashboard"
               />
             </div>
-            <div className="mt-4 bg-orange-50 dark:bg-[#1e2329] border border-orange-100 dark:border-slate-800 rounded-xl p-4 flex items-center gap-3">
+            <div className="mt-4 bg-orange-50 dark:bg-[#1e2329] border border-orange-100 dark:border-slate-800 rounded-md p-4 flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-[#ff4a1f] flex items-center justify-center shrink-0 shadow-md shadow-[#ff4a1f]/30">
                 <Check className="w-4 h-4 text-white" strokeWidth={3} />
               </div>

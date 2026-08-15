@@ -4,7 +4,7 @@ import { CreditCard, ShieldCheck } from 'lucide-react';
 
 export default function AmountBreakdown({ pricing }: { pricing: any }) {
     return (
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3 font-sans">
+        <div className="bg-white p-4 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3 font-sans">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <p className="text-xs font-bold text-slate-800 flex items-center gap-2">
                     <CreditCard size={15} className="text-[#ff4a1f]" /> Freight Payment Breakdown
@@ -13,7 +13,7 @@ export default function AmountBreakdown({ pricing }: { pricing: any }) {
                     Escrow Protected
                 </Badge>
             </div>
-            
+
             <div className="space-y-2 text-xs text-slate-600">
                 <div className="flex justify-between items-center">
                     <span className="font-medium text-slate-500">Base freight rate</span>
@@ -28,7 +28,7 @@ export default function AmountBreakdown({ pricing }: { pricing: any }) {
                     <span className="font-semibold text-slate-900">€{pricing.insurance.toLocaleString()}</span>
                 </div>
             </div>
-            
+
             <div className="pt-2.5 border-t border-slate-100 space-y-1.5 text-xs">
                 <div className="flex justify-between items-center">
                     <span className="font-bold text-slate-900">Total freight amount</span>

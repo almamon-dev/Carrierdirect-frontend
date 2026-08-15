@@ -49,7 +49,7 @@ export default function TwoHomeGetActuallyBook() {
             ref={image.ref}
             className={`reveal ${image.isVisible ? "visible" : ""}`}
           >
-            <div className="rounded-xl overflow-hidden border border-white/10 dark:border-slate-800 shadow-2xl bg-slate-800 dark:bg-[#1e2329]">
+            <div className="rounded-md overflow-hidden border border-white/10 dark:border-slate-800 shadow-2xl bg-slate-800 dark:bg-[#1e2329]">
               <div className="flex items-center gap-1.5 bg-slate-950 dark:bg-[#181a20] px-3 py-2 border-b border-white/10 dark:border-slate-800">
                 <span className="w-2 h-2 rounded-full bg-red-500/70"></span>
                 <span className="w-2 h-2 rounded-full bg-yellow-500/70"></span>
@@ -64,7 +64,7 @@ export default function TwoHomeGetActuallyBook() {
                 className="w-full h-auto block dark:brightness-90 dark:contrast-105"
               />
             </div>
-            <div className="mt-4 bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-3">
+            <div className="mt-4 bg-white/5 border border-white/10 rounded-md p-4 flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-green-500 flex items-center justify-center shrink-0 shadow-md shadow-green-500/30">
                 <Check className="w-4 h-4 text-white" strokeWidth={3} />
               </div>

@@ -242,17 +242,17 @@ html.dark [class*="shadow-"] {
   box-shadow: none !important;
 }
 
-html.dark .rounded-xl,
+html.dark .rounded-md,
 html.dark .rounded-2xl,
 html.dark .rounded-lg {
   --tw-ring-color: #2b313a;
 }
 
 /* Specific overrides for cards that use rounded + shadow pattern */
-html.dark .rounded-xl.bg-white,
+html.dark .rounded-md.bg-white,
 html.dark .rounded-2xl.bg-white,
 html.dark .rounded-lg.bg-white,
-html.dark .rounded-xl[class*="bg-white"],
+html.dark .rounded-md[class*="bg-white"],
 html.dark .rounded-2xl[class*="bg-white"],
 html.dark .rounded-lg[class*="bg-white"],
 html.dark div[class*="shadow-"] {

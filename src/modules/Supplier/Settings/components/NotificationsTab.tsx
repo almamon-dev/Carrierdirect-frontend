@@ -1,44 +1,81 @@
-import React, { useState } from 'react';
-import { Bell, Mail, MessageSquare, Smartphone, CheckCircle2, Zap } from 'lucide-react';
-import Button from '@/components/ui/button';
-import Switch from '@/components/ui/switch';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import React, { useState, useEffect } from "react";
+import { Bell, Mail, MessageSquare, Smartphone, CheckCircle2, Zap, Loader2 } from "lucide-react";
+import Button from "@/components/ui/button";
+import Switch from "@/components/ui/switch";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useToastStore } from "@/stores/useToastStore";
+import apiClient from "@/lib/axios";
+
+const defaultSupplierSettings = {
+  newRfqEmail: false,
+  newRfqSms: false,
+  newRfqPush: false,
+  counterOfferEmail: false,
+  counterOfferPush: false,
+  bookingConfirmedSms: false,
+  bookingConfirmedEmail: false,
+  instantAutoQuoteAlerts: false,
+  payoutDisbursedEmail: false,
+};
 
 export default function NotificationsTab() {
+  const showToast = useToastStore((state) => state.showToast);
   const [isSaved, setIsSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [settings, setSettings] = useState({
-    newRfqEmail: true,
-    newRfqSms: true,
-    newRfqPush: true,
-    counterOfferEmail: true,
-    counterOfferPush: true,
-    bookingConfirmedSms: true,
-    bookingConfirmedEmail: true,
-    instantAutoQuoteAlerts: true,
-    payoutDisbursedEmail: true,
-  });
+  const [settings, setSettings] = useState(defaultSupplierSettings);
 
-  const toggleSetting = (key: keyof typeof settings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setIsLoading(true);
+      const res = await apiClient.get("/supplier/notification-settings");
+      if (res.data?.data?.settings) {
+        setSettings(res.data.data.settings);
+      } else if (res.data?.settings) {
+        setSettings(res.data.settings);
+      }
+    } catch {
+      setSettings(defaultSupplierSettings);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const toggleSetting = (key: keyof typeof settings) => {
+    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    try {
+      setIsSaving(true);
+      await apiClient.post("/supplier/notification-settings", { settings });
+      setIsSaved(true);
+      showToast("Notification preferences updated successfully!", "success");
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (err: any) {
+      const errMsg = err.data?.message || err.message || "Failed to update notification preferences.";
+      showToast(errMsg, "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <form onSubmit={handleSave} className="space-y-3.5 font-sans antialiased">
-      
       {/* RFQ & Quote Request Alerts */}
       <Card className="shadow-2xs border-slate-200">
-        <CardHeader className="py-2.5 px-3.5 border-b border-slate-100 bg-slate-50/50">
+        <CardHeader className="py-2.5 px-3.5 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
           <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
             <Zap className="w-3.5 h-3.5 text-[#ff4a1f]" />
             New RFQ & Instant Quote Request Alerts
           </CardTitle>
+          {isLoading && <Loader2 className="w-3.5 h-3.5 text-slate-400 animate-spin" />}
         </CardHeader>
         <CardContent className="p-3.5 space-y-2.5">
           <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
@@ -50,8 +87,8 @@ export default function NotificationsTab() {
               </div>
             </div>
             <Switch 
-              defaultChecked={settings.newRfqEmail} 
-              onChange={() => toggleSetting('newRfqEmail')} 
+              checked={!!settings.newRfqEmail} 
+              onCheckedChange={() => toggleSetting("newRfqEmail")} 
             />
           </div>
 
@@ -64,8 +101,8 @@ export default function NotificationsTab() {
               </div>
             </div>
             <Switch 
-              defaultChecked={settings.newRfqSms} 
-              onChange={() => toggleSetting('newRfqSms')} 
+              checked={!!settings.newRfqSms} 
+              onCheckedChange={() => toggleSetting("newRfqSms")} 
             />
           </div>
 
@@ -78,8 +115,8 @@ export default function NotificationsTab() {
               </div>
             </div>
             <Switch 
-              defaultChecked={settings.newRfqPush} 
-              onChange={() => toggleSetting('newRfqPush')} 
+              checked={!!settings.newRfqPush} 
+              onCheckedChange={() => toggleSetting("newRfqPush")} 
             />
           </div>
         </CardContent>
@@ -100,8 +137,8 @@ export default function NotificationsTab() {
               <p className="text-[11px] text-slate-500 font-normal">Instant email when a customer counters your quote in chat.</p>
             </div>
             <Switch 
-              defaultChecked={settings.counterOfferEmail} 
-              onChange={() => toggleSetting('counterOfferEmail')} 
+              checked={!!settings.counterOfferEmail} 
+              onCheckedChange={() => toggleSetting("counterOfferEmail")} 
             />
           </div>
 
@@ -111,8 +148,8 @@ export default function NotificationsTab() {
               <p className="text-[11px] text-slate-500 font-normal">SMS notification to primary dispatcher when a quote is accepted and booked.</p>
             </div>
             <Switch 
-              defaultChecked={settings.bookingConfirmedSms} 
-              onChange={() => toggleSetting('bookingConfirmedSms')} 
+              checked={!!settings.bookingConfirmedSms} 
+              onCheckedChange={() => toggleSetting("bookingConfirmedSms")} 
             />
           </div>
         </CardContent>
@@ -131,12 +168,13 @@ export default function NotificationsTab() {
         <Button
           type="submit"
           variant="primary"
-          className="h-8 text-xs px-5 bg-[#ff4a1f] hover:bg-[#e63d15] font-semibold text-white shadow-2xs cursor-pointer rounded-md"
+          disabled={isSaving || isLoading}
+          className="h-8 text-xs px-5 bg-[#ff4a1f] hover:bg-[#e63d15] font-semibold text-white shadow-2xs cursor-pointer rounded-md flex items-center gap-1.5"
         >
-          Save Alerts
+          {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          {isSaving ? "Saving..." : "Save Alerts"}
         </Button>
       </div>
-
     </form>
   );
 }

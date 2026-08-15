@@ -1,63 +1,88 @@
-import React, { useState } from 'react';
-import { Eye, MessageSquare, CheckCircle, ArrowDownRight, History, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, MessageSquare, ArrowDownRight, History, Clock, MessageSquareOff } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
+import EmptyState from '@/components/tables/empty-state';
 import { useNavigate } from 'react-router-dom';
-
-const activeData = [
-  { id: 'NEG-102', quoteId: 'QT-8822', supplier: 'Prime Movers', originalAmount: 45000, yourOffer: 40000, lastUpdated: '2 hours ago', status: 'Awaiting Supplier' },
-  { id: 'NEG-101', quoteId: 'QT-8815', supplier: 'Fast Track BD', originalAmount: 35000, yourOffer: 32000, lastUpdated: '10 mins ago', status: 'Supplier Countered' },
-];
-
-const historyData = [
-  { id: 'NEG-098', quoteId: 'QT-8801', supplier: 'Safe Logistics', originalAmount: 50000, yourOffer: 46000, lastUpdated: '2026-07-15', status: 'Accepted' },
-  { id: 'NEG-095', quoteId: 'QT-8790', supplier: 'Express Cargo', originalAmount: 28000, yourOffer: 22000, lastUpdated: '2026-07-10', status: 'Rejected' },
-  { id: 'NEG-092', quoteId: 'QT-8785', supplier: 'Apex Freight', originalAmount: 62000, yourOffer: 58000, lastUpdated: '2026-07-02', status: 'Accepted' },
-];
+import apiClient from '@/lib/axios';
 
 export default function Negotiation() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
+  const [negotiations, setNegotiations] = useState<any[]>([]);
+
+  const fetchNegotiations = async () => {
+    try {
+      const res = await apiClient.get('/customer/negotiations');
+      const list = res.data?.data || res.data || [];
+      setNegotiations(Array.isArray(list) ? list : []);
+    } catch (error) {
+      console.error('Failed to fetch negotiations:', error);
+      setNegotiations([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchNegotiations();
+  }, []);
+
+  const activeData = negotiations.filter((item) => {
+    const st = (item.status_raw || item.status || '').toLowerCase();
+    const revSt = (item.revision_status || '').toLowerCase();
+    return st === 'pending' || st === 'negotiating' || revSt === 'pending';
+  });
+
+  const historyData = negotiations.filter((item) => {
+    const st = (item.status_raw || item.status || '').toLowerCase();
+    const revSt = (item.revision_status || '').toLowerCase();
+    return st === 'accepted' || st === 'rejected' || revSt === 'accepted' || revSt === 'rejected';
+  });
+
+  const displayData = activeTab === 'active' ? activeData : historyData;
 
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Negotiation ID', render: (row) => <span className="text-[#FF4A1F] font-bold whitespace-nowrap">{row.id}</span> },
-    { id: 'quoteId', label: 'Quote ID', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.quoteId}</span> },
-    { id: 'supplier', label: 'Supplier', render: (row) => <span className="whitespace-nowrap text-slate-800 font-semibold">{row.supplier}</span> },
+    { 
+      id: 'id', 
+      label: 'Quote ID', 
+      render: (row) => <span className="text-[#FF4A1F] font-bold whitespace-nowrap">{row.quote_id_formatted || `QT-${row.id}`}</span> 
+    },
+    { 
+      id: 'requestId', 
+      label: 'Request ID', 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.request_id || `REQ-${row.quote_request_id}`}</span> 
+    },
+    { 
+      id: 'supplier', 
+      label: 'Supplier', 
+      render: (row) => <span className="whitespace-nowrap text-slate-800 font-semibold">{row.sender_name || row.company_name || 'Supplier'}</span> 
+    },
     { 
       id: 'originalAmount', 
       label: 'Original Quote', 
-      render: (row) => <span className="whitespace-nowrap text-slate-400 line-through">€ {row.originalAmount.toLocaleString()}</span> 
+      render: (row) => <span className="whitespace-nowrap text-slate-500">{row.base_amount || row.amount || 'N/A'}</span> 
     },
     { 
       id: 'yourOffer', 
-      label: 'Final Offer', 
-      render: (row) => <span className="whitespace-nowrap text-emerald-600 font-bold">€ {row.yourOffer.toLocaleString()}</span>
+      label: 'Current / Revised Offer', 
+      render: (row) => <span className="whitespace-nowrap text-emerald-600 font-bold">{row.revised_amount || row.amount || 'N/A'}</span>
     },
     { 
-      id: 'savings', 
-      label: 'Savings', 
-      render: (row) => {
-        const diff = row.originalAmount - row.yourOffer;
-        const savingsPercent = ((diff / row.originalAmount) * 100).toFixed(1);
-        return (
-          <div className="flex items-center text-emerald-600 font-bold whitespace-nowrap">
-            <ArrowDownRight size={14} className="mr-1 text-emerald-600" /> {savingsPercent}% (€ {diff.toLocaleString()})
-          </div>
-        );
-      }
+      id: 'lastUpdated', 
+      label: 'Last Activity', 
+      render: (row) => <span className="whitespace-nowrap text-slate-500">{row.time_ago || row.created_at || 'Recently'}</span> 
     },
-    { id: 'lastUpdated', label: 'Last Activity', render: (row) => <span className="whitespace-nowrap text-slate-500">{row.lastUpdated}</span> },
     { 
       id: 'status', 
       label: 'Status',
       render: (row) => {
+        const st = (row.status_raw || row.status || 'Pending').toLowerCase();
         let variant: any = 'default';
-        if (row.status === 'Awaiting Supplier') variant = 'warning';
-        if (row.status === 'Supplier Countered') variant = 'info';
-        if (row.status === 'Accepted') variant = 'success';
-        if (row.status === 'Rejected') variant = 'critical';
-        return <Badge variant={variant}>{row.status}</Badge>;
+        if (st === 'pending') variant = 'warning';
+        if (st === 'negotiating') variant = 'info';
+        if (st === 'accepted') variant = 'success';
+        if (st === 'rejected') variant = 'critical';
+        return <Badge variant={variant}>{row.status || 'Pending'}</Badge>;
       }
     }
   ];
@@ -74,8 +99,6 @@ export default function Negotiation() {
       )}
     </div>
   );
-
-  const displayData = activeTab === 'active' ? activeData : historyData;
 
   return (
     <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans">
@@ -121,6 +144,13 @@ export default function Negotiation() {
         actions={actions}
         searchPlaceholder={activeTab === 'active' ? "Search active negotiations..." : "Search negotiation history..."}
         compact={true}
+        emptyState={
+          <EmptyState
+            icon={MessageSquareOff}
+            title={activeTab === 'active' ? "No Active Negotiations" : "No Negotiation History"}
+            description={activeTab === 'active' ? "You don't have any open price counter-offers or chat negotiations right now." : "Past completed or closed negotiation chats will appear here."}
+          />
+        }
       />
     </div>
   );

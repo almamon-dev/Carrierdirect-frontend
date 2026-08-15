@@ -1,21 +1,19 @@
 import { API_CONFIG } from '../config/api';
 import { TOKEN_CONFIG } from '../config/auth';
-import { toast } from '@/hooks/use-toast';
 
-interface RequestOptions extends RequestInit {
-    params?: Record<string, string | number | boolean>;
+export interface RequestOptions extends Omit<RequestInit, 'body'> {
+    params?: Record<string, string | number | boolean | undefined | null>;
+    body?: any;
 }
 
-let lastNetworkErrorToastTime = 0;
-function notifyNetworkError(message = "Network error: Unable to connect to the API server.") {
+let lastNetworkErrorNotification = 0;
+function notifyNetworkError(message: string) {
     const now = Date.now();
-    if (now - lastNetworkErrorToastTime > 3500) {
-        lastNetworkErrorToastTime = now;
-        toast({
-            variant: "destructive",
-            title: "Network Error",
-            description: message,
-        });
+    if (now - lastNetworkErrorNotification > 5000) {
+        lastNetworkErrorNotification = now;
+        window.dispatchEvent(new CustomEvent('app:toast', {
+            detail: { message, type: 'error' }
+        }));
     }
 }
 
@@ -33,7 +31,12 @@ class ApiClient {
     }
 
     private getHeaders(customHeaders?: HeadersInit): HeadersInit {
-        const token = localStorage.getItem(TOKEN_CONFIG.accessTokenKey);
+        const token =
+            localStorage.getItem(TOKEN_CONFIG.accessTokenKey) ||
+            localStorage.getItem('access_token') ||
+            localStorage.getItem('token') ||
+            localStorage.getItem('erp_access_token');
+
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -94,11 +97,27 @@ class ApiClient {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
-                    localStorage.removeItem(TOKEN_CONFIG.refreshTokenKey);
-                    localStorage.removeItem(TOKEN_CONFIG.userKey);
-                    if (!window.location.pathname.includes('/login')) {
-                        window.location.href = '/web/login';
+                    const existingToken =
+                        localStorage.getItem(TOKEN_CONFIG.accessTokenKey) ||
+                        localStorage.getItem('access_token') ||
+                        localStorage.getItem('token');
+
+                    if (existingToken) {
+                        localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
+                        localStorage.removeItem(TOKEN_CONFIG.refreshTokenKey);
+                        localStorage.removeItem(TOKEN_CONFIG.userKey);
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+
+                        const isAuthPage =
+                            window.location.pathname.includes('/login') ||
+                            window.location.pathname.includes('/register') ||
+                            window.location.pathname.includes('/web/');
+
+                        if (!isAuthPage) {
+                            window.location.href = '/web/login';
+                        }
                     }
                 }
 
@@ -112,10 +131,6 @@ class ApiClient {
                         } catch { }
                         if (!window.location.pathname.includes('/verify-email')) {
                             window.location.href = `/web/verify-email-notice?email=${encodeURIComponent(email)}`;
-                        }
-                    } else if (data.code === 'PROFILE_INCOMPLETE') {
-                        if (!window.location.pathname.includes('/supplier/complete-profile')) {
-                            window.location.href = '/supplier/complete-profile';
                         }
                     }
                 }
@@ -135,7 +150,6 @@ class ApiClient {
         } catch (error: any) {
             console.error(`API Error [${options.method || 'GET'} ${endpoint}]:`, error);
 
-            // Handle network failure (e.g. server offline, connection refused, fetch failed)
             const isConnectionError =
                 !error.status ||
                 error instanceof TypeError ||
@@ -155,33 +169,46 @@ class ApiClient {
         }
     }
 
-    public get<T = any>(endpoint: string, params?: Record<string, string | number | boolean>, headers?: HeadersInit) {
-        return this.request<T>(endpoint, { method: 'GET', params, headers });
+    public get<T = any>(endpoint: string, params?: Record<string, string | number | boolean>, headers?: HeadersInit | { headers?: HeadersInit }) {
+        const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
+        return this.request<T>(endpoint, { method: 'GET', params, headers: resolvedHeaders });
     }
 
-    public post<T = any>(endpoint: string, body?: any, headers?: HeadersInit) {
+    public post<T = any>(endpoint: string, body?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
         const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+        const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
         return this.request<T>(endpoint, {
             method: 'POST',
             body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
-            headers,
+            headers: resolvedHeaders,
         });
     }
 
-    public put<T = any>(endpoint: string, body?: any, headers?: HeadersInit) {
+    public put<T = any>(endpoint: string, body?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
         const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+        const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
         return this.request<T>(endpoint, {
             method: 'PUT',
             body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
-            headers,
+            headers: resolvedHeaders,
         });
     }
 
-    public delete<T = any>(endpoint: string, headers?: HeadersInit) {
-        return this.request<T>(endpoint, { method: 'DELETE', headers });
+    public patch<T = any>(endpoint: string, body?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
+        const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+        const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
+        return this.request<T>(endpoint, {
+            method: 'PATCH',
+            body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+            headers: resolvedHeaders,
+        });
+    }
+
+    public delete<T = any>(endpoint: string, headers?: HeadersInit | { headers?: HeadersInit }) {
+        const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
+        return this.request<T>(endpoint, { method: 'DELETE', headers: resolvedHeaders });
     }
 }
 
 export const apiClient = new ApiClient();
 export default apiClient;
-

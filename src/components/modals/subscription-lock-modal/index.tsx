@@ -43,8 +43,8 @@ export default function SubscriptionLockModal({
 
   return createPortal(
     <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fade-in font-sans">
-      <div className="bg-white rounded-xl max-w-md w-full border border-slate-200 shadow-xl overflow-hidden relative">
-        
+      <div className="bg-white rounded-md max-w-md w-full border border-slate-200 shadow-xl overflow-hidden relative">
+
         {/* Clean Header */}
         <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -56,8 +56,8 @@ export default function SubscriptionLockModal({
               <p className="text-xs text-slate-500 font-medium mt-0.5">{description}</p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             aria-label="Close modal"
             className="text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors cursor-pointer"
           >
@@ -67,7 +67,7 @@ export default function SubscriptionLockModal({
 
         {/* Modal Body */}
         <div className="p-5 space-y-4">
-          
+
           {/* Minimal Plan Info Box */}
           <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-xs">
             <div>
@@ -96,16 +96,16 @@ export default function SubscriptionLockModal({
 
           {/* Actions */}
           <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              onClick={onClose} 
+            <Button
+              variant="outline"
+              onClick={onClose}
               className="w-1/3 h-9 text-xs font-semibold text-slate-600 cursor-pointer"
             >
               Cancel
             </Button>
-            <Button 
-              variant="primary" 
-              onClick={handleUpgradeClick} 
+            <Button
+              variant="primary"
+              onClick={handleUpgradeClick}
               className="w-2/3 h-9 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>Upgrade Plan Now</span>

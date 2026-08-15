@@ -29,14 +29,28 @@ export interface AuthUser {
     company_name?: string;
     phone_number?: string;
     is_verified?: boolean;
+    country?: string;
+    city?: string;
+    zip_code?: string;
+    [key: string]: any;
 }
 
 export const authService = {
     async login(payload: LoginPayload) {
         const response = await apiClient.post(ENDPOINTS.AUTH.LOGIN, payload);
 
-        const token: string = response.access_token || response.token || response.data?.access_token;
-        const user: AuthUser = response.data?.user || response.user;
+        const token: string =
+            response.access_token ||
+            response.token ||
+            response.data?.access_token ||
+            response.data?.token ||
+            response.authorisation?.token ||
+            response.data?.authorisation?.token;
+
+        const user: AuthUser =
+            response.user ||
+            response.data?.user ||
+            (response.data && response.data.id ? response.data : response.data?.data?.user);
 
         if (token) {
             localStorage.setItem(TOKEN_CONFIG.accessTokenKey, token);
@@ -48,8 +62,38 @@ export const authService = {
         return {
             user,
             token,
-            checkoutUrl: response.data?.checkout_url ?? null,
-            requiresPayment: response.data?.requires_payment ?? false,
+            checkoutUrl: response.checkout_url || response.data?.checkout_url || null,
+            requiresPayment: Boolean(response.requires_payment || response.data?.requires_payment),
+            raw: response,
+        };
+    },
+
+    async verify2FALogin(email: string, code: string) {
+        const response = await apiClient.post('/auth/login/2fa-verify', { email, code });
+
+        const token: string =
+            response.access_token ||
+            response.token ||
+            response.data?.access_token ||
+            response.data?.token ||
+            response.authorisation?.token ||
+            response.data?.authorisation?.token;
+
+        const user: AuthUser =
+            response.user ||
+            response.data?.user ||
+            (response.data && response.data.id ? response.data : response.data?.data?.user);
+
+        if (token) {
+            localStorage.setItem(TOKEN_CONFIG.accessTokenKey, token);
+        }
+        if (user) {
+            localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(user));
+        }
+
+        return {
+            user,
+            token,
             raw: response,
         };
     },
@@ -60,7 +104,6 @@ export const authService = {
     },
 
     async verifyEmail(email: string, token: string) {
-        // Link-based verification: send email + token from URL query params
         const response = await apiClient.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { email, token });
 
         const authToken: string = response.access_token || response.token || response.data?.access_token;
@@ -76,8 +119,8 @@ export const authService = {
         return {
             user,
             token: authToken,
-            checkoutUrl: response.data?.checkout_url ?? null,
-            requiresPayment: response.data?.requires_payment ?? false,
+            checkoutUrl: response.checkout_url || response.data?.checkout_url || null,
+            requiresPayment: Boolean(response.requires_payment || response.data?.requires_payment),
             raw: response,
         };
     },

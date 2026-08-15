@@ -1,144 +1,31 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { 
-    Eye, Activity, Navigation, Phone, Truck, ShieldCheck, Clock, Download, 
-    Plus, MoreHorizontal, CheckCircle2, FileText, MessageSquare, RefreshCw, 
-    Sparkles, X, ExternalLink, MapPin, AlertCircle, Copy, FileCheck, ArrowRight, Shield, Database
-} from 'lucide-react';
-import DataTable, { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
-import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
-import FormLabel from '@/components/ui/label';
-import { useNavigate } from 'react-router-dom';
-import apiClient from '@/lib/axios';
-import { ENDPOINTS } from '@/config/api';
-import { useToastStore } from '@/stores/useToastStore';
-
-const INITIAL_PROCESSING_ORDERS = [
-    { 
-        id: 'ORD-5591', 
-        dbId: 5591,
-        route: { from: 'Dhaka', to: 'Chittagong' }, 
-        supplier: 'Global Transport Express', 
-        rating: 4.9,
-        driverName: 'Rahim Uddin', 
-        driverPhone: '01711-223344', 
-        vehicleNo: 'DHA-11-2233', 
-        vehicleType: 'Covered Van (14ft)',
-        cargoWeight: '2.5 Ton',
-        amount: '€ 120,000', 
-        estArrival: '2026-07-26 10:00 AM', 
-        status: 'Assigned Driver',
-        paymentStatus: 'Escrow Secured',
-        goodsType: 'Electronics & Machinery Parts',
-        progress: 40,
-    },
-    { 
-        id: 'ORD-5582', 
-        dbId: 5582,
-        route: { from: 'Sylhet', to: 'Rajshahi' }, 
-        supplier: 'Express Logistics BD', 
-        rating: 4.8,
-        driverName: 'Karim Hasan', 
-        driverPhone: '01811-998877', 
-        vehicleNo: 'SYL-14-5544', 
-        vehicleType: 'Open Truck (16ft)',
-        cargoWeight: '4.0 Ton',
-        amount: '€ 45,000', 
-        estArrival: '2026-07-22 06:00 PM', 
-        status: 'In Transit',
-        paymentStatus: 'Escrow Secured',
-        goodsType: 'Consumer & Agricultural Goods',
-        progress: 75,
-    },
-    { 
-        id: 'ORD-3354', 
-        dbId: 3354,
-        route: { from: 'Khulna', to: 'Dhaka' }, 
-        supplier: 'Apex Logistics Co.', 
-        rating: 4.7,
-        driverName: 'Sumon Ali', 
-        driverPhone: '01912-334455', 
-        vehicleNo: 'KHL-09-8811', 
-        vehicleType: 'Reefer Truck (20ft)',
-        cargoWeight: '3.2 Ton',
-        amount: '€ 68,000', 
-        estArrival: '2026-07-27 04:30 PM', 
-        status: 'Loading',
-        paymentStatus: 'Escrow Secured',
-        goodsType: 'Pharmaceuticals & Frozen Foods',
-        progress: 20,
-    },
-    { 
-        id: 'ORD-2026-9918', 
-        dbId: 9918,
-        route: { from: 'Dhaka', to: 'Chittagong' }, 
-        supplier: 'Express Logistics BD', 
-        rating: 4.8,
-        driverName: 'Rafiqul Islam', 
-        driverPhone: '01755-667788', 
-        vehicleNo: 'DHA-14-9918', 
-        vehicleType: 'Covered Van (14ft)',
-        cargoWeight: '1.8 Ton',
-        amount: '€ 45,000', 
-        estArrival: '2026-07-28 11:30 AM', 
-        status: 'In Transit',
-        paymentStatus: 'Escrow Secured',
-        goodsType: 'Garment & Fabric Rolls',
-        progress: 65,
-    },
-];
+import React, { useState, useEffect, useMemo } from "react";
+import {
+    Phone, Eye, FileText, CheckCircle2, ChevronDown,
+    RefreshCw, Plus, Clock, FileCheck, Copy, X,
+    MapPin, Truck, ShieldCheck, UserCheck
+} from "lucide-react";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
+import DataTable, { Column } from "@/components/tables/data-table";
+import Badge from "@/components/ui/badge";
+import Button from "@/components/ui/button";
+import apiClient from "@/lib/axios";
+import { ENDPOINTS } from "@/config/api";
+import { useToastStore } from "@/stores/useToastStore";
 
 export default function Processing() {
     const navigate = useNavigate();
     const showToast = useToastStore(state => state.showToast);
 
-    // Dynamic orders state initialized from local cache or defaults
-    const [orders, setOrders] = useState<any[]>(() => {
-        try {
-            const cached = localStorage.getItem('customer_processing_orders_cache');
-            return cached ? JSON.parse(cached) : INITIAL_PROCESSING_ORDERS;
-        } catch {
-            return INITIAL_PROCESSING_ORDERS;
-        }
-    });
-
-    const [activeFilterTab, setActiveFilterTab] = useState<string>('All');
+    const [orders, setOrders] = useState<any[]>([]);
+    const [activeFilterTab, setActiveFilterTab] = useState<string>("All");
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isDbConnected, setIsDbConnected] = useState<boolean>(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
     // Modals & Drawers state
     const [quickViewOrder, setQuickViewOrder] = useState<any | null>(null);
     const [callDriverOrder, setCallDriverOrder] = useState<any | null>(null);
-    const [isSimulateModalOpen, setIsSimulateModalOpen] = useState<boolean>(false);
-
-    // Simulate new dispatch form
-    const [newDispatch, setNewDispatch] = useState({
-        from: 'Dhaka (Tejgaon)',
-        to: 'Chittagong Port',
-        supplier: 'FastTrack Freight BD',
-        driverName: 'Jashim Uddin',
-        driverPhone: '01799-881122',
-        vehicleNo: 'DHA-12-8877',
-        vehicleType: 'Covered Van (20ft)',
-        cargoWeight: '3,000 KG',
-        amount: '€ 52,000',
-        estArrival: 'Tomorrow, 02:00 PM',
-        status: 'Assigned Driver',
-        goodsType: 'Industrial Components'
-    });
-
-    // Save orders to localStorage on state changes
-    useEffect(() => {
-        try {
-            localStorage.setItem('customer_processing_orders_cache', JSON.stringify(orders));
-        } catch (e) {
-            console.error('Failed to sync orders to localStorage:', e);
-        }
-    }, [orders]);
 
     // Primary Database Fetching Logic
     const fetchOrdersFromDatabase = async (showNotification = false) => {
@@ -149,53 +36,74 @@ export default function Processing() {
 
             if (Array.isArray(rawItems)) {
                 const mappedFromDb = rawItems.map((o: any) => {
-                    const fromCity = o.pickup_city || o.pickup_address || o.from_location || 'Dhaka';
-                    const toCity = o.delivery_city || o.delivery_address || o.to_location || 'Chittagong';
-                    const amountVal = o.total_amount || o.amount || o.budget || 45000;
+                    const pickup = o.pickup_address || o.pickup_city || (o.quote?.quote_request?.pickup_address) || "Dhaka";
+                    const delivery = o.delivery_address || o.delivery_city || (o.quote?.quote_request?.delivery_address) || "Chittagong";
+
+                    const fromCity = pickup.split(",")[0]?.trim() || pickup;
+                    const toCity = delivery.split(",")[0]?.trim() || delivery;
+                    const amountVal = o.total_amount_formatted || (o.total_amount ? `€ ${Number(o.total_amount).toLocaleString()}` : "€ 0");
+
+                    // Status display mapping
+                    let uiStatus = "In Transit";
+                    if (o.status === "pending") uiStatus = "Pending";
+                    else if (o.status === "confirmed") uiStatus = "Assigned Driver";
+                    else if (o.status === "in_progress" || o.status === "picked_up") uiStatus = "In Transit";
+                    else if (o.status === "delivered") uiStatus = "Delivered (Awaiting POD)";
+                    else if (o.status === "completed") uiStatus = "Delivered & POD";
+                    else if (o.status === "cancelled") uiStatus = "Cancelled";
+                    else if (o.status) uiStatus = o.status;
+
+                    const step = o.tracking?.current_step ?? (
+                        o.status === "completed" ? 5 :
+                            o.status === "delivered" ? 4 :
+                                o.status === "picked_up" ? 3 :
+                                    o.status === "in_progress" ? 2 :
+                                        o.status === "confirmed" ? 1 : 0
+                    );
+                    const progressVal = Math.min(100, Math.round(((step + 1) / 6) * 100));
+
+                    const supplierName = o.supplier?.company_name || o.supplier?.name || "Global Transport Express";
+                    const driverName = o.supplier?.name || "Assigned Driver";
+                    const driverPhone = o.supplier?.profile?.phone_number || o.supplier?.phone || "+8801700000001";
+                    const vehiclePlate = o.pallet_type || "DHA-11-2233";
 
                     return {
-                        id: o.order_number || o.code || (typeof o.id === 'number' ? `ORD-${o.id}` : o.id),
+                        id: o.order_number || (typeof o.id === "number" ? `ORD-${o.id}` : o.id),
                         dbId: o.id,
-                        route: { from: fromCity, to: toCity },
-                        supplier: o.supplier_name || o.supplier?.name || o.carrier_name || 'Global Transport Express',
-                        rating: o.supplier?.rating || o.rating || 4.8,
-                        driverName: o.driver_name || o.driver?.name || 'Rahim Uddin',
-                        driverPhone: o.driver_phone || o.driver?.phone || '01711-223344',
-                        vehicleNo: o.vehicle_plate || o.vehicle_number || o.vehicle_no || 'DHA-11-2233',
-                        vehicleType: o.vehicle_type || o.vehicle || 'Covered Van (14ft)',
-                        cargoWeight: o.weight ? `${o.weight} KG` : (o.cargo_weight || '2.5 Ton'),
-                        amount: typeof amountVal === 'number' ? `€ ${amountVal.toLocaleString()}` : amountVal,
-                        estArrival: o.est_arrival || o.estimated_arrival || o.delivery_date || '2026-07-26 10:00 AM',
-                        status: o.status === 'in_transit' ? 'In Transit' 
-                              : (o.status === 'assigned' ? 'Assigned Driver' 
-                              : (o.status === 'loading' ? 'Loading' 
-                              : (o.status === 'completed' || o.status === 'delivered' ? 'POD Accepted' 
-                              : (o.status || 'In Transit')))),
-                        paymentStatus: o.payment_status || 'Escrow Secured',
-                        goodsType: o.goods_type || o.shipment_type || 'General Cargo',
-                        progress: o.progress || (o.status === 'completed' || o.status === 'delivered' || o.status === 'POD Accepted' ? 100 : 65),
+                        route: { from: fromCity, to: toCity, fullFrom: pickup, fullTo: delivery },
+                        supplier: supplierName,
+                        rating: o.review?.rating || 4.8,
+                        driverName: driverName,
+                        driverPhone: driverPhone,
+                        vehicleNo: vehiclePlate,
+                        vehicleType: o.pallet_type || "Covered Van (14ft)",
+                        cargoWeight: o.items?.[0]?.weight ? `${o.items[0].weight} KG` : "2.5 Ton",
+                        amount: amountVal,
+                        estArrival: o.estimated_time || o.pickup_date || "In Transit",
+                        status: uiStatus,
+                        rawStatus: o.status,
+                        paymentStatus: "Escrow Secured",
+                        goodsType: o.items?.[0]?.item_type || "General Logistics Cargo",
+                        progress: progressVal,
+                        items: o.items || [],
+                        liveUpdates: o.live_updates || [],
+                        proofOfDelivery: o.proof_of_delivery,
+                        podStatus: o.pod_status,
                     };
                 });
 
-                if (mappedFromDb.length > 0) {
-                    setOrders(mappedFromDb);
-                    localStorage.setItem('customer_processing_orders_cache', JSON.stringify(mappedFromDb));
-                    setIsDbConnected(true);
-                    if (showNotification) {
-                        showToast(`Refreshed ${mappedFromDb.length} active order(s) directly from Database API.`, 'success');
-                    }
-                } else {
-                    setIsDbConnected(true);
-                    if (showNotification) {
-                        showToast('Database API connected. Synced active orders.', 'info');
-                    }
+                setOrders(mappedFromDb);
+                if (showNotification) {
+                    showToast(`Refreshed ${mappedFromDb.length} active order(s) successfully.`, "success");
                 }
+            } else {
+                setOrders([]);
             }
         } catch (err: any) {
-            console.warn('Backend API notification:', err?.message || err);
-            setIsDbConnected(false);
+            console.error("Failed to load orders:", err?.message || err);
+            setOrders([]);
             if (showNotification) {
-                showToast('Using local processing cache (Database connection offline).', 'info');
+                showToast("Failed to fetch orders from server.", "error");
             }
         } finally {
             setIsLoading(false);
@@ -203,53 +111,48 @@ export default function Processing() {
     };
 
     useEffect(() => {
-        fetchOrdersFromDatabase(false);
+        fetchOrdersFromDatabase();
+    }, []);
 
+    // Close actions dropdown on click outside or resize
+    useEffect(() => {
         const handleCloseMenus = () => setOpenDropdown(null);
-        window.addEventListener('scroll', handleCloseMenus, true);
-        window.addEventListener('resize', handleCloseMenus);
+        window.addEventListener("click", handleCloseMenus);
+        window.addEventListener("resize", handleCloseMenus);
         return () => {
-            window.removeEventListener('scroll', handleCloseMenus, true);
-            window.removeEventListener('resize', handleCloseMenus);
+            window.removeEventListener("click", handleCloseMenus);
+            window.removeEventListener("resize", handleCloseMenus);
         };
     }, []);
 
     // Filtered data calculation
     const filteredOrders = useMemo(() => {
-        if (activeFilterTab === 'In Transit') {
-            return orders.filter(o => o.status === 'In Transit');
+        if (activeFilterTab === "In Transit") {
+            return orders.filter(o => o.status === "In Transit" || o.rawStatus === "in_progress" || o.rawStatus === "picked_up");
         }
-        if (activeFilterTab === 'Assigned') {
-            return orders.filter(o => o.status === 'Assigned Driver' || o.status === 'Assigned');
+        if (activeFilterTab === "Assigned") {
+            return orders.filter(o => o.status === "Assigned Driver" || o.rawStatus === "confirmed" || o.rawStatus === "pending");
         }
-        if (activeFilterTab === 'Loading') {
-            return orders.filter(o => o.status === 'Loading');
-        }
-        if (activeFilterTab === 'Completed') {
-            return orders.filter(o => o.status === 'Completed' || o.status === 'Delivered' || o.status === 'POD Accepted');
+        if (activeFilterTab === "Completed") {
+            return orders.filter(o => o.status === "Delivered & POD" || o.status === "Delivered (Awaiting POD)" || o.rawStatus === "delivered" || o.rawStatus === "completed");
         }
         return orders;
     }, [orders, activeFilterTab]);
 
-    // Handle POD acceptance confirmation with DB API patch update
+    // Handle POD acceptance confirmation with DB API update
     const handleAcceptPOD = async (row: any) => {
         setOpenDropdown(null);
 
         try {
             if (row.dbId) {
-                await apiClient.patch(`${ENDPOINTS.CUSTOMER.ORDERS}/${row.dbId}`, { status: 'completed' });
+                await apiClient.post(`/customer/orders/${row.dbId}/pod-approve`);
             }
-        } catch (err) {
-            console.warn('POD DB update fallback:', err);
+            showToast(`POD delivery confirmed for order ${row.id}! Payout released to carrier.`, "success");
+            fetchOrdersFromDatabase();
+        } catch (err: any) {
+            const msg = err.response?.data?.message || err.message || "Failed to confirm POD";
+            showToast(msg, "error");
         }
-
-        setOrders(prev => prev.map(o => {
-            if (o.id === row.id) {
-                return { ...o, status: 'POD Accepted', progress: 100 };
-            }
-            return o;
-        }));
-        showToast(`POD delivery confirmed in database for order ${row.id}! Payout released to carrier.`, 'success');
     };
 
     // Download Consignment Note / Waybill text manifest file
@@ -257,20 +160,20 @@ export default function Processing() {
         setOpenDropdown(null);
         const manifestText = `
 =====================================================
-            GETITMOVING LOGISTICS WAYBILL
+            CARRIERDIRECT LOGISTICS WAYBILL
 =====================================================
-Order Reference : ${row.id} (Database Ref: ${row.dbId || 'N/A'})
+Order Reference : ${row.id} (Database Ref: ${row.dbId || "N/A"})
 Generated Date  : ${new Date().toLocaleString()}
 Carrier Name    : ${row.supplier}
 Driver Name     : ${row.driverName} (${row.driverPhone})
 Vehicle Plate   : ${row.vehicleNo}
 Vehicle Type    : ${row.vehicleType}
 Cargo Weight    : ${row.cargoWeight}
-Cargo Description: ${row.goodsType || 'General Logistics Cargo'}
+Cargo Description: ${row.goodsType || "General Logistics Cargo"}
 
 ROUTE DETAILS:
-Origin City     : ${row.route.from}
-Destination     : ${row.route.to}
+Origin City     : ${row.route.from} (${row.route.fullFrom})
+Destination     : ${row.route.to} (${row.route.fullTo})
 Est. Arrival    : ${row.estArrival}
 Order Status    : ${row.status}
 Payment Escrow  : ${row.paymentStatus}
@@ -281,78 +184,32 @@ Carrier assumes full responsibility for transported goods under standard CMR ter
 Proof of Delivery (POD) signature required upon drop-off.
 =====================================================
 `;
-        const blob = new Blob([manifestText], { type: 'text/plain;charset=utf-8' });
+        const blob = new Blob([manifestText], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `Waybill_${row.id}.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToast(`Waybill manifest for ${row.id} downloaded successfully.`, 'success');
-    };
-
-    // Add simulated dispatch order (with DB sync attempt)
-    const handleCreateSimulatedDispatch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const generatedId = `ORD-${Math.floor(2000 + Math.random() * 8000)}`;
-        
-        const createdOrder = {
-            id: generatedId,
-            route: { from: newDispatch.from, to: newDispatch.to },
-            supplier: newDispatch.supplier,
-            rating: 4.9,
-            driverName: newDispatch.driverName,
-            driverPhone: newDispatch.driverPhone,
-            vehicleNo: newDispatch.vehicleNo,
-            vehicleType: newDispatch.vehicleType,
-            cargoWeight: newDispatch.cargoWeight,
-            amount: newDispatch.amount,
-            estArrival: newDispatch.estArrival,
-            status: newDispatch.status,
-            paymentStatus: 'Escrow Secured',
-            goodsType: newDispatch.goodsType,
-            progress: 30,
-        };
-
-        try {
-            await apiClient.post(ENDPOINTS.CUSTOMER.ORDERS, {
-                order_number: generatedId,
-                pickup_city: newDispatch.from,
-                delivery_city: newDispatch.to,
-                supplier_name: newDispatch.supplier,
-                driver_name: newDispatch.driverName,
-                driver_phone: newDispatch.driverPhone,
-                vehicle_plate: newDispatch.vehicleNo,
-                total_amount: newDispatch.amount,
-                status: 'assigned'
-            });
-        } catch {
-            // Local fallback
-        }
-
-        setOrders(prev => [createdOrder, ...prev]);
-        setIsSimulateModalOpen(false);
-        showToast(`New order ${generatedId} created in database and added to active processing!`, 'success');
+        showToast(`Waybill manifest for ${row.id} downloaded successfully.`, "success");
     };
 
     // Filter Tabs Component
     const FilterTabs = () => {
         const counts = useMemo(() => ({
             all: orders.length,
-            inTransit: orders.filter(o => o.status === 'In Transit').length,
-            assigned: orders.filter(o => o.status === 'Assigned Driver' || o.status === 'Assigned').length,
-            loading: orders.filter(o => o.status === 'Loading').length,
-            completed: orders.filter(o => o.status === 'Completed' || o.status === 'Delivered' || o.status === 'POD Accepted').length,
+            inTransit: orders.filter(o => o.status === "In Transit" || o.rawStatus === "in_progress" || o.rawStatus === "picked_up").length,
+            assigned: orders.filter(o => o.status === "Assigned Driver" || o.rawStatus === "confirmed" || o.rawStatus === "pending").length,
+            completed: orders.filter(o => o.status === "Delivered & POD" || o.status === "Delivered (Awaiting POD)" || o.rawStatus === "delivered" || o.rawStatus === "completed").length,
         }), [orders]);
 
         const tabs = [
-            { id: 'All', label: 'All Shipments', count: counts.all },
-            { id: 'In Transit', label: 'In Transit', count: counts.inTransit },
-            { id: 'Assigned', label: 'Assigned Driver', count: counts.assigned },
-            { id: 'Loading', label: 'Loading', count: counts.loading },
-            { id: 'Completed', label: 'Delivered & POD', count: counts.completed },
+            { id: "All", label: "All Shipments", count: counts.all },
+            { id: "In Transit", label: "In Transit", count: counts.inTransit },
+            { id: "Assigned", label: "Assigned Driver", count: counts.assigned },
+            { id: "Completed", label: "Delivered & POD", count: counts.completed },
         ];
 
         return (
@@ -364,18 +221,16 @@ Proof of Delivery (POD) signature required upon drop-off.
                             key={tab.id}
                             type="button"
                             onClick={() => setActiveFilterTab(tab.id)}
-                            className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
-                                isActive 
-                                    ? 'border-[#ff4a1f] text-[#ff4a1f] font-bold' 
-                                    : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
-                            }`}
+                            className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${isActive
+                                    ? "border-[#ff4a1f] text-[#ff4a1f] font-bold"
+                                    : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
+                                }`}
                         >
                             <span className="text-[13.5px]">{tab.label}</span>
-                            <span className={`text-[11.5px] font-semibold px-2 py-0.5 rounded-full ${
-                                isActive 
-                                    ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f]' 
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                            }`}>
+                            <span className={`text-[11.5px] font-semibold px-2 py-0.5 rounded-full ${isActive
+                                    ? "bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f]"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                                }`}>
                                 {tab.count}
                             </span>
                         </button>
@@ -387,129 +242,130 @@ Proof of Delivery (POD) signature required upon drop-off.
 
     // Columns Definition
     const columns: Column<any>[] = [
-        { 
-            id: 'id', 
-            label: 'Order ID', 
+        {
+            id: "id",
+            label: "ORDER ID",
             render: (row) => (
                 <div className="flex items-center gap-1.5 whitespace-nowrap">
-                    <span 
+                    <span
                         className="font-bold text-[#ff4a1f] hover:underline cursor-pointer"
                         onClick={() => navigate(`/customer/quotes/processing/track/${row.id}`, { state: { order: row } })}
                     >
                         {row.id}
                     </span>
-                    {row.status === 'In Transit' && (
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Active GPS Tracking" />
+                    {row.status === "In Transit" && (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="GPS Active" />
                     )}
                 </div>
-            ) 
+            )
         },
-        { 
-            id: 'route', 
-            label: 'Route', 
+        {
+            id: "route",
+            label: "ROUTE",
             render: (row) => (
-                <div className="flex items-center gap-2 whitespace-nowrap text-[13px] font-medium text-slate-800 dark:text-slate-200">
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{row.route.from}</span>
-                    <Navigation size={12} className="text-[#ff4a1f] rotate-90 shrink-0" />
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{row.route.to}</span>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                    <span>{row.route.from}</span>
+                    <span className="text-red-500 font-bold">⯈</span>
+                    <span>{row.route.to}</span>
                 </div>
-            ) 
+            )
         },
-        { 
-            id: 'supplier', 
-            label: 'Supplier / Carrier', 
+        {
+            id: "supplier",
+            label: "SUPPLIER / CARRIER",
             render: (row) => (
-                <div className="flex items-center gap-1.5 whitespace-nowrap text-[13px]">
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{row.supplier}</span>
-                    <ShieldCheck size={14} className="text-emerald-600 shrink-0" title="Verified Carrier" />
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                    <span>{row.supplier}</span>
+                    <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                 </div>
-            ) 
+            )
         },
-        { 
-            id: 'driverName', 
-            label: 'Driver Contact', 
+        {
+            id: "driver",
+            label: "DRIVER CONTACT",
             render: (row) => (
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                    <div>
-                        <div className="font-semibold text-slate-900 dark:text-slate-100 text-[13px]">{row.driverName}</div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{row.driverPhone}</div>
+                <div className="flex items-center justify-between gap-2 max-w-[150px]">
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{row.driverName}</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{row.driverPhone}</span>
                     </div>
                     <button
                         type="button"
-                        onClick={() => setCallDriverOrder(row)}
-                        className="p-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 rounded-md transition-colors cursor-pointer border border-emerald-200 dark:border-emerald-800/60"
-                        title="Call Driver"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setCallDriverOrder(row);
+                        }}
+                        className="p-1.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 dark:text-emerald-400 cursor-pointer transition-colors shadow-2xs shrink-0"
+                        title="Call or Contact Driver"
                     >
                         <Phone size={13} />
                     </button>
                 </div>
-            ) 
+            )
         },
-        { 
-            id: 'vehicleNo', 
-            label: 'Vehicle Plate', 
+        {
+            id: "vehicleNo",
+            label: "VEHICLE PLATE",
             render: (row) => (
-                <span className="whitespace-nowrap font-mono uppercase bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-[11.5px] font-bold">
+                <span className="font-mono text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 whitespace-nowrap">
                     {row.vehicleNo}
                 </span>
-            ) 
+            )
         },
-        { 
-            id: 'amount', 
-            label: 'Amount', 
+        {
+            id: "amount",
+            label: "AMOUNT",
             render: (row) => (
-                <span className="whitespace-nowrap font-bold text-emerald-600 dark:text-emerald-400 text-[13px]">
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                     {row.amount}
                 </span>
-            ) 
+            )
         },
-        { 
-            id: 'estArrival', 
-            label: 'Est. Arrival', 
+        {
+            id: "estArrival",
+            label: "EST. ARRIVAL",
             render: (row) => (
-                <div className="flex items-center gap-1 text-slate-700 dark:text-slate-300 text-[12px] whitespace-nowrap font-medium">
-                    <Clock size={12} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap font-medium">
+                    <Clock size={12} className="text-slate-400 shrink-0" />
                     <span>{row.estArrival}</span>
                 </div>
-            ) 
+            )
         },
-        { 
-            id: 'status', 
-            label: 'Status',
+        {
+            id: "status",
+            label: "STATUS",
             render: (row) => {
-                let variant: any = 'default';
-                if (row.status === 'Assigned Driver' || row.status === 'Assigned') variant = 'info';
-                if (row.status === 'In Transit') variant = 'warning';
-                if (row.status === 'Loading') variant = 'secondary';
-                if (row.status === 'Completed' || row.status === 'Delivered' || row.status === 'POD Accepted') variant = 'success';
-                
+                let badgeVariant: any = "info";
+                if (row.status === "In Transit") badgeVariant = "warning";
+                else if (row.status === "Delivered & POD" || row.status === "Completed") badgeVariant = "success";
+                else if (row.status === "Assigned Driver" || row.status === "Confirmed") badgeVariant = "info";
+                else badgeVariant = "default";
+
                 return (
-                    <Badge variant={variant} className="whitespace-nowrap font-bold">
+                    <Badge variant={badgeVariant} className="text-[11px] font-bold px-2.5 py-0.5 whitespace-nowrap shadow-2xs">
                         {row.status}
                     </Badge>
                 );
             }
-        }
+        },
     ];
 
-    // Actions column renderer
+    // Actions Column
     const actions = (row: any) => (
-        <div className="flex items-center justify-end gap-2 relative">
-            <Button 
-                variant="primary" 
-                size="sm" 
-                className="h-7 px-3 bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold text-xs shadow-2xs cursor-pointer flex items-center gap-1"
+        <div className="flex items-center justify-end gap-1.5 relative">
+            <Button
+                variant="primary"
+                size="sm"
+                className="h-7 px-2.5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold shadow-2xs flex items-center gap-1 cursor-pointer"
                 onClick={() => navigate(`/customer/quotes/processing/track/${row.id}`, { state: { order: row } })}
             >
-                <Activity size={13} />
+                <Truck size={12} />
                 <span>Track</span>
             </Button>
 
-            <div>
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-7 w-7 p-0 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            <div className="relative">
+                <button
+                    type="button"
                     onClick={(e) => {
                         e.stopPropagation();
                         if (openDropdown === row.id) {
@@ -517,54 +373,45 @@ Proof of Delivery (POD) signature required upon drop-off.
                         } else {
                             const rect = e.currentTarget.getBoundingClientRect();
                             setDropdownPos({
-                                top: rect.bottom + 4,
-                                left: rect.right - 180
+                                top: rect.bottom + window.scrollY + 4,
+                                left: rect.right + window.scrollX - 180,
                             });
                             setOpenDropdown(row.id);
                         }
                     }}
+                    className="p-1.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
-                    <MoreHorizontal size={14} />
-                </Button>
+                    <ChevronDown size={14} />
+                </button>
 
                 {openDropdown === row.id && createPortal(
-                    <div 
-                        className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100"
-                        style={{ top: dropdownPos.top, left: dropdownPos.left }}
+                    <div
+                        className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 font-sans"
+                        style={{ top: `${dropdownPos.top}px`, left: `${dropdownPos.left}px` }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button 
-                            className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium cursor-pointer"
-                            onClick={() => {
-                                setOpenDropdown(null);
-                                navigate(`/customer/quotes/processing/track/${row.id}`, { state: { order: row } });
-                            }}
-                        >
-                            <Activity size={14} className="text-[#ff4a1f]" /> Track Live Route
-                        </button>
-
-                        <button 
-                            className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium cursor-pointer"
+                        <button
+                            className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium cursor-pointer transition-colors"
                             onClick={() => {
                                 setOpenDropdown(null);
                                 setQuickViewOrder(row);
                             }}
                         >
-                            <Eye size={14} className="text-blue-500 dark:text-blue-400" /> Quick Details
+                            <Eye size={14} className="text-slate-400" /> View Order Info
                         </button>
 
-                        <button 
-                            className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium cursor-pointer"
+                        <button
+                            className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium cursor-pointer transition-colors"
                             onClick={() => {
                                 setOpenDropdown(null);
                                 setCallDriverOrder(row);
                             }}
                         >
-                            <Phone size={14} className="text-emerald-500 dark:text-emerald-400" /> Call Driver
+                            <Phone size={14} className="text-emerald-500" /> Contact Driver
                         </button>
 
-                        <button 
-                            className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium cursor-pointer"
+                        <button
+                            className="w-full text-left px-3.5 py-2 text-[13px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 font-medium cursor-pointer transition-colors"
                             onClick={() => handleDownloadWaybill(row)}
                         >
                             <FileText size={14} className="text-amber-500 dark:text-amber-400" /> Download Waybill
@@ -572,8 +419,8 @@ Proof of Delivery (POD) signature required upon drop-off.
 
                         <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
 
-                        {row.status !== 'POD Accepted' && row.status !== 'Completed' ? (
-                            <button 
+                        {row.rawStatus !== "completed" && row.status !== "Delivered & POD" ? (
+                            <button
                                 className="w-full text-left px-3.5 py-2 text-[13px] text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 flex items-center gap-2.5 font-bold cursor-pointer transition-colors"
                                 onClick={() => handleAcceptPOD(row)}
                             >
@@ -593,69 +440,48 @@ Proof of Delivery (POD) signature required upon drop-off.
 
     return (
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased" onClick={() => setOpenDropdown(null)}>
-            
+
             {/* Header Section */}
-            <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
-                    <div className="flex items-center gap-2.5 mb-1">
-                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                            Active Processing Orders
-                        </h1>
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
-                            isDbConnected 
-                                ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
-                                : 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60'
-                        }`}>
-                            <Database size={11} className={isDbConnected ? 'text-emerald-600' : 'text-amber-600'} />
-                            <span>{isDbConnected ? 'Database Live' : 'Cached Data'}</span>
-                        </span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                        Real-time active shipments directly synced from the database. Track drivers, routes, and POD confirm.
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                        Active Processing Orders
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                        Track and manage your real-time active shipments, drivers, routes, and POD deliveries.
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                    <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="h-8.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer"
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
                         onClick={() => fetchOrdersFromDatabase(true)}
+                        disabled={isLoading}
+                        className="h-9 px-3.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
                     >
-                        <RefreshCw size={13} className={`text-slate-500 dark:text-slate-400 ${isLoading ? 'animate-spin' : ''}`} />
-                        <span>Reload DB Data</span>
-                    </Button>
+                        <RefreshCw size={14} className={`text-slate-500 dark:text-slate-400 ${isLoading ? 'animate-spin text-[#ff4a1f]' : ''}`} />
+                        <span>Refresh</span>
+                    </button>
 
-                    <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="h-8.5 px-3 text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 flex items-center gap-1.5 cursor-pointer"
-                        onClick={() => setIsSimulateModalOpen(true)}
+                    <button
+                        type="button"
+                        onClick={() => navigate("/customer/quotes/create")}
+                        className="h-9 px-4 rounded-lg bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold text-xs shadow-xs hover:shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
                     >
-                        <Sparkles size={13} className="text-purple-600 dark:text-purple-400" />
-                        <span>Simulate New Dispatch</span>
-                    </Button>
-
-                    <Button 
-                        variant="primary" 
-                        size="sm"
-                        className="h-8.5 px-3 bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold text-xs shadow-2xs flex items-center gap-1.5 cursor-pointer"
-                        onClick={() => navigate('/customer/quotes/create/new')}
-                    >
-                        <Plus size={14} />
+                        <Plus size={15} />
                         <span>New Shipment Request</span>
-                    </Button>
+                    </button>
                 </div>
             </div>
 
             {/* Data Table */}
-            <DataTable 
+            <DataTable
                 tableId="customer_processing_orders"
-                data={filteredOrders} 
-                columns={columns} 
+                data={filteredOrders}
+                columns={columns}
                 actions={actions}
                 headerTabs={<FilterTabs />}
-                searchPlaceholder="Search database active orders by ID, driver, vehicle plate, or route..."
+                searchPlaceholder="Search active orders by ID, driver, vehicle plate, or route..."
                 compact={true}
                 isLoading={isLoading}
             />
@@ -663,20 +489,20 @@ Proof of Delivery (POD) signature required upon drop-off.
             {/* Quick View Drawer / Modal */}
             {quickViewOrder && (
                 <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
-                    <div className="bg-white dark:bg-[#1e2329] rounded-xl max-w-lg w-full border border-slate-200 dark:border-slate-700 shadow-2xl p-5 space-y-4 relative">
+                    <div className="bg-white dark:bg-[#1e2329] rounded-md max-w-lg w-full border border-slate-200 dark:border-slate-700 shadow-2xl p-5 space-y-4 relative max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                             <div className="flex items-center gap-2">
                                 <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
                                     Shipment Details {quickViewOrder.id}
                                 </h3>
-                                <Badge variant={quickViewOrder.status === 'Completed' || quickViewOrder.status === 'POD Accepted' ? 'success' : 'info'}>
+                                <Badge variant={quickViewOrder.status === "Delivered & POD" || quickViewOrder.rawStatus === "completed" ? "success" : "info"}>
                                     {quickViewOrder.status}
                                 </Badge>
                             </div>
-                            <button 
+                            <button
                                 type="button"
-                                onClick={() => setQuickViewOrder(null)} 
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
+                                onClick={() => setQuickViewOrder(null)}
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md cursor-pointer"
                             >
                                 <X size={18} />
                             </button>
@@ -686,134 +512,135 @@ Proof of Delivery (POD) signature required upon drop-off.
                         <div className="space-y-1.5">
                             <div className="flex justify-between text-xs font-bold">
                                 <span className="text-slate-600 dark:text-slate-400">Transit Progress</span>
-                                <span className="text-[#ff4a1f]">{quickViewOrder.progress || 60}% Completed</span>
+                                <span className="text-[#ff4a1f]">{quickViewOrder.progress}% Completed</span>
                             </div>
                             <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                <div 
-                                    className="h-full bg-[#ff4a1f] rounded-full transition-all duration-500" 
-                                    style={{ width: `${quickViewOrder.progress || 60}%` }}
+                                <div
+                                    className="h-full bg-[#ff4a1f] rounded-full transition-all duration-500"
+                                    style={{ width: `${quickViewOrder.progress}%` }}
                                 />
                             </div>
                         </div>
 
-                        {/* Route Banner */}
-                        <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-between text-xs sm:text-sm">
+                        {/* Route Grid */}
+                        <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-[#12161c] rounded-lg text-xs border border-slate-100 dark:border-slate-800">
                             <div>
-                                <span className="text-slate-500 dark:text-slate-400 text-[11px] block">Origin</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{quickViewOrder.route.from}</span>
+                                <span className="text-slate-400 dark:text-slate-500 font-medium block text-[11px]">Pickup Location</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px]">{quickViewOrder.route.from}</span>
+                                <p className="text-slate-500 text-[11px] mt-0.5 line-clamp-1">{quickViewOrder.route.fullFrom}</p>
                             </div>
-                            <Navigation size={16} className="text-[#ff4a1f] rotate-90" />
-                            <div className="text-right">
-                                <span className="text-slate-500 dark:text-slate-400 text-[11px] block">Destination</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{quickViewOrder.route.to}</span>
+                            <div>
+                                <span className="text-slate-400 dark:text-slate-500 font-medium block text-[11px]">Delivery Location</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px]">{quickViewOrder.route.to}</span>
+                                <p className="text-slate-500 text-[11px] mt-0.5 line-clamp-1">{quickViewOrder.route.fullTo}</p>
                             </div>
                         </div>
 
-                        {/* Order Attributes Grid */}
+                        {/* Cargo & Carrier Specs */}
                         <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div className="p-2.5 border border-slate-100 dark:border-slate-800 rounded-lg bg-slate-50/50 dark:bg-slate-800/40">
-                                <span className="text-slate-500 dark:text-slate-400 font-medium block">Carrier</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100 mt-0.5 block flex items-center gap-1">
-                                    {quickViewOrder.supplier} <ShieldCheck size={13} className="text-emerald-500" />
-                                </span>
+                            <div className="p-3 border border-slate-100 dark:border-slate-800 rounded-lg">
+                                <span className="text-slate-400 dark:text-slate-500 font-medium block text-[11px]">Carrier / Supplier</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{quickViewOrder.supplier}</span>
+                                <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                                    ★ {quickViewOrder.rating} Verified Carrier
+                                </div>
                             </div>
-                            <div className="p-2.5 border border-slate-100 dark:border-slate-800 rounded-lg bg-slate-50/50 dark:bg-slate-800/40">
-                                <span className="text-slate-500 dark:text-slate-400 font-medium block">Vehicle Spec</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100 mt-0.5 block">
-                                    {quickViewOrder.vehicleType} ({quickViewOrder.vehicleNo})
-                                </span>
-                            </div>
-                            <div className="p-2.5 border border-slate-100 dark:border-slate-800 rounded-lg bg-slate-50/50 dark:bg-slate-800/40">
-                                <span className="text-slate-500 dark:text-slate-400 font-medium block">Driver Name</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100 mt-0.5 block">
-                                    {quickViewOrder.driverName}
-                                </span>
-                            </div>
-                            <div className="p-2.5 border border-slate-100 dark:border-slate-800 rounded-lg bg-slate-50/50 dark:bg-slate-800/40">
-                                <span className="text-slate-500 dark:text-slate-400 font-medium block">Cargo Amount</span>
-                                <span className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                                    {quickViewOrder.amount}
-                                </span>
+
+                            <div className="p-3 border border-slate-100 dark:border-slate-800 rounded-lg">
+                                <span className="text-slate-400 dark:text-slate-500 font-medium block text-[11px]">Vehicle & Load</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{quickViewOrder.vehicleNo}</span>
+                                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">
+                                    {quickViewOrder.vehicleType} • {quickViewOrder.cargoWeight}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Modal Action Buttons */}
+                        {/* Pricing & Est Arrival */}
+                        <div className="flex items-center justify-between p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-lg text-xs">
+                            <div>
+                                <span className="text-emerald-800 dark:text-emerald-300 font-medium block text-[11px]">Total Freight Fee</span>
+                                <span className="font-bold text-emerald-700 dark:text-emerald-300 text-sm">{quickViewOrder.amount}</span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium block text-[11px]">Estimated Arrival</span>
+                                <span className="font-bold text-slate-800 dark:text-slate-200">{quickViewOrder.estArrival}</span>
+                            </div>
+                        </div>
+
                         <div className="pt-2 flex gap-2">
-                            <Button 
-                                variant="outline" 
-                                className="w-1/2 h-9 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer"
+                            <Button
+                                variant="outline"
+                                className="w-1/2 h-9 text-xs font-semibold"
                                 onClick={() => setQuickViewOrder(null)}
                             >
                                 Close
                             </Button>
-                            <Button 
-                                variant="primary" 
-                                className="w-1/2 h-9 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+                            <Button
+                                variant="primary"
+                                className="w-1/2 h-9 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white flex items-center justify-center gap-1.5"
                                 onClick={() => {
-                                    const targetOrder = quickViewOrder;
                                     setQuickViewOrder(null);
-                                    navigate(`/customer/quotes/processing/track/${targetOrder.id}`, { state: { order: targetOrder } });
+                                    navigate(`/customer/quotes/processing/track/${quickViewOrder.id}`, { state: { order: quickViewOrder } });
                                 }}
                             >
-                                <Activity size={14} />
-                                <span>Open Full Tracking</span>
+                                <Truck size={14} />
+                                <span>Full Tracking</span>
                             </Button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Call Driver Simulation Modal */}
+            {/* Call Driver Modal */}
             {callDriverOrder && (
                 <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
-                    <div className="bg-white dark:bg-[#1e2329] rounded-xl max-w-md w-full border border-slate-200 dark:border-slate-700 shadow-2xl p-6 text-center space-y-4 relative">
-                        
-                        <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center border-4 border-emerald-50 dark:border-emerald-900/40 shadow-inner">
-                            <Phone size={28} className="animate-bounce" />
+                    <div className="bg-white dark:bg-[#1e2329] rounded-md max-w-sm w-full border border-slate-200 dark:border-slate-700 shadow-2xl p-5 space-y-4 relative">
+                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                <Phone size={15} className="text-emerald-600" /> Driver Contact Details
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setCallDriverOrder(null)}
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md cursor-pointer"
+                            >
+                                <X size={16} />
+                            </button>
                         </div>
 
-                        <div>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 mb-1">
-                                Active Dispatch Contact
-                            </span>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{callDriverOrder.driverName}</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                                Driver for Order <span className="font-bold text-slate-900 dark:text-slate-100">{callDriverOrder.id}</span> ({callDriverOrder.vehicleNo})
-                            </p>
-                        </div>
-
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700 text-center space-y-1">
-                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">Phone Number</span>
-                            <span className="text-lg font-mono font-bold text-slate-900 dark:text-slate-100 tracking-wider">
+                        <div className="text-center py-2 space-y-1.5">
+                            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <UserCheck size={24} />
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{callDriverOrder.driverName}</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{callDriverOrder.supplier}</p>
+                            <span className="inline-block font-mono text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-3 py-1 rounded-md mt-1 border border-slate-200 dark:border-slate-700">
                                 {callDriverOrder.driverPhone}
                             </span>
                         </div>
 
                         <div className="pt-2 flex flex-col gap-2">
-                            <Button 
-                                variant="primary" 
-                                className="w-full h-10 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-md flex items-center justify-center gap-2 rounded-lg"
-                                onClick={() => {
-                                    showToast(`Connecting call to driver ${callDriverOrder.driverName} (${callDriverOrder.driverPhone})...`, 'success');
-                                }}
+                            <a
+                                href={`tel:${callDriverOrder.driverPhone}`}
+                                className="w-full h-10 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-md flex items-center justify-center gap-2 rounded-lg transition-colors"
                             >
                                 <Phone size={15} />
-                                <span>Simulate Direct Call</span>
-                            </Button>
+                                <span>Call Driver Directly</span>
+                            </a>
 
                             <div className="flex gap-2">
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     className="w-1/2 h-9 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer"
                                     onClick={() => {
                                         navigator.clipboard?.writeText(callDriverOrder.driverPhone);
-                                        showToast(`Phone number ${callDriverOrder.driverPhone} copied to clipboard!`, 'info');
+                                        showToast(`Phone number ${callDriverOrder.driverPhone} copied to clipboard!`, "info");
                                     }}
                                 >
                                     <Copy size={13} className="mr-1" /> Copy Phone
                                 </Button>
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     className="w-1/2 h-9 text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer"
                                     onClick={() => setCallDriverOrder(null)}
                                 >
@@ -822,94 +649,6 @@ Proof of Delivery (POD) signature required upon drop-off.
                             </div>
                         </div>
 
-                    </div>
-                </div>
-            )}
-
-            {/* Simulate New Dispatch Modal */}
-            {isSimulateModalOpen && (
-                <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
-                    <div className="bg-white dark:bg-[#1e2329] rounded-xl max-w-lg w-full border border-slate-200 dark:border-slate-700 shadow-2xl p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <div>
-                                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                    <Sparkles size={16} className="text-purple-600 dark:text-purple-400" /> Simulate New Dispatch
-                                </h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Add a test processing order to inspect real-time tracking.</p>
-                            </div>
-                            <button 
-                                type="button"
-                                onClick={() => setIsSimulateModalOpen(false)} 
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleCreateSimulatedDispatch} className="space-y-3.5 text-xs">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <FormLabel required>Origin City</FormLabel>
-                                    <Input value={newDispatch.from} onChange={e => setNewDispatch({...newDispatch, from: e.target.value})} required />
-                                </div>
-                                <div>
-                                    <FormLabel required>Destination City</FormLabel>
-                                    <Input value={newDispatch.to} onChange={e => setNewDispatch({...newDispatch, to: e.target.value})} required />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <FormLabel required>Carrier / Supplier</FormLabel>
-                                    <Input value={newDispatch.supplier} onChange={e => setNewDispatch({...newDispatch, supplier: e.target.value})} required />
-                                </div>
-                                <div>
-                                    <FormLabel required>Vehicle Plate</FormLabel>
-                                    <Input value={newDispatch.vehicleNo} onChange={e => setNewDispatch({...newDispatch, vehicleNo: e.target.value})} required />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <FormLabel required>Driver Name</FormLabel>
-                                    <Input value={newDispatch.driverName} onChange={e => setNewDispatch({...newDispatch, driverName: e.target.value})} required />
-                                </div>
-                                <div>
-                                    <FormLabel required>Driver Phone</FormLabel>
-                                    <Input value={newDispatch.driverPhone} onChange={e => setNewDispatch({...newDispatch, driverPhone: e.target.value})} required />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <FormLabel required>Order Amount</FormLabel>
-                                    <Input value={newDispatch.amount} onChange={e => setNewDispatch({...newDispatch, amount: e.target.value})} required />
-                                </div>
-                                <div>
-                                    <FormLabel required>Est. Arrival</FormLabel>
-                                    <Input value={newDispatch.estArrival} onChange={e => setNewDispatch({...newDispatch, estArrival: e.target.value})} required />
-                                </div>
-                            </div>
-
-                            <div className="pt-3 flex gap-2 border-t border-slate-100 dark:border-slate-800">
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    className="w-1/2 h-9 text-xs font-semibold"
-                                    onClick={() => setIsSimulateModalOpen(false)}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button 
-                                    type="submit" 
-                                    variant="primary" 
-                                    className="w-1/2 h-9 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-sm flex items-center justify-center gap-1.5"
-                                >
-                                    <Plus size={14} />
-                                    <span>Dispatch Order</span>
-                                </Button>
-                            </div>
-                        </form>
                     </div>
                 </div>
             )}

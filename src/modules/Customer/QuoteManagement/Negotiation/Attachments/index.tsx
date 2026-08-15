@@ -5,7 +5,7 @@ export default function AttachmentsList() {
     return (
         <div className="space-y-4 mt-1">
             <div className="flex items-center gap-3 group cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center text-red-500 transition-colors group-hover:bg-red-100">
+                <div className="w-9 h-9 rounded-md bg-red-50 flex items-center justify-center text-red-500 transition-colors group-hover:bg-red-100">
                     <FileText size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -14,7 +14,7 @@ export default function AttachmentsList() {
                 </div>
             </div>
             <div className="flex items-center gap-3 group cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-brand-light flex items-center justify-center text-brand transition-colors group-hover:bg-blue-100">
+                <div className="w-9 h-9 rounded-md bg-brand-light flex items-center justify-center text-brand transition-colors group-hover:bg-blue-100">
                     <FileText size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -23,7 +23,7 @@ export default function AttachmentsList() {
                 </div>
             </div>
             <div className="flex items-center gap-3 group cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 transition-colors group-hover:bg-emerald-100">
+                <div className="w-9 h-9 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-500 transition-colors group-hover:bg-emerald-100">
                     <ImageIcon size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -32,7 +32,7 @@ export default function AttachmentsList() {
                 </div>
             </div>
             <div className="flex items-center gap-3 group cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500 transition-colors group-hover:bg-purple-100">
+                <div className="w-9 h-9 rounded-md bg-purple-50 flex items-center justify-center text-purple-500 transition-colors group-hover:bg-purple-100">
                     <Video size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -41,7 +41,7 @@ export default function AttachmentsList() {
                 </div>
             </div>
             <div className="flex items-center gap-3 group cursor-pointer">
-                <div className="w-9 h-9 rounded-xl bg-brand-light flex items-center justify-center text-indigo-500 transition-colors group-hover:bg-indigo-100">
+                <div className="w-9 h-9 rounded-md bg-brand-light flex items-center justify-center text-indigo-500 transition-colors group-hover:bg-indigo-100">
                     <FileText size={18} />
                 </div>
                 <div className="flex-1 min-w-0">

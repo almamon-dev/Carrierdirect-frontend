@@ -32,21 +32,21 @@ export default function Payments() {
         { id: 'date', label: 'Date', render: (row) => <span className="text-xs text-slate-500">{row.date}</span> },
         { id: 'description', label: 'Description', render: (row) => <span className="font-semibold text-slate-800">{row.description}</span> },
         { id: 'amount', label: 'Amount', render: (row) => <span className="font-bold text-slate-900">{row.amount}</span> },
-        { 
-            id: 'status', 
-            label: 'Status', 
+        {
+            id: 'status',
+            label: 'Status',
             render: (row) => (
                 <Badge variant="secondary" className={
                     row.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 font-semibold' :
-                    'bg-red-50 text-red-700 font-semibold'
+                        'bg-red-50 text-red-700 font-semibold'
                 }>
                     {row.status}
                 </Badge>
             )
         },
-        { 
-            id: 'actions', 
-            label: 'Actions', 
+        {
+            id: 'actions',
+            label: 'Actions',
             render: () => (
                 <button className="text-xs text-[#ff4a1f] hover:underline font-semibold flex items-center gap-1 transition-all cursor-pointer">
                     <Download size={13} /> PDF Receipt
@@ -81,7 +81,7 @@ export default function Payments() {
             {/* Top Stats Strip */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Outstanding Balance */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <Receipt size={16} strokeWidth={2.5} />
@@ -94,7 +94,7 @@ export default function Payments() {
                 </div>
 
                 {/* Total Paid */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-50 text-[#ff4a1f]">
                             <FileText size={16} strokeWidth={2.5} />
@@ -107,7 +107,7 @@ export default function Payments() {
                 </div>
 
                 {/* Last Payment Date */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-600">
                             <Clock size={16} strokeWidth={2.5} />
@@ -120,7 +120,7 @@ export default function Payments() {
                 </div>
 
                 {/* Payment Method Card */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between border-indigo-100 ring-1 ring-indigo-50">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between border-indigo-100 ring-1 ring-indigo-50">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-900 text-white">
                             <CreditCard size={16} strokeWidth={2.5} />
@@ -141,12 +141,12 @@ export default function Payments() {
 
             {/* Direct DataTable matching Active Jobs & Team Management */}
             <div className="p-0">
-                <DataTable 
-                    columns={columns} 
-                    data={filteredHistory} 
-                    compact={true} 
+                <DataTable
+                    columns={columns}
+                    data={filteredHistory}
+                    compact={true}
                     searchPlaceholder="Search payments by ID, description..."
-                    hideViewToggle={true} 
+                    hideViewToggle={true}
                     filterContent={filterContent}
                 />
             </div>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, User, Settings, LogOut, ChevronDown, CheckCircle2, Package, Clock } from 'lucide-react';
+import { Bell, Search, User, Settings, LogOut, ChevronDown, CheckCircle2, Package, Clock, Sun } from 'lucide-react';
 import Sidebar from './Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
@@ -30,10 +30,10 @@ function initials(name?: string): string {
 }
 
 const mockNotifications = [
-  { id: 1, title: 'Quote Received', desc: 'FastFreight submitted a quote of £420.', time: '5m ago', icon: Package },
-  { id: 2, title: 'Shipment Dispatched', desc: 'Driver John is en route for pickup.', time: '1h ago', icon: Clock },
-  { id: 3, title: 'Payment Escrowed', desc: 'Escrow payment verified for Order #1042.', time: '3h ago', icon: CheckCircle2 },
-  { id: 4, title: 'System Notice', desc: 'Pay Later limit increased by £1,500.', time: '1d ago', icon: Bell },
+    { id: 1, title: 'Quote Received', desc: 'FastFreight submitted a quote of £420.', time: '5m ago', icon: Package },
+    { id: 2, title: 'Shipment Dispatched', desc: 'Driver John is en route for pickup.', time: '1h ago', icon: Clock },
+    { id: 3, title: 'Payment Escrowed', desc: 'Escrow payment verified for Order #1042.', time: '3h ago', icon: CheckCircle2 },
+    { id: 4, title: 'System Notice', desc: 'Pay Later limit increased by £1,500.', time: '1d ago', icon: Bell },
 ];
 
 export default function CustomerLayout() {
@@ -48,7 +48,7 @@ export default function CustomerLayout() {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [authUser, setAuthUser] = useState(getAuthUser);
     const [isScrolled, setIsScrolled] = useState(false);
-    
+
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -125,11 +125,10 @@ export default function CustomerLayout() {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header Navbar */}
-                <header className={`h-16 bg-white dark:bg-[#12161c] flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 transition-all duration-300 ${
-                    isScrolled
+                <header className={`h-16 bg-white dark:bg-[#12161c] flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 transition-all duration-300 ${isScrolled
                         ? 'border-b border-slate-200 dark:border-slate-800 shadow-sm'
                         : 'border-b border-transparent shadow-none'
-                }`}>
+                    }`}>
                     <div className="flex items-center gap-5">
                         <button
                             className="text-slate-600 dark:text-slate-300 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors cursor-pointer"
@@ -139,7 +138,7 @@ export default function CustomerLayout() {
                                 <path d="M4 6h16M4 12h10M4 18h16" />
                             </svg>
                         </button>
-                        
+
                         {/* Module Title */}
                         <div className="hidden lg:block">
                             <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100 capitalize tracking-wide">
@@ -148,7 +147,7 @@ export default function CustomerLayout() {
                         </div>
 
                         {/* Search Bar */}
-                        <button 
+                        <button
                             onClick={() => setIsSearchOpen(true)}
                             className="hidden md:flex items-center bg-slate-50 dark:bg-[#1e2329] px-4 py-1.5 rounded-full w-[280px] border border-slate-200 dark:border-slate-700/80 hover:border-[#ff4a1f] dark:hover:border-[#ff4a1f] hover:bg-white dark:hover:bg-[#252b33] transition-colors text-left group cursor-pointer"
                         >
@@ -160,12 +159,10 @@ export default function CustomerLayout() {
 
                     {/* Right Header Controls */}
                     <div className="flex items-center gap-3">
-                        {/* Theme Switcher */}
-                        <ThemeSwitcher />
-                        
+
                         {/* Notification Bell Dropdown with Count Badge */}
                         <div className="relative" ref={notifRef}>
-                            <button 
+                            <button
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                                 className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors relative cursor-pointer"
                                 title="Notifications"
@@ -197,7 +194,7 @@ export default function CustomerLayout() {
                                         ))}
                                     </div>
                                     <div className="p-2.5 bg-slate-50 dark:bg-[#181a20] border-t border-slate-100 dark:border-slate-800 text-center">
-                                        <button 
+                                        <button
                                             onClick={() => {
                                                 setIsNotificationOpen(false);
                                                 navigate('/customer/notifications');
@@ -246,6 +243,17 @@ export default function CustomerLayout() {
                                     </div>
 
                                     <div className="p-1.5 space-y-0.5">
+                                        {/* Theme Switcher Row */}
+                                        <div className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                                            <div className="flex items-center gap-2.5">
+                                                <Sun size={15} className="text-slate-500 dark:text-slate-400" />
+                                                <span className="font-medium text-xs">Theme Mode</span>
+                                            </div>
+                                            <ThemeSwitcher />
+                                        </div>
+
+                                        <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+
                                         <Link
                                             to="/customer/settings?tab=profile"
                                             onClick={() => setIsProfileOpen(false)}
@@ -290,9 +298,9 @@ export default function CustomerLayout() {
                     </React.Suspense>
                 </main>
             </div>
-            
+
             <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-            
+
             {/* Floating Negotiation Chat Widget */}
             <NegotiationChatWidget />
         </div>

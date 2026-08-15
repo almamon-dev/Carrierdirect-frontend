@@ -1,53 +1,213 @@
-import React, { useState } from 'react';
-import { 
-  CreditCard, CheckCircle2, Download, Receipt, 
+import React, { useState, useEffect } from "react";
+import {
+  CreditCard, CheckCircle2, Download, Receipt,
   Sparkles, Check, Building2, ShieldCheck, Zap
-} from 'lucide-react';
-import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
-import DataTable, { Column } from '@/components/tables/data-table';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import Switch from '@/components/ui/switch';
-import QuotaReminderBanner from '@/components/common/QuotaReminderBanner';
+} from "lucide-react";
+import Button from "@/components/ui/button";
+import Badge from "@/components/ui/badge";
+import DataTable, { Column } from "@/components/tables/data-table";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import QuotaReminderBanner from "@/components/common/QuotaReminderBanner";
+import apiClient from "@/lib/axios";
 
-export default function Subscription() {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
-  const [autoRenew, setAutoRenew] = useState(true);
+export default function SupplierSubscription() {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [dbPlans, setDbPlans] = useState<any[]>([]);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
-  // Billing history dataset
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [profRes, subRes, plansRes] = await Promise.allSettled([
+          apiClient.get("/supplier/profile"),
+          apiClient.get("/subscription/status"),
+          apiClient.get("/subscription/plans?user_type=supplier"),
+        ]);
+
+        if (profRes.status === "fulfilled") {
+          setProfile(profRes.value.data?.data || profRes.value.data || null);
+        }
+        if (subRes.status === "fulfilled") {
+          setSubscription(subRes.value.data?.data || subRes.value.data || null);
+        }
+        if (plansRes.status === "fulfilled") {
+          const rawPlans = plansRes.value.data?.data || plansRes.value.data?.plans || plansRes.value.data || [];
+          if (Array.isArray(rawPlans) && rawPlans.length > 0) {
+            setDbPlans(rawPlans);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load supplier subscription data:", err);
+      }
+    }
+    loadData();
+  }, []);
+
+  const companyName = profile?.company_name || profile?.user?.company_name || "Transport Carrier Logistics Ltd";
+  const vatNumber = profile?.vat_number || "GB 982 1290 44";
+  const billingEmail = profile?.billing_email || profile?.email || profile?.user?.email || "dispatch@carrierdirect.eu";
+
+  // Group DB plans into tiers
+  const tierMap: Record<string, any> = {};
+
+  if (dbPlans.length > 0) {
+    dbPlans.forEach((p: any) => {
+      const baseName = (p.name || "Plan").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim();
+      const tierKey = baseName.toLowerCase();
+
+      if (!tierMap[tierKey]) {
+        tierMap[tierKey] = {
+          name: baseName,
+          description: p.description || (
+            tierKey.includes("trial") ? "Free trial to test freight load board and quote submissions." :
+            tierKey.includes("professional") ? "Best for active owner-operators and growing transport businesses." :
+            "Full enterprise fleet capacity with guaranteed contracts and 0% booking fees."
+          ),
+          popular: Boolean(p.is_popular || p.popular),
+          badge_text: (p.is_popular || p.popular) ? "Most Popular" : null,
+          features: Array.isArray(p.features) ? p.features : [],
+          trialPlan: null,
+          monthlyPlan: null,
+          yearlyPlan: null,
+        };
+      }
+
+      if (p.billing_period === "trial") {
+        tierMap[tierKey].trialPlan = p;
+        tierMap[tierKey].features = p.features;
+      } else if (p.billing_period === "monthly") {
+        tierMap[tierKey].monthlyPlan = p;
+        if ((!tierMap[tierKey].features || tierMap[tierKey].features.length === 0) && Array.isArray(p.features)) {
+          tierMap[tierKey].features = p.features;
+        }
+      } else if (p.billing_period === "annual" || p.billing_period === "yearly") {
+        tierMap[tierKey].yearlyPlan = p;
+        if ((!tierMap[tierKey].features || tierMap[tierKey].features.length === 0) && Array.isArray(p.features)) {
+          tierMap[tierKey].features = p.features;
+        }
+      } else {
+        tierMap[tierKey].monthlyPlan = p;
+      }
+    });
+  }
+
+  const fallbackTiers = [
+    {
+      name: "7-Day Free Trial",
+      description: "Free trial to test freight load board and quote submissions.",
+      popular: false,
+      badge_text: null,
+      trialPlan: { id: "trial-1", price: 0 },
+      features: [
+        "Freight Load Board Access",
+        "Transport Quote & Bid Submission",
+        "Shipper Messaging",
+        "Digital POD Upload",
+        "Escrow Payment Protection",
+        "Basic Vehicle Profile",
+        "Standard Notifications"
+      ]
+    },
+    {
+      name: "Professional Carrier",
+      description: "Best for active owner-operators and growing transport businesses.",
+      popular: true,
+      badge_text: "Most Popular",
+      monthlyPlan: { id: "pro-m", price: 49 },
+      yearlyPlan: { id: "pro-y", price: 490 },
+      features: [
+        "Priority Load Board Alerts",
+        "Advanced Route & Availability Planning",
+        "Fleet Management — Up to 5 Vehicles",
+        "Load Capacity & Backhaul Matching",
+        "Automated Stripe Connect Payouts",
+        "Verified Carrier Profile & Insurance Badge",
+        "Quote Performance Analytics",
+        "2FA & Priority Support"
+      ]
+    },
+    {
+      name: "Enterprise Fleet Operator",
+      description: "Full enterprise fleet capacity with guaranteed contracts and 0% booking fees.",
+      popular: false,
+      badge_text: null,
+      monthlyPlan: { id: "ent-m", price: 129 },
+      yearlyPlan: { id: "ent-y", price: 1290 },
+      features: [
+        "Dedicated Freight Lane Allocation",
+        "Unlimited Fleet & Vehicle Management",
+        "Dispatcher Roles & Multi-Account Management",
+        "Same-Day Escrow Payouts",
+        "Fleet Maintenance & Blackout Scheduling",
+        "Reduced/Zero Platform Booking Fees",
+        "Featured Carrier Placement",
+        "Dedicated Fleet Operations Support"
+      ]
+    }
+  ];
+
+  const sourceTiers = Object.keys(tierMap).length > 0 ? Object.values(tierMap) : fallbackTiers;
+
+  const plans = sourceTiers.map((tier: any) => {
+    const isTrial = Boolean(tier.trialPlan || tier.name.toLowerCase().includes("trial"));
+    const activeSubPlan = isTrial 
+      ? tier.trialPlan 
+      : (billingCycle === "yearly" ? (tier.yearlyPlan || tier.monthlyPlan) : (tier.monthlyPlan || tier.yearlyPlan));
+
+    const planId = (activeSubPlan?.id || tier.name.toLowerCase().replace(/\s+/g, "-")).toString();
+    const isCur = subscription?.plan_id === planId.toLowerCase() || (subscription?.plan?.name && subscription.plan.name.toLowerCase().includes(tier.name.toLowerCase()));
+
+    const monthlyPrice = tier.monthlyPlan ? Number(tier.monthlyPlan.price) : 0;
+    const yearlyPrice = tier.yearlyPlan ? Number(tier.yearlyPlan.price) : (monthlyPrice * 10);
+    const displayPrice = isTrial ? "€ 0.00" : (billingCycle === "yearly" ? `€ ${yearlyPrice.toLocaleString()}` : `€ ${monthlyPrice.toLocaleString()}`);
+
+    return {
+      id: planId,
+      name: tier.name,
+      description: tier.description,
+      displayPrice,
+      isTrial,
+      billingCycleText: isTrial ? "/ 7 Days" : (billingCycle === "yearly" ? "/ year" : "/ month"),
+      subNote: (!isTrial && billingCycle === "yearly") ? `(€ ${(yearlyPrice / 12).toFixed(2)}/mo — 2 Months Free)` : null,
+      popular: tier.popular,
+      badgeText: tier.badge_text,
+      isCurrent: isCur,
+      features: tier.features || [],
+    };
+  });
+
   const history = [
-    { id: 'INV-2026-004', date: 'Jul 01, 2026', description: 'Professional Carrier Plan (Annual)', amount: '€588.00', status: 'Paid', method: 'Visa •••• 4242' },
-    { id: 'INV-2026-003', date: 'Jun 01, 2026', description: 'Additional Fleet Capacity Add-on (5 Trailers)', amount: '€45.00', status: 'Paid', method: 'Visa •••• 4242' },
-    { id: 'INV-2026-002', date: 'May 01, 2025', description: 'Professional Carrier Plan (Annual)', amount: '€588.00', status: 'Paid', method: 'Visa •••• 4242' },
-    { id: 'INV-2026-001', date: 'Apr 10, 2025', description: 'Carrier Verification & Onboarding Setup', amount: '€149.00', status: 'Paid', method: 'Visa •••• 4242' },
+    { id: "INV-2026-004", date: "Jul 01, 2026", description: "Professional Carrier Plan (Monthly)", amount: "€49.00", status: "Paid", method: "Stripe Connect Direct" },
+    { id: "INV-2026-003", date: "Jun 01, 2026", description: "Professional Carrier Plan (Monthly)", amount: "€49.00", status: "Paid", method: "Stripe Connect Direct" },
   ];
 
   const columns: Column<any>[] = [
-    { 
-      id: 'id', 
-      label: 'Invoice ID', 
-      render: (row) => <span className="font-bold text-slate-900">{row.id}</span> 
+    {
+      id: "id",
+      label: "Invoice ID",
+      render: (row) => <span className="font-bold text-slate-900">{row.id}</span>
     },
-    { id: 'date', label: 'Date', render: (row) => <span className="text-xs text-slate-500">{row.date}</span> },
-    { id: 'description', label: 'Description', render: (row) => <span className="font-semibold text-slate-800">{row.description}</span> },
-    { id: 'amount', label: 'Amount', render: (row) => <span className="font-bold text-slate-900">{row.amount}</span> },
-    { id: 'method', label: 'Payment Method', render: (row) => <span className="text-xs text-slate-600 font-medium">{row.method}</span> },
-    { 
-      id: 'status', 
-      label: 'Status', 
+    { id: "date", label: "Date", render: (row) => <span className="text-xs text-slate-500">{row.date}</span> },
+    { id: "description", label: "Description", render: (row) => <span className="font-semibold text-slate-800">{row.description}</span> },
+    { id: "amount", label: "Amount", render: (row) => <span className="font-bold text-slate-900">{row.amount}</span> },
+    { id: "method", label: "Payment Method", render: (row) => <span className="text-xs text-slate-600 font-medium">{row.method}</span> },
+    {
+      id: "status",
+      label: "Status",
       render: (row) => (
         <Badge variant="secondary" className={
-          row.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'bg-amber-50 text-amber-700 font-semibold'
+          row.status === "Paid" ? "bg-emerald-50 text-emerald-700 font-semibold" : "bg-amber-50 text-amber-700 font-semibold"
         }>
           {row.status}
         </Badge>
       )
     },
-    { 
-      id: 'actions', 
-      label: 'Actions', 
+    {
+      id: "actions",
+      label: "Actions",
       render: (row) => (
-        <button 
+        <button
           onClick={() => alert(`Downloading Invoice ${row.id}`)}
           className="text-xs text-[#ff4a1f] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
         >
@@ -57,268 +217,130 @@ export default function Subscription() {
     },
   ];
 
-  // Available Subscription Plans
-  const plans = [
-    {
-      id: 'starter',
-      name: 'Starter Carrier',
-      priceMonthly: '€29',
-      priceYearly: '€24',
-      description: 'Ideal for independent owner-operators with up to 3 trailers.',
-      quotesLimit: '50 Quotes / mo',
-      fleetLimit: '3 Trailers Max',
-      usersLimit: '1 Dispatcher',
-      features: ['Basic RFQ Alerts', 'SEPA & Card Payouts', 'Standard Support'],
-      isCurrent: false,
-    },
-    {
-      id: 'professional',
-      name: 'Professional Fleet',
-      priceMonthly: '€59',
-      priceYearly: '€49',
-      description: 'Best for growing transport companies managing active regional lanes.',
-      quotesLimit: '250 Quotes / mo',
-      fleetLimit: '15 Trailers Max',
-      usersLimit: '5 Dispatchers',
-      features: ['Instant Auto-Quoting', 'Priority RFQ Matching', 'Stripe Express Payouts', 'ADR Hazardous Freight'],
-      isCurrent: true,
-      popular: true,
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise Logistics',
-      priceMonthly: '€149',
-      priceYearly: '€129',
-      description: 'For large freight fleets requiring custom API integrations & unlimited quotes.',
-      quotesLimit: 'Unlimited Quotes',
-      fleetLimit: 'Unlimited Fleet',
-      usersLimit: 'Unlimited Users',
-      features: ['Dedicated Account Manager', 'TMS API Integration', '24/7 Priority Hotline', 'Custom SLA Guarantee'],
-      isCurrent: false,
-    },
-  ];
-
   return (
-    <div className="p-4 md:p-6 w-full mx-auto space-y-5 font-sans antialiased pb-20 min-h-screen">
-      
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="p-4 md:p-6 w-full space-y-5 bg-[#f8fafc] min-h-screen font-sans">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Subscription & Billing Management</h1>
-          <p className="text-xs text-slate-500 font-medium">
-            Monitor active plan quotas, billing cycles, payment methods, and invoice receipts.
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            Carrier Fleet Subscription & Plans
+          </h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Manage your transport fleet tier, load board bidding access, and payout preferences.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 px-2.5 py-1">
-            <CheckCircle2 className="w-3.5 h-3.5 mr-1 shrink-0 inline-block text-emerald-600" /> Account Verified & Active
-          </Badge>
-        </div>
       </div>
 
-      {/* Quota Reminder Banner */}
-      <QuotaReminderBanner 
-        quotaUsed={142} 
-        maxQuota={250} 
-        unitLabel="monthly RFQ quote responses"
-        title="Carrier Plan Quota Reminder"
-        targetUrl="/supplier/subscription"
-        buttonText="Upgrade Carrier Plan"
-      />
+      <QuotaReminderBanner quotaUsed={2} maxQuota={50} />
 
-      {/* Overview Cards: Current Plan + Quota Progress */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        
-        {/* Active Plan Overview Card */}
-        <Card className="shadow-2xs border-slate-200 lg:col-span-1 flex flex-col justify-between rounded-xl">
-          <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
-              <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
-              Active Subscription
-            </CardTitle>
-            <Badge className="bg-[#ff4a1f]/10 text-[#ff4a1f] border border-[#ff4a1f]/30 text-[10px] font-bold uppercase">
-              Current Plan
-            </Badge>
-          </CardHeader>
-          <CardContent className="p-4 space-y-4 flex-1 flex flex-col justify-between">
-            <div>
-              <div className="flex items-baseline justify-between">
-                <h3 className="text-lg font-bold text-slate-900">Professional Fleet</h3>
-                <span className="text-xl font-extrabold text-[#ff4a1f]">€49<span className="text-xs text-slate-500 font-normal">/mo</span></span>
-              </div>
-              <p className="text-[11.5px] text-slate-500 font-normal mt-1">
-                Billed annually (€588/yr). Auto-renews on <span className="font-semibold text-slate-800">Jul 01, 2027</span>.
-              </p>
-            </div>
-
-            {/* Auto Renew Toggle */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold text-slate-800">Auto-Renewal</span>
-                <p className="text-[10.5px] text-slate-500 font-normal">Keep subscription active automatically</p>
-              </div>
-              <Switch defaultChecked={autoRenew} onChange={() => setAutoRenew(!autoRenew)} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Live Quota Usage Trackers */}
-        <Card className="shadow-2xs border-slate-200 lg:col-span-2 rounded-xl">
-          <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50">
-            <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
-              <Zap className="w-4 h-4 text-[#ff4a1f]" />
-              Monthly Quotas & Usage Limits
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            
-            {/* Usage Metric 1: Quotes */}
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-800">RFQ Quotes Sent</span>
-                <span className="font-bold text-[#ff4a1f]">142 / 250</span>
-              </div>
-              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#ff4a1f] h-full rounded-full transition-all" style={{ width: '56.8%' }} />
-              </div>
-              <p className="text-[10.5px] text-slate-500 font-normal">56% of monthly quota used.</p>
-            </div>
-
-            {/* Usage Metric 2: Trailers */}
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-800">Fleet Vehicles</span>
-                <span className="font-bold text-slate-800">12 / 15</span>
-              </div>
-              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div className="bg-emerald-600 h-full rounded-full transition-all" style={{ width: '80%' }} />
-              </div>
-              <p className="text-[10.5px] text-slate-500 font-normal">3 vehicle slots available.</p>
-            </div>
-
-            {/* Usage Metric 3: Users */}
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-800">Dispatcher Seats</span>
-                <span className="font-bold text-slate-800">3 / 5</span>
-              </div>
-              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div className="bg-blue-600 h-full rounded-full transition-all" style={{ width: '60%' }} />
-              </div>
-              <p className="text-[10.5px] text-slate-500 font-normal">2 team seats remaining.</p>
-            </div>
-
-          </CardContent>
-        </Card>
-
-      </div>
-
-      {/* Subscription Plans Selection Section (SubscriptionGrid) */}
-      <Card className="shadow-2xs border-slate-200 rounded-xl">
-        <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <Card className="shadow-2xs border-slate-200 dark:border-slate-800">
+        <CardHeader className="py-3.5 px-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
-              <ShieldCheck className="w-4 h-4 text-[#ff4a1f]" />
-              Compare & Change Subscription Plan
+            <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
+              Available Carrier Membership Plans
             </CardTitle>
-            <p className="text-[11px] text-slate-500 font-normal mt-0.5">Switch plans or upgrade at any time with prorated billing.</p>
           </div>
 
-          {/* Billing Cycle Switcher */}
-          <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
             <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                billingCycle === 'monthly' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+              type="button"
+              onClick={() => setBillingCycle("monthly")}
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                billingCycle === "monthly"
+                  ? "bg-white dark:bg-[#1e2329] text-slate-900 dark:text-slate-100 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
               }`}
             >
               Monthly Billed
             </button>
             <button
-              onClick={() => setBillingCycle('yearly')}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer flex items-center gap-1 ${
-                billingCycle === 'yearly' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+              type="button"
+              onClick={() => setBillingCycle("yearly")}
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
+                billingCycle === "yearly"
+                  ? "bg-[#ff4a1f] text-white shadow-xs"
+                  : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
               }`}
             >
               <span>Yearly Billed</span>
-              <Badge className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1">Save 20%</Badge>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-extrabold ${
+                billingCycle === "yearly" ? "bg-white/20 text-white" : "bg-orange-100 text-[#ff4a1f]"
+              }`}>
+                Save 20%
+              </span>
             </button>
           </div>
         </CardHeader>
 
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="p-4 sm:p-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`p-4 rounded-xl border flex flex-col justify-between transition-all relative ${
-                  plan.isCurrent 
-                    ? 'bg-orange-50/40 border-[#ff4a1f] ring-2 ring-[#ff4a1f]/20 shadow-xs' 
-                    : 'bg-white border-slate-200 hover:border-slate-300'
+                className={`relative rounded-xl border p-5 transition-all flex flex-col justify-between ${
+                  plan.isCurrent
+                    ? "border-2 border-[#ff4a1f] bg-orange-50/20 dark:bg-[#ff4a1f]/5 shadow-sm"
+                    : "bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs"
                 }`}
               >
                 {plan.popular && !plan.isCurrent && (
-                  <Badge className="absolute -top-2.5 right-4 bg-[#ff4a1f] text-white text-[9.5px] font-bold uppercase tracking-wider">
-                    Most Popular
-                  </Badge>
-                )}
-                {plan.isCurrent && (
-                  <Badge className="absolute -top-2.5 right-4 bg-[#ff4a1f] text-white text-[9.5px] font-bold uppercase tracking-wider">
-                    Current Active Plan
-                  </Badge>
+                  <span className="absolute -top-2.5 right-4 bg-[#ff4a1f] text-white text-[9.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                    {plan.badgeText || "Most Popular"}
+                  </span>
                 )}
 
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">{plan.name}</h4>
-                    <p className="text-[11px] text-slate-500 font-normal mt-0.5 leading-normal">{plan.description}</p>
+                <div className="space-y-3.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">{plan.name}</h4>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal mt-0.5 leading-relaxed">{plan.description}</p>
+                    </div>
+                    {plan.isCurrent && (
+                      <span className="shrink-0 px-2 py-0.5 bg-[#ff4a1f] text-white text-[9.5px] font-bold rounded-full uppercase tracking-wider">
+                        Active
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-extrabold text-slate-900">
-                      {billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly}
-                    </span>
-                    <span className="text-xs text-slate-500 font-normal">/ month</span>
+                  <div className="pt-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">
+                        {plan.displayPrice}
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        {plan.billingCycleText}
+                      </span>
+                    </div>
+                    {plan.subNote && (
+                      <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                        {plan.subNote}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-                      <Check className="w-3.5 h-3.5 text-[#ff4a1f]" />
-                      <span>{plan.quotesLimit}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-                      <Check className="w-3.5 h-3.5 text-[#ff4a1f]" />
-                      <span>{plan.fleetLimit}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-                      <Check className="w-3.5 h-3.5 text-[#ff4a1f]" />
-                      <span>{plan.usersLimit}</span>
-                    </div>
-                    {plan.features.map((feat, i) => (
-                      <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600 font-normal">
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{feat}</span>
+                  <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800 max-h-[340px] overflow-y-auto">
+                    {plan.features.map((feat: string, i: number) => (
+                      <div key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 font-medium">
+                        <Check className="w-3.5 h-3.5 text-[#ff4a1f] shrink-0 mt-0.5" />
+                        <span className="leading-tight">{feat}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-5 mt-auto">
                   {plan.isCurrent ? (
-                    <Button
-                      disabled
-                      className="w-full h-8.5 text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-default"
-                    >
-                      Active Plan
-                    </Button>
+                    <div className="w-full h-9 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center gap-1.5">
+                      <CheckCircle2 size={14} /> Current Active Plan
+                    </div>
                   ) : (
-                    <Button
-                      onClick={() => alert(`Switching to ${plan.name}`)}
-                      className="w-full h-8.5 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e63d15] text-white shadow-2xs cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={() => alert(`Upgrading to ${plan.name}`)}
+                      className="w-full h-9 rounded-lg text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03d15] text-white shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-1"
                     >
                       Choose Plan
-                    </Button>
+                    </button>
                   )}
                 </div>
               </div>
@@ -327,85 +349,73 @@ export default function Subscription() {
         </CardContent>
       </Card>
 
-      {/* Payment Method & Billing Contact Information */}
+      {/* Primary Payment Method & Invoicing */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        
-        {/* Registered Payment Method */}
-        <Card className="shadow-2xs border-slate-200 rounded-xl">
+        <Card className="shadow-2xs border-slate-200">
           <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
               <CreditCard className="w-4 h-4 text-[#ff4a1f]" />
-              Primary Payment Method
+              Stripe Express Payout Account
             </CardTitle>
             <Button variant="outline" className="h-7 text-xs px-2.5 cursor-pointer">
-              + Add Card
+              Manage Payouts
             </Button>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
+            <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200/80 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-                  VISA
+                  STRIPE
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-xs font-bold text-slate-900">Visa ending in 4242</h4>
+                    <h4 className="text-xs font-bold text-slate-900">Connected Bank Account (EUR IBAN)</h4>
                     <Badge className="bg-emerald-100 text-emerald-800 text-[9.5px] font-bold border border-emerald-200">
-                      Default
+                      Verified
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-slate-500 font-normal mt-0.5">Expires 12 / 2028</p>
+                  <p className="text-[11px] text-slate-500 font-normal mt-0.5">Automated Escrow release to primary bank.</p>
                 </div>
               </div>
-
-              <button 
-                onClick={() => alert('Update Payment Method')}
-                className="text-xs text-[#ff4a1f] hover:underline font-semibold cursor-pointer"
-              >
-                Edit
-              </button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Billing Address & VAT Details */}
-        <Card className="shadow-2xs border-slate-200 rounded-xl">
+        <Card className="shadow-2xs border-slate-200">
           <CardHeader className="py-3 px-4 border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900">
               <Building2 className="w-4 h-4 text-[#ff4a1f]" />
-              Invoicing & Tax Information
+              Carrier Business Details
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-2 text-xs">
             <div className="flex justify-between py-1 border-b border-slate-100">
-              <span className="text-slate-500 font-medium">Billed Business Name:</span>
-              <span className="font-bold text-slate-800">Prime Logistics & Freight GmbH</span>
+              <span className="text-slate-500 font-medium">Registered Company:</span>
+              <span className="font-bold text-slate-800">{companyName}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-100">
-              <span className="text-slate-500 font-medium">EU Tax / VAT ID:</span>
-              <span className="font-bold text-slate-800">DE309281923</span>
+              <span className="text-slate-500 font-medium">VAT / Tax ID:</span>
+              <span className="font-bold text-slate-800">{vatNumber}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-slate-500 font-medium">Invoice Email:</span>
-              <span className="font-bold text-slate-800">billing@primemovers.eu</span>
+              <span className="text-slate-500 font-medium">Billing Contact Email:</span>
+              <span className="font-bold text-slate-800">{billingEmail}</span>
             </div>
           </CardContent>
         </Card>
-
       </div>
 
       {/* Direct Standard DataTable for Billing History & Receipts */}
       <div className="p-0 space-y-2">
         <h3 className="text-xs font-bold text-slate-900 px-1">Billing History & Downloadable Receipts</h3>
-        <DataTable 
-          columns={columns} 
-          data={history} 
+        <DataTable
+          columns={columns}
+          data={history}
           compact={true}
           searchPlaceholder="Search invoices by ID, date, description..."
           hideViewToggle={true}
         />
       </div>
-
     </div>
   );
 }

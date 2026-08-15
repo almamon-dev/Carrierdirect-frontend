@@ -89,15 +89,15 @@ export default function TrustedbyRealShippersCarriers() {
           <div className="hidden sm:block"></div>
 
           <div className="flex gap-1.5 mt-4 sm:mt-0 z-10 ml-auto">
-            <button 
-              onClick={scrollLeft} 
+            <button
+              onClick={scrollLeft}
               className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-400 hover:text-[#ff4a1f] hover:border-[#ff4a1f] transition-all shadow-sm hover:shadow"
               aria-label="Previous review"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button 
-              onClick={scrollRight} 
+            <button
+              onClick={scrollRight}
               className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-400 hover:text-[#ff4a1f] hover:border-[#ff4a1f] transition-all shadow-sm hover:shadow"
               aria-label="Next review"
             >
@@ -107,7 +107,7 @@ export default function TrustedbyRealShippersCarriers() {
         </div>
 
         <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div 
+          <div
             ref={scrollRef}
             className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 pt-2"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -115,7 +115,7 @@ export default function TrustedbyRealShippersCarriers() {
             {reviews.map((review, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-3 min-w-[260px] max-w-[280px] shrink-0 snap-start"
+                className="bg-white rounded-md p-5 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-3 min-w-[260px] max-w-[280px] shrink-0 snap-start"
               >
                 <Stars count={review.rating} />
 

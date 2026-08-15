@@ -106,7 +106,7 @@ export default function SupplierAvailabilities() {
             {mockAvailabilities.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-3 min-w-[260px] max-w-[280px] shrink-0 snap-start"
+                className="bg-white rounded-md p-5 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-3 min-w-[260px] max-w-[280px] shrink-0 snap-start"
               >
                 <div className="flex items-center mb-1">
                   <Truck className="w-4 h-4 text-orange-400" />

@@ -39,14 +39,14 @@ export default function Withdrawal() {
         { id: 'amount', label: 'Gross Amount', render: (row) => <span className="font-semibold text-slate-800">{row.amount}</span> },
         { id: 'fee', label: 'Fees', render: (row) => <span className="font-semibold text-red-600">-{row.fee}</span> },
         { id: 'netAmount', label: 'Net Amount', render: (row) => <span className="font-bold text-emerald-600">{row.netAmount}</span> },
-        { 
-            id: 'status', 
-            label: 'Status', 
+        {
+            id: 'status',
+            label: 'Status',
             render: (row) => (
                 <Badge variant="secondary" className={
                     row.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 font-semibold' :
-                    row.status === 'Processing' ? 'bg-amber-50 text-amber-700 font-semibold' :
-                    'bg-red-50 text-red-700 font-semibold'
+                        row.status === 'Processing' ? 'bg-amber-50 text-amber-700 font-semibold' :
+                            'bg-red-50 text-red-700 font-semibold'
                 }>
                     {row.status}
                 </Badge>
@@ -80,7 +80,7 @@ export default function Withdrawal() {
 
             {/* High-Impact Action Required Banner when Stripe is not connected */}
             {!isStripeConnected && (
-                <div className="bg-gradient-to-r from-red-500 via-rose-500 to-[#ff4a1f] text-white p-4 rounded-xl shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in border border-red-400/60">
+                <div className="bg-gradient-to-r from-red-500 via-rose-500 to-[#ff4a1f] text-white p-4 rounded-md shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in border border-red-400/60">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 border border-white/30 shadow-2xs">
                             <AlertCircle className="w-5 h-5 text-white animate-pulse" />
@@ -111,7 +111,7 @@ export default function Withdrawal() {
             {/* Top Stats Strip */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Balance Card */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-50 text-[#ff4a1f]">
                             <Euro size={16} strokeWidth={2.5} />
@@ -122,17 +122,17 @@ export default function Withdrawal() {
                             <h3 className="text-base font-bold text-slate-900 mb-0.5">€12,450.00</h3>
                             <p className="text-xs font-medium text-slate-500">Available Balance</p>
                         </div>
-                        <button 
-                            className="text-xs text-[#ff4a1f] hover:underline font-bold disabled:text-slate-400 disabled:hover:no-underline transition-all flex items-center gap-1 cursor-pointer" 
+                        <button
+                            className="text-xs text-[#ff4a1f] hover:underline font-bold disabled:text-slate-400 disabled:hover:no-underline transition-all flex items-center gap-1 cursor-pointer"
                             disabled={!isStripeConnected}
                         >
-                             Withdraw <ArrowUpRight size={12} />
+                            Withdraw <ArrowUpRight size={12} />
                         </button>
                     </div>
                 </div>
 
                 {/* Pending Clearance Card */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 text-amber-600">
                             <Clock size={16} strokeWidth={2.5} />
@@ -145,7 +145,7 @@ export default function Withdrawal() {
                 </div>
 
                 {/* Total Earnings Card */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <TrendingUp size={16} strokeWidth={2.5} />
@@ -158,15 +158,13 @@ export default function Withdrawal() {
                 </div>
 
                 {/* Stripe Connect Card */}
-                <div className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
-                    !isStripeConnected 
-                        ? 'bg-red-50/30 border-red-300 ring-2 ring-red-500/20 shadow-xs' 
+                <div className={`p-3.5 rounded-md border transition-all flex flex-col justify-between ${!isStripeConnected
+                        ? 'bg-red-50/30 border-red-300 ring-2 ring-red-500/20 shadow-xs'
                         : 'bg-white border-slate-200 shadow-2xs'
-                }`}>
+                    }`}>
                     <div className="flex justify-between items-start mb-2">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            isStripeConnected ? 'bg-[#635BFF]/10 text-[#635BFF]' : 'bg-red-100 text-red-600'
-                        }`}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isStripeConnected ? 'bg-[#635BFF]/10 text-[#635BFF]' : 'bg-red-100 text-red-600'
+                            }`}>
                             {isStripeConnected ? <ShieldCheck size={16} strokeWidth={2.5} /> : <AlertCircle size={16} strokeWidth={2.5} />}
                         </div>
                         {isStripeConnected ? (
@@ -187,8 +185,8 @@ export default function Withdrawal() {
                             </p>
                         </div>
                         {!isStripeConnected ? (
-                            <button 
-                                className="text-xs text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1 cursor-pointer" 
+                            <button
+                                className="text-xs text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1 cursor-pointer"
                                 onClick={() => setIsStripeConnected(true)}
                             >
                                 Setup
@@ -204,12 +202,12 @@ export default function Withdrawal() {
 
             {/* Direct DataTable matching Active Jobs & Team Management */}
             <div className="p-0">
-                <DataTable 
-                    columns={columns} 
-                    data={filteredHistory} 
-                    compact={true} 
+                <DataTable
+                    columns={columns}
+                    data={filteredHistory}
+                    compact={true}
                     searchPlaceholder="Search payouts by transaction ID, method..."
-                    hideViewToggle={true} 
+                    hideViewToggle={true}
                     filterContent={filterContent}
                 />
             </div>

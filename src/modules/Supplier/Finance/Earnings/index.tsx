@@ -50,13 +50,13 @@ export default function Earnings() {
         { id: 'gross', label: 'Gross Rate', render: (row) => <span className="font-semibold text-slate-800">{row.gross}</span> },
         { id: 'fee', label: 'Platform Fee (5%)', render: (row) => <span className="font-semibold text-red-600">-{row.fee}</span> },
         { id: 'net', label: 'Net Earned', render: (row) => <span className="font-bold text-emerald-600">{row.net}</span> },
-        { 
-            id: 'status', 
-            label: 'Status', 
+        {
+            id: 'status',
+            label: 'Status',
             render: (row) => (
                 <Badge variant="secondary" className={
                     row.status === 'Cleared' ? 'bg-emerald-50 text-emerald-700 font-semibold' :
-                    'bg-amber-50 text-amber-700 font-semibold'
+                        'bg-amber-50 text-amber-700 font-semibold'
                 }>
                     {row.status}
                 </Badge>
@@ -100,7 +100,7 @@ export default function Earnings() {
             {/* Top Stats Strip */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* This Month */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-50 text-[#ff4a1f]">
                             <Euro size={16} strokeWidth={2.5} />
@@ -113,7 +113,7 @@ export default function Earnings() {
                 </div>
 
                 {/* Last Month */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-600">
                             <Calendar size={16} strokeWidth={2.5} />
@@ -126,7 +126,7 @@ export default function Earnings() {
                 </div>
 
                 {/* Pending Clearance */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 text-amber-600">
                             <Clock size={16} strokeWidth={2.5} />
@@ -139,7 +139,7 @@ export default function Earnings() {
                 </div>
 
                 {/* Lifetime Earnings */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <TrendingUp size={16} strokeWidth={2.5} />
@@ -154,9 +154,9 @@ export default function Earnings() {
 
             {/* Chart & Table Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                
+
                 {/* Earnings Chart */}
-                <Card className="lg:col-span-1 flex flex-col min-h-[300px] border-slate-200 shadow-2xs rounded-xl overflow-hidden">
+                <Card className="lg:col-span-1 flex flex-col min-h-[300px] border-slate-200 shadow-2xs rounded-md overflow-hidden">
                     <CardHeader className="py-3 px-4 bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between">
                         <CardTitle className="text-xs font-bold text-slate-900">Revenue Trend</CardTitle>
                         <Badge variant="secondary" className="bg-orange-50 text-[#ff4a1f] font-semibold text-[10px]">July</Badge>
@@ -167,35 +167,35 @@ export default function Earnings() {
                                 <AreaChart data={earningsData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#ff4a1f" stopOpacity={0.2}/>
-                                            <stop offset="95%" stopColor="#ff4a1f" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor="#ff4a1f" stopOpacity={0.2} />
+                                            <stop offset="95%" stopColor="#ff4a1f" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                    <XAxis 
-                                        dataKey="name" 
-                                        axisLine={false} 
-                                        tickLine={false} 
+                                    <XAxis
+                                        dataKey="name"
+                                        axisLine={false}
+                                        tickLine={false}
                                         tick={{ fill: '#64748b', fontSize: 10 }}
                                         dy={10}
                                     />
-                                    <YAxis 
-                                        axisLine={false} 
-                                        tickLine={false} 
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
                                         tick={{ fill: '#64748b', fontSize: 10 }}
                                         tickFormatter={(value) => `€${value}`}
                                     />
-                                    <Tooltip 
+                                    <Tooltip
                                         contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                         formatter={(value: number) => [`€${value}`, 'Earnings']}
                                     />
-                                    <Area 
-                                        type="monotone" 
-                                        dataKey="earnings" 
-                                        stroke="#ff4a1f" 
+                                    <Area
+                                        type="monotone"
+                                        dataKey="earnings"
+                                        stroke="#ff4a1f"
                                         strokeWidth={2}
-                                        fillOpacity={1} 
-                                        fill="url(#colorEarnings)" 
+                                        fillOpacity={1}
+                                        fill="url(#colorEarnings)"
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -205,16 +205,16 @@ export default function Earnings() {
 
                 {/* Job Earnings Table */}
                 <div className="lg:col-span-2 p-0">
-                    <DataTable 
-                        columns={columns} 
-                        data={filteredHistory} 
-                        compact={true} 
+                    <DataTable
+                        columns={columns}
+                        data={filteredHistory}
+                        compact={true}
                         searchPlaceholder="Search earnings by job ID, customer..."
-                        hideViewToggle={true} 
+                        hideViewToggle={true}
                         filterContent={filterContent}
                     />
                 </div>
-                
+
             </div>
         </div>
     );

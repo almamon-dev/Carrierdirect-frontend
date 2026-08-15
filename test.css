@@ -2181,7 +2181,7 @@ body {
   border-radius: calc(var(--radius) - 4px);
 }
 
-.rounded-xl {
+.rounded-md {
   border-radius: 0.75rem;
 }
 

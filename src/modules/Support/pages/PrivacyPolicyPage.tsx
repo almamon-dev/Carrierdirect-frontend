@@ -25,8 +25,8 @@ export default function PrivacyPolicyPage() {
       {/* Top Header */}
       <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center sticky top-0 z-20">
         <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
-          <button 
-            onClick={() => navigate('/modules')} 
+          <button
+            onClick={() => navigate('/modules')}
             className="flex items-center gap-2 text-[14px] font-semibold text-slate-500 hover:text-slate-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={2.5} />
@@ -54,7 +54,7 @@ export default function PrivacyPolicyPage() {
 
         {/* Left Sidebar (Sticky) */}
         <aside className="lg:w-64 flex-shrink-0">
-          <div className="sticky top-24 bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <div className="sticky top-24 bg-white border border-gray-200 rounded-md p-5 shadow-sm">
             <h3 className="text-[13px] font-bold text-slate-800 mb-4 px-1">Table of Contents</h3>
             <nav className="space-y-1">
               {sections.map((section) => (
@@ -81,7 +81,7 @@ export default function PrivacyPolicyPage() {
         </aside>
 
         {/* Right Content */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-xl p-6 lg:p-8 shadow-sm prose prose-sm prose-gray max-w-none">
+        <div className="flex-1 bg-white border border-gray-200 rounded-md p-6 lg:p-8 shadow-sm prose prose-sm prose-gray max-w-none">
           <div className="space-y-8 text-gray-600">
 
             <section id="data-collection" className="scroll-mt-24">

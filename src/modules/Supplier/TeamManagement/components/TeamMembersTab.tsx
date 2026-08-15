@@ -27,91 +27,91 @@ export default function TeamMembersTab() {
     const [selectedMemberModal, setSelectedMemberModal] = useState<TeamMember | null>(null);
 
     const members: TeamMember[] = [
-        { 
-            id: 'EMP-001', 
-            name: 'John Doe', 
-            avatar: 'JD', 
-            role: 'Admin', 
-            department: 'Operations', 
-            designation: 'Operations Manager', 
-            email: 'john@abclogistics.com', 
-            phone: '+1 (555) 234-5678', 
-            status: 'Active', 
+        {
+            id: 'EMP-001',
+            name: 'John Doe',
+            avatar: 'JD',
+            role: 'Admin',
+            department: 'Operations',
+            designation: 'Operations Manager',
+            email: 'john@abclogistics.com',
+            phone: '+1 (555) 234-5678',
+            status: 'Active',
             lastLogin: '10 mins ago',
             location: 'Main HQ - Dhaka',
             assignedVehicle: 'HQ Command Desk',
             clearance: 'Level 3 - Full Admin'
         },
-        { 
-            id: 'EMP-002', 
-            name: 'Jane Smith', 
-            avatar: 'JS', 
-            role: 'Dispatcher', 
-            department: 'Operations', 
-            designation: 'Senior Freight Dispatcher', 
-            email: 'jane@abclogistics.com', 
-            phone: '+1 (555) 876-5432', 
-            status: 'Active', 
+        {
+            id: 'EMP-002',
+            name: 'Jane Smith',
+            avatar: 'JS',
+            role: 'Dispatcher',
+            department: 'Operations',
+            designation: 'Senior Freight Dispatcher',
+            email: 'jane@abclogistics.com',
+            phone: '+1 (555) 876-5432',
+            status: 'Active',
             lastLogin: '1 hour ago',
             location: 'Central Dispatch Hub',
             assignedVehicle: 'Dispatcher Station #4',
             clearance: 'Level 2 - Dispatcher'
         },
-        { 
-            id: 'EMP-003', 
-            name: 'Mike Ross', 
-            avatar: 'MR', 
-            role: 'Driver', 
-            department: 'Fleet', 
-            designation: 'Heavy Fleet Operator', 
-            email: 'mike@abclogistics.com', 
-            phone: '+1 (555) 345-6789', 
-            status: 'On Leave', 
+        {
+            id: 'EMP-003',
+            name: 'Mike Ross',
+            avatar: 'MR',
+            role: 'Driver',
+            department: 'Fleet',
+            designation: 'Heavy Fleet Operator',
+            email: 'mike@abclogistics.com',
+            phone: '+1 (555) 345-6789',
+            status: 'On Leave',
             lastLogin: 'Jul 15, 2026',
             location: 'Chittagong Port Fleet',
             assignedVehicle: 'Volvo FH16 (TRK-9921)',
             clearance: 'Level 1 - Heavy Vehicle'
         },
-        { 
-            id: 'EMP-004', 
-            name: 'Sarah Lee', 
-            avatar: 'SL', 
-            role: 'Warehouse Head', 
-            department: 'Warehouse', 
-            designation: 'Inventory Lead', 
-            email: 'sarah@abclogistics.com', 
-            phone: '+1 (555) 987-6543', 
-            status: 'Active', 
+        {
+            id: 'EMP-004',
+            name: 'Sarah Lee',
+            avatar: 'SL',
+            role: 'Warehouse Head',
+            department: 'Warehouse',
+            designation: 'Inventory Lead',
+            email: 'sarah@abclogistics.com',
+            phone: '+1 (555) 987-6543',
+            status: 'Active',
             lastLogin: 'Today, 08:30 AM',
             location: 'Warehouse Facility B',
             assignedVehicle: 'Forklift & Inventory Bay 2',
             clearance: 'Level 2 - Warehouse'
         },
-        { 
-            id: 'EMP-005', 
-            name: 'Alex Rivera', 
-            avatar: 'AR', 
-            role: 'Finance Manager', 
-            department: 'Finance', 
-            designation: 'Billing & Escrow Analyst', 
-            email: 'alex@abclogistics.com', 
-            phone: '+1 (555) 456-7890', 
-            status: 'Active', 
+        {
+            id: 'EMP-005',
+            name: 'Alex Rivera',
+            avatar: 'AR',
+            role: 'Finance Manager',
+            department: 'Finance',
+            designation: 'Billing & Escrow Analyst',
+            email: 'alex@abclogistics.com',
+            phone: '+1 (555) 456-7890',
+            status: 'Active',
             lastLogin: 'Yesterday, 04:15 PM',
             location: 'Finance Desk',
             assignedVehicle: 'Stripe Escrow Terminal',
             clearance: 'Level 2 - Escrow Access'
         },
-        { 
-            id: 'EMP-006', 
-            name: 'David Chen', 
-            avatar: 'DC', 
-            role: 'Fleet Specialist', 
-            department: 'Fleet', 
-            designation: 'Fleet Maintenance Supv.', 
-            email: 'david@abclogistics.com', 
-            phone: '+1 (555) 654-3210', 
-            status: 'Inactive', 
+        {
+            id: 'EMP-006',
+            name: 'David Chen',
+            avatar: 'DC',
+            role: 'Fleet Specialist',
+            department: 'Fleet',
+            designation: 'Fleet Maintenance Supv.',
+            email: 'david@abclogistics.com',
+            phone: '+1 (555) 654-3210',
+            status: 'Inactive',
             lastLogin: 'Jun 28, 2026',
             location: 'Depot Yard',
             assignedVehicle: 'Service Van #09',
@@ -126,31 +126,31 @@ export default function TeamMembersTab() {
     });
 
     const columns: Column<TeamMember>[] = [
-        { 
-            id: 'id', 
-            label: 'Employee ID', 
+        {
+            id: 'id',
+            label: 'Employee ID',
             render: (row) => (
-                <button 
+                <button
                     onClick={() => setSelectedMemberModal(row)}
                     className="font-bold text-slate-900 hover:text-[#ff4a1f] hover:underline text-left"
                 >
                     {row.id}
                 </button>
-            ) 
+            )
         },
-        { 
-            id: 'name', 
-            label: 'Member Name', 
+        {
+            id: 'name',
+            label: 'Member Name',
             render: (row) => (
                 <div>
                     <p className="font-bold text-slate-900">{row.name}</p>
                     <p className="text-[11px] text-slate-400">{row.email}</p>
                 </div>
-            ) 
+            )
         },
-        { 
-            id: 'role', 
-            label: 'Role & Scope', 
+        {
+            id: 'role',
+            label: 'Role & Scope',
             render: (row) => (
                 <div className="space-y-0.5">
                     <div className="flex items-center gap-1.5 text-slate-800 font-semibold">
@@ -159,49 +159,49 @@ export default function TeamMembersTab() {
                     </div>
                     <p className="text-[11px] text-slate-500">{row.designation}</p>
                 </div>
-            ) 
+            )
         },
-        { 
-            id: 'department', 
-            label: 'Department', 
+        {
+            id: 'department',
+            label: 'Department',
             render: (row) => (
                 <span className="text-xs font-semibold text-slate-800">{row.department}</span>
-            ) 
+            )
         },
-        { 
-            id: 'phone', 
-            label: 'Contact', 
+        {
+            id: 'phone',
+            label: 'Contact',
             render: (row) => (
                 <span className="text-xs font-bold text-slate-900">{row.phone}</span>
-            ) 
+            )
         },
-        { 
-            id: 'status', 
-            label: 'Status', 
+        {
+            id: 'status',
+            label: 'Status',
             render: (row) => (
                 <Badge variant="secondary" className={
                     row.status === 'Active' ? 'bg-emerald-50 text-emerald-700 font-semibold' :
-                    row.status === 'On Leave' ? 'bg-amber-50 text-amber-700 font-semibold' :
-                    'bg-red-50 text-red-700 font-semibold'
+                        row.status === 'On Leave' ? 'bg-amber-50 text-amber-700 font-semibold' :
+                            'bg-red-50 text-red-700 font-semibold'
                 }>
                     {row.status}
                 </Badge>
             )
         },
-        { 
-            id: 'lastLogin', 
-            label: 'Last Active', 
+        {
+            id: 'lastLogin',
+            label: 'Last Active',
             render: (row) => (
                 <span className="text-[11px] font-semibold text-slate-500">{row.lastLogin}</span>
-            ) 
+            )
         }
     ];
 
     const renderActions = (row: TeamMember) => (
         <div className="flex items-center justify-end gap-2">
-            <Button 
-                variant="outline" 
-                size="sm" 
+            <Button
+                variant="outline"
+                size="sm"
                 className="h-8 text-xs px-2.5 font-semibold"
                 onClick={() => setSelectedMemberModal(row)}
             >
@@ -237,9 +237,9 @@ export default function TeamMembersTab() {
 
     return (
         <div className="space-y-5">
-            <DataTable 
-                columns={columns} 
-                data={filteredMembers} 
+            <DataTable
+                columns={columns}
+                data={filteredMembers}
                 compact={true}
                 searchPlaceholder="Search by member name, email, role or ID..."
                 hideViewToggle={true}
@@ -250,13 +250,13 @@ export default function TeamMembersTab() {
             {/* Member Details Modal matching exact app design */}
             {selectedMemberModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-                    <div className="bg-white w-full max-w-lg rounded-xl shadow-xl overflow-hidden border border-slate-200">
+                    <div className="bg-white w-full max-w-lg rounded-md shadow-xl overflow-hidden border border-slate-200">
                         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
                             <div>
                                 <h3 className="text-base font-bold text-slate-900">{selectedMemberModal.name}</h3>
                                 <p className="text-xs text-slate-500 font-medium">{selectedMemberModal.designation} • {selectedMemberModal.id}</p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => setSelectedMemberModal(null)}
                                 className="p-1 rounded-md hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
                             >
@@ -311,8 +311,8 @@ export default function TeamMembersTab() {
                         </div>
 
                         <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 size="sm"
                                 className="h-8 text-xs px-4"
                                 onClick={() => setSelectedMemberModal(null)}

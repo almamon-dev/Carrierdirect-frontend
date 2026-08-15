@@ -8,6 +8,7 @@ interface SectionProps {
     formData: QuoteFormData;
     servicesCount: number;
     isSubmitting: boolean;
+    submittingStatus?: 'active' | 'pending' | null;
     onSubmit: (e?: React.FormEvent, status?: 'active' | 'pending') => void;
 }
 
@@ -15,6 +16,7 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
     formData,
     servicesCount,
     isSubmitting,
+    submittingStatus,
     onSubmit,
 }) => {
     const pickupLocation = [formData.pickupCompany, formData.pickupCity, formData.pickupState, formData.pickupCountry].filter(Boolean).join(', ') || formData.pickupAddress;
@@ -117,6 +119,7 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
                     size="sm"
                     className="h-10 px-5 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] font-bold text-xs flex items-center gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
                     onClick={() => onSubmit(undefined, 'pending')}
+                    isLoading={isSubmitting && submittingStatus === 'pending'}
                     disabled={isSubmitting}
                 >
                     <Save size={15} className="text-slate-500 dark:text-slate-400" />
@@ -129,10 +132,11 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
                     size="sm"
                     className="h-10 px-6 bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer"
                     onClick={() => onSubmit(undefined, 'active')}
+                    isLoading={isSubmitting && (submittingStatus === 'active' || !submittingStatus)}
                     disabled={isSubmitting}
                 >
                     <Send size={15} />
-                    <span>{isSubmitting ? 'Posting Request...' : 'Confirm & Post Request'}</span>
+                    <span>Confirm & Post Request</span>
                 </Button>
             </div>
         </div>

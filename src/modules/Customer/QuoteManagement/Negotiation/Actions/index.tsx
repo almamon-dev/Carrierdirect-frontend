@@ -14,17 +14,17 @@ interface CustomCharge {
     amount: string;
 }
 
-export default function ChatInputActions({ 
-    inputValue, 
-    setInputValue, 
+export default function ChatInputActions({
+    inputValue,
+    setInputValue,
     scrollToBottom,
     onSendMessage,
     onSendCounterOffer,
     isSupplier = false,
     isEditing = false,
     onCancelEdit
-}: { 
-    inputValue: string; 
+}: {
+    inputValue: string;
     setInputValue: (v: string) => void;
     scrollToBottom: () => void;
     onSendMessage?: (text: string, files?: File[]) => void;
@@ -120,11 +120,11 @@ export default function ChatInputActions({
     const handleSubmitCounterOffer = (e: React.FormEvent) => {
         e.preventDefault();
         const finalAmount = isSupplier ? supplierTotal : parseFloat(counterOfferAmount);
-        
+
         if (!isNaN(finalAmount) && finalAmount > 0) {
             if (onSendCounterOffer) {
                 const customDetails = customCharges.map(c => `${c.label || 'Fee'}${c.description ? ` (${c.description})` : ''}: €${c.amount}`).join(', ');
-                const noteText = isSupplier 
+                const noteText = isSupplier
                     ? `${counterOfferNote ? counterOfferNote + ' | ' : ''}Breakdown: Base Freight €${baseFreight}${customDetails ? ', ' + customDetails : ''}`
                     : counterOfferNote;
                 onSendCounterOffer(finalAmount, noteText);
@@ -145,7 +145,7 @@ export default function ChatInputActions({
                 size="2xl"
                 title={
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#FF4A1F] flex items-center justify-center font-bold">
+                        <div className="w-10 h-10 rounded-md bg-orange-50 text-[#FF4A1F] flex items-center justify-center font-bold">
                             <Receipt size={20} />
                         </div>
                         <div>
@@ -160,14 +160,14 @@ export default function ChatInputActions({
                             type="button"
                             variant="outline"
                             onClick={() => setShowCounterOfferModal(false)}
-                            className="px-4 py-2 text-xs font-bold text-slate-700 rounded-xl cursor-pointer"
+                            className="px-4 py-2 text-xs font-bold text-slate-700 rounded-md cursor-pointer"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             form="counter-offer-form"
-                            className="px-5 py-2 bg-[#FF4A1F] hover:bg-[#E03E15] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md"
+                            className="px-5 py-2 bg-[#FF4A1F] hover:bg-[#E03E15] text-white text-xs font-bold rounded-md transition-all cursor-pointer shadow-md"
                         >
                             Send Counter Offer
                         </Button>
@@ -189,7 +189,7 @@ export default function ChatInputActions({
                                     onChange={(e) => setBaseFreight(e.target.value)}
                                     required
                                     min="1"
-                                    className="h-10 rounded-xl text-xs font-bold"
+                                    className="h-10 rounded-md text-xs font-bold"
                                 />
                             </div>
 
@@ -211,7 +211,7 @@ export default function ChatInputActions({
 
                                 <div className="space-y-2">
                                     {customCharges.map((charge) => (
-                                        <div key={charge.id} className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200/80">
+                                        <div key={charge.id} className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-md border border-slate-200/80">
                                             <div className="w-1/3 min-w-0">
                                                 <Input
                                                     type="text"
@@ -253,7 +253,7 @@ export default function ChatInputActions({
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-center p-3.5 bg-slate-100/90 rounded-xl border border-slate-200">
+                            <div className="flex justify-between items-center p-3.5 bg-slate-100/90 rounded-md border border-slate-200">
                                 <span className="text-xs font-bold text-slate-800">Total Calculated Offer:</span>
                                 <span className="text-lg font-black text-[#FF4A1F]">€ {supplierTotal.toLocaleString()}</span>
                             </div>
@@ -271,7 +271,7 @@ export default function ChatInputActions({
                                 onChange={(e) => setCounterOfferAmount(e.target.value)}
                                 required
                                 min="1"
-                                className="h-10 rounded-xl text-xs font-bold"
+                                className="h-10 rounded-md text-xs font-bold"
                             />
                         </div>
                     )}
@@ -283,7 +283,7 @@ export default function ChatInputActions({
                             value={counterOfferNote}
                             onChange={(e) => setCounterOfferNote(e.target.value)}
                             rows={3}
-                            className="text-xs rounded-xl"
+                            className="text-xs rounded-md"
                         />
                     </div>
                 </form>
@@ -291,7 +291,7 @@ export default function ChatInputActions({
 
             {/* Editing Message Banner */}
             {isEditing && (
-                <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl mb-1 flex items-center justify-between text-xs animate-fade-in">
+                <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-md mb-1 flex items-center justify-between text-xs animate-fade-in">
                     <div className="flex items-center gap-2 min-w-0">
                         <Pencil size={14} className="text-amber-600 shrink-0" />
                         <span className="font-bold text-amber-900 shrink-0">Editing Message:</span>
@@ -312,7 +312,7 @@ export default function ChatInputActions({
             {selectedFiles.length > 0 && (
                 <div className="flex gap-2 px-1 overflow-x-auto pb-1">
                     {selectedFiles.map((file, idx) => (
-                        <div key={idx} className="relative group bg-slate-50 rounded-xl p-2 flex items-center gap-2.5 border border-slate-200 pr-8 shrink-0 max-w-[220px]">
+                        <div key={idx} className="relative group bg-slate-50 rounded-md p-2 flex items-center gap-2.5 border border-slate-200 pr-8 shrink-0 max-w-[220px]">
                             {file.type.startsWith('image/') ? (
                                 <div className="w-9 h-9 rounded-lg bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
                                     <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
@@ -323,7 +323,7 @@ export default function ChatInputActions({
                                 </div>
                             )}
                             <div className="text-xs font-semibold text-slate-700 truncate">{file.name}</div>
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => removeFile(idx)}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-white text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-full flex items-center justify-center transition-colors shadow-xs cursor-pointer"
@@ -338,57 +338,57 @@ export default function ChatInputActions({
             {/* Input Toolbar Bar */}
             <div className="flex items-center gap-2 relative">
                 {/* Hidden File Inputs */}
-                <input 
-                    type="file" 
-                    ref={imageInputRef} 
-                    className="hidden" 
-                    accept="image/*" 
-                    multiple 
-                    onChange={handleFileChange} 
+                <input
+                    type="file"
+                    ref={imageInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileChange}
                 />
-                <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    multiple 
-                    onChange={handleFileChange} 
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    multiple
+                    onChange={handleFileChange}
                 />
 
                 {/* Counter Offer Launcher Button */}
                 <button
                     type="button"
                     onClick={() => setShowCounterOfferModal(true)}
-                    className="h-10 px-3.5 bg-orange-50 hover:bg-[#FF4A1F] text-[#FF4A1F] hover:text-white border border-orange-200 hover:border-[#FF4A1F] rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-xs"
+                    className="h-10 px-3.5 bg-orange-50 hover:bg-[#FF4A1F] text-[#FF4A1F] hover:text-white border border-orange-200 hover:border-[#FF4A1F] rounded-md text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-xs"
                     title={isSupplier ? "Submit itemized price breakdown" : "Submit a new counter offer"}
                 >
                     {isSupplier ? <Calculator size={15} className="stroke-[2.5]" /> : <DollarSign size={15} className="stroke-[2.5]" />}
                     <span className="hidden sm:inline">Counter Offer</span>
                 </button>
 
-                <Button 
+                <Button
                     type="button"
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-10 w-10 text-slate-500 hover:text-[#FF4A1F] rounded-xl hover:bg-slate-100 shrink-0"
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 text-slate-500 hover:text-[#FF4A1F] rounded-md hover:bg-slate-100 shrink-0"
                     onClick={() => imageInputRef.current?.click()}
                     title="Send Image"
                 >
                     <ImageIcon size={20} />
                 </Button>
-                <Button 
+                <Button
                     type="button"
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-10 w-10 text-slate-500 hover:text-[#FF4A1F] rounded-xl hover:bg-slate-100 shrink-0"
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 text-slate-500 hover:text-[#FF4A1F] rounded-md hover:bg-slate-100 shrink-0"
                     onClick={() => fileInputRef.current?.click()}
                     title="Attach File"
                 >
                     <Paperclip size={20} />
                 </Button>
-                
+
                 {/* Textarea Pill Container */}
                 <div className="flex-1 bg-slate-100/80 rounded-2xl flex items-center pr-2 pl-4 py-1 border border-slate-200/80 focus-within:bg-white focus-within:border-[#FF4A1F] focus-within:ring-2 focus-within:ring-[#FF4A1F]/20 transition-all">
-                    <textarea 
+                    <textarea
                         ref={textareaRef}
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
@@ -396,18 +396,18 @@ export default function ChatInputActions({
                         className="flex-1 bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none resize-none py-1.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 font-medium leading-relaxed max-h-[160px] overflow-y-auto custom-scrollbar"
                         rows={1}
                         onKeyDown={(e) => {
-                            if(e.key === 'Enter' && !e.shiftKey) {
+                            if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
                                 handleSend();
                             }
                         }}
                     />
-                    
+
                     <div ref={emojiPickerRef} className="relative shrink-0 ml-1">
-                        <Button 
+                        <Button
                             type="button"
-                            variant="ghost" 
-                            size="icon" 
+                            variant="ghost"
+                            size="icon"
                             className={`h-8 w-8 rounded-full shrink-0 ${showEmojiPicker ? 'bg-orange-100 text-[#FF4A1F]' : 'text-slate-400 hover:text-[#FF4A1F] hover:bg-slate-200'}`}
                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                         >
@@ -434,17 +434,16 @@ export default function ChatInputActions({
                     </div>
                 </div>
 
-                <Button 
+                <Button
                     type="button"
-                    variant="ghost" 
-                    size="icon" 
-                    className={`h-10 w-10 rounded-full shrink-0 shadow-md transition-all ${
-                        isEditing 
-                            ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]' 
-                            : inputValue.trim() || selectedFiles.length > 0 
-                                ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]' 
+                    variant="ghost"
+                    size="icon"
+                    className={`h-10 w-10 rounded-full shrink-0 shadow-md transition-all ${isEditing
+                            ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]'
+                            : inputValue.trim() || selectedFiles.length > 0
+                                ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]'
                                 : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
-                    }`}
+                        }`}
                     onClick={handleSend}
                     title={isEditing ? "Save changes" : "Send message"}
                 >

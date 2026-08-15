@@ -1,29 +1,63 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCard, CheckCircle2, Download } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
-
-const mockData = [
-  { id: 'TXN-998822', date: '2026-07-15', method: 'Visa ending in 4242', invoice: 'INV-2026-001', amount: '€ 45,000', status: 'Success' },
-  { id: 'TXN-998815', date: '2026-07-10', method: 'bKash Mobile Banking', invoice: 'INV-2026-002', amount: '€ 32,500', status: 'Success' },
-  { id: 'TXN-998801', date: '2026-07-02', method: 'Visa ending in 4242', invoice: 'INV-2026-003', amount: '€ 25,500', status: 'Failed' },
-];
+import EmptyState from '@/components/tables/empty-state';
+import apiClient from '@/lib/axios';
 
 export default function Payments() {
+  const [payments, setPayments] = useState<any[]>([]);
+
+  const fetchPayments = async () => {
+    try {
+      const res = await apiClient.get('/customer/invoices?status=paid');
+      const list = res.data?.data || res.data?.invoices?.data || res.data?.invoices || res.data || [];
+      setPayments(Array.isArray(list) ? list : []);
+    } catch (error) {
+      console.error('Failed to fetch payment history:', error);
+      setPayments([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
   const columns: Column<any>[] = [
-    { id: 'id', label: 'Transaction ID', render: (row) => <span className="font-bold text-slate-800">{row.id}</span> },
-    { id: 'date', label: 'Date', render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date}</span> },
-    { id: 'method', label: 'Payment Method', render: (row) => <span className="text-slate-600">{row.method}</span> },
-    { id: 'invoice', label: 'Invoice No.', render: (row) => <span className="text-brand font-medium hover:underline cursor-pointer">{row.invoice}</span> },
-    { id: 'amount', label: 'Amount', render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount}</span> },
+    { 
+      id: 'id', 
+      label: 'Transaction / Ref ID', 
+      render: (row) => <span className="font-bold text-slate-800">{row.transaction_id || `TXN-${row.id}`}</span> 
+    },
+    { 
+      id: 'date', 
+      label: 'Date', 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date || row.created_at_formatted || 'N/A'}</span> 
+    },
+    { 
+      id: 'method', 
+      label: 'Payment Method', 
+      render: (row) => <span className="text-slate-600">{row.payment_method || row.method || 'Online Payment'}</span> 
+    },
+    { 
+      id: 'invoice', 
+      label: 'Invoice No.', 
+      render: (row) => <span className="text-brand font-medium hover:underline cursor-pointer">{row.invoice_number || row.id}</span> 
+    },
+    { 
+      id: 'amount', 
+      label: 'Amount', 
+      render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount || row.total_amount_formatted || `€ ${row.total_amount || 0}`}</span> 
+    },
     { 
       id: 'status', 
       label: 'Status',
       render: (row) => {
-        if (row.status === 'Success') return <Badge variant="success" className="bg-emerald-50 text-emerald-700">Success</Badge>;
-        if (row.status === 'Failed') return <Badge variant="destructive">Failed</Badge>;
-        return <Badge variant="default">{row.status}</Badge>;
+        const st = (row.status || 'Success').toLowerCase();
+        if (st === 'success' || st === 'paid') return <Badge variant="success" className="bg-emerald-50 text-emerald-700">Success</Badge>;
+        if (st === 'failed') return <Badge variant="destructive">Failed</Badge>;
+        return <Badge variant="default">{row.status || 'Success'}</Badge>;
       }
     }
   ];
@@ -31,7 +65,13 @@ export default function Payments() {
   const actions = (row: any) => (
     <div className="flex items-center justify-end gap-2">
       {row.status === 'Success' && (
-        <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-slate-600 border-slate-200 hover:bg-slate-50" title="Download Receipt">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-7 w-7 p-0 text-slate-600 border-slate-200 hover:bg-slate-50" 
+          title="Download Receipt"
+          onClick={() => alert(`Downloading receipt for invoice ${row.invoice_number || row.id}`)}
+        >
           <Download size={14} />
         </Button>
       )}
@@ -48,11 +88,18 @@ export default function Payments() {
       </div>
       
       <DataTable 
-        data={mockData} 
+        data={payments} 
         columns={columns} 
         actions={actions}
-        searchPlaceholder="Search by Transaction ID..."
+        searchPlaceholder="Search by Transaction or Invoice ID..."
         compact={true}
+        emptyState={
+          <EmptyState
+            icon={CreditCard}
+            title="No Payment Records Found"
+            description="Your completed order payments and transaction receipts will be logged here."
+          />
+        }
       />
     </div>
   );

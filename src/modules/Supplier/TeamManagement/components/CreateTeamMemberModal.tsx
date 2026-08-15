@@ -45,7 +45,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-slate-200">
-                
+
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                     <div>
@@ -64,14 +64,13 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                             const Icon = s.icon;
                             const isActive = step === s.id;
                             const isCompleted = step > s.id;
-                            
+
                             return (
                                 <div key={s.id} className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 font-bold text-xs transition-all ${
-                                        isActive ? 'border-brand bg-brand text-white shadow-md shadow-brand/20' :
-                                        isCompleted ? 'border-emerald-500 bg-emerald-500 text-white' :
-                                        'border-slate-200 text-slate-400 bg-white'
-                                    }`}>
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 font-bold text-xs transition-all ${isActive ? 'border-brand bg-brand text-white shadow-md shadow-brand/20' :
+                                            isCompleted ? 'border-emerald-500 bg-emerald-500 text-white' :
+                                                'border-slate-200 text-slate-400 bg-white'
+                                        }`}>
                                         {isCompleted ? <CheckCircle size={14} /> : s.id}
                                     </div>
                                     <div>
@@ -109,37 +108,37 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="col-span-2 sm:col-span-1">
                                                     <label className="block text-xs font-semibold text-slate-700 mb-1">First Name *</label>
-                                                    <Input 
-                                                        placeholder="e.g. John" 
-                                                        className="h-9 text-xs" 
+                                                    <Input
+                                                        placeholder="e.g. John"
+                                                        className="h-9 text-xs"
                                                         value={formData.firstName}
                                                         onChange={(e) => handleChange('firstName', e.target.value)}
                                                     />
                                                 </div>
                                                 <div className="col-span-2 sm:col-span-1">
                                                     <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name *</label>
-                                                    <Input 
-                                                        placeholder="e.g. Doe" 
-                                                        className="h-9 text-xs" 
+                                                    <Input
+                                                        placeholder="e.g. Doe"
+                                                        className="h-9 text-xs"
                                                         value={formData.lastName}
                                                         onChange={(e) => handleChange('lastName', e.target.value)}
                                                     />
                                                 </div>
                                                 <div className="col-span-2">
                                                     <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address (Login Username) *</label>
-                                                    <Input 
-                                                        type="email" 
-                                                        placeholder="john.doe@abclogistics.com" 
-                                                        className="h-9 text-xs" 
+                                                    <Input
+                                                        type="email"
+                                                        placeholder="john.doe@abclogistics.com"
+                                                        className="h-9 text-xs"
                                                         value={formData.email}
                                                         onChange={(e) => handleChange('email', e.target.value)}
                                                     />
                                                 </div>
                                                 <div className="col-span-2">
                                                     <label className="block text-xs font-semibold text-slate-700 mb-1">Mobile Phone Number</label>
-                                                    <PhoneInput 
+                                                    <PhoneInput
                                                         name="phone"
-                                                        placeholder="555 000-0000" 
+                                                        placeholder="555 000-0000"
                                                         value={formData.phone}
                                                         onChange={(e) => handleChange('phone', e.target.value)}
                                                     />
@@ -158,7 +157,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                             <div className="space-y-4">
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-700 mb-1">Department *</label>
-                                                    <Select 
+                                                    <Select
                                                         className="w-full text-xs"
                                                         value={formData.department}
                                                         onChange={(val: string) => handleChange('department', val)}
@@ -174,9 +173,9 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-700 mb-1">Designation / Job Title *</label>
-                                                    <Input 
-                                                        placeholder="e.g. Senior Operations Specialist" 
-                                                        className="h-9 text-xs" 
+                                                    <Input
+                                                        placeholder="e.g. Senior Operations Specialist"
+                                                        className="h-9 text-xs"
                                                         value={formData.designation}
                                                         onChange={(e) => handleChange('designation', e.target.value)}
                                                     />
@@ -199,14 +198,13 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                                     { id: 'dispatcher', name: 'Fleet Dispatcher', desc: 'Assign drivers and monitor active jobs.' },
                                                     { id: 'sales', name: 'Sales Lead', desc: 'Submit quotes and manage customer RFQs.' },
                                                 ].map((r) => (
-                                                    <div 
-                                                        key={r.id} 
+                                                    <div
+                                                        key={r.id}
                                                         onClick={() => handleChange('role', r.id)}
-                                                        className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                                                            formData.role === r.id 
-                                                            ? 'border-brand bg-brand-light/30 shadow-sm' 
-                                                            : 'border-slate-200 hover:border-slate-300'
-                                                        }`}
+                                                        className={`p-3.5 rounded-md border-2 cursor-pointer transition-all ${formData.role === r.id
+                                                                ? 'border-brand bg-brand-light/30 shadow-sm'
+                                                                : 'border-slate-200 hover:border-slate-300'
+                                                            }`}
                                                     >
                                                         <div className="flex items-center justify-between mb-1">
                                                             <h4 className="font-bold text-slate-900 text-xs">{r.name}</h4>
@@ -231,11 +229,10 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                                 <p className="text-xs text-slate-500">Define how the team member logs into the portal.</p>
                                             </div>
                                             <div className="space-y-3">
-                                                <div 
+                                                <div
                                                     onClick={() => handleChange('accessMethod', 'email')}
-                                                    className={`p-4 rounded-xl border-2 cursor-pointer flex items-start gap-3 transition-all ${
-                                                        formData.accessMethod === 'email' ? 'border-brand bg-brand-light/30' : 'border-slate-200'
-                                                    }`}
+                                                    className={`p-4 rounded-md border-2 cursor-pointer flex items-start gap-3 transition-all ${formData.accessMethod === 'email' ? 'border-brand bg-brand-light/30' : 'border-slate-200'
+                                                        }`}
                                                 >
                                                     <input type="radio" name="accessMethod" checked={formData.accessMethod === 'email'} readOnly className="mt-1 accent-brand" />
                                                     <div>
@@ -244,11 +241,10 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                                     </div>
                                                 </div>
 
-                                                <div 
+                                                <div
                                                     onClick={() => handleChange('accessMethod', 'temp')}
-                                                    className={`p-4 rounded-xl border-2 cursor-pointer flex items-start gap-3 transition-all ${
-                                                        formData.accessMethod === 'temp' ? 'border-brand bg-brand-light/30' : 'border-slate-200'
-                                                    }`}
+                                                    className={`p-4 rounded-md border-2 cursor-pointer flex items-start gap-3 transition-all ${formData.accessMethod === 'temp' ? 'border-brand bg-brand-light/30' : 'border-slate-200'
+                                                        }`}
                                                 >
                                                     <input type="radio" name="accessMethod" checked={formData.accessMethod === 'temp'} readOnly className="mt-1 accent-brand" />
                                                     <div>
@@ -267,7 +263,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                                 <h3 className="text-sm font-bold text-slate-900 mb-1">Review & Confirm Account</h3>
                                                 <p className="text-xs text-slate-500">Please review member details before dispatching access.</p>
                                             </div>
-                                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                                            <div className="bg-slate-50 rounded-md p-4 border border-slate-200 space-y-3">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-brand-light text-brand flex items-center justify-center font-bold text-xs border border-brand/20">
                                                         {(formData.firstName.charAt(0) || 'J') + (formData.lastName.charAt(0) || 'D')}
@@ -308,14 +304,14 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                         {/* Footer Controls */}
                         {!isSubmitted && (
                             <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between shrink-0">
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     className="w-24 h-9 text-xs"
                                     onClick={step === 1 ? onClose : prevStep}
                                 >
                                     {step === 1 ? 'Cancel' : 'Back'}
                                 </Button>
-                                
+
                                 {step < 5 ? (
                                     <Button variant="primary" className="w-32 h-9 text-xs gap-1.5" onClick={nextStep}>
                                         <span>Next</span>

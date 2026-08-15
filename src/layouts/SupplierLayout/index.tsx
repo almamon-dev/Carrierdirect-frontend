@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, User, Settings, LogOut, ChevronDown, CheckCircle2, Package, Clock } from 'lucide-react';
+import { Bell, Search, User, Settings, LogOut, ChevronDown, CheckCircle2, Package, Clock, Sun } from 'lucide-react';
 import Sidebar from './Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
@@ -141,8 +141,6 @@ export default function SupplierLayout() {
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-4">
-                        {/* Theme Switcher */}
-                        <ThemeSwitcher />
                         
                         {/* Notification Bell Dropdown */}
                         <div className="relative" ref={notifRef}>
@@ -226,6 +224,17 @@ export default function SupplierLayout() {
                                         </div>
                                     </div>
                                     <div className="p-1.5 space-y-0.5">
+                                        {/* Theme Switcher Row */}
+                                        <div className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                                            <div className="flex items-center gap-2.5">
+                                                <Sun size={15} className="text-slate-500 dark:text-slate-400" />
+                                                <span className="font-medium text-xs">Theme Mode</span>
+                                            </div>
+                                            <ThemeSwitcher />
+                                        </div>
+
+                                        <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+
                                         <Link
                                             to="/supplier/settings"
                                             onClick={() => setIsProfileOpen(false)}
