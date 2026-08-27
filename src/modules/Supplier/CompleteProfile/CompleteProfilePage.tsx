@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, LogOut } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../../../lib/axios';
 import { TOKEN_CONFIG } from '../../../config/auth';
+import authService from '../../../services/authService';
 import { useToastStore } from '../../../stores/useToastStore';
 import Input from '../../../components/ui/input';
 import PhoneInput from '../../../components/ui/phone-input';
 import Button from '../../../components/ui/button';
 import LogoBlack from '../../../assets/Images/LogoBlack.png';
 import LogoWhite from '../../../assets/Images/Logo.png';
+import ProfileCompletionModal from './components/ProfileCompletionModal';
 
 interface OptionItem {
     id: string;
@@ -160,10 +162,44 @@ function AutocompleteInput({
 export default function SupplierCompleteProfilePage() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
     // Read stored user
     const userStr = localStorage.getItem(TOKEN_CONFIG.userKey) || localStorage.getItem('erp_user_data') || localStorage.getItem('user');
     const currentUser = userStr ? JSON.parse(userStr) : {};
+
+    // 0. Guard: If profile is already completed, redirect to Supplier Dashboard immediately
+    useEffect(() => {
+        const isProfileIncomplete = !currentUser?.country || !currentUser?.city || !currentUser?.zip_code;
+        if (!isProfileIncomplete || currentUser?.is_profile_completed) {
+            navigate('/supplier/dashboard', { replace: true });
+            return;
+        }
+
+        // Live check with backend in case user completed profile on another device or tab
+        apiClient.get('/supplier/profile')
+            .then(res => {
+                const profileData = res.data?.data || res.data;
+                if (profileData && profileData.country && profileData.city && profileData.zip_code) {
+                    const mergedUser = { ...currentUser, ...profileData, is_profile_completed: true };
+                    localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(mergedUser));
+                    navigate('/supplier/dashboard', { replace: true });
+                }
+            })
+            .catch(() => {
+                // If profile is genuinely incomplete, remain on page
+            });
+    }, [navigate]);
+
+    const handleLogout = async () => {
+        try {
+            await authService.logout();
+        } catch {
+            // Proceed with local logout regardless
+        } finally {
+            navigate('/web/login', { replace: true });
+        }
+    };
 
     const [formData, setFormData] = useState({
         companyName: currentUser.company_name || currentUser.name || '',
@@ -419,6 +455,18 @@ export default function SupplierCompleteProfilePage() {
                 business_address: autoAddr,
             });
 
+            // Store notification in database / in-app notification system
+            try {
+                await apiClient.post('/notifications', {
+                    type: 'profile_completed',
+                    title: 'Supplier Profile Completed',
+                    message: 'Your supplier profile has been successfully completed and activated. You can now browse requests and submit quotes.',
+                    category: 'account',
+                });
+            } catch {
+                // Backend may also generate this automatically via model observers/events
+            }
+
             const apiUser = res.data?.data || {};
 
             const updatedUser = {
@@ -437,11 +485,8 @@ export default function SupplierCompleteProfilePage() {
 
             localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(updatedUser));
 
-            // Minimum loading animation delay so Binance Equalizer bars render smoothly
-            await new Promise(resolve => setTimeout(resolve, 750));
-
-            useToastStore.getState().showToast('Profile completed successfully! Welcome to your dashboard.', 'success');
-            navigate('/supplier/dashboard');
+            // Show Congratulations / Onboarding Success Modal!
+            setIsSuccessModalOpen(true);
         } catch (err: any) {
             const msg = err.data?.message || err.message || 'Failed to update profile. Please check your entries.';
             useToastStore.getState().showToast(msg, 'error');
@@ -451,10 +496,22 @@ export default function SupplierCompleteProfilePage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 relative p-4 font-sans antialiased">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0e1117] relative p-4 font-sans antialiased">
+            {/* Top Right Logout Button */}
+            <div className="absolute top-6 right-6 z-20">
+                <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 bg-white dark:bg-[#181a20] hover:bg-red-50 dark:hover:bg-red-950/40 border border-gray-200 dark:border-[#384150] hover:border-red-200 dark:border-red-800 rounded-lg shadow-2xs transition-all cursor-pointer"
+                    title="Log out from your account"
+                >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Log Out</span>
+                </button>
+            </div>
 
             {/* Main Centered Card matching SupplierRegisterPage */}
-            <div className="flex flex-col md:flex-row w-full max-w-5xl bg-white rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden min-h-[600px]">
+            <div className="main-auth-card flex flex-col md:flex-row w-full max-w-5xl bg-white dark:bg-[#181a20] rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-200 dark:border-[#384150] overflow-hidden min-h-[600px]">
 
                 {/* Left Side - Logo & Radial Grid Pattern */}
                 <div className="hidden md:flex md:w-5/12 bg-[#f8fafc] flex-col items-center justify-center p-10 relative border-r border-gray-100">
@@ -631,9 +688,29 @@ export default function SupplierCompleteProfilePage() {
                         >
                             Complete Setup
                         </Button>
+
+                        <p className="mt-4 text-center text-xs text-gray-500 dark:text-slate-400">
+                            Want to sign in with a different account?{' '}
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="font-semibold text-[#FF4A1F] hover:underline cursor-pointer"
+                            >
+                                Log Out
+                            </button>
+                        </p>
                     </form>
                 </div>
             </div>
+
+            {/* Congratulations & Onboarding Success Modal */}
+            <ProfileCompletionModal
+                isOpen={isSuccessModalOpen}
+                onClose={() => navigate('/supplier/dashboard')}
+                onGoToDashboard={() => navigate('/supplier/dashboard')}
+                onGoToQuotes={() => navigate('/supplier/quotes/requests')}
+                companyName={formData.companyName || currentUser.name}
+            />
         </div>
     );
 }

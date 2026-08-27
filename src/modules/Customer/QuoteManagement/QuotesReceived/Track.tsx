@@ -17,15 +17,31 @@ export default function TrackBids() {
 
     const fetchBids = async () => {
         setIsLoading(true);
+        const cleanId = id ? String(id).replace('REQ-', '') : '';
         try {
-            if (id) {
-                const res = await apiClient.get(`/customer/quote-requests/${id}/quotes`);
-                const quotesList = res.data?.quotes_request || res.data?.quotes || res.data?.data || [];
-                setQuotes(Array.isArray(quotesList) ? quotesList : []);
-                setQuoteRequestDetails(res.data?.quote_details || null);
+            if (cleanId) {
+                try {
+                    const res = await apiClient.get(`/customer/quote-requests/${cleanId}/quotes`);
+                    const quotesList = res.data?.quotes_request || res.data?.quotes || res.data?.data?.quotes || res.data?.data || [];
+                    if (Array.isArray(quotesList) && quotesList.length > 0) {
+                        setQuotes(quotesList);
+                        setQuoteRequestDetails(res.data?.quote_details || null);
+                        return;
+                    }
+                } catch {
+                    // Fallback to all received quotes and filter by request ID
+                }
+
+                // Fallback attempt
+                const resAll = await apiClient.get('/customer/quotes/received');
+                const allList = resAll.data?.data?.quotes || resAll.data?.quotes_request || resAll.data?.quotes || resAll.data?.data || resAll.data || [];
+                const filtered = Array.isArray(allList)
+                    ? allList.filter((item: any) => String(item.quote_request_id || item.request_id || item.quote_request?.id) === String(cleanId))
+                    : [];
+                setQuotes(filtered);
             } else {
                 const res = await apiClient.get('/customer/quotes/received');
-                const quotesList = res.data?.data || res.data || [];
+                const quotesList = res.data?.data?.quotes || res.data?.quotes_request || res.data?.quotes || res.data?.data || res.data || [];
                 setQuotes(Array.isArray(quotesList) ? quotesList : []);
             }
         } catch (error) {

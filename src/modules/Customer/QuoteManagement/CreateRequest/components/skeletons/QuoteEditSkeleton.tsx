@@ -29,8 +29,8 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Skeleton className="h-[32px] w-20 rounded-md" />
-                    <Skeleton className="h-[32px] w-32 rounded-md" />
+                    <Skeleton className="h-[32px] w-20 rounded-[2px]" />
+                    <Skeleton className="h-[32px] w-32 rounded-[2px]" />
                 </div>
             </div>
 
@@ -82,31 +82,31 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                                     <div className="col-span-1 md:col-span-2 grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                         <p className="text-[14px] text-slate-700 font-medium mt-2">Request Title</p>
                                         <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                        <Skeleton className="h-9 w-full rounded-md" />
+                                        <Skeleton className="h-9 w-full rounded-[2px]" />
                                     </div>
 
                                     <div className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                         <p className="text-[14px] text-slate-700 font-medium mt-2">Request Number</p>
                                         <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                        <Skeleton className="h-9 w-full rounded-md" />
+                                        <Skeleton className="h-9 w-full rounded-[2px]" />
                                     </div>
 
                                     <div className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                         <p className="text-[14px] text-slate-700 font-medium mt-2">Priority</p>
                                         <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                        <Skeleton className="h-9 w-full rounded-md" />
+                                        <Skeleton className="h-9 w-full rounded-[2px]" />
                                     </div>
 
                                     <div className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                         <p className="text-[14px] text-slate-700 font-medium mt-2">Shipment Type</p>
                                         <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                        <Skeleton className="h-9 w-full rounded-md" />
+                                        <Skeleton className="h-9 w-full rounded-[2px]" />
                                     </div>
 
                                     <div className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                         <p className="text-[14px] text-slate-700 font-medium mt-2">Service Type</p>
                                         <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                        <Skeleton className="h-9 w-full rounded-md" />
+                                        <Skeleton className="h-9 w-full rounded-[2px]" />
                                     </div>
 
                                     {/* Schedule Section */}
@@ -118,7 +118,7 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                                         <div key={label} className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                             <p className="text-[14px] text-slate-700 font-medium mt-2">{label}</p>
                                             <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                            <Skeleton className="h-9 w-full rounded-md" />
+                                            <Skeleton className="h-9 w-full rounded-[2px]" />
                                         </div>
                                     ))}
                                 </div>
@@ -137,13 +137,13 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                                             <div key={label} className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                                 <p className="text-[14px] text-slate-700 font-medium mt-2">{label}</p>
                                                 <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                                <Skeleton className="h-9 w-full rounded-md" />
+                                                <Skeleton className="h-9 w-full rounded-[2px]" />
                                             </div>
                                         ))}
                                         <div className="col-span-1 md:col-span-2 grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                             <p className="text-[14px] text-slate-700 font-medium mt-2">Full Address</p>
                                             <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                            <Skeleton className="h-16 w-full rounded-md" />
+                                            <Skeleton className="h-16 w-full rounded-[2px]" />
                                         </div>
                                     </div>
                                 </div>
@@ -157,7 +157,7 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                                             <div key={label} className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                                 <p className="text-[14px] text-slate-700 font-medium mt-2">{label}</p>
                                                 <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                                <Skeleton className="h-9 w-full rounded-md" />
+                                                <Skeleton className="h-9 w-full rounded-[2px]" />
                                             </div>
                                         ))}
                                     </div>
@@ -173,7 +173,7 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                                         <div key={label} className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                             <p className="text-[14px] text-slate-700 font-medium mt-2">{label}</p>
                                             <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                            <Skeleton className="h-9 w-full rounded-md" />
+                                            <Skeleton className="h-9 w-full rounded-[2px]" />
                                         </div>
                                     ))}
                                 </div>
@@ -187,7 +187,7 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                                     <div key={label} className="grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                         <p className="text-[14px] text-slate-700 font-medium mt-2">{label}</p>
                                         <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                        <Skeleton className="h-9 w-full rounded-md" />
+                                        <Skeleton className="h-9 w-full rounded-[2px]" />
                                     </div>
                                 ))}
                             </div>
@@ -201,7 +201,7 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                                         <div key={label} className="col-span-1 md:col-span-2 grid grid-cols-[160px_10px_1fr] items-start gap-3">
                                             <p className="text-[14px] text-slate-700 font-medium mt-2">{label}</p>
                                             <p className="text-[14px] text-slate-400 mt-2">:</p>
-                                            <Skeleton className="h-16 w-full rounded-md" />
+                                            <Skeleton className="h-16 w-full rounded-[2px]" />
                                         </div>
                                     ))}
                                 </div>
@@ -214,8 +214,8 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-md space-y-4">
                                     <Skeleton className="h-6 w-60 rounded" />
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <Skeleton className="h-24 w-full rounded-md" />
-                                        <Skeleton className="h-24 w-full rounded-md" />
+                                        <Skeleton className="h-24 w-full rounded-[2px]" />
+                                        <Skeleton className="h-24 w-full rounded-[2px]" />
                                     </div>
                                 </div>
                             </div>
@@ -223,10 +223,10 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
 
                         {/* Bottom Action Footer */}
                         <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                            <Skeleton className="h-9 w-20 rounded-md" />
+                            <Skeleton className="h-9 w-20 rounded-[2px]" />
                             <div className="flex gap-3">
-                                <Skeleton className="h-9 w-28 rounded-md" />
-                                <Skeleton className="h-9 w-32 rounded-md" />
+                                <Skeleton className="h-9 w-28 rounded-[2px]" />
+                                <Skeleton className="h-9 w-32 rounded-[2px]" />
                             </div>
                         </div>
 

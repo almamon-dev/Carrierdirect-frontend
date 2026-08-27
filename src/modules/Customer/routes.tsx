@@ -1,8 +1,8 @@
 import React, { lazy } from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 
+import CreateRequest from './QuoteManagement/CreateRequest';
 const Dashboard = lazy(() => import('./Dashboard'));
-const CreateRequest = lazy(() => import('./QuoteManagement/CreateRequest'));
 const CreateRequestNew = lazy(() => import('./QuoteManagement/CreateRequest/Create'));
 const CreateRequestEdit = lazy(() => import('./QuoteManagement/CreateRequest/Edit'));
 const CreateRequestView = lazy(() => import('./QuoteManagement/CreateRequest/View'));
@@ -37,7 +37,9 @@ export const customerRoutes: RouteObject[] = [
     { path: 'quotes/processing', element: <Processing /> },
     { path: 'quotes/processing/track/:id', element: <ProcessingTrack /> },
     { path: 'quotes/received', element: <QuotesReceived /> },
-    { path: 'quotes/received/:id', element: <Navigate to="/customer/quotes/received" replace /> },
+    { path: 'quotes/received/track/:id', element: <TrackBids /> },
+    { path: 'quotes/received/bids/:id', element: <TrackBids /> },
+    { path: 'quotes/received/:id', element: <TrackBids /> },
     { path: 'quotes/received/view/:quoteId', element: <QuoteView /> },
     { path: 'quotes/received/checkout/:quoteId', element: <QuoteAcceptCheckout /> },
     { path: 'quotes/negotiation', element: <QuoteNegotiation /> },

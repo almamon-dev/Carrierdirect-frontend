@@ -36,10 +36,10 @@ export default function TableColumnToggle({
         <div className={`relative ${className}`} ref={wrapperRef}>
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className={`h-[32px] w-[32px] flex items-center justify-center rounded-md border transition-all outline-none shadow-2xs cursor-pointer ${
+                className={`h-[32px] w-[32px] flex items-center justify-center rounded-md border transition-all outline-none shadow-none cursor-pointer ${
                     isOpen 
-                        ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 border-orange-300 dark:border-orange-500/40 ring-1 ring-orange-300 dark:ring-orange-500/40 text-[#FF4A1F]' 
-                        : 'bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-100'
+                        ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 border-orange-200 dark:border-orange-500/40 text-[#FF4A1F]' 
+                        : 'bg-slate-50/50 dark:bg-[#1e2329] border-slate-200/80 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-slate-100'
                 }`}
                 title="Manage Visible Columns"
             >

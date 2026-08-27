@@ -162,7 +162,7 @@ export default function Select({
                                 )}
 
                                 {/* Options List */}
-                                <div className="overflow-y-auto py-1 flex-1 max-h-[300px] custom-scrollbar">
+                                <div className="overflow-y-auto py-1 flex-1 max-h-[300px] hide-scrollbar no-scrollbar">
                                     {filteredOptions.length === 0 && !onCreateProp ? (
                                         <div className="py-10 px-4 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-2">
                                             <SearchX size={32} strokeWidth={1} />

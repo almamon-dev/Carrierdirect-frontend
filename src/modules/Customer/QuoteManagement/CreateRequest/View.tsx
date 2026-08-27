@@ -9,6 +9,7 @@ import TabHeader from '@/components/ui/tab-header';
 import Skeleton from '@/components/ui/skeleton';
 import apiClient from '@/lib/axios';
 import { ENDPOINTS } from '@/config/api';
+import { QuoteViewSkeleton } from './components/skeletons/QuoteViewSkeleton';
 
 const SectionHeader = ({ title, icon: Icon, className = "col-span-1 md:col-span-2" }: { title: string, icon?: any, className?: string }) => (
     <div className={`${className} mt-4 pt-3 border-t border-slate-100 first:mt-0 first:pt-0 first:border-t-0 mb-2`}>
@@ -16,6 +17,24 @@ const SectionHeader = ({ title, icon: Icon, className = "col-span-1 md:col-span-
             {Icon && <Icon size={16} className="text-slate-400" />}
             {title}
         </h3>
+    </div>
+);
+
+const ViewField = ({ label, value, children, isLink = false, linkHref = "", colSpan = false, isLoading = false }: { label: string, value?: React.ReactNode, children?: React.ReactNode, isLink?: boolean, linkHref?: string, colSpan?: boolean, isLoading?: boolean }) => (
+    <div className={`${colSpan ? 'col-span-1 md:col-span-2' : ''} grid grid-cols-[160px_10px_1fr] items-start`}>
+        <p className="text-[14px] text-slate-500 font-medium">{label}</p>
+        <p className="text-[14px] text-slate-400">:</p>
+        <div className="w-full">
+            {isLoading ? (
+                <Skeleton className="h-5 w-36 rounded my-0.5" />
+            ) : children ? children : isLink ? (
+                <a href={linkHref} target={linkHref.startsWith('http') ? "_blank" : "_self"} className="text-[14px] font-semibold text-brand hover:underline break-all">
+                    {value || '-'}
+                </a>
+            ) : (
+                <div className="text-[14px] font-semibold text-slate-800 break-words">{value || <span className="text-[13px] text-slate-400 font-bold">-</span>}</div>
+            )}
+        </div>
     </div>
 );
 
@@ -140,56 +159,56 @@ export default function ViewRequestForm() {
                     setFormData(prev => ({
                         ...prev,
                         requestTitle: q.request_title || q.requestTitle || q.title || `Quote Request REQ-${q.id || cleanId}`,
-                        priority: q.priority || 'Normal',
-                        shipmentType: q.shipment_type || q.shipmentType || q.type || 'One Way',
-                        serviceType: q.service_type || q.serviceType || 'Standard',
-                        pickupDate: q.pickup_date || q.pickupDate || q.date || '',
-                        pickupTime: q.pickup_time_from || q.pickupTime || '',
-                        deliveryDate: q.delivery_date || q.deliveryDate || '',
-                        deliveryTime: q.delivery_time_from || q.deliveryTime || '',
-                        expectedTransitTime: q.expected_transit_time || q.expectedTransitTime || '2 Days',
-                        estDistance: q.est_distance || q.distance_miles || q.estDistance || '245',
+                        priority: q.priority || '-',
+                        shipmentType: q.shipment_type || q.shipmentType || q.type || '-',
+                        serviceType: q.service_type || q.serviceType || '-',
+                        pickupDate: q.pickup_date || q.pickupDate || q.date || '-',
+                        pickupTime: q.pickup_time_from || q.pickupTime || '-',
+                        deliveryDate: q.delivery_date || q.deliveryDate || '-',
+                        deliveryTime: q.delivery_time_from || q.deliveryTime || '-',
+                        expectedTransitTime: q.expected_transit_time || q.expectedTransitTime || '-',
+                        estDistance: q.est_distance || q.distance_miles || q.estDistance || '-',
 
-                        pickupCompany: q.pickup_company || q.pickupCompany || 'Prime Industrial Ltd.',
-                        pickupContactName: q.pickup_contact_name || q.pickupContactName || 'Kamal Hossain',
-                        pickupPhone: q.pickup_phone || q.pickupPhone || '+8801711234567',
-                        pickupEmail: q.pickup_email || q.pickupEmail || 'dispatch@primeind.bd',
-                        pickupCountry: q.pickup_country || q.pickupCountry || 'Bangladesh',
-                        pickupState: q.pickup_state || q.pickupState || 'Dhaka Division',
-                        pickupCity: q.pickup_city || q.pickupCity || q.pickup || 'Dhaka (Gazipur)',
-                        pickupZip: q.pickup_zip || q.pickupZip || '1700',
-                        pickupAddress: q.pickup_address || q.pickupAddress || q.pickup || 'Plot 42, Gazipur Industrial Area, Dhaka',
-                        pickupMapUrl: q.pickup_map_url || q.pickupMapUrl || 'https://maps.google.com',
-                        pickupInstructions: q.pickup_instructions || q.pickupInstructions || 'Call before arriving.\nDriver must carry valid national ID.\nUse gate 2 loading dock.',
+                        pickupCompany: q.pickup_company || q.pickupCompany || '-',
+                        pickupContactName: q.pickup_contact_name || q.pickupContactName || '-',
+                        pickupPhone: q.pickup_phone || q.pickupPhone || '-',
+                        pickupEmail: q.pickup_email || q.pickupEmail || '-',
+                        pickupCountry: q.pickup_country || q.pickupCountry || '-',
+                        pickupState: q.pickup_state || q.pickupState || '-',
+                        pickupCity: q.pickup_city || q.pickupCity || '-',
+                        pickupZip: q.pickup_zip || q.pickupZip || '-',
+                        pickupAddress: q.pickup_address || q.pickupAddress || q.pickup || '-',
+                        pickupMapUrl: q.pickup_map_url || q.pickupMapUrl || '-',
+                        pickupInstructions: q.pickup_instructions || q.pickupInstructions || '-',
 
-                        deliveryCompany: q.delivery_company || q.deliveryCompany || 'Chittagong Port Terminal',
-                        deliveryContactName: q.delivery_contact_name || q.deliveryContactName || 'Rahim Uddin',
-                        deliveryPhone: q.delivery_phone || q.deliveryPhone || '+8801819987654',
-                        deliveryEmail: q.delivery_email || q.deliveryEmail || 'cargo@ctgport.com',
-                        deliveryCountry: q.delivery_country || q.deliveryCountry || 'Bangladesh',
-                        deliveryState: q.delivery_state || q.deliveryState || 'Chittagong Division',
-                        deliveryCity: q.delivery_city || q.deliveryCity || q.delivery || 'Chittagong Port',
-                        deliveryZip: q.delivery_zip || q.deliveryZip || '4000',
-                        deliveryAddress: q.delivery_address || q.deliveryAddress || q.delivery || 'Berth 5, Terminal 2, Chittagong Port',
-                        deliveryMapUrl: q.delivery_map_url || q.deliveryMapUrl || 'https://maps.google.com',
-                        deliveryInstructions: q.delivery_instructions || q.deliveryInstructions || 'Report to port security first.\nUnloading via overhead crane.',
+                        deliveryCompany: q.delivery_company || q.deliveryCompany || '-',
+                        deliveryContactName: q.delivery_contact_name || q.deliveryContactName || '-',
+                        deliveryPhone: q.delivery_phone || q.deliveryPhone || '-',
+                        deliveryEmail: q.delivery_email || q.deliveryEmail || '-',
+                        deliveryCountry: q.delivery_country || q.deliveryCountry || '-',
+                        deliveryState: q.delivery_state || q.deliveryState || '-',
+                        deliveryCity: q.delivery_city || q.deliveryCity || '-',
+                        deliveryZip: q.delivery_zip || q.deliveryZip || '-',
+                        deliveryAddress: q.delivery_address || q.deliveryAddress || q.delivery || '-',
+                        deliveryMapUrl: q.delivery_map_url || q.deliveryMapUrl || '-',
+                        deliveryInstructions: q.delivery_instructions || q.deliveryInstructions || '-',
 
-                        vehicleType: q.vehicle_type || q.vehicleType || q.vehicle || 'Covered Van (20ft)',
-                        loadType: q.load_type || q.loadType || q.load || 'Pallets',
-                        itemsCount: q.items_count || q.itemsCount ? String(q.items_count || q.itemsCount) : '25',
-                        palletsCount: q.pallets_count || q.palletsCount ? String(q.pallets_count || q.palletsCount) : '5',
-                        weight: q.weight ? String(q.weight) : '2500',
-                        volume: q.volume ? String(q.volume) : '15.5',
+                        vehicleType: q.vehicle_type || q.vehicleType || q.vehicle || '-',
+                        loadType: q.load_type || q.loadType || q.load || '-',
+                        itemsCount: q.items_count || q.itemsCount ? String(q.items_count || q.itemsCount) : '-',
+                        palletsCount: q.pallets_count || q.palletsCount ? String(q.pallets_count || q.palletsCount) : '-',
+                        weight: q.weight ? String(q.weight) : '-',
+                        volume: q.volume ? String(q.volume) : '-',
                         dimensions: Array.isArray(q.items) && q.items.length > 0
                             ? q.items.map((it: any, idx: number) => ({
                                 id: it.id || idx + 1,
-                                length: it.length ? String(it.length) : '120',
-                                width: it.width ? String(it.width) : '100',
-                                height: it.height ? String(it.height) : '150',
-                                qty: it.quantity ? String(it.quantity) : '1',
-                                unit: 'CM'
+                                length: it.length ? String(it.length) : '-',
+                                width: it.width ? String(it.width) : '-',
+                                height: it.height ? String(it.height) : '-',
+                                qty: it.quantity ? String(it.quantity) : '-',
+                                unit: it.unit || '-'
                             }))
-                            : [{ id: 1, length: '120', width: '100', height: '150', qty: '5', unit: 'CM' }],
+                            : [{ id: 1, length: '-', width: '-', height: '-', qty: '-', unit: '-' }],
 
                         stackable: Boolean(q.stackable ?? true),
                         fragile: Boolean(q.fragile ?? false),
@@ -207,12 +226,12 @@ export default function ViewRequestForm() {
                         insideDelivery: Boolean(q.inside_delivery ?? q.insideDelivery ?? false),
                         storage: Boolean(q.storage ?? false),
 
-                        budget: q.budget || q.lowestBid ? String(q.budget || q.lowestBid) : '48000',
-                        currency: q.currency || '৳',
+                        budget: q.budget || q.lowestBid ? String(q.budget || q.lowestBid) : '-',
+                        currency: q.currency || '-',
                         allowNegotiation: Boolean(q.allow_negotiation ?? q.allowNegotiation ?? true),
                         receiveMultiple: Boolean(q.receive_multiple ?? q.receiveMultiple ?? true),
-                        autoExpire: q.auto_expire || q.autoExpire || '48 Hours',
-                        customerNotes: q.customer_notes || q.customerNotes || q.additional_notes || 'Heavy industrial machinery parts boxed on wooden pallets.',
+                        autoExpire: q.auto_expire || q.autoExpire || '-',
+                        customerNotes: q.customer_notes || q.customerNotes || q.additional_notes || '-',
                         specialInstructions: q.special_instructions || q.specialInstructions || 'Call driver 1 hour before pickup.',
                         internalReference: q.internal_reference || q.internalReference || `REF-${cleanId}`,
                         images: Array.isArray(q.images_urls) && q.images_urls.length > 0
@@ -305,23 +324,9 @@ export default function ViewRequestForm() {
         formData.liftGate, formData.whiteGlove, formData.assembly, formData.insideDelivery, formData.storage
     ].filter(Boolean).length;
 
-    const ViewField = ({ label, value, children, isLink = false, linkHref = "", colSpan = false }: { label: string, value?: React.ReactNode, children?: React.ReactNode, isLink?: boolean, linkHref?: string, colSpan?: boolean }) => (
-        <div className={`${colSpan ? 'col-span-1 md:col-span-2' : ''} grid grid-cols-[160px_10px_1fr] items-start`}>
-            <p className="text-[14px] text-slate-500 font-medium">{label}</p>
-            <p className="text-[14px] text-slate-400">:</p>
-            <div className="w-full">
-                {isLoading ? (
-                    <Skeleton className="h-5 w-36 rounded my-0.5" />
-                ) : children ? children : isLink ? (
-                    <a href={linkHref} target={linkHref.startsWith('http') ? "_blank" : "_self"} className="text-[14px] font-semibold text-brand hover:underline break-all">
-                        {value || '-'}
-                    </a>
-                ) : (
-                    <div className="text-[14px] font-semibold text-slate-800 break-words">{value || <span className="text-[13px] text-slate-400 font-bold">-</span>}</div>
-                )}
-            </div>
-        </div>
-    );
+    if (isLoading) {
+        return <QuoteViewSkeleton activeTab={activeTab} />;
+    }
 
     return (
         <div className="p-6 md:p-8 mx-auto bg-[#f8f9fa] min-h-screen pb-24">

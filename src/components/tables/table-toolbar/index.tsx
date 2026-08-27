@@ -42,7 +42,7 @@ export default function TableToolbar({
                         {onDeleteSelected && (
                             <button 
                                 onClick={onDeleteSelected}
-                                className="h-[28px] px-3 bg-white dark:bg-[#12161c] border border-slate-300 dark:border-slate-700 text-red-600 dark:text-red-400 rounded-md text-[12px] font-bold hover:bg-red-50 dark:hover:bg-red-950/40 hover:border-red-300 dark:hover:border-red-800 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer outline-none"
+                                className="h-[28px] px-3 bg-white dark:bg-[#12161c] border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 rounded-md text-[12px] font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all flex items-center gap-1.5 shadow-none cursor-pointer outline-none"
                             >
                                 <Trash2 size={13} />
                                 Delete
@@ -51,7 +51,7 @@ export default function TableToolbar({
                         {onClearSelection && (
                             <button 
                                 onClick={onClearSelection} 
-                                className="h-7 w-7 flex items-center justify-center bg-white dark:bg-[#12161c] border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 rounded-full hover:bg-slate-200/80 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100 transition-all cursor-pointer outline-none shadow-2xs group" 
+                                className="h-7 w-7 flex items-center justify-center bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100 transition-all cursor-pointer outline-none shadow-none group" 
                                 title="Clear selection"
                             >
                                 <X size={14} className="group-hover:scale-110 transition-transform" />

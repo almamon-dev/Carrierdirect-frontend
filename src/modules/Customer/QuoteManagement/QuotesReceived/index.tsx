@@ -15,7 +15,8 @@ export default function QuotesReceived() {
   const fetchQuotes = async () => {
     try {
       const res = await apiClient.get('/customer/quotes/received');
-      const list = res.data?.data || res.data || [];
+      const raw = res.data?.data?.quotes || res.data?.quotes_request || res.data?.quotes || res.data?.data || res.data || [];
+      const list = Array.isArray(raw) ? raw : (raw?.data || []);
       setQuotes(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error('Failed to fetch received quotes:', error);
@@ -61,12 +62,12 @@ export default function QuotesReceived() {
     { 
       id: 'requestId', 
       label: 'Request ID', 
-      render: (row) => <span className="text-slate-500 whitespace-nowrap">{row.request_id || `REQ-${row.quote_request_id}`}</span> 
+      render: (row) => <span className="text-slate-500 whitespace-nowrap">{row.request_id || (row.quote_request_id ? `REQ-${row.quote_request_id}` : (row.quote_request?.id ? `REQ-${row.quote_request.id}` : '—'))}</span> 
     },
     { 
       id: 'supplier', 
       label: 'Supplier', 
-      render: (row) => <span className="whitespace-nowrap font-medium text-slate-800">{row.supplier_name || row.supplier?.company_name || row.supplier?.name || 'Supplier'}</span> 
+      render: (row) => <span className="whitespace-nowrap font-medium text-slate-800">{row.supplier_name || row.supplier?.company_name || row.supplier?.name || row.carrier_name || 'Supplier'}</span> 
     },
     { 
       id: 'rating', 
@@ -74,7 +75,7 @@ export default function QuotesReceived() {
       render: (row) => (
         <div className="flex items-center gap-1 whitespace-nowrap">
           <Star size={12} className="text-amber-500 fill-amber-500" />
-          <span className="text-slate-700">{row.rating || 0}</span>
+          <span className="text-slate-700">{row.rating || row.supplier?.rating || 0}</span>
           {row.reviews_count ? <span className="text-slate-400">({row.reviews_count})</span> : null}
         </div>
       ) 
@@ -82,22 +83,30 @@ export default function QuotesReceived() {
     { 
       id: 'vehicle', 
       label: 'Vehicle Type', 
-      render: (row) => <span className="whitespace-nowrap">{row.vehicle || row.vehicle_type || 'N/A'}</span> 
+      render: (row) => <span className="whitespace-nowrap">{row.vehicle || row.vehicle_type || row.truck_type || row.quote_request?.vehicle_type || 'N/A'}</span> 
     },
     { 
       id: 'transitTime', 
       label: 'Transit Time', 
-      render: (row) => <span className="whitespace-nowrap">{row.estimated_delivery || row.transit_time || 'N/A'}</span> 
+      render: (row) => <span className="whitespace-nowrap">{row.estimated_delivery || row.estimated_time || row.transit_time || 'N/A'}</span> 
     },
     { 
       id: 'amount', 
       label: 'Quote Amount', 
-      render: (row) => <span className="whitespace-nowrap font-semibold text-emerald-600">{row.amount || (row.currency ? `${row.currency} ${row.amount_raw}` : `€ ${row.amount_raw}`)}</span> 
+      render: (row) => {
+        if (typeof row.amount === 'number') return <span className="whitespace-nowrap font-semibold text-emerald-600">€{row.amount.toLocaleString()}</span>;
+        if (typeof row.amount === 'string' && row.amount) {
+          const amt = row.amount.startsWith('€') || row.amount.startsWith('৳') || row.amount.startsWith('$') ? row.amount : `€${row.amount}`;
+          return <span className="whitespace-nowrap font-semibold text-emerald-600">{amt}</span>;
+        }
+        if (row.amount_raw) return <span className="whitespace-nowrap font-semibold text-emerald-600">€{row.amount_raw}</span>;
+        return <span className="whitespace-nowrap font-semibold text-slate-400">—</span>;
+      }
     },
     { 
       id: 'validUntil', 
       label: 'Valid Until', 
-      render: (row) => <span className="whitespace-nowrap">{row.valid_until || 'N/A'}</span> 
+      render: (row) => <span className="whitespace-nowrap">{row.valid_until || row.validity || 'N/A'}</span> 
     },
     { 
       id: 'status', 

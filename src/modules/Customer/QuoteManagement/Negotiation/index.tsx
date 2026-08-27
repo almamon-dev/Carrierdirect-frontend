@@ -12,14 +12,24 @@ export default function Negotiation() {
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
   const [negotiations, setNegotiations] = useState<any[]>([]);
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   const fetchNegotiations = async () => {
+    setIsLoading(true);
     try {
-      const res = await apiClient.get('/customer/negotiations');
+      let res;
+      try {
+        res = await apiClient.get('/customer/negotiations');
+      } catch {
+        res = await apiClient.get('/negotiations');
+      }
       const list = res.data?.data || res.data || [];
       setNegotiations(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error('Failed to fetch negotiations:', error);
       setNegotiations([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 

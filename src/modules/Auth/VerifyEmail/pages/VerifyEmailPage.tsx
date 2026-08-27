@@ -29,21 +29,41 @@ export default function VerifyEmailPage() {
             try {
                 const res = await apiClient.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { token, email });
                 const tokenData = res.access_token || res.data?.access_token || res.token;
-                const userData = res.data?.user || res.user;
+                let userData = res.data?.user || res.user;
 
                 if (tokenData && userData) {
                     localStorage.setItem(TOKEN_CONFIG.accessTokenKey, tokenData);
                     localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(userData));
-                    setVerifiedUser(userData);
 
                     if (userData.user_type === 'supplier') {
-                        const isProfileIncomplete = !userData.country || !userData.city || !userData.zip_code;
-                        if (isProfileIncomplete) {
-                            setNextRedirect('/supplier/complete-profile');
-                        } else {
-                            setNextRedirect('/supplier/dashboard');
+                        let isCompleted = Boolean(
+                            userData.is_profile_completed ||
+                            userData.is_profile_complete ||
+                            (userData.country && userData.city && userData.zip_code)
+                        );
+
+                        // If not clear from the auth payload, do a live check right on this page
+                        if (!isCompleted) {
+                            try {
+                                const profRes = await apiClient.get('/supplier/profile');
+                                const profData = profRes.data?.data || profRes.data;
+                                if (profData && (profData.country && profData.city && profData.zip_code)) {
+                                    isCompleted = true;
+                                    userData = { ...userData, ...profData, is_profile_completed: true };
+                                    localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(userData));
+                                }
+                            } catch {
+                                // Profile is genuinely incomplete
+                            }
                         }
+
+                        setVerifiedUser(userData);
+                        setNextRedirect(isCompleted ? '/supplier/dashboard' : '/supplier/complete-profile');
+                    } else if (userData.user_type === 'admin') {
+                        setVerifiedUser(userData);
+                        setNextRedirect('/admin/dashboard');
                     } else {
+                        setVerifiedUser(userData);
                         setNextRedirect('/customer/dashboard');
                     }
                 }
@@ -57,10 +77,47 @@ export default function VerifyEmailPage() {
         verifyEmail();
     }, [searchParams]);
 
-    const handleProceed = async (targetUrl: string) => {
+    const handleProceed = async () => {
         setIsNavigating(true);
-        await new Promise(resolve => setTimeout(resolve, 750));
-        navigate(targetUrl);
+
+        try {
+            const userStr = localStorage.getItem(TOKEN_CONFIG.userKey);
+            const user = userStr ? JSON.parse(userStr) : verifiedUser;
+
+            if (user?.user_type === 'supplier') {
+                let isCompleted = Boolean(
+                    user?.is_profile_completed ||
+                    user?.is_profile_complete ||
+                    (user?.country && user?.city && user?.zip_code)
+                );
+
+                // Quick live verify on click before navigating anywhere
+                if (!isCompleted) {
+                    try {
+                        const profRes = await apiClient.get('/supplier/profile');
+                        const profData = profRes.data?.data || profRes.data;
+                        if (profData && (profData.country && profData.city && profData.zip_code)) {
+                            isCompleted = true;
+                            const mergedUser = { ...user, ...profData, is_profile_completed: true };
+                            localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(mergedUser));
+                        }
+                    } catch {
+                        // ignore
+                    }
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 300));
+                navigate(isCompleted ? '/supplier/dashboard' : '/supplier/complete-profile');
+            } else if (user?.user_type === 'admin') {
+                window.location.href = '/admin/dashboard';
+            } else {
+                navigate('/customer/dashboard');
+            }
+        } catch {
+            navigate(nextRedirect || '/web/login');
+        } finally {
+            setIsNavigating(false);
+        }
     };
 
     return (
@@ -129,7 +186,7 @@ export default function VerifyEmailPage() {
 
                             <div className="space-y-3 max-w-md mx-auto w-full">
                                 <Button
-                                    onClick={() => handleProceed(nextRedirect)}
+                                    onClick={handleProceed}
                                     isLoading={isNavigating}
                                     disabled={isNavigating}
                                     variant="primary"
@@ -166,7 +223,7 @@ export default function VerifyEmailPage() {
 
                             <div className="space-y-3 max-w-md mx-auto w-full">
                                 <Button
-                                    onClick={() => handleProceed('/web/verify-email-notice')}
+                                    onClick={() => navigate('/web/verify-email-notice')}
                                     isLoading={isNavigating}
                                     disabled={isNavigating}
                                     variant="primary"

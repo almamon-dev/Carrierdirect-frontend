@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-    Search, SlidersHorizontal, RotateCcw, Trash2, X, LayoutGrid, List
+    Search, SlidersHorizontal, RotateCcw, Trash2, X, LayoutGrid, List, MapPin
 } from 'lucide-react';
 import TablePagination from '@/components/tables/table-pagination';
 import EmptyState from '@/components/tables/empty-state';
@@ -14,6 +14,7 @@ export interface Column<T = any> {
     id: string;
     label: string;
     render?: (item: T) => React.ReactNode;
+    skeleton?: () => React.ReactNode;
     className?: string;
     defaultHidden?: boolean;
 }
@@ -34,27 +35,38 @@ export interface DataTableProps<T = any> {
     hidePagination?: boolean;
     hideToolbar?: boolean;
     isLoading?: boolean;
+    skeletonCount?: number;
     emptyState?: React.ReactNode;
+    tableClassName?: string;
+    tableLayout?: 'auto' | 'fixed';
+    actionsColumnClassName?: string;
 }
 
 export default function DataTable<T extends Record<string, any>>({ 
     data, 
     columns, 
     searchPlaceholder = "Search...", 
-    onDeleteSelected,
-    keyExtractor = (item: any) => item.id,
-    actions,
-    filterContent,
-    headerTabs,
-    compact = false,
-    tableId,
-    expandableContent,
-    hideViewToggle = false,
-    hidePagination = false,
-    hideToolbar = false,
-    isLoading = false,
-    emptyState,
+    onDeleteSelected, 
+    keyExtractor = (item: any) => item.id, 
+    actions, 
+    filterContent, 
+    headerTabs, 
+    compact = false, 
+    tableId, 
+    expandableContent, 
+    hideViewToggle = false, 
+    hidePagination = false, 
+    hideToolbar = false, 
+    isLoading = false, 
+    skeletonCount,
+    emptyState, 
+    tableClassName, 
+    tableLayout = 'auto', 
+    actionsColumnClassName,
 }: DataTableProps<T>) {
+    const effectiveSkeletonCount = skeletonCount ?? (data && data.length > 0 ? data.length : 3);
+    const rowHeightClass = compact ? 'h-[44px]' : 'h-[50px]';
+    const cellPaddingClass = compact ? 'px-2 py-2' : 'px-3.5 py-2.5';
     const [search, setSearch] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
@@ -69,8 +81,11 @@ export default function DataTable<T extends Record<string, any>>({
                 try {
                     const parsed = JSON.parse(saved);
                     // Ensure saved columns actually exist in the current columns definition
-                    const validCols = parsed.filter((id: string) => columns.some(c => c.id === id));
-                    if (validCols.length > 0) return validCols;
+                    const validCols = Array.isArray(parsed) ? parsed.filter((id: string) => columns.some(c => c.id === id)) : [];
+                    // Also include any newly introduced columns that are not defaultHidden
+                    const newCols = columns.filter(c => !c.defaultHidden && !validCols.includes(c.id)).map(c => c.id);
+                    const merged = [...validCols, ...newCols];
+                    if (merged.length > 0) return merged;
                 } catch (e) {
                     console.error("Failed to parse saved column state", e);
                 }
@@ -140,7 +155,7 @@ export default function DataTable<T extends Record<string, any>>({
     };
 
     return (
-        <div className="bg-white dark:bg-[#12161c] rounded-md border border-[#ebebeb] dark:border-slate-800 shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
+        <div className="bg-white dark:bg-[#12161c] rounded-md border border-[#ebebeb] dark:border-slate-800 shadow-none">
             <div className="animate-in fade-in duration-300">
                 {/* Header Tabs (Inside container) */}
                 {headerTabs && (
@@ -174,28 +189,28 @@ export default function DataTable<T extends Record<string, any>>({
                                 isFiltered={Boolean(search)}
                             />
                             
-                            <div className="w-[1px] h-4 bg-[#ebebeb] dark:bg-slate-800 mx-1"></div>
+                            <div className="w-[1px] h-4 bg-slate-200/60 dark:bg-slate-800 mx-1"></div>
 
                             {!hideViewToggle && (
                                 <>
-                                    <div className="flex items-center border border-[#d1d1d1] dark:border-slate-700/80 rounded-[3px] overflow-hidden bg-white dark:bg-[#1e2329] shadow-sm">
+                                    <div className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-md overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none">
                                         <button 
                                             onClick={() => setViewMode('table')}
-                                            className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'table' ? 'bg-[#f4f6f8] dark:bg-slate-800 text-[#202223] dark:text-slate-200 shadow-inner' : 'text-[#8c9196] dark:text-slate-400 hover:bg-[#fafbfc] dark:hover:bg-slate-800/60 hover:text-[#202223] dark:hover:text-slate-200'}`}
+                                            className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'table' ? 'bg-white dark:bg-slate-800 text-[#202223] dark:text-slate-200' : 'text-[#8c9196] dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-[#202223] dark:hover:text-slate-200'}`}
                                             title="Table View"
                                         >
                                             <List size={14} />
                                         </button>
-                                        <div className="w-[1px] h-[28px] bg-[#d1d1d1] dark:bg-slate-700/80"></div>
+                                        <div className="w-[1px] h-[28px] bg-slate-200/80 dark:bg-slate-700/60"></div>
                                         <button 
                                             onClick={() => setViewMode('grid')}
-                                            className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-[#f4f6f8] dark:bg-slate-800 text-[#202223] dark:text-slate-200 shadow-inner' : 'text-[#8c9196] dark:text-slate-400 hover:bg-[#fafbfc] dark:hover:bg-slate-800/60 hover:text-[#202223] dark:hover:text-slate-200'}`}
+                                            className={`h-[28px] px-2 flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-slate-800 text-[#202223] dark:text-slate-200' : 'text-[#8c9196] dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-[#202223] dark:hover:text-slate-200'}`}
                                             title="Grid View"
                                         >
                                             <LayoutGrid size={14} />
                                         </button>
                                     </div>
-                                    <div className="w-[1px] h-4 bg-[#ebebeb] dark:bg-slate-800 mx-1"></div>
+                                    <div className="w-[1px] h-4 bg-slate-200/60 dark:bg-slate-800 mx-1"></div>
                                 </>
                             )}
 
@@ -220,16 +235,16 @@ export default function DataTable<T extends Record<string, any>>({
                     <div className="bg-[#f8fafc] dark:bg-[#151921] border-b border-slate-200 dark:border-slate-800">
                         <div className="p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                             {isLoading ? (
-                                [1, 2, 3, 4, 5, 6].map((i) => (
-                                    <div key={i} className="bg-white dark:bg-[#1e2329] rounded-md border border-slate-200 dark:border-slate-800 p-4 shadow-2xs space-y-3 animate-pulse">
+                                Array.from({ length: effectiveSkeletonCount }).map((_, i) => (
+                                    <div key={i} className="bg-white dark:bg-[#1e2329] rounded-md border border-slate-200 dark:border-slate-800 p-4 shadow-none space-y-3">
                                         <div className="flex justify-between items-center pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                                            <Skeleton className="h-5 w-28 rounded" />
-                                            <Skeleton className="h-7 w-20 rounded" />
+                                            <Skeleton className="h-5 w-28 rounded-[2px]" />
+                                            <Skeleton className="h-7 w-20 rounded-[2px]" />
                                         </div>
                                         <div className="space-y-2 pt-1">
-                                            <Skeleton className="h-4 w-3/4 rounded" />
-                                            <Skeleton className="h-4 w-1/2 rounded" />
-                                            <Skeleton className="h-4 w-2/3 rounded" />
+                                            <Skeleton className="h-4 w-3/4 rounded-[2px]" />
+                                            <Skeleton className="h-4 w-1/2 rounded-[2px]" />
+                                            <Skeleton className="h-4 w-2/3 rounded-[2px]" />
                                         </div>
                                     </div>
                                 ))
@@ -284,40 +299,163 @@ export default function DataTable<T extends Record<string, any>>({
                     </div>
                 ) : (
                     <div className="overflow-x-auto custom-scrollbar">
-                        <table className="w-full text-left border-collapse">
+                        <table className={`w-full text-left border-collapse ${tableLayout === 'fixed' ? 'table-fixed' : ''} ${tableClassName || ''}`}>
                         <thead>
                             <tr className="bg-slate-50/90 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} w-[40px]`}>
+                                <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} w-[36px]`}>
                                     <div className="flex items-center justify-center">
                                         <input 
                                             type="checkbox" 
                                             checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
                                             onChange={toggleSelectAll}
-                                            className="w-4 h-4 text-[#FF4A1F] accent-[#FF4A1F] border-slate-300 dark:border-slate-700 dark:bg-slate-800 rounded-[2px] focus:ring-[#FF4A1F] cursor-pointer" 
+                                            className="table-checkbox" 
                                         />
                                     </div>
                                 </th>
                                 {columns.map(col => visibleColumns.includes(col.id) && (
                                     <th key={col.id} className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} ${col.className || ''}`}>{col.label}</th>
                                 ))}
-                                {actions && <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} text-right`}>Actions</th>}
+                                {actions && <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[65px]'}`}>Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                             {isLoading ? (
-                                [1, 2, 3, 4, 5].map((i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td className={`${compact ? 'px-2 py-3' : 'px-3.5 py-3'}`}>
-                                            <Skeleton className="h-4 w-4 mx-auto rounded" />
+                                Array.from({ length: effectiveSkeletonCount }).map((_, i) => (
+                                    <tr key={i} className={`transition-colors border-b border-slate-100/70 dark:border-slate-800/40 ${rowHeightClass}`}>
+                                        <td className={`${cellPaddingClass} w-[36px]`}>
+                                            <Skeleton className="h-[15px] w-[15px] mx-auto rounded-[3px]" />
                                         </td>
-                                        {columns.map(col => visibleColumns.includes(col.id) && (
-                                            <td key={col.id} className={`${compact ? 'px-2 py-3' : 'px-3.5 py-3'}`}>
-                                                <Skeleton className="h-4 w-24 rounded" />
-                                            </td>
-                                        ))}
+                                        {columns.map(col => {
+                                            if (!visibleColumns.includes(col.id)) return null;
+
+                                            if (col.skeleton) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        {col.skeleton()}
+                                                    </td>
+                                                );
+                                            }
+
+                                            const colId = col.id.toLowerCase();
+                                            const colLabel = col.label.toLowerCase();
+
+                                            if (colId === 'id' || colLabel === 'id') {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex items-center h-5">
+                                                            <Skeleton className="h-4 w-14 rounded-[2px] !bg-orange-100/70 dark:!bg-orange-950/40" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId === 'customer' || colLabel.includes('customer') || colLabel.includes('user') || colLabel.includes('supplier')) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex items-center gap-2 h-5">
+                                                            <Skeleton className="w-5 h-5 rounded-full shrink-0" />
+                                                            <Skeleton className="h-3.5 w-24 rounded-[2px]" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId === 'pickup' || (colLabel.includes('pickup') && colLabel.includes('address'))) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5">
+                                                            <MapPin size={13} className="text-emerald-500 shrink-0 opacity-60" />
+                                                            <Skeleton className="h-3.5 w-32 max-w-full rounded-[2px]" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId === 'delivery' || (colLabel.includes('delivery') && colLabel.includes('address'))) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5">
+                                                            <MapPin size={13} className="text-red-500 shrink-0 opacity-60" />
+                                                            <Skeleton className="h-3.5 w-32 max-w-full rounded-[2px]" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colLabel.includes('address') || colLabel.includes('route')) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex items-center gap-1.5 min-w-0 h-5">
+                                                            <MapPin size={13} className="text-slate-400 shrink-0 opacity-60" />
+                                                            <Skeleton className="h-3.5 w-32 max-w-full rounded-[2px]" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId.includes('quote') || colLabel.includes('quote')) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex justify-center items-center h-5">
+                                                            <Skeleton className="h-4 w-14 rounded-[2px] !bg-orange-100/70 dark:!bg-orange-950/40" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId === 'priority' || colLabel.includes('priority')) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex justify-center items-center h-5">
+                                                            <Skeleton className="h-5 w-14 rounded-[2px] !bg-amber-100/70 dark:!bg-amber-950/50" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId === 'status' || colLabel.includes('status')) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex justify-center items-center h-5">
+                                                            <Skeleton className="h-5 w-20 rounded-[2px] !bg-emerald-100/70 dark:!bg-emerald-950/50" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId === 'distance' || colLabel.includes('distance')) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex justify-center items-center h-5">
+                                                            <Skeleton className="h-3.5 w-14 rounded-[2px]" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId === 'budget' || colId === 'amount' || colLabel.includes('budget') || colLabel.includes('price')) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex items-center h-5">
+                                                            <Skeleton className="h-4 w-16 rounded-[2px]" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+                                            if (colId === 'date' || colId === 'requestdate' || colLabel.includes('date')) {
+                                                return (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                        <div className="flex justify-center items-center h-5">
+                                                            <Skeleton className="h-3.5 w-20 rounded-[2px]" />
+                                                        </div>
+                                                    </td>
+                                                );
+                                            }
+
+                                            return (
+                                                <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                    <div className="flex items-center h-5">
+                                                        <Skeleton className="h-3.5 w-20 rounded-[2px]" />
+                                                    </div>
+                                                </td>
+                                            );
+                                        })}
                                         {actions && (
-                                            <td className={`${compact ? 'px-2 py-3' : 'px-3.5 py-3'} text-right`}>
-                                                <Skeleton className="h-7 w-20 rounded ml-auto" />
+                                            <td className={`${cellPaddingClass} text-right pr-3.5 sm:pr-4 w-[65px] min-w-[65px] max-w-[65px]`}>
+                                                <div className="flex items-center justify-end w-full h-7">
+                                                    <Skeleton className="h-7 w-7 rounded-[2px] ml-auto" />
+                                                </div>
                                             </td>
                                         )}
                                     </tr>
@@ -336,26 +474,26 @@ export default function DataTable<T extends Record<string, any>>({
                                         <React.Fragment key={id}>
                                             <tr 
                                                 onClick={() => expandableContent && toggleExpand(id)}
-                                                className={`transition-colors group ${isSelected ? 'bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50'} ${expandableContent ? 'cursor-pointer' : ''}`}
+                                                className={`transition-colors group ${rowHeightClass} ${isSelected ? 'bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50'} ${expandableContent ? 'cursor-pointer' : ''}`}
                                             >
-                                            <td className={`${compact ? 'px-2 py-2' : 'px-3.5 py-2.5'} whitespace-nowrap`}>
+                                            <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
                                                 <div className="flex items-center justify-center">
                                                     <input 
                                                         type="checkbox" 
                                                         checked={isSelected}
                                                         onChange={() => toggleSelect(id)}
-                                                        className="w-4 h-4 text-[#FF4A1F] accent-[#FF4A1F] border-slate-300 dark:border-slate-700 dark:bg-slate-800 rounded-[2px] focus:ring-[#FF4A1F] cursor-pointer" 
+                                                        className="table-checkbox" 
                                                     />
                                                 </div>
                                             </td>
                                             {columns.map(col => visibleColumns.includes(col.id) && (
-                                                <td key={col.id} className={`${compact ? 'px-2 py-2' : 'px-3.5 py-2.5'} whitespace-nowrap text-[13px] text-slate-800 dark:text-slate-200 ${col.className || ''}`}>
+                                                <td key={col.id} className={`${cellPaddingClass} ${col.className?.includes('whitespace-normal') ? 'whitespace-normal break-words' : 'whitespace-nowrap'} text-[13px] text-slate-800 dark:text-slate-200 ${col.className || ''}`}>
                                                     {col.render ? col.render(item) : item[col.id]}
                                                 </td>
                                             ))}
                                             {actions && (
-                                                <td className={`${compact ? 'px-2 py-2' : 'px-3.5 py-2.5'} whitespace-nowrap text-right`}>
-                                                    <div className="flex justify-end">
+                                                <td className={`${cellPaddingClass} whitespace-nowrap text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
+                                                    <div className="flex items-center justify-end w-full h-7">
                                                         {actions(item)}
                                                     </div>
                                                 </td>

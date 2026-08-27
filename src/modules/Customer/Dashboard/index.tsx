@@ -358,6 +358,20 @@ export default function Dashboard() {
         }
     }, [spendFilter, invoices, metrics.totalSpending]);
 
+    // Total quotes received count aggregated from requests
+    const totalQuotesReceived = useMemo(() => {
+        return quoteRequests.reduce((acc, q) => {
+            const count = Number(
+                q.quotes_count ?? 
+                q.quotes_received_count ?? 
+                q.bids_count ?? 
+                (Array.isArray(q.quotes_request) ? q.quotes_request.length : 
+                 Array.isArray(q.quotes) ? q.quotes.length : 0)
+            );
+            return acc + count;
+        }, 0);
+    }, [quoteRequests]);
+
     // Dynamic Request & Order Chart Data
     const orderQuoteChartData = useMemo(() => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -367,6 +381,7 @@ export default function Dashboard() {
 
         const totalReq = quoteRequests.length || 0;
         const totalOrd = orders.length || 0;
+        const totalQuotes = totalQuotesReceived;
 
         for (let i = intervals - 1; i >= 0; i--) {
             const d = new Date();
@@ -374,7 +389,7 @@ export default function Dashboard() {
             const name = `${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')}`;
 
             const reqPortion = totalReq > 0 ? Math.max(1, Math.round((totalReq / intervals) * (intervals - i))) : 0;
-            const quotePortion = totalReq > 0 ? Math.max(0, Math.round(reqPortion * 0.8)) : 0;
+            const quotePortion = totalQuotes > 0 ? Math.max(0, Math.round((totalQuotes / intervals) * (intervals - i))) : (totalReq > 0 ? Math.round(reqPortion * 0.5) : 0);
             const ordPortion = totalOrd > 0 ? Math.max(0, Math.round((totalOrd / intervals) * (intervals - i))) : 0;
 
             points.push({
@@ -385,7 +400,7 @@ export default function Dashboard() {
             });
         }
         return points;
-    }, [overviewFilter, quoteRequests, orders]);
+    }, [overviewFilter, quoteRequests, orders, totalQuotesReceived]);
 
     // Active Shipments for the live table
     const liveActiveShipments = useMemo(() => {
@@ -526,7 +541,7 @@ export default function Dashboard() {
                             <span className="w-2.5 h-2.5 rounded-full bg-brand"></span> Requests Sent ({quoteRequests.length})
                         </div>
                         <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-slate-600 dark:text-slate-300">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Quotes Received
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Quotes Received ({totalQuotesReceived})
                         </div>
                         <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-slate-600 dark:text-slate-300">
                             <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Orders Booked ({orders.length})
@@ -587,7 +602,7 @@ export default function Dashboard() {
                         </div>
                         <Link
                             to="/customer/quotes/create/new"
-                            className="inline-block text-xs font-bold text-white bg-[#ff4a1f] px-3.5 py-1.5 rounded-lg shadow-xs hover:bg-[#e03d15] transition-colors"
+                            className="inline-block text-xs font-bold text-white bg-[#ff4a1f] px-3.5 py-1.5 rounded-[3px] shadow-xs hover:bg-[#e03d15] transition-colors"
                         >
                             Create a Quote Request
                         </Link>

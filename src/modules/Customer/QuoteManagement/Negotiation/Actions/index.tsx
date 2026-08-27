@@ -22,7 +22,9 @@ export default function ChatInputActions({
     onSendCounterOffer,
     isSupplier = false,
     isEditing = false,
-    onCancelEdit
+    onCancelEdit,
+    initialBaseFreight,
+    currency = '€'
 }: {
     inputValue: string;
     setInputValue: (v: string) => void;
@@ -32,6 +34,8 @@ export default function ChatInputActions({
     isSupplier?: boolean;
     isEditing?: boolean;
     onCancelEdit?: () => void;
+    initialBaseFreight?: number | string;
+    currency?: string;
 }) {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -42,7 +46,13 @@ export default function ChatInputActions({
     const [counterOfferNote, setCounterOfferNote] = useState('');
 
     // Supplier Itemized Breakdown State
-    const [baseFreight, setBaseFreight] = useState('35000');
+    const [baseFreight, setBaseFreight] = useState(initialBaseFreight ? String(initialBaseFreight) : '35000');
+
+    useEffect(() => {
+        if (initialBaseFreight) {
+            setBaseFreight(String(initialBaseFreight));
+        }
+    }, [initialBaseFreight]);
     const [customCharges, setCustomCharges] = useState<CustomCharge[]>([
         { id: 1, label: 'Load / Unload Fee', description: '2 helpers included', amount: '3500' },
         { id: 2, label: 'Insurance Fee', description: 'Full goods coverage', amount: '1500' }
@@ -387,7 +397,7 @@ export default function ChatInputActions({
                 </Button>
 
                 {/* Textarea Pill Container */}
-                <div className="flex-1 bg-slate-100/80 rounded-2xl flex items-center pr-2 pl-4 py-1 border border-slate-200/80 focus-within:bg-white focus-within:border-[#FF4A1F] focus-within:ring-2 focus-within:ring-[#FF4A1F]/20 transition-all">
+                <div className="flex-1 bg-slate-100/80 rounded-full flex items-center pr-2 pl-4 py-1 border border-slate-200/80 focus-within:bg-white">
                     <textarea
                         ref={textareaRef}
                         value={inputValue}
@@ -439,10 +449,10 @@ export default function ChatInputActions({
                     variant="ghost"
                     size="icon"
                     className={`h-10 w-10 rounded-full shrink-0 shadow-md transition-all ${isEditing
+                        ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]'
+                        : inputValue.trim() || selectedFiles.length > 0
                             ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]'
-                            : inputValue.trim() || selectedFiles.length > 0
-                                ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]'
-                                : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
+                            : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
                         }`}
                     onClick={handleSend}
                     title={isEditing ? "Save changes" : "Send message"}

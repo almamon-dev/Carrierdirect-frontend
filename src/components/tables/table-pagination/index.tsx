@@ -46,7 +46,7 @@ export default function TablePagination({
                         <select
                             value={perPage}
                             onChange={(e) => onPerPageChange(Number(e.target.value))}
-                            className="h-8 pl-3 pr-7 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] border border-slate-300 dark:border-slate-700 rounded-md shadow-2xs focus:border-[#ff4a1f] focus:ring-1 focus:ring-[#ff4a1f] outline-none appearance-none cursor-pointer hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
+                            className="h-8 pl-3 pr-7 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-50/50 dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/60 rounded-md shadow-none focus:border-[#ff4a1f] focus:ring-0 outline-none appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                         >
                             <option value={10}>10</option>
                             <option value={15}>15</option>
@@ -64,7 +64,7 @@ export default function TablePagination({
                         onClick={onPrevPage}
                         disabled={!hasPrev}
                         aria-label="Previous page"
-                        className="h-8 px-2.5 flex items-center justify-center gap-1 text-xs font-semibold rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:border-slate-300 dark:disabled:hover:border-slate-700 disabled:hover:text-slate-700 dark:disabled:hover:text-slate-200 disabled:hover:bg-white dark:disabled:hover:bg-[#1e2329] disabled:cursor-not-allowed transition-all shadow-2xs active:scale-95 cursor-pointer"
+                        className="h-8 px-2.5 flex items-center justify-center gap-1 text-xs font-semibold rounded-md border border-slate-200/80 dark:border-slate-700/60 bg-slate-50/50 dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:border-slate-200/80 dark:disabled:hover:border-slate-700/60 disabled:hover:text-slate-700 dark:disabled:hover:text-slate-200 disabled:hover:bg-slate-50/50 dark:disabled:hover:bg-[#1e2329] disabled:cursor-not-allowed transition-all shadow-none active:scale-95 cursor-pointer"
                     >
                         <ChevronLeft size={15} />
                         <span className="hidden sm:inline">Prev</span>
@@ -73,7 +73,7 @@ export default function TablePagination({
                         onClick={onNextPage}
                         disabled={!hasNext}
                         aria-label="Next page"
-                        className="h-8 px-2.5 flex items-center justify-center gap-1 text-xs font-semibold rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:border-slate-300 dark:disabled:hover:border-slate-700 disabled:hover:text-slate-700 dark:disabled:hover:text-slate-200 disabled:hover:bg-white dark:disabled:hover:bg-[#1e2329] disabled:cursor-not-allowed transition-all shadow-2xs active:scale-95 cursor-pointer"
+                        className="h-8 px-2.5 flex items-center justify-center gap-1 text-xs font-semibold rounded-md border border-slate-200/80 dark:border-slate-700/60 bg-slate-50/50 dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:border-slate-200/80 dark:disabled:hover:border-slate-700/60 disabled:hover:text-slate-700 dark:disabled:hover:text-slate-200 disabled:hover:bg-slate-50/50 dark:disabled:hover:bg-[#1e2329] disabled:cursor-not-allowed transition-all shadow-none active:scale-95 cursor-pointer"
                     >
                         <span className="hidden sm:inline">Next</span>
                         <ChevronRight size={15} />

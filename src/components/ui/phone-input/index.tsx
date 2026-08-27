@@ -186,7 +186,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                                         </div>
 
                                         {/* Country List */}
-                                        <div className="overflow-y-auto py-1 flex-1 max-h-[220px] custom-scrollbar">
+                                        <div className="overflow-y-auto py-1 flex-1 max-h-[220px] hide-scrollbar no-scrollbar">
                                             {filteredCountries.length === 0 ? (
                                                 <div className="py-6 text-center text-slate-400 text-[12px]">
                                                     No countries found

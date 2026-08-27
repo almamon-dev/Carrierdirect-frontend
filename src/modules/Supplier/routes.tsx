@@ -1,11 +1,10 @@
 import React, { lazy } from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
-
-const Dashboard = lazy(() => import('./Dashboard'));
-const QuoteRequests = lazy(() => import('./QuoteManagement/QuoteRequests'));
+import Dashboard from './Dashboard';
+import QuoteRequests from './QuoteManagement/QuoteRequests';
+import WonQuotes from './QuoteManagement/WonQuotes';
+import LostQuotes from './QuoteManagement/LostQuotes';
 const SubmitQuote = lazy(() => import('./QuoteManagement/SubmitQuote'));
-const WonQuotes = lazy(() => import('./QuoteManagement/WonQuotes'));
-const LostQuotes = lazy(() => import('./QuoteManagement/LostQuotes'));
 const QuoteNegotiation = lazy(() => import('./QuoteManagement/Negotiation'));
 const QuoteNegotiationChat = lazy(() => import('./QuoteManagement/Negotiation/Chat'));
 const ActiveJobs = lazy(() => import('./OrderManagement/ActiveJobs'));
@@ -43,6 +42,7 @@ export const supplierRoutes: RouteObject[] = [
     { path: 'quotes/lost', element: <LostQuotes /> },
     { path: 'quotes/negotiation', element: <QuoteNegotiation /> },
     { path: 'quotes/negotiation/view/:id', element: <QuoteNegotiationChat /> },
+    { path: 'quotes/negotiation/view/:id/:sessionKey', element: <QuoteNegotiationChat /> },
     { path: 'orders/active-jobs', element: <ActiveJobs /> },
     { path: 'orders/pod', element: <POD /> },
     { path: 'orders/pod/:slug', element: <POD /> },

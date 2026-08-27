@@ -1,296 +1,367 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { FileText, Package, Truck, Euro, Bell } from 'lucide-react';
+import apiClient from '@/lib/axios';
+import { ENDPOINTS } from '@/config/api';
 import {
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    LineChart, Line, Legend
-} from 'recharts';
-import {
-    Euro, FileText, Package, CreditCard, Star,
-    TrendingUp, Activity, Truck, Bell, Wallet
-} from 'lucide-react';
-import Select from '@/components/ui/select';
+    DashboardProfile,
+    FinanceSummary,
+    TimeFilter,
+} from './types/dashboard.types';
+import { MetricCardsGrid } from './components/MetricCardsGrid';
+import { EarningsAreaChart } from './components/EarningsAreaChart';
+import { OrderQuoteLineChart } from './components/OrderQuoteLineChart';
+import { RecentQuotesList, RecentQuoteRow } from './components/RecentQuotesList';
+import { ActiveOrdersList, ActiveOrderRow } from './components/ActiveOrdersList';
+import { DashboardNotificationsList, DashboardNotificationRow } from './components/DashboardNotificationsList';
 
-const earningsData = [
-    { name: 'May 01', earnings: 2000 },
-    { name: 'May 03', earnings: 6000 },
-    { name: 'May 04', earnings: 6800 },
-    { name: 'May 05', earnings: 6200 },
-    { name: 'May 06', earnings: 8500 },
-    { name: 'May 08', earnings: 7800 },
-    { name: 'May 09', earnings: 11000 },
-    { name: 'May 10', earnings: 10500 },
-    { name: 'May 11', earnings: 12000 },
-    { name: 'May 12', earnings: 11800 },
-    { name: 'May 14', earnings: 14500 },
-    { name: 'May 15', earnings: 14000 },
-    { name: 'May 16', earnings: 16500 },
-    { name: 'May 18', earnings: 15800 },
-    { name: 'May 19', earnings: 18000 },
-    { name: 'May 20', earnings: 17500 },
-    { name: 'May 21', earnings: 19000 },
-    { name: 'May 23', earnings: 20500 },
-    { name: 'May 24', earnings: 20000 },
-    { name: 'May 26', earnings: 22000 },
-    { name: 'May 27', earnings: 21500 },
-    { name: 'May 29', earnings: 23000 },
-    { name: 'May 30', earnings: 22000 },
-    { name: 'May 31', earnings: 24580 },
-];
+function formatCurrency(num: number | string | undefined): string {
+    const val = Number(num) || 0;
+    return `€${val.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
 
-const orderQuoteData = [
-    { name: 'May 01', requests: 65, submitted: 40, won: 15 },
-    { name: 'May 06', requests: 72, submitted: 38, won: 18 },
-    { name: 'May 11', requests: 80, submitted: 48, won: 22 },
-    { name: 'May 16', requests: 76, submitted: 44, won: 20 },
-    { name: 'May 21', requests: 85, submitted: 52, won: 25 },
-    { name: 'May 26', requests: 80, submitted: 48, won: 28 },
-    { name: 'May 31', requests: 90, submitted: 62, won: 38 },
-];
+function timeAgo(dateString?: string): string {
+    if (!dateString) return 'Just now';
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffMs = now.getTime() - past.getTime();
+    if (isNaN(diffMs)) return '10 min';
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDays = Math.floor(diffHr / 24);
 
-const recentQuotes = [
-    { id: 'QR-7845', status: 'New', color: 'bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400' },
-    { id: 'QR-7844', status: 'Viewed', color: 'bg-brand-light dark:bg-[#ff4a1f]/20 text-brand' },
-    { id: 'QR-7843', status: 'Quoted', color: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' },
-    { id: 'QR-7842', status: 'New', color: 'bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400' },
-    { id: 'QR-7841', status: 'Quoted', color: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' },
-    { id: 'QR-7840', status: 'Viewed', color: 'bg-brand-light dark:bg-[#ff4a1f]/20 text-brand' },
-    { id: 'QR-7839', status: 'Lost', color: 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300' },
-    { id: 'QR-7838', status: 'New', color: 'bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400' },
-    { id: 'QR-7837', status: 'Viewed', color: 'bg-brand-light dark:bg-[#ff4a1f]/20 text-brand' },
-    { id: 'QR-7836', status: 'Quoted', color: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' }
-];
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin} min`;
+    if (diffHr < 24) return `${diffHr} hrs`;
+    if (diffDays === 1) return '1 day';
+    if (diffDays < 30) return `${diffDays} days`;
+    return past.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
-const activeOrders = [
-    { id: 'ORD-1254', status: 'In Transit', color: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' },
-    { id: 'ORD-1253', status: 'Pending', color: 'bg-brand-light dark:bg-[#ff4a1f]/20 text-brand' },
-    { id: 'ORD-1252', status: 'Loading', color: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400' },
-    { id: 'ORD-1251', status: 'In Transit', color: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' },
-    { id: 'ORD-1250', status: 'Pending', color: 'bg-brand-light dark:bg-[#ff4a1f]/20 text-brand' },
-    { id: 'ORD-1249', status: 'Delivered', color: 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300' },
-    { id: 'ORD-1248', status: 'Loading', color: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400' },
-    { id: 'ORD-1247', status: 'In Transit', color: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' },
-    { id: 'ORD-1246', status: 'Pending', color: 'bg-brand-light dark:bg-[#ff4a1f]/20 text-brand' },
-    { id: 'ORD-1245', status: 'Loading', color: 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400' }
-];
+export default function SupplierDashboard() {
+    const [isLoading, setIsLoading] = useState(true);
 
-const notificationList = [
-    { icon: FileText, text: 'New quote request QR-7845 received', bg: 'bg-purple-100 dark:bg-purple-950/60', color: 'text-purple-600 dark:text-purple-400', time: '10 min' },
-    { icon: Package, text: 'Your quote for QR-7842 was accepted', bg: 'bg-emerald-100 dark:bg-emerald-950/60', color: 'text-emerald-600 dark:text-emerald-400', time: '1 hr' },
-    { icon: Truck, text: 'ORD-1254 status changed to In Transit', bg: 'bg-blue-100 dark:bg-blue-950/60', color: 'text-brand', time: '2 hrs' },
-    { icon: Euro, text: 'Payment of €1,250 received', bg: 'bg-emerald-100 dark:bg-emerald-950/60', color: 'text-emerald-600 dark:text-emerald-400', time: '5 hrs' },
-    { icon: FileText, text: 'New quote request QR-7842 received', bg: 'bg-purple-100 dark:bg-purple-950/60', color: 'text-purple-600 dark:text-purple-400', time: '1 day' },
-    { icon: Bell, text: 'Customer asked a question on QR-7840', bg: 'bg-amber-100 dark:bg-amber-950/60', color: 'text-amber-600 dark:text-amber-400', time: '1 day' },
-    { icon: Package, text: 'Your quote for QR-7839 was rejected', bg: 'bg-rose-100 dark:bg-rose-950/60', color: 'text-rose-600 dark:text-rose-400', time: '2 days' },
-    { icon: Truck, text: 'ORD-1249 marked as Delivered', bg: 'bg-blue-100 dark:bg-blue-950/60', color: 'text-brand', time: '3 days' },
-    { icon: Euro, text: 'Payment of €450 received', bg: 'bg-emerald-100 dark:bg-emerald-950/60', color: 'text-emerald-600 dark:text-emerald-400', time: '3 days' },
-];
+    // Live API States
+    const [profile, setProfile] = useState<DashboardProfile | null>(null);
+    const [quoteRequests, setQuoteRequests] = useState<any[]>([]);
+    const [activeOrders, setActiveOrders] = useState<any[]>([]);
+    const [financeSummary, setFinanceSummary] = useState<FinanceSummary | null>(null);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [earningsDataFromApi, setEarningsDataFromApi] = useState<any[] | null>(null);
+    const [conversionDataFromApi, setConversionDataFromApi] = useState<any[] | null>(null);
 
-const MetricCard = ({ title, description, value, icon: Icon, colorClass }: { title: string; description: string; value: string; icon: any; colorClass: string }) => (
-    <div className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex flex-col items-start cursor-pointer w-full">
-        <div className="flex justify-between items-start w-full mb-3">
-            <div className={`w-9 h-9 rounded-md shrink-0 flex items-center justify-center ${colorClass}`}>
-                <Icon size={18} strokeWidth={2} />
-            </div>
-            <span className="text-[20px] font-bold text-slate-800 dark:text-slate-200">{value}</span>
-        </div>
-        <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">
-            {title}
-        </h3>
-        <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium leading-snug">
-            {description}
-        </p>
-    </div>
-);
+    // Timeframe filter states
+    const [earningsFilter, setEarningsFilter] = useState<TimeFilter>('30_days');
+    const [quoteOverviewFilter, setQuoteOverviewFilter] = useState<TimeFilter>('30_days');
 
-export default function Dashboard() {
+    // Fetch Dashboard Data dynamically from Backend API
+    const fetchDashboard = useCallback(async () => {
+        try {
+            const [profRes, quotesRes, ordersRes, financeRes, notifsRes, statsRes] = await Promise.allSettled([
+                apiClient.get(ENDPOINTS.SUPPLIER.PROFILE),
+                apiClient.get(ENDPOINTS.SUPPLIER.AVAILABLE_REQUESTS),
+                apiClient.get('/supplier/orders'),
+                apiClient.get('/supplier/finance/earnings'),
+                apiClient.get('/supplier/notifications'),
+                apiClient.get('/supplier/dashboard/stats'),
+            ]);
+
+            if (profRes.status === 'fulfilled') {
+                const data = profRes.value.data?.data || profRes.value.data;
+                setProfile(data || null);
+            }
+            if (quotesRes.status === 'fulfilled') {
+                const raw = quotesRes.value.data?.data?.requests || quotesRes.value.data?.data || quotesRes.value.data || [];
+                setQuoteRequests(Array.isArray(raw) ? raw : (Array.isArray(raw?.requests) ? raw.requests : []));
+            }
+            if (ordersRes.status === 'fulfilled') {
+                const raw = ordersRes.value.data?.data || ordersRes.value.data || [];
+                setActiveOrders(Array.isArray(raw) ? raw : []);
+            }
+            if (financeRes.status === 'fulfilled') {
+                const raw = financeRes.value.data?.data || financeRes.value.data || null;
+                setFinanceSummary(raw);
+            }
+            if (notifsRes.status === 'fulfilled') {
+                const raw = notifsRes.value.data?.notifications || notifsRes.value.data?.data || notifsRes.value.data || [];
+                setNotifications(Array.isArray(raw) ? raw : []);
+            }
+            if (statsRes.status === 'fulfilled') {
+                const statsData = statsRes.value.data?.data || statsRes.value.data;
+                if (statsData?.earnings_chart) setEarningsDataFromApi(statsData.earnings_chart);
+                if (statsData?.conversion_chart) setConversionDataFromApi(statsData.conversion_chart);
+            }
+        } catch (err) {
+            console.error('Error fetching supplier dashboard data:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchDashboard();
+    }, [fetchDashboard]);
+
+    // Computed Dynamic Metric Values - Real Data (0 if empty)
+    const totalEarnings = useMemo(() => {
+        if (financeSummary?.total_earnings !== undefined) return formatCurrency(financeSummary.total_earnings);
+        if (profile?.total_earnings !== undefined) return formatCurrency(profile.total_earnings);
+        return '€0';
+    }, [financeSummary, profile]);
+
+    const withdrawableBalance = useMemo(() => {
+        if (financeSummary?.withdrawable_balance !== undefined || financeSummary?.available_balance !== undefined) {
+            return formatCurrency(financeSummary.withdrawable_balance ?? financeSummary.available_balance);
+        }
+        return '€0';
+    }, [financeSummary]);
+
+    const activeOrdersCount = useMemo(() => {
+        return activeOrders.length;
+    }, [activeOrders]);
+
+    const pendingQuotesCount = useMemo(() => {
+        return quoteRequests.length;
+    }, [quoteRequests]);
+
+    const avgRating = useMemo(() => {
+        if (profile?.rating || profile?.average_rating) {
+            return String(profile.rating || profile.average_rating);
+        }
+        return '0.0';
+    }, [profile]);
+
+    // Earnings Chart Data: Uses API data if available, otherwise generates live timeframe baseline
+    const earningsChartData = useMemo(() => {
+        if (earningsDataFromApi && Array.isArray(earningsDataFromApi) && earningsDataFromApi.length > 0) {
+            return earningsDataFromApi;
+        }
+
+        if (earningsFilter === '3_months') {
+            return [
+                { name: 'Month 1', earnings: 0 },
+                { name: 'Month 2', earnings: 0 },
+                { name: 'Month 3', earnings: Number(financeSummary?.total_earnings || profile?.total_earnings || 0) },
+            ];
+        }
+        if (earningsFilter === 'this_year') {
+            return [
+                { name: 'Jan', earnings: 0 },
+                { name: 'Feb', earnings: 0 },
+                { name: 'Mar', earnings: 0 },
+                { name: 'Apr', earnings: 0 },
+                { name: 'May', earnings: Number(financeSummary?.total_earnings || profile?.total_earnings || 0) },
+            ];
+        }
+        // 30 days with 2-day gap dates
+        const currentTotal = Number(financeSummary?.total_earnings || profile?.total_earnings || 0);
+        return [
+            { name: 'Day 01', earnings: 0 },
+            { name: 'Day 03', earnings: 0 },
+            { name: 'Day 05', earnings: 0 },
+            { name: 'Day 08', earnings: 0 },
+            { name: 'Day 10', earnings: 0 },
+            { name: 'Day 12', earnings: 0 },
+            { name: 'Day 15', earnings: 0 },
+            { name: 'Day 18', earnings: 0 },
+            { name: 'Day 20', earnings: 0 },
+            { name: 'Day 23', earnings: 0 },
+            { name: 'Day 26', earnings: 0 },
+            { name: 'Day 28', earnings: 0 },
+            { name: 'Day 30', earnings: currentTotal },
+        ];
+    }, [earningsDataFromApi, earningsFilter, financeSummary, profile]);
+
+    // Order Quote Line Chart Data: Uses API data if available, otherwise real live counts
+    const orderQuoteChartData = useMemo(() => {
+        if (conversionDataFromApi && Array.isArray(conversionDataFromApi) && conversionDataFromApi.length > 0) {
+            return conversionDataFromApi;
+        }
+
+        const requestsCount = quoteRequests.length;
+        const wonCount = activeOrders.length;
+        const submittedCount = 0;
+
+        if (quoteOverviewFilter === '3_months') {
+            return [
+                { name: 'Month 1', requests: 0, submitted: 0, won: 0 },
+                { name: 'Month 2', requests: 0, submitted: 0, won: 0 },
+                { name: 'Month 3', requests: requestsCount, submitted: submittedCount, won: wonCount },
+            ];
+        }
+        if (quoteOverviewFilter === 'this_year') {
+            return [
+                { name: 'Q1', requests: 0, submitted: 0, won: 0 },
+                { name: 'Q2', requests: requestsCount, submitted: submittedCount, won: wonCount },
+            ];
+        }
+        return [
+            { name: 'Week 1', requests: 0, submitted: 0, won: 0 },
+            { name: 'Week 2', requests: 0, submitted: 0, won: 0 },
+            { name: 'Week 3', requests: 0, submitted: 0, won: 0 },
+            { name: 'Week 4', requests: requestsCount, submitted: submittedCount, won: wonCount },
+        ];
+    }, [conversionDataFromApi, quoteOverviewFilter, quoteRequests, activeOrders]);
+
+    // Recent Quotes List Rows from real backend data (Empty array if no data)
+    const recentQuotes: RecentQuoteRow[] = useMemo(() => {
+        if (quoteRequests.length === 0) return [];
+
+        return quoteRequests.slice(0, 10).map((q: any) => {
+            const s = (q.status || 'New').toLowerCase();
+            let color = 'bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400';
+            let statusLabel = 'New';
+
+            if (s.includes('view') || s.includes('pending')) {
+                color = 'bg-brand-light dark:bg-[#ff4a1f]/20 text-brand';
+                statusLabel = 'Viewed';
+            } else if (s.includes('quote') || s.includes('submit')) {
+                color = 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400';
+                statusLabel = 'Quoted';
+            } else if (s.includes('lost') || s.includes('reject') || s.includes('cancel')) {
+                color = 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300';
+                statusLabel = 'Lost';
+            } else if (s.includes('won') || s.includes('accept')) {
+                color = 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400';
+                statusLabel = 'Won';
+            }
+
+            // Requester details: rating, completed orders, and created date
+            const customerRating = q.user?.average_rating ?? q.user?.rating ?? q.customer_rating ?? q.customerRating ?? q.rating ?? 5.0;
+            const completedOrdersCount = q.user?.completed_orders_count ?? q.user?.orders_count ?? q.customer_completed_orders ?? q.customerOrdersCount ?? q.completed_orders ?? q.orders_count ?? 0;
+            
+            const rawCreatedAt = q.created_at || q.createdAt || q.requestDate || q.pickup_date;
+            let formattedCreatedAt = 'Today';
+            if (rawCreatedAt) {
+                try {
+                    const d = new Date(rawCreatedAt);
+                    if (!isNaN(d.getTime())) {
+                        formattedCreatedAt = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                    }
+                } catch {
+                    formattedCreatedAt = 'Today';
+                }
+            }
+
+            const customerName = q.user?.name || q.customer?.name || q.customer_name || q.client_name || q.pickup_company || q.pickup_contact_name || q.customer || 'Customer';
+            const customerAvatar = q.user?.avatar || q.user?.avatar_url || q.user?.profile_photo_url || q.user?.profile_photo_path || q.customer?.avatar || q.customer_avatar || q.avatar || '';
+
+            return {
+                id: q.id ? `QR-${q.id}` : (q.reference_id || `QR-${q.slug || '0000'}`),
+                slug: q.id || q.slug,
+                status: statusLabel,
+                color,
+                createdAt: formattedCreatedAt,
+                customerRating,
+                completedOrdersCount,
+                customerName,
+                customerAvatar,
+            };
+        });
+    }, [quoteRequests]);
+
+    // Active Orders List Rows from real backend data (Empty array if no data)
+    const displayOrders: ActiveOrderRow[] = useMemo(() => {
+        if (activeOrders.length === 0) return [];
+
+        return activeOrders.slice(0, 10).map((o: any) => {
+            const s = (o.status || 'Pending').toLowerCase();
+            let color = 'bg-brand-light dark:bg-[#ff4a1f]/20 text-brand';
+            let statusLabel = 'Pending';
+
+            if (s.includes('transit') || s.includes('road')) {
+                color = 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400';
+                statusLabel = 'In Transit';
+            } else if (s.includes('load') || s.includes('pickup')) {
+                color = 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400';
+                statusLabel = 'Loading';
+            } else if (s.includes('deliver') || s.includes('complete')) {
+                color = 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300';
+                statusLabel = 'Delivered';
+            }
+
+            return {
+                id: o.order_number || (o.id ? `ORD-${o.id}` : `ORD-${o.slug || '0000'}`),
+                slug: o.id || o.slug,
+                status: statusLabel,
+                color,
+            };
+        });
+    }, [activeOrders]);
+
+    // Notifications List Rows from real backend data (Empty array if no data)
+    const displayNotifications: DashboardNotificationRow[] = useMemo(() => {
+        if (notifications.length === 0) return [];
+
+        return notifications.slice(0, 9).map((n: any) => {
+            const text = n.data?.message || n.message || n.title || 'Notification alert';
+            const t = text.toLowerCase();
+
+            let icon = Bell;
+            let bg = 'bg-amber-100 dark:bg-amber-950/60';
+            let color = 'text-amber-600 dark:text-amber-400';
+
+            if (t.includes('quote')) {
+                icon = FileText;
+                bg = 'bg-purple-100 dark:bg-purple-950/60';
+                color = 'text-purple-600 dark:text-purple-400';
+            } else if (t.includes('order') || t.includes('accept') || t.includes('job')) {
+                icon = Package;
+                bg = 'bg-emerald-100 dark:bg-emerald-950/60';
+                color = 'text-emerald-600 dark:text-emerald-400';
+            } else if (t.includes('transit') || t.includes('deliver') || t.includes('truck')) {
+                icon = Truck;
+                bg = 'bg-blue-100 dark:bg-blue-950/60';
+                color = 'text-brand';
+            } else if (t.includes('payment') || t.includes('€') || t.includes('euro') || t.includes('paid')) {
+                icon = Euro;
+                bg = 'bg-emerald-100 dark:bg-emerald-950/60';
+                color = 'text-emerald-600 dark:text-emerald-400';
+            }
+
+            return {
+                icon,
+                text,
+                bg,
+                color,
+                time: timeAgo(n.created_at),
+            };
+        });
+    }, [notifications]);
+
     return (
         <div className="p-4 md:p-5 space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
             {/* Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-2">
-                <MetricCard
-                    title="Total Earnings"
-                    description="View your recent and lifetime earnings overview."
-                    value="€24,580"
-                    icon={Euro}
-                    colorClass="bg-brand-light dark:bg-[#ff4a1f]/15 text-brand"
-                />
-                <MetricCard
-                    title="Active Orders"
-                    description="Track and manage all your currently active orders."
-                    value="8"
-                    icon={Package}
-                    colorClass="bg-brand-light dark:bg-[#ff4a1f]/15 text-brand"
-                />
-                <MetricCard
-                    title="Pending Quotes"
-                    description="Monitor quotes you've recently sent to clients."
-                    value="21"
-                    icon={FileText}
-                    colorClass="bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400"
-                />
-                <MetricCard
-                    title="Withdrawable Balance"
-                    description="Balance currently available to withdraw."
-                    value="€8,250"
-                    icon={CreditCard}
-                    colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-                />
-                <MetricCard
-                    title="Avg. Rating"
-                    description="Your average rating based on 342 reviews."
-                    value="4.9"
-                    icon={Star}
-                    colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
-                />
-            </div>
+            <MetricCardsGrid
+                totalEarnings={totalEarnings}
+                activeOrdersCount={activeOrdersCount}
+                pendingQuotesCount={pendingQuotesCount}
+                withdrawableBalance={withdrawableBalance}
+                avgRating={avgRating}
+                isLoading={isLoading}
+            />
 
             {/* Charts Row */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
-
-                {/* Area Chart - Earnings Overview */}
-                <div className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4 -mx-4 px-4">
-                        <div className="flex items-center gap-2">
-                            <TrendingUp size={16} className="text-brand" />
-                            <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200">Earnings Overview</h3>
-                        </div>
-                        <Select
-                            className="w-38"
-                            value="30_days"
-                            showSearch={false}
-                            options={[
-                                { id: '30_days', name: 'Last 30 Days' },
-                                { id: '3_months', name: 'Last 3 Months' },
-                                { id: 'this_year', name: 'This Year' },
-                            ]}
-                        />
-                    </div>
-
-                    <div className="flex items-baseline gap-3 mb-4">
-                        <span className="text-2xl font-bold text-slate-900 dark:text-slate-200">€24,580</span>
-                        <span className="text-sm font-bold text-emerald-500">+12.5% <span className="text-slate-400 dark:text-slate-500 font-medium">vs previous 30 days</span></span>
-                    </div>
-
-                    <div className="h-[220px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={earningsData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                <defs>
-                                    <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#FF4A1F" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#FF4A1F" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} dy={10} minTickGap={30} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} dx={-10} tickFormatter={(val) => `€${val / 1000}k`} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px -2px rgba(0,0,0,0.3)', backgroundColor: '#1e2329', color: '#f8fafc' }}
-                                    formatter={(value) => [`€${value}`, 'Earnings']}
-                                />
-                                <Area type="monotone" dataKey="earnings" stroke="#FF4A1F" strokeWidth={2} dot={{ r: 3, fill: '#FF4A1F', stroke: '#ffffff', strokeWidth: 2 }} activeDot={{ r: 5 }} fillOpacity={1} fill="url(#colorEarnings)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Line Chart - Order & Quote Overview */}
-                <div className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4 -mx-4 px-4">
-                        <div className="flex items-center gap-2">
-                            <Activity size={16} className="text-brand" />
-                            <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200">Order & Quote Overview</h3>
-                        </div>
-                        <Select
-                            className="w-42"
-                            value="30_days"
-                            showSearch={false}
-                            options={[
-                                { id: '30_days', name: 'Last 30 Days' },
-                                { id: '3_months', name: 'Last 3 Months' },
-                                { id: 'this_year', name: 'This Year' },
-                            ]}
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-4 mb-4 flex-wrap">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
-                            <span className="w-2.5 h-2.5 rounded-md bg-brand"></span> Quote Requests
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
-                            <span className="w-2.5 h-2.5 rounded-md bg-emerald-500"></span> Quotes Submitted
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
-                            <span className="w-2.5 h-2.5 rounded-md bg-purple-500"></span> Orders Won
-                        </div>
-                    </div>
-
-                    <div className="h-[220px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={orderQuoteData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px -2px rgba(0,0,0,0.3)', backgroundColor: '#1e2329', color: '#f8fafc' }}
-                                />
-                                <Line type="monotone" dataKey="requests" stroke="#FF4A1F" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Requests" />
-                                <Line type="monotone" dataKey="submitted" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Submitted" />
-                                <Line type="monotone" dataKey="won" stroke="#a855f7" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5 }} activeDot={{ r: 5 }} name="Won" />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
+                <EarningsAreaChart
+                    filter={earningsFilter}
+                    onFilterChange={setEarningsFilter}
+                    totalEarnings={totalEarnings}
+                    chartData={earningsChartData}
+                    isLoading={isLoading}
+                />
+                <OrderQuoteLineChart
+                    filter={quoteOverviewFilter}
+                    onFilterChange={setQuoteOverviewFilter}
+                    chartData={orderQuoteChartData}
+                    isLoading={isLoading}
+                />
             </div>
 
-            {/* Footer Lists */}
+            {/* Footer Lists Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200">Recent Quote Requests</h3>
-                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
-                    </div>
-                    <div className="flex flex-col text-[13px] text-slate-500 dark:text-slate-400 flex-1">
-                        {recentQuotes.slice(0, 5).map((quote, idx) => (
-                            <div key={idx} className="flex justify-between items-center py-2.5 border-b border-dashed border-slate-300 dark:border-slate-800 last:border-0 last:pb-0 first:pt-0">
-                                <span className="font-bold text-slate-800 dark:text-slate-200">{quote.id}</span>
-                                <span className={`${quote.color} px-2 py-0.5 rounded text-[11px] font-bold`}>{quote.status}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                <div className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200">Active Orders</h3>
-                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
-                    </div>
-                    <div className="flex flex-col text-[13px] text-slate-500 dark:text-slate-400 flex-1">
-                        {activeOrders.slice(0, 5).map((order, idx) => (
-                            <div key={idx} className="flex justify-between items-center py-2.5 border-b border-dashed border-slate-300 dark:border-slate-800 last:border-0 last:pb-0 first:pt-0">
-                                <span className="font-bold text-slate-800 dark:text-slate-200">{order.id}</span>
-                                <span className={`${order.color} px-2 py-0.5 rounded text-[11px] font-bold`}>{order.status}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                <div className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 -mx-4 px-4">
-                        <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200">Notifications</h3>
-                        <button className="text-[12px] font-bold text-brand hover:underline focus:outline-none transition-colors">See All</button>
-                    </div>
-                    <div className="flex flex-col text-[13px] text-slate-500 dark:text-slate-400 flex-1">
-                        {notificationList.slice(0, 4).map((notification, idx) => (
-                            <div key={idx} className="flex items-center justify-between gap-3 py-2.5 border-b border-dashed border-slate-300 dark:border-slate-800 last:border-0 last:pb-0 first:pt-0">
-                                <div className="flex items-center gap-2.5 truncate">
-                                    <div className={`w-7 h-7 rounded-full ${notification.bg} dark:bg-slate-800 flex items-center justify-center shrink-0`}>
-                                        <notification.icon size={13} className={notification.color} />
-                                    </div>
-                                    <span className="truncate text-slate-700 dark:text-slate-300">{notification.text}</span>
-                                </div>
-                                <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 shrink-0">{notification.time}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                <RecentQuotesList quotes={recentQuotes} isLoading={isLoading} />
+                <ActiveOrdersList orders={displayOrders} isLoading={isLoading} />
+                <DashboardNotificationsList notifications={displayNotifications} isLoading={isLoading} />
             </div>
         </div>
     );

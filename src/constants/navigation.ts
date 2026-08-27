@@ -1,8 +1,25 @@
 import {
-    LayoutDashboard, Users, ShoppingCart, Package,
-    FileText, Settings, Briefcase, Calculator, PieChart, Receipt, Truck, Building2, Brain,
-    Calendar, FileBarChart, HandCoins, UserCircle, UserPlus, Boxes, FileSpreadsheet, Map, ClipboardList, ShieldCheck,
-    Network, Globe, Mail, Webhook, HardDrive, Lock, RefreshCcw, CreditCard, Bell, Key, Activity, Clock, Shield, Database, Phone, CheckCircle, RotateCcw, Tags, Layers, Home, Target, FileCheck, Smartphone, Euro, Languages, Cloud, MessageSquare, Link, Workflow, ListTree, Zap, TrendingUp, ListPlus, TextCursorInput, FileCode, MapPin, FolderOpen, UploadCloud, Image, Printer, Bot, TerminalSquare, Gauge, Cpu, Type, Wrench, ListOrdered, Timer, Terminal, Server, AlertTriangle, LineChart, ShieldAlert
+    Activity,
+    Bell,
+    Calendar,
+    Clock,
+    CreditCard,
+    Euro,
+    FileBarChart,
+    FileCheck,
+    FileText,
+    HandCoins,
+    LayoutDashboard,
+    Map,
+    Package,
+    PieChart, Receipt,
+    RotateCcw,
+    Settings,
+    ShieldCheck,
+    ShoppingCart,
+    Truck,
+    UserCircle,
+    Users
 } from 'lucide-react';
 
 export const navigationMap: Record<string, any[]> = {

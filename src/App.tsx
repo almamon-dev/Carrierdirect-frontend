@@ -1,18 +1,18 @@
 import React from 'react';
-import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
-import { authRoutes } from './modules/Auth';
-import { supportRoutes } from './modules/Support/routes';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import ProtectedRoute from './components/common/ProtectedRoute';
 import CustomerLayout from './layouts/CustomerLayout';
 import SupplierLayout from './layouts/SupplierLayout';
+import { authRoutes } from './modules/Auth';
 import { customerRoutes } from './modules/Customer/routes';
 import { supplierRoutes } from './modules/Supplier/routes';
-import ProtectedRoute from './components/common/ProtectedRoute';
+import { supportRoutes } from './modules/Support/routes';
 
-import Home from './modules/LandingPages/Home';
 import ContactUs from './modules/LandingPages/ContactUs';
+import Home from './modules/LandingPages/Home';
+import PayLaterFacility from './modules/LandingPages/PayLaterFacility';
 import PrivacyPolicy from './modules/LandingPages/PrivacyPolicy';
 import TermsAndConditions from './modules/LandingPages/TermsAndConditions';
-import PayLaterFacility from './modules/LandingPages/PayLaterFacility';
 
 const SupplierCompleteProfilePage = React.lazy(() => import('./modules/Supplier/CompleteProfile/CompleteProfilePage'));
 

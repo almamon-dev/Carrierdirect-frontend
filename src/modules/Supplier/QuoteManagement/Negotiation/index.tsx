@@ -1,128 +1,152 @@
-import React, { useState } from 'react';
-import { Eye, MessageSquare, ArrowDownRight, History, Clock } from 'lucide-react';
-import DataTable, { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
-import Button from '@/components/ui/button';
+/**
+ * Supplier Quote Management - Negotiation Main Page
+ * Matches QuoteRequests layout with Quota Reminder Banner, filters,
+ * compact DataTable layout, and modular architecture.
+ */
+
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MessageSquare, RefreshCw } from 'lucide-react';
+import { SubscriptionLockModal } from '@/components/modals';
+import DataTable from '@/components/tables/data-table';
+import Button from '@/components/ui/button';
+import EmptyState from '@/components/tables/empty-state';
+import { NegotiationItem } from './types';
+import { useSupplierNegotiations } from './hooks/useSupplierNegotiations';
+import { getNegotiationColumns } from './components/columns';
+import { NegotiationRowActions } from './components/NegotiationRowActions';
+import { TableFilterContent } from './components/TableFilterContent';
+import { encryptId } from '@/lib/encryption';
 
-const activeData = [
-  { id: 'NEG-102', quoteId: 'QT-8822', customer: 'Global Shippers Inc.', originalAmount: 45000, currentOffer: 40000, lastUpdated: '2 hours ago', status: 'Counter Received' },
-  { id: 'NEG-101', quoteId: 'QT-8815', customer: 'BD Trade Line', originalAmount: 35000, currentOffer: 32000, lastUpdated: '10 mins ago', status: 'Awaiting Customer' },
-];
-
-const historyData = [
-  { id: 'NEG-098', quoteId: 'QT-8801', customer: 'Safe Express Co.', originalAmount: 50000, currentOffer: 46000, lastUpdated: '2026-07-15', status: 'Accepted' },
-  { id: 'NEG-095', quoteId: 'QT-8790', customer: 'Euro Cargo LLC', originalAmount: 28000, currentOffer: 22000, lastUpdated: '2026-07-10', status: 'Rejected' },
-  { id: 'NEG-092', quoteId: 'QT-8785', customer: 'Nordic Trans Group', originalAmount: 62000, currentOffer: 58000, lastUpdated: '2026-07-02', status: 'Accepted' },
-];
+export { type NegotiationItem, type NegotiationTab } from './types';
 
 export default function SupplierNegotiation() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
+    const navigate = useNavigate();
+    const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+    const [lockedFeatureName, setLockedFeatureName] = useState('Priority RFQ Negotiation');
 
-  const columns: Column<any>[] = [
-    { id: 'id', label: 'Negotiation ID', render: (row) => <span className="text-[#ff4a1f] font-bold whitespace-nowrap">{row.id}</span> },
-    { id: 'quoteId', label: 'Quote ID', render: (row) => <span className="text-slate-600 font-semibold whitespace-nowrap">{row.quoteId}</span> },
-    { id: 'customer', label: 'Customer / Shipper', render: (row) => <span className="whitespace-nowrap text-slate-900 font-bold">{row.customer}</span> },
-    { 
-      id: 'originalAmount', 
-      label: 'Original Price', 
-      render: (row) => <span className="whitespace-nowrap text-slate-400 line-through">€ {row.originalAmount.toLocaleString()}</span> 
-    },
-    { 
-      id: 'currentOffer', 
-      label: 'Negotiated Price', 
-      render: (row) => <span className="whitespace-nowrap text-emerald-600 font-bold">€ {row.currentOffer.toLocaleString()}</span>
-    },
-    { 
-      id: 'savings', 
-      label: 'Discount Given', 
-      render: (row) => {
-        const diff = row.originalAmount - row.currentOffer;
-        const savingsPercent = ((diff / row.originalAmount) * 100).toFixed(1);
-        return (
-          <div className="flex items-center text-amber-600 font-bold whitespace-nowrap">
-            <ArrowDownRight size={14} className="mr-1 text-amber-600" /> {savingsPercent}% (€ {diff.toLocaleString()})
-          </div>
-        );
-      }
-    },
-    { id: 'lastUpdated', label: 'Last Activity', render: (row) => <span className="whitespace-nowrap text-xs text-slate-500">{row.lastUpdated}</span> },
-    { 
-      id: 'status', 
-      label: 'Status',
-      render: (row) => {
-        let variant: any = 'default';
-        if (row.status === 'Counter Received') variant = 'warning';
-        if (row.status === 'Awaiting Customer') variant = 'info';
-        if (row.status === 'Accepted') variant = 'success';
-        if (row.status === 'Rejected') variant = 'critical';
-        return <Badge variant={variant}>{row.status}</Badge>;
-      }
-    }
-  ];
+    const [priorityFilter, setPriorityFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [vehicleFilter, setVehicleFilter] = useState('all');
 
-  const actions = (row: any) => (
-    <div className="flex items-center justify-end gap-2">
-      <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
-        <Eye size={13} className="mr-1" /> View
-      </Button>
-      {activeTab === 'active' && (
-        <Button variant="primary" size="sm" className="h-8 px-2.5 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white" onClick={() => navigate(`/supplier/quotes/negotiation/view/${row.id}`)}>
-          <MessageSquare size={13} className="mr-1" /> Reply
-        </Button>
-      )}
-    </div>
-  );
+    // Data fetching and caching hook
+    const { negotiations = [], isLoading = false, fetchNegotiations } = useSupplierNegotiations() || {};
 
-  const displayData = activeTab === 'active' ? activeData : historyData;
+    const handleQuoteAction = (row: NegotiationItem) => {
+        if (row?.priority === 'Urgent') {
+            setLockedFeatureName(`Priority RFQ Negotiation: ${row?.id || 'Premium'}`);
+            setIsLockModalOpen(true);
+        } else {
+            const encId = encryptId(row?.rawId || row?.id || '');
+            const sKey = row?.sessionKey || `ses-${row?.rawId || row?.id || ''}`;
+            navigate(`/supplier/quotes/negotiation/view/${encId}/${sKey}`);
+        }
+    };
 
-  return (
-    <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Negotiation Management</h1>
-          <p className="text-xs text-slate-500 font-medium">Manage active customer price counter offers and track negotiation history.</p>
+    // Filter negotiations based on TableFilterContent selections
+    const filteredData = useMemo(() => {
+        const list = Array.isArray(negotiations) ? negotiations : [];
+        return list.filter(item => {
+            if (!item) return false;
+            if (priorityFilter !== 'all' && item.priority?.toLowerCase() !== priorityFilter.toLowerCase()) {
+                return false;
+            }
+            if (statusFilter !== 'all') {
+                const normStatus = (item.status || '').toLowerCase();
+                if (!normStatus.includes(statusFilter.toLowerCase())) {
+                    return false;
+                }
+            }
+            if (vehicleFilter !== 'all') {
+                const normVehicle = (item.vehicleType || '').toLowerCase().replace(/[\s_-]+/g, '');
+                const targetVehicle = vehicleFilter.toLowerCase().replace(/[\s_-]+/g, '');
+                if (!normVehicle.includes(targetVehicle)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }, [negotiations, priorityFilter, statusFilter, vehicleFilter]);
+
+    const columns = useMemo(() => getNegotiationColumns(navigate), [navigate]);
+
+    return (
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
+            {/* Header Title & Refresh Button */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Quote Negotiations
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Manage active customer price counter offers and track negotiation history.
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchNegotiations && fetchNegotiations(true)}
+                        disabled={isLoading}
+                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
+                        <RefreshCw size={13} className={isLoading ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
+                        <span>{isLoading ? "Refreshing..." : "Refresh"}</span>
+                    </Button>
+                </div>
+            </div>
+
+            {/* Main Data Table */}
+            <DataTable
+                data={filteredData || []}
+                columns={columns}
+                actions={(row) => <NegotiationRowActions row={row} onQuoteAction={handleQuoteAction} />}
+                filterContent={
+                    <TableFilterContent
+                        priorityFilter={priorityFilter}
+                        setPriorityFilter={setPriorityFilter}
+                        statusFilter={statusFilter}
+                        setStatusFilter={setStatusFilter}
+                        vehicleFilter={vehicleFilter}
+                        setVehicleFilter={setVehicleFilter}
+                    />
+                }
+                keyExtractor={(item) => item?.id || Math.random().toString()}
+                searchPlaceholder="Search by ID, customer, pickup/delivery..."
+                compact={true}
+                hideViewToggle={true}
+                isLoading={isLoading}
+                skeletonCount={(filteredData?.length || 0) > 0 ? filteredData.length : 3}
+                tableLayout="fixed"
+                tableClassName="min-w-[1050px]"
+                actionsColumnClassName="w-[115px] min-w-[115px]"
+                emptyState={
+                    <EmptyState
+                        icon={MessageSquare}
+                        title="No Negotiations Available"
+                        description="There are currently no active price negotiations or counter offers matching your criteria. New offers from shippers will appear here automatically."
+                        actionLabel="Refresh Negotiations"
+                        onAction={() => fetchNegotiations && fetchNegotiations(true)}
+                    />
+                }
+            />
+
+            {/* Subscription Lock / Upgrade Gate Modal */}
+            <SubscriptionLockModal
+                isOpen={isLockModalOpen}
+                onClose={() => setIsLockModalOpen(false)}
+                featureName={lockedFeatureName}
+                userType="supplier"
+                title="Carrier Subscription Required"
+                description="Upgrade your carrier account to unlock priority freight negotiations, instant price auto-bidding, and premium cargo chat channels."
+                requiredPlan="Professional Fleet (€49/mo)"
+                benefits={[
+                    "250 Monthly RFQ Quote Submissions",
+                    "Priority Counter Offer Placement for Shippers",
+                    "Stripe Express Instant Payout Clearance",
+                    "ADR Hazardous Cargo Bidding Access"
+                ]}
+            />
         </div>
-
-        {/* Tab Switcher: Active vs Negotiation History */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-full border border-slate-200 shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab('active')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'active'
-                ? 'bg-white text-[#ff4a1f] shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Clock size={14} />
-            <span>Active Negotiations ({activeData.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'history'
-                ? 'bg-white text-[#ff4a1f] shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <History size={14} />
-            <span>Negotiation History ({historyData.length})</span>
-          </button>
-        </div>
-      </div>
-      
-      <DataTable 
-        data={displayData} 
-        columns={columns} 
-        actions={actions}
-        searchPlaceholder={activeTab === 'active' ? "Search active negotiations..." : "Search negotiation history..."}
-        compact={true}
-        hideViewToggle={true}
-      />
-    </div>
-  );
+    );
 }

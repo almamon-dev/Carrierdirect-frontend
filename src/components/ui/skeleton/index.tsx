@@ -6,7 +6,9 @@ export interface SkeletonProps {
 }
 
 export default function Skeleton({ className = '', style }: SkeletonProps) {
+    const isFull = className.includes('rounded-full');
+    const roundedClass = isFull ? 'rounded-full' : 'rounded-[2px]';
     return (
-        <div className={`animate-pulse bg-gray-200 rounded-md ${className}`} style={style}></div>
+        <div className={`animate-live-shimmer ${roundedClass} ${className}`} style={style}></div>
     );
 }

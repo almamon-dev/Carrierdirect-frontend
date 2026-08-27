@@ -46,10 +46,21 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
             }
 
             // ── 2b. Check Supplier Profile Completion ─────────────────
-            if (userRole === 'supplier' && location.pathname !== '/supplier/complete-profile') {
-                const isProfileIncomplete = !user.country || !user.city || !user.zip_code;
-                if (isProfileIncomplete) {
+            if (userRole === 'supplier') {
+                const isProfileCompleted = Boolean(
+                    user.is_profile_completed ||
+                    user.is_profile_complete ||
+                    (user.country && user.city && user.zip_code)
+                );
+
+                // If incomplete, force redirect to complete-profile
+                if (!isProfileCompleted && location.pathname !== '/supplier/complete-profile') {
                     return <Navigate to="/supplier/complete-profile" replace />;
+                }
+
+                // If already complete, strictly block complete-profile and redirect to dashboard
+                if (isProfileCompleted && location.pathname === '/supplier/complete-profile') {
+                    return <Navigate to="/supplier/dashboard" replace />;
                 }
             }
         } catch {

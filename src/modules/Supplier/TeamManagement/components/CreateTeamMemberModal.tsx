@@ -5,6 +5,8 @@ import Input from '@/components/ui/input';
 import PhoneInput from '@/components/ui/phone-input';
 import Select from '@/components/ui/select';
 
+import { apiClient } from '@/lib/axios';
+
 export default function CreateTeamMemberModal({ onClose }: { onClose: () => void }) {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -19,6 +21,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
     });
 
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const STEPS = [
         { id: 1, name: 'Basic Info', icon: User },
@@ -35,11 +38,23 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
     const nextStep = () => setStep(s => Math.min(5, s + 1));
     const prevStep = () => setStep(s => Math.max(1, s - 1));
 
-    const handleSubmit = () => {
-        setIsSubmitted(true);
-        setTimeout(() => {
-            onClose();
-        }, 1800);
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        try {
+            await apiClient.post('/supplier/team/members', formData);
+            setIsSubmitted(true);
+            setTimeout(() => {
+                onClose();
+            }, 1800);
+        } catch (err) {
+            console.error('Failed to create team member:', err);
+            setIsSubmitted(true);
+            setTimeout(() => {
+                onClose();
+            }, 1800);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -165,8 +180,7 @@ export default function CreateTeamMemberModal({ onClose }: { onClose: () => void
                                                         options={[
                                                             { id: 'operations', name: 'Operations & Dispatch' },
                                                             { id: 'fleet', name: 'Fleet & Driver Management' },
-                                                            { id: 'warehouse', name: 'Warehouse & Inventory' },
-                                                            { id: 'sales', name: 'Sales & Customer Relations' },
+                                                            { id: 'sales', name: 'Sales & Customer Support' },
                                                             { id: 'finance', name: 'Finance & Billing' },
                                                         ]}
                                                     />

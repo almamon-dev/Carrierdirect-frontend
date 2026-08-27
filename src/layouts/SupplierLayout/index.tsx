@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, User, Settings, LogOut, ChevronDown, CheckCircle2, Package, Clock, Sun } from 'lucide-react';
-import Sidebar from './Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
 import ThemeSwitcher from '@/components/common/theme-switcher';
 import { TOKEN_CONFIG } from '@/config/auth';
+import { Bell, CheckCircle2, ChevronDown, Clock, LogOut, Package, Search, Settings, Sun, User } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import Sidebar from './Sidebar';
 
 // ── Helper: read auth user from localStorage ─────────────────────────────────
 function getAuthUser() {
@@ -29,11 +29,34 @@ function initials(name?: string): string {
 }
 
 const mockNotifications = [
-  { id: 1, title: 'New Job Offer', desc: 'New London to Manchester route available (£580).', time: '2m ago', icon: Package },
-  { id: 2, title: 'Quote Accepted', desc: 'Customer accepted your quote for Order #882.', time: '40m ago', icon: CheckCircle2 },
-  { id: 3, title: 'Pickup Reminder', desc: 'Pickup scheduled at 14:00 today.', time: '2h ago', icon: Clock },
-  { id: 4, title: 'System Notice', desc: 'Vehicle MOT compliance document verified.', time: '1d ago', icon: Bell },
+    { id: 1, title: 'New Job Offer', desc: 'New London to Manchester route available (£580).', time: '2m ago', icon: Package },
+    { id: 2, title: 'Quote Accepted', desc: 'Customer accepted your quote for Order #882.', time: '40m ago', icon: CheckCircle2 },
+    { id: 3, title: 'Pickup Reminder', desc: 'Pickup scheduled at 14:00 today.', time: '2h ago', icon: Clock },
+    { id: 4, title: 'System Notice', desc: 'Vehicle MOT compliance document verified.', time: '1d ago', icon: Bell },
 ];
+
+const RouteLoadingFallback = () => (
+    <div className="p-4 md:p-6 w-full mx-auto space-y-5 animate-in fade-in duration-150">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+            <div className="space-y-1.5">
+                <div className="h-6 w-44 bg-slate-200/80 dark:bg-slate-800 rounded-[2px] animate-live-shimmer" />
+                <div className="h-3.5 w-64 bg-slate-200/50 dark:bg-slate-800/60 rounded-[2px] animate-live-shimmer" />
+            </div>
+            <div className="flex gap-2">
+                <div className="h-8 w-20 bg-slate-200/80 dark:bg-slate-800 rounded-[2px] animate-live-shimmer" />
+                <div className="h-8 w-32 bg-slate-200/80 dark:bg-slate-800 rounded-[2px] animate-live-shimmer" />
+            </div>
+        </div>
+        <div className="bg-white dark:bg-[#1e2329] rounded-md border border-slate-200 dark:border-slate-800 p-4 space-y-4 shadow-none">
+            <div className="h-8 w-72 bg-slate-100 dark:bg-slate-800/80 rounded-[2px] animate-live-shimmer" />
+            <div className="space-y-2.5 pt-1">
+                {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-10 w-full bg-slate-100/70 dark:bg-slate-800/50 rounded-[2px] animate-live-shimmer" />
+                ))}
+            </div>
+        </div>
+    </div>
+);
 
 export default function SupplierLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -42,7 +65,7 @@ export default function SupplierLayout() {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [authUser, setAuthUser] = useState(getAuthUser);
     const [isScrolled, setIsScrolled] = useState(false);
-    
+
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -92,7 +115,7 @@ export default function SupplierLayout() {
     };
 
     return (
-        <div className="flex h-screen bg-[#f8fafc] dark:bg-[#181a20] overflow-hidden">
+        <div className="flex h-screen bg-[#f8fafc] dark:bg-[#12161c] overflow-hidden">
             {/* Sidebar Overlay */}
             {isSidebarOpen && (
                 <div
@@ -107,11 +130,10 @@ export default function SupplierLayout() {
             {/* Main Content Wrapper */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header */}
-                <header className={`h-16 bg-white dark:bg-[#12161c] flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 transition-all duration-300 ${
-                    isScrolled
+                <header className={`h-16 bg-white dark:bg-[#12161c] flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 transition-all duration-300 ${isScrolled
                         ? 'border-b border-slate-200 dark:border-slate-800 shadow-sm'
                         : 'border-b border-transparent shadow-none'
-                }`}>
+                    }`}>
                     <div className="flex items-center gap-6">
                         <button
                             className="text-slate-600 dark:text-slate-300 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors cursor-pointer"
@@ -121,7 +143,7 @@ export default function SupplierLayout() {
                                 <path d="M4 6h16M4 12h10M4 18h16" />
                             </svg>
                         </button>
-                        
+
                         {/* Module Title */}
                         <div className="hidden lg:block">
                             <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100 capitalize tracking-wide">
@@ -130,7 +152,7 @@ export default function SupplierLayout() {
                         </div>
 
                         {/* Search Bar */}
-                        <button 
+                        <button
                             onClick={() => setIsSearchOpen(true)}
                             className="hidden md:flex items-center bg-gray-50 dark:bg-[#1e2329] px-4 py-2 rounded-full w-[280px] border border-gray-200 dark:border-slate-700/80 hover:border-[#ff4a1f] dark:hover:border-[#ff4a1f] hover:bg-white dark:hover:bg-[#252b33] transition-colors text-left group cursor-pointer"
                         >
@@ -141,10 +163,10 @@ export default function SupplierLayout() {
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-4">
-                        
+
                         {/* Notification Bell Dropdown */}
                         <div className="relative" ref={notifRef}>
-                            <button 
+                            <button
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                                 className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors relative cursor-pointer"
                                 title="Notifications"
@@ -179,7 +201,7 @@ export default function SupplierLayout() {
                                         ))}
                                     </div>
                                     <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 text-center bg-slate-50/50 dark:bg-[#181a20]/50">
-                                        <button 
+                                        <button
                                             onClick={() => setIsNotificationOpen(false)}
                                             className="text-xs font-bold text-[#ff4a1f] hover:underline py-1 cursor-pointer"
                                         >
@@ -268,17 +290,17 @@ export default function SupplierLayout() {
                 </header>
 
                 {/* Main Scrollable Content */}
-                <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f8fafc] dark:bg-[#181a20] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    <React.Suspense fallback={<div className="flex h-full items-center justify-center p-8"><div className="w-8 h-8 border-4 border-[#ff4a1f] border-t-transparent rounded-full animate-spin"></div></div>}>
+                <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <React.Suspense fallback={<RouteLoadingFallback />}>
                         <div className="w-full">
                             <Outlet />
                         </div>
                     </React.Suspense>
                 </main>
             </div>
-            
+
             <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-            
+
             {/* Floating Negotiation Chat Widget */}
             <NegotiationChatWidget />
         </div>

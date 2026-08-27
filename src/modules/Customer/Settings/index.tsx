@@ -50,7 +50,7 @@ export default function CustomerSettings() {
       </div>
 
       {/* Flush Left Aligned Underline Tab Bar */}
-      <div className="border-b border-slate-200 flex items-center gap-1 overflow-x-auto custom-scrollbar">
+      <div className="border-b border-slate-200 dark:border-slate-800 flex items-center gap-1 overflow-x-auto overflow-y-hidden hide-scrollbar no-scrollbar">
         {tabs.map((tab, idx) => {
           const isActive = activeTab === tab.id;
           return (

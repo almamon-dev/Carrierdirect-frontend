@@ -1,20 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Eye, Truck, MapPin, CheckCircle2, Clock, Upload, Star } from 'lucide-react';
+import { Eye, Truck, MapPin, Star } from 'lucide-react';
 import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
 import Badge from '@/components/ui/badge';
 import Select from '@/components/ui/select';
 import DataTable, { Column } from '@/components/tables/data-table';
 import RatingModal from '@/components/modals/rating-modal';
-import { mockSupplierOrders, SupplierOrder } from '../data/ordersData';
+import { SupplierOrder, mapApiOrderToSupplierOrder } from '../data/ordersData';
+import { apiClient } from '@/lib/axios';
 
 export default function ActiveJobs() {
     const navigate = useNavigate();
+    const [orders, setOrders] = useState<SupplierOrder[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
     const [ratingTarget, setRatingTarget] = useState<{ id: string; customer: string; route: string } | null>(null);
 
-    const filteredJobs = mockSupplierOrders.filter(job => {
+    useEffect(() => {
+        let isMounted = true;
+        async function fetchOrders() {
+            try {
+                const res = await apiClient.get('/supplier/orders');
+                const raw = res.data?.data?.orders || res.data?.data || res.data || [];
+                const resArray = Array.isArray(raw) ? raw : [];
+
+                const mapped: SupplierOrder[] = resArray.map(mapApiOrderToSupplierOrder);
+
+                if (isMounted) setOrders(mapped);
+            } catch (err) {
+                console.error('Failed to fetch supplier orders:', err);
+                if (isMounted) setOrders([]);
+            } finally {
+                if (isMounted) setIsLoading(false);
+            }
+        }
+        fetchOrders();
+        return () => { isMounted = false; };
+    }, []);
+
+    const filteredJobs = orders.filter(job => {
         if (selectedStatusFilter === 'all') return true;
         return job.status.toLowerCase() === selectedStatusFilter.toLowerCase();
     });
@@ -128,12 +152,12 @@ export default function ActiveJobs() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
             <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-slate-600">Status Filter</label>
-                <Select value={selectedStatusFilter} onChange={(e) => setSelectedStatusFilter(e.target.value)} showSearch={false}>
-                    <option value="all">All Jobs</option>
-                    <option value="in transit">In Transit</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="delivered">Delivered</option>
-                </Select>
+                <Select value={selectedStatusFilter} onChange={(val) => setSelectedStatusFilter(val)} showSearch={false} options={[
+                    { id: 'all', name: 'All Jobs' },
+                    { id: 'in transit', name: 'In Transit' },
+                    { id: 'scheduled', name: 'Scheduled' },
+                    { id: 'delivered', name: 'Delivered' }
+                ]} />
             </div>
         </div>
     );
@@ -155,6 +179,7 @@ export default function ActiveJobs() {
                 hideViewToggle={true}
                 actions={renderActions}
                 filterContent={filterContent}
+                isLoading={isLoading}
             />
 
             {/* Rating Modal for Supplier Rating Customer */}
@@ -166,8 +191,12 @@ export default function ActiveJobs() {
                     targetName={ratingTarget.customer}
                     targetRole="Customer"
                     orderTitle={ratingTarget.route}
-                    onSubmit={(data) => {
-                        console.log('Supplier rated customer:', data);
+                    onSubmit={async (data) => {
+                        try {
+                            await apiClient.post('/supplier/reviews', data);
+                        } catch (err) {
+                            console.error('Failed to submit review:', err);
+                        }
                     }}
                 />
             )}

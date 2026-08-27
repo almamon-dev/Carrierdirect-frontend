@@ -29,8 +29,8 @@ export const QuoteViewSkeleton: React.FC<QuoteViewSkeletonProps> = ({ activeTab 
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Skeleton className="h-[32px] w-20 rounded-md" />
-                    <Skeleton className="h-[32px] w-28 rounded-md" />
+                    <Skeleton className="h-[32px] w-20 rounded-[2px]" />
+                    <Skeleton className="h-[32px] w-28 rounded-[2px]" />
                 </div>
             </div>
 
