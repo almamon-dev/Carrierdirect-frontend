@@ -3,32 +3,42 @@
  * Displays expired, outbid, and declined quotes with filter tabs and responsive table.
  */
 
-import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Inbox } from 'lucide-react';
-import DataTable from '@/components/tables/data-table';
-import Button from '@/components/ui/button';
-import EmptyState from '@/components/tables/empty-state';
-import { useSupplierLostQuotes } from './hooks/useSupplierLostQuotes';
-import { getLostQuoteColumns } from './components/columns';
-import { LostRowActions } from './components/LostRowActions';
-import { FilterTabs } from './components/FilterTabs';
+import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { RefreshCw, Inbox } from "lucide-react";
+import DataTable from "@/components/tables/data-table";
+import Button from "@/components/ui/button";
+import EmptyState from "@/components/tables/empty-state";
+import { useSupplierLostQuotes } from "./hooks/useSupplierLostQuotes";
+import { getLostQuoteColumns } from "./components/columns";
+import { LostRowActions } from "./components/LostRowActions";
+import { FilterTabs } from "./components/FilterTabs";
 
 export default function LostQuotes() {
     const navigate = useNavigate();
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const {
         quotes,
         filteredQuotes,
-        isLoading,
         activeTab,
         setActiveTab,
+        isLoading,
         fetchLostQuotes,
     } = useSupplierLostQuotes();
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await fetchLostQuotes();
+        } finally {
+            setTimeout(() => setIsRefreshing(false), 300);
+        }
+    };
 
     const columns = useMemo(() => getLostQuoteColumns(navigate), [navigate]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
@@ -43,12 +53,12 @@ export default function LostQuotes() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => fetchLostQuotes(true)}
-                        disabled={isLoading}
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
                         className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                     >
-                        <RefreshCw size={13} className={isLoading ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
-                        <span>{isLoading ? "Refreshing..." : "Refresh"}</span>
+                        <RefreshCw size={13} className={isRefreshing ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
+                        <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
                     </Button>
                 </div>
             </div>
@@ -68,21 +78,18 @@ export default function LostQuotes() {
                 keyExtractor={(item) => item.id}
                 searchPlaceholder="Search lost quotes by ID, shipper, location..."
                 compact={true}
-                hideViewToggle={true}
-                isLoading={isLoading}
-                skeletonCount={filteredQuotes.length > 0 ? filteredQuotes.length : 3}
+                hideViewToggle={false}
+                isLoading={isLoading || isRefreshing}
                 tableLayout="fixed"
                 tableClassName="min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={Inbox}
                         title="No Lost Quotes Recorded"
-                        description={activeTab === 'All'
+                        description={activeTab === "All"
                             ? "You do not have any lost or expired quote requests."
                             : `No lost quotes currently match the '${activeTab}' filter.`
                         }
-                        actionLabel="View Available Requests"
-                        onAction={() => navigate('/supplier/quotes/requests')}
                     />
                 }
             />

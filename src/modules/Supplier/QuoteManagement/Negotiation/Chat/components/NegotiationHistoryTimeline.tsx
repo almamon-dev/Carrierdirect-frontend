@@ -12,6 +12,9 @@ export const NegotiationHistoryTimeline: React.FC<NegotiationHistoryTimelineProp
     currency,
     currentPrice
 }) => {
+    const displayCurrency = '€';
+    const targetOffer = activeNegotiation.budget ? `€ ${activeNegotiation.budget.replace(/[^0-9.,]/g, '')}` : `€ 450`;
+
     return (
         <div className="px-4 pb-3 pt-1">
             <div className="space-y-0 text-[11.5px]">
@@ -22,7 +25,7 @@ export const NegotiationHistoryTimeline: React.FC<NegotiationHistoryTimelineProp
                         <div className="w-[1.5px] grow bg-slate-200 my-1" />
                     </div>
                     <div className="pb-3 min-w-0">
-                        <p className="font-bold text-slate-700 leading-tight">Initial Quote ({currency} {(activeNegotiation.originalAmount || 450).toLocaleString()})</p>
+                        <p className="font-bold text-slate-700 leading-tight">Initial Quote ({displayCurrency} {(activeNegotiation.originalAmount || 450).toLocaleString()})</p>
                         <p className="text-slate-400 text-[10.5px] mt-0.5">{activeNegotiation.requestDate || '30 Aug 2026'}</p>
                     </div>
                 </div>
@@ -34,7 +37,7 @@ export const NegotiationHistoryTimeline: React.FC<NegotiationHistoryTimelineProp
                         <div className="w-[1.5px] grow bg-slate-200 my-1" />
                     </div>
                     <div className="pb-3 min-w-0">
-                        <p className="font-bold text-amber-700 leading-tight">Target Offer ({activeNegotiation.budget || `${currency} 450`})</p>
+                        <p className="font-bold text-amber-700 leading-tight">Target Offer ({targetOffer})</p>
                         <p className="text-slate-400 text-[10.5px] mt-0.5">{activeNegotiation.lastUpdated || '8 minutes ago'}</p>
                     </div>
                 </div>
@@ -45,7 +48,7 @@ export const NegotiationHistoryTimeline: React.FC<NegotiationHistoryTimelineProp
                         <div className="w-2.5 h-2.5 rounded-full bg-[#FF4A1F] ring-4 ring-orange-50 shrink-0 mt-1" />
                     </div>
                     <div className="min-w-0">
-                        <p className="font-bold text-[#FF4A1F] leading-tight">Current Offer ({currency} {currentPrice.toLocaleString()})</p>
+                        <p className="font-bold text-[#FF4A1F] leading-tight">Current Offer ({displayCurrency} {currentPrice.toLocaleString()})</p>
                         <p className="text-slate-400 text-[10.5px] mt-0.5">Active rate</p>
                     </div>
                 </div>

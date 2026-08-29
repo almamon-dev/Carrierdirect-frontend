@@ -266,7 +266,7 @@ export default function CustomerSubscription() {
         </div>
       </div>
 
-      <QuotaReminderBanner quotaUsed={quotaUsed} maxQuota={5} />
+      <QuotaReminderBanner quotaUsed={quotaUsed} maxQuota={15} />
 
       <Card className="shadow-2xs border-slate-200 dark:border-slate-800">
         <CardHeader className="py-3.5 px-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

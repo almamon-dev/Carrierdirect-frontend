@@ -1,6 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
-    Search, SlidersHorizontal, RotateCcw, Trash2, X, LayoutGrid, List, MapPin
+    Search, SlidersHorizontal, RotateCcw, Trash2, X, LayoutGrid, List, MapPin,
+    ChevronsUpDown, ChevronUp, ChevronDown
 } from 'lucide-react';
 import TablePagination from '@/components/tables/table-pagination';
 import EmptyState from '@/components/tables/empty-state';
@@ -17,6 +19,7 @@ export interface Column<T = any> {
     skeleton?: () => React.ReactNode;
     className?: string;
     defaultHidden?: boolean;
+    sortable?: boolean; // Enable sort by clicking header
 }
 
 export interface DataTableProps<T = any> {
@@ -40,6 +43,8 @@ export interface DataTableProps<T = any> {
     tableClassName?: string;
     tableLayout?: 'auto' | 'fixed';
     actionsColumnClassName?: string;
+    onRowClick?: (item: T) => void;
+    syncUrlParams?: boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({ 
@@ -63,16 +68,120 @@ export default function DataTable<T extends Record<string, any>>({
     tableClassName, 
     tableLayout = 'auto', 
     actionsColumnClassName,
+    onRowClick,
+    syncUrlParams = true,
 }: DataTableProps<T>) {
-    const effectiveSkeletonCount = skeletonCount ?? (data && data.length > 0 ? data.length : 3);
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Initialize viewMode from URL param or default to 'table'
+    const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => {
+        const urlView = searchParams.get('view');
+        return (urlView === 'grid' || urlView === 'table') ? urlView : 'table';
+    });
+
+    // Initialize pagination from URL params
+    const [currentPage, setCurrentPage] = useState<number>(() => {
+        const urlPage = parseInt(searchParams.get('page') || '1', 10);
+        return !isNaN(urlPage) && urlPage > 0 ? urlPage : 1;
+    });
+
+    const [perPage, setPerPage] = useState<number>(() => {
+        const urlPerPage = parseInt(searchParams.get('per_page') || '10', 10);
+        return !isNaN(urlPerPage) && urlPerPage > 0 ? urlPerPage : 10;
+    });
+
     const rowHeightClass = compact ? 'h-[44px]' : 'h-[50px]';
     const cellPaddingClass = compact ? 'px-2 py-2' : 'px-3.5 py-2.5';
     const [search, setSearch] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
     const [expandedRows, setExpandedRows] = useState<Set<number | string>>(new Set());
-    const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
-    
+    const [gridLimit, setGridLimit] = useState(12);
+
+    // Sort state
+    const [sortKey, setSortKey] = useState<string | null>(null);
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+    const handleSort = (colId: string) => {
+        if (sortKey === colId) {
+            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(colId);
+            setSortDir('asc');
+        }
+        setCurrentPage(1);
+    };
+
+    // Sync state changes to URL search params without page flicker
+    const isFirstMount = useRef(true);
+    useEffect(() => {
+        if (isFirstMount.current) {
+            isFirstMount.current = false;
+            return;
+        }
+        if (!syncUrlParams) return;
+
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            
+            // View mode
+            if (viewMode === 'grid') {
+                next.set('view', 'grid');
+            } else if (viewMode === 'table') {
+                next.set('view', 'table');
+            }
+
+            // Page
+            if (currentPage > 1) {
+                next.set('page', String(currentPage));
+            } else {
+                next.delete('page');
+            }
+
+            // Per page
+            if (perPage !== 10) {
+                next.set('per_page', String(perPage));
+            } else {
+                next.delete('per_page');
+            }
+
+            // Only update if search params actually changed
+            if (next.toString() !== prev.toString()) {
+                return next;
+            }
+            return prev;
+        }, { replace: true });
+    }, [viewMode, currentPage, perPage, syncUrlParams, setSearchParams]);
+
+    // Listen to external URL search param changes (e.g. browser back/forward buttons)
+    useEffect(() => {
+        if (!syncUrlParams) return;
+        const v = searchParams.get('view');
+        if (v === 'grid' || v === 'table') {
+            setViewMode(v);
+        }
+        const p = parseInt(searchParams.get('page') || '1', 10);
+        if (!isNaN(p) && p > 0) {
+            setCurrentPage(p);
+        } else {
+            setCurrentPage(1);
+        }
+        const pp = parseInt(searchParams.get('per_page') || '10', 10);
+        if (!isNaN(pp) && pp > 0) {
+            setPerPage(pp);
+        }
+    }, [searchParams, syncUrlParams]);
+
+    // Reset to page 1 ONLY when search query string actually changes
+    const prevSearchRef = useRef(search);
+    useEffect(() => {
+        if (prevSearchRef.current !== search) {
+            prevSearchRef.current = search;
+            setCurrentPage(1);
+            setGridLimit(12);
+        }
+    }, [search]);
+
     // Initialize visible columns from localStorage if tableId is provided
     const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
         if (tableId) {
@@ -101,15 +210,6 @@ export default function DataTable<T extends Record<string, any>>({
         }
     }, [visibleColumns, tableId]);
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const [perPage, setPerPage] = useState(10);
-    const [gridLimit, setGridLimit] = useState(12);
-
-    // Reset to page 1 when search changes
-    useEffect(() => {
-        setCurrentPage(1);
-        setGridLimit(12);
-    }, [search]);
 
     // Apply Search Filtering
     const filteredData = data.filter(item => {
@@ -119,11 +219,37 @@ export default function DataTable<T extends Record<string, any>>({
         );
     });
 
+    // Apply Sorting
+    const sortedData = React.useMemo(() => {
+        if (!sortKey) return filteredData;
+        return [...filteredData].sort((a, b) => {
+            const av = a[sortKey];
+            const bv = b[sortKey];
+            if (av === null || av === undefined) return 1;
+            if (bv === null || bv === undefined) return -1;
+            const an = parseFloat(String(av).replace(/[^0-9.-]/g, ''));
+            const bn = parseFloat(String(bv).replace(/[^0-9.-]/g, ''));
+            if (!isNaN(an) && !isNaN(bn)) {
+                return sortDir === 'asc' ? an - bn : bn - an;
+            }
+            const as = String(av).toLowerCase();
+            const bs = String(bv).toLowerCase();
+            return sortDir === 'asc' ? as.localeCompare(bs) : bs.localeCompare(as);
+        });
+    }, [filteredData, sortKey, sortDir]);
+
     // Pagination Logic
-    const totalItems = filteredData.length;
+    const totalItems = sortedData.length;
     const totalPages = Math.ceil(totalItems / perPage);
-    const startIndex = (currentPage - 1) * perPage;
-    const paginatedData = filteredData.slice(startIndex, startIndex + perPage);
+    const validCurrentPage = totalPages > 0 ? Math.min(Math.max(1, currentPage), totalPages) : 1;
+    const startIndex = (validCurrentPage - 1) * perPage;
+    const paginatedData = sortedData.slice(startIndex, startIndex + perPage);
+
+    // Dynamic skeleton count:
+    // 1. If explicit skeletonCount is provided, use it.
+    // 2. If there is live data on the current page, match that exact live count (paginatedData.length).
+    // 3. If initial loading (no live data loaded yet), show the selected perPage count (e.g. 10, 15, 30, etc.).
+    const effectiveSkeletonCount = skeletonCount ?? (paginatedData.length > 0 ? paginatedData.length : perPage);
 
     const toggleColumn = (id: string) => {
         setVisibleColumns(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
@@ -233,52 +359,95 @@ export default function DataTable<T extends Record<string, any>>({
                 {/* Data View */}
                 {viewMode === 'grid' ? (
                     <div className="bg-[#f8fafc] dark:bg-[#151921] border-b border-slate-200 dark:border-slate-800">
-                        <div className="p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                        <div className="p-3.5 sm:p-5 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
                             {isLoading ? (
                                 Array.from({ length: effectiveSkeletonCount }).map((_, i) => (
-                                    <div key={i} className="bg-white dark:bg-[#1e2329] rounded-md border border-slate-200 dark:border-slate-800 p-4 shadow-none space-y-3">
+                                    <div key={i} className="bg-white dark:bg-[#1e2329] rounded-[3px] border border-slate-200 dark:border-slate-800 p-4 shadow-none space-y-3">
                                         <div className="flex justify-between items-center pb-2.5 border-b border-slate-100 dark:border-slate-800">
                                             <Skeleton className="h-5 w-28 rounded-[2px]" />
                                             <Skeleton className="h-7 w-20 rounded-[2px]" />
                                         </div>
-                                        <div className="space-y-2 pt-1">
-                                            <Skeleton className="h-4 w-3/4 rounded-[2px]" />
-                                            <Skeleton className="h-4 w-1/2 rounded-[2px]" />
-                                            <Skeleton className="h-4 w-2/3 rounded-[2px]" />
+                                        <div className="grid grid-cols-2 gap-3 pt-1">
+                                            <Skeleton className="h-10 col-span-2 rounded-[2px]" />
+                                            <Skeleton className="h-10 col-span-2 rounded-[2px]" />
+                                            <Skeleton className="h-10 rounded-[2px]" />
+                                            <Skeleton className="h-10 rounded-[2px]" />
                                         </div>
                                     </div>
                                 ))
-                            ) : filteredData.length === 0 ? (
+                            ) : paginatedData.length === 0 ? (
                                 <div className="col-span-full">
                                     {emptyState ?? <EmptyState />}
                                 </div>
                             ) : (
-                                filteredData.slice(0, gridLimit).map(item => {
+                                paginatedData.map(item => {
                                 const id = keyExtractor(item);
                                 const isSelected = selectedIds.includes(id);
                                 return (
                                     <div 
                                         key={id}
-                                        className="bg-white dark:bg-[#1e2329] rounded-md border border-slate-200 dark:border-slate-800 p-4 shadow-2xs transition-all flex flex-col hover:shadow-xs hover:border-slate-300 dark:hover:border-slate-700"
+                                        onClick={(e) => {
+                                            if ((e.target as HTMLElement).closest('button, a, input, select, [role="button"], [data-no-click]')) {
+                                                return;
+                                            }
+                                            if (onRowClick) {
+                                                onRowClick(item);
+                                            }
+                                        }}
+                                        className={`bg-white dark:bg-[#1e2329] rounded-[3px] border border-slate-200/90 dark:border-slate-800 p-4 shadow-2xs transition-all flex flex-col justify-between hover:shadow-md hover:border-[#FF4A1F]/60 dark:hover:border-[#FF4A1F]/60 ${
+                                            onRowClick ? 'cursor-pointer' : ''
+                                        }`}
                                     >
-                                        {actions && (
-                                            <div className="flex justify-end items-center mb-3 pb-2.5 border-b border-slate-100 dark:border-slate-800">
-                                                <div className="flex items-center justify-end">
-                                                    {actions(item)}
+                                        {/* Card Top: Checkbox & Actions */}
+                                        {(actions || onDeleteSelected) && (
+                                            <div className="flex justify-between items-center mb-3 pb-2.5 border-b border-slate-100 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex items-center gap-2">
+                                                    {onDeleteSelected && (
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={isSelected}
+                                                            onChange={() => toggleSelect(id)}
+                                                            className="table-checkbox" 
+                                                        />
+                                                    )}
                                                 </div>
+                                                {actions && (
+                                                    <div className="flex items-center justify-end">
+                                                        {actions(item)}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
+
+                                        {/* Card Details: Structured 2-Column Grid */}
                                         <div className="flex-1">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                                                {columns.map(col => visibleColumns.includes(col.id) && (
-                                                    <div key={col.id} className="grid grid-cols-[95px_8px_1fr] items-start">
-                                                        <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{col.label}</span>
-                                                        <span className="text-[11px] font-semibold text-slate-300 dark:text-slate-600">:</span>
-                                                        <div className="text-[12px] text-slate-800 dark:text-slate-200 font-medium break-words">
-                                                            {col.render ? col.render(item) : item[col.id]}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                {columns.map(col => {
+                                                    if (!visibleColumns.includes(col.id)) return null;
+                                                    const colIdLower = col.id.toLowerCase();
+                                                    const isFullWidth = colIdLower.includes('pickup') || 
+                                                                        colIdLower.includes('delivery') || 
+                                                                        colIdLower.includes('address') || 
+                                                                        colIdLower.includes('route') ||
+                                                                        colIdLower.includes('desc') ||
+                                                                        colIdLower.includes('title') ||
+                                                                        colIdLower.includes('notification');
+                                                    return (
+                                                        <div 
+                                                            key={col.id} 
+                                                            className={`flex flex-col gap-0.5 p-2 rounded-[3px] bg-slate-50/70 dark:bg-[#181d24] border border-slate-100 dark:border-slate-800/80 ${
+                                                                isFullWidth ? 'col-span-1 sm:col-span-2' : ''
+                                                            }`}
+                                                        >
+                                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                                                {col.label}
+                                                            </span>
+                                                            <div className="text-[12.5px] text-slate-800 dark:text-slate-200 font-medium break-words">
+                                                                {col.render ? col.render(item) : item[col.id]}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>
@@ -286,16 +455,6 @@ export default function DataTable<T extends Record<string, any>>({
                             })
                         )}
                         </div>
-                        {filteredData.length > gridLimit && (
-                            <div className="py-5 px-4 flex justify-center border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#12161c]">
-                                <button 
-                                    onClick={() => setGridLimit(prev => prev + 12)}
-                                    className="px-5 py-2 bg-white dark:bg-[#1e2329] border border-slate-300 dark:border-slate-700 shadow-2xs rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-[#FF4A1F] hover:text-[#FF4A1F] transition-all text-[12px] font-bold text-slate-700 dark:text-slate-200 flex items-center justify-center cursor-pointer"
-                                >
-                                    Show More Requests
-                                </button>
-                            </div>
-                        )}
                     </div>
                 ) : (
                     <div className="overflow-x-auto custom-scrollbar">
@@ -313,7 +472,28 @@ export default function DataTable<T extends Record<string, any>>({
                                     </div>
                                 </th>
                                 {columns.map(col => visibleColumns.includes(col.id) && (
-                                    <th key={col.id} className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} ${col.className || ''}`}>{col.label}</th>
+                                    <th
+                                        key={col.id}
+                                        className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} ${col.className || ''} ${col.sortable ? 'cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200 transition-colors' : ''}`}
+                                        onClick={() => col.sortable && handleSort(col.id)}
+                                    >
+                                        {col.sortable ? (
+                                            <div className={`inline-flex items-center gap-0.5 ${col.className?.includes('text-center') ? 'justify-center w-full' : ''}`}>
+                                                <span>{col.label}</span>
+                                                <span className="shrink-0 opacity-70">
+                                                    {sortKey === col.id ? (
+                                                        sortDir === 'asc'
+                                                            ? <ChevronUp size={11} className="text-[#ff4a1f]" />
+                                                            : <ChevronDown size={11} className="text-[#ff4a1f]" />
+                                                    ) : (
+                                                        <ChevronsUpDown size={11} className="text-slate-400 dark:text-slate-500" />
+                                                    )}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            col.label
+                                        )}
+                                    </th>
                                 ))}
                                 {actions && <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[65px]'}`}>Actions</th>}
                             </tr>
@@ -425,9 +605,11 @@ export default function DataTable<T extends Record<string, any>>({
                                                 );
                                             }
                                             if (colId === 'budget' || colId === 'amount' || colLabel.includes('budget') || colLabel.includes('price')) {
+                                                const isCentered = col.className?.includes('text-center');
+                                                const isRight = col.className?.includes('text-right');
                                                 return (
                                                     <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex items-center h-5">
+                                                        <div className={`flex ${isCentered ? 'justify-center' : isRight ? 'justify-end' : 'items-center'} items-center h-5`}>
                                                             <Skeleton className="h-4 w-16 rounded-[2px]" />
                                                         </div>
                                                     </td>
@@ -443,18 +625,28 @@ export default function DataTable<T extends Record<string, any>>({
                                                 );
                                             }
 
+                                            const isCentered = col.className?.includes('text-center');
+                                            const isRight = col.className?.includes('text-right');
+
                                             return (
                                                 <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                    <div className="flex items-center h-5">
+                                                    <div className={`flex ${isCentered ? 'justify-center' : isRight ? 'justify-end' : 'items-center'} items-center h-5`}>
                                                         <Skeleton className="h-3.5 w-20 rounded-[2px]" />
                                                     </div>
                                                 </td>
                                             );
                                         })}
                                         {actions && (
-                                            <td className={`${cellPaddingClass} text-right pr-3.5 sm:pr-4 w-[65px] min-w-[65px] max-w-[65px]`}>
-                                                <div className="flex items-center justify-end w-full h-7">
-                                                    <Skeleton className="h-7 w-7 rounded-[2px] ml-auto" />
+                                            <td className={`${cellPaddingClass} whitespace-nowrap text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
+                                                <div className="flex items-center justify-end gap-1.5 w-full h-7">
+                                                    {actionsColumnClassName?.includes('130') || actionsColumnClassName?.includes('125') || actionsColumnClassName?.includes('115') || actionsColumnClassName?.includes('120') || actionsColumnClassName?.includes('100') ? (
+                                                        <>
+                                                            <Skeleton className="h-7 w-14 rounded-[3px]" />
+                                                            <Skeleton className="h-7 w-7 rounded-[3px]" />
+                                                        </>
+                                                    ) : (
+                                                        <Skeleton className="h-7 w-7 rounded-[2px] ml-auto" />
+                                                    )}
                                                 </div>
                                             </td>
                                         )}
@@ -473,8 +665,17 @@ export default function DataTable<T extends Record<string, any>>({
                                     return (
                                         <React.Fragment key={id}>
                                             <tr 
-                                                onClick={() => expandableContent && toggleExpand(id)}
-                                                className={`transition-colors group ${rowHeightClass} ${isSelected ? 'bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50'} ${expandableContent ? 'cursor-pointer' : ''}`}
+                                                onClick={(e) => {
+                                                    if ((e.target as HTMLElement).closest('button, a, input, select, [role="button"], [data-no-click]')) {
+                                                        return;
+                                                    }
+                                                    if (expandableContent) {
+                                                        toggleExpand(id);
+                                                    } else if (onRowClick) {
+                                                        onRowClick(item);
+                                                    }
+                                                }}
+                                                className={`transition-colors group ${rowHeightClass} ${isSelected ? 'bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50'} ${expandableContent || onRowClick ? 'cursor-pointer' : ''}`}
                                             >
                                             <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
                                                 <div className="flex items-center justify-center">
@@ -517,8 +718,8 @@ export default function DataTable<T extends Record<string, any>>({
                 </div>
                 )}
                 
-                {/* Pagination */}
-                {viewMode === 'table' && !hidePagination && (
+                {/* Pagination for both Table View and Grid View */}
+                {!hidePagination && (
                     <TablePagination 
                         total={totalItems}
                         fromIdx={totalItems > 0 ? startIndex + 1 : 0}
@@ -530,8 +731,8 @@ export default function DataTable<T extends Record<string, any>>({
                         }}
                         onPrevPage={() => setCurrentPage(p => Math.max(1, p - 1))}
                         onNextPage={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        hasPrev={currentPage > 1}
-                        hasNext={currentPage < totalPages}
+                        hasPrev={validCurrentPage > 1}
+                        hasNext={validCurrentPage < totalPages}
                     />
                 )}
             </div>

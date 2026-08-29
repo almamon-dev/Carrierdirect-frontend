@@ -7,6 +7,14 @@ export default defineConfig({
     build: {
         emptyOutDir: true,
     },
+    server: {
+        proxy: {
+            '/uploads': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+            }
+        }
+    },
     resolve: {
         alias: {
             "@": fileURLToPath(new URL('./src', import.meta.url)),

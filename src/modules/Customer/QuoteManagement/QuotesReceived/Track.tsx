@@ -126,7 +126,7 @@ export default function TrackBids() {
                 variant="primary"
                 size="sm"
                 className="h-7 px-2 bg-brand hover:bg-brand-hover"
-                onClick={() => navigate(`/customer/quotes/negotiation/view/${row.id}`)}
+                onClick={() => navigate(`/customer/quotes/negotiation/conversation/${row.id}`)}
             >
                 <MessageCircle size={14} className="mr-1" /> Chat
             </Button>

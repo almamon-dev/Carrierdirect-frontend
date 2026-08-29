@@ -218,7 +218,7 @@ export default function SupplierSubscription() {
   ];
 
   return (
-    <div className="p-4 md:p-6 w-full space-y-5 bg-[#f8fafc] min-h-screen font-sans">
+    <div className="p-4 md:p-6 w-full space-y-5 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen font-sans">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-3">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">

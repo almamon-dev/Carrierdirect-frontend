@@ -5,6 +5,7 @@ import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 import EmptyState from '@/components/tables/empty-state';
 import apiClient from '@/lib/axios';
+import { formatDisplayDate } from '@/lib/utils';
 
 export default function Payments() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -28,12 +29,12 @@ export default function Payments() {
     { 
       id: 'id', 
       label: 'Transaction / Ref ID', 
-      render: (row) => <span className="font-bold text-slate-800">{row.transaction_id || `TXN-${row.id}`}</span> 
+      render: (row) => <span className="font-bold text-slate-800">{row.transaction_id || `TXN-${String(row.id).padStart(4, '0')}`}</span> 
     },
     { 
       id: 'date', 
       label: 'Date', 
-      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date || row.created_at_formatted || 'N/A'}</span> 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{formatDisplayDate(row.paid_at || row.created_at || row.date || row.created_at_formatted)}</span> 
     },
     { 
       id: 'method', 

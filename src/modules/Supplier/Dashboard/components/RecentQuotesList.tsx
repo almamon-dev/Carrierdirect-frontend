@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Star, CheckCircle2, User } from 'lucide-react';
+import { encryptId } from '@/lib/encryption';
 
 export interface RecentQuoteRow {
     id: string;
@@ -74,7 +75,10 @@ export const RecentQuotesList: React.FC<RecentQuotesListProps> = ({ quotes, isLo
                     quotes.slice(0, 5).map((quote, idx) => (
                         <div
                             key={idx}
-                            onClick={() => navigate(quote.slug ? `/supplier/quotes/requests/${quote.slug}` : '/supplier/quotes/requests')}
+                            onClick={() => {
+                                const rawId = String(quote.slug || quote.id).replace('REQ-', '').trim();
+                                navigate(rawId ? `/supplier/quotes/requests/${encryptId(rawId)}` : '/supplier/quotes/requests');
+                            }}
                             className="grid grid-cols-12 gap-1.5 items-center py-2.5 border-b border-dashed border-slate-300 dark:border-slate-800 last:border-0 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 -mx-1 px-1 rounded transition-colors cursor-pointer"
                         >
                             {/* 1. Request ID */}

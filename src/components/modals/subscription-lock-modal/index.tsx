@@ -42,8 +42,14 @@ export default function SubscriptionLockModal({
   };
 
   return createPortal(
-    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fade-in font-sans">
-      <div className="bg-white rounded-md max-w-md w-full border border-slate-200 shadow-xl overflow-hidden relative">
+    <div 
+      className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fade-in font-sans"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white dark:bg-[#1e2329] rounded-[3px] max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative"
+        onClick={(e) => e.stopPropagation()}
+      >
 
         {/* Clean Header */}
         <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-3">

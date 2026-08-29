@@ -1,9 +1,10 @@
 /**
- * Customer Quote Request Row Actions Menu
- * Renders the context dropdown action menu (View, Edit, Repeat, Track Bids, Delete/Cancel) via React Portal.
+ * RowActions — Three-dot context menu for each quote request row.
+ * Renders via createPortal to avoid table overflow clipping.
+ * Closes on outside click, Escape key, and scroll.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -28,6 +29,10 @@ export const RowActions: React.FC<RowActionsProps> = ({
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const handleClose = useCallback(() => setIsOpen(false), []);
 
     const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -43,11 +48,40 @@ export const RowActions: React.FC<RowActionsProps> = ({
         }
     };
 
-    const handleClose = () => setIsOpen(false);
+    // Close on outside click, Escape key, and scroll
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleMouseDown = (e: MouseEvent) => {
+            if (
+                dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+                triggerRef.current && !triggerRef.current.contains(e.target as Node)
+            ) {
+                handleClose();
+            }
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') handleClose();
+        };
+
+        const handleScroll = () => handleClose();
+
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('scroll', handleScroll, true);
+
+        return () => {
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('scroll', handleScroll, true);
+        };
+    }, [isOpen, handleClose]);
 
     return (
         <div className="relative flex items-center justify-end w-full">
             <Button 
+                ref={triggerRef}
                 variant="ghost" 
                 size="sm" 
                 className="h-7 w-7 p-0 rounded-[2px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto flex items-center justify-center"
@@ -58,6 +92,7 @@ export const RowActions: React.FC<RowActionsProps> = ({
 
             {isOpen && createPortal(
                 <div 
+                    ref={dropdownRef}
                     className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
                     style={{ top: dropdownPos.top, left: dropdownPos.left }}
                     onClick={(e) => e.stopPropagation()}

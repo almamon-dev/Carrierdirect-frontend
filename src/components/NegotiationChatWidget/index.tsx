@@ -253,7 +253,7 @@ export default function NegotiationChatWidget() {
   const handleGoToFullDetails = () => {
     setIsOpen(false);
     setShowMoreActionsMenu(false);
-    navigate(`/customer/quotes/negotiation/view/${activeConv.negId}`);
+    navigate(`/customer/quotes/negotiation/conversation/${activeConv.negId}`);
   };
 
   const handleCopyQuoteId = () => {
@@ -519,8 +519,8 @@ export default function NegotiationChatWidget() {
                         </div>
 
                         {conv.unreadCount > 0 && (
-                          <span className="px-2 py-0.5 bg-[#ff4a1f] text-white text-[10px] font-bold rounded-full shadow-2xs shrink-0 ml-2 font-sans">
-                            {conv.unreadCount} New
+                          <span className="min-w-[19px] h-[19px] px-1.5 bg-emerald-500 text-white text-[10.5px] font-extrabold rounded-full shadow-2xs shrink-0 ml-2 font-sans flex items-center justify-center">
+                            {conv.unreadCount}
                           </span>
                         )}
                       </div>
@@ -568,7 +568,7 @@ export default function NegotiationChatWidget() {
                     <button
                       onClick={() => {
                         setShowMoreActionsMenu(false);
-                        navigate(`/customer/quotes/negotiation/view/${activeConv?.negId || 1}`);
+                        navigate(`/customer/quotes/negotiation/conversation/${activeConv?.negId || 1}`);
                       }}
                       className="w-full flex items-center gap-2.5 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left cursor-pointer font-sans"
                     >
@@ -949,14 +949,14 @@ export default function NegotiationChatWidget() {
                       {!msg.isCounterOffer && (
                         <div
                           className={`p-3 rounded-2xl text-xs leading-relaxed text-left shadow-2xs font-sans ${isMe
-                              ? 'bg-[#ff4a1f] text-white rounded-tr-xs'
+                              ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30 rounded-tr-xs'
                               : 'bg-white border border-slate-200/90 text-slate-800 rounded-tl-xs'
                             }`}
                         >
                           <ExpandableText text={msg.text} limit={120} />
                           {isMe && (
                             <div className="flex justify-end mt-1">
-                              <CheckCheck className="w-3.5 h-3.5 text-white/80" />
+                              <CheckCheck className="w-3.5 h-3.5 text-sky-500" />
                             </div>
                           )}
                         </div>

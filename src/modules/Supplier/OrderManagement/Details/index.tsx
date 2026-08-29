@@ -71,7 +71,7 @@ export default function OrderDetails() {
     };
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-6">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-6 bg-[#f8fafc] dark:bg-[#12161c]">
             <OrderHeader
                 order={order}
                 currentStatus={currentStatus}

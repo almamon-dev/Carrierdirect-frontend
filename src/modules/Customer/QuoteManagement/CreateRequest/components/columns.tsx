@@ -8,12 +8,14 @@ import { MapPin } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import { CustomerQuoteRequestItem } from '../types';
+import { formatDisplayDate } from '@/lib/utils';
 
 export const getCustomerColumns = (navigate: (path: string) => void): Column<CustomerQuoteRequestItem>[] => [
     { 
         id: 'id', 
         label: 'ID', 
         className: 'w-[70px]',
+        sortable: true,
         render: (row) => (
             <div className="flex items-center h-5">
                 <button
@@ -31,9 +33,9 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         label: 'Pickup Address', 
         className: 'min-w-0',
         render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.pickup}>
+            <div className="flex items-center gap-1.5 min-w-0 pr-1" title={row.pickup}>
                 <MapPin size={13} className="text-emerald-500 shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate whitespace-nowrap leading-none">
+                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
                     {row.pickup}
                 </span>
             </div>
@@ -44,9 +46,9 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         label: 'Delivery Address', 
         className: 'min-w-0',
         render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.delivery}>
+            <div className="flex items-center gap-1.5 min-w-0 pr-1" title={row.delivery}>
                 <MapPin size={13} className="text-red-500 shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate whitespace-nowrap leading-none">
+                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
                     {row.delivery}
                 </span>
             </div>
@@ -56,6 +58,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         id: 'distance', 
         label: 'Distance', 
         className: 'w-[75px] text-center',
+        sortable: true,
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold leading-none">
@@ -68,6 +71,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         id: 'budget', 
         label: 'Budget', 
         className: 'w-[90px]',
+        sortable: true,
         render: (row) => (
             <div className="flex items-center h-5">
                 <span className="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100 text-xs leading-none">
@@ -80,6 +84,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         id: 'quotesReceived', 
         label: 'Quotes', 
         className: 'w-[75px] text-center',
+        sortable: true,
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <span className={`whitespace-nowrap text-xs font-bold leading-none ${row.quotesReceived > 0 ? 'text-[#ff4a1f]' : 'text-slate-400 dark:text-slate-500'}`}>
@@ -92,6 +97,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         id: 'priority', 
         label: 'Priority', 
         className: 'w-[80px] text-center',
+        sortable: true,
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
@@ -108,6 +114,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         id: 'status', 
         label: 'Status', 
         className: 'w-[105px] text-center',
+        sortable: true,
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
@@ -124,10 +131,11 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         id: 'date', 
         label: 'Date', 
         className: 'w-[110px] text-center',
+        sortable: true,
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">
-                    {row.date}
+                    {row.date && row.date !== 'N/A' && row.date !== 'null' ? row.date : formatDisplayDate((row as any).created_at || (row as any).requested_date || (row as any).pickup_date || row.date)}
                 </span>
             </div>
         )

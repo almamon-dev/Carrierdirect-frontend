@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, FileText, Package, Users, Settings, Activity } from 'lucide-react';
+import { Search, X, FileText, Package, Users, Settings, Activity, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
@@ -37,37 +37,40 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
         : quickLinks.filter(link => link.name.toLowerCase().includes(query.toLowerCase()));
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] sm:pt-[20vh] px-4">
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] sm:pt-[16vh] px-4">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
-            <div className="relative bg-white rounded-md shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex items-center px-4 py-4 border-b border-slate-100">
-                    <Search className="text-[#FF4A1F] mr-3 shrink-0" size={20} />
+            <div className="relative bg-white rounded-[3px] shadow-xl w-full max-w-lg overflow-hidden flex flex-col border border-slate-200/90 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                {/* Search Input Bar (Compact) */}
+                <div className="flex items-center px-3.5 py-2.5 border-b border-slate-100 gap-2.5">
+                    <Search className="text-[#FF4A1F] shrink-0" size={17} />
                     <input
                         autoFocus
                         type="text"
                         placeholder="Search for orders, quotes, settings..."
-                        className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder-slate-400 text-lg"
+                        className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder-slate-400 text-[13.5px]"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                     />
                     <button
                         onClick={onClose}
-                        className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="p-1 rounded-[3px] text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Close (Esc)"
                     >
-                        <X size={20} />
+                        <X size={16} />
                     </button>
                 </div>
 
-                <div className="p-2 max-h-[60vh] overflow-y-auto">
+                {/* Quick Links List (Compact) */}
+                <div className="p-1.5 max-h-[50vh] overflow-y-auto">
                     {query.trim() === '' && (
-                        <div className="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             Suggested Quick Links
                         </div>
                     )}
 
                     {filteredLinks.length > 0 ? (
-                        <div className="space-y-1">
+                        <div className="space-y-0.5">
                             {filteredLinks.map((link, i) => (
                                 <button
                                     key={i}
@@ -75,28 +78,35 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
                                         navigate(link.path);
                                         onClose();
                                     }}
-                                    className="w-full flex items-center px-3 py-3 rounded-lg hover:bg-[#FFF0ED] text-left group transition-colors"
+                                    className="w-full flex items-center px-2.5 py-2 rounded-[3px] hover:bg-orange-50/80 text-left group transition-colors cursor-pointer"
                                 >
-                                    <link.icon size={18} className="text-slate-400 group-hover:text-[#FF4A1F] mr-3" />
-                                    <span className="text-[14px] font-semibold text-slate-700 group-hover:text-[#FF4A1F]">{link.name}</span>
-                                    <span className="ml-auto text-xs text-slate-400 group-hover:text-[#FF4A1F]">Jump to</span>
+                                    <div className="w-6 h-6 rounded-[3px] bg-slate-100 group-hover:bg-orange-100 flex items-center justify-center mr-2.5 transition-colors shrink-0">
+                                        <link.icon size={14} className="text-slate-500 group-hover:text-[#FF4A1F] transition-colors" />
+                                    </div>
+                                    <span className="text-[13px] font-medium text-slate-700 group-hover:text-[#FF4A1F] transition-colors truncate">
+                                        {link.name}
+                                    </span>
+                                    <span className="ml-auto text-[11px] text-slate-400 group-hover:text-[#FF4A1F] flex items-center gap-0.5 transition-colors shrink-0">
+                                        Jump to <ArrowUpRight size={11} />
+                                    </span>
                                 </button>
                             ))}
                         </div>
                     ) : (
-                        <div className="py-12 text-center">
-                            <Search className="mx-auto text-slate-300 mb-3" size={32} />
-                            <p className="text-slate-500 text-[14px] font-medium">No results found for "{query}"</p>
+                        <div className="py-8 text-center">
+                            <Search className="mx-auto text-slate-300 mb-2" size={24} />
+                            <p className="text-slate-500 text-xs font-medium">No results found for "{query}"</p>
                         </div>
                     )}
                 </div>
 
-                <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 text-xs text-slate-500 flex items-center gap-4">
+                {/* Compact Keyboard Shortcuts Footer */}
+                <div className="bg-slate-50/90 px-3.5 py-2 border-t border-slate-100 text-[11px] text-slate-400 flex items-center gap-3">
                     <span className="flex items-center gap-1">
-                        <kbd className="bg-white border border-slate-200 rounded px-1.5 py-0.5 font-sans font-bold shadow-sm">esc</kbd> to close
+                        <kbd className="bg-white border border-slate-200 rounded-[3px] px-1.5 py-0.5 text-[9.5px] font-bold shadow-2xs text-slate-500">esc</kbd> to close
                     </span>
                     <span className="flex items-center gap-1">
-                        <kbd className="bg-white border border-slate-200 rounded px-1.5 py-0.5 font-sans font-bold shadow-sm">enter</kbd> to select
+                        <kbd className="bg-white border border-slate-200 rounded-[3px] px-1.5 py-0.5 text-[9.5px] font-bold shadow-2xs text-slate-500">enter</kbd> to select
                     </span>
                 </div>
             </div>

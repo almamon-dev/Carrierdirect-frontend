@@ -180,7 +180,7 @@ export default function POD() {
     );
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5 bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Proof of Delivery (POD)</h1>

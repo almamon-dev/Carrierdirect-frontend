@@ -7,6 +7,7 @@ import EmptyState from '@/components/tables/empty-state';
 import { useNavigate } from 'react-router-dom';
 import RatingModal from '@/components/modals/rating-modal';
 import apiClient from '@/lib/axios';
+import { formatDisplayDate } from '@/lib/utils';
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -42,37 +43,37 @@ export default function Orders() {
     { 
       id: 'id', 
       label: 'Order ID', 
-      render: (row) => <span className="font-bold text-[#ff4a1f]">{row.order_id || row.order_number || `ORD-${row.id}`}</span> 
+      render: (row) => <span className="font-bold text-[#ff4a1f]">{row.order_id || row.order_number || (row.id ? `ORD-${String(row.id).padStart(4, '0')}` : 'ORD-0001')}</span> 
     },
     { 
       id: 'date', 
       label: 'Order Date', 
-      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date || row.created_at_formatted || 'N/A'}</span> 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{formatDisplayDate(row.created_at || row.date || row.order_date || row.created_at_formatted)}</span> 
     },
     { 
       id: 'route', 
       label: 'Route', 
-      render: (row) => <span className="font-medium text-slate-800 whitespace-nowrap">{row.route || `${row.pickup_address || 'Origin'} → ${row.delivery_address || 'Destination'}`}</span> 
+      render: (row) => <span className="font-medium text-slate-800 whitespace-nowrap">{row.route || `${row.pickup_address || row.pickup_city || 'Origin'} → ${row.delivery_address || row.delivery_city || 'Destination'}`}</span> 
     },
     { 
       id: 'supplier', 
       label: 'Supplier', 
-      render: (row) => <span className="text-slate-700 whitespace-nowrap">{row.supplier_name || row.supplier?.company_name || row.supplier?.name || 'Supplier'}</span> 
+      render: (row) => <span className="text-slate-700 whitespace-nowrap">{row.supplier_name || row.supplier?.company_name || row.supplier?.name || 'Verified Carrier'}</span> 
     },
     { 
       id: 'vehicle', 
       label: 'Vehicle', 
-      render: (row) => <span className="text-slate-500 text-[13px]">{row.vehicle || row.vehicle_type || 'N/A'}</span> 
+      render: (row) => <span className="text-slate-500 text-[13px]">{row.vehicle || row.vehicle_type || 'Covered Van'}</span> 
     },
     { 
       id: 'deliveryDate', 
       label: 'Delivery', 
-      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.delivery_date || row.estimated_time || 'Pending'}</span> 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{formatDisplayDate(row.delivery_date || row.estimated_delivery || row.estimated_time, 'In Transit')}</span> 
     },
     { 
       id: 'amount', 
       label: 'Total Amount', 
-      render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount || row.total_amount_formatted || `€ ${row.total_amount}`}</span> 
+      render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount ? (String(row.amount).includes('€') ? row.amount : `€ ${row.amount}`) : (row.total_amount ? `€ ${row.total_amount}` : '€ 0.00')}</span> 
     },
     { 
       id: 'paymentStatus', 

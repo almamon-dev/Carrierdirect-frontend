@@ -7,20 +7,25 @@ import EmptyState from '@/components/tables/empty-state';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '@/lib/axios';
 
+import { DeclineOfferModal } from '../Negotiation/Chat/components/DeclineOfferModal';
+
 export default function QuotesReceived() {
   const navigate = useNavigate();
   const [quotes, setQuotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [rejectModalQuote, setRejectModalQuote] = useState<any>(null);
 
   const fetchQuotes = async () => {
     try {
-      const res = await apiClient.get('/customer/quotes/received');
-      const raw = res.data?.data?.quotes || res.data?.quotes_request || res.data?.quotes || res.data?.data || res.data || [];
-      const list = Array.isArray(raw) ? raw : (raw?.data || []);
-      setQuotes(Array.isArray(list) ? list : []);
+      const response = await apiClient.get('/customer/received-quotes');
+      if (response?.data?.data) {
+        setQuotes(Array.isArray(response.data.data) ? response.data.data : response.data.data.quotes || []);
+      }
     } catch (error) {
       console.error('Failed to fetch received quotes:', error);
-      setQuotes([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,16 +45,17 @@ export default function QuotesReceived() {
     }
   };
 
-  const handleReject = async (quoteId: number) => {
-    if (!window.confirm('Are you sure you want to reject this quote?')) return;
-    setActionLoading(quoteId);
+  const handleConfirmReject = async (reason: string) => {
+    if (!rejectModalQuote) return;
+    setActionLoading(rejectModalQuote.id);
     try {
-      await apiClient.post(`/customer/quotes/${quoteId}/reject`);
+      await apiClient.post(`/customer/quotes/${rejectModalQuote.id}/reject`, { reason });
       await fetchQuotes();
     } catch (error: any) {
       alert(error?.data?.message || error?.message || 'Failed to reject quote.');
     } finally {
       setActionLoading(null);
+      setRejectModalQuote(null);
     }
   };
 
@@ -83,30 +89,30 @@ export default function QuotesReceived() {
     { 
       id: 'vehicle', 
       label: 'Vehicle Type', 
-      render: (row) => <span className="whitespace-nowrap">{row.vehicle || row.vehicle_type || row.truck_type || row.quote_request?.vehicle_type || 'N/A'}</span> 
+      render: (row) => <span className="whitespace-nowrap">{row.vehicle || row.vehicle_type || row.truck_type || row.quote_request?.vehicle_type || 'Covered Van'}</span> 
     },
     { 
       id: 'transitTime', 
       label: 'Transit Time', 
-      render: (row) => <span className="whitespace-nowrap">{row.estimated_delivery || row.estimated_time || row.transit_time || 'N/A'}</span> 
+      render: (row) => <span className="whitespace-nowrap">{row.estimated_delivery || row.estimated_time || row.transit_time || '2-3 Days'}</span> 
     },
     { 
       id: 'amount', 
       label: 'Quote Amount', 
       render: (row) => {
-        if (typeof row.amount === 'number') return <span className="whitespace-nowrap font-semibold text-emerald-600">€{row.amount.toLocaleString()}</span>;
+        if (typeof row.amount === 'number') return <span className="whitespace-nowrap font-semibold text-emerald-600">€ {row.amount.toLocaleString('de-DE')}</span>;
         if (typeof row.amount === 'string' && row.amount) {
-          const amt = row.amount.startsWith('€') || row.amount.startsWith('৳') || row.amount.startsWith('$') ? row.amount : `€${row.amount}`;
+          const amt = row.amount.startsWith('€') || row.amount.startsWith('৳') || row.amount.startsWith('$') ? row.amount : `€ ${row.amount}`;
           return <span className="whitespace-nowrap font-semibold text-emerald-600">{amt}</span>;
         }
-        if (row.amount_raw) return <span className="whitespace-nowrap font-semibold text-emerald-600">€{row.amount_raw}</span>;
+        if (row.amount_raw) return <span className="whitespace-nowrap font-semibold text-emerald-600">€ {row.amount_raw}</span>;
         return <span className="whitespace-nowrap font-semibold text-slate-400">—</span>;
       }
     },
     { 
       id: 'validUntil', 
       label: 'Valid Until', 
-      render: (row) => <span className="whitespace-nowrap">{row.valid_until || row.validity || 'N/A'}</span> 
+      render: (row) => <span className="whitespace-nowrap">{row.valid_until || row.validity || '48h'}</span> 
     },
     { 
       id: 'status', 
@@ -149,7 +155,7 @@ export default function QuotesReceived() {
             size="sm" 
             disabled={actionLoading === row.id}
             className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-            onClick={() => handleReject(row.id)}
+            onClick={() => setRejectModalQuote(row)}
           >
             <XCircle size={14} className="mr-1" /> Reject
           </Button>
@@ -182,6 +188,14 @@ export default function QuotesReceived() {
             onAction={() => navigate('/customer/quotes/create/new')}
           />
         }
+      />
+
+      <DeclineOfferModal
+        isOpen={Boolean(rejectModalQuote)}
+        onClose={() => setRejectModalQuote(null)}
+        offerAmount={rejectModalQuote?.amount}
+        currency="€"
+        onConfirm={handleConfirmReject}
       />
     </div>
   );

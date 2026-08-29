@@ -325,7 +325,7 @@ export default function CreateRequestForm() {
     const showToast = useToastStore(state => state.showToast);
     const [quotaUsed, setQuotaUsed] = useState(0);
     const [hasActivePlan, setHasActivePlan] = useState(false);
-    const [maxQuota, setMaxQuota] = useState(5);
+    const [maxQuota, setMaxQuota] = useState(15);
 
     useEffect(() => {
         async function fetchQuotaAndSub() {
@@ -550,7 +550,7 @@ export default function CreateRequestForm() {
             </div>
 
             {/* Reusable Top Free Quote Quota Reminder Banner */}
-            <QuotaReminderBanner quotaUsed={quotaUsed} className="mb-4" />
+            <QuotaReminderBanner quotaUsed={quotaUsed} maxQuota={maxQuota} className="mb-4" />
 
             {/* Repeat Mode Banner */}
             {isRepeatMode && (
@@ -670,7 +670,7 @@ export default function CreateRequestForm() {
                 isOpen={isLockModalOpen}
                 onClose={() => setIsLockModalOpen(false)}
                 title="Create Quote Request Quota Reached"
-                description="You have reached your limit of 5 Quote Requests. Upgrade to Growth Plan for unlimited requests."
+                description="You have reached your limit of 15 Quote Requests. Upgrade to Growth Plan for unlimited requests."
             />
         </div>
     );

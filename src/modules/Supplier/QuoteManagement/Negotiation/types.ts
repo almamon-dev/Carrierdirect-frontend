@@ -38,6 +38,8 @@ export interface NegotiationItem {
     baseFreight?: number;
     extraCharges?: Array<{ label: string; amount: number; description?: string }>;
     documents?: Array<{ name: string; size: string; type?: string; url?: string }>;
+    isVerified?: boolean;
+    isUnderReview?: boolean;
 }
 
 export type NegotiationTab = 'active' | 'history';

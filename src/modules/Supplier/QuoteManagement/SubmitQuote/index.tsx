@@ -4,7 +4,7 @@
  * 2-column cargo & vehicle specs tabs, and the quotation proposal form.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, XCircle, Send } from 'lucide-react';
 import Button from '@/components/ui/button';
@@ -14,12 +14,28 @@ import { CustomerRouteCard } from './components/CustomerRouteCard';
 import { SpecsTabs } from './components/SpecsTabs';
 import { QuotationOfferForm } from './components/QuotationOfferForm';
 import { DeclineModal } from './components/DeclineModal';
-import { SubmittedSuccessView, DeclinedView } from './components/SubmissionStatusViews';
+import { QuoteSubmittedSuccessModal } from './components/QuoteSubmittedSuccessModal';
+import { DeclinedView } from './components/SubmissionStatusViews';
 import SubmitQuoteSkeleton from './SubmitQuoteSkeleton';
+import { encryptId, decryptId } from '@/lib/encryption';
 
 export default function SubmitQuote() {
     const navigate = useNavigate();
     const { slug } = useParams<{ slug?: string }>();
+
+    // Auto-encrypt plain URL parameters (e.g. /supplier/quotes/requests/122 -> /supplier/quotes/requests/enc_...)
+    useEffect(() => {
+        if (slug && (!slug.startsWith('enc_') || slug.length < 50)) {
+            const raw = decryptId(slug).replace('REQ-', '').trim();
+            if (raw) {
+                const enc = encryptId(raw);
+                try {
+                    sessionStorage.setItem('carrierdirect_last_quote_session_id', raw);
+                } catch {}
+                navigate(`/supplier/quotes/requests/${enc}`, { replace: true });
+            }
+        }
+    }, [slug, navigate]);
 
     // Fetch and normalize quote request details
     const { loading, requestDetails } = useSubmitQuoteDetails(slug);
@@ -27,6 +43,7 @@ export default function SubmitQuote() {
     // Interaction & modal states
     const [submitted, setSubmitted] = useState<boolean>(false);
     const [submittedTotal, setSubmittedTotal] = useState<string>('0.00');
+    const [submissionMeta, setSubmissionMeta] = useState<any>({});
     const [declined, setDeclined] = useState<boolean>(false);
     const [showDeclineModal, setShowDeclineModal] = useState<boolean>(false);
 
@@ -34,16 +51,12 @@ export default function SubmitQuote() {
         return <SubmitQuoteSkeleton />;
     }
 
-    if (submitted) {
-        return <SubmittedSuccessView requestDetails={requestDetails} totalOffer={submittedTotal} />;
-    }
-
     if (declined) {
         return <DeclinedView requestDetails={requestDetails} />;
     }
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5 bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Top Navigation & Header Actions */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -121,8 +134,9 @@ export default function SubmitQuote() {
                     <QuotationOfferForm 
                         slug={slug}
                         requestDetails={requestDetails}
-                        onSubmittedSuccess={(total) => {
+                        onSubmittedSuccess={(total, meta) => {
                             setSubmittedTotal(total);
+                            if (meta) setSubmissionMeta(meta);
                             setSubmitted(true);
                         }}
                     />
@@ -138,6 +152,15 @@ export default function SubmitQuote() {
                     setShowDeclineModal(false);
                     setDeclined(true);
                 }}
+            />
+
+            {/* Quotation Submitted Centered Success Modal */}
+            <QuoteSubmittedSuccessModal
+                isOpen={submitted}
+                onClose={() => setSubmitted(false)}
+                requestDetails={requestDetails}
+                totalOffer={submittedTotal}
+                submissionMeta={submissionMeta}
             />
         </div>
     );

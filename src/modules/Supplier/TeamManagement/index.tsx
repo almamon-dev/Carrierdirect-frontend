@@ -30,7 +30,7 @@ export default function TeamManagement() {
     ];
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5 bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header matching Active Jobs & Shipments */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>

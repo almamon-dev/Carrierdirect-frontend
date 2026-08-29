@@ -19,7 +19,7 @@ export default function AvailabilitySettings() {
     };
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-6">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-6 bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Availability & Dispatch Settings</h1>

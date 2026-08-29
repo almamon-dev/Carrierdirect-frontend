@@ -14,6 +14,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'id',
         label: 'ID',
+        sortable: true,
         className: 'w-[70px]',
         render: (row) => (
             <div className="flex items-center h-5">
@@ -35,6 +36,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'customer',
         label: 'Customer',
+        sortable: true,
         className: 'w-[130px]',
         render: (row) => (
             <div className="flex items-center gap-2 whitespace-nowrap min-w-0 h-5">
@@ -105,6 +107,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'distance',
         label: 'Distance',
+        sortable: true,
         className: 'w-[75px] text-center',
         render: (row) => (
             <div className="flex items-center justify-center h-5">
@@ -122,6 +125,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'budget',
         label: 'Budget',
+        sortable: true,
         className: 'w-[90px]',
         render: (row) => (
             <div className="flex items-center h-5">
@@ -139,6 +143,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'priority',
         label: 'Priority',
+        sortable: true,
         className: 'w-[80px] text-center',
         render: (row) => (
             <div className="flex items-center justify-center h-5">
@@ -156,6 +161,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'status',
         label: 'Status',
+        sortable: true,
         className: 'w-[105px] text-center',
         render: (row) => (
             <div className="flex items-center justify-center h-5">
@@ -173,6 +179,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'requestDate',
         label: 'Date',
+        sortable: true,
         className: 'w-[110px] text-center',
         render: (row) => (
             <div className="flex items-center justify-center h-5">

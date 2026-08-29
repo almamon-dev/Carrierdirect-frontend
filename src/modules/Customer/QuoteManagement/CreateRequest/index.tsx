@@ -4,17 +4,17 @@
  * real-data skeleton loader, and PDF/CSV AI batch import wizard.
  */
 
-import React, { useState, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Inbox } from 'lucide-react';
 import DataTable from '@/components/tables/data-table';
 import EmptyState from '@/components/tables/empty-state';
-import { PdfImportWizardModal } from './components/PdfImportWizardModal';
-import { useCustomerQuoteRequests } from './hooks/useCustomerQuoteRequests';
+import { Inbox } from 'lucide-react';
+import React, { useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getCustomerColumns } from './components/columns';
 import { FilterTabs } from './components/FilterTabs';
-import { RowActions } from './components/RowActions';
 import { HeaderActions } from './components/HeaderActions';
+import { PdfImportWizardModal } from './components/PdfImportWizardModal';
+import { RowActions } from './components/RowActions';
+import { useCustomerQuoteRequests } from './hooks/useCustomerQuoteRequests';
 import { FilterTabId } from './types';
 
 export default function RequestList() {
@@ -126,7 +126,7 @@ export default function RequestList() {
                     <p className="text-sm text-slate-500 dark:text-slate-400">Manage, track, or import transportation quote requests.</p>
                 </div>
 
-                <HeaderActions 
+                <HeaderActions
                     isLoading={isLoading}
                     onRefresh={() => fetchQuoteRequests(true)}
                     onUploadCsv={() => openImportWizard('csv')}
@@ -136,47 +136,45 @@ export default function RequestList() {
             </div>
 
             {/* Main Data Table */}
-            <DataTable 
-                data={filteredData} 
-                columns={columns} 
+            <DataTable
+                data={filteredData}
+                columns={columns}
                 actions={(row) => (
-                    <RowActions 
-                        row={row} 
-                        isRepeating={isRepeating === row.id} 
-                        onRepeatRequest={handleRepeatRequest} 
-                        onDeleteRequest={handleDeleteRequest} 
+                    <RowActions
+                        row={row}
+                        isRepeating={isRepeating === row.id}
+                        onRepeatRequest={handleRepeatRequest}
+                        onDeleteRequest={handleDeleteRequest}
                     />
                 )}
                 headerTabs={
-                    <FilterTabs 
-                        requestData={requestData} 
-                        activeTab={activeFilterTab} 
-                        onSelectTab={setActiveFilterTab} 
+                    <FilterTabs
+                        requestData={requestData}
+                        activeTab={activeFilterTab}
+                        onSelectTab={setActiveFilterTab}
                     />
                 }
                 searchPlaceholder="Search by ID, pickup, or delivery address..."
                 compact={true}
                 isLoading={isLoading}
-                skeletonCount={filteredData.length > 0 ? filteredData.length : 3}
                 onDeleteSelected={handleDeleteSelected}
+                onRowClick={(row) => navigate(`/customer/quotes/create/view/${row.rawId || String(row.id).replace('REQ-', '')}`)}
                 tableLayout="fixed"
                 tableClassName="min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={Inbox}
                         title="No Quote Requests Found"
-                        description={activeFilterTab === 'All' 
-                            ? "You haven't created any freight quote requests yet. Click 'Create New Request' to get started." 
+                        description={activeFilterTab === 'All'
+                            ? "You haven't created any freight quote requests yet. Click 'Create New Request' to get started."
                             : `No quote requests match the '${activeFilterTab}' filter.`
                         }
-                        actionLabel={activeFilterTab === 'All' ? "Create New Request" : "Refresh Requests"}
-                        onAction={activeFilterTab === 'All' ? () => navigate('/customer/quotes/create/new') : () => fetchQuoteRequests(true)}
                     />
                 }
             />
 
             {/* Modular 4-Step PDF & ZIP Import Wizard Modal */}
-            <PdfImportWizardModal 
+            <PdfImportWizardModal
                 isOpen={isProcessingModalOpen}
                 onClose={() => setIsProcessingModalOpen(false)}
                 processingStep={processingStep}

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useChatNegotiation } from './hooks/useChatNegotiation';
 import { ChatSidebar } from './components/ChatSidebar';
 import { ChatHeader } from './components/ChatHeader';
 import { ChatMessageList } from './components/ChatMessageList';
 import { ChatDetailsSidebar } from './components/ChatDetailsSidebar';
 import { CallComingSoonModal } from './components/CallComingSoonModal';
+import { ChatSkeletonLoader } from './components/ChatSkeletonLoader';
+import { generateInitialMessages } from './utils/initialMessages';
 import ChatInputActions from '@/modules/Customer/QuoteManagement/Negotiation/Actions';
 
 export default function SupplierNegotiationChat() {
@@ -20,6 +22,7 @@ export default function SupplierNegotiationChat() {
         activePinnedIndex, setActivePinnedIndex,
         showMobileDetails, setShowMobileDetails,
         isCustomerTyping,
+        notifyTyping,
         negotiationStatusMap,
         liveOffers,
         allNegotiations,
@@ -37,15 +40,25 @@ export default function SupplierNegotiationChat() {
         handleSendMessage,
         handleSendCounterOffer,
         handleAcceptOffer,
-        handleRejectOffer
+        handleRejectOffer,
+        isLoading
     } = useChatNegotiation();
 
     const [callModal, setCallModal] = React.useState<{ isOpen: boolean; type: 'audio' | 'video' }>({
         isOpen: false,
         type: 'audio'
     });
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+    const [sidebarWidth, setSidebarWidth] = useState<number>(320);
+    const [isResizing, setIsResizing] = useState<boolean>(false);
 
-    const currentMessages = chatMessages[activeNegotiation.rawId] || [];
+    if (isLoading && allNegotiations.length === 0) {
+        return <ChatSkeletonLoader />;
+    }
+
+    const currentMessages = activeNegotiation?.rawId
+        ? (chatMessages[activeNegotiation.rawId] || chatMessages[String(activeNegotiation.rawId)] || chatMessages[Number(activeNegotiation.rawId)] || generateInitialMessages(activeNegotiation))
+        : [];
 
     const handleStartEdit = (msg: any) => {
         setEditingMsgId(msg.id);
@@ -68,9 +81,35 @@ export default function SupplierNegotiationChat() {
         }
     };
 
+    const toggleSidebarCollapse = () => {
+        setIsSidebarCollapsed(prev => !prev);
+    };
+
+    const handleResizeStart = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizing(true);
+        const startX = e.clientX;
+        const startW = sidebarWidth;
+
+        const handleMouseMove = (moveEvent: MouseEvent) => {
+            const delta = moveEvent.clientX - startX;
+            const newWidth = Math.min(Math.max(startW + delta, 240), 460);
+            setSidebarWidth(newWidth);
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+    };
+
     return (
-        <div className="p-4 md:p-6 w-full mx-auto h-[calc(100vh-64px)] flex flex-col font-sans">
-            <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-[500px] bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
+        <div className={`p-4 md:p-6 w-full mx-auto h-[calc(100vh-64px)] flex flex-col font-sans ${isResizing ? 'select-none cursor-col-resize' : ''}`}>
+            <div className="flex flex-1 min-h-[500px] min-w-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm relative">
                 {/* Left Sidebar */}
                 <ChatSidebar
                     allNegotiations={allNegotiations}
@@ -86,60 +125,76 @@ export default function SupplierNegotiationChat() {
                     setFilterTab={setFilterTab}
                     handleSelectChat={handleSelectChat}
                     togglePinChat={togglePinChat}
+                    isCollapsed={isSidebarCollapsed}
+                    onToggleCollapse={toggleSidebarCollapse}
+                    sidebarWidth={sidebarWidth}
+                    onResizeStart={handleResizeStart}
+                    isResizing={isResizing}
                 />
 
                 {/* Middle Chat Area */}
-                <div className="lg:col-span-8 xl:col-span-6 flex flex-col min-h-0 h-full bg-white relative">
-                    <ChatHeader
-                        activeNegotiation={activeNegotiation}
-                        sessionKey={sessionKey}
-                        showMobileDetails={showMobileDetails}
-                        setShowMobileDetails={setShowMobileDetails}
-                        onCallClick={(type) => setCallModal({ isOpen: true, type })}
-                    />
+                <div className="flex-1 min-w-0 flex flex-col min-h-0 h-full bg-white relative">
+                    {!activeNegotiation ? (
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+                            <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Select a negotiation to view messages</p>
+                        </div>
+                    ) : (
+                        <>
+                            <ChatHeader
+                                activeNegotiation={activeNegotiation}
+                                sessionKey={sessionKey}
+                                showMobileDetails={showMobileDetails}
+                                setShowMobileDetails={setShowMobileDetails}
+                                onCallClick={(type) => setCallModal({ isOpen: true, type })}
+                            />
 
-                    <ChatMessageList
-                        currentMessages={currentMessages}
-                        activeNegotiation={activeNegotiation}
-                        editingMsgId={editingMsgId}
-                        highlightedMsgId={highlightedMsgId}
-                        activePinnedIndex={activePinnedIndex}
-                        setActivePinnedIndex={setActivePinnedIndex}
-                        isCustomerTyping={isCustomerTyping}
-                        messagesEndRef={messagesEndRef}
-                        handleTogglePinMessage={handleTogglePinMessage}
-                        handleDeleteMessage={handleDeleteMessage}
-                        handleStartEdit={handleStartEdit}
-                        scrollToPinnedMessage={scrollToPinnedMessage}
-                        handleAcceptOffer={handleAcceptOffer}
-                        handleRejectOffer={handleRejectOffer}
-                    />
+                            <ChatMessageList
+                                currentMessages={currentMessages}
+                                activeNegotiation={activeNegotiation}
+                                editingMsgId={editingMsgId}
+                                highlightedMsgId={highlightedMsgId}
+                                activePinnedIndex={activePinnedIndex}
+                                setActivePinnedIndex={setActivePinnedIndex}
+                                isCustomerTyping={isCustomerTyping}
+                                messagesEndRef={messagesEndRef}
+                                handleTogglePinMessage={handleTogglePinMessage}
+                                handleDeleteMessage={handleDeleteMessage}
+                                handleStartEdit={handleStartEdit}
+                                scrollToPinnedMessage={scrollToPinnedMessage}
+                                handleAcceptOffer={handleAcceptOffer}
+                                handleRejectOffer={handleRejectOffer}
+                            />
 
-                    <ChatInputActions
-                        inputValue={inputValue}
-                        setInputValue={setInputValue}
-                        scrollToBottom={scrollToBottom}
-                        onSendMessage={handleSendMessage}
-                        onSendCounterOffer={handleSendCounterOffer}
-                        isSupplier={true}
-                        isEditing={!!editingMsgId}
-                        onCancelEdit={handleCancelEdit}
-                        initialBaseFreight={currentPrice}
-                        currency={activeNegotiation.currency || '€'}
-                    />
+                            <ChatInputActions
+                                inputValue={inputValue}
+                                setInputValue={setInputValue}
+                                scrollToBottom={scrollToBottom}
+                                onSendMessage={handleSendMessage}
+                                onSendCounterOffer={handleSendCounterOffer}
+                                onTyping={notifyTyping}
+                                isSupplier={true}
+                                isEditing={!!editingMsgId}
+                                onCancelEdit={handleCancelEdit}
+                                initialBaseFreight={currentPrice}
+                                currency="€"
+                            />
+                        </>
+                    )}
                 </div>
 
                 {/* Right Details Sidebar */}
-                <ChatDetailsSidebar
-                    activeNegotiation={activeNegotiation}
-                    negotiationStatusMap={negotiationStatusMap}
-                    currentPrice={currentPrice}
-                    liveOffers={liveOffers}
-                    showMobileDetails={showMobileDetails}
-                    setShowMobileDetails={setShowMobileDetails}
-                    chatMessages={chatMessages}
-                    onCallClick={(type) => setCallModal({ isOpen: true, type })}
-                />
+                {activeNegotiation && (
+                    <ChatDetailsSidebar
+                        activeNegotiation={activeNegotiation}
+                        negotiationStatusMap={negotiationStatusMap}
+                        currentPrice={currentPrice}
+                        liveOffers={liveOffers}
+                        showMobileDetails={showMobileDetails}
+                        setShowMobileDetails={setShowMobileDetails}
+                        chatMessages={{ ...chatMessages, [activeNegotiation.rawId]: currentMessages, [activeNegotiation.id]: currentMessages }}
+                        onCallClick={(type) => setCallModal({ isOpen: true, type })}
+                    />
+                )}
             </div>
 
             <CallComingSoonModal

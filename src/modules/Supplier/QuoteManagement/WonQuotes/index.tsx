@@ -3,32 +3,42 @@
  * Displays accepted/won transportation quotes with filter tabs and responsive table.
  */
 
-import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Trophy } from 'lucide-react';
-import DataTable from '@/components/tables/data-table';
-import Button from '@/components/ui/button';
-import EmptyState from '@/components/tables/empty-state';
-import { useSupplierWonQuotes } from './hooks/useSupplierWonQuotes';
-import { getWonQuoteColumns } from './components/columns';
-import { WonRowActions } from './components/WonRowActions';
-import { FilterTabs } from './components/FilterTabs';
+import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { RefreshCw, Trophy } from "lucide-react";
+import DataTable from "@/components/tables/data-table";
+import Button from "@/components/ui/button";
+import EmptyState from "@/components/tables/empty-state";
+import { useSupplierWonQuotes } from "./hooks/useSupplierWonQuotes";
+import { getWonQuoteColumns } from "./components/columns";
+import { WonRowActions } from "./components/WonRowActions";
+import { FilterTabs } from "./components/FilterTabs";
 
 export default function WonQuotes() {
     const navigate = useNavigate();
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const {
         quotes,
         filteredQuotes,
-        isLoading,
         activeTab,
         setActiveTab,
+        isLoading,
         fetchWonQuotes,
     } = useSupplierWonQuotes();
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await fetchWonQuotes();
+        } finally {
+            setTimeout(() => setIsRefreshing(false), 300);
+        }
+    };
 
     const columns = useMemo(() => getWonQuoteColumns(navigate), [navigate]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
@@ -43,12 +53,12 @@ export default function WonQuotes() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => fetchWonQuotes(true)}
-                        disabled={isLoading}
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
                         className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                     >
-                        <RefreshCw size={13} className={isLoading ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
-                        <span>{isLoading ? "Refreshing..." : "Refresh"}</span>
+                        <RefreshCw size={13} className={isRefreshing ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
+                        <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
                     </Button>
                 </div>
             </div>
@@ -68,21 +78,18 @@ export default function WonQuotes() {
                 keyExtractor={(item) => item.id}
                 searchPlaceholder="Search won quotes by ID, shipper, pickup, delivery..."
                 compact={true}
-                hideViewToggle={true}
-                isLoading={isLoading}
-                skeletonCount={filteredQuotes.length > 0 ? filteredQuotes.length : 3}
+                hideViewToggle={false}
+                isLoading={isLoading || isRefreshing}
                 tableLayout="fixed"
                 tableClassName="min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={Trophy}
                         title="No Won Quotes Found"
-                        description={activeTab === 'All'
+                        description={activeTab === "All"
                             ? "You have not won any quote requests yet. Keep submitting competitive bids to win freight loads."
                             : `No won quotes currently match the '${activeTab}' filter.`
                         }
-                        actionLabel="Browse Available RFQs"
-                        onAction={() => navigate('/supplier/quotes/requests')}
                     />
                 }
             />

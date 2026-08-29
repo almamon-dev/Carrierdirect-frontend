@@ -26,6 +26,7 @@ export type DocumentItem = {
 
 export type QuoteRequest = {
     id: string;
+    rawId?: string | number;
     slug: string;
     requestDate: string;
     customer: string;
@@ -82,6 +83,12 @@ export type QuoteRequest = {
     invoice?: any;
     images?: any[];
     notes?: string;
+    pickupDateRaw?: string;
+    deliveryDateRaw?: string;
+    isToday?: boolean;
+    isUpcoming?: boolean;
+    isExpired?: boolean;
+    isUrgent?: boolean;
 };
 
 export const mockQuoteRequests: QuoteRequest[] = [

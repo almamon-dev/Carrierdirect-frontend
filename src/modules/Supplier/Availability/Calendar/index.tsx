@@ -101,7 +101,7 @@ export default function Calendar() {
     };
 
     return (
-        <div className="p-3 md:p-4 w-full mx-auto space-y-3 min-h-screen flex flex-col">
+        <div className="p-3 md:p-4 w-full mx-auto space-y-3 min-h-screen flex flex-col bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                 <div>

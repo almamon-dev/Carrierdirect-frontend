@@ -65,7 +65,7 @@ export default function AvailabilityDashboard() {
     }, [statusFilter]);
 
     return (
-        <div className="p-4 w-full mx-auto space-y-4 min-h-screen">
+        <div className="p-4 w-full mx-auto space-y-4 min-h-screen bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header */}
             <div>
                 <h1 className="text-[18px] font-bold text-slate-900">Availability Dashboard</h1>

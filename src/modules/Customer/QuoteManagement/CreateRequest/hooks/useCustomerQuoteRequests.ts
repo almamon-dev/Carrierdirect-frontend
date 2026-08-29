@@ -10,6 +10,7 @@ import { ENDPOINTS } from '@/config/api';
 import { useToastStore } from '@/stores/useToastStore';
 import { CustomerQuoteRequestItem } from '../types';
 import { buildRepeatData } from '../utils/repeatHelpers';
+import { formatDisplayDate } from '@/lib/utils';
 
 const CACHE_KEY = 'customer_quote_requests_cache';
 
@@ -51,7 +52,7 @@ export function useCustomerQuoteRequests() {
         if (showSkeleton) setIsLoading(true);
         try {
             const [requestsRes, quotesRes] = await Promise.allSettled([
-                apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS),
+                apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS, { params: { per_page: 200 } }),
                 apiClient.get('/customer/quotes/received'),
             ]);
 
@@ -88,9 +89,7 @@ export function useCustomerQuoteRequests() {
                              matchedFromAllQuotes)
                         );
 
-                        const dateStr = q.pickup_date 
-                            ? new Date(q.pickup_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                            : (q.created_at ? new Date(q.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today');
+                        const dateStr = formatDisplayDate(q.requested_date || q.request_date || q.pickup_date || q.created_at || q.created_at_formatted || q.date);
 
                         const budgetStr = q.budget 
                             ? (String(q.budget).includes('€') || String(q.budget).includes('$') || String(q.budget).includes('৳') ? String(q.budget) : `€${q.budget}`)

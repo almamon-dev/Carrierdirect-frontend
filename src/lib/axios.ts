@@ -169,7 +169,11 @@ class ApiClient {
         }
     }
 
-    public get<T = any>(endpoint: string, params?: Record<string, string | number | boolean>, headers?: HeadersInit | { headers?: HeadersInit }) {
+    public get<T = any>(endpoint: string, paramsOrOptions?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
+        let params = paramsOrOptions;
+        if (paramsOrOptions && typeof paramsOrOptions === 'object' && 'params' in paramsOrOptions) {
+            params = paramsOrOptions.params;
+        }
         const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
         return this.request<T>(endpoint, { method: 'GET', params, headers: resolvedHeaders });
     }

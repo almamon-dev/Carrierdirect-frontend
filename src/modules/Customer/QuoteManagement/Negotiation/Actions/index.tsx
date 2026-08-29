@@ -1,18 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Paperclip, Image as ImageIcon, Smile, Send, X, File as FileIcon, DollarSign, Calculator, Plus, Trash2, Pencil, Check, Receipt } from 'lucide-react';
-import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
-import Textarea from '@/components/ui/textarea';
-import Modal from '@/components/modals/modal';
+import { Paperclip, Image as ImageIcon, Smile, Send, X, DollarSign, Calculator, Pencil, Check, AlertCircle } from 'lucide-react';
+import { CounterOfferModal } from './components/CounterOfferModal';
+import { AttachmentsList } from './components/AttachmentsList';
 
 const EMOJIS = ['😀', '😂', '🥰', '😎', '🤔', '👍', '🙏', '🔥', '✨', '💯', '🎉', '💡', '✅', '❌', '🚚', '📦'];
-
-interface CustomCharge {
-    id: number;
-    label: string;
-    description?: string;
-    amount: string;
-}
+const MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024; // 200 MB limit
 
 export default function ChatInputActions({
     inputValue,
@@ -20,6 +12,7 @@ export default function ChatInputActions({
     scrollToBottom,
     onSendMessage,
     onSendCounterOffer,
+    onTyping,
     isSupplier = false,
     isEditing = false,
     onCancelEdit,
@@ -31,6 +24,7 @@ export default function ChatInputActions({
     scrollToBottom: () => void;
     onSendMessage?: (text: string, files?: File[]) => void;
     onSendCounterOffer?: (amount: number, note: string) => void;
+    onTyping?: () => void;
     isSupplier?: boolean;
     isEditing?: boolean;
     onCancelEdit?: () => void;
@@ -38,432 +32,246 @@ export default function ChatInputActions({
     currency?: string;
 }) {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [previewModalFile, setPreviewModalFile] = useState<File | null>(null);
+    const [showAllFilesModal, setShowAllFilesModal] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showCounterOfferModal, setShowCounterOfferModal] = useState(false);
-
-    // Customer Target Total
-    const [counterOfferAmount, setCounterOfferAmount] = useState('');
-    const [counterOfferNote, setCounterOfferNote] = useState('');
-
-    // Supplier Itemized Breakdown State
-    const [baseFreight, setBaseFreight] = useState(initialBaseFreight ? String(initialBaseFreight) : '35000');
-
-    useEffect(() => {
-        if (initialBaseFreight) {
-            setBaseFreight(String(initialBaseFreight));
-        }
-    }, [initialBaseFreight]);
-    const [customCharges, setCustomCharges] = useState<CustomCharge[]>([
-        { id: 1, label: 'Load / Unload Fee', description: '2 helpers included', amount: '3500' },
-        { id: 2, label: 'Insurance Fee', description: 'Full goods coverage', amount: '1500' }
-    ]);
-
-    const addCustomCharge = () => {
-        setCustomCharges(prev => [...prev, { id: Date.now(), label: '', description: '', amount: '' }]);
-    };
-
-    const updateCustomCharge = (id: number, field: 'label' | 'description' | 'amount', value: string) => {
-        setCustomCharges(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
-    };
-
-    const removeCustomCharge = (id: number) => {
-        setCustomCharges(prev => prev.filter(c => c.id !== id));
-    };
-
-    // Calculate itemized total for supplier
-    const customTotal = customCharges.reduce((acc, c) => acc + (parseFloat(c.amount) || 0), 0);
-    const supplierTotal = (parseFloat(baseFreight) || 0) + customTotal;
+    const [fileErrorMessage, setFileErrorMessage] = useState<string | null>(null);
 
     const imageInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Close popovers when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
                 setShowEmojiPicker(false);
             }
         }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Auto-resize textarea
+    // Smooth WhatsApp-style auto-resize without layout shifting
     useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.style.height = '20px';
+            const scrollH = textarea.scrollHeight;
+            if (scrollH > 20) {
+                const newHeight = Math.min(scrollH, 120);
+                textarea.style.height = `${newHeight}px`;
+            }
         }
     }, [inputValue]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const filesArray = Array.from(e.target.files);
-            setSelectedFiles(prev => [...prev, ...filesArray]);
+    const handleSend = () => {
+        if (!inputValue.trim() && selectedFiles.length === 0) return;
+        if (onSendMessage) {
+            onSendMessage(inputValue, selectedFiles.length > 0 ? selectedFiles : undefined);
+        }
+        setInputValue('');
+        setSelectedFiles([]);
+        if (textareaRef.current) {
+            textareaRef.current.style.height = '20px';
+        }
+        setTimeout(scrollToBottom, 50);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const incomingFiles = Array.from(e.target.files);
+            const validFiles: File[] = [];
+            const oversizedFiles: File[] = [];
+
+            incomingFiles.forEach(file => {
+                if (file.size > MAX_FILE_SIZE_BYTES) {
+                    oversizedFiles.push(file);
+                } else {
+                    validFiles.push(file);
+                }
+            });
+
+            if (oversizedFiles.length > 0) {
+                const sampleName = oversizedFiles[0].name;
+                const sizeMb = (oversizedFiles[0].size / (1024 * 1024)).toFixed(1);
+                setFileErrorMessage(`"${sampleName}" exceeds the 200 MB size limit (${sizeMb} MB). Max allowed size is 200 MB.`);
+                setTimeout(() => setFileErrorMessage(null), 6000);
+            } else {
+                setFileErrorMessage(null);
+            }
+
+            if (validFiles.length > 0) {
+                setSelectedFiles(prev => [...prev, ...validFiles]);
+            }
         }
         e.target.value = '';
     };
 
-    const removeFile = (indexToRemove: number) => {
-        setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+    const removeFile = (index: number) => {
+        setSelectedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleEmojiClick = (emoji: string) => {
+    const handleAddEmoji = (emoji: string) => {
         setInputValue(inputValue + emoji);
-        textareaRef.current?.focus();
+        setShowEmojiPicker(false);
+        if (onTyping) onTyping();
+        if (textareaRef.current) textareaRef.current.focus();
     };
 
-    const handleSend = () => {
-        if (inputValue.trim() || selectedFiles.length > 0) {
-            if (onSendMessage) {
-                onSendMessage(inputValue, selectedFiles);
-            }
-            setInputValue('');
-            setSelectedFiles([]);
-            setShowEmojiPicker(false);
-            scrollToBottom();
-        }
-    };
-
-    const handleSubmitCounterOffer = (e: React.FormEvent) => {
-        e.preventDefault();
-        const finalAmount = isSupplier ? supplierTotal : parseFloat(counterOfferAmount);
-
-        if (!isNaN(finalAmount) && finalAmount > 0) {
-            if (onSendCounterOffer) {
-                const customDetails = customCharges.map(c => `${c.label || 'Fee'}${c.description ? ` (${c.description})` : ''}: €${c.amount}`).join(', ');
-                const noteText = isSupplier
-                    ? `${counterOfferNote ? counterOfferNote + ' | ' : ''}Breakdown: Base Freight €${baseFreight}${customDetails ? ', ' + customDetails : ''}`
-                    : counterOfferNote;
-                onSendCounterOffer(finalAmount, noteText);
-            }
-            setCounterOfferAmount('');
-            setCounterOfferNote('');
-            setShowCounterOfferModal(false);
-            scrollToBottom();
-        }
-    };
+    const hasContent = Boolean(inputValue.trim() || selectedFiles.length > 0);
 
     return (
-        <div className="bg-white p-4 border-t border-slate-200/90 z-10 flex flex-col gap-3 relative font-sans">
-            {/* Counter Offer Modal */}
-            <Modal
-                isOpen={showCounterOfferModal}
-                onClose={() => setShowCounterOfferModal(false)}
-                size="2xl"
-                title={
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-md bg-orange-50 text-[#FF4A1F] flex items-center justify-center font-bold">
-                            <Receipt size={20} />
-                        </div>
-                        <div>
-                            <h3 className="text-base font-bold text-slate-900">Make Counter Offer</h3>
-                            <p className="text-xs text-slate-500 font-medium mt-0.5">Propose a new price amount & cost breakdown for this quote</p>
-                        </div>
-                    </div>
-                }
-                footer={
-                    <div className="flex items-center justify-end gap-2.5 w-full">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setShowCounterOfferModal(false)}
-                            className="px-4 py-2 text-xs font-bold text-slate-700 rounded-md cursor-pointer"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            form="counter-offer-form"
-                            className="px-5 py-2 bg-[#FF4A1F] hover:bg-[#E03E15] text-white text-xs font-bold rounded-md transition-all cursor-pointer shadow-md"
-                        >
-                            Send Counter Offer
-                        </Button>
-                    </div>
-                }
-            >
-                <form id="counter-offer-form" onSubmit={handleSubmitCounterOffer} className="space-y-4 font-sans">
-                    {isSupplier ? (
-                        /* Supplier Breakdown Inputs */
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    Base Freight (€) <span className="text-rose-500">*</span>
-                                </label>
-                                <Input
-                                    type="number"
-                                    placeholder="e.g. 35000"
-                                    value={baseFreight}
-                                    onChange={(e) => setBaseFreight(e.target.value)}
-                                    required
-                                    min="1"
-                                    className="h-10 rounded-md text-xs font-bold"
-                                />
-                            </div>
-
-                            {/* Additional Charges */}
-                            <div className="space-y-3 pt-2 border-t border-slate-100">
-                                <div className="flex items-center justify-between">
-                                    <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                        Additional Charges & Fees
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={addCustomCharge}
-                                        className="py-1 px-3 bg-orange-50 hover:bg-[#FF4A1F] text-[#FF4A1F] hover:text-white border border-orange-200/80 rounded-full text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
-                                    >
-                                        <Plus size={14} />
-                                        <span>Add Fee</span>
-                                    </button>
-                                </div>
-
-                                <div className="space-y-2">
-                                    {customCharges.map((charge) => (
-                                        <div key={charge.id} className="flex items-center gap-2 p-2.5 bg-slate-50 rounded-md border border-slate-200/80">
-                                            <div className="w-1/3 min-w-0">
-                                                <Input
-                                                    type="text"
-                                                    placeholder="Fee Name (e.g. Loading)"
-                                                    value={charge.label}
-                                                    onChange={(e) => updateCustomCharge(charge.id, 'label', e.target.value)}
-                                                    className="text-xs h-9 bg-white rounded-lg"
-                                                />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <Input
-                                                    type="text"
-                                                    placeholder="Description (Optional)"
-                                                    value={charge.description || ''}
-                                                    onChange={(e) => updateCustomCharge(charge.id, 'description', e.target.value)}
-                                                    className="text-xs h-9 bg-white rounded-lg"
-                                                />
-                                            </div>
-                                            <div className="w-28 shrink-0">
-                                                <Input
-                                                    type="number"
-                                                    placeholder="€ Amount"
-                                                    value={charge.amount}
-                                                    onChange={(e) => updateCustomCharge(charge.id, 'amount', e.target.value)}
-                                                    className="text-xs h-9 font-bold bg-white rounded-lg"
-                                                    min="0"
-                                                />
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeCustomCharge(charge.id)}
-                                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                                                title="Remove Fee"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="flex justify-between items-center p-3.5 bg-slate-100/90 rounded-md border border-slate-200">
-                                <span className="text-xs font-bold text-slate-800">Total Calculated Offer:</span>
-                                <span className="text-lg font-black text-[#FF4A1F]">€ {supplierTotal.toLocaleString()}</span>
-                            </div>
-                        </div>
-                    ) : (
-                        /* Customer Target Total Input */
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                Proposed Target Total (€) <span className="text-rose-500">*</span>
-                            </label>
-                            <Input
-                                type="number"
-                                placeholder="e.g. 38500"
-                                value={counterOfferAmount}
-                                onChange={(e) => setCounterOfferAmount(e.target.value)}
-                                required
-                                min="1"
-                                className="h-10 rounded-md text-xs font-bold"
-                            />
-                        </div>
-                    )}
-
-                    <div>
-                        <Textarea
-                            label="Note / Explanation (Optional)"
-                            placeholder={isSupplier ? "Explain details regarding freight charges..." : "Add comments regarding your counter offer..."}
-                            value={counterOfferNote}
-                            onChange={(e) => setCounterOfferNote(e.target.value)}
-                            rows={3}
-                            className="text-xs rounded-md"
-                        />
-                    </div>
-                </form>
-            </Modal>
-
-            {/* Editing Message Banner */}
-            {isEditing && (
-                <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-md mb-1 flex items-center justify-between text-xs animate-fade-in">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <Pencil size={14} className="text-amber-600 shrink-0" />
-                        <span className="font-bold text-amber-900 shrink-0">Editing Message:</span>
-                        <span className="text-slate-700 truncate font-medium">{inputValue}</span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onCancelEdit}
-                        className="p-1 text-slate-400 hover:text-slate-700 hover:bg-amber-100 rounded-full transition-colors cursor-pointer shrink-0 ml-2"
-                        title="Cancel Editing"
-                    >
-                        <X size={14} />
+        <div className="relative border-t border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-[#181d24] transition-colors">
+            {/* 200MB Max File Validation Error Banner */}
+            {fileErrorMessage && (
+                <div className="flex items-center justify-between px-4 py-2 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold border-b border-rose-200/80 dark:border-rose-900/40 animate-in fade-in duration-150">
+                    <span className="flex items-center gap-1.5">
+                        <AlertCircle size={14} className="text-rose-600 shrink-0" />
+                        <span>{fileErrorMessage}</span>
+                    </span>
+                    <button type="button" onClick={() => setFileErrorMessage(null)} className="hover:opacity-75 p-1 cursor-pointer">
+                        <X size={13} />
                     </button>
                 </div>
             )}
 
-            {/* Selected File Previews */}
-            {selectedFiles.length > 0 && (
-                <div className="flex gap-2 px-1 overflow-x-auto pb-1">
-                    {selectedFiles.map((file, idx) => (
-                        <div key={idx} className="relative group bg-slate-50 rounded-md p-2 flex items-center gap-2.5 border border-slate-200 pr-8 shrink-0 max-w-[220px]">
-                            {file.type.startsWith('image/') ? (
-                                <div className="w-9 h-9 rounded-lg bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
-                                    <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
-                                </div>
-                            ) : (
-                                <div className="w-9 h-9 rounded-lg bg-orange-50 text-[#FF4A1F] shrink-0 flex items-center justify-center font-bold">
-                                    <FileIcon size={18} />
-                                </div>
-                            )}
-                            <div className="text-xs font-semibold text-slate-700 truncate">{file.name}</div>
-                            <button
-                                type="button"
-                                onClick={() => removeFile(idx)}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-white text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-full flex items-center justify-center transition-colors shadow-xs cursor-pointer"
-                            >
-                                <X size={12} />
-                            </button>
-                        </div>
-                    ))}
+            {/* Edit Message Indicator Banner */}
+            {isEditing && (
+                <div className="flex items-center justify-between px-4 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-semibold border-b border-amber-200/60 dark:border-amber-900/40 animate-in fade-in duration-150">
+                    <span className="flex items-center gap-1.5">
+                        <Pencil size={13} className="text-amber-600" /> Editing Message
+                    </span>
+                    <button type="button" onClick={onCancelEdit} className="hover:underline flex items-center gap-0.5 text-[11px] cursor-pointer">
+                        <X size={12} /> Cancel
+                    </button>
                 </div>
             )}
 
-            {/* Input Toolbar Bar */}
-            <div className="flex items-center gap-2 relative">
-                {/* Hidden File Inputs */}
-                <input
-                    type="file"
-                    ref={imageInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileChange}
-                />
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    multiple
-                    onChange={handleFileChange}
-                />
+            {/* Attached files preview chips */}
+            <AttachmentsList
+                selectedFiles={selectedFiles}
+                onRemoveFile={removeFile}
+                previewModalFile={previewModalFile}
+                setPreviewModalFile={setPreviewModalFile}
+                showAllFilesModal={showAllFilesModal}
+                setShowAllFilesModal={setShowAllFilesModal}
+            />
 
-                {/* Counter Offer Launcher Button */}
-                <button
-                    type="button"
-                    onClick={() => setShowCounterOfferModal(true)}
-                    className="h-10 px-3.5 bg-orange-50 hover:bg-[#FF4A1F] text-[#FF4A1F] hover:text-white border border-orange-200 hover:border-[#FF4A1F] rounded-md text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-xs"
-                    title={isSupplier ? "Submit itemized price breakdown" : "Submit a new counter offer"}
-                >
-                    {isSupplier ? <Calculator size={15} className="stroke-[2.5]" /> : <DollarSign size={15} className="stroke-[2.5]" />}
-                    <span className="hidden sm:inline">Counter Offer</span>
-                </button>
+            {/* Main Action Bar */}
+            <div className="flex items-end gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5">
+                {/* Left Attachment Actions */}
+                <div className="flex items-center gap-0.5 text-slate-400 dark:text-slate-500 shrink-0 pb-0.5">
+                    <input type="file" ref={imageInputRef} onChange={handleFileSelect} accept="image/*" multiple className="hidden" />
+                    <button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                        title="Attach Photo"
+                    >
+                        <ImageIcon size={18} />
+                    </button>
 
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 text-slate-500 hover:text-[#FF4A1F] rounded-md hover:bg-slate-100 shrink-0"
-                    onClick={() => imageInputRef.current?.click()}
-                    title="Send Image"
-                >
-                    <ImageIcon size={20} />
-                </Button>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 text-slate-500 hover:text-[#FF4A1F] rounded-md hover:bg-slate-100 shrink-0"
-                    onClick={() => fileInputRef.current?.click()}
-                    title="Attach File"
-                >
-                    <Paperclip size={20} />
-                </Button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} multiple className="hidden" />
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                        title="Attach Document"
+                    >
+                        <Paperclip size={18} />
+                    </button>
 
-                {/* Textarea Pill Container */}
-                <div className="flex-1 bg-slate-100/80 rounded-full flex items-center pr-2 pl-4 py-1 border border-slate-200/80 focus-within:bg-white">
-                    <textarea
-                        ref={textareaRef}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={isEditing ? "Edit message..." : "Type a message..."}
-                        className="flex-1 bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none resize-none py-1.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 font-medium leading-relaxed max-h-[160px] overflow-y-auto custom-scrollbar"
-                        rows={1}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSend();
-                            }
-                        }}
-                    />
-
-                    <div ref={emojiPickerRef} className="relative shrink-0 ml-1">
-                        <Button
+                    <div className="relative" ref={emojiPickerRef}>
+                        <button
                             type="button"
-                            variant="ghost"
-                            size="icon"
-                            className={`h-8 w-8 rounded-full shrink-0 ${showEmojiPicker ? 'bg-orange-100 text-[#FF4A1F]' : 'text-slate-400 hover:text-[#FF4A1F] hover:bg-slate-200'}`}
                             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                            className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                            title="Insert Emoji"
                         >
                             <Smile size={18} />
-                        </Button>
-
-                        {/* Emoji Picker Popover */}
+                        </button>
                         {showEmojiPicker && (
-                            <div className="absolute bottom-full right-0 mb-3 bg-white border border-slate-200 rounded-2xl shadow-2xl p-3 w-[260px] z-30 font-sans">
-                                <div className="grid grid-cols-5 gap-1 text-base">
-                                    {EMOJIS.map(emoji => (
-                                        <button
-                                            key={emoji}
-                                            type="button"
-                                            onClick={() => handleEmojiClick(emoji)}
-                                            className="h-9 w-9 text-lg flex items-center justify-center rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
-                                        >
-                                            {emoji}
-                                        </button>
-                                    ))}
-                                </div>
+                            <div className="absolute bottom-11 left-0 z-50 bg-white dark:bg-slate-800 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-700 p-2.5 grid grid-cols-4 gap-1.5 w-52 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                                {EMOJIS.map(e => (
+                                    <button
+                                        key={e}
+                                        type="button"
+                                        onClick={() => handleAddEmoji(e)}
+                                        className="text-xl p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer text-center"
+                                    >
+                                        {e}
+                                    </button>
+                                ))}
                             </div>
                         )}
                     </div>
                 </div>
 
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={`h-10 w-10 rounded-full shrink-0 shadow-md transition-all ${isEditing
-                        ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]'
-                        : inputValue.trim() || selectedFiles.length > 0
-                            ? 'bg-[#FF4A1F] text-white hover:bg-[#E03E15]'
-                            : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
-                        }`}
-                    onClick={handleSend}
-                    title={isEditing ? "Save changes" : "Send message"}
-                >
-                    {isEditing ? (
-                        <Check size={18} className="stroke-[2.5]" />
-                    ) : (
-                        <Send size={18} className="stroke-[2.5]" />
+                {/* WhatsApp-Style Clean Input Field (consistent radius & zero layout jumping) */}
+                <div className="flex-1 min-w-0 bg-slate-100/90 dark:bg-[#232a34] rounded-[22px] px-3.5 py-2 border border-transparent focus-within:border-slate-300 dark:focus-within:border-slate-600 focus-within:bg-white dark:focus-within:bg-[#1c222b] focus-within:ring-2 focus-within:ring-slate-300/30 dark:focus-within:ring-slate-700/50 transition-all flex items-center">
+                    <textarea
+                        ref={textareaRef}
+                        rows={1}
+                        value={inputValue}
+                        onChange={e => {
+                            setInputValue(e.target.value);
+                            if (onTyping) onTyping();
+                        }}
+                        onKeyDown={handleKeyDown}
+                        placeholder={isEditing ? 'Update your message...' : 'Type a message...'}
+                        className="w-full resize-none max-h-32 p-0 m-0 text-[13px] sm:text-[13.5px] bg-transparent border-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 font-medium focus:outline-none focus:ring-0 custom-scrollbar leading-[20px] block"
+                    />
+                </div>
+
+                {/* Right Actions: Counter Offer & Send Button */}
+                <div className="flex items-center gap-1.5 shrink-0 pb-0.5">
+                    {onSendCounterOffer && (
+                        <button
+                            type="button"
+                            onClick={() => setShowCounterOfferModal(true)}
+                            className="flex items-center gap-1 sm:gap-1.5 h-9 px-2.5 sm:px-3.5 text-xs font-bold rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-all shadow-2xs cursor-pointer active:scale-95"
+                            title={isSupplier ? 'Revise Offer' : 'Propose Counter Rate'}
+                        >
+                            {isSupplier ? <Calculator size={14} className="shrink-0 text-slate-500" /> : <DollarSign size={14} className="shrink-0 text-slate-500" />}
+                            <span className="hidden md:inline">{isSupplier ? 'Revise Offer' : 'Counter Offer'}</span>
+                            <span className="md:hidden inline">{isSupplier ? 'Revise' : 'Counter'}</span>
+                        </button>
                     )}
-                </Button>
+
+                    <button
+                        type="button"
+                        onClick={handleSend}
+                        disabled={!hasContent}
+                        className={`h-9 w-9 flex items-center justify-center rounded-full transition-all shrink-0 ${
+                            hasContent
+                                ? 'bg-[#00a884] hover:bg-[#008f70] text-white shadow-xs active:scale-95 cursor-pointer'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                        }`}
+                        title="Send message (Enter)"
+                    >
+                        {isEditing ? <Check size={16} /> : <Send size={15} />}
+                    </button>
+                </div>
             </div>
+
+            {/* Counter / Revision Offer Modal */}
+            <CounterOfferModal
+                isOpen={showCounterOfferModal}
+                onClose={() => setShowCounterOfferModal(false)}
+                isSupplier={isSupplier}
+                initialBaseFreight={initialBaseFreight}
+                currency={currency}
+                onSubmit={(amt, note) => onSendCounterOffer && onSendCounterOffer(amt, note)}
+            />
         </div>
     );
 }

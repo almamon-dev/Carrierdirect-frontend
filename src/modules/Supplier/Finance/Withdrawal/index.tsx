@@ -244,7 +244,7 @@ export default function Withdrawal() {
     const isStripeConnected = Boolean(stats.isStripeConnected || (stripeAccountData?.onboarding_status === 'completed' && stripeAccountData?.payouts_enabled));
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             
             {/* Header matching Active Jobs & Earnings Dashboard */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">

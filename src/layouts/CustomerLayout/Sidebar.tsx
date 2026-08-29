@@ -10,6 +10,8 @@ interface SidebarProps {
     isOpen: boolean;
 }
 
+const getSidebarItemBadge = (_path: string) => null;
+
 const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen: boolean }) => {
     const isActiveGroup = item.items.some((subItem: any) => 
         location.pathname === subItem.path || 
@@ -59,6 +61,8 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
                 <div className={`${isOpen ? 'pl-[34px] pr-3' : 'px-1'} space-y-1 mb-1.5 mt-0.5`}>
                     {item.items.map((subItem: any) => {
                         const isActive = location.pathname === subItem.path || (subItem.path !== '/' && location.pathname.startsWith(subItem.path));
+                        const badgeCount = subItem.badge || getSidebarItemBadge(subItem.path);
+
                         return (
                             <Link
                                 key={subItem.name}
@@ -70,16 +74,21 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
                                 }`}
                                 title={!isOpen ? subItem.name : undefined}
                             >
-                                <div className={`flex items-center ${isOpen ? 'gap-3' : 'justify-center'} whitespace-nowrap`}>
+                                <div className={`flex items-center ${isOpen ? 'gap-3' : 'justify-center'} whitespace-nowrap min-w-0`}>
                                     {isOpen ? (
                                         <>
                                             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600 group-hover:bg-slate-400 dark:group-hover:bg-slate-300'}`} />
-                                            {subItem.name}
+                                            <span className="truncate">{subItem.name}</span>
                                         </>
                                     ) : (
                                         <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600'}`} />
                                     )}
                                 </div>
+                                {isOpen && Number(badgeCount) > 0 ? (
+                                    <span className="ml-auto shrink-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold text-white bg-[#ff4a1f] rounded-full leading-none text-center shadow-xs">
+                                        {badgeCount}
+                                    </span>
+                                ) : null}
                             </Link>
                         );
                     })}

@@ -7,6 +7,7 @@ import EmptyState from '@/components/tables/empty-state';
 import InvoiceView from './View';
 import RatingModal from '@/components/modals/rating-modal';
 import apiClient from '@/lib/axios';
+import { formatDisplayDate } from '@/lib/utils';
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -52,24 +53,24 @@ export default function Invoices() {
           onClick={() => setSelectedInvoice(row)}
           className="font-bold text-[#ff4a1f] hover:underline cursor-pointer text-left"
         >
-          {row.invoice_number || row.id}
+          {row.invoice_number || (row.id ? `INV-${String(row.id).padStart(4, '0')}` : 'INV-0001')}
         </button>
       ) 
     },
     { 
       id: 'date', 
       label: 'Issue Date', 
-      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.date || row.created_at_formatted || 'N/A'}</span> 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{formatDisplayDate(row.issue_date || row.created_at || row.date || row.created_at_formatted)}</span> 
     },
     { 
       id: 'dueDate', 
       label: 'Due Date', 
-      render: (row) => <span className="text-slate-600 whitespace-nowrap">{row.due_date || row.dueDate || 'N/A'}</span> 
+      render: (row) => <span className="text-slate-600 whitespace-nowrap">{formatDisplayDate(row.due_date || row.dueDate, '30 Days')}</span> 
     },
     { 
       id: 'amount', 
       label: 'Amount', 
-      render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount || row.total_amount_formatted || `€ ${row.total_amount || 0}`}</span> 
+      render: (row) => <span className="font-bold text-slate-900 whitespace-nowrap">{row.amount ? (String(row.amount).includes('€') ? row.amount : `€ ${row.amount}`) : (row.total_amount ? `€ ${row.total_amount}` : '€ 0.00')}</span> 
     },
     {
       id: 'status',

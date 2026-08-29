@@ -16,7 +16,7 @@ interface QuotaReminderBannerProps {
 
 export const QuotaReminderBanner: React.FC<QuotaReminderBannerProps> = ({
     quotaUsed = 0,
-    maxQuota = 5,
+    maxQuota = 15,
     className = '',
     title = 'Free Plan Quota Reminder',
     description,

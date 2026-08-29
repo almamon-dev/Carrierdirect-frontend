@@ -15,7 +15,8 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'id',
         label: 'ID',
-        className: 'w-[70px]',
+        sortable: true,
+        className: 'w-[75px] min-w-[75px]',
         render: (row) => (
             <div className="flex items-center h-5">
                 <button
@@ -23,7 +24,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
                     onClick={() => {
                         const encId = encryptId(row.rawId || row.id);
                         const sKey = row.sessionKey || `ses-${row.rawId || row.id}`;
-                        navigate(`/supplier/quotes/negotiation/view/${encId}/${sKey}`);
+                        navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`);
                     }}
                     className="font-bold text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer text-xs leading-none"
                 >
@@ -35,7 +36,8 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'customer',
         label: 'Customer',
-        className: 'w-[130px]',
+        sortable: true,
+        className: 'w-[140px] min-w-[140px]',
         render: (row) => (
             <div className="flex items-center gap-2 whitespace-nowrap min-w-0 h-5">
                 {row.customerAvatar ? (
@@ -52,7 +54,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
                         {row.customer ? row.customer.charAt(0).toUpperCase() : <User size={11} />}
                     </div>
                 )}
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[100px] leading-none" title={row.customer}>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[105px] leading-none" title={row.customer}>
                     {row.customer}
                 </span>
             </div>
@@ -61,7 +63,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'pickup',
         label: 'Pickup Address',
-        className: 'min-w-0',
+        className: 'min-w-[170px]',
         render: (row) => (
             <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.pickup}>
                 <MapPin size={13} className="text-emerald-500 shrink-0" />
@@ -74,7 +76,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'delivery',
         label: 'Delivery Address',
-        className: 'min-w-0',
+        className: 'min-w-[170px]',
         render: (row) => (
             <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.delivery}>
                 <MapPin size={13} className="text-red-500 shrink-0" />
@@ -87,7 +89,8 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'distance',
         label: 'Distance',
-        className: 'w-[75px] text-center',
+        sortable: true,
+        className: 'w-[85px] min-w-[85px] text-center',
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold leading-none">
@@ -99,11 +102,12 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'budget',
         label: 'Budget',
-        className: 'w-[90px]',
+        sortable: true,
+        className: 'w-[95px] min-w-[95px]',
         render: (row) => (
             <div className="flex items-center h-5">
                 <span className="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100 text-xs leading-none">
-                    {row.budget}
+                    {row.budget ? (String(row.budget).includes('€') ? row.budget : `€ ${row.budget}`) : '€ 0'}
                 </span>
             </div>
         )
@@ -111,7 +115,8 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'priority',
         label: 'Priority',
-        className: 'w-[80px] text-center',
+        sortable: true,
+        className: 'w-[90px] min-w-[90px] text-center',
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
@@ -127,7 +132,8 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'status',
         label: 'Status',
-        className: 'w-[105px] text-center',
+        sortable: true,
+        className: 'w-[110px] min-w-[110px] text-center',
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${getStatusBadgeClass(row.status)}`}>
@@ -139,7 +145,8 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'requestDate',
         label: 'Date',
-        className: 'w-[110px] text-center',
+        sortable: true,
+        className: 'w-[125px] min-w-[125px] text-center',
         render: (row) => (
             <div className="flex items-center justify-center h-5">
                 <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">

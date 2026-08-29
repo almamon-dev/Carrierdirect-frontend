@@ -19,3 +19,6 @@ export type { SubscriptionLockModalProps } from './subscription-lock-modal';
 export { default as RatingModal } from './rating-modal';
 export type { RatingModalProps } from './rating-modal/index';
 
+export { default as SupplierAccountConnectModal } from './supplier-connect-modal';
+export type { SupplierAccountConnectModalProps } from './supplier-connect-modal';
+

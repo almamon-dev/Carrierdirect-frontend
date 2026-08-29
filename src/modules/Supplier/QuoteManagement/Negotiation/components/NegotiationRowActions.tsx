@@ -48,7 +48,7 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
         } else {
             const encId = encryptId(row.rawId || row.id);
             const sKey = row.sessionKey || `ses-${row.rawId || row.id}`;
-            navigate(`/supplier/quotes/negotiation/view/${encId}/${sKey}`);
+            navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`);
         }
     };
 
@@ -82,6 +82,8 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
         };
     }, [isOpen]);
 
+    const unreadCount = row.unreadCount && row.unreadCount > 0 ? row.unreadCount : (row.priority === 'Urgent' ? 1 : 0);
+
     return (
         <div className="relative flex items-center justify-end gap-1.5 w-full">
             {/* Direct 1-Click Chat Button */}
@@ -93,9 +95,9 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
             >
                 <MessageSquare size={12.5} className="shrink-0" />
                 <span className="leading-none">Chat</span>
-                {row.unreadCount && row.unreadCount > 0 ? (
-                    <span className="inline-flex items-center justify-center min-w-[15px] h-3.5 px-1 text-[9px] font-bold text-[#ff4a1f] bg-white rounded-full leading-none">
-                        {row.unreadCount}
+                {unreadCount > 0 ? (
+                    <span className="flex items-center justify-center min-w-[17px] h-[17px] px-1 text-[10px] font-bold text-white bg-emerald-500 rounded-full leading-none text-center shadow-xs">
+                        {unreadCount}
                     </span>
                 ) : null}
             </button>
@@ -135,7 +137,7 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
                             handleClose();
                             const encId = encryptId(row.rawId || row.id);
                             const sKey = row.sessionKey || `ses-${row.rawId || row.id}`;
-                            navigate(`/supplier/quotes/negotiation/view/${encId}/${sKey}`);
+                            navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`);
                         }}
                     >
                         <Eye size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />

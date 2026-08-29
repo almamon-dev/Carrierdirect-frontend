@@ -1,7 +1,3 @@
-/**
- * Supplier Negotiation Chat Types
- */
-
 export interface ChatAttachment {
     name: string;
     size: string;
@@ -11,7 +7,7 @@ export interface ChatAttachment {
 
 export interface ChatMessage {
     id: number | string;
-    type: 'system' | 'sent' | 'received' | 'offer';
+    type: 'system' | 'sent' | 'received' | 'offer' | 'quote_request';
     text: string;
     time: string;
     sender?: string;
@@ -23,5 +19,10 @@ export interface ChatMessage {
     isPinned?: boolean;
     isDeleted?: boolean;
     isEdited?: boolean;
+    seen?: boolean;
+    seenAt?: string;
+    isRead?: boolean;
+    deliveryStatus?: 'sending' | 'sent' | 'delivered' | 'seen';
     status?: 'pending' | 'accepted' | 'rejected';
+    declineReason?: string;
 }

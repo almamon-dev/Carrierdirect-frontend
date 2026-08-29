@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, User, Settings, LogOut, ChevronDown, CheckCircle2, Package, Clock, Sun } from 'lucide-react';
+import { Search, User, Settings, LogOut, ChevronDown, Sun } from 'lucide-react';
 import Sidebar from './Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
+import HeaderNotifications from '@/components/HeaderNotifications';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
 import ThemeSwitcher from '@/components/common/theme-switcher';
 import { TOKEN_CONFIG } from '@/config/auth';
@@ -28,13 +29,6 @@ function initials(name?: string): string {
         .map(w => w[0].toUpperCase())
         .join('');
 }
-
-const mockNotifications = [
-    { id: 1, title: 'Quote Received', desc: 'FastFreight submitted a quote of £420.', time: '5m ago', icon: Package },
-    { id: 2, title: 'Shipment Dispatched', desc: 'Driver John is en route for pickup.', time: '1h ago', icon: Clock },
-    { id: 3, title: 'Payment Escrowed', desc: 'Escrow payment verified for Order #1042.', time: '3h ago', icon: CheckCircle2 },
-    { id: 4, title: 'System Notice', desc: 'Pay Later limit increased by £1,500.', time: '1d ago', icon: Bell },
-];
 
 const RouteLoadingFallback = () => (
     <div className="p-4 md:p-6 w-full mx-auto space-y-5 animate-in fade-in duration-150">
@@ -67,7 +61,6 @@ export default function CustomerLayout() {
         return true;
     });
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [authUser, setAuthUser] = useState(getAuthUser);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -75,7 +68,6 @@ export default function CustomerLayout() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
     const mainRef = useRef<HTMLElement>(null);
 
@@ -89,9 +81,6 @@ export default function CustomerLayout() {
     // Close dropdowns on outside click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-                setIsNotificationOpen(false);
-            }
             if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
                 setIsProfileOpen(false);
             }
@@ -183,53 +172,8 @@ export default function CustomerLayout() {
                     {/* Right Header Controls */}
                     <div className="flex items-center gap-3">
 
-                        {/* Notification Bell Dropdown with Count Badge */}
-                        <div className="relative" ref={notifRef}>
-                            <button
-                                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors relative cursor-pointer"
-                                title="Notifications"
-                            >
-                                <Bell size={19} />
-                                <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-[#ff4a1f] text-white text-[11px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#12161c] shadow-sm ring-1 ring-[#ff4a1f]/20">
-                                    {mockNotifications.length}
-                                </span>
-                            </button>
-
-                            {isNotificationOpen && (
-                                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#1e2329] rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-2xl z-[999] overflow-hidden text-xs">
-                                    <div className="px-4 py-3 bg-slate-900 dark:bg-[#12161c] text-white font-bold flex items-center justify-between border-b border-slate-800">
-                                        <span>Notifications</span>
-                                        <span className="bg-[#ff4a1f] text-white px-2 py-0.5 rounded-full text-[10px]">
-                                            {mockNotifications.length} New
-                                        </span>
-                                    </div>
-                                    <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-72 overflow-y-auto">
-                                        {mockNotifications.map((notif) => (
-                                            <div key={notif.id} className="p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors flex gap-3 items-start">
-                                                <notif.icon className="w-4 h-4 text-[#ff4a1f] shrink-0 mt-0.5" />
-                                                <div>
-                                                    <p className="font-bold text-slate-900 dark:text-slate-100">{notif.title}</p>
-                                                    <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">{notif.desc}</p>
-                                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">{notif.time}</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="p-2.5 bg-slate-50 dark:bg-[#181a20] border-t border-slate-100 dark:border-slate-800 text-center">
-                                        <button
-                                            onClick={() => {
-                                                setIsNotificationOpen(false);
-                                                navigate('/customer/notifications');
-                                            }}
-                                            className="text-xs font-bold text-[#ff4a1f] hover:underline cursor-pointer"
-                                        >
-                                            View All Notifications
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {/* Dynamic Notification Bell Dropdown with Count Badge */}
+                        <HeaderNotifications role="customer" />
 
                         {/* Profile Dropdown */}
                         <div className="relative" ref={profileRef}>
@@ -248,7 +192,7 @@ export default function CustomerLayout() {
                             </button>
 
                             {isProfileOpen && (
-                                <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-[#1e2329] rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-2xl z-[999] overflow-hidden text-xs py-1.5">
+                                <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-[#1e2329] rounded-[3px] border border-slate-200 dark:border-slate-700/80 shadow-2xl z-[999] overflow-hidden text-xs py-1.5">
                                     {/* User info header */}
                                     <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-[#181a20]/50">
                                         <div className="w-9 h-9 rounded-full bg-slate-700 dark:bg-[#ff4a1f] text-white flex items-center justify-center text-sm font-black shrink-0">
@@ -258,7 +202,7 @@ export default function CustomerLayout() {
                                             <p className="font-bold text-slate-900 dark:text-slate-100 truncate">{authUser?.name || 'Guest User'}</p>
                                             <p className="text-slate-500 dark:text-slate-400 text-[11px] truncate">{authUser?.email || ''}</p>
                                             {authUser?.user_type && (
-                                                <span className="inline-block mt-0.5 text-[10px] font-bold text-[#FF4A1F] bg-orange-50 dark:bg-[#ff4a1f]/15 px-1.5 py-0.5 rounded capitalize">
+                                                <span className="inline-block mt-0.5 text-[10px] font-bold text-[#FF4A1F] bg-orange-50 dark:bg-[#ff4a1f]/15 px-1.5 py-0.5 rounded-[3px] capitalize">
                                                     {authUser.user_type}
                                                 </span>
                                             )}
@@ -267,7 +211,7 @@ export default function CustomerLayout() {
 
                                     <div className="p-1.5 space-y-0.5">
                                         {/* Theme Switcher Row */}
-                                        <div className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+                                        <div className="flex items-center justify-between px-3 py-2 rounded-[3px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                             <div className="flex items-center gap-2.5">
                                                 <Sun size={15} className="text-slate-500 dark:text-slate-400" />
                                                 <span className="font-medium text-xs">Theme Mode</span>
@@ -280,7 +224,7 @@ export default function CustomerLayout() {
                                         <Link
                                             to="/customer/settings?tab=profile"
                                             onClick={() => setIsProfileOpen(false)}
-                                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors"
+                                            className="flex items-center gap-2.5 px-3 py-2 rounded-[3px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors"
                                         >
                                             <User size={15} />
                                             My Profile
@@ -289,7 +233,7 @@ export default function CustomerLayout() {
                                         <Link
                                             to="/customer/settings"
                                             onClick={() => setIsProfileOpen(false)}
-                                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors"
+                                            className="flex items-center gap-2.5 px-3 py-2 rounded-[3px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors"
                                         >
                                             <Settings size={15} />
                                             Account Settings
@@ -299,7 +243,7 @@ export default function CustomerLayout() {
 
                                         <button
                                             onClick={() => { setIsProfileOpen(false); handleLogout(); }}
-                                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left font-bold cursor-pointer"
+                                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[3px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left font-bold cursor-pointer"
                                         >
                                             <LogOut size={15} />
                                             Logout

@@ -36,7 +36,7 @@ export default function CreateAvailabilitySchedule() {
     ];
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen pb-20 font-sans antialiased">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen pb-20 font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-3">

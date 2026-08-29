@@ -27,7 +27,7 @@ export default function SupplierSettings() {
   };
 
   return (
-    <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen pb-16 font-sans antialiased">
+    <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen pb-16 font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
       {/* Header matching Team Management & Active Jobs */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>

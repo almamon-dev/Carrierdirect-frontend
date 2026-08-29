@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { X, CheckCircle2, BadgeCheck, User, FileText, Phone, ChevronDown } from 'lucide-react';
 import AttachmentsList from '@/modules/Customer/QuoteManagement/Negotiation/Attachments';
+import { BadgeCheck, CheckCircle2, ChevronDown, FileText, Phone, User, X } from 'lucide-react';
+import React, { useState } from 'react';
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
+import { CustomerProfileModal } from './CustomerProfileModal';
 import { NegotiationHistoryTimeline } from './NegotiationHistoryTimeline';
 import { PricingBreakdownSection } from './PricingBreakdownSection';
 
@@ -29,9 +30,9 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
 }) => {
     const [openSections, setOpenSections] = useState({
         overview: true,
-        logistics: true,
-        pricing: true,
-        history: true,
+        logistics: false,
+        pricing: false,
+        history: false,
         documents: true
     });
 
@@ -40,17 +41,30 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
     };
 
     const statusText = negotiationStatusMap[activeNegotiation.rawId] || activeNegotiation.status || 'Active Negotiation';
-    const currency = activeNegotiation.currency || '€';
+    const currency = (!activeNegotiation.currency || activeNegotiation.currency === '€') ? '€' : activeNegotiation.currency;
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
-    const messageAttachments = (chatMessages?.[activeNegotiation.rawId] || [])
+    const handleDocumentsClick = () => {
+        setOpenSections(prev => ({ ...prev, documents: true }));
+        setTimeout(() => {
+            document.getElementById('sidebar-documents-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 50);
+    };
+
+    const currentMsgList = chatMessages?.[activeNegotiation.rawId] 
+        || chatMessages?.[activeNegotiation.id] 
+        || chatMessages?.[String(activeNegotiation.rawId)] 
+        || chatMessages?.[String(activeNegotiation.id)] 
+        || [];
+
+    const messageAttachments = currentMsgList
         .flatMap(m => m.attachments || [])
         .map(att => ({ name: att.name, size: att.size, type: att.type, url: att.url }));
     const documents = [...(activeNegotiation.documents || []), ...messageAttachments];
 
     return (
-        <div className={`xl:flex xl:col-span-3 flex-col min-h-0 h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
-            showMobileDetails ? 'fixed inset-y-0 right-0 z-50 w-80 shadow-2xl flex bg-white' : 'hidden'
-        }`}>
+        <div className={`xl:flex xl:w-[290px] 2xl:w-[320px] shrink-0 flex-col min-h-0 h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${showMobileDetails ? 'fixed inset-y-0 right-0 z-50 w-80 shadow-2xl flex bg-white' : 'hidden'
+            }`}>
             {/* Header */}
             <div className="flex flex-col items-center pt-6 pb-4 px-4 border-b border-slate-100 relative">
                 {showMobileDetails && (
@@ -76,21 +90,16 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
                 <p className="text-[11px] font-semibold text-[#FF4A1F] mt-0.5">{activeNegotiation.quoteId}</p>
 
                 <div className="mt-2 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10.5px] font-bold shadow-2xs">
-                        <CheckCircle2 size={12} className="text-emerald-600" />
-                        {statusText}
-                    </span>
-                    <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 border border-slate-200/80 px-2 py-0.5 rounded-full text-[10.5px] font-semibold">
-                        ★ {activeNegotiation.customerRating || 4.9}
-                    </span>
+                    <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10.5px] font-bold shadow-2xs"><CheckCircle2 size={12} className="text-emerald-600" /> {statusText}</span>
+                    <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 border border-slate-200/80 px-2 py-0.5 rounded-full text-[10.5px] font-semibold">★ {activeNegotiation.customerRating || 0.0}</span>
                 </div>
 
                 <div className="flex items-center gap-6 mt-4">
-                    <div className="flex flex-col items-center gap-1 cursor-pointer group">
+                    <div onClick={() => setShowProfileModal(true)} className="flex flex-col items-center gap-1 cursor-pointer group">
                         <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-orange-50 group-hover:text-[#FF4A1F] transition-colors"><User size={15} /></div>
                         <span className="text-[10.5px] font-semibold text-slate-600">Profile</span>
                     </div>
-                    <div className="flex flex-col items-center gap-1 cursor-pointer group">
+                    <div onClick={handleDocumentsClick} className="flex flex-col items-center gap-1 cursor-pointer group">
                         <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-orange-50 group-hover:text-[#FF4A1F] transition-colors"><FileText size={15} /></div>
                         <span className="text-[10.5px] font-semibold text-slate-600">Documents</span>
                     </div>
@@ -169,14 +178,21 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
                 </div>
 
                 {/* 5: Documents */}
-                <div>
+                <div id="sidebar-documents-section">
                     <div className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between transition-colors" onClick={() => toggleSection('documents')}>
-                        <span className="text-[12.5px] font-bold text-slate-800">Media & Documents</span>
+                        <span className="text-[12.5px] font-bold text-slate-800">Media & Documents ({documents.length})</span>
                         <ChevronDown size={15} className={`text-slate-400 transition-transform ${openSections.documents ? 'rotate-180' : ''}`} />
                     </div>
                     {openSections.documents && <div className="px-4 pb-3"><AttachmentsList items={documents} /></div>}
                 </div>
             </div>
+
+            <CustomerProfileModal
+                isOpen={showProfileModal}
+                onClose={() => setShowProfileModal(false)}
+                customer={activeNegotiation}
+                onCallClick={() => onCallClick?.('audio')}
+            />
         </div>
     );
 };

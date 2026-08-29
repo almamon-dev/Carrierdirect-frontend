@@ -19,7 +19,7 @@ export const SpecsTabs: React.FC<SpecsTabsProps> = ({ requestDetails }) => {
 
     const dimensionsList = (requestDetails.dimensions && requestDetails.dimensions.length > 0)
         ? requestDetails.dimensions
-        : [{ id: 1, length: '120', width: '100', height: '150', qty: '5', unit: 'CM' }];
+        : [];
 
     const filesCount = (requestDetails.documents?.length || 0) + (requestDetails.notes ? 1 : 0);
 
@@ -113,27 +113,27 @@ export const SpecsTabs: React.FC<SpecsTabsProps> = ({ requestDetails }) => {
                         <div className="space-y-2 text-xs divide-y divide-slate-100 dark:divide-slate-800/60">
                             <div className="flex items-center justify-between pt-1.5 first:pt-0">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Vehicle Type :</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.vehicleType || 'Covered Van (20ft)'}</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.vehicleType && requestDetails.vehicleType !== '—' ? requestDetails.vehicleType : '—'}</span>
                             </div>
                             <div className="flex items-center justify-between pt-1.5">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Total Weight :</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.weight || '12,500 kg'}</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.weight && requestDetails.weight !== '—' ? requestDetails.weight : '—'}</span>
                             </div>
                             <div className="flex items-center justify-between pt-1.5">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Load Type :</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.loadType || 'Pallets'}</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.loadType && requestDetails.loadType !== '—' ? requestDetails.loadType : '—'}</span>
                             </div>
                             <div className="flex items-center justify-between pt-1.5">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Items Summary :</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.itemsCount || '5 Pallets'}</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.itemsCount && requestDetails.itemsCount !== '—' ? requestDetails.itemsCount : '—'}</span>
                             </div>
                             <div className="flex items-center justify-between pt-1.5">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Total Volume :</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.volume || '120.00 × 100.00 × 150.00 cm'}</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.volume && requestDetails.volume !== '—' ? requestDetails.volume : '—'}</span>
                             </div>
                             <div className="flex items-center justify-between pt-1.5">
                                 <span className="text-slate-500 dark:text-slate-400 font-medium">Transit Distance :</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.distance || '245 km'}</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{requestDetails.distance && requestDetails.distance !== '—' ? requestDetails.distance : '—'}</span>
                             </div>
                         </div>
                     </div>

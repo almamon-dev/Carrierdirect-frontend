@@ -13,29 +13,40 @@ export function useChatNegotiation() {
     const [filterTab, setFilterTab] = useState<'all' | 'unread'>('all');
     const [showMobileDetails, setShowMobileDetails] = useState(false);
 
-    const { negotiations = [] } = useSupplierNegotiations() || {};
+    const { negotiations = [], isLoading = false } = useSupplierNegotiations() || {};
     const allNegotiations: NegotiationItem[] = useMemo(() => {
-        return Array.isArray(negotiations) && negotiations.length > 0 ? negotiations : SAMPLE_NEGOTIATIONS;
+        return Array.isArray(negotiations) ? negotiations : [];
     }, [negotiations]);
 
     const decryptedRawId = useMemo(() => {
-        if (!id) return allNegotiations[0]?.rawId || 2;
+        if (!id) return allNegotiations[0]?.rawId || '';
         const decrypted = decryptId(id);
-        const num = Number(String(decrypted).replace(/[^0-9]/g, ''));
-        return isNaN(num) || num === 0 ? decrypted : num;
+        const rawNum = Number(String(decrypted).replace(/[^0-9]/g, ''));
+        const matched = allNegotiations.find(n =>
+            n.rawId === rawNum ||
+            String(n.rawId) === String(decrypted) ||
+            n.sessionKey === id ||
+            n.id === decrypted ||
+            n.id === id
+        );
+        return matched?.rawId || rawNum || allNegotiations[0]?.rawId || '';
     }, [id, allNegotiations]);
 
     const [activeChatId, setActiveChatId] = useState<number | string>(decryptedRawId);
 
     useEffect(() => {
-        if (decryptedRawId) setActiveChatId(decryptedRawId);
-    }, [decryptedRawId]);
+        if (decryptedRawId) {
+            setActiveChatId(decryptedRawId);
+        } else if (allNegotiations.length > 0 && !activeChatId) {
+            setActiveChatId(allNegotiations[0].rawId);
+        }
+    }, [decryptedRawId, allNegotiations]);
 
     const activeNegotiation = useMemo(() => {
         const found = allNegotiations.find(
-            n => n.rawId === activeChatId || n.id === String(activeChatId) || String(n.rawId) === String(activeChatId)
+            n => String(n.rawId) === String(activeChatId) || n.id === String(activeChatId)
         );
-        return found || allNegotiations[0] || SAMPLE_NEGOTIATIONS[0];
+        return found || allNegotiations[0] || null;
     }, [allNegotiations, activeChatId]);
 
     const [pinnedChatIds, setPinnedChatIds] = useState<Record<string | number, boolean>>({ 1048: true, 2: true });
@@ -45,8 +56,8 @@ export function useChatNegotiation() {
         if (id && (!id.startsWith('enc_') || id.length < 50)) {
             const raw = decryptId(id);
             const encId = encryptId(raw);
-            const sKey = sessionKey || activeNegotiation.sessionKey || `ses-${raw}`;
-            navigate(`/supplier/quotes/negotiation/view/${encId}/${sKey}`, { replace: true });
+            const sKey = sessionKey || activeNegotiation?.sessionKey || `ses-${raw}`;
+            navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`, { replace: true });
         }
     }, [id, sessionKey, activeNegotiation, navigate]);
 
@@ -58,7 +69,7 @@ export function useChatNegotiation() {
         setReadChatIds(prev => ({ ...prev, [item.rawId]: true }));
         const encId = encryptId(item.rawId);
         const sKey = sessionKey || item.sessionKey || `ses-${item.rawId}`;
-        navigate(`/supplier/quotes/negotiation/view/${encId}/${sKey}`, { replace: true });
+        navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`, { replace: true });
         setShowMobileDetails(false);
     };
 
@@ -94,6 +105,7 @@ export function useChatNegotiation() {
         filteredChats,
         handleSelectChat,
         togglePinChat,
+        isLoading,
         ...messagesHook
     };
 }

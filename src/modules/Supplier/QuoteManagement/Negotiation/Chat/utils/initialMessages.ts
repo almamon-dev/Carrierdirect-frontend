@@ -1,50 +1,66 @@
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
 
-export function generateInitialMessages(item: NegotiationItem): ChatMessage[] {
-    const currency = item.currency || '€';
-    const origAmount = item.originalAmount || 2100;
-    const currOffer = item.currentOffer || 1850;
+export function generateInitialMessages(item?: NegotiationItem | null): ChatMessage[] {
+    if (!item) return [];
+
+    const origAmount = Number(item.originalAmount) || Number(String(item.budget || '').replace(/[^0-9.]/g, '')) || 3986;
+    const pickupLoc = item.origin || item.pickup || 'Madrid Coslada Logistics, ES';
+    const deliveryLoc = item.destination || item.delivery || 'Barcelona Port ZAL, ES';
+    const customerName = item.customer || 'Customer';
+    const transitTime = (item as any).transitTime || '1 - 2 Business Days';
+    const additionalNotes = (item.notes && item.notes.trim().length > 5)
+        ? item.notes.trim()
+        : 'Includes GPS live tracking, tail-lift vehicle & loading assistance';
+
+    const supplierQuoteProposal = `Hello ${customerName},
+
+I’m interested in your freight request. I’d like to submit the following quote:
+
+• Quote: €${origAmount.toLocaleString()}
+• Pickup: ${pickupLoc}
+• Delivery: ${deliveryLoc}
+• Estimated Transit Time: ${transitTime}
+• Additional Notes: ${additionalNotes}
+
+Please let me know if you need any further information. I look forward to discussing the details with you.
+
+Best regards`;
+
+    const isRejected = item.status === 'Offer Declined' || item.status === 'Declined' || (item as any).status === 'rejected' || (item as any).statusRaw === 'rejected' || (item as any).revisionStatus === 'rejected';
+    const isAccepted = item.status === 'Accepted' || (item as any).status === 'accepted' || (item as any).status === 'confirmed' || (item as any).status === 'completed' || (item as any).statusRaw === 'accepted' || (item as any).statusRaw === 'completed';
+    const initialStatus = isAccepted ? 'accepted' : isRejected ? 'rejected' : 'pending';
 
     return [
         {
-            id: 'msg-1',
-            type: 'system',
-            text: `Negotiation channel opened for Quote ${item.quoteId} (${item.requestTitle || `${item.pickup} → ${item.delivery}`})`,
-            time: item.lastUpdated || '10:00 AM, Today'
+            id: `req-${item.rawId || item.id || 1}`,
+            type: 'quote_request',
+            title: 'Quote Request Received',
+            sender: customerName,
+            text: `${customerName} has submitted a quote request for this shipment.`,
+            time: item.lastUpdated || item.requestDate || 'Today',
+            newTotal: origAmount,
+            previousTotal: origAmount,
+            status: initialStatus,
+            declineReason: (item as any).declineReason || (item as any).decline_reason
         },
         {
-            id: 'msg-2',
+            id: `msg-quote-proposal-${item.rawId || item.id || 1}`,
             type: 'received',
-            sender: item.customer,
-            avatar: item.customer.charAt(0).toUpperCase(),
-            text: `Hello, we received your initial quote of ${currency} ${origAmount.toLocaleString()} for the freight route from ${item.pickup} to ${item.delivery}. Can we discuss a discount for regular shipments?`,
-            time: '10:05 AM'
-        },
-        {
-            id: 'msg-3',
-            type: 'sent',
-            text: `Hello ${item.customer}, thank you for reaching out. We have reserved an available ${item.vehicleType || 'vehicle'} for pickup on ${item.pickupDate || item.requestDate || 'scheduled date'}. We are open to counter offers.`,
-            time: '10:14 AM'
-        },
-        {
-            id: 'msg-4',
-            type: 'offer',
-            title: 'Counter Offer Proposed',
-            text: `Proposed counter rate for route ${item.origin || item.pickup} to ${item.destination || item.delivery}.`,
-            time: '10:30 AM',
-            newTotal: currOffer,
-            previousTotal: origAmount
+            sender: customerName,
+            avatar: customerName.charAt(0).toUpperCase(),
+            text: supplierQuoteProposal,
+            time: item.lastUpdated || item.requestDate || '10:05 AM'
         }
     ];
 }
 
 export function getRandomCustomerReply(item: NegotiationItem): string {
     const replies = [
-        `Thank you for your message! We are checking details with our warehouse at ${item.delivery}.`,
-        `Understood! Can you verify if the vehicle is equipped with necessary load securing straps?`,
+        `Thank you for your message! We are checking details with our warehouse at ${item.delivery || 'destination'}.`,
+        `Understood! Can you verify if the vehicle is equipped with necessary load securing equipment?`,
         `Thanks for the update. We have noted this down and our dispatch team is prepared for ${item.pickupDate || 'pickup'}.`,
-        `Received and confirmed. We appreciate the fast communication regarding quote ${item.quoteId}.`
+        `Received and confirmed. We appreciate the fast communication regarding quote #${item.quoteId || item.id}.`
     ];
     return replies[Math.floor(Math.random() * replies.length)];
 }

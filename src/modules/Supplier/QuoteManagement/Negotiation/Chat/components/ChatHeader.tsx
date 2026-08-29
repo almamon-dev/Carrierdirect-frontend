@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Video, Info, BadgeCheck } from 'lucide-react';
+import { Phone, Video, Info, BadgeCheck, Clock } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { NegotiationItem } from '../../types';
 
@@ -18,7 +18,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     setShowMobileDetails,
     onCallClick
 }) => {
-    const currentSessionKey = sessionKey || activeNegotiation.sessionKey || `ses-${activeNegotiation.rawId}`;
+    const isUnderReview = activeNegotiation.status?.toLowerCase().includes('review') ||
+        activeNegotiation.revisionStatus?.toLowerCase().includes('review') ||
+        Boolean(activeNegotiation.isUnderReview);
+
+    const isVerified = activeNegotiation.isVerified !== false;
 
     return (
         <div className="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between z-10 sticky top-0 shadow-xs">
@@ -36,19 +40,20 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 <div>
                     <div className="flex items-center gap-1.5">
                         <h2 className="text-[15px] font-bold text-slate-800">{activeNegotiation.customer}</h2>
-                        <span className="inline-flex items-center gap-1 bg-orange-50 text-[#FF4A1F] border border-orange-200/80 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                            <BadgeCheck size={13} className="text-[#FF4A1F]" />
-                            Verified Partner
-                        </span>
+                        {isUnderReview ? (
+                            <span title="Under Review" className="inline-flex items-center text-amber-500">
+                                <Clock size={16} className="shrink-0" />
+                            </span>
+                        ) : isVerified ? (
+                            <span title="Verified Partner" className="inline-flex items-center text-[#FF4A1F]">
+                                <BadgeCheck size={16} className="shrink-0" />
+                            </span>
+                        ) : null}
                     </div>
                     <div className="text-[12px] text-slate-500 font-medium mt-0.5 flex items-center gap-2">
                         <span>Active now</span>
                         <span>•</span>
                         <span className="font-bold text-slate-700">{activeNegotiation.quoteId}</span>
-                        <span>•</span>
-                        <span className="text-slate-400 font-mono text-[11px]">
-                            Session: {currentSessionKey}
-                        </span>
                     </div>
                 </div>
             </div>

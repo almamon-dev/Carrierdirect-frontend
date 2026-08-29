@@ -75,18 +75,24 @@ export function decryptId(token?: string | null): string {
 
     try {
         const withoutPrefix = cleanToken.slice(4);
-        if (withoutPrefix.includes('_')) {
-            const parts = withoutPrefix.split('_');
-            const base64Part = parts.length >= 2 ? parts[1] : parts[0];
-            const jsonStr = fromUrlSafeBase64(base64Part);
-            const parsed = JSON.parse(jsonStr);
-            return String(parsed.sub ?? parsed.i ?? cleanToken);
-        } else {
-            const jsonStr = fromUrlSafeBase64(withoutPrefix);
-            const parsed = JSON.parse(jsonStr);
-            return String(parsed.sub ?? parsed.i ?? cleanToken);
+        const parts = withoutPrefix.split('_');
+        const base64Part = parts.length >= 2 ? parts[1] : parts[0];
+        const jsonStr = fromUrlSafeBase64(base64Part);
+
+        // 1. Try regex extraction for sub or id
+        const subMatch = jsonStr.match(/"sub"\s*:\s*"?([^"\\,}]+)"?/);
+        if (subMatch && subMatch[1]) {
+            return subMatch[1];
         }
-    } catch {
-        return cleanToken.replace(/^enc_/, '');
-    }
+
+        // 2. Try JSON.parse
+        try {
+            const parsed = JSON.parse(jsonStr);
+            return String(parsed.sub ?? parsed.i ?? cleanToken);
+        } catch {}
+    } catch {}
+
+    const withoutAllPrefix = cleanToken.replace(/^(enc|sec)_[a-f0-9]+_?/i, '');
+    const numMatch = withoutAllPrefix.match(/\d+/);
+    return numMatch ? numMatch[0] : cleanToken.replace(/^(enc|sec)_/, '');
 }
