@@ -11,9 +11,9 @@ export const SectionHeader = ({ title, icon: Icon, className = "col-span-1 md:co
 );
 
 export const FormRow = ({ label, required, children, colSpan = false }: { label: string, required?: boolean, children: React.ReactNode, colSpan?: boolean }) => (
-    <div className={`${colSpan ? 'col-span-1 md:col-span-2' : ''} grid grid-cols-[150px_10px_1fr] items-center gap-2.5`}>
-        <FormLabel required={required} className="!mb-0 text-xs font-semibold text-slate-700 dark:text-slate-300 leading-tight">{label}</FormLabel>
-        <span className="text-xs text-slate-400 dark:text-slate-600 font-medium select-none">:</span>
+    <div className={`${colSpan ? 'col-span-1 md:col-span-2' : ''} grid grid-cols-[150px_10px_1fr] items-start gap-2.5 py-1`}>
+        <FormLabel required={required} className="!mb-0 text-xs font-semibold text-slate-700 dark:text-slate-300 leading-normal pt-2 select-none">{label}</FormLabel>
+        <span className="text-xs text-slate-400 dark:text-slate-600 font-medium select-none pt-2">:</span>
         <div className="w-full min-w-0">{children}</div>
     </div>
 );

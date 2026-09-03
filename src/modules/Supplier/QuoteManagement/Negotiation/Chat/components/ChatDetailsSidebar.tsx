@@ -33,7 +33,7 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
         logistics: false,
         pricing: false,
         history: false,
-        documents: true
+        documents: false
     });
 
     const toggleSection = (section: keyof typeof openSections) => {
@@ -63,8 +63,7 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
     const documents = [...(activeNegotiation.documents || []), ...messageAttachments];
 
     return (
-        <div className={`xl:flex xl:w-[290px] 2xl:w-[320px] shrink-0 flex-col min-h-0 h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${showMobileDetails ? 'fixed inset-y-0 right-0 z-50 w-80 shadow-2xl flex bg-white' : 'hidden'
-            }`}>
+        <div className={`shrink-0 flex-col min-h-0 h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${showMobileDetails ? 'flex fixed xl:static inset-y-0 right-0 z-50 w-80 xl:w-[290px] 2xl:w-[320px] shadow-2xl xl:shadow-none bg-white' : 'hidden'}`}>
             {/* Header */}
             <div className="flex flex-col items-center pt-6 pb-4 px-4 border-b border-slate-100 relative">
                 {showMobileDetails && (
@@ -137,9 +136,9 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
                     {openSections.logistics && (
                         <div className="px-4 pb-3 text-[12px] space-y-2">
                             <div className="bg-slate-50 p-2.5 rounded border border-slate-200/70 space-y-1.5">
-                                <div className="flex items-start gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shrink-0" /><span className="font-semibold text-slate-800 leading-tight truncate">{activeNegotiation.pickup}</span></div>
+                                <div className="flex items-start gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shrink-0" /><span className="font-semibold text-slate-800 leading-tight break-words">{activeNegotiation.pickup}</span></div>
                                 <div className="border-l border-dashed border-slate-300 ml-1 pl-3 text-[10px] text-slate-400">{activeNegotiation.distance}</div>
-                                <div className="flex items-start gap-1.5"><div className="w-2 h-2 rounded-full bg-[#FF4A1F] mt-1 shrink-0" /><span className="font-semibold text-slate-800 leading-tight truncate">{activeNegotiation.delivery}</span></div>
+                                <div className="flex items-start gap-1.5"><div className="w-2 h-2 rounded-full bg-[#FF4A1F] mt-1 shrink-0" /><span className="font-semibold text-slate-800 leading-tight break-words">{activeNegotiation.delivery}</span></div>
                             </div>
                             <div className="flex justify-between"><span className="text-slate-500">Vehicle</span><span className="font-medium text-slate-800">{activeNegotiation.vehicleType || 'Curtain Sider'}</span></div>
                             <div className="flex justify-between"><span className="text-slate-500">Pickup Date</span><span className="font-medium text-slate-800">{activeNegotiation.pickupDate || activeNegotiation.requestDate || '26 Aug 2026'}</span></div>

@@ -3,36 +3,29 @@ import { API_CONFIG } from '@/config/api';
 
 export const getAttachmentUrl = (url?: string): string => {
     if (!url) return '';
-    if (url.startsWith('blob:') || url.startsWith('data:')) {
-        return url;
+    const str = String(url).trim();
+    if (!str || str === 'null' || str === 'undefined') return '';
+    if (str.startsWith('blob:') || str.startsWith('data:')) {
+        return str;
     }
 
-    const uploadsMatch = url.match(/\/uploads\/.*$/);
-    if (uploadsMatch) {
-        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-            return uploadsMatch[0];
-        }
-    }
-
-    let finalUrl = url;
-    const apiBase = API_CONFIG.baseURL || '';
+    let finalUrl = str;
+    const apiBase = API_CONFIG.baseURL || import.meta.env.VITE_API_BASE_URL || '';
     const apiOrigin = apiBase.replace(/\/api\/?$/, '');
 
-    if (url.startsWith('/')) {
-        finalUrl = apiOrigin ? `${apiOrigin}${url}` : url;
+    if (str.startsWith('/')) {
+        finalUrl = apiOrigin ? `${apiOrigin}${str}` : str;
+    } else if (!str.startsWith('http://') && !str.startsWith('https://')) {
+        finalUrl = `${apiOrigin}/${str.replace(/^\/+/, '')}`;
     } else {
         try {
-            const parsed = new URL(url);
+            const parsed = new URL(str);
             if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
                 if (apiOrigin && !apiOrigin.includes('localhost')) {
                     finalUrl = `${apiOrigin}${parsed.pathname}${parsed.search}`;
                 }
             }
-        } catch {
-            if (apiOrigin && !url.startsWith('http')) {
-                finalUrl = `${apiOrigin}/${url.replace(/^\/+/, '')}`;
-            }
-        }
+        } catch {}
     }
 
     if (finalUrl.includes('ngrok') && !finalUrl.includes('ngrok-skip-browser-warning')) {
@@ -181,3 +174,28 @@ Best regards`;
         }
     ];
 };
+
+export function formatLocalTime(createdAt?: string, fallbackTime?: string): string {
+    if (createdAt) {
+        try {
+            let iso = String(createdAt).trim();
+            if (!iso.includes('T') && iso.includes(' ')) {
+                iso = iso.replace(' ', 'T');
+            }
+            if (!iso.endsWith('Z') && !iso.includes('+') && !iso.match(/-\d{2}:\d{2}$/)) {
+                iso = `${iso}Z`;
+            }
+            const d = new Date(iso);
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+            }
+        } catch {
+            // fallback
+        }
+    }
+    if (fallbackTime && !fallbackTime.includes('T')) {
+        return fallbackTime;
+    }
+    return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+

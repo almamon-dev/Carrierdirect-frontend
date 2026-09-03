@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, X } from 'lucide-react';
+import { RefreshCw, X, Mail } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
+import EmptyState from '@/components/tables/empty-state';
 import { InvitationItem } from '../types/team.types';
 import { apiClient } from '@/lib/axios';
 
-export default function InvitationsTab() {
+interface InvitationsTabProps {
+    headerTabs?: React.ReactNode;
+}
+
+export default function InvitationsTab({ headerTabs }: InvitationsTabProps = {}) {
     const [invitations, setInvitations] = useState<InvitationItem[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
 
     const fetchInvitations = async () => {
-        setIsLoading(true);
         try {
             const res = await apiClient.get('/supplier/team/invitations');
             const raw = res.data?.data?.invitations || res.data?.data || res.data || [];
@@ -128,30 +132,42 @@ export default function InvitationsTab() {
     );
 
     const filterContent = (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">Status Filter</label>
-                <Select value={selectedStatusFilter} onChange={(val) => setSelectedStatusFilter(val)} showSearch={false} options={[
-                    { id: 'all', name: 'All Invitations' },
-                    { id: 'pending', name: 'Pending' },
-                    { id: 'accepted', name: 'Accepted' },
-                    { id: 'expired', name: 'Expired' }
-                ]} />
+        <div className="w-full mb-3.5 font-sans">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">Status Filter</label>
+                    <Select value={selectedStatusFilter} onChange={(val) => setSelectedStatusFilter(val)} showSearch={false} options={[
+                        { id: 'all', name: 'All Invitations' },
+                        { id: 'pending', name: 'Pending' },
+                        { id: 'accepted', name: 'Accepted' },
+                        { id: 'expired', name: 'Expired' }
+                    ]} />
+                </div>
             </div>
         </div>
     );
 
     return (
-        <div className="p-0 space-y-5 font-sans">
+        <div className="space-y-4 font-sans">
             <DataTable 
                 columns={columns} 
                 data={filteredInvitations} 
                 compact={true}
                 searchPlaceholder="Search invitations by email, role..."
-                hideViewToggle={true}
+                hideViewToggle={false}
+                tableLayout="fixed"
+                tableClassName="min-w-[1050px]"
                 actions={renderActions}
+                headerTabs={headerTabs}
                 filterContent={filterContent}
                 isLoading={isLoading}
+                emptyState={
+                    <EmptyState
+                        icon={Mail}
+                        title="No Invitations Found"
+                        description="There are currently no active or pending team member invitations."
+                    />
+                }
             />
         </div>
     );

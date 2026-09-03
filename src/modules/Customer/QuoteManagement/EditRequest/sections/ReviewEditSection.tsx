@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Save, MapPin, Truck, Euro, Paperclip, AlertCircle, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/button';
 import TabHeader from '@/components/ui/tab-header';
-import { QuoteFormData } from '../../types/formTypes';
+import { QuoteFormData } from '../../CreateRequest/types/formTypes';
 
 interface ReviewEditSectionProps {
     formData: QuoteFormData;

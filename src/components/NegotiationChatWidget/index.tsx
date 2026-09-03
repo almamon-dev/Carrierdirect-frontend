@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Input from '../ui/input';
 import {
   MessageSquare as ChatIcon,
@@ -166,6 +166,7 @@ function ExpandableText({ text, limit = 120 }: { text: string; limit?: number })
 
 export default function NegotiationChatWidget() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [activeConvId, setActiveConvId] = useState<string>('conv-1');
@@ -371,6 +372,11 @@ export default function NegotiationChatWidget() {
   // Calculate live grand total for modal preview
   const liveTotalExtraFees = extraFees.reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0);
   const liveGrandTotal = (parseFloat(counterPrice) || 0) + liveTotalExtraFees;
+
+  // Hide widget completely when on full Messages page
+  if (location.pathname.includes('/messages')) {
+    return null;
+  }
 
   return (
     <>

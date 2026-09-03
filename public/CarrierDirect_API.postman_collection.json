@@ -1,0 +1,2367 @@
+{
+    "info": {
+        "_postman_id": "carrierdirect-api-full-complete-collection-v2",
+        "name": "CarrierDirect Complete Platform API",
+        "description": "Comprehensive Postman collection for CarrierDirect API with dedicated Customer/Supplier Registration, Single Login, General Chat (Direct Messaging with file uploads), Negotiation Chat, Customer and Supplier APIs.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "https://alesha-unagile-sveltely.ngrok-free.dev/api",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "2",
+            "type": "string"
+        },
+        {
+            "key": "quote_request_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "quote_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "negotiation_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "order_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "invoice_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "availability_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "employee_id",
+            "value": "1",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "1. Authentication & Accounts",
+            "item": [
+                {
+                    "name": "1.1 Login (Customer / Supplier / Admin)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var res = pm.response.json();",
+                                    "var token = res.access_token || res.token || (res.data && (res.data.token || res.data.access_token));",
+                                    "if (token) {",
+                                    "    pm.globals.set('token', token);",
+                                    "    pm.environment.set('token', token);",
+                                    "    pm.collectionVariables.set('token', token);",
+                                    "    console.log('Token successfully set in Globals, Environment & Collection:', token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"customer@gmail.com\",\n    \"password\": \"password\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Single Unified Login Endpoint. Works for Customers, Suppliers, and Admins. Automatically sets {{token}} variable upon success.\n\nCredentials:\n\u2022 Customer: customer@gmail.com / password\n\u2022 Supplier: supplier@gmail.com / password"
+                    }
+                },
+                {
+                    "name": "1.2 Register as Customer (JSON)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Alexander Weber\",\n    \"company_name\": \"Weber Industrial GmbH\",\n    \"email\": \"alexander.weber@example.com\",\n    \"phone_number\": \"+43 660 1234567\",\n    \"user_type\": \"customer\",\n    \"password\": \"Password123!\",\n    \"password_confirmation\": \"Password123!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Customer Registration: Only requires basic identity and company info."
+                    }
+                },
+                {
+                    "name": "1.3 Register as Supplier (Multipart Form-Data with Compliance)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Marcus Schneider",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "company_name",
+                                    "value": "Trans-Europe Express Spedition",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "email",
+                                    "value": "marcus.schneider@example.com",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "phone_number",
+                                    "value": "+43 676 9876543",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "user_type",
+                                    "value": "supplier",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "password",
+                                    "value": "Password123!",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "password_confirmation",
+                                    "value": "Password123!",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "insurance_type",
+                                    "value": "CMR Freight Liability",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "insurance_provider_name",
+                                    "value": "Allianz Global Corporate",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "policy_number",
+                                    "value": "AT-CMR-2026-98124",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "policy_expiry_date",
+                                    "value": "2027-12-31",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "insurance_document",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Select Insurance Certificate (PDF/PNG/JPG)"
+                                },
+                                {
+                                    "key": "license_document",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Select EU Transport License (PDF/PNG/JPG)"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Supplier Registration: Requires company details AND compliance documents (Insurance certificate + EU transport license)."
+                    }
+                },
+                {
+                    "name": "1.4 Verify Email OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"customer@gmail.com\",\n    \"otp\": \"123456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/verify-email",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "verify-email"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "1.5 Resend Email OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"customer@gmail.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/resend-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "resend-otp"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "1.6 Forgot Password Request",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"customer@gmail.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "1.7 Verify Password Reset OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"customer@gmail.com\",\n    \"otp\": \"123456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/verify-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "verify-otp"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "1.8 Reset Password With OTP",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"customer@gmail.com\",\n    \"otp\": \"123456\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "1.9 Get Current Authenticated User",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/user",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "user"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "1.10 Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. General Messages (Direct Chat & File Uploads)",
+            "item": [
+                {
+                    "name": "2.1 Get Conversations List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/messages/conversations?page=1&per_page=20",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "conversations"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2.2 Get Directory Users (Contacts)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/messages/users",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "users"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2.3 Get Messages with User (Chat History)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/messages/user/2",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "user",
+                                "2"
+                            ]
+                        },
+                        "description": "Returns ALL unpaginated chat messages (text, photos, PDFs) between current user and partner (User ID 2)."
+                    }
+                },
+                {
+                    "name": "2.4 Send Message - Text Only (JSON)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"receiver_id\": 5,\n    \"message\": \"Hello from Postman!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/messages/send",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "send"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2.5 Send Message - Image/File Upload (Multipart Form-Data)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "receiver_id",
+                                    "value": "5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "message",
+                                    "value": "",
+                                    "type": "text",
+                                    "description": "Optional"
+                                },
+                                {
+                                    "key": "attachments[]",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/messages/send",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "send"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2.6 Send Message - Multiple Attachments + Text",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "receiver_id",
+                                    "value": "5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "message",
+                                    "value": "Please check attached invoice and cargo photos.",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "attachments[]",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "attachments[]",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/messages/send",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "send"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2.7 Mark Conversation As Read",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/messages/conversations/{{user_id}}/read",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "conversations",
+                                "{{user_id}}",
+                                "read"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2.8 Get Total Unread Messages Count",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/messages/unread-count",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "unread-count"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2.9 Delete Message",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/messages/30",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "messages",
+                                "30"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. Quote Negotiations & Negotiation Chat",
+            "item": [
+                {
+                    "name": "3.1 Get Negotiations List (Customer/Supplier)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/negotiations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "negotiations"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3.2 Get Negotiation Chat Messages",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/negotiations/{{negotiation_id}}/messages",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "negotiations",
+                                "{{negotiation_id}}",
+                                "messages"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3.3 Send Negotiation Message with File",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "quote_id",
+                                    "value": "1",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "message",
+                                    "value": "Here is our revised offer.",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "attachments[]",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/negotiations/{{negotiation_id}}/messages",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "negotiations",
+                                "{{negotiation_id}}",
+                                "messages"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3.4 Accept Offer in Negotiation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/negotiations/{{negotiation_id}}/accept",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "negotiations",
+                                "{{negotiation_id}}",
+                                "accept"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3.5 Reject Offer in Negotiation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Rate is above budget.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/negotiations/{{negotiation_id}}/reject",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "negotiations",
+                                "{{negotiation_id}}",
+                                "reject"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3.6 Counter Offer in Negotiation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"price\": 1750,\n    \"notes\": \"Offer includes full insurance and express transit.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/negotiations/{{negotiation_id}}/counter-offer",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "negotiations",
+                                "{{negotiation_id}}",
+                                "counter-offer"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3.7 Send Typing Indicator",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/negotiations/{{negotiation_id}}/typing",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "negotiations",
+                                "{{negotiation_id}}",
+                                "typing"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3.8 Mark Negotiation As Seen",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/negotiations/{{negotiation_id}}/seen",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "negotiations",
+                                "{{negotiation_id}}",
+                                "seen"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. Customer - Quote Requests & Received Quotes",
+            "item": [
+                {
+                    "name": "4.1 Customer Dashboard Overview",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/dashboard-overview",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "dashboard-overview"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.2 Get My Quote Requests",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/quote-requests",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quote-requests"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.3 Create New Quote Request",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Express Freight Vienna to Salzburg\",\n    \"pickup_location\": \"Vienna Logistics Hub, Austria\",\n    \"delivery_location\": \"Salzburg Cargo Terminal, Austria\",\n    \"pickup_date\": \"2026-09-10\",\n    \"delivery_date\": \"2026-09-12\",\n    \"vehicle_type\": \"Curtainsider (13.6m)\",\n    \"pallet_count\": 33,\n    \"weight_kg\": 24000,\n    \"budget\": 1850,\n    \"notes\": \"Tail lift and pallet truck required on delivery.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/customer/quote-requests",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quote-requests"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.4 Get Quote Request Details / Edit",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/quote-requests/{{quote_request_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quote-requests",
+                                "{{quote_request_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.5 Update Quote Request",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"budget\": 1900,\n    \"notes\": \"Updated budget to include priority handling.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/customer/quote-requests/{{quote_request_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quote-requests",
+                                "{{quote_request_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.6 Delete Quote Request",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/quote-requests/{{quote_request_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quote-requests",
+                                "{{quote_request_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.7 Get Quotes Received for Request",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/quote-requests/{{quote_request_id}}/quotes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quote-requests",
+                                "{{quote_request_id}}",
+                                "quotes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.8 Get All Received Quotes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/quotes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quotes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.9 Get Quote Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/quotes/{{quote_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quotes",
+                                "{{quote_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.10 Accept Quote",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/quotes/{{quote_id}}/accept",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quotes",
+                                "{{quote_id}}",
+                                "accept"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4.11 Reject Quote",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Selected another carrier with earlier transit.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/customer/quotes/{{quote_id}}/reject",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "quotes",
+                                "{{quote_id}}",
+                                "reject"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. Customer - Orders & Invoices",
+            "item": [
+                {
+                    "name": "5.1 Customer Orders List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "orders"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5.2 Order Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/orders/{{order_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "orders",
+                                "{{order_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5.3 Download POD (Proof of Delivery)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/orders/{{order_id}}/pod-download",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "orders",
+                                "{{order_id}}",
+                                "pod-download"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5.4 Approve POD",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/orders/{{order_id}}/pod-approve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "orders",
+                                "{{order_id}}",
+                                "pod-approve"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5.5 Rate & Review Order",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"rating\": 5,\n    \"comment\": \"Excellent communication and on-time delivery!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/customer/orders/{{order_id}}/rate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "orders",
+                                "{{order_id}}",
+                                "rate"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5.6 Customer Invoices List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/invoices",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "invoices"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5.7 Invoice Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/invoices/{{invoice_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "invoices",
+                                "{{invoice_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5.8 Download Invoice PDF",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/invoices/{{invoice_id}}/download",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "invoices",
+                                "{{invoice_id}}",
+                                "download"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "5.9 Pay Invoice Online (Stripe)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/customer/invoices/{{invoice_id}}/pay",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "customer",
+                                "invoices",
+                                "{{invoice_id}}",
+                                "pay"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "6. Supplier - Dashboard, Requests & Quotes",
+            "item": [
+                {
+                    "name": "6.1 Supplier Dashboard",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/dashboard",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "dashboard"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "6.2 Available Freight Requests",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/available-requests",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "available-requests"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "6.3 Freight Request Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/requests/{{quote_request_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "requests",
+                                "{{quote_request_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "6.4 Submit Quote for Request",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"price\": 1780,\n    \"transit_time\": \"1 - 2 Business Days\",\n    \"notes\": \"Includes full cargo insurance, GPS tracking, and tail-lift loading.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/supplier/requests/{{quote_request_id}}/quote",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "requests",
+                                "{{quote_request_id}}",
+                                "quote"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "6.5 Revise Submitted Quote",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"price\": 1720,\n    \"notes\": \"Discounted rate applied for prompt confirmation.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/supplier/quotes/{{quote_id}}/revise",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "quotes",
+                                "{{quote_id}}",
+                                "revise"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "6.6 Supplier My Quotes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/quotes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "quotes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "6.7 Supplier Won Quotes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/quotes/won",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "quotes",
+                                "won"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "6.8 Supplier Lost Quotes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/quotes/lost",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "quotes",
+                                "lost"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "7. Supplier - Orders, POD & Finance",
+            "item": [
+                {
+                    "name": "7.1 Supplier Orders List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "orders"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "7.2 Update Order Status",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"in_transit\",\n    \"notes\": \"Cargo picked up, in transit to destination.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/supplier/orders/{{order_id}}/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "orders",
+                                "{{order_id}}",
+                                "status"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "7.3 Re-upload POD",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "pod_file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/supplier/orders/{{order_id}}/pod-reupload",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "orders",
+                                "{{order_id}}",
+                                "pod-reupload"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "7.4 Supplier Invoices",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/invoices",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "invoices"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "7.5 Supplier Finance Dashboard",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/supplier/finance/dashboard",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "finance",
+                                "dashboard"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "7.6 Request Payout / Withdrawal",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"amount\": 2500,\n    \"currency\": \"EUR\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/supplier/finance/withdraw",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "supplier",
+                                "finance",
+                                "withdraw"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "8. Master Data, Locations & Public APIs",
+            "item": [
+                {
+                    "name": "8.1 Dropdown Options",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/dropdown-options",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "dropdown-options"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "8.2 Search Locations",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/locations/search?query=Vienna",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "locations",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "query",
+                                    "value": "Vienna"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "8.3 Subscription Plans",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subscription/plans",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subscription",
+                                "plans"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "8.4 Public Settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "ngrok-skip-browser-warning",
+                                "value": "69420"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/settings",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "settings"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

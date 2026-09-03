@@ -59,33 +59,18 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onCallClick?.('audio')}
-                    className="h-9 w-9 text-slate-600 rounded-full hover:bg-slate-100 hidden sm:flex cursor-pointer"
-                    title="Audio Call"
-                >
-                    <Phone size={18} />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onCallClick?.('video')}
-                    className="h-9 w-9 text-slate-600 rounded-full hover:bg-slate-100 hidden sm:flex cursor-pointer"
-                    title="Video Call"
-                >
-                    <Video size={18} />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-slate-600 rounded-full hover:bg-slate-100 xl:hidden cursor-pointer"
+                <button
+                    type="button"
+                    className={`h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors border ${
+                        showMobileDetails
+                            ? 'bg-orange-50 text-[#FF4A1F] border-orange-200 shadow-2xs'
+                            : 'text-slate-500 hover:text-slate-800 border-slate-200/80 hover:bg-slate-100'
+                    }`}
                     onClick={() => setShowMobileDetails(!showMobileDetails)}
-                    title="Toggle Quote Details"
+                    title={showMobileDetails ? 'Hide Quote Details' : 'Show Quote Details'}
                 >
-                    <Info size={18} />
-                </Button>
+                    <Info size={16} />
+                </button>
             </div>
         </div>
     );

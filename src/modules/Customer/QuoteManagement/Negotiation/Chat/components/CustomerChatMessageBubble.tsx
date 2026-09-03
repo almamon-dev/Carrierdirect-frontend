@@ -1,11 +1,74 @@
-import React, { useState } from 'react';
-import { FileText, CheckCircle2, XCircle, Check, CheckCheck, Ban, Download, ExternalLink, X, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, CheckCircle2, XCircle, Check, CheckCheck, Ban, Download, ExternalLink, X, ChevronLeft, ChevronRight, ChevronDown, Pin, Trash2 } from 'lucide-react';
+import { TiEdit } from 'react-icons/ti';
 import Button from '@/components/ui/button';
 import CounterOfferMessage from '../../CounterOffer';
 import { DeclineOfferModal } from './DeclineOfferModal';
 import { CustomerChatItem, CustomerChatMessage } from '../types';
 import { shortenUrl, getAttachmentUrl } from '../utils/customerChatUtils';
-import ChatImage from './ChatImage';
+
+const renderMessageTextWithLinks = (text: string, isSent: boolean) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/gi;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, i) => {
+        if (part.match(urlRegex)) {
+            const displayUrl = shortenUrl(part, 42);
+
+            return (
+                <a
+                    key={i}
+                    href={part}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`underline break-all transition-opacity font-semibold ${
+                        isSent ? 'text-emerald-900 hover:text-emerald-950 dark:text-emerald-200' : 'text-blue-600 hover:text-blue-700'
+                    }`}
+                    onClick={(e) => e.stopPropagation()}
+                    title={part}
+                >
+                    {displayUrl}
+                </a>
+            );
+        }
+        return part;
+    });
+};
+
+const ChatImageWithSkeleton: React.FC<{
+    src: string;
+    alt: string;
+    className?: string;
+}> = ({ src, alt, className }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    useEffect(() => {
+        if (!src) return;
+        const img = new window.Image();
+        img.src = src;
+        if (img.complete) {
+            setIsLoaded(true);
+        }
+    }, [src]);
+
+    return (
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+            {!isLoaded && (
+                <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse flex items-center justify-center z-0">
+                    <div className="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-500 border-t-[#FF4A1F] animate-spin opacity-70" />
+                </div>
+            )}
+            <img
+                src={src}
+                alt={alt}
+                onLoad={() => setIsLoaded(true)}
+                className={`${className || ''} transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                loading="eager"
+                decoding="async"
+            />
+        </div>
+    );
+};
 
 interface CustomerChatMessageBubbleProps {
     msg: CustomerChatMessage;
@@ -13,9 +76,13 @@ interface CustomerChatMessageBubbleProps {
     isFirstInGroup: boolean;
     isLastInGroup: boolean;
     spacingClass: string;
+    editingMsgId?: number | string | null;
     onAcceptOffer: (msg: CustomerChatMessage) => void;
     onRejectOffer: (msg: CustomerChatMessage, reason?: string) => void;
     onSendCounterOffer: (amount: number, note: string) => void;
+    onStartEdit?: (msg: CustomerChatMessage) => void;
+    onDeleteMessage?: (msgId: number | string) => void;
+    onTogglePinMessage?: (msgId: number | string) => void;
 }
 
 export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps> = ({
@@ -24,9 +91,13 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
     isFirstInGroup,
     isLastInGroup,
     spacingClass,
+    editingMsgId,
     onAcceptOffer,
     onRejectOffer,
-    onSendCounterOffer
+    onSendCounterOffer,
+    onStartEdit,
+    onDeleteMessage,
+    onTogglePinMessage
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -203,30 +274,27 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
 
     // 4. Standard Message Bubble
     const isSent = msg.type === 'sent';
-    const rawText = msg.text || '';
-    const isLongText = rawText.length > 280;
-    const displayedText = isExpanded || !isLongText ? rawText : `${rawText.slice(0, 260)}...`;
+    const rawText = msg.text || (msg as any).message || (msg as any).body || (msg as any).content || '';
+    const isLongText = Boolean(rawText && rawText.length > 280);
+    const displayedText = (() => {
+        if (!isLongText || isExpanded) return rawText;
+        const sub = rawText.slice(0, 220);
+        const lastSpace = sub.lastIndexOf(' ');
+        const cleanSub = lastSpace > 160 ? sub.slice(0, lastSpace) : sub;
+        return `${cleanSub.trim()}...`;
+    })();
 
     const allAttachments = msg.attachments || [];
-    const imageAttachments = allAttachments.filter(att => att.type === 'image' || (att.url && /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(att.url)));
+    const imageAttachments = allAttachments.filter(att => att.type === 'image' || (att.url && /\.(jpg|jpeg|png|webp|gif|svg|bmp|avif)($|\?)/i.test(att.url)) || (att.name && /\.(jpg|jpeg|png|webp|gif|svg|bmp|avif)($|\?)/i.test(att.name)));
     const nonImageAttachments = allAttachments.filter(att => !imageAttachments.includes(att));
     const hasText = Boolean(rawText.trim());
 
-    let borderRadiusClasses = 'rounded-2xl';
-    if (isSent) {
-        if (!isFirstInGroup && !isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-tr-sm rounded-br-sm';
-        else if (!isFirstInGroup && isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-tr-sm';
-        else if (isFirstInGroup && !isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-br-sm';
-    } else {
-        if (!isFirstInGroup && !isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-tl-sm rounded-bl-sm';
-        else if (!isFirstInGroup && isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-tl-sm';
-        else if (isFirstInGroup && !isLastInGroup) borderRadiusClasses = 'rounded-2xl rounded-bl-sm';
-    }
+    let borderRadiusClasses = 'rounded-sm';
 
     if (msg.isDeleted) {
         return (
             <div className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'} ${spacingClass}`}>
-                <div className="px-3.5 py-1.5 rounded-2xl text-[12px] italic text-slate-400 border border-slate-200/80 bg-slate-50 flex items-center gap-1.5 font-medium shadow-2xs">
+                <div className="px-3.5 py-1.5 rounded-sm text-[12px] italic text-slate-400 border border-slate-200/80 bg-slate-50 flex items-center gap-1.5 font-medium shadow-2xs">
                     <Ban size={13} className="text-slate-400 shrink-0" />
                     <span>{isSent ? 'You deleted this message' : 'This message was deleted'}</span>
                 </div>
@@ -237,9 +305,9 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
     return (
         <div className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'} ${spacingClass} group relative`}>
             {!isSent && (
-                <div className="w-7 h-7 flex-shrink-0 mt-auto">
-                    {isLastInGroup && (
-                        <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 font-bold text-xs">
+                <div className="w-7 h-7 flex-shrink-0 self-start mt-0.5">
+                    {isFirstInGroup && (
+                        <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 font-bold text-xs shadow-2xs">
                             {msg.avatar || activeChat?.avatar}
                         </div>
                     )}
@@ -250,22 +318,59 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
                 id={`msg-bubble-${msg.id}`}
                 className={`max-w-[85%] sm:max-w-[75%] md:max-w-[65%] min-w-0 flex flex-col ${isSent ? 'items-end' : 'items-start'} relative group transition-all duration-500`}
             >
+                <div className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-30 ${
+                    isSent ? 'right-full mr-2' : 'left-full ml-2'
+                }`}>
+                    <button
+                        type="button"
+                        onClick={() => onTogglePinMessage?.(msg.id)}
+                        className={`p-1 transition-colors cursor-pointer ${
+                            msg.isPinned ? 'text-[#FF4A1F]' : 'text-slate-400 hover:text-[#FF4A1F]'
+                        }`}
+                        title={msg.isPinned ? 'Unpin message' : 'Pin message'}
+                    >
+                        <Pin size={13} className={msg.isPinned ? 'fill-[#FF4A1F]' : ''} />
+                    </button>
+                    {isSent && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => onStartEdit?.(msg)}
+                                className={`p-1 transition-colors cursor-pointer ${
+                                    editingMsgId === msg.id ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-400 hover:text-blue-500'
+                                }`}
+                                title="Edit message"
+                            >
+                                <TiEdit size={16} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onDeleteMessage?.(msg.id)}
+                                className="p-1 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                                title="Delete message"
+                            >
+                                <Trash2 size={13} />
+                            </button>
+                        </>
+                    )}
+                </div>
+
                 {/* Image Attachments Gallery */}
                 {imageAttachments.length > 0 && (
                     <div className={`${hasText || nonImageAttachments.length > 0 ? 'mb-1.5' : ''}`}>
                         {imageAttachments.length === 1 ? (
                             <div
                                 onClick={() => setLightboxIndex(0)}
-                                className="rounded-2xl overflow-hidden inline-block shadow-xs hover:opacity-95 transition-opacity max-w-[240px] sm:max-w-[280px] cursor-pointer"
+                                className="rounded-sm overflow-hidden inline-block shadow-xs hover:opacity-95 transition-opacity max-w-[240px] sm:max-w-[280px] cursor-pointer"
                             >
-                                <ChatImage
-                                    src={imageAttachments[0].url}
+                                <ChatImageWithSkeleton
+                                    src={getAttachmentUrl(imageAttachments[0].url)}
                                     alt={imageAttachments[0].name || 'image'}
-                                    className="w-auto h-auto max-w-[240px] sm:max-w-[280px] max-h-[300px] object-contain rounded-2xl"
+                                    className="w-auto h-auto max-w-[240px] sm:max-w-[280px] max-h-[300px] object-cover rounded-sm block"
                                 />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden max-w-[260px] sm:max-w-[300px] shadow-xs">
+                            <div className="grid grid-cols-2 gap-1 rounded-sm overflow-hidden max-w-[260px] sm:max-w-[300px] shadow-xs bg-slate-100 dark:bg-slate-800 p-1">
                                 {imageAttachments.slice(0, 4).map((att, idx) => {
                                     const isFourthAndMore = idx === 3 && imageAttachments.length > 4;
                                     const remainingCount = imageAttachments.length - 3;
@@ -274,12 +379,12 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
                                         <div
                                             key={idx}
                                             onClick={() => setLightboxIndex(idx)}
-                                            className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer group"
+                                            className="relative aspect-square overflow-hidden bg-slate-200 dark:bg-slate-700 rounded-sm cursor-pointer group"
                                         >
-                                            <ChatImage
-                                                src={att.url}
+                                            <ChatImageWithSkeleton
+                                                src={getAttachmentUrl(att.url)}
                                                 alt={att.name || 'image'}
-                                                className="w-full h-full object-contain transition-transform group-hover:scale-105"
+                                                className="w-full h-full object-cover rounded-sm transition-transform group-hover:scale-105"
                                             />
                                             {isFourthAndMore && (
                                                 <div className="absolute inset-0 bg-black/65 backdrop-blur-[1px] flex flex-col items-center justify-center text-white font-extrabold text-lg sm:text-xl group-hover:bg-black/75 transition-colors z-20">
@@ -297,14 +402,13 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
 
                 {/* Document / File Attachments */}
                 {nonImageAttachments.length > 0 && (
-                    <div className={`flex flex-col gap-2 ${hasText ? 'mb-2' : ''}`}>
+                    <div className={`flex flex-col gap-1.5 ${hasText ? 'mb-1.5' : ''}`}>
                         {nonImageAttachments.map((att, idx) => {
                             const isPdf = att.name.toLowerCase().endsWith('.pdf');
                             const isDoc = att.name.toLowerCase().endsWith('.doc') || att.name.toLowerCase().endsWith('.docx');
                             const isXls = att.name.toLowerCase().endsWith('.xls') || att.name.toLowerCase().endsWith('.xlsx');
                             const badgeColor = isPdf ? 'bg-[#EF4444]' : isXls ? 'bg-[#10B981]' : isDoc ? 'bg-[#2563EB]' : 'bg-[#F97316]';
-                            const badgeText = isPdf ? 'PDF' : isXls ? 'XLS' : isDoc ? 'DOC' : 'FILE';
-                            const cleanDocTitle = att.name.replace(/\.[^/.]+$/, '').toUpperCase();
+                            const badgeText = isPdf ? 'PDF' : isXls ? 'XLS' : isDoc ? 'DOC' : 'File';
 
                             return (
                                 <a
@@ -312,43 +416,19 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
                                     href={getAttachmentUrl(att.url) || '#'}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className={`block rounded-2xl overflow-hidden shadow-xs transition-transform hover:scale-[1.01] max-w-[280px] sm:max-w-[320px] text-left cursor-pointer group/doc ${isSent
-                                        ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30'
-                                        : 'bg-white dark:bg-[#202c33] text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700'
+                                    className={`flex items-center gap-3 p-2 rounded-sm border transition-all hover:scale-[1.01] max-w-[280px] sm:max-w-[320px] ${isSent
+                                        ? 'bg-[#d9fdd3] dark:bg-[#005c4b] border-emerald-200/70 dark:border-emerald-700/40 text-slate-900 dark:text-slate-100'
+                                        : 'bg-white dark:bg-[#202c33] border-slate-200/80 dark:border-slate-700/80 text-slate-900 dark:text-slate-100'
                                         }`}
-                                    title={`Open ${att.name}`}
                                 >
-                                    <div className="w-full h-28 sm:h-32 bg-white relative overflow-hidden flex flex-col p-3 border-b border-black/5 select-none pointer-events-none">
-                                        <div className="flex items-center justify-between border-b border-slate-200 pb-1 mb-2">
-                                            <div className="text-[12px] font-black text-slate-800 tracking-wider truncate font-serif">
-                                                {cleanDocTitle}
-                                            </div>
-                                            <div className="flex flex-col items-end gap-0.5 shrink-0 ml-2">
-                                                <div className="w-10 h-1 bg-slate-300 rounded-full" />
-                                                <div className="w-6 h-1 bg-slate-200 rounded-full" />
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-1.5 opacity-70">
-                                            <div className="w-3/4 h-1.5 bg-slate-300 rounded-full" />
-                                            <div className="w-full h-1.5 bg-slate-200 rounded-full" />
-                                            <div className="w-5/6 h-1.5 bg-slate-200 rounded-full" />
-                                        </div>
-                                        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white to-transparent" />
+                                    <div className={`w-7 h-7 ${badgeColor} rounded-sm flex items-center justify-center text-white font-semibold text-[10px] shrink-0 shadow-2xs`}>
+                                        {badgeText}
                                     </div>
-
-                                    <div className={`p-2.5 sm:p-3 flex items-center gap-3 ${isSent ? 'bg-black/5 dark:bg-black/20' : 'bg-white/90 dark:bg-slate-900/90'}`}>
-                                        <div className={`w-7 h-9 ${badgeColor} rounded flex flex-col items-center justify-center text-white shrink-0 shadow-2xs`}>
-                                            <span className="text-[9px] font-black tracking-tighter uppercase leading-none">{badgeText}</span>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold truncate leading-snug">
-                                                {att.name}
-                                            </p>
-                                            <p className={`text-[11px] ${isSent ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400'} font-normal mt-0.5`}>
-                                                1 page • {badgeText} • {att.size || '85 kB'}
-                                            </p>
-                                        </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-semibold truncate leading-tight">{att.name}</p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{att.size || 'Attachment'}</p>
                                     </div>
+                                    <Download size={13} className="text-slate-400 shrink-0" />
                                 </a>
                             );
                         })}
@@ -357,18 +437,18 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
 
                 {/* Text Message Bubble */}
                 {hasText && (
-                    <div className={`relative px-3.5 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] max-w-full ${borderRadiusClasses} ${isSent
+                    <div className={`relative px-3.5 py-2.5 text-[13.5px] leading-relaxed break-words [overflow-wrap:anywhere] max-w-full ${borderRadiusClasses} ${isSent
                         ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30 shadow-2xs font-medium'
                         : 'bg-white dark:bg-[#202c33] text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/60 shadow-2xs font-medium'
                         }`}>
                         <div className="break-words [overflow-wrap:anywhere]">
-                            <span>{displayedText}</span>
-                            {isLongText && !isExpanded && (
+                            <span className="whitespace-pre-wrap">{renderMessageTextWithLinks(displayedText, isSent)}</span>{isLongText && !isExpanded && (
                                 <button
                                     type="button"
                                     onClick={() => setIsExpanded(true)}
-                                    className={`ml-1 font-bold text-xs cursor-pointer hover:underline inline-block select-none ${isSent ? 'text-emerald-700 dark:text-emerald-300 underline font-semibold' : 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                                        }`}
+                                    className={`inline font-bold text-xs cursor-pointer hover:underline select-none ml-1 ${
+                                        isSent ? 'text-emerald-700 dark:text-emerald-300' : 'text-emerald-600 dark:text-emerald-400'
+                                    }`}
                                 >
                                     Read more
                                 </button>
@@ -418,10 +498,10 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
                     </button>
 
                     <div className="relative max-w-4xl max-h-[85vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
-                        <ChatImage
-                            src={imageAttachments[lightboxIndex].url}
+                        <img
+                            src={getAttachmentUrl(imageAttachments[lightboxIndex].url)}
                             alt={imageAttachments[lightboxIndex].name}
-                            className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                            className="max-w-full max-h-[80vh] object-contain rounded-sm shadow-2xl"
                         />
                         <div className="mt-3 flex items-center justify-between w-full text-white/90 text-xs px-2">
                             <span className="font-semibold truncate max-w-xs">{imageAttachments[lightboxIndex].name}</span>

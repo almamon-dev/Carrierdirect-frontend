@@ -22,11 +22,13 @@ const TimeSlots = lazy(() => import('./Availability/TimeSlots'));
 const CapacityManagement = lazy(() => import('./Availability/CapacityManagement'));
 const AvailabilitySettings = lazy(() => import('./Availability/Settings'));
 const TeamManagement = lazy(() => import('./TeamManagement'));
+const TeamMemberProfilePage = lazy(() => import('./TeamManagement/TeamMemberProfilePage'));
 const Earnings = lazy(() => import('./Finance/Earnings'));
 const Withdrawal = lazy(() => import('./Finance/Withdrawal'));
 const Payments = lazy(() => import('./Finance/Payments'));
 const Subscription = lazy(() => import('./Subscription'));
-const Notifications = lazy(() => import('./Notifications'));
+import Notifications from './Notifications';
+import Messages from './Messages';
 const Settings = lazy(() => import('./Settings'));
 const CompleteProfile = lazy(() => import('./CompleteProfile/CompleteProfilePage'));
 
@@ -65,11 +67,16 @@ export const supplierRoutes: RouteObject[] = [
     { path: 'availability/capacity', element: <CapacityManagement /> },
     { path: 'availability/settings', element: <AvailabilitySettings /> },
     { path: 'team', element: <TeamManagement /> },
+    { path: 'team/:id', element: <TeamMemberProfilePage /> },
+    { path: 'team/member/:id', element: <TeamMemberProfilePage /> },
     { path: 'finance', element: <Navigate to="/supplier/finance/withdrawal" replace /> },
     { path: 'finance/earnings', element: <Earnings /> },
     { path: 'finance/withdrawal', element: <Withdrawal /> },
     { path: 'finance/payments', element: <Payments /> },
     { path: 'subscription', element: <Subscription /> },
     { path: 'notifications', element: <Notifications /> },
+    { path: 'messages', element: <Messages /> },
+    { path: 'messages/:partnerId', element: <Messages /> },
+    { path: 'messages/:partnerId/:sessionKey', element: <Messages /> },
     { path: 'settings', element: <Settings /> },
 ];

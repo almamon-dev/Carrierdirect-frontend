@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { decryptId } from '@/lib/encryption';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useCustomerNegotiations } from '../../hooks/useCustomerNegotiations';
 import { CustomerChatItem } from '../types';
 

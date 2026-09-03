@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Users, Shield, UserPlus, Clock, LayoutDashboard, Plus, Mail } from 'lucide-react';
+import { UserPlus, Plus, Mail } from 'lucide-react';
 import Button from '@/components/ui/button';
 
 import DashboardTab from './components/DashboardTab';
@@ -9,90 +9,71 @@ import RolesTab from './components/RolesTab';
 import InvitationsTab from './components/InvitationsTab';
 import ActivityLogsTab from './components/ActivityLogsTab';
 import CreateTeamMemberModal from './components/CreateTeamMemberModal';
+import { TeamNavigationTabs, TeamNavTab } from './components/TeamNavigationTabs';
 
 export default function TeamManagement() {
     const [searchParams, setSearchParams] = useSearchParams();
-    const activeTab = searchParams.get('tab') || 'dashboard';
+    const activeTab = searchParams.get('tab') || 'members';
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    const handleTabChange = (tabId: string) => {
+    const handleTabChange = (tabId: TeamNavTab) => {
         const newParams = new URLSearchParams(searchParams);
         newParams.set('tab', tabId);
         setSearchParams(newParams);
     };
 
-    const tabs = [
-        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'members', label: 'Team Members', icon: Users },
-        { id: 'roles', label: 'Roles & Permissions', icon: Shield },
-        { id: 'invitations', label: 'Invitations', icon: UserPlus },
-        { id: 'logs', label: 'Activity Logs', icon: Clock },
-    ];
+    const headerTabsNode = (
+        <TeamNavigationTabs
+            activeTab={activeTab}
+            onSelectTab={handleTabChange}
+        />
+    );
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5 bg-[#f8fafc] dark:bg-[#12161c]">
-            {/* Header matching Active Jobs & Shipments */}
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+            {/* Header Title & Actions matching Negotiation / QuoteRequests */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Team Management</h1>
-                    <p className="text-xs text-slate-500 font-medium">Manage your organization staff, access roles, and permissions.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Team Management
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Manage your organization staff, access roles, and permissions.
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-2">
                     {activeTab === 'members' && (
-                        <Button variant="primary" size="sm" className="h-9 px-4 text-xs font-semibold gap-2" onClick={() => setIsCreateModalOpen(true)}>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-xs rounded"
+                            onClick={() => setIsCreateModalOpen(true)}
+                        >
                             <UserPlus size={14} />
                             <span>Create Team Member</span>
-                        </Button>
-                    )}
-                    {activeTab === 'roles' && (
-                        <Button variant="primary" size="sm" className="h-9 px-4 text-xs font-semibold gap-2">
-                            <Plus size={14} />
-                            <span>Create Custom Role</span>
-                        </Button>
-                    )}
-                    {activeTab === 'invitations' && (
-                        <Button variant="primary" size="sm" className="h-9 px-4 text-xs font-semibold gap-2">
-                            <Mail size={14} />
-                            <span>Invite Member</span>
                         </Button>
                     )}
                 </div>
             </div>
 
-            {/* Navigation Tabs matching app styling */}
-            <div className="flex gap-6 overflow-x-auto border-b border-slate-200 [&::-webkit-scrollbar]:hidden">
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    return (
-                        <button
-                            key={tab.id}
-                            onClick={() => handleTabChange(tab.id)}
-                            className={`flex items-center gap-2 pb-3 border-b-2 font-medium text-[13px] whitespace-nowrap transition-colors ${
-                                isActive 
-                                ? 'border-[#ff4a1f] text-[#ff4a1f]' 
-                                : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
-                            }`}
-                        >
-                            <Icon size={16} className={isActive ? 'text-[#ff4a1f]' : 'text-slate-400'} />
-                            <span>{tab.label}</span>
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* Tab Content */}
-            <div className="min-h-[500px]">
-                {activeTab === 'dashboard' && <DashboardTab />}
-                {activeTab === 'members' && <TeamMembersTab />}
-                {activeTab === 'roles' && <RolesTab />}
-                {activeTab === 'invitations' && <InvitationsTab />}
-                {activeTab === 'logs' && <ActivityLogsTab />}
+            {/* Tab Content with Header Tabs embedded inside card top */}
+            <div>
+                {activeTab === 'dashboard' && <DashboardTab key={refreshKey} headerTabs={headerTabsNode} />}
+                {activeTab === 'members' && <TeamMembersTab key={refreshKey} headerTabs={headerTabsNode} />}
+                {activeTab === 'roles' && <RolesTab key={refreshKey} headerTabs={headerTabsNode} />}
+                {activeTab === 'invitations' && <InvitationsTab key={refreshKey} headerTabs={headerTabsNode} />}
+                {activeTab === 'logs' && <ActivityLogsTab key={refreshKey} headerTabs={headerTabsNode} />}
             </div>
 
             {/* Modals */}
-            {isCreateModalOpen && <CreateTeamMemberModal onClose={() => setIsCreateModalOpen(false)} />}
+            {isCreateModalOpen && (
+                <CreateTeamMemberModal 
+                    onClose={() => setIsCreateModalOpen(false)} 
+                    onSuccess={() => setRefreshKey(k => k + 1)}
+                />
+            )}
         </div>
     );
 }

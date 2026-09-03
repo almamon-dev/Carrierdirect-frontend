@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, Info } from 'lucide-react';
 import Button from '@/components/ui/button';
 import ChatInputActions from '../Actions';
 import { useCustomerChatNegotiation } from './hooks/useCustomerChatNegotiation';
@@ -10,6 +10,7 @@ import { CustomerChatDetailsPanel } from './components/CustomerChatDetailsPanel'
 import { CustomerChatSkeletonLoader } from './components/CustomerChatSkeletonLoader';
 
 export default function CustomerNegotiationChat() {
+    const [showDetailsPanel, setShowDetailsPanel] = React.useState(true);
     const {
         navigate,
         searchQuery,
@@ -38,6 +39,9 @@ export default function CustomerNegotiationChat() {
         handleSendCounterOffer,
         handleAcceptOffer,
         handleRejectOffer,
+        handleTogglePinMessage,
+        handleDeleteMessage,
+        handleStartEdit,
         handleCancelEdit
     } = useCustomerChatMessages(activeChat, allNegotiations);
 
@@ -68,33 +72,42 @@ export default function CustomerNegotiationChat() {
                     onBack={() => navigate(-1)}
                 />
 
-                {/* Center: Active Chat Stream */}
-                <div className="col-span-1 lg:col-span-8 xl:col-span-6 flex flex-col min-h-0 h-full bg-slate-50/50 dark:bg-slate-900/40">
+                {/* Center / Main Chat Area */}
+                <div className={`${showDetailsPanel ? 'xl:col-span-6 lg:col-span-8' : 'lg:col-span-8 xl:col-span-9'} flex flex-col min-h-0 h-full border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0b1016]`}>
                     {!activeChat ? (
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
-                            <FileText size={36} className="mb-2 text-slate-300 dark:text-slate-600" />
-                            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">No active negotiation selected</p>
-                            <p className="text-xs text-slate-400 mt-0.5">Select a quote negotiation from the sidebar.</p>
+                            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                                <FileText size={24} className="text-slate-400" />
+                            </div>
+                            <h3 className="text-base font-bold text-slate-700 dark:text-slate-200">No Negotiation Selected</h3>
+                            <p className="text-xs text-slate-400 max-w-sm mt-1">Select a quotation chat from the list to view negotiation history and submit counter offers.</p>
                         </div>
                     ) : (
                         <>
-                            {/* Stream Header */}
-                            <div className="px-4 py-3 bg-white dark:bg-[#12161c] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                            {/* Chat Header */}
+                            <div className="h-16 px-4 sm:px-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#12161c] shrink-0">
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-950/40 text-[#FF4A1F] flex items-center justify-center font-bold text-sm shrink-0">
+                                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-900/60 flex items-center justify-center font-bold text-[#FF4A1F] text-sm shrink-0 shadow-2xs">
                                         {activeChat.avatar}
                                     </div>
                                     <div className="min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <h3 className="text-[14px] font-bold text-slate-900 dark:text-white truncate">{activeChat.name}</h3>
-                                            <span className="text-[11px] font-semibold text-[#FF4A1F] bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-full border border-orange-200/60 dark:border-orange-900/50">
-                                                {activeChat.quoteNo}
-                                            </span>
-                                        </div>
-                                        <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active Now
-                                        </p>
+                                        <h2 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">{activeChat.name}</h2>
+                                        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">{activeChat.quoteNo} • {activeChat.routeText}</p>
                                     </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDetailsPanel(prev => !prev)}
+                                        className={`h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors border ${
+                                            showDetailsPanel
+                                                ? 'bg-orange-50 text-[#FF4A1F] border-orange-200 shadow-2xs dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-900/50'
+                                                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                        }`}
+                                        title={showDetailsPanel ? 'Hide Quote Details' : 'Show Quote Details'}
+                                    >
+                                        <Info size={16} />
+                                    </button>
                                 </div>
                             </div>
 
@@ -115,9 +128,13 @@ export default function CustomerNegotiationChat() {
                                             isFirstInGroup={isFirstInGroup}
                                             isLastInGroup={isLastInGroup}
                                             spacingClass={spacingClass}
+                                            editingMsgId={editingMsgId}
                                             onAcceptOffer={handleAcceptOffer}
                                             onRejectOffer={handleRejectOffer}
                                             onSendCounterOffer={handleSendCounterOffer}
+                                            onStartEdit={handleStartEdit}
+                                            onDeleteMessage={handleDeleteMessage}
+                                            onTogglePinMessage={handleTogglePinMessage}
                                         />
                                     );
                                 })}
@@ -162,7 +179,7 @@ export default function CustomerNegotiationChat() {
                 </div>
 
                 {/* Right Sidebar: Details Panel */}
-                <CustomerChatDetailsPanel activeChat={activeChat} currentMessages={currentMessages} />
+                <CustomerChatDetailsPanel activeChat={activeChat} currentMessages={currentMessages} showDetailsPanel={showDetailsPanel} />
 
             </div>
         </div>

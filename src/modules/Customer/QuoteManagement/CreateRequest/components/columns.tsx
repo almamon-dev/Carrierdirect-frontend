@@ -1,3 +1,4 @@
+import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
 /**
  * Customer Quote Request Table Columns
  * Configures the table columns, visual badges, and cell formatters for Customer Quote Requests.

@@ -1,11 +1,11 @@
 import React, { lazy } from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 
-import CreateRequest from './QuoteManagement/CreateRequest';
+import RequestList from './QuoteManagement/RequestList';
 const Dashboard = lazy(() => import('./Dashboard'));
-const CreateRequestNew = lazy(() => import('./QuoteManagement/CreateRequest/Create'));
-const CreateRequestEdit = lazy(() => import('./QuoteManagement/CreateRequest/Edit'));
-const CreateRequestView = lazy(() => import('./QuoteManagement/CreateRequest/View'));
+const CreateRequest = lazy(() => import('./QuoteManagement/CreateRequest'));
+const EditRequest = lazy(() => import('./QuoteManagement/EditRequest'));
+const ViewRequest = lazy(() => import('./QuoteManagement/ViewRequest'));
 const Processing = lazy(() => import('./QuoteManagement/Processing'));
 const ProcessingTrack = lazy(() => import('./QuoteManagement/Processing/Track'));
 const QuotesReceived = lazy(() => import('./QuoteManagement/QuotesReceived'));
@@ -23,7 +23,8 @@ const Payments = lazy(() => import('./Finance/Payments'));
 const PayLater = lazy(() => import('./Finance/PayLater'));
 const Subscription = lazy(() => import('./Subscription'));
 const SubscriptionCheckout = lazy(() => import('./Subscription/Checkout'));
-const Notifications = lazy(() => import('./Notifications'));
+import Notifications from './Notifications';
+import Messages from './Messages';
 const Settings = lazy(() => import('./Settings'));
 
 export const customerRoutes: RouteObject[] = [
@@ -31,10 +32,10 @@ export const customerRoutes: RouteObject[] = [
     { path: '', element: <Navigate to="/customer/dashboard" replace /> },
     { path: 'dashboard', element: <Dashboard /> },
     { path: 'quotes', element: <Navigate to="/customer/quotes/received" replace /> },
-    { path: 'quotes/create', element: <CreateRequest /> },
-    { path: 'quotes/create/new', element: <CreateRequestNew /> },
-    { path: 'quotes/create/edit/:id', element: <CreateRequestEdit /> },
-    { path: 'quotes/create/view/:id', element: <CreateRequestView /> },
+    { path: 'quotes/create', element: <RequestList /> },
+    { path: 'quotes/create/new', element: <CreateRequest /> },
+    { path: 'quotes/create/edit/:id', element: <EditRequest /> },
+    { path: 'quotes/create/view/:id', element: <ViewRequest /> },
     { path: 'quotes/processing', element: <Processing /> },
     { path: 'quotes/processing/track/:id', element: <ProcessingTrack /> },
     { path: 'quotes/received', element: <QuotesReceived /> },
@@ -57,5 +58,8 @@ export const customerRoutes: RouteObject[] = [
     { path: 'subscription', element: <Subscription /> },
     { path: 'subscription/checkout', element: <SubscriptionCheckout /> },
     { path: 'notifications', element: <Notifications /> },
+    { path: 'messages', element: <Messages /> },
+    { path: 'messages/:partnerId', element: <Messages /> },
+    { path: 'messages/:partnerId/:sessionKey', element: <Messages /> },
     { path: 'settings', element: <Settings /> },
 ];

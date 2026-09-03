@@ -1,3 +1,4 @@
+import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
 /**
  * RowActions — Three-dot context menu for each quote request row.
  * Renders via createPortal to avoid table overflow clipping.
@@ -118,7 +119,7 @@ export const RowActions: React.FC<RowActionsProps> = ({
                         className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
                         onClick={() => { 
                             handleClose(); 
-                            navigate(`/customer/quotes/create/view/${row.rawId || String(row.id).replace('REQ-', '')}`); 
+                            navigate(buildSecureQuoteUrl('view', row.rawId || row.id)); 
                         }}
                     >
                         <Eye size={14} className="text-slate-400 shrink-0" />
@@ -130,7 +131,7 @@ export const RowActions: React.FC<RowActionsProps> = ({
                         className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
                         onClick={() => { 
                             handleClose(); 
-                            navigate(`/customer/quotes/create/edit/${row.rawId || String(row.id).replace('REQ-', '')}`); 
+                            navigate(buildSecureQuoteUrl('edit', row.rawId || row.id)); 
                         }}
                     >
                         <Edit size={14} className="text-indigo-500 shrink-0" />

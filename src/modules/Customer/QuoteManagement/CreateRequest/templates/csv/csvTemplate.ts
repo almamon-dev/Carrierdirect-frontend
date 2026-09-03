@@ -1,15 +1,19 @@
 /**
- * Complete CSV Template Generator for GetItMoving Quote Requests
- * Contains 100% full field schema matching the PDF Quote Request Template.
+ * Standard CSV Template Generator for GetItMoving Quote Requests
+ * Contains full 72-field schema with 2 sample demonstration rows.
  */
 export const downloadCSVTemplate = () => {
+    const pInstructions = "1. Driver must report to Gate 3 security checkpost upon arrival.\n2. Mandatory PPE required (safety helmet, high-vis vest, safety boots).\n3. Inspect cargo packaging and pallet seal conditions before loading.\n4. Obtain authorized supervisor signature and stamped gate pass on BOL.\n5. Notify dispatch team immediately via phone prior to departure.";
+
+    const dInstructions = "1. Contact destination warehouse receiving manager 1 hour prior to arrival.\n2. Vehicle must be parked in designated Unloading Bay #2 only.\n3. Receiving permitted strictly between 08:00 AM and 06:00 PM.\n4. Verify item count and pallet condition with warehouse receiver before offloading.\n5. Secure signed and stamped Proof of Delivery (POD) copy before leaving facility.";
+
     const headers = [
         "Request Title",
         "Priority",
         "Shipment Type",
         "Service Type",
         "Expected Transit Time",
-        
+
         "Pickup Date",
         "Pickup Time",
         "Pickup Company Name",
@@ -91,7 +95,7 @@ export const downloadCSVTemplate = () => {
         '"1700"',
         '"Plot 42, Sector 4, Gazipur Industrial Area, Gazipur"',
         '"https://maps.google.com/?q=Gazipur+EPZ"',
-        '"Report to Gate 3 loading dock upon arrival"',
+        `"${pInstructions}"`,
 
         '"2026-07-30"',
         '"05:00 PM"',
@@ -105,7 +109,7 @@ export const downloadCSVTemplate = () => {
         '"4000"',
         '"Terminal 2, Berth 5, Port Authority Zone, Chittagong"',
         '"https://maps.google.com/?q=Chittagong+Port"',
-        '"Delivery permitted between 08:00 AM and 06:00 PM"',
+        `"${dInstructions}"`,
 
         '"Covered Van (20ft)"',
         '"Pallets (Machinery Spare Parts)"',
@@ -160,7 +164,7 @@ export const downloadCSVTemplate = () => {
         '"1340"',
         '"Savar EPZ Industrial Zone, Sector 2, Dhaka 1340"',
         '"https://maps.google.com/?q=Savar+EPZ"',
-        '"Call 1 hour before pickup arrival"',
+        `"${pInstructions}"`,
 
         '"2026-08-02"',
         '"06:00 PM"',
@@ -174,7 +178,7 @@ export const downloadCSVTemplate = () => {
         '"3500"',
         '"Comilla Highway Hub, Industrial Zone, Comilla 3500"',
         '"https://maps.google.com/?q=Comilla+Hub"',
-        '"Unloading bay 1. Receiving allowed until 06:00 PM."',
+        `"${dInstructions}"`,
 
         '"Covered Truck (24ft)"',
         '"Rolls / Textiles"',
@@ -219,4 +223,23 @@ export const downloadCSVTemplate = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+};
+
+export const download50SampleCSV = async () => {
+    try {
+        const response = await fetch('/Sample_50_Quote_Requests.csv');
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Sample_50_Quote_Requests.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+    } catch (e) {
+        console.error('Failed to download 50 sample CSV', e);
+    }
 };

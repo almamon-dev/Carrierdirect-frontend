@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { decryptId, encryptId } from '@/lib/encryption';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useSupplierNegotiations } from '../../hooks/useSupplierNegotiations';
 import { NegotiationItem } from '../../types';
-import { useSupplierNegotiations, SAMPLE_NEGOTIATIONS } from '../../hooks/useSupplierNegotiations';
 import { useChatMessages } from './useChatMessages';
 
 export function useChatNegotiation() {

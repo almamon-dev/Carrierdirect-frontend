@@ -14,16 +14,16 @@ interface SectionProps {
 
 export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChange }) => {
     return (
-        <div className="space-y-3 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
+        <div className="space-y-2.5 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-2">
                 <TabHeader title="Location Information" icon={MapPin} />
                 
                 {/* Pickup Info */}
-                <div className="col-span-1 md:col-span-2 border-b border-slate-100 pb-4 mb-1">
-                    <h3 className="text-xs font-bold text-[#ff4a1f] uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <MapPin size={15}/> Pickup Details
+                <div className="col-span-1 md:col-span-2 border-b border-slate-200/80 dark:border-slate-800 pb-3 mb-1">
+                    <h3 className="text-xs font-bold text-[#ff4a1f] uppercase tracking-wider mb-2 flex items-center gap-1.5 select-none">
+                        <MapPin size={14}/> Pickup Details
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-2">
                         <FormRow label="Company Name"><Input name="pickupCompany" value={formData.pickupCompany} onChange={handleChange} placeholder="Pickup Company Name" /></FormRow>
                         <FormRow label="Contact Person" required><Input name="pickupContactName" value={formData.pickupContactName} onChange={handleChange} placeholder="Contact Person Name" /></FormRow>
                         <FormRow label="Phone Number" required><PhoneInput name="pickupPhone" value={formData.pickupPhone} onChange={handleChange} placeholder="1711-234567" /></FormRow>
@@ -39,11 +39,11 @@ export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChang
                 </div>
                 
                 {/* Delivery Info */}
-                <div className="col-span-1 md:col-span-2">
-                    <h3 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <MapPin size={15}/> Delivery Details
+                <div className="col-span-1 md:col-span-2 pt-1">
+                    <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5 select-none">
+                        <MapPin size={14}/> Delivery Details
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-2">
                         <FormRow label="Company Name"><Input name="deliveryCompany" value={formData.deliveryCompany} onChange={handleChange} placeholder="Delivery Company Name" /></FormRow>
                         <FormRow label="Contact Person" required><Input name="deliveryContactName" value={formData.deliveryContactName} onChange={handleChange} placeholder="Contact Person Name" /></FormRow>
                         <FormRow label="Phone Number" required><PhoneInput name="deliveryPhone" value={formData.deliveryPhone} onChange={handleChange} placeholder="1819-987654" /></FormRow>

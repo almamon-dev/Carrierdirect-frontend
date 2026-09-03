@@ -43,7 +43,11 @@ const MetricCard = ({ title, description, value, trend, icon: Icon, colorClass, 
     </div>
 );
 
-export default function DashboardTab() {
+interface DashboardTabProps {
+    headerTabs?: React.ReactNode;
+}
+
+export default function DashboardTab({ headerTabs }: DashboardTabProps = {}) {
     const [quickEmail, setQuickEmail] = useState('');
     const [quickInviteSent, setQuickInviteSent] = useState(false);
     const [stats, setStats] = useState({
@@ -205,6 +209,11 @@ export default function DashboardTab() {
 
     return (
         <div className="space-y-5 font-sans">
+            {headerTabs && (
+                <div className="bg-white dark:bg-[#12161c] rounded-md border border-[#ebebeb] dark:border-slate-800 shadow-none px-4 pt-3">
+                    {headerTabs}
+                </div>
+            )}
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard

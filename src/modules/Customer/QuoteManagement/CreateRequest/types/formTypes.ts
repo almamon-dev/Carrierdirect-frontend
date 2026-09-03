@@ -50,22 +50,8 @@ export interface QuoteFormData {
     volume: string;
     dimensions: DimensionItem[];
 
-    stackable: boolean;
-    fragile: boolean;
-    hazardous: boolean;
-    tempControlled: boolean;
-    oversized: boolean;
-    perishable: boolean;
-    loadingRequired: boolean;
-    unloadingRequired: boolean;
-    packaging: boolean;
-    insurance: boolean;
-    insuranceType: string;
-    liftGate: boolean;
-    whiteGlove: boolean;
-    assembly: boolean;
-    insideDelivery: boolean;
-    storage: boolean;
+    // Dynamic Cargo Requirements & Services from Database
+    [key: string]: any;
 
     budget: string;
     currency: string;

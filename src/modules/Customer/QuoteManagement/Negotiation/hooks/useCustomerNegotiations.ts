@@ -5,10 +5,12 @@ import { formatDisplayDate } from '@/lib/utils';
 
 export const useCustomerNegotiations = () => {
     const [negotiations, setNegotiations] = useState<CustomerNegotiationItem[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const fetchNegotiations = useCallback(async (isRefresh = false) => {
-        setIsLoading(true);
+        if (isRefresh) {
+            setIsLoading(true);
+        }
         try {
             let res;
             try {
@@ -93,7 +95,6 @@ export const useCustomerNegotiations = () => {
                 setNegotiations([]);
             }
         } catch (err) {
-            console.error('Failed to fetch customer negotiations:', err);
             setNegotiations([]);
         } finally {
             setIsLoading(false);

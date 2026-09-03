@@ -8,11 +8,16 @@ export interface TeamMember {
     designation: string;
     email: string;
     phone: string;
-    status: 'Active' | 'On Leave' | 'Inactive';
+    status: 'Active' | 'On Leave' | 'Inactive' | 'Blocked' | 'Pending' | 'Invited';
+    isBlocked?: boolean;
+    blockReason?: string;
+    blockedAt?: string;
     lastLogin: string;
     location: string;
     assignedVehicle: string;
     clearance: string;
+    permissions?: string[];
+    roleDetails?: any;
 }
 
 export interface RoleItem {

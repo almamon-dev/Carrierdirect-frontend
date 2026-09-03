@@ -9,10 +9,10 @@ interface TabHeaderProps {
 
 export default function TabHeader({ title, icon: Icon, className }: TabHeaderProps) {
     return (
-        <div className={cn("col-span-1 md:col-span-2 -mt-2 md:-mt-4 mb-2 pb-3 border-b border-slate-200 dark:border-slate-800 -mx-6 md:-mx-8 px-6 md:px-8", className)}>
-            <h2 className="text-[18px] font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                {Icon && <Icon size={18} className="text-slate-600 dark:text-slate-400" />}
-                {title}
+        <div className={cn("col-span-1 md:col-span-2 pb-3.5 mb-2 border-b border-slate-100 dark:border-slate-800", className)}>
+            <h2 className="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                {Icon && <Icon size={17} className="text-[#ff4a1f]" />}
+                <span>{title}</span>
             </h2>
         </div>
     );

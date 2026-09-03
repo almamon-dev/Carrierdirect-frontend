@@ -3,6 +3,7 @@ import { apiClient } from '@/lib/axios';
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
 import { generateInitialMessages } from '../utils/initialMessages';
+import { formatLocalTime } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/utils/customerChatUtils';
 
 export function useChatMessages(activeNegotiation: NegotiationItem | null, allNegotiations: NegotiationItem[]) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -78,7 +79,7 @@ export function useChatMessages(activeNegotiation: NegotiationItem | null, allNe
                             type: m.type === 'system' ? 'system' : (m.message_type === 'offer' ? 'offer' : (m.message_type === 'quote_request' ? 'quote_request' : (isSent ? 'sent' : 'received'))),
                             attachments: m.attachments || (m.attachment ? [m.attachment] : undefined),
                             text: m.text || m.message || m.message_text || m.body || '',
-                            time: m.time || m.created_at_formatted || new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            time: formatLocalTime(m.created_at, m.time || m.created_at_formatted),
                             sender: m.sender || m.sender_name,
                             avatar: m.avatar,
                             seen: Boolean(m.is_read || m.seen || m.read_at),
@@ -92,8 +93,8 @@ export function useChatMessages(activeNegotiation: NegotiationItem | null, allNe
                         };
                     });
 
-                    const requestCard = initialItems.find(item => item.type === 'quote_request') || initialItems[0];
-                    const finalMessages = mapped.some(m => m.type === 'quote_request') ? mapped : (requestCard ? [requestCard, ...mapped] : mapped);
+                    const baseCards = initialItems.filter(item => item.type === 'quote_request' || String(item.id).includes('quote-proposal'));
+                    const finalMessages = [...baseCards, ...mapped.filter(m => m.type !== 'quote_request' && !String(m.id).includes('quote-proposal'))];
                     setChatMessages(prev => ({ ...prev, [activeRawId]: finalMessages, [String(activeRawId)]: finalMessages }));
                 } else if (isQuoteAccepted || isQuoteRejected) {
                     const fallback = generateInitialMessages(activeNegotiation).map(init => (

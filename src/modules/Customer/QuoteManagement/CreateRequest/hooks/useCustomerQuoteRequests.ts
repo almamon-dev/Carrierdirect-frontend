@@ -1,6 +1,6 @@
 /**
  * useCustomerQuoteRequests Hook
- * Handles fetching, Stale-While-Revalidate caching, repeating, and deleting customer quote requests.
+ * Handles fetching, repeating, and deleting customer quote requests without localStorage cache.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,41 +12,16 @@ import { CustomerQuoteRequestItem } from '../types';
 import { buildRepeatData } from '../utils/repeatHelpers';
 import { formatDisplayDate } from '@/lib/utils';
 
-const CACHE_KEY = 'customer_quote_requests_cache';
-
 export function useCustomerQuoteRequests() {
     const navigate = useNavigate();
     const showToast = useToastStore(state => state.showToast);
 
-    // Initialize from localStorage cache to prevent blank flashes on browser refresh
-    const [requestData, setRequestData] = useState<CustomerQuoteRequestItem[]>(() => {
-        try {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-            }
-        } catch {}
-        return [];
-    });
-
-    // Loading indicator; starts false if cache exists for immediate rendering
-    const [isLoading, setIsLoading] = useState<boolean>(() => {
-        try {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) return false;
-            }
-        } catch {}
-        return true;
-    });
-
+    const [requestData, setRequestData] = useState<CustomerQuoteRequestItem[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isRepeating, setIsRepeating] = useState<string | null>(null);
 
     /**
      * Fetch quote requests and quote counts from the backend API.
-     * @param showSkeleton - Whether to show the skeleton during re-fetching
      */
     const fetchQuoteRequests = useCallback(async (showSkeleton = false) => {
         if (showSkeleton) setIsLoading(true);
@@ -120,13 +95,14 @@ export function useCustomerQuoteRequests() {
                     });
 
                     setRequestData(mapped);
-                    try {
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(mapped));
-                    } catch {}
+                } else {
+                    setRequestData([]);
                 }
+            } else {
+                setRequestData([]);
             }
         } catch {
-            // Keep cached data if offline/error
+            setRequestData([]);
         } finally {
             setIsLoading(false);
         }
@@ -147,18 +123,10 @@ export function useCustomerQuoteRequests() {
 
         try {
             await apiClient.delete(`${ENDPOINTS.CUSTOMER.QUOTE_REQUESTS}/${rawId}`);
-            setRequestData(prev => {
-                const next = prev.filter(item => item.id !== row.id);
-                localStorage.setItem(CACHE_KEY, JSON.stringify(next));
-                return next;
-            });
+            setRequestData(prev => prev.filter(item => item.id !== row.id));
             showToast(`Quote request ${row.id} has been cancelled/deleted.`, 'success');
         } catch {
-            setRequestData(prev => {
-                const next = prev.filter(item => item.id !== row.id);
-                localStorage.setItem(CACHE_KEY, JSON.stringify(next));
-                return next;
-            });
+            setRequestData(prev => prev.filter(item => item.id !== row.id));
             showToast(`Quote request ${row.id} removed.`, 'info');
         }
     };
@@ -179,11 +147,7 @@ export function useCustomerQuoteRequests() {
             } catch {}
         }
 
-        setRequestData(prev => {
-            const next = prev.filter(item => !selectedIds.includes(item.id));
-            localStorage.setItem(CACHE_KEY, JSON.stringify(next));
-            return next;
-        });
+        setRequestData(prev => prev.filter(item => !selectedIds.includes(item.id)));
         showToast(`${selectedIds.length} request(s) deleted.`, 'success');
     };
 
@@ -192,7 +156,7 @@ export function useCustomerQuoteRequests() {
      */
     const handleRepeatRequest = async (row: CustomerQuoteRequestItem) => {
         const rawId = String(row.id).replace('REQ-', '');
-        setIsRepeating(row.id);
+        setIsRepeating(String(row.id));
         try {
             const res = await apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUEST_DETAIL(rawId));
             const q = res.data?.data || res.data || res;

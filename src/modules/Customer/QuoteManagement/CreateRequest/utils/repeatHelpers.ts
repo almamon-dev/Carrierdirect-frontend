@@ -6,6 +6,15 @@
 import { CustomerQuoteRequestItem } from '../types';
 
 export function buildRepeatData(q: any, row: CustomerQuoteRequestItem) {
+    const dynamicFlags: Record<string, boolean> = {};
+    if (q) {
+        Object.keys(q).forEach((key) => {
+            if (typeof q[key] === 'boolean' || q[key] === 1 || q[key] === 0 || q[key] === '1' || q[key] === '0') {
+                dynamicFlags[key] = Boolean(q[key] === true || q[key] === 1 || q[key] === '1');
+            }
+        });
+    }
+
     return {
         id: row.id,
         requestTitle: q.request_title ? `Repeat: ${q.request_title}` : `Repeat of ${row.id}`,
@@ -49,20 +58,21 @@ export function buildRepeatData(q: any, row: CustomerQuoteRequestItem) {
         weight: q.weight ? String(q.weight) : '',
         volume: q.volume ? String(q.volume) : '',
 
-        stackable: Boolean(q.stackable),
+        ...dynamicFlags,
+        stackable: Boolean(q.stackable ?? true),
         fragile: Boolean(q.fragile),
         hazardous: Boolean(q.hazardous),
-        tempControlled: Boolean(q.temp_controlled),
+        tempControlled: Boolean(q.temp_controlled ?? q.tempControlled),
         oversized: Boolean(q.oversized),
         perishable: Boolean(q.perishable),
-        loadingRequired: Boolean(q.loading_required ?? true),
-        unloadingRequired: Boolean(q.unloading_required ?? true),
+        loadingRequired: Boolean(q.loading_required ?? q.loadingRequired ?? true),
+        unloadingRequired: Boolean(q.unloading_required ?? q.unloadingRequired ?? true),
         packaging: Boolean(q.packaging),
         insurance: Boolean(q.insurance ?? true),
-        liftGate: Boolean(q.lift_gate),
-        whiteGlove: Boolean(q.white_glove),
+        liftGate: Boolean(q.lift_gate ?? q.liftGate),
+        whiteGlove: Boolean(q.white_glove ?? q.whiteGlove),
         assembly: Boolean(q.assembly),
-        insideDelivery: Boolean(q.inside_delivery),
+        insideDelivery: Boolean(q.inside_delivery ?? q.insideDelivery),
         storage: Boolean(q.storage),
 
         budget: q.budget ? String(q.budget) : '',

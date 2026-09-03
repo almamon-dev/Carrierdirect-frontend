@@ -1,5 +1,5 @@
-import React, { Fragment, useState } from 'react';
-import { Listbox, Transition } from '@headlessui/react';
+import React, { Fragment, useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check, Search, SearchX, Plus, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -54,7 +54,13 @@ export default function Select({
         }))
         .filter(opt => opt.id !== undefined);
 
+    const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 200 });
+
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
     const finalOptions = options.length > 0 ? options : childOptions;
 
     // Filter options based on search query
@@ -93,15 +99,34 @@ export default function Select({
         return String(normalizedValue) === String(id);
     };
 
-    const handleChange = (val: any) => {
-        if (onChange) {
-            // Pass a mock event object to maintain compatibility with standard input handlers
-            onChange({
-                target: {
-                    name: name,
-                    value: val
-                }
-            });
+    const handleSelectOption = (optId: any) => {
+        if (multiple) {
+            const currentArr = Array.isArray(normalizedValue) ? [...normalizedValue] : [];
+            const index = currentArr.findIndex(v => String(v) === String(optId));
+            let newArr: any[];
+            if (index > -1) {
+                newArr = currentArr.filter(v => String(v) !== String(optId));
+            } else {
+                newArr = [...currentArr, optId];
+            }
+            if (onChange) {
+                onChange({
+                    target: {
+                        name: name,
+                        value: newArr
+                    }
+                });
+            }
+        } else {
+            if (onChange) {
+                onChange({
+                    target: {
+                        name: name,
+                        value: optId
+                    }
+                });
+            }
+            setIsOpen(false);
         }
     };
 
@@ -112,118 +137,188 @@ export default function Select({
         }
     };
 
+    const handleToggle = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (disabled) return;
+
+        if (!isOpen && triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const dropdownHeight = 240;
+
+            let top = rect.bottom + 4;
+            if ((direction === 'up' || spaceBelow < dropdownHeight) && rect.top > dropdownHeight) {
+                top = rect.top - dropdownHeight - 4;
+            }
+
+            setDropdownPos({
+                top,
+                left: rect.left,
+                width: Math.max(180, rect.width)
+            });
+            setSearchQuery('');
+            setIsOpen(true);
+        } else {
+            setIsOpen(false);
+        }
+    };
+
+    // Auto-focus search input
+    useEffect(() => {
+        if (isOpen && showSearch) {
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, 50);
+        }
+    }, [isOpen, showSearch]);
+
+    // Handle outside click & scroll
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsOpen(false);
+        };
+
+        const handleScroll = (e: Event) => {
+            const target = e.target as HTMLElement;
+            if (target && target.closest && target.closest('.custom-select-portal-menu')) {
+                return;
+            }
+            setIsOpen(false);
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('scroll', handleScroll, true);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('scroll', handleScroll, true);
+        };
+    }, [isOpen]);
 
     return (
-        <div className={cn("w-full relative", className, disabled && "opacity-60 cursor-not-allowed pointer-events-none")}>
-            <Listbox value={normalizedValue} onChange={handleChange} multiple={multiple} disabled={disabled}>
-                {({ open }) => (
-                    <div className={cn("relative h-full", open && "z-[9999]")}>
-                        <Listbox.Button className={cn(
-                            "relative w-full h-[36px] cursor-pointer rounded-sm border bg-white dark:bg-[#1e2329] py-1 pr-8 text-left text-[13px] font-medium text-[#202223] dark:text-white outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 transition-all flex items-center shadow-none",
-                            error ? "border-[#d82c0d] focus:border-[#d82c0d] focus:ring-0" : "border-slate-300 dark:border-[#384150] focus:border-slate-400 dark:focus:border-slate-500 focus:ring-0 focus:outline-none",
-                            Icon ? "pl-9" : "pl-3"
-                        )}>
-                            {Icon && (
-                                <span className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-[#8c9196] dark:text-slate-400">
-                                    <Icon size={14} aria-hidden="true" />
-                                </span>
-                            )}
-                            <span className={cn("block", multiple ? "break-words whitespace-normal pb-0.5" : "truncate")}>
-                                {getSelectedDisplay()}
-                            </span>
-                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 dark:text-slate-500">
-                                <ChevronDown size={14} aria-hidden="true" />
-                            </span>
-                        </Listbox.Button>
-                        <Transition
-                            show={open}
-                            as={Fragment}
-                            afterLeave={() => setSearchQuery('')}
-                            leaveFrom="opacity-100 scale-100"
-                            leaveTo="opacity-0 scale-95"
-                        >
-                            <Listbox.Options className={cn(
-                                "custom-select-menu absolute z-[9999] max-h-64 w-full overflow-hidden rounded-md text-[12px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] border focus:outline-none flex flex-col",
-                                direction === "up" ? "bottom-full mb-1" : "mt-1"
-                            )}>
-                                {/* Search Input Container */}
-                                {showSearch && (
-                                    <div className="custom-select-search shrink-0">
-                                        <input
-                                            type="text"
-                                            autoFocus
-                                            placeholder="Search..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full text-[12px] outline-none font-medium focus:ring-0"
-                                            onKeyDown={(e) => e.stopPropagation()}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* Options List */}
-                                <div className="overflow-y-auto py-1 flex-1 max-h-[300px] hide-scrollbar no-scrollbar">
-                                    {filteredOptions.length === 0 && !onCreateProp ? (
-                                        <div className="py-10 px-4 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-2">
-                                            <SearchX size={32} strokeWidth={1} />
-                                            <span className="text-[11px] font-medium uppercase tracking-wider">No results found</span>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {filteredOptions.map((option, idx) => {
-                                                const active = isSelected(option.id);
-                                                return (
-                                                    <Listbox.Option
-                                                        key={idx}
-                                                        className={({ active: isHovered }) =>
-                                                            cn(
-                                                                "custom-select-option relative cursor-pointer select-none py-2 px-3 border-b border-slate-100/30 dark:border-slate-800/30 last:border-0",
-                                                                active ? "is-selected font-bold" : "font-medium",
-                                                                isHovered && !active ? "bg-slate-100 dark:bg-slate-800/80 text-[#FF4A1F]" : ""
-                                                            )
-                                                        }
-                                                        value={option.id}
-                                                    >
-                                                        {() => (
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex items-center gap-2">
-                                                                    {option.image && (
-                                                                        <img
-                                                                            src={option.image.startsWith('http') ? option.image : `/storage/${option.image}`}
-                                                                            className="w-4 h-4 object-contain"
-                                                                            alt=""
-                                                                        />
-                                                                    )}
-                                                                    <span className="block truncate text-gray-800 dark:text-slate-100">
-                                                                        {option.name}
-                                                                    </span>
-                                                                </div>
-                                                                {active && (
-                                                                    <Check size={14} className="text-[#FF4A1F]" />
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </Listbox.Option>
-                                                );
-                                            })}
-
-                                            {onCreateProp && searchQuery && !filteredOptions.find(o => (o.name || "").toLowerCase() === searchQuery.toLowerCase()) && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onCreate(searchQuery)}
-                                                    className="w-full text-left py-3 px-10 text-[12px] font-bold text-[#FF4A1F] hover:bg-[#FFF2ED] dark:hover:bg-slate-800/70 border-t border-slate-50 dark:border-slate-800 flex items-center gap-2 mt-1"
-                                                >
-                                                    <Plus size={14} /> Quick Add "{searchQuery}"
-                                                </button>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </Listbox.Options>
-                        </Transition>
-                    </div>
+        <div className={cn("w-full relative font-sans antialiased", className, disabled && "opacity-60 cursor-not-allowed pointer-events-none")}>
+            <button
+                ref={triggerRef}
+                type="button"
+                onClick={handleToggle}
+                disabled={disabled}
+                className={cn(
+                    "relative w-full h-[36px] cursor-pointer rounded-sm border bg-white dark:bg-[#1e2329] py-1 pr-8 text-left text-[13px] font-medium text-[#202223] dark:text-white outline-none focus:outline-none transition-all flex items-center shadow-none",
+                    error 
+                        ? "border-[#d82c0d] focus:border-[#d82c0d]" 
+                        : "border-slate-300 dark:border-[#384150] focus:border-slate-400 dark:focus:border-slate-500",
+                    Icon ? "pl-9" : "pl-3"
                 )}
-            </Listbox>
+            >
+                {Icon && (
+                    <span className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-[#8c9196] dark:text-slate-400">
+                        <Icon size={14} aria-hidden="true" />
+                    </span>
+                )}
+                <span className={cn("block", multiple ? "break-words whitespace-normal pb-0.5" : "truncate")}>
+                    {getSelectedDisplay()}
+                </span>
+                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 dark:text-slate-500">
+                    <ChevronDown size={14} aria-hidden="true" className={cn("transition-transform duration-150", isOpen && "rotate-180")} />
+                </span>
+            </button>
+
+            {/* Floating Portal Dropdown Menu (Never Clipped by Modals) */}
+            {isOpen && createPortal(
+                <>
+                    {/* Transparent Click-Outside Overlay */}
+                    <div 
+                        className="fixed inset-0 z-[999998] bg-transparent" 
+                        onClick={() => setIsOpen(false)} 
+                    />
+
+                    {/* Floating Dropdown Container */}
+                    <div
+                        style={{
+                            position: 'fixed',
+                            top: `${dropdownPos.top}px`,
+                            left: `${dropdownPos.left}px`,
+                            width: `${dropdownPos.width}px`,
+                        }}
+                        className="custom-select-portal-menu z-[999999] max-h-64 overflow-hidden rounded-md bg-white dark:bg-[#1e2329] text-[12px] shadow-2xl border border-slate-200 dark:border-slate-700 focus:outline-none flex flex-col animate-in fade-in zoom-in-95 duration-100 font-sans"
+                    >
+                        {/* Search Input Container */}
+                        {showSearch && (
+                            <div className="p-2 bg-slate-50 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-700 shrink-0">
+                                <div className="relative flex items-center">
+                                    <Search size={13} className="absolute left-2 text-slate-400" />
+                                    <input
+                                        ref={searchInputRef}
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full h-7 pl-7 pr-2 text-[12px] bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-700 rounded text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#FF4A1F] placeholder:text-slate-400 font-medium"
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Options List */}
+                        <div className="overflow-y-auto py-1 flex-1 max-h-[220px] hide-scrollbar no-scrollbar">
+                            {filteredOptions.length === 0 && !onCreateProp ? (
+                                <div className="py-6 px-4 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-1.5">
+                                    <SearchX size={24} strokeWidth={1.5} />
+                                    <span className="text-[11px] font-medium">No results found</span>
+                                </div>
+                            ) : (
+                                <>
+                                    {filteredOptions.map((option, idx) => {
+                                        const active = isSelected(option.id);
+                                        return (
+                                            <div
+                                                key={idx}
+                                                onClick={() => handleSelectOption(option.id)}
+                                                className={cn(
+                                                    "cursor-pointer select-none py-2 px-3 border-b border-slate-100/50 dark:border-slate-800/50 last:border-0 flex items-center justify-between transition-colors",
+                                                    active 
+                                                        ? "bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#FF4A1F] font-bold" 
+                                                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900"
+                                                )}
+                                            >
+                                                <div className="flex items-center gap-2 truncate">
+                                                    {option.image && (
+                                                        <img
+                                                            src={option.image.startsWith('http') ? option.image : `/storage/${option.image}`}
+                                                            className="w-4 h-4 object-contain shrink-0"
+                                                            alt=""
+                                                        />
+                                                    )}
+                                                    <span className="truncate text-[12.5px]">
+                                                        {option.name}
+                                                    </span>
+                                                </div>
+                                                {active && (
+                                                    <Check size={14} className="text-[#FF4A1F] shrink-0 ml-2" />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+
+                                    {onCreateProp && searchQuery && !filteredOptions.find(o => (o.name || "").toLowerCase() === searchQuery.toLowerCase()) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => onCreate(searchQuery)}
+                                            className="w-full text-left py-2.5 px-3 text-[12px] font-bold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-slate-800/70 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-1 cursor-pointer"
+                                        >
+                                            <Plus size={14} /> Quick Add "{searchQuery}"
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </>,
+                document.body
+            )}
         </div>
     );
 }

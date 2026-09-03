@@ -11,6 +11,7 @@ import {
     HandCoins,
     LayoutDashboard,
     Map,
+    MessageSquare,
     Package,
     PieChart, Receipt,
     RotateCcw,
@@ -89,6 +90,7 @@ export const navigationMap: Record<string, any[]> = {
         },
         { category: 'Main Menu', name: 'Subscription', path: '/supplier/subscription', icon: ShieldCheck },
         { category: 'Main Menu', name: 'Notifications', path: '/supplier/notifications', icon: Bell },
+        { category: 'Main Menu', name: 'Messages', path: '/supplier/messages', icon: MessageSquare },
         { category: 'Main Menu', name: 'Settings', path: '/supplier/settings', icon: Settings },
     ],
     'customer': [
@@ -125,6 +127,7 @@ export const navigationMap: Record<string, any[]> = {
         },
         { category: 'Main Menu', name: 'Subscription', path: '/customer/subscription', icon: ShieldCheck },
         { category: 'Main Menu', name: 'Notifications', path: '/customer/notifications', icon: Bell },
+        { category: 'Main Menu', name: 'Messages', path: '/customer/messages', icon: MessageSquare },
         { category: 'Main Menu', name: 'Settings', path: '/customer/settings', icon: Settings },
     ],
 };

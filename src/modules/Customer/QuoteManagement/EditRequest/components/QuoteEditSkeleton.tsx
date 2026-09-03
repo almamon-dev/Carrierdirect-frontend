@@ -19,28 +19,26 @@ const EDIT_TABS = [
 
 export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab = 'general' }) => {
     return (
-        <div className="p-6 md:p-8 mx-auto bg-[#f8f9fa] min-h-screen pb-24 animate-in fade-in duration-200">
-            {/* Header - Identical to Edit.tsx */}
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                    <div>
-                        <h1 className="text-[18px] font-bold text-slate-900">Edit Quote Request</h1>
-                        <p className="text-[14px] font-medium text-brand mt-1">Update the required information to modify the request.</p>
-                    </div>
+        <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 animate-in fade-in duration-200 font-sans antialiased">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                <div>
+                    <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100">Edit Quote Request</h1>
+                    <p className="text-[13px] font-medium text-[#ff4a1f] mt-0.5">Update the required information to modify the request.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Skeleton className="h-[32px] w-20 rounded-[2px]" />
-                    <Skeleton className="h-[32px] w-32 rounded-[2px]" />
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-[34px] w-36 rounded-md" />
+                    <Skeleton className="h-[34px] w-28 rounded-md" />
                 </div>
             </div>
 
             {/* Layout: Sidebar + Main Form Content Area */}
-            <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
                 
                 {/* Left Sidebar Navigation */}
-                <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
-                    <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                        <h3 className="text-[13px] font-bold text-slate-800">Categories</h3>
+                <div className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-2xs">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Edit Sections</h3>
                     </div>
                     <div className="flex flex-col">
                         {EDIT_TABS.map((tab) => {
@@ -49,17 +47,17 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                             return (
                                 <div
                                     key={tab.id}
-                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-[14px] font-medium border-l-[3px] border-b border-slate-50 last:border-b-0 ${
+                                    className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-medium border-l-[3px] border-b border-slate-100 dark:border-slate-800/60 last:border-b-0 ${
                                         isSelected
-                                            ? 'border-l-indigo-600 bg-brand-light/50 text-indigo-700'
-                                            : 'border-l-transparent text-slate-600'
+                                            ? 'border-l-[#ff4a1f] bg-orange-50/50 dark:bg-orange-950/20 text-[#ff4a1f] font-semibold'
+                                            : 'border-l-transparent text-slate-600 dark:text-slate-400'
                                     }`}
                                 >
                                     <div className="flex items-center gap-2.5">
-                                        <Icon size={15} className={isSelected ? 'text-brand' : 'text-slate-400'} />
+                                        <Icon size={15} className={isSelected ? 'text-[#ff4a1f]' : 'text-slate-400'} />
                                         <span>{tab.label}</span>
                                     </div>
-                                    {isSelected && <ChevronRight size={15} className="text-brand" />}
+                                    {isSelected && <ChevronRight size={14} className="text-[#ff4a1f]" />}
                                 </div>
                             );
                         })}
@@ -67,10 +65,8 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                 </div>
 
                 {/* Right Main Content Area */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm w-full">
-                    <div className="p-6 md:p-8 space-y-6">
-                        
-                        {/* 1. Basic Information Tab Skeleton */}
+                <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs w-full p-5 md:p-6 space-y-6">
+                    {/* 1. Basic Information Tab Skeleton */}
                         {activeTab === 'general' && (
                             <div className="space-y-3">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -222,17 +218,14 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
                         )}
 
                         {/* Bottom Action Footer */}
-                        <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                            <Skeleton className="h-9 w-20 rounded-[2px]" />
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <Skeleton className="h-9 w-20 rounded-md" />
                             <div className="flex gap-3">
-                                <Skeleton className="h-9 w-28 rounded-[2px]" />
-                                <Skeleton className="h-9 w-32 rounded-[2px]" />
+                                <Skeleton className="h-9 w-28 rounded-md" />
+                                <Skeleton className="h-9 w-32 rounded-md" />
                             </div>
                         </div>
-
-                    </div>
                 </div>
-
             </div>
         </div>
     );

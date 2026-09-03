@@ -1,6 +1,6 @@
 export const API_CONFIG = {
     // API Base URL from environment variables
-    baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://alesha-unagile-sveltely.ngrok-free.dev/api',
+    baseURL: import.meta.env.VITE_API_BASE_URL || '',
 
     // API Version
     version: 'v1',
@@ -65,6 +65,8 @@ export const ENDPOINTS = {
         INVOICES: '/customer/invoices',
         ORDERS: '/customer/orders',
         QUOTE_REQUESTS: '/customer/quote-requests',
+        QUOTE_REQUESTS_AI_EXTRACT: '/customer/quote-requests/ai-extract',
+        QUOTE_REQUESTS_BULK_CONFIRM: '/customer/quote-requests/bulk-confirm',
         QUOTE_REQUEST_DETAIL: (id: string | number) => `/customer/quote-requests/${id}`,
         REQUEST_QUOTES: (id: string | number) => `/customer/quote-requests/${id}/quotes`,
     },
@@ -80,5 +82,6 @@ export const ENDPOINTS = {
     },
     MASTER_DATA: {
         DROPDOWNS: '/dropdown-options',
+        CARGO_SERVICES: '/cargo-services',
     },
 };

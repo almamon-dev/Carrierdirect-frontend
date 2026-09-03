@@ -1,192 +1,147 @@
-/**
- * Customer Quote Management - CreateRequest / RequestList Main Page
- * Orchestrator component displaying user quote requests with filter tabs,
- * real-data skeleton loader, and PDF/CSV AI batch import wizard.
- */
+import React from 'react';
+import { 
+    FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2, 
+    RotateCcw, Sparkles, ChevronRight 
+} from 'lucide-react';
+import Button from '@/components/ui/button';
+import { SubscriptionLockModal } from '@/components/modals';
+import { QuotaReminderBanner } from '@/components';
+import { useCreateQuoteRequest } from './hooks/useCreateQuoteRequest';
+import { BasicInfoSection } from './components/sections/BasicInfoSection';
+import { LocationsSection } from './components/sections/LocationsSection';
+import { LoadServicesSection } from './components/sections/LoadServicesSection';
+import { BudgetPreferencesSection } from './components/sections/BudgetPreferencesSection';
+import { AttachmentsNotesSection } from './components/sections/AttachmentsNotesSection';
+import { ReviewSubmitSection } from './components/sections/ReviewSubmitSection';
 
-import DataTable from '@/components/tables/data-table';
-import EmptyState from '@/components/tables/empty-state';
-import { Inbox } from 'lucide-react';
-import React, { useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getCustomerColumns } from './components/columns';
-import { FilterTabs } from './components/FilterTabs';
-import { HeaderActions } from './components/HeaderActions';
-import { PdfImportWizardModal } from './components/PdfImportWizardModal';
-import { RowActions } from './components/RowActions';
-import { useCustomerQuoteRequests } from './hooks/useCustomerQuoteRequests';
-import { FilterTabId } from './types';
+const CREATE_TABS = [
+    { id: 'general', label: 'Basic Information', icon: FileText },
+    { id: 'locations', label: 'Pickup & Delivery', icon: MapPin },
+    { id: 'load', label: 'Load & Services', icon: Truck },
+    { id: 'preferences', label: 'Budget & Preferences', icon: Euro },
+    { id: 'files', label: 'Attachments & Notes', icon: Paperclip },
+    { id: 'review', label: 'Review & Submit', icon: CheckCircle2 },
+];
 
-export default function RequestList() {
-    const navigate = useNavigate();
-    const [activeFilterTab, setActiveFilterTab] = useState<FilterTabId>('All');
-
-    // Data fetching & operations hook
+export default function CreateRequestForm() {
     const {
-        requestData,
-        setRequestData,
-        isLoading,
-        isRepeating,
-        fetchQuoteRequests,
-        handleDeleteRequest,
-        handleDeleteSelected,
-        handleRepeatRequest,
-    } = useCustomerQuoteRequests();
-
-    // File input refs for CSV / PDF import
-    const csvInputRef = useRef<HTMLInputElement>(null);
-    const pdfInputRef = useRef<HTMLInputElement>(null);
-    const zipInputRef = useRef<HTMLInputElement>(null);
-
-    // AI Import Modal State
-    const [isProcessingModalOpen, setIsProcessingModalOpen] = useState(false);
-    const [processingStep, setProcessingStep] = useState<1 | 2 | 3 | 4>(1);
-    const [processingFileName, setProcessingFileName] = useState('Shipping_Request_Order_Batch.pdf');
-    const [uploadedZipName, setUploadedZipName] = useState('');
-    const [, setProcessingFileType] = useState<'csv' | 'pdf'>('pdf');
-    const [extractedData, setExtractedData] = useState<any>(null);
-
-    const openImportWizard = (type: 'csv' | 'pdf' = 'pdf') => {
-        setProcessingFileType(type);
-        setProcessingFileName(type === 'csv' ? 'GetItMoving_Quote_Request_Batch.csv' : 'Shipping_Request_Order_Batch.pdf');
-        setProcessingStep(1);
-        setIsProcessingModalOpen(true);
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'csv' | 'pdf') => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            setProcessingFileName(files[0].name);
-            openImportWizard(type);
-        }
-        e.target.value = '';
-    };
-
-    const handleConfirmImport = () => {
-        if (extractedData) {
-            if (extractedData.rows && extractedData.rows.length > 0) {
-                const newItems = extractedData.rows.map((row: any, i: number) => ({
-                    id: `REQ-${Math.floor(1000 + Math.random() * 9000 + i)}`,
-                    rawId: Math.floor(1000 + Math.random() * 9000 + i),
-                    slug: `req-${Math.floor(1000 + Math.random() * 9000 + i)}`,
-                    date: new Date().toISOString().split('T')[0],
-                    pickup: row.pickup,
-                    delivery: row.delivery,
-                    distance: '250 km',
-                    budget: row.amount || '45,000',
-                    priority: 'Normal',
-                    status: 'Active',
-                    quotesReceived: 0,
-                }));
-                setRequestData(prev => [...newItems, ...prev]);
-            } else {
-                setRequestData(prev => [extractedData, ...prev]);
-            }
-            setIsProcessingModalOpen(false);
-        }
-    };
-
-    const handleOpenInForm = () => {
-        if (extractedData) {
-            setIsProcessingModalOpen(false);
-            navigate('/customer/quotes/create/new', { state: { repeatData: extractedData } });
-        }
-    };
-
-    // Filter data based on active tab
-    const filteredData = useMemo(() => {
-        if (activeFilterTab === 'Active') {
-            return requestData.filter(r => r.status === 'Active' || r.status === 'Bidding Active' || r.status === 'active');
-        }
-        if (activeFilterTab === 'Waiting') {
-            return requestData.filter(r => r.quotesReceived === 0 || r.status === 'Draft' || r.status === 'pending');
-        }
-        if (activeFilterTab === 'Review') {
-            return requestData.filter(r => r.quotesReceived > 0 || r.status === 'Negotiating');
-        }
-        if (activeFilterTab === 'Accepted') {
-            return requestData.filter(r => r.status === 'Accepted' || r.status === 'completed');
-        }
-        return requestData;
-    }, [requestData, activeFilterTab]);
-
-    const columns = useMemo(() => getCustomerColumns(navigate), [navigate]);
+        formData, activeTab, setActiveTab, isSubmitting, submittingStatus,
+        isLockModalOpen, setIsLockModalOpen, isRepeatMode, repeatSource, servicesCount,
+        resetForm, handleChange, handleSelectChange,
+        handleCheckboxChange, handleFileUpload, addDimensionRow, updateDimension,
+        removeDimension, handleSubmit,
+    } = useCreateQuoteRequest();
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
-            {/* Hidden file inputs for direct uploads */}
-            <input type="file" ref={csvInputRef} className="hidden" accept=".csv" onChange={(e) => handleFileChange(e, 'csv')} />
-            <input type="file" ref={pdfInputRef} className="hidden" accept=".pdf,.csv,.doc,.docx" onChange={(e) => e.target.files && setProcessingFileName(e.target.files[0].name)} />
-            <input type="file" ref={zipInputRef} className="hidden" accept=".zip,.rar,.7z" onChange={(e) => e.target.files && setUploadedZipName(e.target.files[0].name)} />
-
-            {/* Header & Action Bar */}
-            <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 font-sans antialiased">
+            {/* Header Toolbar */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">Quote Requests</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Manage, track, or import transportation quote requests.</p>
+                    <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100">
+                        {isRepeatMode ? `Repeat Quote Request (${repeatSource})` : 'Create New Quote Request'}
+                    </h1>
+                    <p className="text-[13px] font-medium text-[#ff4a1f] mt-0.5">
+                        Fill in all specifications to receive competitive bids from verified carriers.
+                    </p>
                 </div>
 
-                <HeaderActions
-                    isLoading={isLoading}
-                    onRefresh={() => fetchQuoteRequests(true)}
-                    onUploadCsv={() => openImportWizard('csv')}
-                    onUploadPdfZip={() => openImportWizard('pdf')}
-                    onCreateNew={() => navigate('/customer/quotes/create/new')}
-                />
+                <div className="flex items-center gap-2">
+                    <Button
+                        type="button" variant="outline" size="sm"
+                        className="h-[34px] text-[12px] border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer font-medium"
+                        onClick={resetForm}
+                    >
+                        <RotateCcw size={14} />
+                        Reset
+                    </Button>
+                </div>
             </div>
 
-            {/* Main Data Table */}
-            <DataTable
-                data={filteredData}
-                columns={columns}
-                actions={(row) => (
-                    <RowActions
-                        row={row}
-                        isRepeating={isRepeating === row.id}
-                        onRepeatRequest={handleRepeatRequest}
-                        onDeleteRequest={handleDeleteRequest}
-                    />
-                )}
-                headerTabs={
-                    <FilterTabs
-                        requestData={requestData}
-                        activeTab={activeFilterTab}
-                        onSelectTab={setActiveFilterTab}
-                    />
-                }
-                searchPlaceholder="Search by ID, pickup, or delivery address..."
-                compact={true}
-                isLoading={isLoading}
-                onDeleteSelected={handleDeleteSelected}
-                onRowClick={(row) => navigate(`/customer/quotes/create/view/${row.rawId || String(row.id).replace('REQ-', '')}`)}
-                tableLayout="fixed"
-                tableClassName="min-w-[1050px]"
-                emptyState={
-                    <EmptyState
-                        icon={Inbox}
-                        title="No Quote Requests Found"
-                        description={activeFilterTab === 'All'
-                            ? "You haven't created any freight quote requests yet. Click 'Create New Request' to get started."
-                            : `No quote requests match the '${activeFilterTab}' filter.`
-                        }
-                    />
-                }
-            />
+            {/* Quota Reminder Banner below Header */}
+            <QuotaReminderBanner className="mb-5" />
 
-            {/* Modular 4-Step PDF & ZIP Import Wizard Modal */}
-            <PdfImportWizardModal
-                isOpen={isProcessingModalOpen}
-                onClose={() => setIsProcessingModalOpen(false)}
-                processingStep={processingStep}
-                setProcessingStep={setProcessingStep}
-                processingFileName={processingFileName}
-                uploadedZipName={uploadedZipName}
-                extractedData={extractedData}
-                pdfInputRef={pdfInputRef}
-                zipInputRef={zipInputRef}
-                onConfirmImport={handleConfirmImport}
-                onOpenInForm={handleOpenInForm}
-            />
+            {/* Layout: Sidebar on Left, Content on Right */}
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
+                {/* Left Sidebar Navigation */}
+                <div className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-2xs">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                            Categories
+                        </h3>
+                    </div>
+                    <div className="flex flex-col">
+                        {CREATE_TABS.map((tab) => {
+                            const Icon = tab.icon;
+                            const isSelected = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-medium transition-colors border-l-[3px] border-b border-slate-100 dark:border-slate-800/60 last:border-b-0 cursor-pointer ${
+                                        isSelected
+                                            ? 'border-l-[#ff4a1f] bg-orange-50/50 dark:bg-orange-950/20 text-[#ff4a1f] font-semibold'
+                                            : 'border-l-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <Icon size={15} className={isSelected ? 'text-[#ff4a1f]' : 'text-slate-400'} />
+                                        <span>{tab.label}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        {tab.id === 'load' && servicesCount > 0 && (
+                                            <span className="bg-orange-100 dark:bg-orange-950/60 text-[#ff4a1f] text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                                                {servicesCount}
+                                            </span>
+                                        )}
+                                        {isSelected && <ChevronRight size={14} className="text-[#ff4a1f]" />}
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Right Form Content Area */}
+                <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs w-full p-5 md:p-6 space-y-6">
+                    {activeTab === 'general' && (
+                        <BasicInfoSection formData={formData} handleChange={handleChange} handleSelectChange={handleSelectChange} />
+                    )}
+                    {activeTab === 'locations' && (
+                        <LocationsSection formData={formData} handleChange={handleChange} />
+                    )}
+                    {activeTab === 'load' && (
+                        <LoadServicesSection
+                            formData={formData} handleChange={handleChange} handleSelectChange={handleSelectChange}
+                            handleCheckboxChange={handleCheckboxChange} addDimensionRow={addDimensionRow}
+                            updateDimension={updateDimension} removeDimension={removeDimension}
+                        />
+                    )}
+                    {activeTab === 'preferences' && (
+                        <BudgetPreferencesSection
+                            formData={formData} handleChange={handleChange} handleSelectChange={handleSelectChange}
+                            handleCheckboxChange={handleCheckboxChange}
+                        />
+                    )}
+                    {activeTab === 'files' && (
+                        <AttachmentsNotesSection
+                            formData={formData} handleChange={handleChange}
+                            handleFileUpload={(field, file) => handleFileUpload(field, file ? ([file] as any) : null)}
+                        />
+                    )}
+                    {activeTab === 'review' && (
+                        <ReviewSubmitSection
+                            formData={formData}
+                            servicesCount={servicesCount}
+                            isSubmitting={isSubmitting}
+                            submittingStatus={submittingStatus}
+                            onSubmit={(_e, status) => handleSubmit(status || 'active')}
+                        />
+                    )}
+                </div>
+            </div>
+
+            <SubscriptionLockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} />
         </div>
     );
 }

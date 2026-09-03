@@ -4,6 +4,7 @@ import { TOKEN_CONFIG } from '../config/auth';
 export interface RequestOptions extends Omit<RequestInit, 'body'> {
     params?: Record<string, string | number | boolean | undefined | null>;
     body?: any;
+    silent?: boolean;
 }
 
 let lastNetworkErrorNotification = 0;
@@ -27,7 +28,13 @@ class ApiClient {
     private baseURL: string;
 
     constructor() {
-        this.baseURL = API_CONFIG.baseURL || '';
+        let base = API_CONFIG.baseURL || '';
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+            if (!base || base.includes('ngrok')) {
+                base = 'http://localhost:8000/api';
+            }
+        }
+        this.baseURL = base;
     }
 
     private getHeaders(customHeaders?: HeadersInit): HeadersInit {
@@ -40,7 +47,7 @@ class ApiClient {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'ngrok-skip-browser-warning': 'true',
+            'ngrok-skip-browser-warning': '69420',
             ...(customHeaders as Record<string, string>),
         };
 
@@ -82,6 +89,8 @@ class ApiClient {
         const computedHeaders = this.getHeaders(headers) as Record<string, string>;
         if (typeof FormData !== 'undefined' && body instanceof FormData) {
             delete computedHeaders['Content-Type'];
+            delete computedHeaders['content-type'];
+            delete computedHeaders['CONTENT-TYPE'];
         }
 
         const config: RequestInit = {
@@ -148,21 +157,23 @@ class ApiClient {
 
             return data;
         } catch (error: any) {
-            console.error(`API Error [${options.method || 'GET'} ${endpoint}]:`, error);
+            if (!options.silent) {
+                console.error(`API Error [${options.method || 'GET'} ${endpoint}]:`, error);
 
-            const isConnectionError =
-                !error.status ||
-                error instanceof TypeError ||
-                error?.name === 'TypeError' ||
-                (error?.message && typeof error.message === 'string' && (
-                    error.message.toLowerCase().includes('failed to fetch') ||
-                    error.message.toLowerCase().includes('networkerror') ||
-                    error.message.toLowerCase().includes('network error')
-                )) ||
-                (typeof navigator !== 'undefined' && !navigator.onLine);
+                const isConnectionError =
+                    !error.status ||
+                    error instanceof TypeError ||
+                    error?.name === 'TypeError' ||
+                    (error?.message && typeof error.message === 'string' && (
+                        error.message.toLowerCase().includes('failed to fetch') ||
+                        error.message.toLowerCase().includes('networkerror') ||
+                        error.message.toLowerCase().includes('network error')
+                    )) ||
+                    (typeof navigator !== 'undefined' && !navigator.onLine);
 
-            if (isConnectionError) {
-                notifyNetworkError("Network error: Unable to connect to the API server.");
+                if (isConnectionError) {
+                    notifyNetworkError("Network error: Unable to connect to the API server.");
+                }
             }
 
             throw error;
@@ -171,11 +182,13 @@ class ApiClient {
 
     public get<T = any>(endpoint: string, paramsOrOptions?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
         let params = paramsOrOptions;
-        if (paramsOrOptions && typeof paramsOrOptions === 'object' && 'params' in paramsOrOptions) {
-            params = paramsOrOptions.params;
+        let isSilent = false;
+        if (paramsOrOptions && typeof paramsOrOptions === 'object') {
+            if ('params' in paramsOrOptions) params = paramsOrOptions.params;
+            if ('silent' in paramsOrOptions) isSilent = Boolean(paramsOrOptions.silent);
         }
         const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
-        return this.request<T>(endpoint, { method: 'GET', params, headers: resolvedHeaders });
+        return this.request<T>(endpoint, { method: 'GET', params, headers: resolvedHeaders, silent: isSilent });
     }
 
     public post<T = any>(endpoint: string, body?: any, headers?: HeadersInit | { headers?: HeadersInit }) {

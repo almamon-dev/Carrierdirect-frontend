@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Pin, Ban, Pencil, Trash2, FileText, Download, X, ChevronLeft, ChevronRight, ChevronDown, ExternalLink, Globe, Check, CheckCircle2, XCircle, CheckCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Pin, Ban, Trash2, FileText, Download, X, ChevronLeft, ChevronRight, ChevronDown, ExternalLink, Globe, Check, CheckCircle2, XCircle, CheckCheck } from 'lucide-react';
+import { TiEdit } from 'react-icons/ti';
 import Button from '@/components/ui/button';
 import CounterOfferMessage from '@/modules/Customer/QuoteManagement/Negotiation/CounterOffer';
 import { DeclineOfferModal } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/components/DeclineOfferModal';
@@ -8,7 +9,6 @@ import { SAMPLE_NEGOTIATIONS } from '../../hooks/useSupplierNegotiations';
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
 import { getAttachmentUrl } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/utils/customerChatUtils';
-import ChatImage from '@/modules/Customer/QuoteManagement/Negotiation/Chat/components/ChatImage';
 
 interface ChatMessageBubbleProps {
     msg: ChatMessage;
@@ -233,6 +233,41 @@ const renderMessageTextWithLinks = (text: string, isSent: boolean) => {
     });
 };
 
+const ChatImageWithSkeleton: React.FC<{
+    src: string;
+    alt: string;
+    className?: string;
+}> = ({ src, alt, className }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    useEffect(() => {
+        if (!src) return;
+        const img = new window.Image();
+        img.src = src;
+        if (img.complete) {
+            setIsLoaded(true);
+        }
+    }, [src]);
+
+    return (
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+            {!isLoaded && (
+                <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse flex items-center justify-center z-0">
+                    <div className="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-500 border-t-[#FF4A1F] animate-spin opacity-70" />
+                </div>
+            )}
+            <img
+                src={src}
+                alt={alt}
+                onLoad={() => setIsLoaded(true)}
+                className={`${className || ''} transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                loading="eager"
+                decoding="async"
+            />
+        </div>
+    );
+};
+
 export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
     msg,
     prevMsg,
@@ -446,26 +481,30 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
         );
     }
 
-    const radius = isSent
-        ? (!isFirstInGroup && !isLastInGroup ? 'rounded-2xl rounded-tr-sm rounded-br-sm' : !isFirstInGroup ? 'rounded-2xl rounded-tr-sm' : !isLastInGroup ? 'rounded-2xl rounded-br-sm' : 'rounded-2xl')
-        : (!isFirstInGroup && !isLastInGroup ? 'rounded-2xl rounded-tl-sm rounded-bl-sm' : !isFirstInGroup ? 'rounded-2xl rounded-tl-sm' : !isLastInGroup ? 'rounded-2xl rounded-bl-sm' : 'rounded-2xl');
-
+    const radius = 'rounded-sm';
 
     const allAttachments = msg.attachments || [];
     const imageAttachments = allAttachments.filter(att => att.type === 'image' || (att.url && /\.(jpg|jpeg|png|webp|gif|svg)($|\?)/i.test(att.url)) || (att.name && /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(att.name)));
     const nonImageAttachments = allAttachments.filter(att => !imageAttachments.includes(att));
     const hasText = Boolean(msg.text && msg.text.trim().length > 0);
-    const isLongText = Boolean(msg.text && msg.text.length > 220);
-    const displayedText = isLongText && !isExpanded ? `${msg.text.slice(0, 190)}...` : (msg.text || '');
+    const isLongText = Boolean(msg.text && msg.text.length > 280);
+    const displayedText = (() => {
+        if (!isLongText || isExpanded) return msg.text || '';
+        const raw = msg.text || '';
+        const sub = raw.slice(0, 220);
+        const lastSpace = sub.lastIndexOf(' ');
+        const cleanSub = lastSpace > 160 ? sub.slice(0, lastSpace) : sub;
+        return `${cleanSub.trim()}...`;
+    })();
     const detectedUrl = hasText ? extractFirstUrl(msg.text) : null;
     const linkPreview = detectedUrl ? getLinkPreview(detectedUrl, activeNegotiation) : null;
 
     return (
         <div className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'} ${spacingClass} group relative`}>
             {!isSent && (
-                <div className="w-7 h-7 flex-shrink-0 mt-auto">
-                    {isLastInGroup && (
-                        <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs">
+                <div className="w-7 h-7 flex-shrink-0 self-start mt-0.5">
+                    {isFirstInGroup && (
+                        <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs shadow-2xs">
                             {msg.avatar || activeNegotiation.customer.charAt(0).toUpperCase()}
                         </div>
                     )}
@@ -475,7 +514,7 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
             <div
                 id={`msg-bubble-${msg.id}`}
                 className={`max-w-[85%] sm:max-w-[75%] md:max-w-[65%] min-w-0 flex flex-col ${isSent ? 'items-end' : 'items-start'} relative group transition-all duration-500 ${
-                    isHighlighted ? 'ring-2 ring-[#FF4A1F] ring-offset-2 rounded-2xl scale-[1.02]' : ''
+                    isHighlighted ? 'ring-2 ring-[#FF4A1F] ring-offset-2 rounded-sm scale-[1.02]' : ''
                 }`}
             >
                 {!isEditing && (
@@ -498,7 +537,7 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                                     className="p-1 text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"
                                     title="Edit message"
                                 >
-                                    <Pencil size={13} />
+                                    <TiEdit size={16} />
                                 </button>
                                 <button
                                     type="button"
@@ -525,16 +564,16 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                         {imageAttachments.length === 1 ? (
                             <div
                                 onClick={() => setLightboxIndex(0)}
-                                className="rounded-2xl overflow-hidden inline-block shadow-xs hover:opacity-95 transition-opacity max-w-[240px] sm:max-w-[280px] cursor-pointer"
+                                className="rounded-sm overflow-hidden inline-block shadow-xs hover:opacity-95 transition-opacity max-w-[240px] sm:max-w-[280px] cursor-pointer"
                             >
-                                <ChatImage
-                                    src={imageAttachments[0].url}
+                                <ChatImageWithSkeleton
+                                    src={getAttachmentUrl(imageAttachments[0].url)}
                                     alt={imageAttachments[0].name || 'image'}
-                                    className="w-auto h-auto max-w-[240px] sm:max-w-[280px] max-h-[300px] object-contain rounded-2xl"
+                                    className="w-auto h-auto max-w-[240px] sm:max-w-[280px] max-h-[300px] object-cover rounded-sm block"
                                 />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden max-w-[260px] sm:max-w-[300px] shadow-xs">
+                            <div className="grid grid-cols-2 gap-1 rounded-sm overflow-hidden max-w-[260px] sm:max-w-[300px] shadow-xs bg-slate-100 dark:bg-slate-800 p-1">
                                 {imageAttachments.slice(0, 4).map((att, idx) => {
                                     const isFourthAndMore = idx === 3 && imageAttachments.length > 4;
                                     const remainingCount = imageAttachments.length - 3;
@@ -543,12 +582,12 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                                         <div
                                             key={idx}
                                             onClick={() => setLightboxIndex(idx)}
-                                            className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer group"
+                                            className="relative aspect-square overflow-hidden bg-slate-200 dark:bg-slate-700 rounded-sm cursor-pointer group"
                                         >
-                                            <ChatImage
-                                                src={att.url}
+                                            <ChatImageWithSkeleton
+                                                src={getAttachmentUrl(att.url)}
                                                 alt={att.name || 'image'}
-                                                className="w-full h-full object-contain transition-transform group-hover:scale-105"
+                                                className="w-full h-full object-cover rounded-sm transition-transform group-hover:scale-105"
                                             />
                                             {isFourthAndMore && (
                                                 <div className="absolute inset-0 bg-black/65 backdrop-blur-[1px] flex flex-col items-center justify-center text-white font-extrabold text-lg sm:text-xl group-hover:bg-black/75 transition-colors z-20">
@@ -564,16 +603,15 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                     </div>
                 )}
 
-                {/* WhatsApp Style Document / PDF Card */}
+                {/* Compact Document / PDF Card */}
                 {nonImageAttachments.length > 0 && (
-                    <div className={`flex flex-col gap-2 ${hasText ? 'mb-2' : ''}`}>
+                    <div className={`flex flex-col gap-1.5 ${hasText ? 'mb-1.5' : ''}`}>
                         {nonImageAttachments.map((att, idx) => {
                             const isPdf = att.name.toLowerCase().endsWith('.pdf');
                             const isDoc = att.name.toLowerCase().endsWith('.doc') || att.name.toLowerCase().endsWith('.docx');
                             const isXls = att.name.toLowerCase().endsWith('.xls') || att.name.toLowerCase().endsWith('.xlsx');
                             const badgeColor = isPdf ? 'bg-[#EF4444]' : isXls ? 'bg-[#10B981]' : isDoc ? 'bg-[#2563EB]' : 'bg-[#F97316]';
-                            const badgeText = isPdf ? 'PDF' : isXls ? 'XLS' : isDoc ? 'DOC' : 'FILE';
-                            const cleanDocTitle = att.name.replace(/\.[^/.]+$/, '').toUpperCase();
+                            const badgeText = isPdf ? 'PDF' : isXls ? 'XLS' : isDoc ? 'DOC' : 'File';
 
                             return (
                                 <a
@@ -581,44 +619,20 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                                     href={getAttachmentUrl(att.url) || '#'}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className={`block rounded-2xl overflow-hidden shadow-xs transition-transform hover:scale-[1.01] max-w-[280px] sm:max-w-[320px] text-left cursor-pointer group/doc ${
+                                    className={`flex items-center gap-3 p-2 rounded-sm border transition-all hover:scale-[1.01] max-w-[280px] sm:max-w-[320px] ${
                                         isSent
-                                            ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30'
-                                            : 'bg-white dark:bg-[#202c33] text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700'
+                                            ? 'bg-[#d9fdd3] dark:bg-[#005c4b] border-emerald-200/70 dark:border-emerald-700/40 text-slate-900 dark:text-slate-100'
+                                            : 'bg-white dark:bg-[#202c33] border-slate-200/80 dark:border-slate-700/80 text-slate-900 dark:text-slate-100'
                                     }`}
-                                    title={`Open ${att.name}`}
                                 >
-                                    <div className="w-full h-28 sm:h-32 bg-white relative overflow-hidden flex flex-col p-3 border-b border-black/5 select-none pointer-events-none">
-                                        <div className="flex items-center justify-between border-b border-slate-200 pb-1 mb-2">
-                                            <div className="text-[12px] font-black text-slate-800 tracking-wider truncate font-serif">
-                                                {cleanDocTitle}
-                                            </div>
-                                            <div className="flex flex-col items-end gap-0.5 shrink-0 ml-2">
-                                                <div className="w-10 h-1 bg-slate-300 rounded-full" />
-                                                <div className="w-6 h-1 bg-slate-200 rounded-full" />
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-1.5 opacity-70">
-                                            <div className="w-3/4 h-1.5 bg-slate-300 rounded-full" />
-                                            <div className="w-full h-1.5 bg-slate-200 rounded-full" />
-                                            <div className="w-5/6 h-1.5 bg-slate-200 rounded-full" />
-                                        </div>
-                                        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white to-transparent" />
+                                    <div className={`w-7 h-7 ${badgeColor} rounded-sm flex items-center justify-center text-white font-semibold text-[10px] shrink-0 shadow-2xs`}>
+                                        {badgeText}
                                     </div>
-
-                                    <div className={`p-2.5 sm:p-3 flex items-center gap-3 ${isSent ? 'bg-black/5 dark:bg-black/20' : 'bg-white/90 dark:bg-slate-900/90'}`}>
-                                        <div className={`w-7 h-9 ${badgeColor} rounded flex flex-col items-center justify-center text-white shrink-0 shadow-2xs`}>
-                                            <span className="text-[9px] font-black tracking-tighter uppercase leading-none">{badgeText}</span>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold truncate leading-snug">
-                                                {att.name}
-                                            </p>
-                                            <p className={`text-[11px] ${isSent ? 'text-slate-600 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400'} font-normal mt-0.5`}>
-                                                1 page • {badgeText} • {att.size || '85 kB'}
-                                            </p>
-                                        </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-semibold truncate leading-tight">{att.name}</p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{att.size || 'Attachment'}</p>
                                     </div>
+                                    <Download size={13} className="text-slate-400 shrink-0" />
                                 </a>
                             );
                         })}
@@ -627,7 +641,7 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
 
                 {/* Text Bubble & WhatsApp Style Link Preview */}
                 {hasText && (
-                    <div className={`relative px-3.5 py-2.5 text-[13.5px] leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere] max-w-full ${linkPreview ? 'w-[320px] sm:w-[360px]' : ''} ${radius} ${
+                    <div className={`relative px-3.5 py-2.5 text-[13.5px] leading-relaxed break-words [overflow-wrap:anywhere] max-w-full ${linkPreview ? 'w-[320px] sm:w-[360px]' : ''} ${radius} ${
                         isSent
                             ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30 shadow-2xs font-medium'
                             : 'bg-white dark:bg-[#202c33] text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/60 shadow-2xs font-medium'
@@ -671,13 +685,12 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                         )}
 
                         <div className="break-words [overflow-wrap:anywhere]">
-                            {renderMessageTextWithLinks(displayedText, isSent)}
-                            {isLongText && !isExpanded && (
+                            <span className="whitespace-pre-wrap">{renderMessageTextWithLinks(displayedText, isSent)}</span>{isLongText && !isExpanded && (
                                 <button
                                     type="button"
                                     onClick={() => setIsExpanded(true)}
-                                    className={`ml-1 font-bold text-xs cursor-pointer hover:underline inline-block select-none ${
-                                        isSent ? 'text-emerald-700 dark:text-emerald-300 underline font-semibold' : 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                                    className={`inline font-bold text-xs cursor-pointer hover:underline select-none ml-1 ${
+                                        isSent ? 'text-emerald-700 dark:text-emerald-300' : 'text-emerald-600 dark:text-emerald-400'
                                     }`}
                                 >
                                     Read more
@@ -739,10 +752,10 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                         )}
 
                         {/* Image */}
-                        <ChatImage
-                            src={imageAttachments[lightboxIndex].url}
+                        <img
+                            src={getAttachmentUrl(imageAttachments[lightboxIndex].url)}
                             alt={imageAttachments[lightboxIndex].name || 'preview'}
-                            className="max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl"
+                            className="max-w-full max-h-[75vh] object-contain rounded-sm shadow-2xl"
                         />
 
                         {/* Next / Prev Buttons */}
