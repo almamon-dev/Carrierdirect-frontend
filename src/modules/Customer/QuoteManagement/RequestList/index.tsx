@@ -1,127 +1,56 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Inbox } from 'lucide-react';
 import DataTable from '@/components/tables/data-table';
 import EmptyState from '@/components/tables/empty-state';
-import apiClient from '@/lib/axios';
-import { ENDPOINTS } from '@/config/api';
-import { useToastStore } from '@/stores/useToastStore';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
 import { getCustomerColumns } from '../CreateRequest/components/columns';
 import { FilterTabs } from '../CreateRequest/components/FilterTabs';
+import { TableFilterContent } from '../CreateRequest/components/TableFilterContent';
 import { HeaderActions } from '../CreateRequest/components/HeaderActions';
-import { BulkImportModal } from '../CreateRequest/components/BulkImportModal';
 import { RowActions } from '../CreateRequest/components/RowActions';
 import { useCustomerQuoteRequests } from '../CreateRequest/hooks/useCustomerQuoteRequests';
-import { FilterTabId } from '../CreateRequest/types';
-import { buildBulkQuoteRequestsPayload } from './utils/bulkConfirmHelpers';
+import { useRequestListDelete } from './hooks/useRequestListDelete';
+import { useRequestListImportWizard } from './hooks/useRequestListImportWizard';
+import { useFilteredRequestList } from './hooks/useFilteredRequestList';
+import { useRequestListFilters } from './hooks/useRequestListFilters';
+import { RequestListModals } from './components/RequestListModals';
 
 export default function RequestList() {
     const navigate = useNavigate();
-    const showToast = useToastStore(state => state.showToast);
-    const [activeFilterTab, setActiveFilterTab] = useState<FilterTabId>('All');
+    const filters = useRequestListFilters();
+    const { requestData, setRequestData, isLoading, isRepeating, fetchQuoteRequests, handleRepeatRequest } = useCustomerQuoteRequests();
+    const deleteState = useRequestListDelete(setRequestData);
+    const wizard = useRequestListImportWizard(fetchQuoteRequests);
 
-    const {
+    const filteredData = useFilteredRequestList({
         requestData,
-        isLoading,
-        isRepeating,
-        fetchQuoteRequests,
-        handleDeleteRequest,
-        handleDeleteSelected,
-        handleRepeatRequest,
-    } = useCustomerQuoteRequests();
-
-    const csvInputRef = useRef<HTMLInputElement>(null);
-    const pdfInputRef = useRef<HTMLInputElement>(null);
-    const zipInputRef = useRef<HTMLInputElement>(null);
-
-    const [isProcessingModalOpen, setIsProcessingModalOpen] = useState(false);
-    const [processingStep, setProcessingStep] = useState<1 | 2 | 3 | 4>(1);
-    const [processingFileName, setProcessingFileName] = useState('');
-    const [uploadedZipName, setUploadedZipName] = useState('');
-    const [processingFileType, setProcessingFileType] = useState<'csv' | 'pdf'>('pdf');
-    const [extractedData, setExtractedData] = useState<any>(null);
-
-    const openImportWizard = (type: 'csv' | 'pdf' = 'pdf') => {
-        setProcessingFileType(type);
-        setProcessingFileName('');
-        setUploadedZipName('');
-        setExtractedData(null);
-        setProcessingStep(1);
-        setIsProcessingModalOpen(true);
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'csv' | 'pdf') => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            setProcessingFileName(files[0].name);
-            openImportWizard(type);
-        }
-        e.target.value = '';
-    };
-
-    const handleConfirmImport = async () => {
-        if (!extractedData) return;
-
-        try {
-            const requestsPayload = buildBulkQuoteRequestsPayload(extractedData);
-            const res = await apiClient.post(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS_BULK_CONFIRM, {
-                requests: requestsPayload,
-                attachment_path: extractedData.attachment_path || null,
-            });
-
-            const count = res.data?.data?.total_created || requestsPayload.length;
-            showToast(`🎉 Successfully created ${count} quote request(s) in database!`, 'success');
-            fetchQuoteRequests(true);
-        } catch (err: any) {
-            const msg = err.response?.data?.message || err.message || 'Failed to save requests to database.';
-            showToast(`Error saving to database: ${msg}`, 'error');
-            throw err;
-        }
-    };
-
-    const handleOpenInForm = () => {
-        if (extractedData) {
-            setIsProcessingModalOpen(false);
-            navigate('/customer/quotes/create/new', { state: { repeatData: extractedData } });
-        }
-    };
-
-    const filteredData = useMemo(() => {
-        if (activeFilterTab === 'Active') {
-            return requestData.filter(r => r.status === 'Active' || r.status === 'Bidding Active' || r.status === 'active');
-        }
-        if (activeFilterTab === 'Waiting') {
-            return requestData.filter(r => (r.quotesReceived || r.bidsCount || r.bids_count || 0) === 0 || r.status === 'Draft' || r.status === 'pending');
-        }
-        if (activeFilterTab === 'Review') {
-            return requestData.filter(r => (r.quotesReceived || r.bidsCount || r.bids_count || 0) > 0 || r.status === 'Negotiating');
-        }
-        if (activeFilterTab === 'Accepted') {
-            return requestData.filter(r => r.status === 'Accepted' || r.status === 'completed');
-        }
-        return requestData;
-    }, [requestData, activeFilterTab]);
+        activeFilterTab: filters.activeFilterTab,
+        priorityFilter: filters.priorityFilter,
+        statusFilter: filters.statusFilter,
+        quotesFilter: filters.quotesFilter,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+    });
 
     const columns = useMemo(() => getCustomerColumns(navigate), [navigate]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
-            <input type="file" ref={csvInputRef} className="hidden" accept=".csv" onChange={(e) => handleFileChange(e, 'csv')} />
-            <input type="file" ref={pdfInputRef} className="hidden" accept=".pdf,.csv,.doc,.docx" onChange={(e) => e.target.files && setProcessingFileName(e.target.files[0].name)} />
-            <input type="file" ref={zipInputRef} className="hidden" accept=".zip,.rar,.7z" onChange={(e) => e.target.files && setUploadedZipName(e.target.files[0].name)} />
-
-            <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">Quote Requests</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Manage, track, or import transportation quote requests.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">
+                        Quote Requests
+                    </h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Manage, track, and create freight quote requests for carrier bidding.
+                    </p>
                 </div>
-
                 <HeaderActions
                     isLoading={isLoading}
                     onRefresh={() => fetchQuoteRequests(true)}
-                    onUploadCsv={() => openImportWizard('csv')}
-                    onUploadPdfZip={() => openImportWizard('pdf')}
+                    onUploadCsv={() => wizard.openImportWizard('csv')}
+                    onUploadPdfZip={() => wizard.openImportWizard('pdf')}
                     onCreateNew={() => navigate('/customer/quotes/create/new')}
                 />
             </div>
@@ -132,55 +61,45 @@ export default function RequestList() {
                 actions={(row) => (
                     <RowActions
                         row={row}
-                        isRepeating={isRepeating === String(row.id)}
+                        isRepeating={isRepeating === (row.rawId || row.id)}
                         onRepeatRequest={handleRepeatRequest}
-                        onDeleteRequest={handleDeleteRequest}
+                        onDeleteRequest={deleteState.handleDeleteRequestClick}
                     />
                 )}
-                headerTabs={
-                    <FilterTabs
-                        requestData={requestData}
-                        activeTab={activeFilterTab}
-                        onSelectTab={setActiveFilterTab}
+                actionsColumnClassName="w-[140px] min-w-[140px] text-right pr-3"
+                headerTabs={<FilterTabs requestData={requestData} activeTab={filters.activeFilterTab} onSelectTab={filters.setActiveFilterTab} />}
+                filterContent={
+                    <TableFilterContent
+                        priorityFilter={filters.priorityFilter}
+                        setPriorityFilter={filters.setPriorityFilter}
+                        statusFilter={filters.statusFilter}
+                        setStatusFilter={filters.setStatusFilter}
+                        quotesFilter={filters.quotesFilter}
+                        setQuotesFilter={filters.setQuotesFilter}
+                        startDate={filters.startDate}
+                        setStartDate={filters.setStartDate}
+                        endDate={filters.endDate}
+                        setEndDate={filters.setEndDate}
+                        onResetFilters={filters.handleResetFilters}
                     />
                 }
-                searchPlaceholder="Search by ID, pickup, or delivery address..."
+                searchPlaceholder="Search requests by ID, title, origin, destination..."
                 compact={true}
                 isLoading={isLoading}
-                onDeleteSelected={handleDeleteSelected}
                 onRowClick={(row) => navigate(buildSecureQuoteUrl('view', row.rawId || row.id))}
-                tableLayout="fixed"
-                tableClassName="min-w-[1050px]"
+                tableClassName="w-full min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={Inbox}
-                        title="No Quote Requests Found"
-                        description={activeFilterTab === 'All'
-                            ? "You haven't created any freight quote requests yet. Click 'Create New Request' to get started."
-                            : `No quote requests match the '${activeFilterTab}' filter.`
-                        }
+                        title="No Requests Found"
+                        description={filters.activeFilterTab === 'All' ? 'You haven’t created any quote requests yet.' : `No quote requests match '${filters.activeFilterTab}'.`}
+                        actionLabel="Create Quote Request"
+                        onAction={() => navigate('/customer/quotes/create/new')}
                     />
                 }
             />
 
-            <BulkImportModal
-                isOpen={isProcessingModalOpen}
-                onClose={() => setIsProcessingModalOpen(false)}
-                importType={processingFileType}
-                setImportType={setProcessingFileType}
-                processingStep={processingStep}
-                setProcessingStep={setProcessingStep}
-                processingFileName={processingFileName}
-                setProcessingFileName={setProcessingFileName}
-                uploadedZipName={uploadedZipName}
-                setUploadedZipName={setUploadedZipName}
-                extractedData={extractedData}
-                setExtractedData={setExtractedData}
-                pdfInputRef={pdfInputRef}
-                zipInputRef={zipInputRef}
-                onConfirmImport={handleConfirmImport}
-                onOpenInForm={handleOpenInForm}
-            />
+            <RequestListModals wizard={wizard} deleteState={deleteState} />
         </div>
     );
 }

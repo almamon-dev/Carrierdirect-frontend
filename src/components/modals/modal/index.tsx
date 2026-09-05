@@ -69,7 +69,7 @@ export default function Modal({
       {/* Modal Content Wrapper */}
       <div 
         className={cn(
-          "relative bg-white rounded-md shadow-2xl w-full flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200",
+          "relative bg-white dark:bg-[#1e2329] rounded-[5px] border border-slate-200 dark:border-slate-800 shadow-2xl w-full flex flex-col overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200",
           sizeClasses[size],
           size === 'full' ? 'max-h-full' : 'max-h-[90vh]',
           className
@@ -77,12 +77,12 @@ export default function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-5 py-3.5 border-b border-slate-100 shrink-0">
+          <div className="flex items-start justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/60 shrink-0">
             <div className="flex-1">
               {typeof title === 'string' ? (
                 <>
-                  <h3 className="text-base font-bold text-slate-900">{title}</h3>
-                  {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">{title}</h3>
+                  {description && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>}
                 </>
               ) : (
                 title
@@ -92,7 +92,7 @@ export default function Modal({
             {showCloseButton && (
               <button 
                 onClick={onClose}
-                className="w-7 h-7 -mr-1 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+                className="w-7 h-7 -mr-1 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
                 aria-label="Close modal"
               >
                 <X size={16} strokeWidth={2} />
@@ -108,7 +108,7 @@ export default function Modal({
 
         {/* Footer */}
         {footer && (
-          <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-end gap-3 rounded-b-md">
+          <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#181d24] shrink-0 flex items-center justify-end gap-3 rounded-b-[5px]">
             {footer}
           </div>
         )}

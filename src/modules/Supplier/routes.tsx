@@ -3,7 +3,6 @@ import { RouteObject, Navigate } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import QuoteRequests from './QuoteManagement/QuoteRequests';
 import WonQuotes from './QuoteManagement/WonQuotes';
-import LostQuotes from './QuoteManagement/LostQuotes';
 const SubmitQuote = lazy(() => import('./QuoteManagement/SubmitQuote'));
 const QuoteNegotiation = lazy(() => import('./QuoteManagement/Negotiation'));
 const QuoteNegotiationChat = lazy(() => import('./QuoteManagement/Negotiation/Chat'));
@@ -42,7 +41,8 @@ export const supplierRoutes: RouteObject[] = [
     { path: 'quotes/submit', element: <SubmitQuote /> },
     { path: 'quotes/submit/:slug', element: <SubmitQuote /> },
     { path: 'quotes/won', element: <WonQuotes /> },
-    { path: 'quotes/lost', element: <LostQuotes /> },
+    { path: 'quotes/expired', element: <Navigate to="/supplier/quotes/requests" replace /> },
+    { path: 'quotes/lost', element: <Navigate to="/supplier/quotes/requests" replace /> },
     { path: 'quotes/negotiation', element: <QuoteNegotiation /> },
     { path: 'quotes/negotiation/conversation/:id', element: <QuoteNegotiationChat /> },
     { path: 'quotes/negotiation/conversation/:id/:sessionKey', element: <QuoteNegotiationChat /> },

@@ -65,7 +65,7 @@ const getRoleBadge = (role?: string) => {
     const r = (role || 'user').toLowerCase();
     if (r.includes('supplier')) {
         return {
-            label: 'Supplier',
+            label: 'Carrier Partner',
             bg: 'bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/60 dark:border-orange-900/50'
         };
     }

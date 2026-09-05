@@ -1,8 +1,8 @@
 import React from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 interface ImportModalFooterProps {
-    processingStep: 1 | 2 | 3 | 4;
+    processingStep: 1 | 2 | 3 | 4 | 5;
     hasFile?: boolean;
     extractedData?: any;
     isUploading?: boolean;
@@ -31,56 +31,56 @@ export const ImportModalFooter: React.FC<ImportModalFooterProps> = ({
     }
 
     return (
-        <div className="px-5 py-3 bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between font-sans">
+        <div className="px-5 py-3 bg-slate-50/70 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between font-sans">
             <div>
                 {processingStep > 1 ? (
                     <button
                         type="button"
-                        className="h-8 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 inline-flex items-center gap-1 transition-colors cursor-pointer"
+                        className="h-9 min-w-[80px] px-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750 rounded-[5px] inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                         onClick={onBack}
                     >
-                        <ArrowLeft size={13} />
+                        <ArrowLeft size={14} />
                         <span>Back</span>
                     </button>
                 ) : (
-                    <span />
+                    <div />
                 )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
                 <button
                     type="button"
-                    className="h-8 px-3.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors cursor-pointer"
+                    className="h-9 min-w-[85px] px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100 rounded-[5px] inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                     onClick={onCancel}
                 >
                     Cancel
                 </button>
 
-                {processingStep < 4 ? (
+                {processingStep < 5 ? (
                     <button
                         type="button"
-                        className="h-8 px-4 text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 rounded-md inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                        className="h-9 min-w-[130px] px-5 text-xs font-semibold text-white bg-[#FF4A1F] hover:bg-[#e03e15] rounded-[5px] inline-flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
                         onClick={onNext}
                     >
-                        <span>Continue</span>
-                        <ArrowRight size={13} />
+                        <span>{processingStep === 1 ? 'Continue to Upload' : 'Continue'}</span>
+                        <ArrowRight size={14} />
                     </button>
                 ) : (
                     <>
                         <button
                             type="button"
-                            className="h-8 px-3 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors cursor-pointer"
+                            className="h-9 min-w-[100px] px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-[5px] inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                             onClick={onOpenInForm}
                         >
                             Edit in Form
                         </button>
                         <button
                             type="button"
-                            className="h-8 px-4 text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 rounded-md inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                            className="h-9 min-w-[140px] px-5 text-xs font-semibold text-white bg-[#FF4A1F] hover:bg-[#e03e15] rounded-[5px] inline-flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
                             onClick={onConfirmImport}
                         >
+                            <Check size={14} />
                             <span>Confirm & Create</span>
-                            <ArrowRight size={13} />
                         </button>
                     </>
                 )}

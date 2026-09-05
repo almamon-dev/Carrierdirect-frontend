@@ -1,4 +1,5 @@
 import React from 'react';
+import { CreditCard, PackageCheck, ShieldCheck } from 'lucide-react';
 import { NegotiationItem } from '../../types';
 
 interface PricingBreakdownSectionProps {
@@ -28,33 +29,55 @@ export const PricingBreakdownSection: React.FC<PricingBreakdownSectionProps> = (
     const displayCurrency = '€';
 
     return (
-        <div className="px-4 pb-3 text-[12px] space-y-2.5">
-            <div className="space-y-2 pb-2.5 border-b border-slate-100">
-                {/* Base Freight */}
-                <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-medium">Base Freight</span>
-                    <span className="font-bold text-slate-800">{displayCurrency} {baseFreight.toLocaleString()}</span>
-                </div>
+        <div className="px-4 pb-3">
+            <table className="w-full text-[11.5px] border-collapse">
+                <tbody>
+                    <tr className="border-b border-slate-100/80">
+                        <td className="py-1.5 text-slate-500 font-medium whitespace-nowrap w-[130px]">
+                            <div className="flex items-center gap-1.5">
+                                <CreditCard size={12} className="text-slate-400 shrink-0" />
+                                <span>Base Freight</span>
+                            </div>
+                        </td>
+                        <td className="py-1.5 text-slate-400 font-bold text-center w-[20px] select-none">:</td>
+                        <td className="py-1.5 pl-1 font-bold text-slate-800 text-right">
+                            {displayCurrency} {baseFreight.toLocaleString()}
+                        </td>
+                    </tr>
 
-                {/* Extra Charges */}
-                {extraCharges.map((charge, idx) => (
-                    <div key={idx} className="flex justify-between items-center">
-                        <span className="text-slate-500 flex items-center gap-1">
-                            <span>{charge.label}</span>
-                            {charge.description && (
-                                <span className="text-[10px] text-slate-400">({charge.description})</span>
-                            )}
-                        </span>
-                        <span className="font-semibold text-slate-700">{displayCurrency} {Number(charge.amount || 0).toLocaleString()}</span>
-                    </div>
-                ))}
-            </div>
+                    {extraCharges.map((charge, idx) => (
+                        <tr key={idx} className="border-b border-slate-100/80">
+                            <td className="py-1.5 text-slate-500 font-medium whitespace-nowrap w-[130px]">
+                                <div className="flex items-center gap-1.5">
+                                    {idx % 2 === 0 ? (
+                                        <PackageCheck size={12} className="text-amber-500 shrink-0" />
+                                    ) : (
+                                        <ShieldCheck size={12} className="text-teal-500 shrink-0" />
+                                    )}
+                                    <span className="truncate max-w-[100px]" title={charge.label}>{charge.label}</span>
+                                </div>
+                            </td>
+                            <td className="py-1.5 text-slate-400 font-bold text-center w-[20px] select-none">:</td>
+                            <td className="py-1.5 pl-1 font-semibold text-slate-700 text-right">
+                                {displayCurrency} {Number(charge.amount || 0).toLocaleString()}
+                            </td>
+                        </tr>
+                    ))}
 
-            {/* Total / Current Rate */}
-            <div className="pt-0.5 flex justify-between items-center">
-                <span className="font-bold text-slate-800">Current Total</span>
-                <span className="text-[15px] font-black text-[#FF4A1F]">{displayCurrency} {currentPrice.toLocaleString()}</span>
-            </div>
+                    <tr>
+                        <td className="py-2 text-slate-800 font-bold whitespace-nowrap w-[130px]">
+                            <div className="flex items-center gap-1.5">
+                                <CreditCard size={12} className="text-[#FF4A1F] shrink-0" />
+                                <span>Current Total</span>
+                            </div>
+                        </td>
+                        <td className="py-2 text-slate-400 font-bold text-center w-[20px] select-none">:</td>
+                        <td className="py-2 pl-1 text-[14px] font-black text-[#FF4A1F] text-right">
+                            {displayCurrency} {currentPrice.toLocaleString()}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     );
 };

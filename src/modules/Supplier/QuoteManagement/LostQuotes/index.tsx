@@ -1,6 +1,6 @@
 /**
- * Supplier Quote Management - Lost Quotes Page
- * Displays expired, outbid, and declined quotes with filter tabs and responsive table.
+ * Supplier Quote Management - Expired Quotes Page
+ * Displays expired, outbid, and declined quotes with All and Today filter tabs.
  */
 
 import React, { useState, useMemo } from "react";
@@ -20,6 +20,7 @@ export default function LostQuotes() {
     const {
         quotes,
         filteredQuotes,
+        stats,
         activeTab,
         setActiveTab,
         isLoading,
@@ -43,7 +44,7 @@ export default function LostQuotes() {
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
-                        Lost Quotes
+                        Expired Quotes
                     </h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Review past quote requests that were expired, outbid, or declined.
@@ -73,6 +74,7 @@ export default function LostQuotes() {
                         quotes={quotes}
                         activeTab={activeTab}
                         onSelectTab={setActiveTab}
+                        stats={stats}
                     />
                 }
                 keyExtractor={(item) => item.id}
@@ -85,10 +87,10 @@ export default function LostQuotes() {
                 emptyState={
                     <EmptyState
                         icon={Inbox}
-                        title="No Lost Quotes Recorded"
-                        description={activeTab === "All"
-                            ? "You do not have any lost or expired quote requests."
-                            : `No lost quotes currently match the '${activeTab}' filter.`
+                        title={activeTab.toLowerCase() === "today" ? "No Quotes Expired Today" : "No Expired Quotes Recorded"}
+                        description={activeTab.toLowerCase() === "today"
+                            ? "There are no quote requests that expired today."
+                            : "You do not have any lost or expired quote requests."
                         }
                     />
                 }

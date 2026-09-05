@@ -80,7 +80,7 @@ export default function BlockMemberModal({ member, onClose, onSuccess }: BlockMe
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-2xs p-4 animate-in fade-in duration-150 font-sans">
-            <div className="bg-white dark:bg-[#1e2329] w-full max-w-lg rounded-[3px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+            <div className="bg-white dark:bg-[#1e2329] w-full max-w-lg rounded-[5px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-2.5 text-red-600 dark:text-red-400">

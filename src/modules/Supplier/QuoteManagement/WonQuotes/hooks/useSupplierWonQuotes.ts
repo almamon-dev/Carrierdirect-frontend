@@ -1,47 +1,24 @@
 /**
  * useSupplierWonQuotes Hook
- * Manages fetching, caching, and state synchronization for supplier won/accepted quotes.
+ * Manages fetching and state synchronization for supplier won/accepted quotes.
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
 import apiClient from "@/lib/axios";
-import { WonQuoteItem, WonFilterTab } from "../types";
-
 import { formatDisplayDate } from "@/lib/utils";
-
-const CACHE_KEY = "supplier_won_quotes_cache";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { resolveAddress } from "../../QuoteRequests/utils/addressHelpers";
+import { WonFilterTab, WonQuoteItem } from "../types";
 
 export function useSupplierWonQuotes() {
     const [activeTab, setActiveTab] = useState<WonFilterTab>("All");
-
-    // Initialize from local cache for zero-flash initial rendering
-    const [quotes, setQuotes] = useState<WonQuoteItem[]>(() => {
-        try {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-            }
-        } catch {}
-        return [];
-    });
-
-    const [isLoading, setIsLoading] = useState<boolean>(() => {
-        try {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) return false;
-            }
-        } catch {}
-        return true;
-    });
+    const [quotes, setQuotes] = useState<WonQuoteItem[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     /**
      * Fetch won quotes from the backend API
      */
-    const fetchWonQuotes = useCallback(async (showSkeleton = false) => {
-        setIsLoading(true);
+    const fetchWonQuotes = useCallback(async (showSkeleton = true) => {
+        if (showSkeleton) setIsLoading(true);
         try {
             const res = await apiClient.get("/supplier/quotes/won");
             const raw =
@@ -52,38 +29,47 @@ export function useSupplierWonQuotes() {
                 (Array.isArray(res.data?.data) && res.data.data) ||
                 (Array.isArray(res.data) && res.data) ||
                 [];
+
             if (Array.isArray(raw)) {
-                const mapped: WonQuoteItem[] = raw.map((q: any) => ({
-                    id: q.id ? (String(q.id).startsWith("REQ-") ? q.id : `REQ-${q.quote_request_id || q.id}`) : "REQ-000",
-                    slug: String(q.slug || q.id),
-                    requestDate: formatDisplayDate(q.requested_date || q.created_at || q.date || q.created_at_formatted),
-                    customer: q.customer?.name || q.quote_request?.customer?.name || q.quote_request?.client_name || "Verified Shipper",
-                    customerAvatar: q.customer?.avatar || q.quote_request?.customer?.profile_picture || "",
-                    customerRating: q.customer?.rating || 4.9,
-                    pickup: (q.quote_request?.pickup_address || q.pickup_address || "—").trim(),
-                    delivery: (q.quote_request?.delivery_address || q.delivery_address || "—").trim(),
-                    distance: q.quote_request?.distance || (q.distance ? `${q.distance} km` : "—"),
-                    budget: q.amount ? `€${Number(q.amount).toLocaleString()}` : (q.budget ? String(q.budget) : "€0"),
-                    priority: q.quote_request?.priority || q.priority || "Normal",
-                    status: q.order_status === "in_transit" ? "In Transit" : (q.order_status === "delivered" ? "Delivered" : "Won"),
-                    vehicleType: q.vehicle_type || "Covered Van",
-                }));
+                const mapped: WonQuoteItem[] = raw.map((q: any) => {
+                    const reqObj = q.quote_request || {};
+                    const reqId = q.quote_request_id || reqObj.id || q.id;
+                    const pickupFormatted = resolveAddress(reqObj.pickup_address ? reqObj : q, 'pickup');
+                    const deliveryFormatted = resolveAddress(reqObj.delivery_address ? reqObj : q, 'delivery');
+
+                    const formattedAmount = q.amount
+                        ? (String(q.amount).includes('€') ? String(q.amount) : `€${Number(q.amount).toLocaleString()}`)
+                        : (reqObj.budget ? String(reqObj.budget) : "€0");
+
+                    return {
+                        id: reqId ? (String(reqId).startsWith("REQ-") ? reqId : `REQ-${reqId}`) : "REQ-000",
+                        rawId: reqId,
+                        slug: String(reqObj.slug || q.slug || reqId),
+                        requestDate: formatDisplayDate(q.requested_date || reqObj.requested_date || q.created_at || reqObj.created_at),
+                        pickupDate: reqObj.pickup_date || q.pickup_date,
+                        pickupDateRaw: reqObj.pickup_date_raw || q.pickup_date_raw,
+                        deliveryDate: reqObj.delivery_date || q.delivery_date,
+                        deliveryDateRaw: reqObj.delivery_date_raw || q.delivery_date_raw,
+                        customer: reqObj.customer?.name || reqObj.client_name || q.customer?.name || "Verified Shipper",
+                        customerAvatar: reqObj.customer?.profile_picture || reqObj.customer?.avatar || q.customer?.avatar || "",
+                        customerRating: reqObj.customer?.rating || q.customer?.rating || 4.9,
+                        pickup: pickupFormatted || "—",
+                        delivery: deliveryFormatted || "—",
+                        distance: reqObj.distance || (q.distance ? `${q.distance} km` : "—"),
+                        budget: formattedAmount,
+                        priority: reqObj.priority || q.priority || "Normal",
+                        status: q.order_status === "in_transit" ? "In Transit" : (q.order_status === "delivered" ? "Delivered" : "Won"),
+                        vehicleType: reqObj.vehicle_type || q.vehicle_type || "Covered Van",
+                    };
+                });
+
                 setQuotes(mapped);
-                try {
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(mapped));
-                } catch {}
             } else {
                 setQuotes([]);
-                try {
-                    localStorage.setItem(CACHE_KEY, JSON.stringify([]));
-                } catch {}
             }
         } catch (error) {
             console.error("Failed to fetch won quotes:", error);
             setQuotes([]);
-            try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify([]));
-            } catch {}
         } finally {
             setIsLoading(false);
         }

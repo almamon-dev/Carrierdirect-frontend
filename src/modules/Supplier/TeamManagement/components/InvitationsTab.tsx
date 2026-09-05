@@ -6,6 +6,8 @@ import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
 import EmptyState from '@/components/tables/empty-state';
 import { InvitationItem } from '../types/team.types';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
+import { useToastStore } from '@/stores/useToastStore';
 import { apiClient } from '@/lib/axios';
 
 interface InvitationsTabProps {
@@ -13,12 +15,15 @@ interface InvitationsTabProps {
 }
 
 export default function InvitationsTab({ headerTabs }: InvitationsTabProps = {}) {
+    const showToast = useToastStore((state) => state.showToast);
     const [invitations, setInvitations] = useState<InvitationItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
+    const [revokingInvitation, setRevokingInvitation] = useState<InvitationItem | null>(null);
 
     const fetchInvitations = async () => {
         try {
+            setIsLoading(true);
             const res = await apiClient.get('/supplier/team/invitations');
             const raw = res.data?.data?.invitations || res.data?.data || res.data || [];
             const resArray = Array.isArray(raw) ? raw : [];
@@ -47,22 +52,28 @@ export default function InvitationsTab({ headerTabs }: InvitationsTabProps = {})
         fetchInvitations();
     }, []);
 
-    const handleResend = async (id: string) => {
+    const handleResend = async (row: InvitationItem) => {
         try {
-            await apiClient.post(`/supplier/team/invitations/${id}/resend`);
-            setInvitations(invitations.map(inv => inv.id === id ? { ...inv, status: 'Pending', dateSent: 'Resent just now' } : inv));
-        } catch (err) {
+            const targetId = row.rawId || row.id;
+            await apiClient.post(`/supplier/team/invitations/${targetId}/resend`);
+            setInvitations(invitations.map(inv => inv.id === row.id ? { ...inv, status: 'Pending', dateSent: 'Resent just now' } : inv));
+            showToast(`Invitation email resent successfully to ${row.email}!`, 'success');
+        } catch (err: any) {
             console.error('Failed to resend invitation:', err);
+            showToast(err.response?.data?.message || 'Failed to resend invitation', 'error');
         }
     };
 
-    const handleRevoke = async (id: string) => {
+    const handleConfirmRevoke = async () => {
+        if (!revokingInvitation) return;
         try {
-            await apiClient.delete(`/supplier/team/invitations/${id}`);
-            setInvitations(invitations.filter(inv => inv.id !== id));
-        } catch (err) {
+            const targetId = revokingInvitation.rawId || revokingInvitation.id;
+            await apiClient.delete(`/supplier/team/invitations/${targetId}`);
+            setInvitations(prev => prev.filter(inv => inv.id !== revokingInvitation.id));
+            showToast(`Revoked invitation for ${revokingInvitation.email}`, 'success');
+        } catch (err: any) {
             console.error('Failed to revoke invitation:', err);
-            setInvitations(invitations.filter(inv => inv.id !== id));
+            showToast(err.response?.data?.message || 'Failed to revoke invitation', 'error');
         }
     };
 
@@ -113,8 +124,8 @@ export default function InvitationsTab({ headerTabs }: InvitationsTabProps = {})
                 <Button 
                     variant="outline" 
                     size="sm" 
-                    className="h-8 text-xs px-2.5 font-semibold cursor-pointer"
-                    onClick={() => handleResend(row.id)}
+                    className="h-8 text-xs px-2.5 font-semibold cursor-pointer text-slate-700 hover:text-[#FF4A1F] rounded-[3px]"
+                    onClick={() => handleResend(row)}
                 >
                     <RefreshCw size={12} className="mr-1" /> Resend
                 </Button>
@@ -122,8 +133,8 @@ export default function InvitationsTab({ headerTabs }: InvitationsTabProps = {})
             <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 text-slate-400 hover:text-red-600 cursor-pointer"
-                onClick={() => handleRevoke(row.id)}
+                className="h-8 w-8 text-slate-400 hover:text-red-600 cursor-pointer rounded-[3px]"
+                onClick={() => setRevokingInvitation(row)}
                 title="Revoke Invitation"
             >
                 <X size={15} />
@@ -169,6 +180,23 @@ export default function InvitationsTab({ headerTabs }: InvitationsTabProps = {})
                     />
                 }
             />
+
+            {/* Revoke Invitation Modal */}
+            {revokingInvitation && (
+                <DeleteConfirmationModal
+                    isOpen={Boolean(revokingInvitation)}
+                    onClose={() => setRevokingInvitation(null)}
+                    onConfirm={handleConfirmRevoke}
+                    title="Revoke Invitation"
+                    subtitle="Cancel pending team invitation"
+                    memberName={revokingInvitation.email}
+                    memberEmail={revokingInvitation.email}
+                    memberRole={revokingInvitation.role}
+                    memberId={revokingInvitation.id}
+                    confirmText="Revoke Invitation"
+                    warningMessage={`Are you sure you want to revoke the invitation sent to ${revokingInvitation.email}? The invitation link will immediately become invalid.`}
+                />
+            )}
         </div>
     );
 }

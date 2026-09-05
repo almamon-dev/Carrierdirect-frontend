@@ -94,9 +94,9 @@ export default function SubscriptionCheckout() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
-              <div className="p-3 bg-slate-50 rounded-md border border-orange-200 flex items-center justify-between">
+              <div className="p-3 bg-slate-50 rounded-[3px] border border-orange-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                  <div className="w-10 h-10 rounded-[3px] bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                     CARD
                   </div>
                   <div>
@@ -111,7 +111,7 @@ export default function SubscriptionCheckout() {
         </div>
 
         <div>
-          <div className="bg-white rounded-md border border-slate-200 shadow-2xs overflow-hidden sticky top-4">
+          <div className="bg-white rounded-[3px] border border-slate-200 shadow-2xs overflow-hidden sticky top-4">
             <div className="p-4 bg-slate-900 text-white flex justify-between items-center">
               <div>
                 <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-[#ff4a1f]">Selected Plan</span>
@@ -123,11 +123,11 @@ export default function SubscriptionCheckout() {
             </div>
 
             <div className="p-5 space-y-4 text-xs">
-              <div className="p-1 bg-slate-100 rounded-lg flex items-center justify-between border border-slate-200">
+              <div className="p-1 bg-slate-100 rounded-[3px] flex items-center justify-between border border-slate-200">
                 <button
                   type="button"
                   onClick={() => setPlanCycle("monthly")}
-                  className={`w-1/2 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                  className={`w-1/2 py-1.5 text-xs font-semibold rounded-[3px] transition-all cursor-pointer ${
                     planCycle === "monthly" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
@@ -136,7 +136,7 @@ export default function SubscriptionCheckout() {
                 <button
                   type="button"
                   onClick={() => setPlanCycle("yearly")}
-                  className={`w-1/2 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                  className={`w-1/2 py-1.5 text-xs font-semibold rounded-[3px] transition-all cursor-pointer flex items-center justify-center gap-1 ${
                     planCycle === "yearly" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500"
                   }`}
                 >
@@ -226,7 +226,7 @@ export default function SubscriptionCheckout() {
 
       {isSuccessModalOpen && (
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-6 text-center space-y-4 relative overflow-hidden">
+          <div className="bg-white rounded-[5px] max-w-md w-full border border-slate-200 shadow-2xl p-6 text-center space-y-4 relative overflow-hidden">
             <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center border-4 border-emerald-50 shadow-inner">
               <CheckCircle2 size={32} className="text-emerald-600 animate-pulse" />
             </div>

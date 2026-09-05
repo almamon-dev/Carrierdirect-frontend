@@ -3,9 +3,9 @@ import { X } from 'lucide-react';
 
 interface ImportModalHeaderProps {
     isCsvMode: boolean;
-    processingStep: 1 | 2 | 3 | 4;
+    processingStep: 1 | 2 | 3 | 4 | 5;
     setImportType?: (type: 'csv' | 'pdf') => void;
-    onClose: () => void;
+    onClose?: () => void;
 }
 
 export const ImportModalHeader: React.FC<ImportModalHeaderProps> = ({
@@ -26,7 +26,7 @@ export const ImportModalHeader: React.FC<ImportModalHeaderProps> = ({
             </div>
 
             <div className="flex items-center gap-2.5">
-                {processingStep === 1 && setImportType && (
+                {processingStep <= 2 && setImportType && (
                     <div className="flex items-center bg-slate-100/80 dark:bg-slate-800/80 p-0.5 rounded-md text-[11px] font-medium border border-slate-200/60 dark:border-slate-700/60">
                         <button
                             type="button"
@@ -53,14 +53,16 @@ export const ImportModalHeader: React.FC<ImportModalHeaderProps> = ({
                     </div>
                 )}
 
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 w-7 h-7 rounded-md flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                    aria-label="Close"
-                >
-                    <X size={15} />
-                </button>
+                {onClose && (
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 w-7 h-7 rounded-md flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        aria-label="Close"
+                    >
+                        <X size={15} />
+                    </button>
+                )}
             </div>
         </div>
     );

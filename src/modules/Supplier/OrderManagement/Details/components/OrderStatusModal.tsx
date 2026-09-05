@@ -25,7 +25,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-2xs flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-[#1e2329] rounded-lg max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-md space-y-4">
+            <div className="bg-white dark:bg-[#1e2329] rounded-[5px] max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-md space-y-4">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Update Order Status ({orderId})</h3>
                 <div>
                     <FormLabel className="text-xs">Select New Status</FormLabel>

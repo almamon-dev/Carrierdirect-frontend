@@ -35,7 +35,7 @@ export default function ProfileCompletionModal({
             size="2xl"
             showCloseButton={false}
             closeOnOutsideClick={false}
-            className="max-w-4xl p-0 overflow-hidden border-2 border-gray-200 dark:border-[#384150] bg-white dark:bg-[#181a20] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
+            className="max-w-4xl p-0 overflow-hidden border-2 border-gray-200 dark:border-[#384150] bg-white dark:bg-[#181a20] rounded-[5px] shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
         >
             <div className="flex flex-col md:flex-row w-full font-sans antialiased min-h-[460px]">
                 

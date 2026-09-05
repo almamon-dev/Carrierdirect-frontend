@@ -242,7 +242,7 @@ export default function SupplierLayout() {
                 {/* Main Scrollable Content */}
                 <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <React.Suspense fallback={<RouteLoadingFallback />}>
-                        <div className="w-full">
+                        <div className="w-full pb-16">
                             <Outlet />
                         </div>
                     </React.Suspense>

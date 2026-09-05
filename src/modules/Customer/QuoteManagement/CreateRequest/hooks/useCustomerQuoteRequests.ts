@@ -1,8 +1,3 @@
-/**
- * useCustomerQuoteRequests Hook
- * Handles fetching, repeating, and deleting customer quote requests without localStorage cache.
- */
-
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '@/lib/axios';
@@ -10,21 +5,18 @@ import { ENDPOINTS } from '@/config/api';
 import { useToastStore } from '@/stores/useToastStore';
 import { CustomerQuoteRequestItem } from '../types';
 import { buildRepeatData } from '../utils/repeatHelpers';
-import { formatDisplayDate } from '@/lib/utils';
+import { mapCustomerQuoteRequestItems } from '../utils/customerQuoteRequestMapper';
 
 export function useCustomerQuoteRequests() {
     const navigate = useNavigate();
     const showToast = useToastStore(state => state.showToast);
 
     const [requestData, setRequestData] = useState<CustomerQuoteRequestItem[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isRepeating, setIsRepeating] = useState<string | null>(null);
 
-    /**
-     * Fetch quote requests and quote counts from the backend API.
-     */
     const fetchQuoteRequests = useCallback(async (showSkeleton = false) => {
-        if (showSkeleton) setIsLoading(true);
+        if (showSkeleton || requestData.length === 0) setIsLoading(true);
         try {
             const [requestsRes, quotesRes] = await Promise.allSettled([
                 apiClient.get(ENDPOINTS.CUSTOMER.QUOTE_REQUESTS, { params: { per_page: 200 } }),
@@ -49,52 +41,7 @@ export function useCustomerQuoteRequests() {
                             : []));
 
                 if (Array.isArray(rawItems)) {
-                    const mapped: CustomerQuoteRequestItem[] = rawItems.map((q: any) => {
-                        const matchedFromAllQuotes = allReceivedQuotes.filter(item => {
-                            const quoteReqId = item.quote_request_id || item.request_id || item.quote_request?.id;
-                            return String(quoteReqId) === String(q.id);
-                        }).length;
-
-                        const qCount = Number(
-                            q.quotes_count ??
-                            q.quotes_received_count ??
-                            q.bids_count ??
-                            (Array.isArray(q.quotes_request) && q.quotes_request.length > 0 ? q.quotes_request.length :
-                             Array.isArray(q.quotes) && q.quotes.length > 0 ? q.quotes.length :
-                             matchedFromAllQuotes)
-                        );
-
-                        const dateStr = formatDisplayDate(q.requested_date || q.request_date || q.pickup_date || q.created_at || q.created_at_formatted || q.date);
-
-                        const budgetStr = q.budget 
-                            ? (String(q.budget).includes('€') || String(q.budget).includes('$') || String(q.budget).includes('৳') ? String(q.budget) : `€${q.budget}`)
-                            : 'Negotiable';
-
-                        const distanceStr = q.est_distance || q.distance_miles 
-                            ? `${q.est_distance || q.distance_miles} km` 
-                            : '245 km';
-
-                        return {
-                            id: q.id ? (String(q.id).startsWith('REQ-') ? q.id : `REQ-${q.id}`) : 'REQ-000',
-                            rawId: q.id,
-                            slug: String(q.slug || q.id),
-                            date: dateStr,
-                            pickup: (q.pickup_address || q.pickup_city || '—').trim(),
-                            delivery: (q.delivery_address || q.delivery_city || '—').trim(),
-                            distance: distanceStr,
-                            budget: budgetStr,
-                            priority: q.priority || 'Normal',
-                            status: q.status === 'active' ? 'Active' : (q.status === 'pending' ? 'Draft' : (q.status || 'Active')),
-                            quotesReceived: qCount,
-                            type: q.shipment_type || 'FTL',
-                            load: q.load_type || q.type_of_pallets || 'Pallets',
-                            vehicle: q.vehicle_type || 'Covered Van',
-                            weight: q.weight ? `${q.weight} KG` : '—',
-                            rawData: q,
-                        };
-                    });
-
-                    setRequestData(mapped);
+                    setRequestData(mapCustomerQuoteRequestItems(rawItems, allReceivedQuotes));
                 } else {
                     setRequestData([]);
                 }
@@ -106,15 +53,12 @@ export function useCustomerQuoteRequests() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [requestData.length]);
 
     useEffect(() => {
         fetchQuoteRequests();
     }, [fetchQuoteRequests]);
 
-    /**
-     * Delete/Cancel a single quote request
-     */
     const handleDeleteRequest = async (row: CustomerQuoteRequestItem) => {
         const rawId = String(row.id).replace('REQ-', '');
         if (!window.confirm(`Are you sure you want to delete/cancel quote request ${row.id}?`)) {
@@ -131,9 +75,6 @@ export function useCustomerQuoteRequests() {
         }
     };
 
-    /**
-     * Delete multiple selected quote requests in batch
-     */
     const handleDeleteSelected = async (selectedIds: (number | string)[]) => {
         if (!selectedIds.length) return;
         if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} selected request(s)?`)) {
@@ -151,9 +92,6 @@ export function useCustomerQuoteRequests() {
         showToast(`${selectedIds.length} request(s) deleted.`, 'success');
     };
 
-    /**
-     * Repeat request by prefilling data into the Create form
-     */
     const handleRepeatRequest = async (row: CustomerQuoteRequestItem) => {
         const rawId = String(row.id).replace('REQ-', '');
         setIsRepeating(String(row.id));

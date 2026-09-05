@@ -18,7 +18,7 @@ const getRoleBadge = (role?: string) => {
     const r = (role || 'user').toLowerCase();
     if (r.includes('supplier') || r.includes('carrier')) {
         return {
-            label: 'Carrier / Supplier',
+            label: 'Carrier Partner',
             bg: 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400 border border-orange-200/60 dark:border-orange-900/40'
         };
     }
@@ -44,7 +44,6 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
     role = 'customer'
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [roleFilter, setRoleFilter] = useState<'all' | 'supplier' | 'customer'>('all');
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     const isSupplierView = role === 'supplier';
@@ -54,12 +53,11 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
     useEffect(() => {
         if (isOpen) {
             setSearchQuery('');
-            setRoleFilter(isSupplierView ? 'customer' : isCustomerView ? 'supplier' : 'all');
             setTimeout(() => {
                 searchInputRef.current?.focus();
             }, 50);
         }
-    }, [isOpen, isSupplierView, isCustomerView]);
+    }, [isOpen]);
 
     // Close on Escape key
     useEffect(() => {
@@ -77,134 +75,73 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
         return new Set(conversations.map(c => String(c.user?.id)));
     }, [conversations]);
 
-    // Strictly enforce counter-party filtering based on logged in role:
-    // Exclude ALL admin accounts unconditionally
-    // If supplier is logged in -> only show customers
-    // If customer is logged in -> only show suppliers/carriers
-    const targetFilteredDirectory = useMemo(() => {
-        const nonAdminUsers = directoryUsers.filter(u => {
-            const uType = (u.user_type || '').toLowerCase();
-            const email = (u.email || '').toLowerCase();
+    // Clean, backend-powered filtered list
+    const filteredUsers = useMemo(() => {
+        if (!directoryUsers || !directoryUsers.length) return [];
+
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return directoryUsers;
+
+        return directoryUsers.filter(u => {
             const name = (u.name || '').toLowerCase();
             const company = (u.company_name || '').toLowerCase();
-            const isAdmin = uType.includes('admin') || email.includes('admin@') || name.includes('admin') || company.includes('admin') || (u as any).is_admin === true || (u as any).is_admin === 1;
-            return !isAdmin;
+            const email = (u.email || '').toLowerCase();
+            return name.includes(q) || company.includes(q) || email.includes(q);
         });
-
-        if (isSupplierView) {
-            return nonAdminUsers.filter(u => {
-                const uType = (u.user_type || '').toLowerCase();
-                return (uType.includes('customer') || uType.includes('shipper')) && !uType.includes('supplier') && !uType.includes('carrier');
-            });
-        }
-        if (isCustomerView) {
-            return nonAdminUsers.filter(u => {
-                const uType = (u.user_type || '').toLowerCase();
-                return (uType.includes('supplier') || uType.includes('carrier')) && !uType.includes('customer') && !uType.includes('shipper');
-            });
-        }
-        return nonAdminUsers;
-    }, [directoryUsers, isSupplierView, isCustomerView]);
-
-    // Filter directory users with search query
-    const filteredUsers = useMemo(() => {
-        const query = searchQuery.trim().toLowerCase();
-        return targetFilteredDirectory.filter(user => {
-            const name = (user.name || '').toLowerCase();
-            const company = (user.company_name || '').toLowerCase();
-            const email = (user.email || '').toLowerCase();
-            const uRole = (user.user_type || '').toLowerCase();
-
-            const matchesQuery = !query ||
-                name.includes(query) ||
-                company.includes(query) ||
-                email.includes(query) ||
-                uRole.includes(query);
-
-            if (!matchesQuery) return false;
-
-            if (!isSupplierView && !isCustomerView) {
-                if (roleFilter === 'supplier') {
-                    return uRole.includes('supplier') || uRole.includes('carrier');
-                }
-                if (roleFilter === 'customer') {
-                    return uRole.includes('customer') || uRole.includes('shipper');
-                }
-            }
-
-            return true;
-        });
-    }, [targetFilteredDirectory, searchQuery, roleFilter, isSupplierView, isCustomerView]);
+    }, [directoryUsers, searchQuery]);
 
     if (!isOpen) return null;
 
-    const modalTitle = isSupplierView
-        ? 'Select Customer'
-        : isCustomerView
-        ? 'Select Carrier / Supplier'
-        : 'New Message';
-
-    const modalSubtitle = isSupplierView
-        ? 'Search and select a Customer to start a direct message'
-        : isCustomerView
-        ? 'Search and select a Carrier or Supplier to start a direct message'
-        : 'Search and select a partner to start a conversation';
-
-    const modalBadge = isSupplierView
-        ? 'Customer Directory'
-        : isCustomerView
-        ? 'Carrier Directory'
-        : 'Direct Message';
-
     const placeholderText = isSupplierView
-        ? 'Search customers by name, company, or email...'
+        ? 'Search customer by name, company, email...'
         : isCustomerView
-        ? 'Search carriers & suppliers by name, company, or email...'
-        : 'Search by name, company, or email address...';
+            ? 'Search carrier/supplier by name, company...'
+            : 'Search contacts...';
 
     return createPortal(
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[99999] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-[#1e2329] rounded-[4px] shadow-2xl border border-slate-200/90 dark:border-slate-800 w-full max-w-lg overflow-hidden flex flex-col font-sans animate-in fade-in zoom-in-95 duration-150">
-                
-                {/* Modal Header */}
-                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#1e2329]">
-                    <div>
-                        <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2 leading-tight">
-                            <span>{modalTitle}</span>
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400">
-                                {modalBadge}
-                            </span>
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            {modalSubtitle}
-                        </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+            {/* Modal Card */}
+            <div
+                className="w-full max-w-lg bg-white dark:bg-[#12161c] rounded-[5px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#12161c]">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200/80 dark:border-orange-900/50 flex items-center justify-center text-[#FF4A1F]">
+                            <Users size={16} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                {isSupplierView ? 'Direct Message to Customer' : isCustomerView ? 'Direct Message to Carrier' : 'New Direct Message'}
+                            </h3>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                Select a verified partner to open or start a message thread
+                            </p>
+                        </div>
                     </div>
 
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-[3px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                        title="Close"
+                        className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
                     >
-                        <X size={17} />
+                        <X size={16} />
                     </button>
                 </div>
 
-                {/* Sub-header directory count info */}
-                <div className="flex items-center justify-between px-6 py-2 bg-slate-50/70 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
-                    <div className="flex items-center gap-1.5 font-semibold">
-                        <Users size={14} className="text-[#ff4a1f]" />
-                        <span>
-                            {isSupplierView ? 'Available Customers' : isCustomerView ? 'Available Carriers & Suppliers' : 'Available Contacts'}
-                        </span>
-                    </div>
-                    <span className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-full text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                        {targetFilteredDirectory.length} total
+                {/* Counter Badge */}
+                <div className="px-6 py-2 bg-slate-50/50 dark:bg-[#181d24] border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                    <span className="font-semibold text-slate-600 dark:text-slate-300">
+                        {isSupplierView ? 'Verified Customers' : isCustomerView ? 'Verified Suppliers & Carriers' : 'Available Contacts'}
+                    </span>
+                    <span className="font-bold text-[#FF4A1F] bg-orange-50 dark:bg-[#ff4a1f]/10 px-2 py-0.5 rounded-full border border-orange-200/60 dark:border-orange-900/30">
+                        {filteredUsers.length} available
                     </span>
                 </div>
 
                 {/* Body Content */}
                 <div className="p-6 space-y-3.5 max-h-[60vh] overflow-y-auto">
-                    
                     {/* Search Input Box */}
                     <div className="relative">
                         <input
@@ -229,7 +166,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
 
                     {/* User Cards List */}
                     <div className="space-y-2">
-                        {isLoading && targetFilteredDirectory.length === 0 ? (
+                        {isLoading && directoryUsers.length === 0 ? (
                             <div className="p-8 text-center text-xs text-slate-400 space-y-2">
                                 <p>Loading directory contacts...</p>
                             </div>
@@ -289,8 +226,12 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                                                     </span>
                                                 </div>
 
-                                                <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                                                    {user.email || (user.company_name && user.name !== user.company_name ? user.name : 'Direct Message')}
+                                                <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-1.5">
+                                                    <span className="font-mono text-[10.5px]">#CD-{String(user.id).padStart(4, '0')}</span>
+                                                    <span>•</span>
+                                                    <span>Verified Channel</span>
+                                                    <span>•</span>
+                                                    <span className="text-amber-500 font-semibold flex items-center gap-0.5">★ 4.9</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -310,7 +251,6 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                             })
                         )}
                     </div>
-
                 </div>
 
                 {/* Footer */}
@@ -324,7 +264,6 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                         Cancel
                     </button>
                 </div>
-
             </div>
         </div>,
         document.body

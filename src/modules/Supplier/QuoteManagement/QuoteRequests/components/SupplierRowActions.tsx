@@ -1,16 +1,11 @@
-/**
- * Supplier Quote Request Row Actions Menu
- * Dropdown menu for Quote actions: View Details, Submit Quote (or Locked priority), and Copy ID.
- */
-
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, Eye, Lock, Send, Copy, CheckCircle2, Trophy } from 'lucide-react';
+import { MoreVertical, Eye, Copy } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { QuoteRequest } from '../../data/quoteRequestsData';
-
 import { encryptId } from '@/lib/encryption';
+import { SupplierActionButton } from './SupplierActionMenuItem';
 
 interface SupplierRowActionsProps {
     row: QuoteRequest;
@@ -24,8 +19,6 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-    const isQuoted = (row.status || '').toLowerCase() === 'quoted';
-    const isBooked = (row.status || '').toLowerCase() === 'booked';
 
     const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -45,16 +38,10 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
 
     useEffect(() => {
         if (!isOpen) return;
-
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                handleClose();
-            }
+            if (e.key === 'Escape') handleClose();
         };
-
-        const handleScroll = () => {
-            handleClose();
-        };
+        const handleScroll = () => handleClose();
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('scroll', handleScroll, true);
@@ -77,13 +64,9 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
 
             {isOpen && createPortal(
                 <>
-                    {/* Transparent Click-Outside Backdrop */}
                     <div
                         className="fixed inset-0 z-[9998] cursor-default bg-transparent"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleClose();
-                        }}
+                        onClick={(e) => { e.stopPropagation(); handleClose(); }}
                     />
 
                     <div
@@ -91,92 +74,42 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                    {/* View Details */}
-                    <button
-                        type="button"
-                        className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                        onClick={() => {
-                            handleClose();
-                            const rawId = String(row.rawId || row.slug || row.id).replace('REQ-', '').trim();
-                            try {
-                                    sessionStorage.setItem('carrierdirect_last_quote_session_id', rawId);
-                            } catch {}
-                            navigate(`/supplier/quotes/requests/${encryptId(rawId)}`);
-                        }}
-                    >
-                        <Eye size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                        <span>View Details</span>
-                    </button>
+                        <button
+                            type="button"
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                            onClick={() => {
+                                handleClose();
+                                const rawId = String(row.rawId || row.slug || row.id).replace('REQ-', '').trim();
+                                navigate(`/supplier/quotes/requests/${encryptId(rawId)}`);
+                            }}
+                        >
+                            <Eye size={14} className="text-slate-400 shrink-0" />
+                            <span>View Details</span>
+                        </button>
 
-                    {/* Submit Quote, Quoted, Booked or Locked Indicator */}
-                    {isBooked ? (
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                onQuoteAction(row);
-                            }}
-                        >
-                            <Trophy size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span>Booked / Won</span>
-                        </button>
-                    ) : isQuoted ? (
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                onQuoteAction(row);
-                            }}
-                        >
-                            <CheckCircle2 size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-                            <span>Quoted (Update Offer)</span>
-                        </button>
-                    ) : row.priority === 'Urgent' ? (
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                onQuoteAction(row);
-                            }}
-                        >
-                            <Lock size={14} className="text-amber-500 shrink-0" />
-                            <span>Locked (Priority RFQ)</span>
-                        </button>
-                    ) : (
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                onQuoteAction(row);
-                            }}
-                        >
-                            <Send size={14} className="text-[#ff4a1f] shrink-0" />
-                            <span>Submit Quote</span>
-                        </button>
-                    )}
+                        <SupplierActionButton
+                            row={row}
+                            onQuoteAction={onQuoteAction}
+                            onClose={handleClose}
+                        />
 
-                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
+                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
 
-                    {/* Copy Request ID */}
-                    <button
-                        type="button"
-                        className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                        onClick={() => {
-                            handleClose();
-                            navigator.clipboard.writeText(row.id);
-                        }}
-                    >
-                        <Copy size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                        <span>Copy Request ID</span>
-                    </button>
-                </div>
-            </>,
-            document.body
-        )}
+                        <button
+                            type="button"
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                            onClick={() => {
+                                handleClose();
+                                navigator.clipboard.writeText(row.id);
+                            }}
+                        >
+                            <Copy size={14} className="text-slate-400 shrink-0" />
+                            <span>Copy Request ID</span>
+                        </button>
+                    </div>
+                </>,
+                document.body
+            )}
         </div>
     );
 };

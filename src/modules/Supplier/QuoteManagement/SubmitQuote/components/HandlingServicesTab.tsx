@@ -14,11 +14,11 @@ interface HandlingServicesTabProps {
 
 export const HandlingServicesTab: React.FC<HandlingServicesTabProps> = ({ requestDetails }) => {
     return (
-        <div className="p-5 space-y-5">
+        <div className="p-3.5 sm:p-4 space-y-3.5 font-sans">
             {/* Cargo Characteristics */}
             <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">Characteristics</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1.5">Cargo Characteristics</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                     {[
                         { label: 'Stackable', active: requestDetails.stackable },
                         { label: 'Fragile', active: requestDetails.fragile },
@@ -27,12 +27,12 @@ export const HandlingServicesTab: React.FC<HandlingServicesTabProps> = ({ reques
                         { label: 'Oversized', active: requestDetails.oversized },
                         { label: 'Perishable', active: requestDetails.perishable },
                     ].map((item, i) => (
-                        <div key={i} className={`p-2.5 rounded border flex items-center gap-2 font-medium ${
+                        <div key={i} className={`p-2 rounded-[3px] border flex items-center gap-1.5 text-xs ${
                             item.active
-                                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-semibold'
-                                : 'bg-white dark:bg-[#181d24] border-slate-200 dark:border-slate-800 text-slate-400 line-through'
+                                ? 'bg-slate-50 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-medium'
+                                : 'bg-white dark:bg-[#181d24] border-slate-200/60 dark:border-slate-800 text-slate-400 line-through font-normal'
                         }`}>
-                            <Check size={13} className={item.active ? 'text-emerald-600' : 'text-slate-300'} />
+                            <Check size={12} className={item.active ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-slate-600'} />
                             <span>{item.label}</span>
                         </div>
                     ))}
@@ -41,7 +41,7 @@ export const HandlingServicesTab: React.FC<HandlingServicesTabProps> = ({ reques
 
             {/* Required Services */}
             <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">Required Services</h4>
+                <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1.5">Required Services</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                     {[
                         { label: 'Loading Required', active: requestDetails.loadingRequired },
@@ -53,12 +53,12 @@ export const HandlingServicesTab: React.FC<HandlingServicesTabProps> = ({ reques
                         { label: 'Assembly / Installation', active: requestDetails.assembly },
                         { label: 'Inside Delivery', active: requestDetails.insideDelivery },
                     ].map((srv, idx) => (
-                        <div key={idx} className={`p-2.5 rounded border flex items-center gap-2 font-medium ${
+                        <div key={idx} className={`p-2 rounded-[3px] border flex items-center gap-1.5 text-xs ${
                             srv.active
-                                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-semibold'
-                                : 'bg-white dark:bg-[#181d24] border-slate-200 dark:border-slate-800 text-slate-400 line-through'
+                                ? 'bg-slate-50 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-medium'
+                                : 'bg-white dark:bg-[#181d24] border-slate-200/60 dark:border-slate-800 text-slate-400 line-through font-normal'
                         }`}>
-                            <Check size={13} className={srv.active ? 'text-emerald-600' : 'text-slate-300'} />
+                            <Check size={12} className={srv.active ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-slate-600'} />
                             <span>{srv.label}</span>
                         </div>
                     ))}

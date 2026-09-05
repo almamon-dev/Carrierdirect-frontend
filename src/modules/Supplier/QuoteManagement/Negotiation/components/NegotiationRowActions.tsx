@@ -1,24 +1,19 @@
-/**
- * Supplier Negotiation Row Actions Menu
- * Matches SupplierRowActions style with single 3-dots dropdown menu using React Portal.
- */
-
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, Eye, MessageSquare, Copy, Check, Lock } from 'lucide-react';
+import { MoreVertical, Eye, MessageSquare, Copy, Check } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
 import { NegotiationItem } from '../types';
 
 interface NegotiationRowActionsProps {
     row: NegotiationItem;
-    onQuoteAction?: (row: NegotiationItem) => void;
+    onAction?: (row: NegotiationItem) => void;
 }
 
 export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
     row,
-    onQuoteAction,
+    onAction,
 }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
@@ -43,8 +38,8 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
 
     const handleOpenChat = () => {
         handleClose();
-        if (row.priority === 'Urgent' && onQuoteAction) {
-            onQuoteAction(row);
+        if (row.priority === 'Urgent' && onAction) {
+            onAction(row);
         } else {
             const encId = encryptId(row.rawId || row.id);
             const sKey = row.sessionKey || `ses-${row.rawId || row.id}`;
@@ -63,16 +58,8 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
 
     useEffect(() => {
         if (!isOpen) return;
-
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                handleClose();
-            }
-        };
-
-        const handleScroll = () => {
-            handleClose();
-        };
+        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
+        const handleScroll = () => handleClose();
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('scroll', handleScroll, true);
@@ -86,7 +73,6 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
 
     return (
         <div className="relative flex items-center justify-end gap-1.5 w-full">
-            {/* Direct 1-Click Chat Button */}
             <button
                 type="button"
                 onClick={handleOpenChat}
@@ -102,7 +88,6 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
                 ) : null}
             </button>
 
-            {/* Secondary 3-Dots Dropdown */}
             <Button
                 variant="ghost"
                 size="sm"
@@ -115,68 +100,47 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
 
             {isOpen && createPortal(
                 <>
-                    {/* Transparent Click-Outside Backdrop */}
-                    <div
-                        className="fixed inset-0 z-[9998] cursor-default bg-transparent"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleClose();
-                        }}
-                    />
+                    <div className="fixed inset-0 z-[9998] cursor-default bg-transparent" onClick={(e) => { e.stopPropagation(); handleClose(); }} />
+                    <div className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left" style={{ top: dropdownPos.top, left: dropdownPos.left }} onClick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                            onClick={() => {
+                                handleClose();
+                                const encId = encryptId(row.rawId || row.id);
+                                const sKey = row.sessionKey || `ses-${row.rawId || row.id}`;
+                                navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`);
+                            }}
+                        >
+                            <Eye size={14} className="text-slate-400 shrink-0" />
+                            <span>View Details</span>
+                        </button>
 
-                    <div
-                        className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
-                        style={{ top: dropdownPos.top, left: dropdownPos.left }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                    {/* View Details */}
-                    <button
-                        type="button"
-                        className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                        onClick={() => {
-                            handleClose();
-                            const encId = encryptId(row.rawId || row.id);
-                            const sKey = row.sessionKey || `ses-${row.rawId || row.id}`;
-                            navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`);
-                        }}
-                    >
-                        <Eye size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                        <span>View Details</span>
-                    </button>
+                        <button
+                            type="button"
+                            className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
+                            onClick={handleOpenChat}
+                        >
+                            <MessageSquare size={14} className="text-[#ff4a1f] shrink-0" />
+                            <span>Open Chat Channel</span>
+                        </button>
 
-                    {/* Open Chat Channel / Reply */}
-                    <button
-                        type="button"
-                        className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
-                        onClick={handleOpenChat}
-                    >
-                        <MessageSquare size={14} className="text-[#ff4a1f] shrink-0" />
-                        <span>Open Chat Channel</span>
-                    </button>
+                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
 
-                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
-
-                    {/* Copy Negotiation ID */}
-                    <button
-                        type="button"
-                        className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                        onClick={handleCopyId}
-                    >
-                        {copied ? (
-                            <>
-                                <Check size={14} className="text-emerald-500 shrink-0" />
-                                <span className="text-emerald-600 font-semibold">Copied!</span>
-                            </>
-                        ) : (
-                            <>
-                                <Copy size={14} className="text-slate-400 shrink-0" />
-                                <span>Copy Negotiation ID</span>
-                            </>
-                        )}
-                    </button>
-                </div>
-            </>,
-            document.body
+                        <button
+                            type="button"
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                            onClick={handleCopyId}
+                        >
+                            {copied ? (
+                                <><Check size={14} className="text-emerald-500 shrink-0" /><span className="text-emerald-600 font-semibold">Copied!</span></>
+                            ) : (
+                                <><Copy size={14} className="text-slate-400 shrink-0" /><span>Copy Negotiation ID</span></>
+                            )}
+                        </button>
+                    </div>
+                </>,
+                document.body
             )}
         </div>
     );

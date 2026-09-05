@@ -69,6 +69,9 @@ export const ENDPOINTS = {
         QUOTE_REQUESTS_BULK_CONFIRM: '/customer/quote-requests/bulk-confirm',
         QUOTE_REQUEST_DETAIL: (id: string | number) => `/customer/quote-requests/${id}`,
         REQUEST_QUOTES: (id: string | number) => `/customer/quote-requests/${id}/quotes`,
+        QUOTES: '/customer/quotes',
+        RECEIVED_QUOTES: '/customer/quotes',
+        QUOTE_DETAIL: (id: string | number) => `/customer/quotes/${id}`,
     },
     SUPPLIER: {
         PROFILE: '/supplier/profile',

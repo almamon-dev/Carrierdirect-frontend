@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { UserPlus, Plus, Mail } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import Button from '@/components/ui/button';
 
 import DashboardTab from './components/DashboardTab';
@@ -8,6 +8,7 @@ import TeamMembersTab from './components/TeamMembersTab';
 import RolesTab from './components/RolesTab';
 import InvitationsTab from './components/InvitationsTab';
 import ActivityLogsTab from './components/ActivityLogsTab';
+import TrashBinTab from './components/TrashBinTab';
 import CreateTeamMemberModal from './components/CreateTeamMemberModal';
 import { TeamNavigationTabs, TeamNavTab } from './components/TeamNavigationTabs';
 
@@ -44,7 +45,7 @@ export default function TeamManagement() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {activeTab === 'members' && (
+                    {(activeTab === 'members' || activeTab === 'invitations') && (
                         <Button
                             variant="primary"
                             size="sm"
@@ -65,6 +66,7 @@ export default function TeamManagement() {
                 {activeTab === 'roles' && <RolesTab key={refreshKey} headerTabs={headerTabsNode} />}
                 {activeTab === 'invitations' && <InvitationsTab key={refreshKey} headerTabs={headerTabsNode} />}
                 {activeTab === 'logs' && <ActivityLogsTab key={refreshKey} headerTabs={headerTabsNode} />}
+                {activeTab === 'trash' && <TrashBinTab key={refreshKey} headerTabs={headerTabsNode} />}
             </div>
 
             {/* Modals */}

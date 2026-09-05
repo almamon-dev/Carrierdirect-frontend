@@ -1,3 +1,4 @@
+import { useToastStore } from "@/stores/useToastStore";
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -147,6 +148,7 @@ export default function CreateTeamMemberModal({ onClose, onSuccess }: CreateTeam
             };
             await apiClient.post('/supplier/team/members', payload);
             setIsSubmitted(true);
+            useToastStore.getState().showToast("Team member added and invitation sent successfully!", "success");
             onSuccess?.();
             setTimeout(() => {
                 onClose();
@@ -173,7 +175,7 @@ export default function CreateTeamMemberModal({ onClose, onSuccess }: CreateTeam
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150 font-sans">
-            <div className="bg-white dark:bg-[#12161c] w-full max-w-2xl lg:max-w-3xl rounded-[3px] shadow-2xl flex flex-col h-auto max-h-[90vh] overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-[#12161c] w-full max-w-2xl lg:max-w-3xl rounded-[5px] shadow-2xl flex flex-col h-auto max-h-[90vh] overflow-hidden border border-slate-200 dark:border-slate-800">
 
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-[#12161c] shrink-0">

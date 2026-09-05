@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, Eye, Copy, Check, Mail, Trash2, Ban, CheckCircle } from 'lucide-react';
+import { MoreVertical, Eye, Mail, Ban, CheckCircle, Trash2, Copy, Check, Send } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { TeamMember } from '../types/team.types';
 
 interface TeamMemberRowActionsProps {
     row: TeamMember;
-    onViewProfile?: (row: TeamMember) => void;
+    onViewProfile: (row: TeamMember) => void;
     onDelete?: (row: TeamMember) => void;
     onBlock?: (row: TeamMember) => void;
     onUnblock?: (row: TeamMember) => void;
+    onResendInvite?: (row: TeamMember) => void;
 }
 
 export const TeamMemberRowActions: React.FC<TeamMemberRowActionsProps> = ({
@@ -19,6 +20,7 @@ export const TeamMemberRowActions: React.FC<TeamMemberRowActionsProps> = ({
     onDelete,
     onBlock,
     onUnblock,
+    onResendInvite,
 }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +28,7 @@ export const TeamMemberRowActions: React.FC<TeamMemberRowActionsProps> = ({
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
     const isBlocked = row.status === 'Blocked' || Boolean(row.isBlocked);
+    const isPending = row.status === 'Pending' || (row.status as string) === 'invited' || row.lastLogin === 'Never';
 
     const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -113,6 +116,21 @@ export const TeamMemberRowActions: React.FC<TeamMemberRowActionsProps> = ({
                             <Eye size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
                             <span>View Profile</span>
                         </button>
+
+                        {/* Resend Invitation (for Pending members) */}
+                        {isPending && onResendInvite && (
+                            <button
+                                type="button"
+                                className="w-full text-left px-3.5 py-2 text-xs text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                                onClick={() => {
+                                    handleClose();
+                                    onResendInvite(row);
+                                }}
+                            >
+                                <Send size={14} className="text-[#FF4A1F] shrink-0" />
+                                <span>Resend Invitation</span>
+                            </button>
+                        )}
 
                         {/* Send Email */}
                         {row.email && (

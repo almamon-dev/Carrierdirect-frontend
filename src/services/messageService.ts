@@ -32,6 +32,21 @@ export interface ConversationUser {
     email?: string;
     avatar?: string;
     company_name?: string;
+    parent_id?: number | null;
+    parent_user_id?: number | null;
+    supplier_id?: number | null;
+    created_by?: number | null;
+    is_team_member?: boolean | number | string;
+    is_member?: boolean | number;
+    is_sub_user?: boolean | number;
+    is_sub_account?: boolean | number;
+    is_admin?: boolean | number;
+    role?: any;
+    department?: string;
+    designation?: string;
+    assigned_vehicle?: string;
+    assignedVehicle?: string;
+    team_id?: any;
 }
 
 export interface ConversationPartnerItem {
@@ -197,103 +212,41 @@ export const messageService = {
     },
 
     /**
-     * Fetch users/companies from live platform endpoints
+     * Fetch users/companies directly from backend endpoint (/messages/users)
      */
     async getDirectoryUsers(currentRole?: 'supplier' | 'customer' | string): Promise<ConversationUser[]> {
-        const usersMap = new Map<number, ConversationUser>();
-
-        // 1. Fetch from direct backend endpoint /messages/users with role parameters
         try {
             const res: any = await apiClient.get('/messages/users', {
-                params: {
-                    role: currentRole,
-                    target_role: currentRole === 'supplier' ? 'customer' : 'supplier'
-                },
+                params: currentRole ? { role: currentRole } : undefined,
                 silent: true
             });
             const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
-            list.forEach((u: any) => {
-                if (u && u.id) {
-                    const uType = (u.user_type || u.role || '').toLowerCase();
-                    const email = (u.email || '').toLowerCase();
-                    const name = (u.name || u.display_name || '').toLowerCase();
-                    const isAdmin = uType.includes('admin') || email.includes('admin@') || name.includes('admin') || u.is_admin === true || u.is_admin === 1;
-                    if (isAdmin) return; // Never include admin accounts
-
-                    if (currentRole === 'supplier') {
-                        if (uType.includes('supplier') || uType.includes('carrier')) return;
-                    } else if (currentRole === 'customer') {
-                        if (uType.includes('customer') || uType.includes('shipper')) return;
-                    }
-
-                    usersMap.set(Number(u.id), {
-                        id: Number(u.id),
-                        name: u.display_name || u.company_name || u.name || 'User',
-                        company_name: u.company_name || u.display_name || '',
-                        user_type: uType.includes('supplier') || uType.includes('carrier') ? 'supplier' : 'customer',
-                        email: u.email || '',
-                        avatar: u.avatar || ''
-                    });
-                }
-            });
-            if (usersMap.size > 0) {
-                return Array.from(usersMap.values());
-            }
-        } catch {}
-
-        // 2. Fallback to platform endpoints
-        try {
-            if (currentRole === 'supplier') {
-                const reqRes: any = await apiClient.get('/supplier/available-requests', { silent: true }).catch(() => null);
-                const requests = Array.isArray(reqRes?.data?.data)
-                    ? reqRes.data.data
-                    : Array.isArray(reqRes?.data)
-                    ? reqRes.data
-                    : [];
-
-                requests.forEach((r: any) => {
-                    const userObj = r.user || r.customer;
-                    if (userObj && userObj.id) {
-                        usersMap.set(Number(userObj.id), {
-                            id: Number(userObj.id),
-                            name: userObj.name || userObj.company_name || 'Customer',
-                            company_name: userObj.company_name || userObj.profile?.company_name || '',
-                            user_type: 'customer',
-                            email: userObj.email || '',
-                            avatar: userObj.profile?.profile_picture || userObj.avatar || ''
-                        });
-                    }
-                });
-            } else {
-                const negRes: any = await apiClient.get('/customer/negotiations', { silent: true }).catch(() => null);
-                const negotiations = Array.isArray(negRes?.data?.data?.negotiations?.data)
-                    ? negRes.data.data.negotiations.data
-                    : Array.isArray(negRes?.data?.negotiations?.data)
-                    ? negRes.data.negotiations.data
-                    : Array.isArray(negRes?.data?.data)
-                    ? negRes.data.data
-                    : Array.isArray(negRes?.data)
-                    ? negRes.data
-                    : [];
-
-                negotiations.forEach((n: any) => {
-                    const supObj = n.supplier || n.user;
-                    const supId = supObj?.id || n.supplier_id || n.sender_id;
-                    if (supId) {
-                        usersMap.set(Number(supId), {
-                            id: Number(supId),
-                            name: supObj?.name || n.supplier_name || n.company_name || 'Carrier Partner',
-                            company_name: supObj?.company_name || n.company_name || '',
-                            user_type: 'supplier',
-                            email: supObj?.email || '',
-                            avatar: supObj?.avatar || ''
-                        });
-                    }
-                });
-            }
-        } catch {}
-
-        return Array.from(usersMap.values());
+            return list.map((u: any) => ({
+                id: Number(u.id),
+                name: u.company_name || u.display_name || u.name || 'User',
+                company_name: u.company_name || u.display_name || '',
+                user_type: u.user_type || (typeof u.role === 'string' ? u.role : u.role?.name) || 'user',
+                email: u.email || '',
+                avatar: u.avatar || u.profile?.profile_picture || '',
+                parent_id: u.parent_id,
+                parent_user_id: u.parent_user_id,
+                supplier_id: u.supplier_id,
+                created_by: u.created_by,
+                is_team_member: u.is_team_member,
+                is_member: u.is_member,
+                is_sub_user: u.is_sub_user,
+                is_sub_account: u.is_sub_account,
+                is_admin: u.is_admin,
+                role: u.role,
+                department: u.department,
+                designation: u.designation,
+                assignedVehicle: u.assignedVehicle || u.assigned_vehicle,
+                team_id: u.team_id || u.team_member_id
+            }));
+        } catch (err) {
+            console.error('Error fetching /messages/users:', err);
+            return [];
+        }
     }
 };
 

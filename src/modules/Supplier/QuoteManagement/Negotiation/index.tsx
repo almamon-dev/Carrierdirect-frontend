@@ -1,8 +1,3 @@
-/**
- * Supplier Quote Management - Negotiation Main Page
- * Matches QuoteRequests layout, filter tabs with live counting pills, and compact DataTable layout.
- */
-
 import DataTable from "@/components/tables/data-table";
 import EmptyState from "@/components/tables/empty-state";
 import Button from "@/components/ui/button";
@@ -11,17 +6,11 @@ import { MessageSquare, RefreshCw } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getNegotiationColumns } from "./components/columns";
-import {
-    NegotiationFilterTab,
-    NegotiationFilterTabs,
-    isNegotiationAccepted,
-    isNegotiationActive,
-    isNegotiationCounter,
-    isNegotiationHistory,
-} from "./components/NegotiationFilterTabs";
+import { NegotiationFilterTabs } from "./components/NegotiationFilterTabs";
 import { NegotiationRowActions } from "./components/NegotiationRowActions";
 import { TableFilterContent } from "./components/TableFilterContent";
 import { useSupplierNegotiations } from "./hooks/useSupplierNegotiations";
+import { useNegotiationFilter } from "./hooks/useNegotiationFilter";
 import { NegotiationItem } from "./types";
 
 export { type NegotiationItem, type NegotiationTab } from "./types";
@@ -29,16 +18,18 @@ export { type NegotiationItem, type NegotiationTab } from "./types";
 export default function SupplierNegotiation() {
     const navigate = useNavigate();
     const [isRefreshing, setIsRefreshing] = useState(false);
-
-    // Top Tabs with Live Counting Indicators
-    const [activeTab, setActiveTab] = useState<NegotiationFilterTab>("all");
-
-    const [priorityFilter, setPriorityFilter] = useState("all");
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [vehicleFilter, setVehicleFilter] = useState("all");
-
-    // Data fetching and caching hook
     const { negotiations = [], isLoading = false, fetchNegotiations } = useSupplierNegotiations() || {};
+
+    const {
+        activeTab, setActiveTab,
+        priorityFilter, setPriorityFilter,
+        statusFilter, setStatusFilter,
+        vehicleFilter, setVehicleFilter,
+        startDate, setStartDate,
+        endDate, setEndDate,
+        handleResetFilters,
+        filteredData
+    } = useNegotiationFilter(negotiations);
 
     const handleQuoteAction = (row: NegotiationItem) => {
         const encId = encryptId(row?.rawId || row?.id || "");
@@ -55,51 +46,17 @@ export default function SupplierNegotiation() {
         }
     };
 
-    // Filter negotiations based on Top Tabs and TableFilterContent selections
-    const filteredData = useMemo(() => {
-        const list = Array.isArray(negotiations) ? negotiations : [];
-        return list.filter(item => {
-            if (!item) return false;
-
-            // 1. Top Filter Tab (with live counting logic)
-            if (activeTab === "active" && !isNegotiationActive(item)) return false;
-            if (activeTab === "counter" && !isNegotiationCounter(item)) return false;
-            if (activeTab === "accepted" && !isNegotiationAccepted(item)) return false;
-            if (activeTab === "history" && !isNegotiationHistory(item)) return false;
-
-            // 2. Dropdown Filters
-            if (priorityFilter !== "all" && item.priority?.toLowerCase() !== priorityFilter.toLowerCase()) {
-                return false;
-            }
-            if (statusFilter !== "all") {
-                const normStatus = (item.status || "").toLowerCase();
-                if (!normStatus.includes(statusFilter.toLowerCase())) {
-                    return false;
-                }
-            }
-            if (vehicleFilter !== "all") {
-                const normVehicle = (item.vehicleType || "").toLowerCase().replace(/[\s_-]+/g, "");
-                const targetVehicle = vehicleFilter.toLowerCase().replace(/[\s_-]+/g, "");
-                if (!normVehicle.includes(targetVehicle)) {
-                    return false;
-                }
-            }
-            return true;
-        });
-    }, [negotiations, activeTab, priorityFilter, statusFilter, vehicleFilter]);
-
     const columns = useMemo(() => getNegotiationColumns(navigate), [navigate]);
 
     return (
         <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
-            {/* Header Title & Refresh Button */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
-                        Quote Negotiations
+                        Price Negotiation
                     </h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        Manage active customer price counter offers and track negotiation history.
+                        Live commercial negotiation, counter-offers, and freight rates with shippers.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -116,11 +73,11 @@ export default function SupplierNegotiation() {
                 </div>
             </div>
 
-            {/* Main Data Table */}
             <DataTable
-                data={filteredData || []}
+                data={filteredData}
                 columns={columns}
-                actions={(row) => <NegotiationRowActions row={row} onQuoteAction={handleQuoteAction} />}
+                actions={(row) => <NegotiationRowActions row={row} onAction={handleQuoteAction} />}
+                onRowClick={(row) => handleQuoteAction(row)}
                 headerTabs={
                     <NegotiationFilterTabs
                         negotiations={negotiations}
@@ -136,21 +93,38 @@ export default function SupplierNegotiation() {
                         setStatusFilter={setStatusFilter}
                         vehicleFilter={vehicleFilter}
                         setVehicleFilter={setVehicleFilter}
+                        startDate={startDate}
+                        setStartDate={setStartDate}
+                        endDate={endDate}
+                        setEndDate={setEndDate}
+                        onResetFilters={handleResetFilters}
                     />
                 }
-                keyExtractor={(item) => item?.id || Math.random().toString()}
-                searchPlaceholder="Search by ID, customer, pickup/delivery..."
+                keyExtractor={(item) => item.id}
+                searchPlaceholder="Search negotiations by ID, quote, shipper, route..."
                 compact={true}
                 hideViewToggle={false}
-                isLoading={isLoading || isRefreshing}
+                isLoading={negotiations.length > 0 && (isLoading || isRefreshing)}
                 tableLayout="fixed"
-                tableClassName="min-w-[1180px]"
-                actionsColumnClassName="w-[130px] min-w-[130px]"
+                tableClassName="min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={MessageSquare}
-                        title="No Negotiations Available"
-                        description="There are currently no active price negotiations or counter offers matching your criteria. New offers from shippers will appear here automatically."
+                        title={
+                            startDate || endDate ? "No Negotiations Found in Selected Date Range" :
+                                activeTab === "active" ? "No Active Negotiations Found" :
+                                    activeTab === "counter" ? "No Counter Offers Pending" :
+                                        activeTab === "accepted" ? "No Accepted Offers Yet" :
+                                            activeTab === "history" ? "No Negotiation History Found" :
+                                                "No Negotiations Available"
+                        }
+                        description={
+                            startDate || endDate
+                                ? `No negotiation threads matched the date range ${startDate || 'the start'} to ${endDate || 'the end'}.`
+                                : activeTab === "all"
+                                    ? "You have not started any price negotiations yet. Submitted quotes awaiting customer counters will appear here."
+                                    : `There are no negotiations matching the '${activeTab.toUpperCase()}' tab criteria.`
+                        }
                     />
                 }
             />

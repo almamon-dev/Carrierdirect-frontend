@@ -61,8 +61,12 @@ export const GeneralChatStreamHeader: React.FC<GeneralChatStreamHeaderProps> = (
                                 {partnerDisplayName}
                             </h3>
                             {partner?.user_type && (
-                                <span className="text-[10px] font-bold bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] px-2 py-0.5 rounded-full border border-orange-200/60 dark:border-orange-900/40 capitalize shrink-0">
-                                    {partner.user_type}
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                                    (partner?.user_type || '').toLowerCase().includes('supplier')
+                                        ? 'bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border-orange-200/60 dark:border-orange-900/40'
+                                        : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-900/40'
+                                }`}>
+                                    {(partner?.user_type || '').toLowerCase().includes('supplier') ? 'Carrier Partner' : 'Verified Customer'}
                                 </span>
                             )}
                         </div>
@@ -77,12 +81,12 @@ export const GeneralChatStreamHeader: React.FC<GeneralChatStreamHeaderProps> = (
                 <button
                     type="button"
                     onClick={onToggleDetailsPanel}
-                    className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                    className={`h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors border ${
                         showDetailsPanel
-                            ? 'bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] ring-1 ring-[#FF4A1F]/30'
-                            : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            ? 'bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border-orange-200 dark:border-orange-800 shadow-2xs'
+                            : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
-                    title="View Partner Info & Shared Files"
+                    title={showDetailsPanel ? 'Hide Partner Details' : 'View Partner Info & Shared Files'}
                 >
                     <Info size={16} />
                 </button>

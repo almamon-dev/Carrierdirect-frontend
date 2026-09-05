@@ -90,14 +90,18 @@ export const CustomerChatSidebar: React.FC<CustomerChatSidebarProps> = ({
                         <div
                             key={chat.id}
                             onClick={() => handleSelectChat(chat.id)}
-                            className={`p-2.5 rounded-md cursor-pointer flex gap-3 items-center group relative transition-all ${
+                            className={`p-2.5 rounded-[4px] cursor-pointer flex gap-3 items-center group relative transition-all ${
                                 String(chat.id) === String(activeChatId)
-                                    ? 'bg-orange-50/60 dark:bg-orange-950/30 border border-orange-200/80 dark:border-orange-900/60 shadow-2xs'
+                                    ? 'bg-slate-100 dark:bg-[#1c222b] border border-slate-200 dark:border-slate-700/80 shadow-2xs'
                                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 border border-transparent'
                             }`}
                         >
                             <div className="relative shrink-0 w-10 h-10 aspect-square">
-                                <div className="w-10 h-10 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200/80 dark:border-orange-900/50 text-[#FF4A1F] flex items-center justify-center font-bold text-sm shrink-0 aspect-square overflow-hidden shadow-2xs">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 aspect-square overflow-hidden shadow-2xs border ${
+                                    String(chat.id) === String(activeChatId)
+                                        ? 'bg-orange-50 dark:bg-orange-950/40 border-orange-200/80 dark:border-orange-900/50 text-[#FF4A1F]'
+                                        : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                                }`}>
                                     {chat.avatar}
                                 </div>
                                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full z-10" />

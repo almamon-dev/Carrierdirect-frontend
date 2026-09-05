@@ -1,7 +1,7 @@
 // Theme basic settings
 export const THEME_CONFIG = {
     // Key used to store theme preference in localStorage
-    storageKey: 'erp_ui_theme',
+    storageKey: 'carrierdirect_ui_theme',
     
     // Default theme if not set
     defaultTheme: 'light', // 'light' | 'dark' | 'system'

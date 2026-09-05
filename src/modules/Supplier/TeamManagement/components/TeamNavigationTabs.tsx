@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type TeamNavTab = 'dashboard' | 'members' | 'roles' | 'invitations' | 'logs';
+export type TeamNavTab = 'dashboard' | 'members' | 'roles' | 'invitations' | 'logs' | 'trash';
 
 interface TeamNavigationTabsProps {
     activeTab: TeamNavTab | string;
@@ -10,6 +10,7 @@ interface TeamNavigationTabsProps {
         roles?: number;
         invitations?: number;
         logs?: number;
+        trash?: number;
     };
 }
 
@@ -23,6 +24,7 @@ export const TeamNavigationTabs: React.FC<TeamNavigationTabsProps> = ({
         { id: 'roles' as TeamNavTab, label: 'Roles & Permissions', count: counts?.roles },
         { id: 'invitations' as TeamNavTab, label: 'Invitations', count: counts?.invitations },
         { id: 'logs' as TeamNavTab, label: 'Activity Logs', count: counts?.logs },
+        { id: 'trash' as TeamNavTab, label: 'Trash Bin', count: counts?.trash },
         { id: 'dashboard' as TeamNavTab, label: 'Dashboard' },
     ];
 

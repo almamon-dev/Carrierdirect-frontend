@@ -44,15 +44,15 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
     return (
         <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between mb-2">
-                <FormLabel className="mb-0 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <FormLabel className="mb-0 text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Extra Charges
                 </FormLabel>
                 <button 
                     type="button"
                     onClick={handleAddCharge}
-                    className="text-xs font-bold text-[#ff4a1f] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-medium text-[#ff4a1f] hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                    <Plus size={12} strokeWidth={2.5} /> Add Charge
+                    <Plus size={12} strokeWidth={2} /> Add Charge
                 </button>
             </div>
             
@@ -66,7 +66,7 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
                                         value={charge.type}
                                         onChange={(e) => handleUpdateCharge(idx, 'type', e.target.value)}
                                         showSearch={false}
-                                        className="text-xs h-8 rounded-[3px]"
+                                        className="text-xs !h-7.5 py-0 rounded-[3px]"
                                     >
                                         <option value="">Select charge type...</option>
                                         <option value="Toll">🛣️ Toll Charges</option>
@@ -79,28 +79,28 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
                                     </Select>
                                 </div>
                                 <div className="relative w-24 shrink-0">
-                                    <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 text-xs font-bold">€</div>
+                                    <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 text-xs font-medium">€</div>
                                     <Input 
                                         type="number" 
                                         placeholder="0.00" 
-                                        className="pl-6 text-xs h-8 font-bold rounded-[3px]"
+                                        className="pl-6 text-xs !h-7.5 font-medium rounded-[3px]"
                                         value={charge.amount}
                                         onChange={(e) => handleUpdateCharge(idx, 'amount', e.target.value)}
                                     />
                                 </div>
                                 <button 
-                                    type="button"
+                                    type="button" 
                                     onClick={() => handleRemoveCharge(idx)}
                                     className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-[3px] transition-colors cursor-pointer shrink-0"
                                     title="Remove charge"
                                 >
-                                    <Trash2 size={14} />
+                                    <Trash2 size={13} />
                                 </button>
                             </div>
                             {charge.type === 'Custom' && (
                                 <Input
                                     placeholder="Custom charge name (e.g. Parking Fee)"
-                                    className="text-xs h-8 rounded-[3px] w-full"
+                                    className="text-xs !h-7 rounded-[3px] w-full"
                                     value={charge.customName}
                                     onChange={(e) => handleUpdateCharge(idx, 'customName', e.target.value)}
                                 />

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import CallToActionImg from "@/assets/Images/CallToActionImg.png";
 import { Link } from "react-router-dom";
 import useScrollReveal from "@/Hooks/useScrollReveal";
+import { TOKEN_CONFIG } from "@/config/auth";
 
 export default function CallToAction() {
   const [authState, setAuthState] = useState<{ isLoggedIn: boolean; userType: string | null }>({
@@ -11,8 +12,8 @@ export default function CallToAction() {
 
   useEffect(() => {
     try {
-      const token = localStorage.getItem('erp_access_token') || localStorage.getItem('token');
-      const userStr = localStorage.getItem('erp_user_data') || localStorage.getItem('user');
+      const token = localStorage.getItem(TOKEN_CONFIG.accessTokenKey) || localStorage.getItem('carrierdirect_access_token') || localStorage.getItem('token');
+      const userStr = localStorage.getItem(TOKEN_CONFIG.userKey) || localStorage.getItem('carrierdirect_user_data') || localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
       setAuthState({
         isLoggedIn: !!token,

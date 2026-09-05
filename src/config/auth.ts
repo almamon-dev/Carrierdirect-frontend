@@ -1,8 +1,8 @@
 // Token keys used for localStorage or cookies
 export const TOKEN_CONFIG = {
-    accessTokenKey: 'erp_access_token',
-    refreshTokenKey: 'erp_refresh_token',
-    userKey: 'erp_user_data',
+    accessTokenKey: 'carrierdirect_access_token',
+    refreshTokenKey: 'carrierdirect_refresh_token',
+    userKey: 'carrierdirect_user_data',
     tokenType: 'Bearer', // Standard OAuth 2.0 token type
 };
 

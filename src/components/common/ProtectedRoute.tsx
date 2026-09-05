@@ -19,7 +19,8 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
     // ── 1. Check token ────────────────────────────────────────────────────────
     const token =
         localStorage.getItem(TOKEN_CONFIG.accessTokenKey) ||
-        localStorage.getItem('erp_access_token') ||
+        localStorage.getItem('carrierdirect_access_token') ||
+        localStorage.getItem('access_token') ||
         localStorage.getItem('token');
 
     if (!token) {
@@ -30,7 +31,7 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
     // ── 2. Read user role ─────────────────────────────────────────────────────
     const userStr =
         localStorage.getItem(TOKEN_CONFIG.userKey) ||
-        localStorage.getItem('erp_user_data') ||
+        localStorage.getItem('carrierdirect_user_data') ||
         localStorage.getItem('user');
 
     let userRole: string | null = null;
@@ -67,6 +68,10 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
             // Corrupt data — clear and redirect to login
             localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
             localStorage.removeItem(TOKEN_CONFIG.userKey);
+            localStorage.removeItem('carrierdirect_access_token');
+            localStorage.removeItem('carrierdirect_user_data');
+            localStorage.removeItem('erp_access_token');
+            localStorage.removeItem('erp_user_data');
             return <Navigate to="/web/login" replace />;
         }
     }

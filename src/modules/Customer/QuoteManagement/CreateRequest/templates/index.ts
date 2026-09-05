@@ -1,3 +1,14 @@
-export { downloadCSVTemplate } from './csv/csvTemplate';
-export { downloadPDFTemplate } from './pdf/pdfTemplate';
+export { 
+    downloadBlankCSVTemplate,
+    downloadSampleCSVWithValues,
+    downloadCSVTemplate,
+    download50SampleCSV
+} from './csv/csvTemplate';
+
+export { 
+    downloadBlankPDFTemplate,
+    downloadSamplePDFWithValues,
+    downloadPDFTemplate 
+} from './pdf/pdfTemplate';
+
 export { downloadSpecSheet } from './specs/specSheetTemplate';

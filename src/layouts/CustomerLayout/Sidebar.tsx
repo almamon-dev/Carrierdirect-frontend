@@ -5,6 +5,7 @@ import LogoBlack from '@/assets/Images/LogoBlack.png';
 import LogoWhite from '@/assets/Images/Logo.png';
 import LogoIcon from '@/assets/Images/LogoIcon.png';
 import { navigationMap } from '@/constants/navigation';
+import { TOKEN_CONFIG } from '@/config/auth';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -109,6 +110,11 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     ];
 
     const handleLogout = () => {
+        localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
+        localStorage.removeItem(TOKEN_CONFIG.refreshTokenKey);
+        localStorage.removeItem(TOKEN_CONFIG.userKey);
+        localStorage.removeItem('carrierdirect_access_token');
+        localStorage.removeItem('carrierdirect_user_data');
         localStorage.removeItem('erp_access_token');
         localStorage.removeItem('erp_user_data');
         localStorage.removeItem('token');

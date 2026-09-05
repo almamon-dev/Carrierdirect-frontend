@@ -1,30 +1,37 @@
-/**
- * Supplier Quote Management - Won Quotes Page
- * Displays accepted/won transportation quotes with filter tabs and responsive table.
- */
-
-import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { RefreshCw, Trophy } from "lucide-react";
 import DataTable from "@/components/tables/data-table";
-import Button from "@/components/ui/button";
 import EmptyState from "@/components/tables/empty-state";
-import { useSupplierWonQuotes } from "./hooks/useSupplierWonQuotes";
+import Button from "@/components/ui/button";
+import { RefreshCw, Trophy } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getWonQuoteColumns } from "./components/columns";
-import { WonRowActions } from "./components/WonRowActions";
 import { FilterTabs } from "./components/FilterTabs";
+import { TableFilterContent } from "./components/TableFilterContent";
+import { WonRowActions } from "./components/WonRowActions";
+import { useSupplierWonQuotes } from "./hooks/useSupplierWonQuotes";
+import { useWonQuotesFilter } from "./hooks/useWonQuotesFilter";
 
 export default function WonQuotes() {
     const navigate = useNavigate();
     const [isRefreshing, setIsRefreshing] = useState(false);
+
     const {
         quotes,
-        filteredQuotes,
         activeTab,
         setActiveTab,
         isLoading,
         fetchWonQuotes,
     } = useSupplierWonQuotes();
+
+    const {
+        priorityFilter, setPriorityFilter,
+        statusFilter, setStatusFilter,
+        vehicleFilter, setVehicleFilter,
+        startDate, setStartDate,
+        endDate, setEndDate,
+        handleResetFilters,
+        filteredQuotes,
+    } = useWonQuotesFilter(quotes, activeTab);
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -39,7 +46,6 @@ export default function WonQuotes() {
 
     return (
         <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
-            {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
@@ -63,7 +69,6 @@ export default function WonQuotes() {
                 </div>
             </div>
 
-            {/* Main Data Table */}
             <DataTable
                 data={filteredQuotes}
                 columns={columns}
@@ -75,11 +80,27 @@ export default function WonQuotes() {
                         onSelectTab={setActiveTab}
                     />
                 }
+                filterContent={
+                    <TableFilterContent
+                        priorityFilter={priorityFilter}
+                        setPriorityFilter={setPriorityFilter}
+                        statusFilter={statusFilter}
+                        setStatusFilter={setStatusFilter}
+                        vehicleFilter={vehicleFilter}
+                        setVehicleFilter={setVehicleFilter}
+                        startDate={startDate}
+                        setStartDate={setStartDate}
+                        endDate={endDate}
+                        setEndDate={setEndDate}
+                        onResetFilters={handleResetFilters}
+                    />
+                }
                 keyExtractor={(item) => item.id}
                 searchPlaceholder="Search won quotes by ID, shipper, pickup, delivery..."
                 compact={true}
                 hideViewToggle={false}
-                isLoading={isLoading || isRefreshing}
+                isLoading={quotes.length > 0 && (isLoading || isRefreshing)}
+                onRowClick={(row) => navigate(`/supplier/quotes/requests/${row.slug}`)}
                 tableLayout="fixed"
                 tableClassName="min-w-[1050px]"
                 emptyState={

@@ -1,102 +1,102 @@
-/**
- * Customer Negotiation Table Columns
- * Matches Supplier Negotiation Table Columns with 100% identical styling, avatar badges, MapPin routes, and status badges.
- */
-
 import React from 'react';
-import { MapPin, User, Truck } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import Skeleton from '@/components/ui/skeleton';
 import { encryptId } from '@/lib/encryption';
 import { CustomerNegotiationItem } from '../types';
-import { getStatusBadgeClass } from '@/modules/Supplier/QuoteManagement/utils/statusStyles';
+import { SupplierCell, PriorityCell, StatusCell } from './NegotiationCells';
 
 export const getNegotiationColumns = (navigate: (path: string) => void): Column<CustomerNegotiationItem>[] => [
     {
         id: 'id',
-        label: 'ID',
+        label: 'Quote ID',
         sortable: true,
-        className: 'w-[75px] min-w-[75px]',
+        className: 'w-[85px] min-w-[85px]',
         render: (row) => (
-            <div className="flex items-center h-5">
+            <div className="flex items-center min-h-[26px]">
                 <button
                     type="button"
-                    onClick={() => {
-                        const encId = encryptId(row.rawId || row.id);
-                        navigate(`/customer/quotes/negotiation/conversation/${encId}`);
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/customer/quotes/negotiation/conversation/${encryptId(row.rawId || row.id)}`);
                     }}
-                    className="font-bold text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer text-xs leading-none"
+                    className="font-bold text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer text-xs"
                 >
-                    {row.id}
+                    {row.quoteId || row.id}
                 </button>
             </div>
+        ),
+        skeleton: () => (
+            <div className="flex items-center min-h-[26px]">
+                <Skeleton className="h-4 w-14 rounded-[3px] !bg-orange-100/70 dark:!bg-orange-950/40" />
+            </div>
         )
+    },
+    {
+        id: 'requestId',
+        label: 'Requested ID',
+        sortable: true,
+        className: 'w-[100px] min-w-[100px]',
+        render: (row) => {
+            const rawReq = row.requestId ? String(row.requestId).replace('REQ-', '') : '';
+            return (
+                <div className="flex items-center min-h-[26px]">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (rawReq) navigate(`/customer/quotes/create/view/${rawReq}`);
+                        }}
+                        className="font-semibold text-slate-700 dark:text-slate-300 hover:text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer text-xs"
+                    >
+                        {row.requestId || 'REQ-0000'}
+                    </button>
+                </div>
+            );
+        },
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-4 w-16 rounded-[3px]" /></div>
     },
     {
         id: 'customer',
         label: 'Supplier',
         sortable: true,
         className: 'w-[140px] min-w-[140px]',
-        render: (row) => (
-            <div className="flex items-center gap-2 whitespace-nowrap min-w-0 h-5">
-                {row.customerAvatar || row.supplierAvatar ? (
-                    <img
-                        src={row.customerAvatar || row.supplierAvatar}
-                        alt={row.customer || row.supplier}
-                        className="w-5 h-5 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs"
-                        onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = 'none';
-                        }}
-                    />
-                ) : (
-                    <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 dark:border-orange-500/20 text-[#ff4a1f] flex items-center justify-center text-[10px] font-bold shrink-0">
-                        {(row.customer || row.supplier) ? (row.customer || row.supplier).charAt(0).toUpperCase() : <Truck size={11} />}
-                    </div>
-                )}
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[105px] leading-none" title={row.customer || row.supplier}>
-                    {row.customer || row.supplier}
-                </span>
+        render: (row) => <SupplierCell row={row} />,
+        skeleton: () => (
+            <div className="flex items-center gap-2 min-h-[26px]">
+                <Skeleton className="w-5 h-5 rounded-full shrink-0" />
+                <Skeleton className="h-3.5 w-20 rounded-[3px]" />
             </div>
         )
     },
     {
         id: 'pickup',
         label: 'Pickup Address',
-        className: 'min-w-[170px]',
+        className: 'min-w-0',
         render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.pickup}>
-                <MapPin size={13} className="text-emerald-500 shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate whitespace-nowrap leading-none">
-                    {row.pickup}
-                </span>
+            <div className="flex items-center min-w-0 pr-1 min-h-[26px]" title={row.pickup}>
+                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate whitespace-nowrap">{row.pickup}</span>
             </div>
-        )
+        ),
+        skeleton: () => <div className="flex items-center min-w-0 pr-1 min-h-[26px]"><Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" /></div>
     },
     {
         id: 'delivery',
         label: 'Delivery Address',
-        className: 'min-w-[170px]',
+        className: 'min-w-0',
         render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.delivery}>
-                <MapPin size={13} className="text-red-500 shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate whitespace-nowrap leading-none">
-                    {row.delivery}
-                </span>
+            <div className="flex items-center min-w-0 pr-1 min-h-[26px]" title={row.delivery}>
+                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate whitespace-nowrap">{row.delivery}</span>
             </div>
-        )
+        ),
+        skeleton: () => <div className="flex items-center min-w-0 pr-1 min-h-[26px]"><Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" /></div>
     },
     {
         id: 'distance',
         label: 'Distance',
         sortable: true,
         className: 'w-[85px] min-w-[85px] text-center',
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold leading-none">
-                    {row.distance}
-                </span>
-            </div>
-        )
+        render: (row) => <div className="flex items-center justify-center min-h-[26px]"><span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold">{row.distance}</span></div>,
+        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-3.5 w-12 rounded-[3px]" /></div>
     },
     {
         id: 'budget',
@@ -104,56 +104,38 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
         sortable: true,
         className: 'w-[95px] min-w-[95px]',
         render: (row) => (
-            <div className="flex items-center h-5">
-                <span className="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100 text-xs leading-none">
+            <div className="flex items-center min-h-[26px]">
+                <span className="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100 text-xs">
                     {row.budget ? (String(row.budget).includes('€') ? row.budget : `€ ${row.budget}`) : '€ 0'}
                 </span>
             </div>
-        )
+        ),
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-4 w-16 rounded-[3px]" /></div>
     },
     {
         id: 'priority',
         label: 'Priority',
         sortable: true,
         className: 'w-[90px] min-w-[90px] text-center',
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
-                    row.priority === 'Urgent' ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60' :
-                    row.priority === 'High' ? 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800/60' :
-                    'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                }`}>
-                    {row.priority}
-                </Badge>
-            </div>
-        )
+        render: (row) => <PriorityCell priority={row.priority} />,
+        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-5 w-14 rounded-[3px]" /></div>
     },
     {
         id: 'status',
         label: 'Status',
         sortable: true,
         className: 'w-[110px] min-w-[110px] text-center',
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${getStatusBadgeClass(row.status)}`}>
-                    {row.status}
-                </Badge>
-            </div>
-        )
+        render: (row) => <StatusCell status={row.status} />,
+        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-5 w-18 rounded-[3px]" /></div>
     },
     {
         id: 'requestDate',
         label: 'Date',
         sortable: true,
-        className: 'w-[125px] min-w-[125px] text-center',
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">
-                    {row.requestDate}
-                </span>
-            </div>
-        )
-    },
+        className: 'w-[115px] min-w-[115px] text-center',
+        render: (row) => <div className="flex items-center justify-center min-h-[26px]"><span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium">{row.requestDate}</span></div>,
+        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-3.5 w-16 rounded-[3px]" /></div>
+    }
 ];
 
 export const getCustomerNegotiationColumns = getNegotiationColumns;

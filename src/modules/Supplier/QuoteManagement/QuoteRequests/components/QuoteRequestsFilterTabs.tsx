@@ -1,84 +1,17 @@
-/**
- * QuoteRequestsFilterTabs Component
- * Dynamic top header tabs with live count indicators for Quote Requests:
- * All, Today, Upcoming, Urgent, and Expired.
- * Driven directly by backend stats with client-side fallback.
- */
-
 import React, { useMemo } from 'react';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 import { SupplierTabStats } from '../hooks/useSupplierQuoteRequests';
+import { isRequestToday, isRequestUpcoming, isRequestUrgent } from '../utils/requestDateFilters';
 
-export type RequestFilterTab = 'all' | 'today' | 'upcoming' | 'urgent' | 'expired';
+export { isRequestToday, isRequestExpired, isRequestUpcoming, isRequestUrgent } from '../utils/requestDateFilters';
+
+export type RequestFilterTab = 'all' | 'today' | 'upcoming' | 'urgent';
 
 interface QuoteRequestsFilterTabsProps {
     requests: QuoteRequest[];
     activeTab: RequestFilterTab;
     onSelectTab: (tab: RequestFilterTab) => void;
     stats?: SupplierTabStats;
-}
-
-export function isRequestToday(item: QuoteRequest): boolean {
-    if (item.isToday !== undefined) return item.isToday;
-    const dStr = (item.pickupDateRaw || item.pickupDate || item.requestDate || '').toLowerCase();
-    if (dStr.includes('today')) return true;
-    
-    try {
-        const today = new Date();
-        const todayIso = today.toISOString().split('T')[0];
-        if (item.pickupDateRaw && item.pickupDateRaw === todayIso) return true;
-
-        const itemDate = new Date(item.pickupDateRaw || item.pickupDate || item.requestDate);
-        if (!isNaN(itemDate.getTime())) {
-            return (
-                itemDate.getFullYear() === today.getFullYear() &&
-                itemDate.getMonth() === today.getMonth() &&
-                itemDate.getDate() === today.getDate()
-            );
-        }
-    } catch {}
-    return false;
-}
-
-export function isRequestExpired(item: QuoteRequest): boolean {
-    if (item.isExpired !== undefined) return item.isExpired;
-    const status = (item.status || '').toLowerCase();
-    if (status === 'expired' || status === 'closed' || status === 'cancelled') return true;
-    
-    try {
-        const itemDate = new Date(item.pickupDateRaw || item.pickupDate || item.requestDate);
-        if (!isNaN(itemDate.getTime())) {
-            const now = new Date();
-            now.setHours(0, 0, 0, 0);
-            if (itemDate.getTime() < now.getTime() && !isRequestToday(item)) {
-                return true;
-            }
-        }
-    } catch {}
-    return false;
-}
-
-export function isRequestUpcoming(item: QuoteRequest): boolean {
-    if (item.isUpcoming !== undefined) return item.isUpcoming;
-    if (isRequestExpired(item)) return false;
-    if (isRequestToday(item)) return false;
-    
-    try {
-        const itemDate = new Date(item.pickupDateRaw || item.pickupDate || item.requestDate);
-        if (!isNaN(itemDate.getTime())) {
-            const now = new Date();
-            now.setHours(0, 0, 0, 0);
-            if (itemDate.getTime() > now.getTime()) return true;
-        }
-    } catch {}
-    
-    const status = (item.status || '').toLowerCase();
-    return status === 'active' || status === 'open' || status === 'pending' || !status;
-}
-
-export function isRequestUrgent(item: QuoteRequest): boolean {
-    if (item.isUrgent !== undefined) return item.isUrgent;
-    return (item.priority || '').toLowerCase() === 'urgent';
 }
 
 export const QuoteRequestsFilterTabs: React.FC<QuoteRequestsFilterTabsProps> = ({
@@ -88,26 +21,23 @@ export const QuoteRequestsFilterTabs: React.FC<QuoteRequestsFilterTabsProps> = (
     stats,
 }) => {
     const tabs = useMemo(() => {
-        if (stats && (stats.total > 0 || stats.all > 0)) {
+        if (stats) {
             return [
                 { id: 'all' as RequestFilterTab, label: 'All', count: stats.all ?? stats.total ?? requests.length },
                 { id: 'today' as RequestFilterTab, label: 'Today', count: stats.today ?? 0 },
                 { id: 'upcoming' as RequestFilterTab, label: 'Upcoming', count: stats.upcoming ?? 0 },
                 { id: 'urgent' as RequestFilterTab, label: 'Urgent', count: stats.urgent ?? 0 },
-                { id: 'expired' as RequestFilterTab, label: 'Expired', count: stats.expired ?? 0 },
             ];
         }
 
         let todayCount = 0;
         let upcomingCount = 0;
         let urgentCount = 0;
-        let expiredCount = 0;
 
         requests.forEach((r) => {
             if (isRequestToday(r)) todayCount++;
             if (isRequestUpcoming(r)) upcomingCount++;
             if (isRequestUrgent(r)) urgentCount++;
-            if (isRequestExpired(r)) expiredCount++;
         });
 
         return [
@@ -115,7 +45,6 @@ export const QuoteRequestsFilterTabs: React.FC<QuoteRequestsFilterTabsProps> = (
             { id: 'today' as RequestFilterTab, label: 'Today', count: todayCount },
             { id: 'upcoming' as RequestFilterTab, label: 'Upcoming', count: upcomingCount },
             { id: 'urgent' as RequestFilterTab, label: 'Urgent', count: urgentCount },
-            { id: 'expired' as RequestFilterTab, label: 'Expired', count: expiredCount },
         ];
     }, [requests, stats]);
 
@@ -152,3 +81,5 @@ export const QuoteRequestsFilterTabs: React.FC<QuoteRequestsFilterTabsProps> = (
         </div>
     );
 };
+
+export default QuoteRequestsFilterTabs;

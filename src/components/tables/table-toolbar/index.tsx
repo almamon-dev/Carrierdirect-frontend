@@ -9,6 +9,7 @@ export interface TableToolbarProps {
     onSelectAll?: () => void;
     children?: ReactNode;
     className?: string;
+    borderBottom?: boolean;
 }
 
 export default function TableToolbar({ 
@@ -18,13 +19,14 @@ export default function TableToolbar({
     onDeleteSelected,
     onSelectAll,
     children,
-    className = "" 
+    className = "",
+    borderBottom = true,
 }: TableToolbarProps) {
     return (
         <div className={`relative z-30 ${className}`}>
             {/* Bulk Action Bar Overlay */}
             {selectedCount > 0 && (
-                <div className="absolute inset-0 bg-slate-100/95 dark:bg-[#1e2329]/95 backdrop-blur-xs z-20 flex items-center justify-center px-4 border-b border-slate-200 dark:border-slate-800 animate-in fade-in duration-200">
+                <div className={`absolute inset-0 bg-slate-100/95 dark:bg-[#1e2329]/95 backdrop-blur-xs z-20 flex items-center justify-center px-4 ${borderBottom ? 'border-b border-slate-200 dark:border-slate-800' : ''} animate-in fade-in duration-200`}>
                     <div className="flex items-center gap-1.5 text-[13px]">
                         <span className="text-slate-800 dark:text-slate-200">
                             All <strong>{selectedCount}</strong> items on this page are selected.
@@ -61,7 +63,7 @@ export default function TableToolbar({
                 </div>
             )}
 
-            <div className={`p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-opacity ${selectedCount > 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <div className={`p-3 ${borderBottom ? 'border-b border-slate-200 dark:border-slate-800' : ''} flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-opacity ${selectedCount > 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                 {children}
             </div>
         </div>

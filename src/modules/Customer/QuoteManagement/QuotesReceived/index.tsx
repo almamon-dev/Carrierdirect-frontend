@@ -1,202 +1,124 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, CheckCircle, XCircle, Star, Loader2, Inbox } from 'lucide-react';
-import DataTable, { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import React, { useState, useMemo } from 'react';
+import { Inbox, RefreshCw, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import DataTable from '@/components/tables/data-table';
 import Button from '@/components/ui/button';
 import EmptyState from '@/components/tables/empty-state';
-import { useNavigate } from 'react-router-dom';
-import apiClient from '@/lib/axios';
-
 import { DeclineOfferModal } from '../Negotiation/Chat/components/DeclineOfferModal';
+import { TableFilterContent } from './Filters/TableFilterContent';
+import { QuoteReceivedRowActions } from './Actions/QuoteReceivedRowActions';
+import { useCustomerQuotesReceived } from './hooks/useCustomerQuotesReceived';
+import { useFilteredQuotesReceived } from './hooks/useFilteredQuotesReceived';
+import { QuotesReceivedFilterTabs } from './components/QuotesReceivedFilterTabs';
+import { getQuotesReceivedColumns } from './components/columns';
+import { encryptId } from '@/lib/encryption';
 
 export default function QuotesReceived() {
-  const navigate = useNavigate();
-  const [quotes, setQuotes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
-  const [rejectModalQuote, setRejectModalQuote] = useState<any>(null);
+    const navigate = useNavigate();
+    const {
+        quotes,
+        loading,
+        isRefreshing,
+        actionLoading,
+        rejectModalQuote,
+        setRejectModalQuote,
+        fetchQuotes,
+        handleAccept,
+        handleConfirmReject,
+    } = useCustomerQuotesReceived();
 
-  const fetchQuotes = async () => {
-    try {
-      const response = await apiClient.get('/customer/received-quotes');
-      if (response?.data?.data) {
-        setQuotes(Array.isArray(response.data.data) ? response.data.data : response.data.data.quotes || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch received quotes:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const [activeFilterTab, setActiveFilterTab] = useState<string>('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [vehicleFilter, setVehicleFilter] = useState('all');
+    const [ratingFilter, setRatingFilter] = useState('all');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
 
-  useEffect(() => {
-    fetchQuotes();
-  }, []);
+    const handleResetFilters = () => {
+        setStatusFilter('all');
+        setVehicleFilter('all');
+        setRatingFilter('all');
+        setStartDate('');
+        setEndDate('');
+    };
 
-  const handleAccept = async (quoteId: number) => {
-    setActionLoading(quoteId);
-    try {
-      await apiClient.post(`/customer/quotes/${quoteId}/accept`);
-      await fetchQuotes();
-    } catch (error: any) {
-      alert(error?.data?.message || error?.message || 'Failed to accept quote.');
-    } finally {
-      setActionLoading(null);
-    }
-  };
+    const filteredQuotes = useFilteredQuotesReceived({
+        quotes,
+        activeFilterTab,
+        statusFilter,
+        vehicleFilter,
+        ratingFilter,
+        startDate,
+        endDate,
+    });
 
-  const handleConfirmReject = async (reason: string) => {
-    if (!rejectModalQuote) return;
-    setActionLoading(rejectModalQuote.id);
-    try {
-      await apiClient.post(`/customer/quotes/${rejectModalQuote.id}/reject`, { reason });
-      await fetchQuotes();
-    } catch (error: any) {
-      alert(error?.data?.message || error?.message || 'Failed to reject quote.');
-    } finally {
-      setActionLoading(null);
-      setRejectModalQuote(null);
-    }
-  };
+    const columns = useMemo(() => getQuotesReceivedColumns(navigate), [navigate]);
 
-  const columns: Column<any>[] = [
-    { 
-      id: 'id', 
-      label: 'Quote ID', 
-      render: (row) => <span className="text-brand font-semibold whitespace-nowrap">{row.quote_id || `QT-${row.id}`}</span> 
-    },
-    { 
-      id: 'requestId', 
-      label: 'Request ID', 
-      render: (row) => <span className="text-slate-500 whitespace-nowrap">{row.request_id || (row.quote_request_id ? `REQ-${row.quote_request_id}` : (row.quote_request?.id ? `REQ-${row.quote_request.id}` : '—'))}</span> 
-    },
-    { 
-      id: 'supplier', 
-      label: 'Supplier', 
-      render: (row) => <span className="whitespace-nowrap font-medium text-slate-800">{row.supplier_name || row.supplier?.company_name || row.supplier?.name || row.carrier_name || 'Supplier'}</span> 
-    },
-    { 
-      id: 'rating', 
-      label: 'Rating', 
-      render: (row) => (
-        <div className="flex items-center gap-1 whitespace-nowrap">
-          <Star size={12} className="text-amber-500 fill-amber-500" />
-          <span className="text-slate-700">{row.rating || row.supplier?.rating || 0}</span>
-          {row.reviews_count ? <span className="text-slate-400">({row.reviews_count})</span> : null}
+    return (
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+            <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">Quotes Received</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Review, compare, negotiate, and accept competitive shipping quotes from verified suppliers.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => fetchQuotes(true)} disabled={isRefreshing} className="h-9 px-3 text-xs font-semibold flex items-center gap-1.5 bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700">
+                        <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#ff4a1f]' : 'text-slate-500'} />
+                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                    </Button>
+                    <Button variant="primary" size="sm" onClick={() => navigate('/customer/quotes/create/new')} className="h-9 px-4 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5">
+                        <Plus size={14} />
+                        <span>Create New Request</span>
+                    </Button>
+                </div>
+            </div>
+
+            <DataTable
+                data={filteredQuotes}
+                columns={columns}
+                actions={(row: any) => (
+                    <QuoteReceivedRowActions row={row} isAccepting={actionLoading === row.id} onAccept={handleAccept} onReject={(r) => setRejectModalQuote(r)} />
+                )}
+                actionsColumnClassName="w-[195px] min-w-[195px] text-right pr-3"
+                headerTabs={<QuotesReceivedFilterTabs quotes={quotes} activeFilterTab={activeFilterTab} setActiveFilterTab={setActiveFilterTab} />}
+                filterContent={
+                    <TableFilterContent
+                        statusFilter={statusFilter}
+                        setStatusFilter={setStatusFilter}
+                        vehicleFilter={vehicleFilter}
+                        setVehicleFilter={setVehicleFilter}
+                        ratingFilter={ratingFilter}
+                        setRatingFilter={setRatingFilter}
+                        startDate={startDate}
+                        setStartDate={setStartDate}
+                        endDate={endDate}
+                        setEndDate={setEndDate}
+                        onResetFilters={handleResetFilters}
+                    />
+                }
+                searchPlaceholder="Search quotes by ID, supplier, vehicle, or route..."
+                compact={true}
+                isLoading={loading || isRefreshing}
+                onRowClick={(row) => navigate(`/customer/quotes/received/view/${encryptId(row.id)}`)}
+                tableClassName="w-full min-w-[1050px]"
+                emptyState={
+                    <EmptyState
+                        icon={Inbox}
+                        title="No Quotes Received Yet"
+                        description={activeFilterTab === 'all' ? 'When verified suppliers submit quotes for your shipping requests, they will appear here.' : `No received quotes match '${activeFilterTab}'.`}
+                        actionLabel="Create Quote Request"
+                        onAction={() => navigate('/customer/quotes/create/new')}
+                    />
+                }
+            />
+
+            <DeclineOfferModal
+                isOpen={Boolean(rejectModalQuote)}
+                onClose={() => setRejectModalQuote(null)}
+                offerAmount={rejectModalQuote?.amount_raw || (rejectModalQuote?.amount ? parseFloat(String(rejectModalQuote.amount).replace(/[^0-9.]/g, '')) : undefined)}
+                currency="€"
+                onConfirm={handleConfirmReject}
+            />
         </div>
-      ) 
-    },
-    { 
-      id: 'vehicle', 
-      label: 'Vehicle Type', 
-      render: (row) => <span className="whitespace-nowrap">{row.vehicle || row.vehicle_type || row.truck_type || row.quote_request?.vehicle_type || 'Covered Van'}</span> 
-    },
-    { 
-      id: 'transitTime', 
-      label: 'Transit Time', 
-      render: (row) => <span className="whitespace-nowrap">{row.estimated_delivery || row.estimated_time || row.transit_time || '2-3 Days'}</span> 
-    },
-    { 
-      id: 'amount', 
-      label: 'Quote Amount', 
-      render: (row) => {
-        if (typeof row.amount === 'number') return <span className="whitespace-nowrap font-semibold text-emerald-600">€ {row.amount.toLocaleString('de-DE')}</span>;
-        if (typeof row.amount === 'string' && row.amount) {
-          const amt = row.amount.startsWith('€') || row.amount.startsWith('৳') || row.amount.startsWith('$') ? row.amount : `€ ${row.amount}`;
-          return <span className="whitespace-nowrap font-semibold text-emerald-600">{amt}</span>;
-        }
-        if (row.amount_raw) return <span className="whitespace-nowrap font-semibold text-emerald-600">€ {row.amount_raw}</span>;
-        return <span className="whitespace-nowrap font-semibold text-slate-400">—</span>;
-      }
-    },
-    { 
-      id: 'validUntil', 
-      label: 'Valid Until', 
-      render: (row) => <span className="whitespace-nowrap">{row.valid_until || row.validity || '48h'}</span> 
-    },
-    { 
-      id: 'status', 
-      label: 'Status',
-      render: (row) => {
-        const st = (row.status_raw || row.status || 'pending').toLowerCase();
-        let variant: any = 'default';
-        if (st === 'pending') variant = 'warning';
-        if (st === 'negotiating') variant = 'info';
-        if (st === 'accepted') variant = 'success';
-        if (st === 'rejected') variant = 'critical';
-        return <Badge variant={variant}>{row.status || 'Pending'}</Badge>;
-      }
-    }
-  ];
-
-  const actions = (row: any) => (
-    <div className="flex items-center justify-end gap-2">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="h-7 px-2" 
-        onClick={() => navigate(`/customer/quotes/received/view/${row.id}`)}
-      >
-        <Eye size={14} className="mr-1" /> View
-      </Button>
-      {(row.status_raw === 'pending' || row.status === 'Pending') && (
-        <>
-          <Button 
-            variant="primary" 
-            size="sm" 
-            disabled={actionLoading === row.id}
-            className="h-7 px-2 bg-emerald-600 hover:bg-emerald-700 border-emerald-600"
-            onClick={() => handleAccept(row.id)}
-          >
-            {actionLoading === row.id ? <Loader2 size={14} className="animate-spin mr-1" /> : <CheckCircle size={14} className="mr-1" />} Accept
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            disabled={actionLoading === row.id}
-            className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-            onClick={() => setRejectModalQuote(row)}
-          >
-            <XCircle size={14} className="mr-1" /> Reject
-          </Button>
-        </>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="p-4 md:p-6 w-full mx-auto min-h-screen">
-      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[18px] font-bold text-slate-900 mb-1">Quotes Received</h1>
-          <p className="text-sm text-slate-500">Review and accept quotes from our verified suppliers.</p>
-        </div>
-      </div>
-      
-      <DataTable 
-        data={quotes} 
-        columns={columns} 
-        actions={actions}
-        searchPlaceholder="Search quotes by ID or supplier..."
-        compact={true}
-        emptyState={
-          <EmptyState
-            icon={Inbox}
-            title="No Quotes Received Yet"
-            description="When verified suppliers submit quotes for your shipping requests, they will appear here for your review."
-            actionLabel="Create Quote Request"
-            onAction={() => navigate('/customer/quotes/create/new')}
-          />
-        }
-      />
-
-      <DeclineOfferModal
-        isOpen={Boolean(rejectModalQuote)}
-        onClose={() => setRejectModalQuote(null)}
-        offerAmount={rejectModalQuote?.amount}
-        currency="€"
-        onConfirm={handleConfirmReject}
-      />
-    </div>
-  );
+    );
 }

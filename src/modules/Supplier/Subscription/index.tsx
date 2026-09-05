@@ -232,20 +232,21 @@ export default function SupplierSubscription() {
 
       <QuotaReminderBanner quotaUsed={2} maxQuota={50} />
 
-      <Card className="shadow-2xs border-slate-200 dark:border-slate-800">
-        <CardHeader className="py-3.5 px-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Carrier Membership Plans Grid */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-0.5">
           <div>
-            <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
               Available Carrier Membership Plans
-            </CardTitle>
+            </h2>
           </div>
 
-          <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-[3px] border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => setBillingCycle("monthly")}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-[3px] transition-all cursor-pointer ${
                 billingCycle === "monthly"
                   ? "bg-white dark:bg-[#1e2329] text-slate-900 dark:text-slate-100 shadow-xs"
                   : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
@@ -256,7 +257,7 @@ export default function SupplierSubscription() {
             <button
               type="button"
               onClick={() => setBillingCycle("yearly")}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-[3px] flex items-center gap-1.5 transition-all cursor-pointer ${
                 billingCycle === "yearly"
                   ? "bg-[#ff4a1f] text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
@@ -270,21 +271,20 @@ export default function SupplierSubscription() {
               </span>
             </button>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="p-4 sm:p-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`relative rounded-xl border p-5 transition-all flex flex-col justify-between ${
+                className={`relative rounded-[3px] border p-5 transition-all flex flex-col justify-between ${
                   plan.isCurrent
                     ? "border-2 border-[#ff4a1f] bg-orange-50/20 dark:bg-[#ff4a1f]/5 shadow-sm"
                     : "bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs"
                 }`}
               >
                 {plan.popular && !plan.isCurrent && (
-                  <span className="absolute -top-2.5 right-4 bg-[#ff4a1f] text-white text-[9.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                  <span className="absolute -top-2.5 right-4 bg-[#ff4a1f] text-white text-[9.5px] font-bold px-2 py-0.5 rounded-[3px] uppercase tracking-wider shadow-xs">
                     {plan.badgeText || "Most Popular"}
                   </span>
                 )}
@@ -296,7 +296,7 @@ export default function SupplierSubscription() {
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal mt-0.5 leading-relaxed">{plan.description}</p>
                     </div>
                     {plan.isCurrent && (
-                      <span className="shrink-0 px-2 py-0.5 bg-[#ff4a1f] text-white text-[9.5px] font-bold rounded-full uppercase tracking-wider">
+                      <span className="shrink-0 px-2 py-0.5 bg-[#ff4a1f] text-white text-[9.5px] font-bold rounded-[3px] uppercase tracking-wider">
                         Active
                       </span>
                     )}
@@ -330,14 +330,14 @@ export default function SupplierSubscription() {
 
                 <div className="pt-5 mt-auto">
                   {plan.isCurrent ? (
-                    <div className="w-full h-9 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center gap-1.5">
+                    <div className="w-full h-9 rounded-[3px] text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center gap-1.5">
                       <CheckCircle2 size={14} /> Current Active Plan
                     </div>
                   ) : (
                     <button
                       type="button"
                       onClick={() => alert(`Upgrading to ${plan.name}`)}
-                      className="w-full h-9 rounded-lg text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03d15] text-white shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-1"
+                      className="w-full h-9 rounded-[3px] text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03d15] text-white shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-1"
                     >
                       Choose Plan
                     </button>
@@ -346,8 +346,7 @@ export default function SupplierSubscription() {
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Primary Payment Method & Invoicing */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -362,9 +361,9 @@ export default function SupplierSubscription() {
             </Button>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="p-3.5 bg-slate-50 rounded-md border border-slate-200/80 flex items-center justify-between">
+            <div className="p-3.5 bg-slate-50 rounded-[3px] border border-slate-200/80 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                <div className="w-10 h-10 rounded-[3px] bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                   STRIPE
                 </div>
                 <div>

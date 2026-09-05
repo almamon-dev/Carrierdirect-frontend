@@ -47,7 +47,6 @@ export const navigationMap: Record<string, any[]> = {
             items: [
                 { name: 'Quote Requests', path: '/supplier/quotes/requests', icon: FileText },
                 { name: 'Won Quotes', path: '/supplier/quotes/won', icon: FileText },
-                { name: 'Lost Quotes', path: '/supplier/quotes/lost', icon: FileText },
                 { name: 'Negotiation', path: '/supplier/quotes/negotiation', icon: FileText },
             ]
         },

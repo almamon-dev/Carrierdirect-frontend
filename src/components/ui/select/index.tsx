@@ -37,7 +37,7 @@ export default function Select({
     name = "",
     multiple = false,
     disabled = false,
-    showSearch = true,
+    showSearch,
     direction = "down",
     onCreate: onCreateProp,
     icon: Icon,
@@ -45,14 +45,47 @@ export default function Select({
     children
 }: SelectProps) {
     // Extract options from children if they exist (standard native pattern)
-    const childOptions = React.Children.toArray(children)
-        .filter(child => React.isValidElement(child))
-        .map((child: any) => ({
-            id: child.props.value !== undefined ? child.props.value : child.key,
-            name: child.props.children,
-            image: child.props['data-image'] || child.props.image
-        }))
-        .filter(opt => opt.id !== undefined);
+    const childOptions: SelectOption[] = useMemo(() => {
+        return React.Children.toArray(children)
+            .filter(child => React.isValidElement(child))
+            .map((child: any) => {
+                const val = child.props.value !== undefined ? child.props.value : child.key;
+                const label = child.props.children;
+                return {
+                    id: val,
+                    value: val,
+                    name: label,
+                    label: label,
+                    image: child.props['data-image'] || child.props.image
+                };
+            })
+            .filter(opt => opt.id !== undefined);
+    }, [children]);
+
+    // Normalize final options list supporting both { id, name } and { value, label } formats
+    const finalOptions: SelectOption[] = useMemo(() => {
+        const rawList = options && options.length > 0 ? options : childOptions;
+        return rawList.map((opt: any) => {
+            if (typeof opt === 'string' || typeof opt === 'number') {
+                return {
+                    id: opt,
+                    value: opt,
+                    name: String(opt),
+                    label: String(opt),
+                };
+            }
+            const id = opt.value !== undefined ? opt.value : (opt.id !== undefined ? opt.id : opt.key);
+            const name = opt.label !== undefined ? opt.label : (opt.name !== undefined ? opt.name : (opt.title ?? (id !== undefined ? String(id) : '')));
+            return {
+                ...opt,
+                id,
+                value: id,
+                name,
+                label: name,
+                image: opt.image || opt['data-image'],
+            };
+        });
+    }, [options, childOptions]);
 
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -61,17 +94,30 @@ export default function Select({
     const triggerRef = useRef<HTMLButtonElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const finalOptions = options.length > 0 ? options : childOptions;
+    const shouldShowSearch = showSearch !== undefined ? showSearch : finalOptions.length > 6;
 
     // Filter options based on search query
-    const filteredOptions = finalOptions.filter(opt =>
-        String(opt.name || "").toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredOptions = useMemo(() => {
+        if (!searchQuery.trim()) return finalOptions;
+        const q = searchQuery.toLowerCase();
+        return finalOptions.filter(opt => {
+            const nameStr = typeof opt.name === 'string' ? opt.name : '';
+            const labelStr = typeof opt.label === 'string' ? opt.label : '';
+            const valStr = opt.value !== undefined ? String(opt.value) : '';
+            const idStr = opt.id !== undefined ? String(opt.id) : '';
+            return (
+                nameStr.toLowerCase().includes(q) ||
+                labelStr.toLowerCase().includes(q) ||
+                valStr.toLowerCase().includes(q) ||
+                idStr.toLowerCase().includes(q)
+            );
+        });
+    }, [finalOptions, searchQuery]);
 
     // Helper to get raw value from potential objects
     const getRawValue = (val: any) => {
-        if (Array.isArray(val)) return val.map(v => typeof v === 'object' ? v.value : v);
-        if (typeof val === 'object' && val !== null) return val.value || "";
+        if (Array.isArray(val)) return val.map(v => typeof v === 'object' ? (v.id ?? v.value) : v);
+        if (typeof val === 'object' && val !== null) return val.id ?? val.value ?? "";
         return val ?? "";
     };
 
@@ -86,20 +132,24 @@ export default function Select({
             const selectedItems = finalOptions.filter(opt =>
                 Array.isArray(normalizedValue) && normalizedValue.map(v => String(v)).includes(String(opt.id))
             );
-            return selectedItems.length > 0 ? selectedItems.map(i => i.name).join(', ') : placeholder;
+            return selectedItems.length > 0 ? selectedItems.map(i => i.name || i.label).join(', ') : placeholder;
         }
-        const selected = finalOptions.find(opt => String(opt.id) === String(normalizedValue));
-        return selected ? selected.name : placeholder;
+        const selected = finalOptions.find(opt => 
+            String(opt.id) === String(normalizedValue) || 
+            String(opt.value) === String(normalizedValue)
+        );
+        return selected ? (selected.name || selected.label) : placeholder;
     };
 
-    const isSelected = (id: any) => {
+    const isSelected = (optId: any) => {
         if (multiple) {
-            return Array.isArray(normalizedValue) && normalizedValue.map(v => String(v)).includes(String(id));
+            return Array.isArray(normalizedValue) && normalizedValue.map(v => String(v)).includes(String(optId));
         }
-        return String(normalizedValue) === String(id);
+        return String(normalizedValue) === String(optId);
     };
 
-    const handleSelectOption = (optId: any) => {
+    const handleSelectOption = (option: SelectOption) => {
+        const optId = option.id !== undefined ? option.id : option.value;
         if (multiple) {
             const currentArr = Array.isArray(normalizedValue) ? [...normalizedValue] : [];
             const index = currentArr.findIndex(v => String(v) === String(optId));
@@ -110,21 +160,29 @@ export default function Select({
                 newArr = [...currentArr, optId];
             }
             if (onChange) {
-                onChange({
+                const syntheticEvent: any = {
                     target: {
                         name: name,
                         value: newArr
-                    }
-                });
+                    },
+                    id: newArr,
+                    value: newArr,
+                };
+                onChange(syntheticEvent);
             }
         } else {
             if (onChange) {
-                onChange({
+                const syntheticEvent: any = {
                     target: {
                         name: name,
                         value: optId
-                    }
-                });
+                    },
+                    id: optId,
+                    value: optId,
+                    name: option.name || option.label,
+                    label: option.name || option.label,
+                };
+                onChange(syntheticEvent);
             }
             setIsOpen(false);
         }
@@ -245,7 +303,7 @@ export default function Select({
                         className="custom-select-portal-menu z-[999999] max-h-64 overflow-hidden rounded-md bg-white dark:bg-[#1e2329] text-[12px] shadow-2xl border border-slate-200 dark:border-slate-700 focus:outline-none flex flex-col animate-in fade-in zoom-in-95 duration-100 font-sans"
                     >
                         {/* Search Input Container */}
-                        {showSearch && (
+                        {shouldShowSearch && (
                             <div className="p-2 bg-slate-50 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-700 shrink-0">
                                 <div className="relative flex items-center">
                                     <Search size={13} className="absolute left-2 text-slate-400" />
@@ -272,11 +330,12 @@ export default function Select({
                             ) : (
                                 <>
                                     {filteredOptions.map((option, idx) => {
-                                        const active = isSelected(option.id);
+                                        const optId = option.id !== undefined ? option.id : option.value;
+                                        const active = isSelected(optId);
                                         return (
                                             <div
                                                 key={idx}
-                                                onClick={() => handleSelectOption(option.id)}
+                                                onClick={() => handleSelectOption(option)}
                                                 className={cn(
                                                     "cursor-pointer select-none py-2 px-3 border-b border-slate-100/50 dark:border-slate-800/50 last:border-0 flex items-center justify-between transition-colors",
                                                     active 
@@ -293,7 +352,7 @@ export default function Select({
                                                         />
                                                     )}
                                                     <span className="truncate text-[12.5px]">
-                                                        {option.name}
+                                                        {option.name || option.label}
                                                     </span>
                                                 </div>
                                                 {active && (
@@ -303,7 +362,7 @@ export default function Select({
                                         );
                                     })}
 
-                                    {onCreateProp && searchQuery && !filteredOptions.find(o => (o.name || "").toLowerCase() === searchQuery.toLowerCase()) && (
+                                    {onCreateProp && searchQuery && !filteredOptions.find(o => (o.name || o.label || "").toLowerCase() === searchQuery.toLowerCase()) && (
                                         <button
                                             type="button"
                                             onClick={() => onCreate(searchQuery)}

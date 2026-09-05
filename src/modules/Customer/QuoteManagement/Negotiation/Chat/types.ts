@@ -18,6 +18,8 @@ export interface CustomerChatItem {
     distance: string;
     currentPrice: number;
     vehicleType: string;
+    carrier?: string;
+    company?: string;
 }
 
 export interface CustomerChatAttachment {

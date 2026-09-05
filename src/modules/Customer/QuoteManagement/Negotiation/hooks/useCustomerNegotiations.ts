@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
 import apiClient from '@/lib/axios';
-import { CustomerNegotiationItem } from '../types';
 import { formatDisplayDate } from '@/lib/utils';
+import { useCallback, useEffect, useState } from 'react';
+import { CustomerNegotiationItem } from '../types';
 
 export const useCustomerNegotiations = () => {
     const [negotiations, setNegotiations] = useState<CustomerNegotiationItem[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    const fetchNegotiations = useCallback(async (isRefresh = false) => {
-        if (isRefresh) {
+    const fetchNegotiations = useCallback(async (showSkeleton = true) => {
+        if (showSkeleton) {
             setIsLoading(true);
         }
         try {
@@ -38,7 +38,7 @@ export const useCustomerNegotiations = () => {
                     const reqTitle = n.request_title || n.quote_request?.request_title || reqId;
                     const supplierName = n.sender_name || n.supplier_name || n.supplier?.name || n.company_name || 'Carrier Partner';
                     const avatarUrl = n.profile_picture || n.supplier?.profile_picture || '';
-                    
+
                     const origPrice = Number(n.base_amount_raw ?? n.base_amount ?? n.amount_raw ?? n.amount ?? 0);
                     const currentPrice = Number(n.revised_amount_raw ?? n.revised_amount ?? n.amount_raw ?? n.amount ?? origPrice);
 

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, RotateCcw } from 'lucide-react';
-import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
-import Select from '@/components/ui/select';
 import DataTable, { Column } from '@/components/tables/data-table';
+import Badge from '@/components/ui/badge';
+import Button from '@/components/ui/button';
+import Select from '@/components/ui/select';
 import EmptyState from '@/components/tables/empty-state';
 import { TeamMember } from '../types/team.types';
-import { apiClient } from '@/lib/axios';
 import { TeamMemberRowActions } from './TeamMemberRowActions';
 import BlockMemberModal from './BlockMemberModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
+import { useToastStore } from '@/stores/useToastStore';
+import { apiClient } from '@/lib/axios';
 
 interface TeamMembersTabProps {
     headerTabs?: React.ReactNode;
@@ -17,56 +19,51 @@ interface TeamMembersTabProps {
 
 export default function TeamMembersTab({ headerTabs }: TeamMembersTabProps = {}) {
     const navigate = useNavigate();
+    const showToast = useToastStore((state) => state.showToast);
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [selectedDept, setSelectedDept] = useState<string>('all');
     const [selectedStatus, setSelectedStatus] = useState<string>('all');
     const [blockingMember, setBlockingMember] = useState<TeamMember | null>(null);
-
-    const handleNavigateProfile = (row: TeamMember) => {
-        const memberId = row.rawId || row.id;
-        navigate(`/supplier/team/${memberId}`);
-    };
+    const [deletingMember, setDeletingMember] = useState<TeamMember | null>(null);
 
     const fetchMembers = async () => {
         try {
+            setIsLoading(true);
             const res = await apiClient.get('/supplier/team/members');
-            const raw = res.data?.data?.members || res.data?.data || res.data || [];
-            const resArray = Array.isArray(raw) ? raw : [];
-
-            const mapped: TeamMember[] = resArray.map((m: any) => {
-                const isBlocked = m.status === 'blocked' || m.status === 'disabled' || Boolean(m.is_blocked);
-                const isPending = m.status === 'pending' || m.status === 'invited';
-                const roleName = m.role?.name || m.role || 'Driver';
-                const lastActive = (m.last_login_at && !isPending)
-                    ? new Date(m.last_login_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
-                    : (m.last_login && m.last_login !== 'Never' && !isPending ? m.last_login : 'Never');
-
+            const list = res.data?.data?.members || res.data?.data || res.data || [];
+            
+            const mapped: TeamMember[] = (Array.isArray(list) ? list : []).map((m: any) => {
+                const isBlocked = Boolean(m.is_blocked || m.status === 'blocked');
+                const rawStatus = m.status || (isBlocked ? 'Blocked' : 'Active');
+                const statusDisplay = isBlocked ? 'Blocked' : (rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1));
+                
                 return {
-                    id: m.employee_id || (m.id ? `EMP-${m.id}` : 'EMP-000'),
+                    id: m.employee_id || `EMP-${m.id}`,
                     rawId: m.id,
-                    name: m.name || m.user?.name || 'Staff Member',
-                    avatar: (m.name || 'SM').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase(),
-                    role: roleName,
-                    department: roleName,
-                    designation: roleName,
-                    email: m.email || m.user?.email || 'staff@example.com',
-                    phone: m.phone || m.user?.phone || '—',
-                    status: (isBlocked ? 'Blocked' : isPending ? 'Pending' : m.status === 'active' ? 'Active' : m.status === 'on_leave' ? 'On Leave' : 'Pending') as any,
+                    name: m.name || `${m.first_name || ''} ${m.last_name || ''}`.trim() || 'Team Member',
+                    email: m.email || '',
+                    phone: m.phone || m.phone_number || '-',
+                    role: m.role?.name || m.role || 'Staff Member',
+                    designation: m.designation || m.role?.name || m.role || 'Staff Member',
+                    department: m.department || 'Operations & Dispatch',
+                    status: statusDisplay as any,
                     isBlocked: isBlocked,
-                    blockReason: m.block_reason || m.reason || '',
-                    blockedAt: m.blocked_at || '',
-                    lastLogin: lastActive,
-                    location: m.location || 'Main Depot',
-                    assignedVehicle: m.assigned_vehicle || m.vehicle?.name || 'Station #1',
-                    clearance: m.clearance || 'Level 1 - Standard',
+                    blockReason: m.block_reason || undefined,
+                    blockedAt: m.blocked_at || undefined,
+                    joinDate: m.created_at ? new Date(m.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently',
+                    lastLogin: m.last_active_at ? new Date(m.last_active_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'Recently',
+                    avatar: (m.name || 'TM').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase(),
+                    location: m.location || m.city || 'HQ / Remote',
+                    assignedVehicle: m.assigned_vehicle || m.vehicle || 'None',
+                    clearance: m.clearance || 'Standard',
+                    permissions: m.role?.permissions?.map((p: any) => p.name || p) || [],
                 };
             });
 
             setMembers(mapped);
         } catch (err) {
             console.error('Failed to fetch team members:', err);
-            setMembers([]);
         } finally {
             setIsLoading(false);
         }
@@ -76,26 +73,34 @@ export default function TeamMembersTab({ headerTabs }: TeamMembersTabProps = {})
         fetchMembers();
     }, []);
 
-    const filteredMembers = members.filter((member) => {
-        const matchesDept = selectedDept === 'all' || member.department.toLowerCase() === selectedDept.toLowerCase();
-        const matchesStatus = selectedStatus === 'all' || member.status.toLowerCase() === selectedStatus.toLowerCase();
-        return matchesDept && matchesStatus;
+    const filteredMembers = members.filter(member => {
+        if (selectedDept !== 'all' && member.department !== selectedDept) return false;
+        if (selectedStatus !== 'all') {
+            const memStatus = (member.status || '').toLowerCase();
+            const filterStat = selectedStatus.toLowerCase();
+            if (filterStat === 'blocked') {
+                if (!member.isBlocked && memStatus !== 'blocked') return false;
+            } else {
+                if (memStatus !== filterStat) return false;
+            }
+        }
+        return true;
     });
+
+    const handleNavigateProfile = (member: TeamMember) => {
+        navigate(`/supplier/team/members/${member.id}`, { state: { member } });
+    };
 
     const columns: Column<TeamMember>[] = [
         {
             id: 'id',
             label: 'ID',
-            className: 'w-[75px]',
+            className: 'w-[85px]',
             render: (row) => (
                 <div className="flex items-center h-5">
-                    <button
-                        type="button"
-                        onClick={() => handleNavigateProfile(row)}
-                        className="font-bold text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer text-xs leading-none font-mono"
-                    >
+                    <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400 leading-none">
                         {row.id}
-                    </button>
+                    </span>
                 </div>
             )
         },
@@ -105,13 +110,12 @@ export default function TeamMembersTab({ headerTabs }: TeamMembersTabProps = {})
             className: 'w-[180px]',
             render: (row) => (
                 <div className="flex items-center gap-2 whitespace-nowrap min-w-0 h-5">
-                    <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 dark:border-orange-500/20 text-[#ff4a1f] flex items-center justify-center text-[9.5px] font-bold shrink-0">
+                    <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-[9.5px] font-bold shrink-0 leading-none">
                         {row.avatar}
                     </div>
                     <button
-                        type="button"
                         onClick={() => handleNavigateProfile(row)}
-                        className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[105px] leading-none hover:text-[#ff4a1f] cursor-pointer text-left"
+                        className="font-semibold text-slate-800 dark:text-slate-200 text-xs hover:text-primary dark:hover:text-primary transition-colors truncate max-w-[120px] text-left leading-none cursor-pointer"
                         title={row.name}
                     >
                         {row.name}
@@ -158,7 +162,7 @@ export default function TeamMembersTab({ headerTabs }: TeamMembersTabProps = {})
         {
             id: 'status',
             label: 'Status',
-            className: 'w-[105px] text-center',
+            className: 'w-[95px] text-center',
             render: (row) => {
                 const isBlocked = row.status === 'Blocked' || Boolean(row.isBlocked);
                 const rawStatus = (row.status || 'Active').toLowerCase();
@@ -196,38 +200,48 @@ export default function TeamMembersTab({ headerTabs }: TeamMembersTabProps = {})
         }
     ];
 
-    const handleDeleteMember = async (row: TeamMember) => {
-        if (window.confirm(`Are you sure you want to delete ${row.name}?`)) {
-            try {
-                if (row.rawId) {
-                    await apiClient.delete(`/supplier/team/members/${row.rawId}`);
-                }
-            } catch (err) {
-                console.error('Failed to delete member:', err);
-            }
-            setMembers(prev => prev.filter(m => m.id !== row.id));
+    const handleConfirmDelete = async () => {
+        if (!deletingMember) return;
+        try {
+            const targetId = deletingMember.rawId || deletingMember.id;
+            await apiClient.delete(`/supplier/team/members/${targetId}`);
+            setMembers(prev => prev.filter(m => m.id !== deletingMember.id));
+            showToast(`Moved ${deletingMember.name} to the Trash Bin`, 'success');
+        } catch (err: any) {
+            console.error('Failed to delete member:', err);
+            showToast(err.response?.data?.message || 'Failed to delete team member', 'error');
         }
     };
 
     const handleUnblockMember = async (row: TeamMember) => {
-        if (window.confirm(`Are you sure you want to unblock ${row.name}? This will restore their system access.`)) {
-            try {
-                const memberId = row.rawId || row.id;
-                await apiClient.post(`/supplier/team/members/${memberId}/unblock`, {
+        try {
+            const memberId = row.rawId || row.id;
+            await apiClient.post(`/supplier/team/members/${memberId}/unblock`, {
+                status: 'active',
+                is_blocked: false,
+            }).catch(async () => {
+                return apiClient.put(`/supplier/team/members/${memberId}`, {
                     status: 'active',
                     is_blocked: false,
-                }).catch(async () => {
-                    return apiClient.put(`/supplier/team/members/${memberId}`, {
-                        status: 'active',
-                        is_blocked: false,
-                        block_reason: null,
-                    });
+                    block_reason: null,
                 });
-            } catch (err) {
-                console.error('Failed to unblock member:', err);
-            }
-
+            });
             setMembers(prev => prev.map(m => m.id === row.id ? { ...m, status: 'Active', isBlocked: false, blockReason: undefined } : m));
+            showToast(`${row.name} has been restored to active status`, 'success');
+        } catch (err: any) {
+            console.error('Failed to unblock member:', err);
+            showToast(err.response?.data?.message || 'Failed to unblock team member', 'error');
+        }
+    };
+
+    const handleResendInvite = async (row: TeamMember) => {
+        try {
+            const memberId = row.rawId || row.id;
+            await apiClient.post(`/supplier/team/members/${memberId}/resend-invitation`);
+            showToast(`Invitation email sent successfully to ${row.email}!`, 'success');
+        } catch (err: any) {
+            console.error('Failed to resend invitation:', err);
+            showToast(err.response?.data?.message || 'Failed to resend invitation', 'error');
         }
     };
 
@@ -235,9 +249,10 @@ export default function TeamMembersTab({ headerTabs }: TeamMembersTabProps = {})
         <TeamMemberRowActions
             row={row}
             onViewProfile={handleNavigateProfile}
-            onDelete={handleDeleteMember}
+            onDelete={(m) => setDeletingMember(m)}
             onBlock={(m) => setBlockingMember(m)}
             onUnblock={handleUnblockMember}
+            onResendInvite={handleResendInvite}
         />
     );
 
@@ -287,7 +302,7 @@ export default function TeamMembersTab({ headerTabs }: TeamMembersTabProps = {})
                             variant="outline"
                             size="sm"
                             onClick={() => { setSelectedDept('all'); setSelectedStatus('all'); }}
-                            className="h-[34px] px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer text-slate-600 dark:text-slate-300"
+                            className="h-[34px] px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer text-slate-600 dark:text-slate-300 rounded-[3px]"
                         >
                             <RotateCcw size={13} />
                             <span>Reset Filters</span>
@@ -328,7 +343,26 @@ export default function TeamMembersTab({ headerTabs }: TeamMembersTabProps = {})
                     onClose={() => setBlockingMember(null)}
                     onSuccess={(updated) => {
                         setMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
+                        showToast(`${updated.name} has been blocked and access revoked`, 'success');
                     }}
+                />
+            )}
+
+            {/* Delete Member Confirmation Modal */}
+            {deletingMember && (
+                <DeleteConfirmationModal
+                    isOpen={Boolean(deletingMember)}
+                    onClose={() => setDeletingMember(null)}
+                    onConfirm={handleConfirmDelete}
+                    title="Delete Team Member"
+                    subtitle="Move to Trash Bin"
+                    memberName={deletingMember.name}
+                    memberEmail={deletingMember.email}
+                    memberRole={deletingMember.role}
+                    memberId={deletingMember.id}
+                    avatar={deletingMember.avatar}
+                    confirmText="Move to Trash"
+                    warningMessage="Are you sure you want to delete this team member? They will be moved to the Trash Bin and will lose access to the portal. You can restore them anytime from the Trash Bin tab."
                 />
             )}
         </div>

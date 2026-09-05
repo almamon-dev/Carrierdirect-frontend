@@ -40,9 +40,9 @@ class ApiClient {
     private getHeaders(customHeaders?: HeadersInit): HeadersInit {
         const token =
             localStorage.getItem(TOKEN_CONFIG.accessTokenKey) ||
+            localStorage.getItem('carrierdirect_access_token') ||
             localStorage.getItem('access_token') ||
-            localStorage.getItem('token') ||
-            localStorage.getItem('erp_access_token');
+            localStorage.getItem('token');
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
@@ -108,13 +108,19 @@ class ApiClient {
                 if (response.status === 401) {
                     const existingToken =
                         localStorage.getItem(TOKEN_CONFIG.accessTokenKey) ||
+                        localStorage.getItem('carrierdirect_access_token') ||
                         localStorage.getItem('access_token') ||
-                        localStorage.getItem('token');
+                        localStorage.getItem('token') ||
+                        localStorage.getItem('erp_access_token');
 
                     if (existingToken) {
                         localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
                         localStorage.removeItem(TOKEN_CONFIG.refreshTokenKey);
                         localStorage.removeItem(TOKEN_CONFIG.userKey);
+                        localStorage.removeItem('carrierdirect_access_token');
+                        localStorage.removeItem('carrierdirect_user_data');
+                        localStorage.removeItem('erp_access_token');
+                        localStorage.removeItem('erp_user_data');
                         localStorage.removeItem('access_token');
                         localStorage.removeItem('token');
                         localStorage.removeItem('user');

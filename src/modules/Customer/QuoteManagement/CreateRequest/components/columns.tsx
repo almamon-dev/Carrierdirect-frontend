@@ -1,70 +1,69 @@
-import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
-/**
- * Customer Quote Request Table Columns
- * Configures the table columns, visual badges, and cell formatters for Customer Quote Requests.
- */
-
 import React from 'react';
-import { MapPin } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import Skeleton from '@/components/ui/skeleton';
 import { CustomerQuoteRequestItem } from '../types';
-import { formatDisplayDate } from '@/lib/utils';
+import { 
+    RequestIdCell, TitleCell, AddressCell, DistanceCell, 
+    BudgetCell, QuotesCountCell, PriorityBadgeCell, 
+    StatusBadgeCell, DateCell 
+} from './CreateRequestCells';
 
 export const getCustomerColumns = (navigate: (path: string) => void): Column<CustomerQuoteRequestItem>[] => [
     { 
         id: 'id', 
-        label: 'ID', 
-        className: 'w-[70px]',
+        label: 'Request ID', 
+        className: 'w-[95px] min-w-[95px]',
         sortable: true,
-        render: (row) => (
-            <div className="flex items-center h-5">
-                <button
-                    type="button"
-                    onClick={() => navigate(`/customer/quotes/create/view/${row.rawId || String(row.id).replace('REQ-', '')}`)}
-                    className="font-bold text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer text-xs flex items-center gap-1.5 leading-none"
-                >
-                    {row.id}
-                </button>
+        render: (row) => <RequestIdCell row={row} onNavigate={navigate} />,
+        skeleton: () => (
+            <div className="flex items-center min-h-[26px]">
+                <Skeleton className="h-4 w-16 rounded-[3px] !bg-orange-100/70 dark:!bg-orange-950/40" />
             </div>
-        ) 
+        )
+    },
+    {
+        id: 'title',
+        label: 'Title',
+        className: 'min-w-[140px] max-w-[200px]',
+        sortable: true,
+        render: (row) => <TitleCell row={row} />,
+        skeleton: () => (
+            <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
+                <Skeleton className="h-3.5 w-28 max-w-full rounded-[3px]" />
+            </div>
+        )
     },
     { 
         id: 'pickup', 
         label: 'Pickup Address', 
         className: 'min-w-0',
-        render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1" title={row.pickup}>
-                <MapPin size={13} className="text-emerald-500 shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-                    {row.pickup}
-                </span>
+        render: (row) => <AddressCell address={row.pickup} />,
+        skeleton: () => (
+            <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
+                <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
             </div>
-        ) 
+        )
     },
     { 
         id: 'delivery', 
         label: 'Delivery Address', 
         className: 'min-w-0',
-        render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1" title={row.delivery}>
-                <MapPin size={13} className="text-red-500 shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-                    {row.delivery}
-                </span>
+        render: (row) => <AddressCell address={row.delivery} />,
+        skeleton: () => (
+            <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
+                <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
             </div>
-        ) 
+        )
     },
     { 
         id: 'distance', 
         label: 'Distance', 
         className: 'w-[75px] text-center',
         sortable: true,
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold leading-none">
-                    {row.distance}
-                </span>
+        render: (row) => <DistanceCell distance={row.distance} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[26px]">
+                <Skeleton className="h-3.5 w-12 rounded-[3px]" />
             </div>
         )
     },
@@ -73,11 +72,10 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         label: 'Budget', 
         className: 'w-[90px]',
         sortable: true,
-        render: (row) => (
-            <div className="flex items-center h-5">
-                <span className="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100 text-xs leading-none">
-                    {row.budget}
-                </span>
+        render: (row) => <BudgetCell budget={row.budget} />,
+        skeleton: () => (
+            <div className="flex items-center min-h-[26px]">
+                <Skeleton className="h-4 w-16 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/40" />
             </div>
         )
     },
@@ -86,58 +84,46 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
         label: 'Quotes', 
         className: 'w-[75px] text-center',
         sortable: true,
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <span className={`whitespace-nowrap text-xs font-bold leading-none ${row.quotesReceived > 0 ? 'text-[#ff4a1f]' : 'text-slate-400 dark:text-slate-500'}`}>
-                    {row.quotesReceived} {row.quotesReceived === 1 ? 'Quote' : 'Quotes'}
-                </span>
+        render: (row) => <QuotesCountCell count={row.quotesReceived} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[26px]">
+                <Skeleton className="h-4 w-14 rounded-[3px]" />
             </div>
-        ) 
+        )
     },
     { 
         id: 'priority', 
         label: 'Priority', 
         className: 'w-[80px] text-center',
         sortable: true,
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
-                    row.priority === 'Urgent' ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60' :
-                    row.priority === 'High' ? 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800/60' :
-                    'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                }`}>
-                    {row.priority}
-                </Badge>
+        render: (row) => <PriorityBadgeCell priority={row.priority} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[26px]">
+                <Skeleton className="h-5 w-14 rounded-[3px] !bg-amber-100/70 dark:!bg-amber-950/50" />
             </div>
-        ) 
+        )
     },
     { 
         id: 'status', 
         label: 'Status', 
         className: 'w-[105px] text-center',
         sortable: true,
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
-                    row.status === 'Active' || row.status === 'Bidding Active' || row.status === 'Negotiating' 
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60' 
-                        : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
-                }`}>
-                    {row.status}
-                </Badge>
+        render: (row) => <StatusBadgeCell status={row.status} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[26px]">
+                <Skeleton className="h-5 w-18 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/50" />
             </div>
-        ) 
+        )
     },
     { 
         id: 'date', 
         label: 'Date', 
         className: 'w-[110px] text-center',
         sortable: true,
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">
-                    {row.date && row.date !== 'N/A' && row.date !== 'null' ? row.date : formatDisplayDate((row as any).created_at || (row as any).requested_date || (row as any).pickup_date || row.date)}
-                </span>
+        render: (row) => <DateCell row={row} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[26px]">
+                <Skeleton className="h-3.5 w-16 rounded-[3px]" />
             </div>
         )
     }

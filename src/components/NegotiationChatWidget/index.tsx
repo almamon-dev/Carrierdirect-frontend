@@ -189,6 +189,72 @@ export default function NegotiationChatWidget() {
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
+  // Draggable Floating Button Position State
+  const [btnPos, setBtnPos] = useState<{ x: number; y: number } | null>(() => {
+    try {
+      const saved = localStorage.getItem('chat_widget_btn_pos');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
+
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0, mouseX: 0, mouseY: 0 });
+
+  const handleDragStart = (clientX: number, clientY: number) => {
+    isDraggingRef.current = false;
+    const currentX = btnPos?.x ?? (window.innerWidth - 76);
+    const currentY = btnPos?.y ?? (window.innerHeight - 80);
+    dragStartRef.current = { x: currentX, y: currentY, mouseX: clientX, mouseY: clientY };
+
+    const onMove = (moveX: number, moveY: number) => {
+      const dx = moveX - dragStartRef.current.mouseX;
+      const dy = moveY - dragStartRef.current.mouseY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        isDraggingRef.current = true;
+      }
+      const newX = Math.max(12, Math.min(window.innerWidth - 68, dragStartRef.current.x + dx));
+      const newY = Math.max(12, Math.min(window.innerHeight - 68, dragStartRef.current.y + dy));
+      setBtnPos({ x: newX, y: newY });
+    };
+
+    const onEnd = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      setBtnPos((latest) => {
+        if (latest) {
+          try {
+            localStorage.setItem('chat_widget_btn_pos', JSON.stringify(latest));
+          } catch {}
+        }
+        return latest;
+      });
+    };
+
+    const handleMouseMove = (e: MouseEvent) => onMove(e.clientX, e.clientY);
+    const handleMouseUp = () => onEnd();
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) onMove(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const handleTouchEnd = () => onEnd();
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
+  };
+
+  const handleLauncherClick = (e: React.MouseEvent) => {
+    if (isDraggingRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    setIsOpen(true);
+  };
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const moreActionsRef = useRef<HTMLDivElement>(null);
   const convDropdownRef = useRef<HTMLDivElement>(null);
@@ -398,20 +464,27 @@ export default function NegotiationChatWidget() {
 
       {/* Floating Launcher Button Container */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 font-sans antialiased">
+        <div 
+          style={btnPos ? { left: `${btnPos.x}px`, top: `${btnPos.y}px` } : undefined}
+          className={`fixed z-50 font-sans antialiased select-none ${!btnPos ? 'bottom-6 right-6' : ''}`}
+        >
           <button
-            onClick={() => setIsOpen(true)}
-            className="relative bg-[#ff4a1f] hover:bg-[#e63d15] text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-transform duration-200 hover:scale-110 active:scale-95 cursor-pointer border-2 border-white font-sans shrink-0"
-            title={`Negotiation Chat (${totalUnreadCount} New)`}
+            onMouseDown={(e) => handleDragStart(e.clientX, e.clientY)}
+            onTouchStart={(e) => {
+              if (e.touches.length > 0) handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+            }}
+            onClick={handleLauncherClick}
+            className="relative bg-[#ff4a1f] hover:bg-[#e63d15] text-white w-16 h-16 rounded-full shadow-xl hover:shadow-2xl flex items-center justify-center transition-all duration-200 opacity-70 hover:opacity-100 hover:scale-105 active:scale-95 cursor-grab active:cursor-grabbing border-2 border-white font-sans shrink-0 touch-none"
+            title={`Negotiation Chat (${totalUnreadCount} New) - Drag anywhere to move`}
           >
-            <ChatIcon className="w-6 h-6 text-white shrink-0" />
+            <ChatIcon className="w-7 h-7 text-white shrink-0 pointer-events-none" />
 
             {totalUnreadCount > 0 ? (
-              <span className="absolute -top-1 -right-1 bg-slate-900 text-white text-xs font-black min-w-[24px] h-[24px] px-1 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20 font-sans">
+              <span className="absolute -top-1 -right-1 bg-slate-900 text-white text-xs font-black min-w-[24px] h-[24px] px-1 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-20 font-sans pointer-events-none">
                 {totalUnreadCount}
               </span>
             ) : (
-              <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white shadow-xs z-10" />
+              <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white shadow-xs z-10 pointer-events-none" />
             )}
           </button>
         </div>
@@ -1146,3 +1219,5 @@ export default function NegotiationChatWidget() {
     </>
   );
 }
+
+export { NegotiationChatWidget };

@@ -38,7 +38,7 @@ export const Step2ZipUpload: React.FC<Step2ZipUploadProps> = ({
                         onZipSelect(e.dataTransfer.files[0]);
                     }
                 }}
-                className={`border-2 border-dashed rounded-lg p-4 text-center transition-all ${
+                className={`border-2 border-dashed rounded-[5px] p-4 text-center transition-all ${
                     isDraggingZip ? 'border-slate-400 bg-slate-100/70' : 'border-slate-300 bg-slate-50/50'
                 }`}
             >
@@ -51,7 +51,7 @@ export const Step2ZipUpload: React.FC<Step2ZipUploadProps> = ({
                 </p>
 
                 {uploadedZipName ? (
-                    <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium text-slate-900 shadow-2xs">
+                    <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-[5px] border border-slate-200 text-xs font-medium text-slate-900 shadow-2xs">
                         <Paperclip size={14} className="text-slate-600" />
                         <span>{uploadedZipName}</span>
                         {localZipSize && <span className="text-slate-500 font-normal text-2xs">({localZipSize})</span>}
@@ -69,7 +69,7 @@ export const Step2ZipUpload: React.FC<Step2ZipUploadProps> = ({
                     <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 px-3 text-xs font-medium border-slate-300 text-slate-700 bg-white hover:bg-slate-50 cursor-pointer"
+                        className="h-8 px-3 text-xs font-medium border-slate-300 text-slate-700 bg-white hover:bg-slate-50 rounded-[5px] cursor-pointer"
                         onClick={() => (internalZipInputRef.current || zipInputRef.current)?.click()}
                     >
                         <Upload size={13} className="mr-1 text-slate-600" />

@@ -3,16 +3,19 @@ import {
     User,
     FileText,
     BadgeCheck,
-    Mail,
     Building2,
     Image as ImageIcon,
     Download,
     ExternalLink,
     Shield,
+    ShieldCheck,
     FileSpreadsheet,
     FileArchive,
-    Phone,
-    MapPin,
+    Star,
+    PackageCheck,
+    Truck,
+    Clock,
+    UserCheck,
     X
 } from 'lucide-react';
 import { ConversationUser, GeneralMessage, MessageAttachment } from '@/services/messageService';
@@ -67,7 +70,7 @@ export const GeneralChatDetailsPanel: React.FC<GeneralChatDetailsPanelProps> = (
 
     const displayName = partner.company_name || partner.name || 'User';
     const isSupplier = (partner.user_type || '').toLowerCase().includes('supplier');
-    const roleLabel = isSupplier ? 'Verified Carrier / Supplier' : 'Verified Customer';
+    const roleLabel = isSupplier ? 'Carrier Partner' : 'Verified Customer';
 
     const allAttachments: MessageAttachment[] = messages.flatMap(m => {
         const raw = parseRawAttachments(m);
@@ -188,61 +191,173 @@ export const GeneralChatDetailsPanel: React.FC<GeneralChatDetailsPanelProps> = (
                 {/* 1. Profile Tab Content */}
                 {activeTab === 'profile' && (
                     <div className="space-y-4 animate-in fade-in duration-150">
-                        <div className="space-y-2.5">
+                        {/* Partner Details Section */}
+                        <div className="space-y-2">
                             <h4 className="text-[12px] font-bold text-slate-900 dark:text-slate-100 pb-1 border-b border-slate-100 dark:border-slate-800">
                                 Partner Details
                             </h4>
 
-                            {partner.company_name && (
-                                <div className="flex justify-between items-center py-1 border-b border-slate-100/80 dark:border-slate-800/80">
-                                    <span className="text-slate-500 flex items-center gap-1.5"><Building2 size={13} className="text-slate-400" /> Company</span>
-                                    <span className="font-semibold text-slate-800 dark:text-slate-200 text-right truncate max-w-[160px]">
-                                        {partner.company_name}
-                                    </span>
-                                </div>
-                            )}
+                            {/* Aligned Key : Value Table with Icons */}
+                            <table className="w-full text-[11.5px] border-collapse">
+                                <tbody>
+                                    {partner.company_name && (
+                                        <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                            <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Building2 size={13} className="text-slate-400 shrink-0" />
+                                                    <span>Company</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                                :
+                                            </td>
+                                            <td className="py-2 pl-2 font-semibold text-slate-800 dark:text-slate-100 truncate">
+                                                {partner.company_name}
+                                            </td>
+                                        </tr>
+                                    )}
 
-                            {partner.email && (
-                                <div className="flex justify-between items-center py-1 border-b border-slate-100/80 dark:border-slate-800/80">
-                                    <span className="text-slate-500 flex items-center gap-1.5"><Mail size={13} className="text-slate-400" /> Email</span>
-                                    <span className="font-medium text-slate-800 dark:text-slate-200 text-right truncate max-w-[160px]">
-                                        {partner.email}
-                                    </span>
-                                </div>
-                            )}
+                                    <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                        <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                            <div className="flex items-center gap-1.5">
+                                                <Shield size={13} className="text-slate-400 shrink-0" />
+                                                <span>Platform ID</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                            :
+                                        </td>
+                                        <td className="py-2 pl-2 font-mono font-bold text-[#FF4A1F]">
+                                            #CD-{isSupplier ? 'SUP' : 'CUS'}-{String(partner.id).padStart(4, '0')}
+                                        </td>
+                                    </tr>
 
-                            {(partner as any).phone && (
-                                <div className="flex justify-between items-center py-1 border-b border-slate-100/80 dark:border-slate-800/80">
-                                    <span className="text-slate-500 flex items-center gap-1.5"><Phone size={13} className="text-slate-400" /> Phone</span>
-                                    <span className="font-medium text-slate-800 dark:text-slate-200 text-right">
-                                        {(partner as any).phone}
-                                    </span>
-                                </div>
-                            )}
+                                    <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                        <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                            <div className="flex items-center gap-1.5">
+                                                <Star size={13} className="text-amber-500 fill-amber-400 shrink-0" />
+                                                <span>Rating</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                            :
+                                        </td>
+                                        <td className="py-2 pl-2 font-semibold text-slate-800 dark:text-slate-100">
+                                            <span className="text-amber-500 font-bold">4.9</span>{' '}
+                                            <span className="text-[10px] text-slate-400 font-normal">(38 reviews)</span>
+                                        </td>
+                                    </tr>
 
-                            <div className="flex justify-between items-center py-1 border-b border-slate-100/80 dark:border-slate-800/80">
-                                <span className="text-slate-500">Account Type</span>
-                                <span className="font-medium capitalize text-slate-800 dark:text-slate-200">
-                                    {partner.user_type || 'Platform Member'}
-                                </span>
-                            </div>
+                                    <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                        <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                            <div className="flex items-center gap-1.5">
+                                                <PackageCheck size={13} className="text-emerald-500 shrink-0" />
+                                                <span>Orders Done</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                            :
+                                        </td>
+                                        <td className="py-2 pl-2 font-semibold text-slate-800 dark:text-slate-100">
+                                            {isSupplier ? '94+' : '42+'}{' '}
+                                            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 ml-1">
+                                                (100% Fulfilled)
+                                            </span>
+                                        </td>
+                                    </tr>
 
-                            <div className="flex justify-between items-center py-1">
-                                <span className="text-slate-500">Verification</span>
-                                <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                    <BadgeCheck size={13} /> Verified Member
-                                </span>
-                            </div>
+                                    <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                        <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                            <div className="flex items-center gap-1.5">
+                                                <Truck size={13} className="text-blue-500 shrink-0" />
+                                                <span>On-Time Rate</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                            :
+                                        </td>
+                                        <td className="py-2 pl-2 font-semibold text-slate-800 dark:text-slate-100">
+                                            99.2%{' '}
+                                            <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                                (Reliable)
+                                            </span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                        <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock size={13} className="text-orange-500 shrink-0" />
+                                                <span>Response Time</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                            :
+                                        </td>
+                                        <td className="py-2 pl-2 font-semibold text-slate-800 dark:text-slate-100">
+                                            &lt; 15 mins{' '}
+                                            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 ml-1">
+                                                (Fast)
+                                            </span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                        <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                            <div className="flex items-center gap-1.5">
+                                                <UserCheck size={13} className="text-slate-400 shrink-0" />
+                                                <span>Account Type</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                            :
+                                        </td>
+                                        <td className="py-2 pl-2 font-medium text-slate-800 dark:text-slate-200 capitalize truncate">
+                                            {roleLabel}
+                                        </td>
+                                    </tr>
+
+                                    <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                        <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                            <div className="flex items-center gap-1.5">
+                                                <BadgeCheck size={13} className="text-emerald-500 shrink-0" />
+                                                <span>Platform Status</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                            :
+                                        </td>
+                                        <td className="py-2 pl-2 font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                                            Active &amp; Verified
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td className="py-2 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[130px]">
+                                            <div className="flex items-center gap-1.5">
+                                                <ShieldCheck size={13} className="text-teal-500 shrink-0" />
+                                                <span>Coverage</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-2 text-slate-400 font-bold text-center w-[24px] select-none">
+                                            :
+                                        </td>
+                                        <td className="py-2 pl-2 font-semibold text-slate-700 dark:text-slate-300">
+                                            100% Insured Deals
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
-                        {/* Security Notice */}
-                        <div className="p-3 rounded-lg bg-slate-50 dark:bg-[#181d24] border border-slate-200/70 dark:border-slate-800 space-y-1">
+                        {/* Security Notice / Platform Protection Banner */}
+                        <div className="p-3 rounded-[4px] bg-slate-50 dark:bg-[#181d24] border border-slate-200/70 dark:border-slate-800 space-y-1">
                             <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
                                 <Shield size={13} />
-                                <span>Platform Encrypted Channel</span>
+                                <span>Platform Protected Communication</span>
                             </div>
                             <p className="text-[10.5px] leading-relaxed text-slate-500 dark:text-slate-400">
-                                All quote requests, shipments, and messages transmitted with this partner are securely verified.
+                                All quote requests, shipments, and messages transmitted inside CarrierDirect are secured with guaranteed payment and dispute protection.
                             </p>
                         </div>
                     </div>

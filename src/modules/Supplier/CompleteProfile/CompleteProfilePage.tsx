@@ -165,7 +165,7 @@ export default function SupplierCompleteProfilePage() {
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
     // Read stored user
-    const userStr = localStorage.getItem(TOKEN_CONFIG.userKey) || localStorage.getItem('erp_user_data') || localStorage.getItem('user');
+    const userStr = localStorage.getItem(TOKEN_CONFIG.userKey) || localStorage.getItem('carrierdirect_user_data') || localStorage.getItem('user');
     const currentUser = userStr ? JSON.parse(userStr) : {};
 
     // 0. Guard: If profile is already completed, redirect to Supplier Dashboard immediately

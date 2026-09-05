@@ -128,7 +128,7 @@ export default function TimeSlots() {
             {/* Add Time Slot Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-2xs flex items-center justify-center p-4 z-50">
-                    <form onSubmit={handleAddSlot} className="bg-white rounded-lg max-w-md w-full p-6 border border-slate-200 shadow-md space-y-4">
+                    <form onSubmit={handleAddSlot} className="bg-white rounded-[5px] max-w-md w-full p-6 border border-slate-200 shadow-md space-y-4">
                         <h3 className="text-sm font-bold text-slate-900">Define New Time Slot</h3>
                         
                         <div className="space-y-3">

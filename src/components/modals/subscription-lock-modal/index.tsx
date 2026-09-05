@@ -47,7 +47,7 @@ export default function SubscriptionLockModal({
       onClick={onClose}
     >
       <div 
-        className="bg-white dark:bg-[#1e2329] rounded-[3px] max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative"
+        className="bg-white dark:bg-[#1e2329] rounded-[5px] max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
       >
 
@@ -105,14 +105,14 @@ export default function SubscriptionLockModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="w-1/3 h-9 text-xs font-semibold text-slate-600 cursor-pointer"
+              className="w-1/3 h-10 text-xs font-semibold text-slate-600 rounded-[5px] cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               variant="primary"
               onClick={handleUpgradeClick}
-              className="w-2/3 h-9 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-2/3 h-10 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white rounded-[5px] shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>Upgrade Plan Now</span>
               <ArrowRight size={14} />

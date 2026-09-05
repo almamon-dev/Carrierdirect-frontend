@@ -13,7 +13,7 @@ export default function VerifyEmailNoticePage() {
     const [searchParams] = useSearchParams();
 
     // Read stored user email fallback
-    const userStr = localStorage.getItem(TOKEN_CONFIG.userKey) || localStorage.getItem('erp_user_data') || localStorage.getItem('user');
+    const userStr = localStorage.getItem(TOKEN_CONFIG.userKey) || localStorage.getItem('carrierdirect_user_data') || localStorage.getItem('user');
     let storedEmail = '';
     try {
         const u = userStr ? JSON.parse(userStr) : null;
@@ -64,7 +64,10 @@ export default function VerifyEmailNoticePage() {
     const handleBackToLogin = () => {
         localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
         localStorage.removeItem(TOKEN_CONFIG.userKey);
+        localStorage.removeItem('carrierdirect_access_token');
+        localStorage.removeItem('carrierdirect_user_data');
         localStorage.removeItem('erp_access_token');
+        localStorage.removeItem('erp_user_data');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/web/login');
