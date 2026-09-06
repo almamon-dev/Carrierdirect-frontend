@@ -39,7 +39,7 @@ export const QuoteViewPriceCard: React.FC<QuoteViewPriceCardProps> = ({
 
                 {quote.extra_charges && quote.extra_charges.length > 0 ? (
                     <div className="border-t border-slate-100 dark:border-slate-800 pt-2">
-                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Extra Services</span>
+                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mb-2">Extra Services</span>
                         {quote.extra_charges.map((charge, i) => (
                             <div key={i} className="flex justify-between items-center py-1 border-b border-slate-50 dark:border-slate-800/50 last:border-0 text-xs">
                                 <div className="flex items-center gap-2">

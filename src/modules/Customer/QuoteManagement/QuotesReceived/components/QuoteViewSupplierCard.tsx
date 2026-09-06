@@ -10,8 +10,8 @@ export const QuoteViewSupplierCard: React.FC<QuoteViewSupplierCardProps> = ({ qu
     return (
         <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[5px] p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Carrier Information
+                <h2 className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Carrier & Driver Profile
                 </h2>
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-[5px] border border-emerald-200 dark:border-emerald-800">
                     <ShieldCheck size={13} /> Verified Carrier

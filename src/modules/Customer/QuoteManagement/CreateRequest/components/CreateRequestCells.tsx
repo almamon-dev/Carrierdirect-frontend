@@ -39,7 +39,7 @@ export const AddressCell: React.FC<{ address: string }> = ({ address }) => (
 );
 
 export const DistanceCell: React.FC<{ distance: string }> = ({ distance }) => (
-    <div className="flex items-center justify-center min-h-[26px]">
+    <div className="flex items-center min-h-[26px]">
         <span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold leading-none">
             {distance}
         </span>
@@ -55,7 +55,7 @@ export const BudgetCell: React.FC<{ budget: string | number }> = ({ budget }) =>
 );
 
 export const QuotesCountCell: React.FC<{ count: number }> = ({ count }) => (
-    <div className="flex items-center justify-center min-h-[26px]">
+    <div className="flex items-center min-h-[26px]">
         <span className={`whitespace-nowrap text-xs font-bold leading-none ${count > 0 ? 'text-[#ff4a1f]' : 'text-slate-400 dark:text-slate-500'}`}>
             {count} {count === 1 ? 'Quote' : 'Quotes'}
         </span>
@@ -70,7 +70,7 @@ export const PriorityBadgeCell: React.FC<{ priority: string }> = ({ priority }) 
         : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
 
     return (
-        <div className="flex items-center justify-center min-h-[26px]">
+        <div className="flex items-center min-h-[26px]">
             <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${badgeStyle}`}>
                 {priority}
             </Badge>
@@ -79,14 +79,22 @@ export const PriorityBadgeCell: React.FC<{ priority: string }> = ({ priority }) 
 };
 
 export const StatusBadgeCell: React.FC<{ status: string }> = ({ status }) => {
-    const isActive = status === 'Active' || status === 'Bidding Active' || status === 'Negotiating';
+    const s = (status || '').toLowerCase();
+    const isAccepted = s === 'accepted' || s === 'completed' || s === 'awarded';
+    const isActive = s === 'active' || s === 'bidding active' || s === 'negotiating';
+    const isExpired = s === 'expired' || s === 'closed';
+
+    const badgeStyle = isAccepted
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
+        : isActive
+        ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/60'
+        : isExpired
+        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
+        : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
+
     return (
-        <div className="flex items-center justify-center min-h-[26px]">
-            <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
-                isActive
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
-                    : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
-            }`}>
+        <div className="flex items-center min-h-[26px]">
+            <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${badgeStyle}`}>
                 {status}
             </Badge>
         </div>
@@ -99,7 +107,7 @@ export const DateCell: React.FC<{ row: CustomerQuoteRequestItem }> = ({ row }) =
         : formatDisplayDate((row as any).created_at || (row as any).requested_date || (row as any).pickup_date || row.date);
 
     return (
-        <div className="flex items-center justify-center min-h-[26px]">
+        <div className="flex items-center min-h-[26px]">
             <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">
                 {dateVal}
             </span>

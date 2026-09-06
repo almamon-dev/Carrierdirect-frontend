@@ -46,6 +46,12 @@ class ErrorBoundary extends React.Component<
   }
 }
 
+
+const RedirectWithQuery: React.FC<{ to: string }> = ({ to }) => {
+  const search = typeof window !== "undefined" ? window.location.search : "";
+  return <Navigate to={`${to}${search}`} replace />;
+};
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -70,27 +76,27 @@ const router = createBrowserRouter([
   /* Direct Auth Aliases */
   {
     path: '/login',
-    element: <Navigate to="/web/login" replace />,
+    element: <RedirectWithQuery to="/web/login" />,
   },
   {
     path: '/register',
-    element: <Navigate to="/web/register" replace />,
+    element: <RedirectWithQuery to="/web/register" />,
   },
   {
     path: '/select-role',
-    element: <Navigate to="/web/register" replace />,
+    element: <RedirectWithQuery to="/web/register" />,
   },
   {
     path: '/web/select-role',
-    element: <Navigate to="/web/register" replace />,
+    element: <RedirectWithQuery to="/web/register" />,
   },
   {
     path: '/auth/login',
-    element: <Navigate to="/web/login" replace />,
+    element: <RedirectWithQuery to="/web/login" />,
   },
   {
     path: '/auth/register',
-    element: <Navigate to="/web/register" replace />,
+    element: <RedirectWithQuery to="/web/register" />,
   },
   ...authRoutes,
   ...supportRoutes,

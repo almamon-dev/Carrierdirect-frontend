@@ -3,10 +3,15 @@ import { formatDisplayDate } from '@/lib/utils';
 
 export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes: any[]): CustomerQuoteRequestItem[] => {
     return rawItems.map((q: any) => {
-        const matchedFromAllQuotes = allReceivedQuotes.filter(item => {
+        const matchingQuotes = allReceivedQuotes.filter(item => {
             const quoteReqId = item.quote_request_id || item.request_id || item.quote_request?.id;
             return String(quoteReqId) === String(q.id);
-        }).length;
+        });
+
+        const hasAcceptedQuote = matchingQuotes.some(item => {
+            const s = String(item.status_raw || item.status || '').toLowerCase();
+            return s === 'accepted' || s === 'completed' || s === 'won';
+        });
 
         const qCount = Number(
             q.quotes_count ??
@@ -14,7 +19,7 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
             q.bids_count ??
             (Array.isArray(q.quotes_request) && q.quotes_request.length > 0 ? q.quotes_request.length :
              Array.isArray(q.quotes) && q.quotes.length > 0 ? q.quotes.length :
-             matchedFromAllQuotes)
+             matchingQuotes.length)
         );
 
         const dateStr = formatDisplayDate(q.requested_date || q.request_date || q.pickup_date || q.created_at || q.created_at_formatted || q.date);
@@ -36,6 +41,21 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
              'Logistics Request')
         );
 
+        let finalStatus = 'Active';
+        const rawStatusLower = String(q.status_raw || q.status || '').toLowerCase();
+
+        if (hasAcceptedQuote || rawStatusLower === 'accepted' || rawStatusLower === 'completed' || rawStatusLower === 'awarded') {
+            finalStatus = 'Accepted';
+        } else if (rawStatusLower === 'expired') {
+            finalStatus = 'Expired';
+        } else if (rawStatusLower === 'pending' || rawStatusLower === 'draft') {
+            finalStatus = 'Draft';
+        } else if (rawStatusLower === 'active' || rawStatusLower === 'bidding') {
+            finalStatus = 'Active';
+        } else if (q.status) {
+            finalStatus = q.status.charAt(0).toUpperCase() + q.status.slice(1);
+        }
+
         return {
             id: q.request_id || q.formatted_id || (q.id ? (String(q.id).startsWith('REQ-') ? q.id : `REQ-${String(q.id).padStart(4, '0')}`) : 'REQ-0000'),
             rawId: q.id,
@@ -49,7 +69,8 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
             distance: distanceStr,
             budget: budgetStr,
             priority: q.priority || 'Normal',
-            status: q.status === 'active' ? 'Active' : (q.status === 'pending' ? 'Draft' : (q.status || 'Active')),
+            status: finalStatus,
+            hasAcceptedQuote: hasAcceptedQuote,
             quotesReceived: qCount,
             type: q.shipment_type || 'FTL',
             load: q.load_type || q.type_of_pallets || 'Pallets',

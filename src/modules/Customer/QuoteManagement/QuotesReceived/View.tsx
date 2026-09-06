@@ -13,6 +13,8 @@ import { useQuoteViewDetail } from './hooks/useQuoteViewDetail';
 import { ViewQuoteCompare } from './sections/ViewQuoteCompare';
 import { ViewQuotePricing } from './sections/ViewQuotePricing';
 import { ViewQuoteRouteCargo } from './sections/ViewQuoteRouteCargo';
+import { getQuoteStatusInfo } from './components/QuotesReceivedCells';
+import { getStatusBadgeClass } from '@/modules/Supplier/QuoteManagement/utils/statusStyles';
 
 export default function QuoteView() {
     const navigate = useNavigate();
@@ -77,6 +79,8 @@ export default function QuoteView() {
         { id: 'specs', label: 'Route & Cargo Specifications', icon: Package },
     ];
 
+    const statusInfo = getQuoteStatusInfo(quote);
+
     return (
         <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 font-sans antialiased">
             {/* Header Toolbar */}
@@ -86,8 +90,8 @@ export default function QuoteView() {
                         <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                             Quote {quote.quote_id || `QT-${cleanQuoteId.padStart(4, '0')}`}
                         </h1>
-                        <Badge variant={isPending ? 'warning' : 'secondary'} className="text-[11px] font-semibold rounded-[5px]">
-                            {quote.status || 'Pending Review'}
+                        <Badge variant="secondary" className={`text-[11px] font-semibold rounded-[5px] border ${getStatusBadgeClass(statusInfo.statusKey)}`}>
+                            {statusInfo.text}
                         </Badge>
                     </div>
                     <p className="text-[13px] font-medium text-[#ff4a1f] mt-0.5">
@@ -157,8 +161,8 @@ export default function QuoteView() {
                 {/* Left Sidebar Navigation */}
                 <div className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[5px] overflow-hidden shadow-2xs">
                     <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
-                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                            Specifications
+                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            Carrier Quotation Specifications & Comparison
                         </h3>
                     </div>
                     <div className="flex flex-col">
@@ -195,7 +199,7 @@ export default function QuoteView() {
                 </div>
 
                 {/* Right Content Area */}
-                <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[5px] shadow-2xs w-full p-5 md:p-6 space-y-6">
+                <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[5px] shadow-2xs w-full p-4 md:p-5 space-y-4">
                     {/* TAB 1: Suppliers Who Quoted / Compare Offers */}
                     {activeTab === 'suppliers' && (
                         <ViewQuoteCompare

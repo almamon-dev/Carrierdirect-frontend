@@ -48,10 +48,18 @@ export const useCustomerNegotiations = () => {
                     const dateFormatted = formatDisplayDate(n.created_at || n.request_date || n.date);
 
                     let statusLabel = n.status || 'Active';
-                    if (n.status_raw === 'accepted' || String(statusLabel).toLowerCase().includes('accept')) {
+                    const statusRawLower = String(n.status_raw || n.status || '').toLowerCase();
+
+                    // Check if validity has passed
+                    const expiryField = n.valid_until || n.expires_at || n.expiry_date || n.validity_date || n.quote_request?.expires_at;
+                    const isDateExpired = expiryField ? (!isNaN(new Date(expiryField).getTime()) && new Date(expiryField).getTime() < Date.now()) : false;
+
+                    if (statusRawLower === 'accepted' || String(statusLabel).toLowerCase().includes('accept')) {
                         statusLabel = 'Accepted';
-                    } else if (n.status_raw === 'rejected' || String(statusLabel).toLowerCase().includes('reject')) {
-                        statusLabel = 'Declined';
+                    } else if (statusRawLower === 'expired' || isDateExpired || String(statusLabel).toLowerCase().includes('expire')) {
+                        statusLabel = 'Expired';
+                    } else if (statusRawLower === 'rejected' || String(statusLabel).toLowerCase().includes('reject') || String(statusLabel).toLowerCase().includes('decline')) {
+                        statusLabel = 'Rejected';
                     } else if (n.revision_status === 'pending' || n.revised_amount) {
                         statusLabel = 'Counter Received';
                     }

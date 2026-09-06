@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import LogoBlack from '../../../../assets/Images/LogoBlack.png';
 import LogoWhite from '../../../../assets/Images/Logo.png';
@@ -14,6 +14,9 @@ import DemoCredentials from '../components/DemoCredentials';
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const emailParam = searchParams.get("email") || "";
+    const invitationToken = searchParams.get("invitation_token") || searchParams.get("token") || "";
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -24,6 +27,13 @@ export default function LoginPage() {
     // 2FA state
     const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
     const [pendingLoginRes, setPendingLoginRes] = useState<any>(null);
+
+    
+    useEffect(() => {
+        if (emailParam && !formData.email) {
+            setFormData(prev => ({ ...prev, email: emailParam }));
+        }
+    }, [emailParam]);
 
     // ── Guard: redirect already-authenticated users ───────────────────────────
     useEffect(() => {
@@ -36,7 +46,7 @@ export default function LoginPage() {
             const role = user?.user_type;
             if (role === 'admin') {
                 window.location.href = '/admin/dashboard';
-            } else if (role === 'supplier') {
+            } else if (role === 'supplier' || role === 'supplier_employee') {
                 const isProfileCompleted = Boolean(
                     user?.is_profile_completed ||
                     user?.is_profile_complete ||
@@ -76,7 +86,7 @@ export default function LoginPage() {
             return;
         }
 
-        if (userType === 'supplier') {
+        if (userType === 'supplier' || userType === 'supplier_employee') {
             let userObj = res.user;
             let isProfileCompleted = Boolean(
                 userObj?.is_profile_completed ||
@@ -85,7 +95,7 @@ export default function LoginPage() {
             );
 
             // Live verify with backend in case user object in login response is missing location fields
-            if (!isProfileCompleted) {
+            if (!isProfileCompleted && userType === 'supplier') {
                 try {
                     const profRes = await apiClient.get('/supplier/profile');
                     const profData = profRes.data?.data || profRes.data;
@@ -215,6 +225,22 @@ export default function LoginPage() {
                             Sign in to your account to continue
                         </p>
                     </div>
+
+                    
+                    {/* Invitation Welcome Banner */}
+                    {invitationToken && (
+                        <div className="mb-4 p-3.5 bg-orange-50 dark:bg-[#ff4a1f]/10 border border-orange-200 dark:border-[#ff4a1f]/30 rounded-lg flex items-start gap-3 text-left">
+                            <div className="w-8 h-8 rounded-full bg-[#ff4a1f]/15 flex items-center justify-center shrink-0 text-[#ff4a1f] font-bold text-sm">
+                                ✉️
+                            </div>
+                            <div>
+                                <div className="text-xs font-bold text-slate-800 dark:text-slate-100">Team Member Invitation</div>
+                                <div className="text-[11.5px] text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
+                                    Sign in with your temporary password below to accept the invitation and activate your account.
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Error Alert */}
                     {errors.general && (

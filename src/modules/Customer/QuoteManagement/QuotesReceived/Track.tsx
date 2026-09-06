@@ -8,6 +8,7 @@ import apiClient from '@/lib/axios';
 import { ENDPOINTS } from '@/config/api';
 import { decryptId } from '@/lib/encryption';
 import { getTrackBidsColumns, renderTrackBidsActions } from './components/TrackBidsColumns';
+import { QuoteLifecycleTracker } from './components/QuoteLifecycleTracker';
 
 export default function TrackBids() {
     const navigate = useNavigate();
@@ -101,19 +102,20 @@ export default function TrackBids() {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={fetchBids}
                         disabled={isLoading}
-                        className="h-[36px] px-3 text-xs font-semibold bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                        className="h-[30px] px-2.5 text-xs font-semibold bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer shadow-2xs"
                     >
-                        <RefreshCw size={13} className={isLoading ? 'animate-spin text-[#ff4a1f] mr-1.5' : 'text-slate-500 mr-1.5'} />
+                        <RefreshCw size={12} className={isLoading ? 'animate-spin text-[#ff4a1f] mr-1' : 'text-slate-500 mr-1'} />
                         <span>{isLoading ? 'Refreshing...' : 'Refresh'}</span>
                     </Button>
                     <div className="w-[185px]">
                         <Select
+                            size="sm"
                             value={filterMode}
                             onChange={(val) => {
                                 const v = typeof val === 'object' && val?.target ? val.target.value : val;
@@ -145,15 +147,23 @@ export default function TrackBids() {
                     <p className="text-xs text-slate-400 max-w-sm mx-auto">Verified freight suppliers have been notified and will submit competitive quotes shortly.</p>
                 </div>
             ) : (
-                <DataTable
-                    data={sortedQuotes}
-                    columns={columns}
-                    actions={(row) => renderTrackBidsActions(row, navigate)}
-                    actionsColumnClassName="w-[170px] min-w-[170px] text-right pr-3.5"
-                    searchPlaceholder="Filter quotes by supplier or vehicle..."
-                    compact={true}
-                    tableClassName="min-w-[1050px]"
-                />
+                <div className="space-y-4">
+                    <QuoteLifecycleTracker
+                        quote={sortedQuotes.find(q => String(q.status_raw || q.status).toLowerCase().includes('accept') || String(q.status_raw || q.status).toLowerCase().includes('won')) || sortedQuotes[0]}
+                        requestDetail={quoteRequestDetails}
+                        allBids={sortedQuotes}
+                    />
+
+                    <DataTable
+                        data={sortedQuotes}
+                        columns={columns}
+                        actions={(row) => renderTrackBidsActions(row, navigate)}
+                        actionsColumnClassName="w-[170px] min-w-[170px] text-right pr-3.5"
+                        searchPlaceholder="Filter quotes by supplier or vehicle..."
+                        compact={true}
+                        tableClassName="min-w-[1050px]"
+                    />
+                </div>
             )}
         </div>
     );

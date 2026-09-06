@@ -18,7 +18,7 @@ interface NegotiationFilterTabsProps {
 export function isNegotiationActive(item: CustomerNegotiationItem): boolean {
     const s = (item.statusRaw || item.status || '').toLowerCase();
     const rev = (item.revisionStatus || '').toLowerCase();
-    if (s === 'accepted' || s === 'rejected' || s === 'expired' || s === 'closed') return false;
+    if (s === 'accepted' || s === 'rejected' || s === 'expired' || s === 'closed' || s === 'declined' || s === 'lost') return false;
     return true;
 }
 
@@ -37,7 +37,7 @@ export function isNegotiationAccepted(item: CustomerNegotiationItem): boolean {
 export function isNegotiationHistory(item: CustomerNegotiationItem): boolean {
     const s = (item.statusRaw || item.status || '').toLowerCase();
     const rev = (item.revisionStatus || '').toLowerCase();
-    return s === 'rejected' || s === 'expired' || s === 'closed' || s === 'lost';
+    return s === 'rejected' || s === 'expired' || s === 'closed' || s === 'lost' || s === 'declined';
 }
 
 export const NegotiationFilterTabs: React.FC<NegotiationFilterTabsProps> = ({

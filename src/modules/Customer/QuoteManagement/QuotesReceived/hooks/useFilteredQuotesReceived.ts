@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { getQuoteStatusInfo } from '../components/QuotesReceivedCells';
 
 interface UseFilteredQuotesReceivedParams {
     quotes: any[];
@@ -21,20 +22,20 @@ export function useFilteredQuotesReceived({
 }: UseFilteredQuotesReceivedParams) {
     return useMemo(() => {
         return quotes.filter((row) => {
-            const st = (row.status_raw || row.status || 'pending').toLowerCase();
+            const { statusKey } = getQuoteStatusInfo(row);
 
             if (activeFilterTab === 'pending') {
-                if (st !== 'pending') return false;
+                if (statusKey !== 'pending') return false;
             } else if (activeFilterTab === 'negotiating') {
-                if (st !== 'negotiating' && row.revision_status !== 'pending') return false;
+                if (statusKey !== 'negotiating') return false;
             } else if (activeFilterTab === 'accepted') {
-                if (st !== 'accepted' && st !== 'completed') return false;
+                if (statusKey !== 'accepted') return false;
             } else if (activeFilterTab === 'rejected') {
-                if (st !== 'rejected' && st !== 'expired' && st !== 'cancelled') return false;
+                if (statusKey !== 'rejected' && statusKey !== 'expired' && statusKey !== 'cancelled') return false;
             }
 
             if (statusFilter !== 'all') {
-                if (!st.includes(statusFilter.toLowerCase())) return false;
+                if (!statusKey.includes(statusFilter.toLowerCase())) return false;
             }
 
             if (vehicleFilter !== 'all') {

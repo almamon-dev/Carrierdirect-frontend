@@ -110,7 +110,7 @@ export const TeamMemberRowActions: React.FC<TeamMemberRowActionsProps> = ({
                             onClick={() => {
                                 handleClose();
                                 const memberId = row.rawId || row.id;
-                                navigate(`/supplier/team/${memberId}`);
+                                navigate(`/supplier/team/member/${memberId}`);
                             }}
                         >
                             <Eye size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />

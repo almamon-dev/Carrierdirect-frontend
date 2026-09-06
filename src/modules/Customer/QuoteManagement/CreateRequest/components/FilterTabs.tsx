@@ -21,9 +21,9 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
     const counts = useMemo(() => ({
         all: requestData.length,
         active: requestData.filter(r => r.status === 'Active' || r.status === 'Bidding Active' || r.status === 'active').length,
-        waiting: requestData.filter(r => r.quotesReceived === 0 || r.status === 'Draft' || r.status === 'pending').length,
-        review: requestData.filter(r => r.quotesReceived > 0 || r.status === 'Negotiating').length,
-        accepted: requestData.filter(r => r.status === 'Accepted' || r.status === 'completed').length,
+        waiting: requestData.filter(r => (r.quotesReceived === 0 || r.status === 'Draft' || r.status === 'pending') && r.status !== 'Accepted').length,
+        review: requestData.filter(r => r.quotesReceived > 0 && r.status !== 'Accepted').length,
+        accepted: requestData.filter(r => r.status === 'Accepted' || r.status === 'completed' || r.hasAcceptedQuote).length,
     }), [requestData]);
 
     const tabs: { id: FilterTabId; label: string; count: number }[] = [

@@ -102,9 +102,9 @@ export const getQuotesReceivedColumns = (navigate: (path: string) => void): Colu
         className: 'w-[110px] text-center',
         render: (row) => {
             const transit = row.estimated_delivery || row.estimated_time || row.transit_time || '48h';
-            return <div className="flex items-center justify-center min-h-[26px]"><span className="text-xs text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">{transit}</span></div>;
+            return <div className="flex items-center min-h-[26px]"><span className="text-xs text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">{transit}</span></div>;
         },
-        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-3.5 w-12 rounded-[3px]" /></div>
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-3.5 w-12 rounded-[3px]" /></div>
     },
     {
         id: 'amount',
@@ -120,7 +120,7 @@ export const getQuotesReceivedColumns = (navigate: (path: string) => void): Colu
         sortable: true,
         className: 'w-[105px] text-center',
         render: (row) => <QuotesReceivedStatusCell row={row} />,
-        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-5 w-18 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/50" /></div>
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-5 w-18 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/50" /></div>
     },
     {
         id: 'date',
@@ -128,12 +128,12 @@ export const getQuotesReceivedColumns = (navigate: (path: string) => void): Colu
         sortable: true,
         className: 'w-[105px] text-center',
         render: (row) => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center min-h-[26px]">
                 <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium">
                     {formatDisplayDate(row.created_at || row.date || row.received_at || row.quote_request?.created_at)}
                 </span>
             </div>
         ),
-        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-3.5 w-16 rounded-[3px]" /></div>
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-3.5 w-16 rounded-[3px]" /></div>
     }
 ];

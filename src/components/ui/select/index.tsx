@@ -17,6 +17,8 @@ export interface SelectProps {
     options?: SelectOption[];
     placeholder?: string;
     className?: string;
+    triggerClassName?: string;
+    size?: "sm" | "md" | "lg";
     name?: string;
     multiple?: boolean;
     disabled?: boolean;
@@ -34,6 +36,8 @@ export default function Select({
     options = [],
     placeholder = "Select...",
     className = "",
+    triggerClassName = "",
+    size = "md",
     name = "",
     multiple = false,
     disabled = false,
@@ -210,10 +214,16 @@ export default function Select({
                 top = rect.top - dropdownHeight - 4;
             }
 
+            const width = size === "sm" ? Math.max(rect.width, 100) : Math.max(140, rect.width);
+            let left = rect.left;
+            if (left + width > window.innerWidth - 12) {
+                left = Math.max(10, rect.right - width);
+            }
+
             setDropdownPos({
                 top,
-                left: rect.left,
-                width: Math.max(180, rect.width)
+                left,
+                width
             });
             setSearchQuery('');
             setIsOpen(true);
@@ -263,23 +273,35 @@ export default function Select({
                 onClick={handleToggle}
                 disabled={disabled}
                 className={cn(
-                    "relative w-full h-[36px] cursor-pointer rounded-sm border bg-white dark:bg-[#1e2329] py-1 pr-8 text-left text-[13px] font-medium text-[#202223] dark:text-white outline-none focus:outline-none transition-all flex items-center shadow-none",
+                    "relative w-full cursor-pointer rounded-[4px] border bg-white dark:bg-[#1e2329] text-left font-medium text-[#202223] dark:text-white outline-none focus:outline-none transition-all flex items-center shadow-none",
+                    size === "sm" 
+                        ? "h-[30px] text-xs py-0.5 pr-7" 
+                        : size === "lg" 
+                            ? "h-[42px] text-sm py-2 pr-9" 
+                            : "h-[36px] text-[13px] py-1 pr-8",
                     error 
                         ? "border-[#d82c0d] focus:border-[#d82c0d]" 
                         : "border-slate-300 dark:border-[#384150] focus:border-slate-400 dark:focus:border-slate-500",
-                    Icon ? "pl-9" : "pl-3"
+                    Icon ? (size === "sm" ? "pl-8" : "pl-9") : (size === "sm" ? "pl-2.5" : "pl-3"),
+                    triggerClassName
                 )}
             >
                 {Icon && (
-                    <span className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center text-[#8c9196] dark:text-slate-400">
-                        <Icon size={14} aria-hidden="true" />
+                    <span className={cn(
+                        "pointer-events-none absolute inset-y-0 left-0 flex items-center text-slate-400 dark:text-slate-400",
+                        size === "sm" ? "pl-2.5" : "pl-3"
+                    )}>
+                        <Icon size={size === "sm" ? 13 : 14} aria-hidden="true" />
                     </span>
                 )}
-                <span className={cn("block", multiple ? "break-words whitespace-normal pb-0.5" : "truncate")}>
+                <span className={cn("block truncate", multiple ? "break-words whitespace-normal pb-0.5" : "truncate")}>
                     {getSelectedDisplay()}
                 </span>
-                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 dark:text-slate-500">
-                    <ChevronDown size={14} aria-hidden="true" className={cn("transition-transform duration-150", isOpen && "rotate-180")} />
+                <span className={cn(
+                    "pointer-events-none absolute inset-y-0 right-0 flex items-center text-slate-400 dark:text-slate-500",
+                    size === "sm" ? "pr-2" : "pr-2.5"
+                )}>
+                    <ChevronDown size={size === "sm" ? 13 : 14} aria-hidden="true" className={cn("transition-transform duration-150", isOpen && "rotate-180")} />
                 </span>
             </button>
 
@@ -337,26 +359,27 @@ export default function Select({
                                                 key={idx}
                                                 onClick={() => handleSelectOption(option)}
                                                 className={cn(
-                                                    "cursor-pointer select-none py-2 px-3 border-b border-slate-100/50 dark:border-slate-800/50 last:border-0 flex items-center justify-between transition-colors",
+                                                    "cursor-pointer select-none border-b border-slate-100/50 dark:border-slate-800/50 last:border-0 flex items-center justify-between transition-colors",
+                                                    size === "sm" ? "py-1.5 px-2.5 text-xs" : "py-2 px-3 text-[12.5px]",
                                                     active 
-                                                        ? "bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#FF4A1F] font-bold" 
-                                                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900"
+                                                        ? "bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#FF4A1F] font-medium" 
+                                                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 font-normal"
                                                 )}
                                             >
-                                                <div className="flex items-center gap-2 truncate">
+                                                <div className="flex items-center gap-1.5 truncate">
                                                     {option.image && (
                                                         <img
                                                             src={option.image.startsWith('http') ? option.image : `/storage/${option.image}`}
-                                                            className="w-4 h-4 object-contain shrink-0"
+                                                            className="w-3.5 h-3.5 object-contain shrink-0"
                                                             alt=""
                                                         />
                                                     )}
-                                                    <span className="truncate text-[12.5px]">
+                                                    <span className={cn("truncate", size === "sm" ? "text-xs" : "text-[12.5px]")}>
                                                         {option.name || option.label}
                                                     </span>
                                                 </div>
                                                 {active && (
-                                                    <Check size={14} className="text-[#FF4A1F] shrink-0 ml-2" />
+                                                    <Check size={size === "sm" ? 12 : 14} className="text-[#FF4A1F] shrink-0 ml-1.5" />
                                                 )}
                                             </div>
                                         );

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Trash2, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { Trash2, RotateCcw, MoreVertical, Copy, Check } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import Button from '@/components/ui/button';
+import Select from '@/components/ui/select';
 import EmptyState from '@/components/tables/empty-state';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import { useToastStore } from '@/stores/useToastStore';
@@ -18,6 +20,138 @@ interface TrashedMember {
     deleted_at: string;
     deleted_at_human: string;
 }
+
+interface TrashBinRowActionsProps {
+    row: TrashedMember;
+    onRestore: (row: TrashedMember) => void;
+    onPermanentDelete: (row: TrashedMember) => void;
+}
+
+const TrashBinRowActions: React.FC<TrashBinRowActionsProps> = ({ row, onRestore, onPermanentDelete }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        if (isOpen) {
+            setIsOpen(false);
+        } else {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setDropdownPos({
+                top: rect.bottom + 4,
+                left: Math.max(10, rect.right - 180)
+            });
+            setIsOpen(true);
+        }
+    };
+
+    const handleClose = () => setIsOpen(false);
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => {
+            setCopied(false);
+            handleClose();
+        }, 1200);
+    };
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleMouseDown = (e: MouseEvent) => {
+            if (
+                dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+                triggerRef.current && !triggerRef.current.contains(e.target as Node)
+            ) {
+                handleClose();
+            }
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') handleClose();
+        };
+
+        const handleScroll = () => handleClose();
+
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('scroll', handleScroll, true);
+
+        return () => {
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('scroll', handleScroll, true);
+        };
+    }, [isOpen]);
+
+    return (
+        <div className="relative flex items-center justify-end w-full">
+            <Button
+                ref={triggerRef}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 rounded-[2px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto flex items-center justify-center"
+                onClick={handleToggle}
+                title="Actions"
+            >
+                <MoreVertical size={15} />
+            </Button>
+
+            {isOpen && createPortal(
+                <div
+                    ref={dropdownRef}
+                    className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
+                    style={{ top: dropdownPos.top, left: dropdownPos.left }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        type="button"
+                        className="w-full text-left px-3.5 py-2 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                        onClick={() => {
+                            handleClose();
+                            onRestore(row);
+                        }}
+                    >
+                        <RotateCcw size={14} className="text-emerald-500 shrink-0" />
+                        <span>Restore Member</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                        onClick={() => handleCopy(row.employee_id || row.email)}
+                    >
+                        {copied ? (
+                            <Check size={14} className="text-emerald-500 shrink-0" />
+                        ) : (
+                            <Copy size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
+                        )}
+                        <span>{copied ? 'Copied ID!' : 'Copy Employee ID'}</span>
+                    </button>
+
+                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
+
+                    <button
+                        type="button"
+                        className="w-full text-left px-3.5 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                        onClick={() => {
+                            handleClose();
+                            onPermanentDelete(row);
+                        }}
+                    >
+                        <Trash2 size={14} className="text-red-500 shrink-0" />
+                        <span>Delete Permanently</span>
+                    </button>
+                </div>,
+                document.body
+            )}
+        </div>
+    );
+};
 
 interface TrashBinTabProps {
     headerTabs?: React.ReactNode;
@@ -130,42 +264,77 @@ export default function TrashBinTab({ headerTabs }: TrashBinTabProps = {}) {
         }
     ];
 
-    const renderActions = (row: TrashedMember) => (
-        <div className="flex items-center justify-end gap-2">
-            <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs px-2.5 font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 cursor-pointer flex items-center gap-1 rounded-[3px]"
-                onClick={() => handleRestore(row)}
-                title="Restore to Active Team"
-            >
-                <RotateCcw size={12} />
-                <span>Restore</span>
-            </Button>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer rounded-[3px]"
-                onClick={() => setPermanentlyDeletingMember(row)}
-                title="Permanently Delete"
-            >
-                <Trash2 size={14} />
-            </Button>
+    const [selectedRoleFilter, setSelectedRoleFilter] = useState('all');
+
+    const filteredTrashedMembers = useMemo(() => {
+        if (selectedRoleFilter === 'all') return trashedMembers;
+        return trashedMembers.filter(m => (m.role_name || '').toLowerCase() === selectedRoleFilter.toLowerCase());
+    }, [trashedMembers, selectedRoleFilter]);
+
+    const filterContent = (
+        <div className="w-full mb-3.5 font-sans">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 block mb-1">
+                        Filter by Previous Role
+                    </label>
+                    <Select
+                        size="sm"
+                        value={selectedRoleFilter}
+                        onChange={(e: any) => {
+                            const val = e?.target?.value !== undefined ? e.target.value : (e?.value !== undefined ? e.value : e);
+                            setSelectedRoleFilter(val);
+                        }}
+                        showSearch={false}
+                        options={[
+                            { id: 'all', name: 'All Roles' },
+                            { id: 'Admin', name: 'Admin' },
+                            { id: 'Driver', name: 'Driver' },
+                            { id: 'Operations Manager', name: 'Operations Manager' },
+                            { id: 'Customer Support', name: 'Customer Support' },
+                            { id: 'Finance & Billing', name: 'Finance & Billing' },
+                        ]}
+                    />
+                </div>
+                {selectedRoleFilter !== 'all' && (
+                    <div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedRoleFilter('all')}
+                            className="h-[30px] text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <RotateCcw size={12} />
+                            Reset Filter
+                        </Button>
+                    </div>
+                )}
+            </div>
         </div>
+    );
+
+    const renderActions = (row: TrashedMember) => (
+        <TrashBinRowActions
+            row={row}
+            onRestore={handleRestore}
+            onPermanentDelete={(m) => setPermanentlyDeletingMember(m)}
+        />
     );
 
     return (
         <div className="space-y-4 font-sans">
             <DataTable
                 columns={columns}
-                data={trashedMembers}
+                data={filteredTrashedMembers}
                 compact={true}
                 searchPlaceholder="Search deleted staff by name, email, ID..."
                 hideViewToggle={false}
                 tableLayout="fixed"
                 tableClassName="min-w-[960px]"
                 actions={renderActions}
+                actionsColumnClassName="w-[80px] min-w-[80px] text-right pr-3"
                 headerTabs={headerTabs}
+                filterContent={filterContent}
                 isLoading={isLoading}
                 emptyState={
                     <EmptyState

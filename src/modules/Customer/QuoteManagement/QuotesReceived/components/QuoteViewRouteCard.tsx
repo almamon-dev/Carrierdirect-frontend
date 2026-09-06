@@ -16,7 +16,7 @@ export const QuoteViewRouteCard: React.FC<QuoteViewRouteCardProps> = ({ quote, r
         <div className="space-y-6">
             <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[5px] p-5 shadow-2xs">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                         Route & Schedule
                     </span>
                     <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -57,8 +57,8 @@ export const QuoteViewRouteCard: React.FC<QuoteViewRouteCardProps> = ({ quote, r
             </div>
 
             <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[5px] p-5 shadow-2xs">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
-                    Cargo & Vehicle Requirements
+                <h2 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-4">
+                    Shipment & Freight Details
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                     <div className="p-3 bg-slate-50 dark:bg-[#161a20] rounded-[5px] border border-slate-100 dark:border-slate-800">

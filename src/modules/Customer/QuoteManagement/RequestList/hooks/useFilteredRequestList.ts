@@ -25,11 +25,13 @@ export function useFilteredRequestList({
             if (activeFilterTab === 'Active') {
                 if (!(r.status === 'Active' || r.status === 'Bidding Active' || r.status === 'active')) return false;
             } else if (activeFilterTab === 'Waiting') {
-                if (!((r.quotesReceived || r.bidsCount || r.bids_count || 0) === 0 || r.status === 'Draft' || r.status === 'pending')) return false;
+                if (!(((r.quotesReceived || r.bidsCount || r.bids_count || 0) === 0 || r.status === 'Draft' || r.status === 'pending') && r.status !== 'Accepted')) return false;
             } else if (activeFilterTab === 'Review') {
-                if (!((r.quotesReceived || r.bidsCount || r.bids_count || 0) > 0 || r.status === 'Negotiating')) return false;
+                if (!(((r.quotesReceived || r.bidsCount || r.bids_count || 0) > 0 || r.status === 'Negotiating') && r.status !== 'Accepted')) return false;
+            } else if (activeFilterTab === 'Accepted') {
+                if (!(r.status === 'Accepted' || r.status === 'Completed' || r.status === 'Awarded' || r.status === 'completed' || r.hasAcceptedQuote)) return false;
             } else if (activeFilterTab === 'Completed') {
-                if (!(r.status === 'Completed' || r.status === 'Awarded' || r.status === 'completed')) return false;
+                if (!(r.status === 'Completed' || r.status === 'Awarded' || r.status === 'completed' || r.status === 'Accepted' || r.hasAcceptedQuote)) return false;
             } else if (activeFilterTab === 'Expired') {
                 if (!(r.status === 'Expired' || r.status === 'Cancelled' || r.status === 'rejected')) return false;
             }

@@ -47,11 +47,11 @@ export const getTrackBidsColumns = (
                         <img
                             src={avatar}
                             alt={name}
-                            className="w-7 h-7 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs"
+                            className="w-7 h-7 min-w-[28px] min-h-[28px] aspect-square rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs"
                             onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                         />
                     ) : (
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#ff4a1f] to-orange-400 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-2xs">
+                        <div className="w-7 h-7 min-w-[28px] min-h-[28px] aspect-square rounded-full bg-gradient-to-br from-[#ff4a1f] to-orange-400 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-2xs">
                             {name.charAt(0).toUpperCase()}
                         </div>
                     )}
@@ -137,7 +137,7 @@ export const getTrackBidsColumns = (
             const transit = row.estimated_delivery || row.transit_time || row.estimated_time || row.transit_days || '48h';
             const displayTransit = String(transit).includes('h') || String(transit).includes('day') || String(transit).includes('d') ? transit : `${transit}h`;
             return (
-                <div className="flex items-center justify-center gap-1.5 min-h-[26px]">
+                <div className="flex items-center gap-1.5 min-h-[26px]">
                     <Clock size={12} className="text-slate-400 shrink-0" />
                     <span className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-300 font-semibold">{displayTransit}</span>
                 </div>
@@ -150,7 +150,7 @@ export const getTrackBidsColumns = (
         sortable: true,
         className: 'w-[105px] min-w-[105px] text-center',
         render: (row) => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center min-h-[26px]">
                 <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium">
                     {formatDisplayDate(row.created_at || row.date || row.received_at || row.submitted_at || row.quote_request?.created_at)}
                 </span>
@@ -202,7 +202,7 @@ export const getTrackBidsColumns = (
             }
 
             return (
-                <div className="flex items-center justify-center min-h-[26px]">
+                <div className="flex items-center min-h-[26px]">
                     <Badge variant={variant} showDot className="text-[10.5px] font-bold">
                         {displayStatus}
                     </Badge>

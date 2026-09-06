@@ -22,23 +22,26 @@ export function useFilteredProcessingRequests({
     return useMemo(() => {
         return requests.filter((r) => {
             if (activeFilterTab === 'has_bids') {
-                if (r.bidsCount === 0) return false;
+                if (Number(r.bidsCount || 0) === 0) return false;
             } else if (activeFilterTab === 'awaiting') {
-                if (r.bidsCount > 0) return false;
+                if (Number(r.bidsCount || 0) > 0) return false;
             } else if (activeFilterTab === 'high_priority') {
-                if (String(r.priority).toLowerCase() !== 'high') return false;
+                if (String(r.priority || '').toLowerCase() !== 'high') return false;
             }
 
             if (statusFilter !== 'all') {
-                if (!r.rawStatus.includes(statusFilter.toLowerCase())) return false;
+                const rawStatus = String(r.rawStatus || r.status || '').toLowerCase();
+                if (!rawStatus.includes(statusFilter.toLowerCase())) return false;
             }
 
             if (vehicleFilter !== 'all') {
-                if (!r.vehicleType.toLowerCase().includes(vehicleFilter.toLowerCase())) return false;
+                const vehicle = String(r.vehicleType || r.vehicle || '').toLowerCase();
+                if (!vehicle.includes(vehicleFilter.toLowerCase())) return false;
             }
 
             if (priorityFilter !== 'all') {
-                if (String(r.priority).toLowerCase() !== priorityFilter.toLowerCase()) return false;
+                const prio = String(r.priority || '').toLowerCase();
+                if (prio !== priorityFilter.toLowerCase()) return false;
             }
 
             if (startDate || endDate) {
@@ -64,3 +67,4 @@ export function useFilteredProcessingRequests({
         });
     }, [requests, activeFilterTab, statusFilter, vehicleFilter, priorityFilter, startDate, endDate]);
 }
+

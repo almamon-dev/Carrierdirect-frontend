@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { getQuoteStatusInfo } from './QuotesReceivedCells';
 
 interface QuotesReceivedFilterTabsProps {
     quotes: any[];
@@ -18,11 +19,11 @@ export const QuotesReceivedFilterTabs: React.FC<QuotesReceivedFilterTabsProps> =
         let rejectedCount = 0;
 
         quotes.forEach((q) => {
-            const s = (q.status_raw || q.status || 'pending').toLowerCase();
-            if (s === 'pending') pendingCount++;
-            else if (s === 'negotiating' || q.revision_status === 'pending') negotiatingCount++;
-            else if (s === 'accepted' || s === 'completed') acceptedCount++;
-            else if (s === 'rejected' || s === 'expired' || s === 'cancelled') rejectedCount++;
+            const { statusKey } = getQuoteStatusInfo(q);
+            if (statusKey === 'pending') pendingCount++;
+            else if (statusKey === 'negotiating') negotiatingCount++;
+            else if (statusKey === 'accepted') acceptedCount++;
+            else if (statusKey === 'rejected' || statusKey === 'expired' || statusKey === 'cancelled') rejectedCount++;
         });
 
         return {

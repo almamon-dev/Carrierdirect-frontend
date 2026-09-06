@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Clock, Sparkles } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
 import apiClient from '@/lib/axios';
@@ -44,60 +43,63 @@ export default function ProcessingTrack() {
     }, [id]);
 
     const order = buildOrderDetails(id, foundOrder, isPodAccepted);
-    const timeline = buildOrderTimeline(isPodAccepted);
+    const timeline = buildOrderTimeline(isPodAccepted, order);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto flex flex-col min-h-screen font-sans bg-[#f8f9fa] pb-20">
-            <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 border-b border-slate-200 pb-4">
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" size="icon" className="h-8.5 w-8.5 text-slate-600 rounded-lg hover:bg-slate-100 border-slate-200 cursor-pointer shrink-0" onClick={() => navigate(-1)}>
-                        <ArrowLeft size={16} />
-                    </Button>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-lg font-bold text-slate-900 tracking-tight">Track Order {order.id}</h1>
-                            <Badge className="px-2 py-0.5 text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                {order.status}
-                            </Badge>
-                        </div>
-                        <p className="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-2">
-                            <span>Route: <strong className="text-slate-800">{order.from}</strong> ➔ <strong className="text-slate-800">{order.to}</strong></span>
-                        </p>
+        <div className="p-3.5 md:p-5 w-full mx-auto flex flex-col min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] pb-16 space-y-4">
+            {/* Minimal Header Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none">
+                            Track Shipment {order.id}
+                        </h1>
+                        <Badge className={`px-1.5 py-0.5 text-[10px] font-bold rounded-[3px] ${
+                            isPodAccepted
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
+                        }`}>
+                            {order.status}
+                        </Badge>
                     </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1 leading-none">
+                        Route: <span className="text-slate-700 dark:text-slate-300 font-semibold">{order.from}</span> ➔ <span className="text-slate-700 dark:text-slate-300 font-semibold">{order.to}</span>
+                    </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <Badge className="bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold px-2.5 py-1 flex items-center gap-1.5">
-                        <Clock size={13} className="text-[#ff4a1f]" />
-                        <span>ETA: <strong className="text-slate-900">{order.estArrival}</strong></span>
-                    </Badge>
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        ETA: <strong className="text-slate-900 dark:text-slate-100 font-semibold">{order.estArrival}</strong>
+                    </span>
 
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setIsPodAccepted(!isPodAccepted)}
-                        className="h-8 text-xs font-bold text-[#ff4a1f] border-orange-200 bg-orange-50 hover:bg-orange-100 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        className="h-7 px-2.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-[4px] cursor-pointer"
                     >
-                        <Sparkles size={13} /> {isPodAccepted ? 'Reset Demo POD' : '⚡ Simulate POD Accept'}
+                        <span>{isPodAccepted ? 'Reset POD' : 'Simulate POD Accept'}</span>
                     </Button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-start">
-                <div className="lg:col-span-8 flex flex-col gap-5">
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                <div className="lg:col-span-8 flex flex-col gap-4">
                     <MapSection order={order} timeline={timeline} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <VehicleDetails vehicle={order.vehicle} supplier={order.supplier} />
                         <AmountBreakdown pricing={order.pricing} />
                     </div>
                 </div>
 
-                <div className="lg:col-span-4 flex flex-col gap-5 h-full">
+                <div className="lg:col-span-4 flex flex-col gap-4">
                     <SupplierProfile supplier={order.supplier} />
-                    <PODAction isPodAccepted={isPodAccepted} setIsPodAccepted={setIsPodAccepted} />
+                    <PODAction isPodAccepted={isPodAccepted} setIsPodAccepted={setIsPodAccepted} order={order} />
                     <TimelineSection timeline={timeline} />
                 </div>
             </div>
         </div>
     );
 }
+

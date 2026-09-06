@@ -2,6 +2,13 @@ export const buildOrderDetails = (id: string | undefined, foundOrder: any, isPod
     const fromCity = foundOrder?.pickup_city || foundOrder?.route?.from || foundOrder?.from || 'Dhaka';
     const toCity = foundOrder?.delivery_city || foundOrder?.route?.to || foundOrder?.to || 'Chittagong';
 
+    const totalAmount = Number(foundOrder?.total_amount_raw ?? foundOrder?.amount_raw ?? (foundOrder?.total_amount ? parseFloat(String(foundOrder.total_amount).replace(/[^0-9.]/g, '')) : (foundOrder?.amount ? parseFloat(String(foundOrder.amount).replace(/[^0-9.]/g, '')) : 1445))) || 1445;
+    const baseRate = Math.round(totalAmount * 0.85);
+    const loadingFee = Math.round(totalAmount * 0.10);
+    const insuranceFee = Math.round(totalAmount - baseRate - loadingFee);
+    const advancePaid = Math.round(totalAmount * 0.30);
+    const balanceDue = totalAmount - advancePaid;
+
     return {
         id: id || foundOrder?.id || 'ORD-5591',
         status: isPodAccepted ? 'Payment Released (POD Accepted)' : (foundOrder?.status || 'In Transit (Pending POD)'),
@@ -24,32 +31,80 @@ export const buildOrderDetails = (id: string | undefined, foundOrder: any, isPod
             completedOrders: 1540
         },
         pricing: {
-            base: 1250,
-            loading: 150,
-            insurance: 45,
-            total: foundOrder?.total_amount || (foundOrder?.amount ? (typeof foundOrder.amount === 'number' ? foundOrder.amount : parseInt(String(foundOrder.amount).replace(/[^0-9]/g, '')) || 1445) : 1445),
-            advancePaid: 445,
-            due: 1000
+            base: baseRate,
+            loading: loadingFee,
+            insurance: insuranceFee,
+            total: totalAmount,
+            advancePaid: advancePaid,
+            due: balanceDue
         }
     };
 };
 
-export const buildOrderTimeline = (isPodAccepted: boolean) => [
-    { status: 'Order Confirmed', time: 'Jul 24, 09:00 AM', completed: true, active: false },
-    { status: 'Driver Assigned', time: 'Jul 24, 11:30 AM', completed: true, active: false },
-    { status: 'Goods Picked Up', time: 'Jul 25, 08:15 AM', completed: true, active: false },
-    { status: 'In Transit', time: 'Jul 26, 09:30 AM', completed: true, active: true, location: 'Highway N1, Comilla Checkpoint' },
-    { status: 'Destination Delivery', time: 'Jul 26, 11:45 AM', completed: isPodAccepted, active: false },
-    {
-        status: isPodAccepted ? 'POD Accepted' : 'Waiting for POD',
-        time: isPodAccepted ? 'Just now' : 'Action Required',
-        completed: isPodAccepted,
-        active: false
-    },
-    {
-        status: 'Order Completed',
-        time: isPodAccepted ? 'Finished' : 'Pending',
-        completed: isPodAccepted,
-        active: false
-    },
-];
+
+export const buildOrderTimeline = (isPodAccepted: boolean, order?: any) => {
+    const rawDate = order?.created_at || order?.pickup_date || order?.date || null;
+    const baseDate = rawDate ? new Date(rawDate) : new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    
+    const formatDate = (d: Date, hoursOffset = 0, minsOffset = 0) => {
+        const target = new Date(d.getTime() + (hoursOffset * 60 + minsOffset) * 60 * 1000);
+        return target.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    };
+
+    const fromCity = order?.from || 'Dhaka';
+    const toCity = order?.to || 'Chittagong';
+
+    return [
+        {
+            status: 'Order Confirmed',
+            time: formatDate(baseDate, 0, 0),
+            completed: true,
+            active: false
+        },
+        {
+            status: 'Driver Assigned',
+            time: formatDate(baseDate, 2, 30),
+            completed: true,
+            active: false
+        },
+        {
+            status: 'Goods Picked Up',
+            time: formatDate(baseDate, 18, 0),
+            completed: true,
+            active: false
+        },
+        {
+            status: 'In Transit',
+            time: formatDate(baseDate, 28, 15),
+            completed: true,
+            active: false,
+            location: `Highway N1 Checkpoint (${fromCity} ➔ ${toCity})`
+        },
+        {
+            status: 'Destination Delivery',
+            time: formatDate(baseDate, 38, 45),
+            completed: true,
+            active: false,
+            location: `${toCity} Unloading Bay`
+        },
+        {
+            status: isPodAccepted ? 'POD Accepted' : 'Review & Accept POD',
+            time: isPodAccepted ? formatDate(baseDate, 40, 0) : 'Action Required',
+            completed: isPodAccepted,
+            active: !isPodAccepted,
+            location: isPodAccepted ? 'Receipt Verified & Confirmed' : 'Carrier submitted signed POD receipt'
+        },
+        {
+            status: 'Order Completed',
+            time: isPodAccepted ? 'Escrow Released' : 'Pending Confirmation',
+            completed: isPodAccepted,
+            active: false
+        },
+    ];
+};

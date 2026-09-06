@@ -68,13 +68,13 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
         sortable: true,
         className: 'w-[90px] text-center',
         render: (row) => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center min-h-[26px]">
                 <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
                     row.priority === 'High' ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60' : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                 }`}>{row.priority}</Badge>
             </div>
         ),
-        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-5 w-14 rounded-[3px]" /></div>
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-5 w-14 rounded-[3px]" /></div>
     },
     {
         id: 'bids',
@@ -82,7 +82,7 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
         sortable: true,
         className: 'w-[110px] text-center',
         render: (row) => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center min-h-[26px]">
                 {row.bidsCount > 0 ? (
                     <button
                         type="button"
@@ -99,7 +99,7 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
                 )}
             </div>
         ),
-        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-5 w-16 rounded-[3px]" /></div>
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-5 w-16 rounded-[3px]" /></div>
     },
     {
         id: 'status',
@@ -107,13 +107,13 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
         sortable: true,
         className: 'w-[105px] text-center',
         render: (row) => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center min-h-[26px]">
                 <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${getStatusBadgeClass(row.rawStatus || 'active')}`}>
                     {row.status || 'Active'}
                 </Badge>
             </div>
         ),
-        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-5 w-18 rounded-[3px]" /></div>
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-5 w-18 rounded-[3px]" /></div>
     },
     {
         id: 'date',
@@ -121,12 +121,12 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
         sortable: true,
         className: 'w-[105px] text-center',
         render: (row) => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center min-h-[26px]">
                 <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium">
                     {formatDisplayDate(row.createdAt)}
                 </span>
             </div>
         ),
-        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-3.5 w-16 rounded-[3px]" /></div>
+        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-3.5 w-16 rounded-[3px]" /></div>
     }
 ];

@@ -13,6 +13,7 @@ export interface TeamMember {
     blockReason?: string;
     blockedAt?: string;
     lastLogin: string;
+    joinDate?: string;
     location: string;
     assignedVehicle: string;
     clearance: string;

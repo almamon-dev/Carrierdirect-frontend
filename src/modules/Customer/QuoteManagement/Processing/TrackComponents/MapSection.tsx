@@ -1,9 +1,9 @@
 import React from 'react';
-import { Truck, Check, MapPin } from 'lucide-react';
+import { Truck } from 'lucide-react';
 
 export default function MapSection({ order, timeline }: { order: any, timeline: any[] }) {
     return (
-        <div className="w-full h-[220px] bg-slate-50 border border-slate-200 rounded-md relative overflow-hidden flex items-center justify-center shadow-2xs font-sans">
+        <div className="w-full h-[200px] bg-slate-50 dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[5px] relative overflow-hidden flex items-center justify-center shadow-2xs font-sans">
             {/* Real Map Background */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <iframe
@@ -22,22 +22,22 @@ export default function MapSection({ order, timeline }: { order: any, timeline: 
                     <React.Fragment key={index}>
                         <div className="relative flex justify-center items-center">
                             {/* Label */}
-                            <div className={`flex flex-col items-center absolute ${index % 2 === 0 ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
-                                <div className={`px-2 py-0.5 rounded shadow-2xs border text-[10px] font-bold whitespace-nowrap ${step.active ? 'bg-[#ff4a1f] text-white border-orange-600' :
-                                        step.completed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-white/90 text-slate-500 border-slate-200'
+                            <div className={`flex flex-col items-center absolute ${index % 2 === 0 ? 'bottom-full mb-1.5' : 'top-full mt-1.5'}`}>
+                                <div className={`px-1.5 py-0.5 rounded shadow-2xs border text-[9.5px] font-bold whitespace-nowrap ${step.active ? 'bg-[#ff4a1f] text-white border-orange-600' :
+                                        step.completed ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-white/95 dark:bg-slate-900/90 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                                     }`}>
                                     {step.status}
                                 </div>
                             </div>
 
                             {/* Dot */}
-                            <div className={`w-3.5 h-3.5 rounded-full border-2 border-white shadow-xs z-10 ${step.completed ? 'bg-emerald-500' : step.active ? 'bg-[#ff4a1f] ring-4 ring-orange-100' : 'bg-slate-300'
+                            <div className={`w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 shadow-xs z-10 ${step.completed ? 'bg-emerald-500' : step.active ? 'bg-[#ff4a1f] ring-3 ring-orange-200 dark:ring-orange-950' : 'bg-slate-300 dark:bg-slate-600'
                                 }`}></div>
 
                             {/* Truck Icon on Active step */}
                             {step.active && (
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-1 rounded-full shadow-md border-2 border-[#ff4a1f] text-[#ff4a1f] z-20">
-                                    <Truck size={14} />
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-900 p-0.5 rounded-full shadow-md border border-[#ff4a1f] text-[#ff4a1f] z-20">
+                                    <Truck size={12} />
                                 </div>
                             )}
                         </div>
@@ -48,7 +48,7 @@ export default function MapSection({ order, timeline }: { order: any, timeline: 
                                     ? 'border-solid border-emerald-500'
                                     : step.completed && (timeline[index + 1].active || !timeline[index + 1].completed)
                                         ? 'border-dashed border-orange-400'
-                                        : 'border-dashed border-slate-300'
+                                        : 'border-dashed border-slate-300 dark:border-slate-700'
                                 }`}></div>
                         )}
                     </React.Fragment>
@@ -57,3 +57,4 @@ export default function MapSection({ order, timeline }: { order: any, timeline: 
         </div>
     );
 }
+
