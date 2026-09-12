@@ -63,11 +63,25 @@ export const parseRawAttachments = (m: any): any[] => {
     return [];
 };
 
+export const decodePartnerId = (hash?: any): number | null => {
+    if (!hash) return null;
+    const str = String(hash).trim();
+    if (/^\d+$/.test(str)) return Number(str);
+    try {
+        let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+        while (base64.length % 4) base64 += "=";
+        const decoded = atob(base64);
+        if (/^\d+$/.test(decoded)) return Number(decoded);
+    } catch {}
+    const num = Number(str);
+    return isNaN(num) ? null : num;
+};
+
 export const useGeneralMessages = (
     initialPartnerId?: number | string | null,
     role?: 'supplier' | 'customer' | string
 ) => {
-    const initialRawId = initialPartnerId ? Number(decryptId(String(initialPartnerId))) : null;
+    const initialRawId = decodePartnerId(initialPartnerId);
 
     const [conversations, setConversations] = useState<ConversationPartnerItem[]>([]);
     const [directoryUsers, setDirectoryUsers] = useState<ConversationUser[]>([]);
@@ -129,7 +143,14 @@ export const useGeneralMessages = (
                         user_type: userObj?.user_type || raw.user_type || 'user',
                         email: userObj?.email || raw.email || '',
                         avatar: userObj?.avatar || raw.avatar || '',
-                        company_name: userObj?.company_name || raw.company_name || userName
+                        company_name: userObj?.company_name || raw.company_name || userName,
+                        is_verified: Boolean(userObj?.is_verified ?? raw.is_verified ?? userObj?.email_verified_at),
+                        role: userObj?.role || raw.role || (userObj?.user_type ? userObj.user_type.charAt(0).toUpperCase() + userObj.user_type.slice(1) : undefined),
+                        designation: userObj?.designation || raw.designation,
+                        department: userObj?.department || raw.department,
+                        is_online: Boolean(userObj?.is_online ?? raw.is_online),
+                        last_seen_at: userObj?.last_seen_at || raw.last_seen_at || null,
+                        last_seen_human: userObj?.last_seen_human || raw.last_seen_human || (Boolean(userObj?.is_online ?? raw.is_online) ? "Active Now" : "Offline")
                     },
                     last_message: raw.last_message ? {
                         id: Number(raw.last_message.id || 0),
@@ -146,21 +167,31 @@ export const useGeneralMessages = (
                 };
             });
 
-            setConversations(list);
+            setConversations(prev => {
+                // Shallow check if anything changed to avoid re-rendering entire layout
+                if (prev.length === list.length) {
+                    const hasChanged = list.some((item, idx) => {
+                        const p = prev[idx];
+                        return !p || p.user.id !== item.user.id || p.unread_count !== item.unread_count || p.last_message?.id !== item.last_message?.id;
+                    });
+                    if (!hasChanged) return prev;
+                }
+                return list;
+            });
 
             const count = countRes?.data?.unread_count ?? countRes?.data?.count ?? 0;
             setUnreadCount(Number(count));
         } catch (err) {
             console.error('Failed to fetch conversations:', err);
         } finally {
-            setIsLoadingConversations(false);
+            if (!silent) setIsLoadingConversations(false);
         }
     }, []);
 
     // 3. Fetch messages for active partner from backend database API
     const fetchMessages = useCallback(async (partnerId: number | string, silent = true) => {
         if (!partnerId) return;
-        const cleanId = Number(decryptId(String(partnerId)));
+        const cleanId = decodePartnerId(partnerId);
         if (!cleanId) return;
 
         if (!silent) {
@@ -185,12 +216,23 @@ export const useGeneralMessages = (
                     id: Number(m.id || Date.now() + idx),
                     sender_id: senderId,
                     receiver_id: receiverId,
+                    reply_to_id: m.reply_to_id ?? m.reply_to?.id ?? null,
+                    reply_to: m.reply_to ? {
+                        id: Number(m.reply_to.id),
+                        sender_id: Number(m.reply_to.sender_id),
+                        message: m.reply_to.message,
+                        message_type: m.reply_to.message_type,
+                        is_me: m.reply_to.is_me !== undefined ? Boolean(m.reply_to.is_me) : (Number(m.reply_to.sender_id) === Number(senderId) ? isMe : !isMe)
+                    } : null,
                     message: m.message || m.body || m.text || m.content || '',
                     message_type: msgType,
                     attachments: hasAttachments ? rawAttachments : null,
                     is_me: isMe,
                     is_read: Boolean(m.is_read || m.read_at),
                     read_at: m.read_at,
+                    is_pinned: Boolean(m.is_pinned ?? (m as any).isPinned),
+                    pinned_at: m.pinned_at || null,
+                    is_edited: Boolean(m.is_edited),
                     time: formatLocalTime(m.created_at, m.time),
                     date: m.date || (m.created_at ? new Date(m.created_at).toLocaleDateString() : ''),
                     created_at_human: m.created_at_human || 'Just now',
@@ -213,7 +255,7 @@ export const useGeneralMessages = (
 
     // 4. Select a partner to open conversation
     const selectPartner = useCallback((partnerId: number | string, userObj?: ConversationUser) => {
-        const cleanId = Number(decryptId(String(partnerId)));
+        const cleanId = decodePartnerId(partnerId);
         if (!cleanId) return;
 
         const isSamePartner = activePartnerIdRef.current === cleanId;
@@ -243,13 +285,13 @@ export const useGeneralMessages = (
     // Sync active partner info whenever conversations or directory users update
     useEffect(() => {
         if (!activePartnerId) return;
-        const found = conversations.find(c => Number(c.user?.id) === activePartnerId);
+        const found = conversations.find(c => Number(c.user?.id) === Number(activePartnerId));
         if (found?.user) {
-            setActivePartner(prev => (prev?.id === activePartnerId && prev.email ? prev : found.user));
+            setActivePartner(prev => ({ ...(prev || {}), ...found.user }));
         } else {
-            const dir = directoryUsers.find(u => Number(u.id) === activePartnerId);
+            const dir = directoryUsers.find(u => Number(u.id) === Number(activePartnerId));
             if (dir) {
-                setActivePartner(prev => (prev?.id === activePartnerId && prev.email ? prev : dir));
+                setActivePartner(prev => ({ ...(prev || {}), ...dir }));
             }
         }
     }, [conversations, directoryUsers, activePartnerId]);
@@ -273,18 +315,21 @@ export const useGeneralMessages = (
     }, [selectPartner]);
 
     // 6. Send a message
-    const sendMessage = useCallback(async (payloadOrText: string | SendMessagePayload, maybeFiles?: File[]): Promise<boolean> => {
+    const sendMessage = useCallback(async (payloadOrText: string | SendMessagePayload, maybeFiles?: File[], maybeReplyToId?: number | null): Promise<boolean> => {
         let receiverId = activePartnerId;
         let text = '';
         let files: File[] = [];
+        let replyToId: number | null = null;
 
         if (typeof payloadOrText === 'object' && payloadOrText !== null) {
             receiverId = Number(payloadOrText.receiver_id || activePartnerId);
             text = payloadOrText.message || '';
             files = payloadOrText.attachments || [];
+            replyToId = payloadOrText.reply_to_id ? Number(payloadOrText.reply_to_id) : (maybeReplyToId ? Number(maybeReplyToId) : null);
         } else {
             text = String(payloadOrText || '');
             files = maybeFiles || [];
+            replyToId = maybeReplyToId ? Number(maybeReplyToId) : null;
         }
 
         if (!receiverId) return false;
@@ -307,10 +352,20 @@ export const useGeneralMessages = (
             };
         });
 
+        const targetReply = replyToId ? messages.find(m => m.id === Number(replyToId)) : null;
+
         const optimisticMessage: GeneralMessage = {
             id: tempId,
             sender_id: 0,
             receiver_id: receiverId,
+            reply_to_id: replyToId || null,
+            reply_to: targetReply ? {
+                id: targetReply.id,
+                sender_id: targetReply.sender_id,
+                message: targetReply.message,
+                message_type: targetReply.message_type,
+                is_me: targetReply.is_me
+            } : null,
             message: text.trim(),
             message_type: tempAttachments.some(a => a.type === 'image') ? 'image' : (tempAttachments.length ? 'file' : 'text'),
             attachments: tempAttachments.length > 0 ? tempAttachments : null,
@@ -362,7 +417,12 @@ export const useGeneralMessages = (
         setIsSending(true);
 
         try {
-            const res: any = await messageService.sendMessage({ receiver_id: partnerId, message: text.trim(), attachments: files });
+            const res: any = await messageService.sendMessage({
+                receiver_id: partnerId,
+                message: text.trim(),
+                reply_to_id: replyToId || undefined,
+                attachments: files
+            });
             const serverMsg = res?.data?.data || res?.data || res;
             const realId = serverMsg?.id ? Number(serverMsg.id) : tempId;
             const rawAttachments = parseRawAttachments(serverMsg);
@@ -394,7 +454,33 @@ export const useGeneralMessages = (
         }
     }, [activePartnerId, activePartner, role]);
 
-    // 7. Delete a message
+    // 7. Edit/Update a message
+    const editMessage = useCallback(async (messageId: number | string, newText: string) => {
+        const id = Number(messageId);
+        const trimmed = newText.trim();
+        if (!trimmed) return false;
+
+        // Optimistic update
+        setMessages(prev => prev.map(m => m.id === id ? { ...m, message: trimmed, is_edited: true } : m));
+
+        if (activePartnerId) {
+            const currentCache = messagesCacheRef.current.get(activePartnerId) || [];
+            messagesCacheRef.current.set(
+                activePartnerId,
+                currentCache.map(m => m.id === id ? { ...m, message: trimmed, is_edited: true } : m)
+            );
+        }
+
+        try {
+            await messageService.updateMessage(id, trimmed);
+            return true;
+        } catch (err) {
+            console.error('Failed to edit message:', err);
+            return false;
+        }
+    }, [activePartnerId]);
+
+    // 8. Delete a message
     const deleteMessage = useCallback(async (messageId: number | string) => {
         try {
             await messageService.deleteMessage(messageId);
@@ -412,20 +498,72 @@ export const useGeneralMessages = (
         }
     }, [activePartnerId]);
 
+
+    // 9. Toggle message reaction
+    const toggleReaction = useCallback((messageId: number | string, emoji: string) => {
+        const id = Number(messageId);
+        setMessages(prev => prev.map(m => {
+            if (m.id === id) {
+                const currentReaction = (m as any).reaction;
+                const newReaction = currentReaction === emoji ? null : emoji;
+                return { ...m, reaction: newReaction };
+            }
+            return m;
+        }));
+    }, []);
+
+    // 10. Toggle pin message (Dynamic backend persistence)
+    const togglePin = useCallback(async (messageId: number | string) => {
+        const id = Number(messageId);
+        
+        // Optimistic update
+        setMessages(prev => prev.map(m => m.id === id ? { ...m, is_pinned: !m.is_pinned } : m));
+
+        if (activePartnerId) {
+            const currentCache = messagesCacheRef.current.get(activePartnerId) || [];
+            messagesCacheRef.current.set(
+                activePartnerId,
+                currentCache.map(m => m.id === id ? { ...m, is_pinned: !m.is_pinned } : m)
+            );
+        }
+
+        try {
+            const res: any = await messageService.togglePin(id);
+            const serverMsg = res?.data?.data || res?.data || res;
+            if (serverMsg && typeof serverMsg === 'object' && 'is_pinned' in serverMsg) {
+                const serverPinned = Boolean(serverMsg.is_pinned);
+                setMessages(prev => prev.map(m => m.id === id ? { ...m, is_pinned: serverPinned, pinned_at: serverMsg.pinned_at || m.pinned_at } : m));
+                if (activePartnerId) {
+                    const currentCache = messagesCacheRef.current.get(activePartnerId) || [];
+                    messagesCacheRef.current.set(
+                        activePartnerId,
+                        currentCache.map(m => m.id === id ? { ...m, is_pinned: serverPinned, pinned_at: serverMsg.pinned_at || m.pinned_at } : m)
+                    );
+                }
+            }
+            return true;
+        } catch (err) {
+            console.error('Failed to toggle pin:', err);
+            // Revert on error
+            setMessages(prev => prev.map(m => m.id === id ? { ...m, is_pinned: !m.is_pinned } : m));
+            return false;
+        }
+    }, [activePartnerId]);
+
     // Initialize data on mount
     useEffect(() => {
         fetchConversations(true);
         fetchDirectoryUsers();
     }, [fetchConversations, fetchDirectoryUsers]);
 
-    // Polling / auto-refresh every 6 seconds silently
+    // Polling / auto-refresh every 20 seconds silently
     useEffect(() => {
         const interval = setInterval(() => {
             fetchConversations(true);
             if (activePartnerIdRef.current) {
                 fetchMessages(activePartnerIdRef.current, true);
             }
-        }, 6000);
+        }, 20000);
 
         return () => clearInterval(interval);
     }, [fetchConversations, fetchMessages]);
@@ -457,7 +595,10 @@ export const useGeneralMessages = (
         fetchDirectoryUsers,
         fetchMessages,
         sendMessage,
-        deleteMessage
+        editMessage,
+        deleteMessage,
+        toggleReaction,
+        togglePin
     };
 };
 

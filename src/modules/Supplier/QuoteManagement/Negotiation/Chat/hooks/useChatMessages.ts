@@ -75,9 +75,9 @@ export function useChatMessages(activeNegotiation: NegotiationItem | null, allNe
         };
         fetchMessages();
         apiClient.post(`/supplier/negotiations/${activeRawId}/seen`).catch(() => apiClient.post(`/negotiations/${activeRawId}/seen`).catch(() => {}));
-        const timer = setInterval(fetchMessages, 4000);
+        const timer = setInterval(fetchMessages, 6000);
         return () => clearInterval(timer);
-    }, [activeRawId, activeNegotiation]);
+    }, [activeRawId, activeNegotiation?.id, activeNegotiation?.status]);
 
     const { handleSendCounterOffer, handleAcceptOffer, handleRejectOffer } = useChatOfferActions({
         activeRawId,

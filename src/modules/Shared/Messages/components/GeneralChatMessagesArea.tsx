@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { GeneralMessage, MessageAttachment } from '@/services/messageService';
 import { GeneralChatMessageBubble } from './GeneralChatMessageBubble';
 import { GeneralChatMessagesAreaSkeleton } from './GeneralChatMessagesAreaSkeleton';
@@ -9,9 +9,13 @@ interface GeneralChatMessagesAreaProps {
     isLoadingMessages: boolean;
     isChatLoaded?: boolean;
     partner: any;
-    messagesEndRef: React.RefObject<HTMLDivElement>;
+    messagesEndRef?: React.RefObject<HTMLDivElement | null>;
     onOpenLightbox: (images: MessageAttachment[], index: number) => void;
+    onStartEditMessage?: (msg: GeneralMessage) => void;
     onDeleteMessage: (messageId: number | string) => Promise<any>;
+    onReplyMessage?: (msg: GeneralMessage) => void;
+    onToggleReaction?: (messageId: number | string, emoji: string) => void;
+    onTogglePin?: (messageId: number | string) => void;
 }
 
 export const GeneralChatMessagesArea: React.FC<GeneralChatMessagesAreaProps> = ({
@@ -19,14 +23,39 @@ export const GeneralChatMessagesArea: React.FC<GeneralChatMessagesAreaProps> = (
     isLoadingMessages,
     isChatLoaded = false,
     partner,
-    messagesEndRef,
     onOpenLightbox,
-    onDeleteMessage
+    onStartEditMessage,
+    onDeleteMessage,
+    onReplyMessage,
+    onToggleReaction,
+    onTogglePin
 }) => {
     const partnerDisplayName = partner?.company_name || partner?.name || 'Partner';
+    const containerRef = useRef<HTMLDivElement>(null);
+    const isInitialMount = useRef<boolean>(true);
+
+    // Scroll ONLY the chat messages container to the bottom (never scrolls outer page/main layout)
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        if (isInitialMount.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+            if (messages.length > 0) {
+                isInitialMount.current = false;
+            }
+        } else {
+            containerRef.current.scrollTo({
+                top: containerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [messages, isLoadingMessages]);
 
     return (
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div
+            ref={containerRef}
+            className="flex-1 overflow-y-auto px-4 py-6 space-y-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
             {messages.length > 0 ? (
                 messages.map((msg, index) => (
                     <GeneralChatMessageBubble
@@ -34,7 +63,11 @@ export const GeneralChatMessagesArea: React.FC<GeneralChatMessagesAreaProps> = (
                         msg={msg}
                         partner={partner}
                         onOpenImageLightbox={onOpenLightbox}
+                        onStartEdit={onStartEditMessage}
                         onDelete={onDeleteMessage}
+                        onReply={onReplyMessage}
+                        onToggleReaction={onToggleReaction}
+                        onTogglePin={onTogglePin}
                     />
                 ))
             ) : (
@@ -43,7 +76,6 @@ export const GeneralChatMessagesArea: React.FC<GeneralChatMessagesAreaProps> = (
                     description={`Send a message or attach documents below to communicate directly with ${partnerDisplayName}.`}
                 />
             )}
-            <div ref={messagesEndRef} />
         </div>
     );
 };

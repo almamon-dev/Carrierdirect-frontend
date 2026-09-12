@@ -199,7 +199,7 @@ export const HeaderMessages: React.FC<HeaderMessagesProps> = ({ role = 'supplier
                                 placeholder="Search messages or people..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-8 pl-8 pr-4 text-xs bg-slate-100 dark:bg-[#1c2128] border border-transparent rounded-full focus:outline-none focus:border-[#FF4A1F] text-slate-800 dark:text-slate-200 placeholder-slate-400"
+                                className="w-full h-8 pl-8 pr-4 text-xs bg-slate-100 dark:bg-[#1c2128] border-none outline-none focus:outline-none focus:ring-0 rounded-full text-slate-800 dark:text-slate-200 placeholder-slate-400"
                             />
                         </div>
 
@@ -244,7 +244,12 @@ export const HeaderMessages: React.FC<HeaderMessagesProps> = ({ role = 'supplier
                                     <p className="text-[10.5px] text-slate-400">Click any user to message on platform:</p>
                                 </div>
                                 <div className="space-y-1 text-left divide-y divide-slate-100 dark:divide-slate-800/40">
-                                    {directoryUsers.slice(0, 4).map((user) => {
+                                    {directoryUsers.filter(u => {
+                                        const ut = (u.user_type || '').toLowerCase();
+                                        if (role === 'customer') return ut.includes('supplier') || ut.includes('carrier');
+                                        if (role === 'supplier') return ut.includes('customer') || ut.includes('shipper');
+                                        return true;
+                                    }).slice(0, 4).map((user) => {
                                         const displayName = user.company_name || user.name || 'User';
                                         const initials = (user.name || 'U').slice(0, 2).toUpperCase();
                                         return (

@@ -82,7 +82,8 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
     ];
 
     // Fetch live notifications dynamically from backend API
-    const fetchNotifications = useCallback(async () => {
+    const fetchNotifications = useCallback(async (silent = false) => {
+        if (!silent) setIsLoading(true);
         try {
             const endpoint = role === 'supplier' ? '/supplier/notifications' : '/customer/notifications';
             const res: any = await apiClient.get(endpoint);
@@ -219,16 +220,16 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
         } catch (err) {
             console.error(`Failed to fetch ${role} notifications from API:`, err);
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     }, [role]);
 
-    // Initial fetch + Live auto-polling every 8 seconds
+    // Initial fetch + Live auto-polling every 15 seconds silently
     useEffect(() => {
-        fetchNotifications();
+        fetchNotifications(false);
         const pollTimer = setInterval(() => {
-            fetchNotifications();
-        }, 8000);
+            fetchNotifications(true);
+        }, 15000);
         return () => clearInterval(pollTimer);
     }, [fetchNotifications]);
 

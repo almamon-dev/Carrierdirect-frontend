@@ -1,38 +1,77 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Image as ImageIcon, Paperclip, Smile, X } from 'lucide-react';
-
-const EMOJIS = ['😀', '😂', '🥰', '😎', '🤔', '👍', '🙏', '🔥', '✨', '💯', '🎉', '💡', '✅', '❌', '🚚', '📦'];
+import { Check, CornerUpLeft, Edit2, Image as ImageIcon, Paperclip, Send, Smile, X } from 'lucide-react';
+import { GeneralMessage } from '@/services/messageService';
 
 interface GeneralChatInputBarProps {
-    onSendMessage: (text: string, files: File[]) => void;
-    isSending: boolean;
+    onSendMessage: (text: string, files: File[], replyToId?: number | null) => void;
+    isSending?: boolean;
+    replyingTo?: GeneralMessage | null;
+    onCancelReply?: () => void;
+    editingMessage?: GeneralMessage | null;
+    onCancelEdit?: () => void;
+    onSaveEdit?: (messageId: number | string, newText: string) => Promise<boolean | any>;
+    partnerName?: string;
 }
+
+const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡', '🙏', '🔥', '🎉', '👏', '🤝', '💯'];
 
 export const GeneralChatInputBar: React.FC<GeneralChatInputBarProps> = ({
     onSendMessage,
-    isSending
+    isSending = false,
+    replyingTo = null,
+    onCancelReply,
+    editingMessage = null,
+    onCancelEdit,
+    onSaveEdit,
+    partnerName = 'User'
 }) => {
     const [inputText, setInputText] = useState('');
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const docInputRef = useRef<HTMLInputElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    // When editingMessage changes, load message text and focus textarea
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        if (editingMessage) {
+            const text = editingMessage.message || '';
+            setInputText(text);
+            setTimeout(() => {
+                if (textareaRef.current) {
+                    textareaRef.current.focus();
+                    textareaRef.current.style.height = 'auto';
+                    textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
+                    textareaRef.current.setSelectionRange(text.length, text.length);
+                }
+            }, 50);
+        }
+    }, [editingMessage]);
+
+    // Auto-focus textarea when replying
+    useEffect(() => {
+        if (replyingTo && textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    }, [replyingTo]);
+
+    // Close emoji picker when clicking outside
+    useEffect(() => {
+        if (!showEmojiPicker) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
                 setShowEmojiPicker(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [showEmojiPicker]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
+        if (e.target.files && e.target.files.length > 0) {
             const filesArray = Array.from(e.target.files);
             setSelectedFiles(prev => [...prev, ...filesArray].slice(0, 5));
         }
@@ -47,15 +86,40 @@ export const GeneralChatInputBar: React.FC<GeneralChatInputBarProps> = ({
         setInputText(e.target.value);
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
         }
     };
 
-    const handleSubmit = (e?: React.FormEvent) => {
+    const handleSubmit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         const trimmed = inputText.trim();
         if (!trimmed && selectedFiles.length === 0) return;
-        onSendMessage(trimmed, selectedFiles);
+
+        // If in editing mode
+        if (editingMessage && onSaveEdit) {
+            if (trimmed && trimmed !== editingMessage.message?.trim()) {
+                setIsSaving(true);
+                try {
+                    await onSaveEdit(editingMessage.id, trimmed);
+                } finally {
+                    setIsSaving(false);
+                }
+            }
+            if (onCancelEdit) onCancelEdit();
+            setInputText('');
+            if (textareaRef.current) textareaRef.current.style.height = 'auto';
+            return;
+        }
+
+        // Standard new message
+        let finalMessage = trimmed;
+        if (replyingTo) {
+            const replySnippet = (replyingTo.message || 'Attachment').slice(0, 60);
+            finalMessage = `Replying to: "${replySnippet}"\n${trimmed}`;
+            if (onCancelReply) onCancelReply();
+        }
+
+        onSendMessage(finalMessage, selectedFiles);
         setInputText('');
         setSelectedFiles([]);
         if (textareaRef.current) textareaRef.current.style.height = 'auto';
@@ -65,15 +129,87 @@ export const GeneralChatInputBar: React.FC<GeneralChatInputBarProps> = ({
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSubmit();
+        } else if (e.key === 'Escape') {
+            if (editingMessage && onCancelEdit) {
+                onCancelEdit();
+                setInputText('');
+                if (textareaRef.current) textareaRef.current.style.height = 'auto';
+            } else if (replyingTo && onCancelReply) {
+                onCancelReply();
+            }
         }
     };
 
     const hasContent = Boolean(inputText.trim() || selectedFiles.length > 0);
 
     return (
-        <div className="px-4 py-3 bg-white dark:bg-[#12161c] border-t border-slate-200/80 dark:border-slate-800 shrink-0 z-10">
+        <div className="px-4 py-2.5 bg-white dark:bg-[#12161c] border-t border-slate-200/80 dark:border-slate-800 shrink-0 z-10">
+            {/* Telegram-style Clean Borderless Edit Strip */}
+            {editingMessage && (
+                <div className="mb-2 px-1 flex items-center justify-between text-xs animate-in fade-in">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+                        <Edit2 size={13} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                            <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 leading-tight">Edit Message</div>
+                            <div className="text-[12px] text-slate-500 dark:text-slate-400 truncate leading-tight mt-0.5">
+                                {editingMessage.message}
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (onCancelEdit) onCancelEdit();
+                            setInputText('');
+                            if (textareaRef.current) textareaRef.current.style.height = 'auto';
+                        }}
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors shrink-0"
+                        title="Cancel edit (Esc)"
+                    >
+                        <X size={15} />
+                    </button>
+                </div>
+            )}
+
+            {/* Telegram-style Clean Borderless Reply Strip */}
+            {!editingMessage && replyingTo && (
+                <div className="mb-2 px-1 flex items-center justify-between text-xs animate-in fade-in">
+                    <div
+                        onClick={() => {
+                            const el = document.getElementById(`msg-${replyingTo.id}`);
+                            if (el) {
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                el.classList.add('highlight-pulse-message');
+                                setTimeout(() => el.classList.remove('highlight-pulse-message'), 1800);
+                            }
+                        }}
+                        className="flex items-center gap-2.5 min-w-0 flex-1 mr-2 cursor-pointer hover:opacity-80 transition-opacity select-none"
+                        title="Click to view original message"
+                    >
+                        <CornerUpLeft size={13} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                            <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 leading-tight">
+                                Replying to {replyingTo.is_me ? 'yourself' : partnerName}
+                            </div>
+                            <div className="text-[12px] text-slate-500 dark:text-slate-400 truncate leading-tight mt-0.5">
+                                {replyingTo.message || 'Attachment'}
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onCancelReply}
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors shrink-0"
+                        title="Cancel reply"
+                    >
+                        <X size={15} />
+                    </button>
+                </div>
+            )}
+
+            {/* Selected Attachments Preview */}
             {selectedFiles.length > 0 && (
-                <div className="mb-2.5 flex flex-wrap gap-2">
+                <div className="mb-2 flex flex-wrap gap-2">
                     {selectedFiles.map((file, idx) => (
                         <div
                             key={idx}
@@ -103,7 +239,12 @@ export const GeneralChatInputBar: React.FC<GeneralChatInputBarProps> = ({
                     <button
                         type="button"
                         onClick={() => imageInputRef.current?.click()}
-                        className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                        disabled={Boolean(editingMessage)}
+                        className={`h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-full transition-colors ${
+                            editingMessage
+                                ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer'
+                        }`}
                         title="Attach Photo"
                     >
                         <ImageIcon size={18} />
@@ -120,7 +261,12 @@ export const GeneralChatInputBar: React.FC<GeneralChatInputBarProps> = ({
                     <button
                         type="button"
                         onClick={() => docInputRef.current?.click()}
-                        className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                        disabled={Boolean(editingMessage)}
+                        className={`h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-full transition-colors ${
+                            editingMessage
+                                ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer'
+                        }`}
                         title="Attach Document"
                     >
                         <Paperclip size={18} />
@@ -162,22 +308,28 @@ export const GeneralChatInputBar: React.FC<GeneralChatInputBarProps> = ({
                         value={inputText}
                         onChange={handleTextareaInput}
                         onKeyDown={handleKeyDown}
-                        placeholder="Type a message..."
+                        placeholder={editingMessage ? 'Edit your message...' : 'Type a message...'}
                         className="w-full resize-none max-h-32 p-0 m-0 text-[13px] sm:text-[13.5px] bg-transparent border-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 font-medium focus:outline-none focus:ring-0 leading-[20px] block"
                     />
                 </div>
 
                 <button
                     type="submit"
-                    disabled={!hasContent || isSending}
+                    disabled={!hasContent || isSending || isSaving}
                     className={`h-9 w-9 flex items-center justify-center rounded-full transition-all shrink-0 ${
-                        hasContent && !isSending
+                        hasContent && !isSending && !isSaving
                             ? 'bg-[#00a884] hover:bg-[#008f70] text-white shadow-xs active:scale-95 cursor-pointer'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
                     }`}
-                    title="Send message"
+                    title={editingMessage ? 'Save changes' : 'Send message'}
                 >
-                    <Send size={15} />
+                    {isSaving ? (
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : editingMessage ? (
+                        <Check size={16} />
+                    ) : (
+                        <Send size={15} />
+                    )}
                 </button>
             </form>
         </div>
