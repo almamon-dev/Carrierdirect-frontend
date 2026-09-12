@@ -13,6 +13,14 @@ export interface GeneralMessage {
     id: number;
     sender_id: number;
     receiver_id: number;
+    reply_to_id?: number | null;
+    reply_to?: {
+        id: number;
+        sender_id: number;
+        message: string | null;
+        message_type: string;
+        is_me?: boolean;
+    } | null;
     message: string | null;
     message_type: 'text' | 'image' | 'file' | string;
     attachments?: MessageAttachment[] | null;
@@ -23,6 +31,10 @@ export interface GeneralMessage {
     date?: string | null;
     created_at_human?: string;
     created_at?: string;
+    is_edited?: boolean;
+    is_pinned?: boolean;
+    pinned_at?: string | null;
+    updated_at?: string | null;
 }
 
 export interface ConversationUser {
@@ -32,6 +44,10 @@ export interface ConversationUser {
     email?: string;
     avatar?: string;
     company_name?: string;
+    is_verified?: boolean;
+    is_online?: boolean;
+    last_seen_at?: string | null;
+    last_seen_human?: string;
     parent_id?: number | null;
     parent_user_id?: number | null;
     supplier_id?: number | null;
@@ -68,6 +84,7 @@ export interface ConversationPartnerItem {
 export interface SendMessagePayload {
     receiver_id: number;
     message?: string;
+    reply_to_id?: number | null;
     attachments?: File[];
 }
 
@@ -86,6 +103,20 @@ export const extractMessagesArray = (res: any): any[] | null => {
 };
 
 export const messageService = {
+    /**
+     * Send heartbeat to keep user online status active
+     */
+    async sendHeartbeat() {
+        try {
+            return await apiClient.post('/user/heartbeat', {});
+        } catch {
+            try {
+                return await apiClient.post('/messages/heartbeat', {});
+            } catch {
+                return null;
+            }
+        }
+    },
     /**
      * Get paginated conversations list
      */
@@ -164,7 +195,8 @@ export const messageService = {
         if (!hasAttachments) {
             return await apiClient.post('/messages/send', {
                 receiver_id: receiverId,
-                message: text
+                message: text,
+                ...(payload.reply_to_id ? { reply_to_id: payload.reply_to_id } : {})
             });
         }
 
@@ -172,6 +204,9 @@ export const messageService = {
         fd.append('receiver_id', String(receiverId));
         if (text) {
             fd.append('message', text);
+        }
+        if (payload.reply_to_id) {
+            fd.append('reply_to_id', String(payload.reply_to_id));
         }
         if (payload.attachments) {
             payload.attachments.forEach(file => {
@@ -198,10 +233,24 @@ export const messageService = {
     },
 
     /**
+     * Update/Edit an existing message
+     */
+    async updateMessage(messageId: number | string, newText: string) {
+        return apiClient.put(`/messages/${messageId}`, { message: newText });
+    },
+
+    /**
      * Soft delete a message
      */
     async deleteMessage(messageId: number | string) {
         return apiClient.delete(`/messages/${messageId}`);
+    },
+
+    /**
+     * Toggle pin message status (Dynamic backend persistence)
+     */
+    async togglePin(messageId: number | string) {
+        return apiClient.patch(`/messages/${messageId}/pin`);
     },
 
     /**
@@ -216,8 +265,13 @@ export const messageService = {
      */
     async getDirectoryUsers(currentRole?: 'supplier' | 'customer' | string): Promise<ConversationUser[]> {
         try {
+            const targetRole = currentRole === 'customer' ? 'supplier' : currentRole === 'supplier' ? 'customer' : currentRole;
             const res: any = await apiClient.get('/messages/users', {
-                params: currentRole ? { role: currentRole } : undefined,
+                params: currentRole ? {
+                    role: targetRole,
+                    user_type: targetRole,
+                    current_role: currentRole
+                } : undefined,
                 silent: true
             });
             const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
@@ -228,6 +282,10 @@ export const messageService = {
                 user_type: u.user_type || (typeof u.role === 'string' ? u.role : u.role?.name) || 'user',
                 email: u.email || '',
                 avatar: u.avatar || u.profile?.profile_picture || '',
+                is_verified: Boolean(u.is_verified ?? u.profile?.is_verified ?? u.email_verified_at),
+                is_online: Boolean(u.is_online),
+                last_seen_at: u.last_seen_at || null,
+                last_seen_human: u.last_seen_human || (u.is_online ? 'Active Now' : 'Offline'),
                 parent_id: u.parent_id,
                 parent_user_id: u.parent_user_id,
                 supplier_id: u.supplier_id,

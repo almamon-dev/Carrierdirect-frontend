@@ -7,6 +7,7 @@ import HeaderNotifications from '@/components/HeaderNotifications';
 import HeaderMessages from '@/components/HeaderMessages';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
 import ThemeSwitcher from '@/components/common/theme-switcher';
+import { useUserHeartbeat } from '@/hooks/useUserHeartbeat';
 import { TOKEN_CONFIG } from '@/config/auth';
 
 // ── Helper: read auth user from localStorage ─────────────────────────────────
@@ -57,6 +58,7 @@ const RouteLoadingFallback = () => {
 };
 
 export default function CustomerLayout() {
+    useUserHeartbeat(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
         if (typeof window !== 'undefined') {
             return window.innerWidth >= 1024;
@@ -263,9 +265,9 @@ export default function CustomerLayout() {
                 </header>
 
                 {/* Main Scrollable Content */}
-                <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <main ref={mainRef} className={`flex-1 ${location.pathname.includes('/messages') ? 'overflow-hidden h-[calc(100vh-64px)]' : 'overflow-y-auto overflow-x-hidden'} bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
                     <React.Suspense fallback={<RouteLoadingFallback />}>
-                        <div className="w-full pb-16">
+                        <div className={`w-full ${location.pathname.includes('/messages') ? 'h-full pb-0' : 'pb-16'}`}>
                             <Outlet />
                         </div>
                     </React.Suspense>

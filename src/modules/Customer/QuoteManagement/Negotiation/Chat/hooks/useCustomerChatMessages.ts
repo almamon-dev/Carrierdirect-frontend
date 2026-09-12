@@ -71,9 +71,9 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
 
         fetchMessagesFromApi();
         apiClient.post(`/customer/negotiations/${activeChatId}/seen`).catch(() => apiClient.post(`/negotiations/${activeChatId}/seen`).catch(() => {}));
-        const timer = setInterval(fetchMessagesFromApi, 4000);
+        const timer = setInterval(fetchMessagesFromApi, 6000);
         return () => clearInterval(timer);
-    }, [activeChatId, activeChat]);
+    }, [activeChatId, activeChat?.raw?.status]);
 
     const { handleSendCounterOffer, handleAcceptOffer, handleRejectOffer } = useCustomerOfferActions({
         activeChatId,

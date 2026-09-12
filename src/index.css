@@ -688,3 +688,29 @@ html.dark .animate-live-shimmer {
   animation: liveShimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+
+
+/* Message Jump Highlight Animation (Telegram / WhatsApp Style) */
+@keyframes highlightPulseMessage {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 168, 132, 0.7);
+    transform: scale(1);
+  }
+  25% {
+    box-shadow: 0 0 0 6px rgba(0, 168, 132, 0.4);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 168, 132, 0.2);
+    transform: scale(1.01);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 168, 132, 0);
+    transform: scale(1);
+  }
+}
+
+.highlight-pulse-message {
+  animation: highlightPulseMessage 1.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
+  z-index: 30 !important;
+}
