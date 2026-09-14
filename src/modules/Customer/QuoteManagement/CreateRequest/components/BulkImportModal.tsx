@@ -90,7 +90,8 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 p-4 font-sans backdrop-blur-xs transition-opacity duration-200" onClick={(e) => { if (e.target === e.currentTarget && !isBusy) handleModalClose(); }}>
-            <div className="bg-white dark:bg-slate-900 rounded-[5px] shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+            <div
+    className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col relative" onClick={(e) => e.stopPropagation()}>
                 <input ref={internalFileInputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.csv,.xlsx,.txt" className="hidden" onChange={(e) => { e.stopPropagation(); if (e.target.files?.[0]) handleProcessMainFile(e.target.files[0]); }} />
                 <input ref={internalZipInputRef} type="file" accept=".zip" className="hidden" onChange={(e) => { e.stopPropagation(); if (e.target.files?.[0]) handleProcessZipFile(e.target.files[0]); }} />
 

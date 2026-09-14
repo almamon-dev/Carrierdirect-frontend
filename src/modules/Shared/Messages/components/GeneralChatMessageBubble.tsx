@@ -5,7 +5,6 @@ import {
     CornerUpLeft,
     Download,
     Edit2,
-    Flag,
     MoreVertical,
     Pin,
     Trash2,
@@ -14,6 +13,7 @@ import {
 import { ConversationUser, GeneralMessage, MessageAttachment } from '@/services/messageService';
 import { getAttachmentUrl } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/utils/customerChatUtils';
 import { parseRawAttachments } from '@/hooks/useGeneralMessages';
+import { DeleteMessageModal } from './DeleteMessageModal';
 
 interface GeneralChatMessageBubbleProps {
     msg: GeneralMessage;
@@ -21,7 +21,7 @@ interface GeneralChatMessageBubbleProps {
     isFirstInGroup?: boolean;
     isLastInGroup?: boolean;
     onStartEdit?: (msg: GeneralMessage) => void;
-    onDelete?: (id: number) => void;
+    onDelete?: (id: number, type?: "everyone" | "for_me") => Promise<any> | void;
     onOpenImageLightbox?: (images: MessageAttachment[], index: number) => void;
     onReply?: (msg: GeneralMessage) => void;
     onToggleReaction?: (id: number | string, emoji: string) => void;
@@ -85,6 +85,8 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [menuPlacement, setMenuPlacement] = useState<'top' | 'bottom'>('top');
     const [localPinned, setLocalPinned] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -202,10 +204,21 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
         }
     };
 
-    const handleDelete = () => {
+    const handleDeleteClick = () => {
         setIsMenuOpen(false);
-        if (onDelete) {
-            onDelete(msg.id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async (type: 'everyone' | 'for_me') => {
+        if (!onDelete) return;
+        try {
+            setIsDeleting(true);
+            await onDelete(msg.id, type);
+            setIsDeleteModalOpen(false);
+        } catch (err) {
+            console.error('Delete message error:', err);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -255,10 +268,10 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
                                 {onDelete && (
                                     <button
                                         type="button"
-                                        onClick={handleDelete}
+                                        onClick={handleDeleteClick}
                                         className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer text-left text-[13px] font-medium"
                                     >
-                                        <span>Unsend</span>
+                                        <span>Delete</span>
                                         <Trash2 size={14} className="text-red-500 shrink-0" />
                                     </button>
                                 )}
@@ -357,24 +370,12 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
                                     <Pin size={14} className={`shrink-0 ${isPinned ? 'text-amber-500 fill-amber-500' : 'text-slate-500 dark:text-slate-400'}`} />
                                 </button>
 
-                                {/* Report Option */}
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsMenuOpen(false);
-                                        alert('Message reported to administrator.');
-                                    }}
-                                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left text-[13px] font-medium"
-                                >
-                                    <span>Report</span>
-                                    <Flag size={14} className="text-slate-500 dark:text-slate-400 shrink-0" />
-                                </button>
 
                                 {/* Delete Option */}
                                 {onDelete && (
                                     <button
                                         type="button"
-                                        onClick={handleDelete}
+                                        onClick={handleDeleteClick}
                                         className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer text-left text-[13px] font-medium"
                                     >
                                         <span>Delete</span>
@@ -389,6 +390,66 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
         </div>
     );
 
+    // Partner avatar renderer helper
+    const renderPartnerAvatar = () => (
+        <div className="shrink-0 mb-1">
+            {partnerAvatarUrl ? (
+                <img
+                    src={partnerAvatarUrl}
+                    alt={partnerDisplayName}
+                    className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs"
+                />
+            ) : (
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] border shadow-2xs ${partner?.user_type === 'supplier'
+                    ? 'bg-orange-50 dark:bg-orange-950/40 border-orange-200/80 dark:border-orange-900/50 text-[#FF4A1F]'
+                    : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-900/50 text-[#2563EB]'
+                    }`}>
+                    {partnerInitial}
+                </div>
+            )}
+        </div>
+    );
+
+    // If message was unsent for everyone, render Facebook Messenger pill placeholder
+    if (Boolean(msg.is_unsent)) {
+        return (
+            <div
+                id={`msg-${msg.id}`}
+                className={`flex gap-2 my-1.5 group ${isSent ? 'justify-end' : 'justify-start'} items-center`}
+            >
+                {/* Delete / Remove for you button for sent unsent pill */}
+                {isSent && onDelete && (
+                    <button
+                        type="button"
+                        onClick={() => onDelete(msg.id, 'for_me')}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer text-xs"
+                        title="Remove for you"
+                    >
+                        <Trash2 size={13} />
+                    </button>
+                )}
+
+                {!isSent && renderPartnerAvatar()}
+
+                <div className="inline-flex items-center px-4 py-1.5 rounded-full border border-slate-300 dark:border-[#393a3b] bg-transparent text-slate-500 dark:text-[#b0b3b8] text-xs sm:text-[13px] italic select-none">
+                    <span>{isSent ? 'You unsent a message' : `${partnerDisplayName} unsent a message`}</span>
+                </div>
+
+                {/* Delete / Remove for you button for incoming unsent pill */}
+                {!isSent && onDelete && (
+                    <button
+                        type="button"
+                        onClick={() => onDelete(msg.id, 'for_me')}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer text-xs"
+                        title="Remove for you"
+                    >
+                        <Trash2 size={13} />
+                    </button>
+                )}
+            </div>
+        );
+    }
+
     return (
         <div
             id={`msg-${msg.id}`}
@@ -401,24 +462,7 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
             {isSent && renderActionToolbar()}
 
             {/* Partner Avatar for incoming messages */}
-            {!isSent && (
-                <div className="shrink-0 mb-1">
-                    {partnerAvatarUrl ? (
-                        <img
-                            src={partnerAvatarUrl}
-                            alt={partnerDisplayName}
-                            className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs"
-                        />
-                    ) : (
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] border shadow-2xs ${partner?.user_type === 'supplier'
-                            ? 'bg-orange-50 dark:bg-orange-950/40 border-orange-200/80 dark:border-orange-900/50 text-[#FF4A1F]'
-                            : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-900/50 text-[#2563EB]'
-                            }`}>
-                            {partnerInitial}
-                        </div>
-                    )}
-                </div>
-            )}
+            {!isSent && renderPartnerAvatar()}
 
             <div className={`flex flex-col ${isSent ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[75%] md:max-w-[65%] relative`}>
                 {/* Image Attachments */}
@@ -573,7 +617,7 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
                     {isPinned && (
                         <Pin size={10} className="text-amber-500 fill-amber-500 mr-0.5 shrink-0" />
                     )}
-                    {msg.is_edited && (
+                    {Boolean(msg.is_edited) && (
                         <span className="text-[9.5px] text-slate-400 dark:text-slate-400 select-none italic mr-0.5">
                             (edited)
                         </span>
@@ -595,6 +639,15 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
 
             {/* Facebook Messenger Action Toolbar for Received Messages (on right of bubble) */}
             {!isSent && renderActionToolbar()}
+
+            {/* Facebook Messenger Style Delete Modal */}
+            <DeleteMessageModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                isSent={isSent}
+                isLoading={isDeleting}
+            />
         </div>
     );
 };

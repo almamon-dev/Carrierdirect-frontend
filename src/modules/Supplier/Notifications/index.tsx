@@ -95,7 +95,8 @@ export default function SupplierNotifications() {
     const columns = useMemo(() => getNotificationColumns(), []);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header Title & Action Buttons matching QuoteRequests design */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>

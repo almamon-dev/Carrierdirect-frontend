@@ -336,11 +336,13 @@ export default function DataTable<T extends Record<string, any>>({
         return (
             <div className="space-y-4">
                 {/* Control Toolbar Card (Single-Row Unified Header) */}
-                <div className="bg-white dark:bg-[#12161c] rounded-[3px] border border-[#ebebeb] dark:border-slate-800 shadow-none animate-in fade-in duration-200">
+                <div
+    className="bg-white dark:bg-[#12161c] rounded-[3px] border border-slate-200 dark:border-slate-800 shadow-none animate-in fade-in duration-200">
                     <div className="relative z-30">
                         {/* Bulk Action Overlay when items are selected */}
                         {selectedIds.length > 0 && (
-                            <div className="absolute inset-0 bg-slate-100/95 dark:bg-[#1e2329]/95 backdrop-blur-xs z-20 flex items-center justify-between px-4 animate-in fade-in duration-200">
+                            <div
+    className="absolute inset-0 bg-slate-100/95 dark:bg-[#1e2329]/95 backdrop-blur-xs z-20 flex items-center justify-between px-4 animate-in fade-in duration-200">
                                 <div className="flex items-center gap-1.5 text-[13px]">
                                     <span className="text-slate-800 dark:text-slate-200">
                                         All <strong>{selectedIds.length}</strong> items on this page are selected.
@@ -396,7 +398,7 @@ export default function DataTable<T extends Record<string, any>>({
                                 {/* Expandable Search Icon / Input */}
                                 {isSearchOpen ? (
                                     <div className="relative flex items-center animate-in fade-in zoom-in-95 duration-150">
-                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
+                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" size={13} />
                                         <input 
                                             type="text" 
                                             autoFocus
@@ -462,7 +464,8 @@ export default function DataTable<T extends Record<string, any>>({
 
                                 {!hideViewToggle && (
                                     <>
-                                        <div className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none h-[32px]">
+                                        <div
+    className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none h-[32px]">
                                             <button 
                                                 onClick={() => handleSwitchView('table')}
                                                 className="h-[30px] px-2.5 flex items-center justify-center transition-colors text-[#8c9196] dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-[#202223] dark:hover:text-slate-200 cursor-pointer"
@@ -566,7 +569,8 @@ export default function DataTable<T extends Record<string, any>>({
     }
 
     return (
-        <div className="bg-white dark:bg-[#12161c] rounded-[3px] border border-[#ebebeb] dark:border-slate-800 shadow-none">
+        <div
+    className="bg-white dark:bg-[#12161c] rounded-[3px] border border-slate-200 dark:border-slate-800 shadow-none">
             <div className="animate-in fade-in duration-300">
                 {/* Header Tabs (Inside container) */}
                 {headerTabs && (
@@ -604,7 +608,8 @@ export default function DataTable<T extends Record<string, any>>({
 
                             {!hideViewToggle && (
                                 <>
-                                    <div className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none h-[32px]">
+                                    <div
+    className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none h-[32px]">
                                         <button 
                                             onClick={() => handleSwitchView('table')}
                                             className="h-[30px] px-2.5 flex items-center justify-center transition-colors bg-white dark:bg-slate-800 text-[#202223] dark:text-slate-200 shadow-2xs cursor-pointer"
@@ -642,318 +647,278 @@ export default function DataTable<T extends Record<string, any>>({
                     </div>
                 )}
 
-                <div className="overflow-x-auto custom-scrollbar">
-                    <table className={`w-full text-left border-collapse ${tableLayout === 'fixed' ? 'table-fixed' : ''} ${tableClassName || ''}`}>
-                        <thead>
-                            <tr className="bg-slate-50/90 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                                <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} w-[36px]`}>
-                                    <div className="flex items-center justify-center">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
-                                            onChange={toggleSelectAll}
-                                            className="table-checkbox" 
-                                        />
-                                    </div>
-                                </th>
-                                {currentColumns.map(col => visibleColumns.includes(col.id) && (
-                                    <th
-                                        key={col.id}
-                                        draggable
-                                        onDragStart={(e) => {
-                                            e.dataTransfer.setData('text/plain', col.id);
-                                        }}
-                                        onDragOver={(e) => {
-                                            e.preventDefault();
-                                        }}
-                                        onDrop={(e) => {
-                                            e.preventDefault();
-                                            const draggedId = e.dataTransfer.getData('text/plain');
-                                            if (draggedId && draggedId !== col.id) {
-                                                const order = currentColumns.map(c => c.id);
-                                                const fromIndex = order.indexOf(draggedId);
-                                                const toIndex = order.indexOf(col.id);
-                                                if (fromIndex !== -1 && toIndex !== -1) {
-                                                    const newOrder = [...order];
-                                                    const [removed] = newOrder.splice(fromIndex, 1);
-                                                    newOrder.splice(toIndex, 0, removed);
-                                                    setOrderedColumnIds(newOrder);
-                                                }
-                                            }
-                                        }}
-                                        className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} ${col.className || ''} ${col.sortable ? 'cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200 transition-colors' : ''} whitespace-nowrap cursor-grab active:cursor-grabbing`}
-                                        onClick={() => col.sortable && handleSort(col.id)}
-                                        title="Drag to reorder column"
-                                    >
-                                        {col.sortable ? (
-                                            <div className={`inline-flex items-center gap-0.5 whitespace-nowrap ${col.className?.includes('text-center') ? 'justify-center w-full' : ''}`}>
-                                                <span className="whitespace-nowrap">{col.label}</span>
-                                                <span className="shrink-0 opacity-70">
-                                                    {sortKey === col.id ? (
-                                                        sortDir === 'asc'
-                                                            ? <ChevronUp size={11} className="text-[#ff4a1f]" />
-                                                            : <ChevronDown size={11} className="text-[#ff4a1f]" />
-                                                    ) : (
-                                                        <ChevronsUpDown size={11} className="text-slate-400 dark:text-slate-500" />
-                                                    )}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <span className="whitespace-nowrap">{col.label}</span>
-                                        )}
-                                    </th>
-                                ))}
-                                {actions && (
-                                    <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} text-right pr-3.5 sm:pr-4 whitespace-nowrap ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
-                                        Actions
-                                    </th>
-                                )}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-                            {isLoading ? (
-                                (paginatedData.length > 0 ? paginatedData : Array.from({ length: effectiveSkeletonCount })).map((item: any, i: number) => {
-                                    const rowKey = item && keyExtractor && item.id !== undefined ? (keyExtractor(item) || i) : i;
-                                    return (
-                                        <tr key={rowKey} className={`transition-colors border-b border-slate-100/70 dark:border-slate-800/40 ${rowHeightClass}`}>
-                                            <td className={`${cellPaddingClass} w-[36px]`}>
-                                                <Skeleton className="h-[15px] w-[15px] mx-auto rounded-[3px]" />
-                                            </td>
-                                        {currentColumns.map(col => {
-                                            if (!visibleColumns.includes(col.id)) return null;
-
-                                            if (col.skeleton) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        {col.skeleton()}
-                                                    </td>
-                                                );
-                                            }
-
-                                            const colId = col.id.toLowerCase();
-                                            const colLabel = col.label.toLowerCase();
-
-                                            if (colId === 'id' || colLabel === 'id') {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex items-center min-h-[26px]">
-                                                            <Skeleton className="h-4 w-14 rounded-[3px] !bg-orange-100/70 dark:!bg-orange-950/40" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'customer' || colLabel.includes('customer') || colLabel.includes('user') || colLabel.includes('supplier')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex items-center gap-2 min-h-[26px]">
-                                                            <Skeleton className="w-5 h-5 rounded-full shrink-0" />
-                                                            <Skeleton className="h-3.5 w-24 rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'pickup' || (colLabel.includes('pickup') && colLabel.includes('address'))) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
-                                                            <Skeleton className="h-3.5 w-28 max-w-full rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'delivery' || (colLabel.includes('delivery') && colLabel.includes('address'))) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
-                                                            <Skeleton className="h-3.5 w-28 max-w-full rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colLabel.includes('address') || colLabel.includes('route')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex items-center min-w-0 min-h-[26px]">
-                                                            <Skeleton className="h-3.5 w-28 max-w-full rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'vehicle' || colId === 'vehicletype' || colLabel.includes('vehicle')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex items-center min-h-[26px]">
-                                                            <Skeleton className="h-3.5 w-24 rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'transit' || colId === 'transittime' || colLabel.includes('transit')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex justify-center items-center min-h-[26px]">
-                                                            <Skeleton className="h-3.5 w-12 rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId.includes('quote') || colLabel.includes('quote') || colId === 'requestid' || colLabel.includes('request id')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex items-center min-h-[26px]">
-                                                            <Skeleton className="h-4 w-16 rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'priority' || colLabel.includes('priority')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex justify-center items-center min-h-[26px]">
-                                                            <Skeleton className="h-5 w-14 rounded-[3px] !bg-amber-100/70 dark:!bg-amber-950/50" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'status' || colLabel.includes('status')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex justify-center items-center min-h-[26px]">
-                                                            <Skeleton className="h-5 w-20 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/50" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'distance' || colLabel.includes('distance')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex justify-center items-center min-h-[26px]">
-                                                            <Skeleton className="h-3.5 w-14 rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'budget' || colId === 'amount' || colLabel.includes('budget') || colLabel.includes('price') || colLabel.includes('amount')) {
-                                                const isCentered = col.className?.includes('text-center');
-                                                const isRight = col.className?.includes('text-right');
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className={`flex ${isCentered ? 'justify-center' : isRight ? 'justify-end' : 'items-center'} items-center min-h-[26px]`}>
-                                                            <Skeleton className="h-4 w-18 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/40" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-                                            if (colId === 'date' || colId === 'requestdate' || colLabel.includes('date')) {
-                                                return (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                        <div className="flex justify-center items-center min-h-[26px]">
-                                                            <Skeleton className="h-3.5 w-20 rounded-[3px]" />
-                                                        </div>
-                                                    </td>
-                                                );
-                                            }
-
-                                            const isCentered = col.className?.includes('text-center');
-                                            const isRight = col.className?.includes('text-right');
-
-                                            return (
-                                                <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
-                                                    <div className={`flex ${isCentered ? 'justify-center' : isRight ? 'justify-end' : 'items-center'} items-center min-h-[26px]`}>
-                                                        <Skeleton className="h-3.5 w-20 rounded-[3px]" />
-                                                    </div>
-                                                </td>
-                                            );
-                                        })}
-                                        {actions && (
-                                            <td className={`${cellPaddingClass} whitespace-nowrap text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
-                                                <div className="flex items-center justify-end gap-1.5 w-full min-h-[26px]">
-                                                    {actionsColumnClassName?.includes('180') ? (
-                                                        <>
-                                                            <Skeleton className="h-7 w-14 rounded-[5px]" />
-                                                            <Skeleton className="h-7 w-16 rounded-[5px]" />
-                                                            <Skeleton className="h-7 w-7 rounded-[5px]" />
-                                                        </>
-                                                    ) : actionsColumnClassName?.includes('130') || actionsColumnClassName?.includes('125') || actionsColumnClassName?.includes('115') || actionsColumnClassName?.includes('120') || actionsColumnClassName?.includes('100') ? (
-                                                        <>
-                                                            <Skeleton className="h-7 w-18 rounded-[5px]" />
-                                                            <Skeleton className="h-7 w-7 rounded-[5px]" />
-                                                        </>
-                                                    ) : (
-                                                        <Skeleton className="h-7 w-7 rounded-[5px]" />
-                                                    )}
-                                                </div>
-                                            </td>
-                                        )}
-                                    </tr>
-                                );
-                            })
-                            ) : paginatedData.length === 0 ? (
-                                <tr>
-                                    <td colSpan={currentColumns.length + (actions ? 2 : 1)} className="p-0">
-                                        <div className="p-8 text-center bg-white dark:bg-[#12161c]">
-                                            {emptyState ?? <EmptyState />}
+                {/* Empty State or Table View */}
+                {paginatedData.length === 0 && !isLoading ? (
+                    <div
+    className="bg-white dark:bg-[#12161c] border-t border-slate-200/90 dark:border-slate-800">
+                        {emptyState ?? <EmptyState />}
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className={`w-full text-left border-collapse ${tableLayout === 'fixed' ? 'table-fixed' : ''} ${tableClassName || ''}`}>
+                            <thead>
+                                <tr className="bg-slate-50/90 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400   whitespace-nowrap">
+                                    <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} w-[36px]`}>
+                                        <div className="flex items-center justify-center">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                                                onChange={toggleSelectAll}
+                                                className="table-checkbox" 
+                                            />
                                         </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                paginatedData.map(item => {
-                                    const id = keyExtractor(item);
-                                    const isSelected = selectedIds.includes(id);
-                                    return (
-                                        <React.Fragment key={id}>
-                                            <tr 
-                                                onClick={(e) => {
-                                                    if ((e.target as HTMLElement).closest('button, a, input, select, [role="button"], [data-no-click]')) {
-                                                        return;
-                                                    }
-                                                    if (expandableContent) {
-                                                        toggleExpand(id);
-                                                    } else if (onRowClick) {
-                                                        onRowClick(item);
+                                    </th>
+                                    {currentColumns.map(col => {
+                                        if (!visibleColumns.includes(col.id)) return null;
+                                        const isCentered = col.className?.includes('text-center') || col.className?.includes('justify-center');
+                                        const isRight = col.className?.includes('text-right') || col.className?.includes('justify-end');
+
+                                        return (
+                                            <th
+                                                key={col.id}
+                                                draggable
+                                                onDragStart={(e) => {
+                                                    e.dataTransfer.setData('text/plain', col.id);
+                                                }}
+                                                onDragOver={(e) => {
+                                                    e.preventDefault();
+                                                }}
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    const draggedId = e.dataTransfer.getData('text/plain');
+                                                    if (draggedId && draggedId !== col.id) {
+                                                        const order = currentColumns.map(c => c.id);
+                                                        const fromIndex = order.indexOf(draggedId);
+                                                        const toIndex = order.indexOf(col.id);
+                                                        if (fromIndex !== -1 && toIndex !== -1) {
+                                                            const newOrder = [...order];
+                                                            const [removed] = newOrder.splice(fromIndex, 1);
+                                                            newOrder.splice(toIndex, 0, removed);
+                                                            setOrderedColumnIds(newOrder);
+                                                        }
                                                     }
                                                 }}
-                                                className={`transition-colors group ${rowHeightClass} ${isSelected ? 'bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50'} ${expandableContent || onRowClick ? 'cursor-pointer' : ''}`}
+                                                className={`${compact ? 'px-2.5 py-2' : 'px-3.5 py-3'} font-bold   text-slate-600 dark:text-slate-300 text-[11px] ${col.className || ''} ${col.sortable !== false ? 'cursor-pointer hover:text-slate-900 dark:hover:text-white' : ''}`}
+                                                onClick={() => col.sortable !== false && handleSort(col.id)}
                                             >
-                                            <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
-                                                <div className="flex items-center justify-center">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        checked={isSelected}
-                                                        onChange={() => toggleSelect(id)}
-                                                        className="table-checkbox" 
-                                                    />
+                                                <div className={`flex items-center gap-1 ${isCentered ? 'justify-center' : isRight ? 'justify-end' : 'justify-start'}`}>
+                                                    <span>{col.label}</span>
+                                                    {col.sortable !== false && sortKey === col.id ? (
+                                                        sortDir === 'asc' ? <ChevronUp size={12} className="text-[#ff4a1f]" /> : <ChevronDown size={12} className="text-[#ff4a1f]" />
+                                                    ) : col.sortable !== false ? (
+                                                        <ChevronsUpDown size={12} className="text-slate-400 opacity-50" />
+                                                    ) : null}
                                                 </div>
-                                            </td>
-                                            {currentColumns.map(col => visibleColumns.includes(col.id) && (
-                                                <td key={col.id} className={`${cellPaddingClass} ${col.className?.includes('whitespace-normal') ? 'whitespace-normal break-words' : 'whitespace-nowrap'} text-[13px] text-slate-800 dark:text-slate-200 ${col.className || ''}`}>
-                                                    {col.render ? col.render(item) : item[col.id]}
-                                                </td>
-                                            ))}
-                                            {actions && (
-                                                <td className={`${cellPaddingClass} whitespace-nowrap text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
-                                                    <div className="flex items-center justify-end w-full h-7">
-                                                        {actions(item)}
+                                            </th>
+                                        );
+                                    })}
+                                    {actions && (
+                                        <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} text-right pr-3.5 sm:pr-4   text-[11px] font-bold text-slate-600 dark:text-slate-300 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
+                                            Actions
+                                        </th>
+                                    )}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200/90 dark:divide-slate-800 bg-white dark:bg-[#12161c]">
+                                {isLoading ? (
+                                    Array.from({ length: effectiveSkeletonCount }).map((_, rIdx) => {
+                                        return (
+                                            <tr key={rIdx} className={rowHeightClass}>
+                                                <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
+                                                    <div className="flex items-center justify-center">
+                                                        <Skeleton className="h-3.5 w-3.5 rounded-[2px]" />
                                                     </div>
                                                 </td>
-                                            )}
-                                            </tr>
-                                            {expandableContent && expandedRows.has(id) && (
-                                                <tr className="bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
-                                                    <td colSpan={columns.length + (actions ? 2 : 1)} className="p-0 border-l-4 border-l-[#FF4A1F]">
-                                                        <div className="animate-in slide-in-from-top-1 fade-in duration-200">
-                                                            {expandableContent(item)}
+                                                {currentColumns.map(col => {
+                                                    if (!visibleColumns.includes(col.id)) return null;
+
+                                                    if (col.skeleton) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                {col.skeleton()}
+                                                            </td>
+                                                        );
+                                                    }
+
+                                                    const colId = col.id.toLowerCase();
+                                                    const colLabel = col.label.toLowerCase();
+
+                                                    if (colId === 'id' || colId === 'code' || colLabel.includes('id') || colLabel.includes('code')) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex items-center min-h-[26px]">
+                                                                    <Skeleton className="h-3.5 w-16 rounded-[3px]" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    if (colId === 'status' || colLabel.includes('status')) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex items-center min-h-[26px]">
+                                                                    <Skeleton className="h-4 w-14 rounded-[3px] !bg-orange-100/70 dark:!bg-orange-950/40" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    if (colId === 'customer' || colLabel.includes('customer') || colLabel.includes('user') || colLabel.includes('supplier')) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex items-center gap-2 min-h-[26px]">
+                                                                    <Skeleton className="w-5 h-5 rounded-full shrink-0" />
+                                                                    <Skeleton className="h-3.5 w-24 rounded-[3px]" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    if (colId === 'pickup' || (colLabel.includes('pickup') && colLabel.includes('address'))) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
+                                                                    <Skeleton className="h-3.5 w-28 max-w-full rounded-[3px]" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    if (colId === 'delivery' || (colLabel.includes('delivery') && colLabel.includes('address'))) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
+                                                                    <Skeleton className="h-3.5 w-28 max-w-full rounded-[3px]" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    if (colLabel.includes('address') || colLabel.includes('route')) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex items-center min-w-0 min-h-[26px]">
+                                                                    <Skeleton className="h-3.5 w-28 max-w-full rounded-[3px]" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    if (colId === 'vehicle' || colId === 'vehicletype' || colLabel.includes('vehicle')) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex items-center min-h-[26px]">
+                                                                    <Skeleton className="h-3.5 w-24 rounded-[3px]" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    if (colId === 'price' || colId === 'budget' || colId === 'amount' || colLabel.includes('price') || colLabel.includes('budget') || colLabel.includes('amount')) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex justify-end items-center min-h-[26px]">
+                                                                    <Skeleton className="h-3.5 w-16 rounded-[3px]" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+                                                    if (colId === 'date' || colId === 'requestdate' || colLabel.includes('date')) {
+                                                        return (
+                                                            <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                                <div className="flex justify-center items-center min-h-[26px]">
+                                                                    <Skeleton className="h-3.5 w-20 rounded-[3px]" />
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    }
+
+                                                    const isCentered = col.className?.includes('text-center');
+                                                    const isRight = col.className?.includes('text-right');
+
+                                                    return (
+                                                        <td key={col.id} className={`${cellPaddingClass} ${col.className || ''}`}>
+                                                            <div className={`flex ${isCentered ? 'justify-center' : isRight ? 'justify-end' : 'items-center'} items-center min-h-[26px]`}>
+                                                                <Skeleton className="h-3.5 w-20 rounded-[3px]" />
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                                {actions && (
+                                                    <td className={`${cellPaddingClass} whitespace-nowrap text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
+                                                        <div className="flex items-center justify-end gap-1.5 w-full min-h-[26px]">
+                                                            {actionsColumnClassName?.includes('180') ? (
+                                                                <>
+                                                                    <Skeleton className="h-7 w-14 rounded-[5px]" />
+                                                                    <Skeleton className="h-7 w-16 rounded-[5px]" />
+                                                                    <Skeleton className="h-7 w-7 rounded-[5px]" />
+                                                                </>
+                                                            ) : actionsColumnClassName?.includes('130') || actionsColumnClassName?.includes('125') || actionsColumnClassName?.includes('115') || actionsColumnClassName?.includes('120') || actionsColumnClassName?.includes('100') ? (
+                                                                <>
+                                                                    <Skeleton className="h-7 w-18 rounded-[5px]" />
+                                                                    <Skeleton className="h-7 w-7 rounded-[5px]" />
+                                                                </>
+                                                            ) : (
+                                                                <Skeleton className="h-7 w-7 rounded-[5px]" />
+                                                            )}
                                                         </div>
                                                     </td>
+                                                )}
+                                            </tr>
+                                        );
+                                    })
+                                ) : (
+                                    paginatedData.map(item => {
+                                        const id = keyExtractor(item);
+                                        const isSelected = selectedIds.includes(id);
+                                        return (
+                                            <React.Fragment key={id}>
+                                                <tr 
+                                                    onClick={(e) => {
+                                                        if ((e.target as HTMLElement).closest('button, a, input, select, [role="button"], [data-no-click]')) {
+                                                            return;
+                                                        }
+                                                        if (expandableContent) {
+                                                            toggleExpand(id);
+                                                        } else if (onRowClick) {
+                                                            onRowClick(item);
+                                                        }
+                                                    }}
+                                                    className={`transition-colors group ${rowHeightClass} ${isSelected ? 'bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50'} ${expandableContent || onRowClick ? 'cursor-pointer' : ''}`}
+                                                >
+                                                <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
+                                                    <div className="flex items-center justify-center">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={isSelected}
+                                                            onChange={() => toggleSelect(id)}
+                                                            className="table-checkbox" 
+                                                        />
+                                                    </div>
+                                                </td>
+                                                {currentColumns.map(col => visibleColumns.includes(col.id) && (
+                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className?.includes('whitespace-normal') ? 'whitespace-normal break-words' : 'whitespace-nowrap'} text-[13px] text-slate-800 dark:text-slate-200 ${col.className || ''}`}>
+                                                        {col.render ? col.render(item) : item[col.id]}
+                                                    </td>
+                                                ))}
+                                                {actions && (
+                                                    <td className={`${cellPaddingClass} whitespace-nowrap text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
+                                                        <div className="flex items-center justify-end w-full h-7">
+                                                            {actions(item)}
+                                                        </div>
+                                                    </td>
+                                                )}
                                                 </tr>
-                                            )}
-                                        </React.Fragment>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                                {expandableContent && expandedRows.has(id) && (
+                                                    <tr className="bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
+                                                        <td colSpan={columns.length + (actions ? 2 : 1)} className="p-0 border-l-4 border-l-[#FF4A1F]">
+                                                            <div className="animate-in slide-in-from-top-1 fade-in duration-200">
+                                                                {expandableContent(item)}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
                 
                 {/* Pagination for Table View */}
                 {!hidePagination && (

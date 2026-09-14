@@ -7,6 +7,7 @@ import { twoFactorRoutes } from './TwoFactor';
 import { lockScreenRoutes } from './LockScreen';
 import { sessionExpiredRoutes } from './SessionExpired';
 import { unauthorizedRoutes } from './Unauthorized';
+import { invitationAcceptedRoutes } from './InvitationAccepted';
 import { RouteObject } from 'react-router-dom';
 
 export const authRoutes: RouteObject[] = [
@@ -22,6 +23,7 @@ export const authRoutes: RouteObject[] = [
             ...lockScreenRoutes,
             ...sessionExpiredRoutes,
             ...unauthorizedRoutes,
+            ...invitationAcceptedRoutes,
         ]
     }
 ];

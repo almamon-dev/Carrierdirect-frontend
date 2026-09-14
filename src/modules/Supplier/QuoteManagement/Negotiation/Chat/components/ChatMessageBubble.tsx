@@ -1,5 +1,6 @@
+import { OfferAcceptedCelebrationCard } from "@/components/OfferAcceptedCelebrationCard";
 import React, { useState } from 'react';
-import { Ban, Pin } from 'lucide-react';
+import { Ban } from 'lucide-react';
 import CounterOfferMessage from '@/modules/Customer/QuoteManagement/Negotiation/CounterOffer';
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
@@ -44,12 +45,52 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
     const spacingClass = isFirstInGroup ? 'mt-5' : 'mt-1';
 
     if (msg.type === 'quote_request') {
-        return <QuoteRequestBubbleCard msg={msg} activeNegotiation={activeNegotiation} handleAcceptOffer={handleAcceptOffer} handleRejectOffer={handleRejectOffer} />;
+        return (
+            <QuoteRequestBubbleCard
+                msg={msg}
+                activeNegotiation={activeNegotiation}
+                handleAcceptOffer={handleAcceptOffer}
+                handleRejectOffer={handleRejectOffer}
+                handleTogglePinMessage={handleTogglePinMessage}
+                handleDeleteMessage={handleDeleteMessage}
+                highlightedMsgId={highlightedMsgId}
+            />
+        );
     }
     if (msg.type === 'offer') {
-        return <div className={spacingClass}><CounterOfferMessage msg={msg} onAccept={handleAcceptOffer} onReject={handleRejectOffer} /></div>;
+        return (
+            <div className={`flex justify-center ${spacingClass} group relative items-center w-full px-1`}>
+                <CounterOfferMessage
+                    msg={msg}
+                    activeNegotiation={activeNegotiation}
+                    onAccept={handleAcceptOffer}
+                    onReject={handleRejectOffer}
+                    onTogglePin={() => handleTogglePinMessage(msg.id)}
+                    onDelete={() => handleDeleteMessage(msg.id)}
+                />
+            </div>
+        );
     }
     if (msg.type === 'system') {
+        const textStr = String(msg.text || (msg as any).message || "");
+        const lower = textStr.toLowerCase();
+        const isAcceptance = lower.includes("accepted") || lower.includes("confirmed") || (msg as any).status === "accepted";
+
+        if (isAcceptance) {
+            return (
+                <OfferAcceptedCelebrationCard
+                    role="supplier"
+                    messageText={textStr}
+                    time={msg.time}
+                    amount={(msg as any).proposed_amount || (msg as any).newTotal || (activeNegotiation.currentOffer || activeNegotiation.baseFreight || activeNegotiation.originalAmount || 0)}
+                    pickup={activeNegotiation.pickup}
+                    delivery={activeNegotiation.delivery}
+                    counterpartyName={activeNegotiation.customer}
+                    orderNumber={(activeNegotiation as any).orderNumber || (activeNegotiation as any).order_number}
+                />
+            );
+        }
+
         return (
             <div className={`flex justify-center ${spacingClass}`}>
                 <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-1.5 rounded-full shadow-2xs">
@@ -66,7 +107,21 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
     if (msg.isDeleted) {
         return (
             <div className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'} ${spacingClass}`}>
-                <div className="px-3.5 py-1.5 rounded-2xl text-[12.5px] italic text-slate-400 border border-slate-200/80 bg-slate-50 flex items-center gap-1.5 font-medium shadow-2xs">
+                {!isSent && (
+                    isFirstInGroup ? (
+                        <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs shadow-2xs self-start mt-0.5 shrink-0 overflow-hidden">
+                            {activeNegotiation.customerAvatar && (activeNegotiation.customerAvatar.startsWith('http') || activeNegotiation.customerAvatar.startsWith('/storage') || activeNegotiation.customerAvatar.startsWith('data:') || activeNegotiation.customerAvatar.includes('.')) ? (
+                                <img src={activeNegotiation.customerAvatar} alt="" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                            ) : (
+                                msg.avatar || activeNegotiation.customer.charAt(0).toUpperCase() || 'C'
+                            )}
+                        </div>
+                    ) : (
+                        <div className="w-7 shrink-0" aria-hidden="true" />
+                    )
+                )}
+                <div
+                    className="px-3.5 py-1.5 rounded-lg text-[12.5px] italic text-slate-400 border border-slate-200/80 bg-slate-50 flex items-center gap-1.5 font-medium shadow-2xs">
                     <Ban size={13} className="text-slate-400 shrink-0" />
                     <span>{isSent ? 'You deleted this message' : 'This message was deleted'}</span>
                 </div>
@@ -82,10 +137,18 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
 
     return (
         <div className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'} ${spacingClass} group relative`}>
-            {!isSent && isFirstInGroup && (
-                <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs shadow-2xs self-start mt-0.5">
-                    {msg.avatar || activeNegotiation.customer.charAt(0).toUpperCase()}
-                </div>
+            {!isSent && (
+                isFirstInGroup ? (
+                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs shadow-2xs self-start mt-0.5 shrink-0 overflow-hidden">
+                        {activeNegotiation.customerAvatar && (activeNegotiation.customerAvatar.startsWith('http') || activeNegotiation.customerAvatar.startsWith('/storage') || activeNegotiation.customerAvatar.startsWith('data:') || activeNegotiation.customerAvatar.includes('.')) ? (
+                            <img src={activeNegotiation.customerAvatar} alt="" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        ) : (
+                            msg.avatar || activeNegotiation.customer.charAt(0).toUpperCase() || 'C'
+                        )}
+                    </div>
+                ) : (
+                    <div className="w-7 shrink-0" aria-hidden="true" />
+                )
             )}
 
             <div
@@ -100,12 +163,6 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                             onDelete={() => handleDeleteMessage(msg.id)}
                             onStartEdit={isSent ? () => handleStartEdit(msg) : undefined}
                         />
-                    </div>
-                )}
-
-                {msg.isPinned && (
-                    <div className={`absolute -top-1.5 ${isSent ? '-left-1.5' : '-right-1.5'} w-4.5 h-4.5 bg-[#FF4A1F] text-white rounded-full flex items-center justify-center shadow-xs z-10`}>
-                        <Pin size={9} className="fill-white rotate-45" />
                     </div>
                 )}
 

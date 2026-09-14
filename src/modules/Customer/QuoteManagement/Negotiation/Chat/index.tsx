@@ -1,13 +1,16 @@
-import React, { useEffect } from 'react';
-import { useCustomerChatNegotiation } from './hooks/useCustomerChatNegotiation';
-import { useCustomerChatMessages } from './hooks/useCustomerChatMessages';
-import { CustomerChatSidebar } from './components/CustomerChatSidebar';
-import { CustomerChatDetailsPanel } from './components/CustomerChatDetailsPanel';
-import { CustomerChatSkeletonLoader } from './components/CustomerChatSkeletonLoader';
-import { CustomerChatCenterPanel } from './components/CustomerChatCenterPanel';
+import React, { useEffect, useState } from "react";
+import { useCustomerChatNegotiation } from "./hooks/useCustomerChatNegotiation";
+import { useCustomerChatMessages } from "./hooks/useCustomerChatMessages";
+import { CustomerChatSidebar } from "./components/CustomerChatSidebar";
+import { CustomerChatDetailsPanel } from "./components/CustomerChatDetailsPanel";
+import { CustomerChatSkeletonLoader } from "./components/CustomerChatSkeletonLoader";
+import { CustomerChatCenterPanel } from "./components/CustomerChatCenterPanel";
+import { QuotePaymentInstructionModal } from "./components/QuotePaymentInstructionModal";
 
 export default function CustomerNegotiationChat() {
-    const [showDetailsPanel, setShowDetailsPanel] = React.useState(true);
+    const [showDetailsPanel, setShowDetailsPanel] = useState(true);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+
     const {
         navigate,
         searchQuery,
@@ -42,9 +45,42 @@ export default function CustomerNegotiationChat() {
         handleCancelEdit
     } = useCustomerChatMessages(activeChat, allNegotiations);
 
+    // Check if the current active chat has an accepted quote but payment is pending
+    const isQuoteAccepted = Boolean(
+        activeChat?.raw?.status_raw === "accepted" ||
+        activeChat?.raw?.status === "accepted" ||
+        activeChat?.raw?.revision_status === "accepted" ||
+        currentMessages.some((m) => m.type === "quote_request" && m.status === "accepted") ||
+        currentMessages.some((m) => m.type === "offer" && m.status === "accepted")
+    );
+
+    const isOrderPaid = Boolean(
+        activeChat?.raw?.order?.status === "in_progress" ||
+        activeChat?.raw?.order?.status === "completed" ||
+        activeChat?.raw?.invoice?.status === "paid"
+    );
+
+    const dismissedChatsRef = React.useRef<Set<string | number>>(new Set());
+
+    useEffect(() => {
+        if (!activeChat) return;
+        const currentId = activeChat.id || activeChatId;
+        if (isQuoteAccepted && !isOrderPaid && !dismissedChatsRef.current.has(currentId)) {
+            setShowPaymentModal(true);
+        }
+    }, [activeChatId, isQuoteAccepted, isOrderPaid, activeChat]);
+
+    const handleDismissModal = () => {
+        if (activeChat) {
+            const currentId = activeChat.id || activeChatId;
+            dismissedChatsRef.current.add(currentId);
+        }
+        setShowPaymentModal(false);
+    };
+
     useEffect(() => {
         if (isSupplierTyping) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }
     }, [isSupplierTyping]);
 
@@ -52,9 +88,22 @@ export default function CustomerNegotiationChat() {
         return <CustomerChatSkeletonLoader />;
     }
 
+    const targetQuoteId =
+        activeChat?.raw?.quote_id ||
+        activeChat?.raw?.id ||
+        (activeChat as any)?.quoteId ||
+        activeChat?.id ||
+        activeChatId;
+
+    const targetAmount =
+        activeChat?.currentPrice ||
+        activeChat?.raw?.amount_raw ||
+        activeChat?.raw?.amount ||
+        45000;
+
     return (
-        <div className="p-4 md:p-6 w-full mx-auto h-[calc(100vh-64px)] flex flex-col font-sans">
-            <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-[500px] bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden shadow-sm">
+        <div className="p-0 sm:p-2 md:p-3 w-full mx-auto h-full flex flex-col font-sans min-h-0 overflow-hidden box-border">
+            <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-0 bg-white dark:bg-[#12161c] border-0 sm:border border-slate-200 dark:border-slate-800 rounded-none sm:rounded-lg overflow-hidden shadow-none sm:shadow-sm">
                 <CustomerChatSidebar
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
@@ -95,6 +144,16 @@ export default function CustomerNegotiationChat() {
                     showDetailsPanel={showDetailsPanel}
                 />
             </div>
+
+            {/* Auto-popup Payment Instruction & Checkout Modal */}
+            <QuotePaymentInstructionModal
+                isOpen={showPaymentModal}
+                onClose={handleDismissModal}
+                quoteId={targetQuoteId}
+                quoteAmount={targetAmount}
+                supplierName={activeChat?.carrier || activeChat?.name || "Carrier Partner"}
+                quoteData={activeChat?.raw || activeChat}
+            />
         </div>
     );
 }

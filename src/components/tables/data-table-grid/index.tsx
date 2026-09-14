@@ -70,7 +70,8 @@ export function DataTableGrid<T extends Record<string, any>>({
 
     if (data.length === 0) {
         return (
-            <div className="bg-white dark:bg-[#12161c] rounded-[3px] border border-[#ebebeb] dark:border-slate-800 p-8 text-center my-4">
+            <div
+    className="bg-white dark:bg-[#12161c] rounded-[3px] border border-slate-200 dark:border-slate-800 border border-slate-200 dark:border-slate-800-[#ebebeb] dark:border border-slate-200 dark:border-slate-800-slate-800 p-4 sm:p-8 text-center my-3 sm:my-4">
                 {emptyState ?? <EmptyState />}
             </div>
         );
@@ -173,7 +174,7 @@ export function DataTableGrid<T extends Record<string, any>>({
                                         <span className="text-slate-400 dark:text-slate-500 font-bold text-center select-none shrink-0 pt-0.5 text-[11px]">
                                             :
                                         </span>
-                                        <div className="font-semibold text-slate-800 dark:text-slate-100 min-w-0 flex-1 text-left pl-1">
+                                        <div className="font-semibold text-slate-800 dark:text-slate-100 min-w-0 flex-1 text-left pl-1 [&>div]:!justify-start [&>div]:!w-auto [&>div]:!h-auto [&_.truncate]:!whitespace-normal [&_.truncate]:!overflow-visible [&_.truncate]:!max-w-none [&_.whitespace-nowrap]:!whitespace-normal [&_.h-5]:!h-auto">
                                             {col.render ? col.render(item) : (item[col.id] !== undefined && item[col.id] !== null ? String(item[col.id]) : '-')}
                                         </div>
                                     </div>

@@ -175,10 +175,12 @@ export default function CreateTeamMemberModal({ onClose, onSuccess }: CreateTeam
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150 font-sans">
-            <div className="bg-white dark:bg-[#12161c] w-full max-w-2xl lg:max-w-3xl rounded-[5px] shadow-2xl flex flex-col h-auto max-h-[90vh] overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div
+    className="bg-white dark:bg-[#12161c] w-full max-w-2xl lg:max-w-3xl rounded-[5px] shadow-2xl flex flex-col h-auto max-h-[90vh] overflow-hidden border border-slate-200 dark:border-slate-800">
 
                 {/* Modal Header */}
-                <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-[#12161c] shrink-0">
+                <div
+    className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-[#12161c] shrink-0">
                     <div>
                         <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Add New Team Member</h2>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">Configure member credentials, department roles, and portal access.</p>
@@ -194,7 +196,8 @@ export default function CreateTeamMemberModal({ onClose, onSuccess }: CreateTeam
 
                 <div className="flex overflow-hidden h-auto">
                     {/* Sidebar Steps Progress Bar */}
-                    <div className="w-48 lg:w-52 bg-slate-50/70 dark:bg-[#181d24] border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col justify-start gap-3 shrink-0 hidden md:flex">
+                    <div
+    className="w-48 lg:w-52 bg-slate-50/70 dark:bg-[#181d24] border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col justify-start gap-3 shrink-0 hidden md:flex">
                         {STEPS.map((s) => {
                             const Icon = s.icon;
                             const isActive = step === s.id;
@@ -424,7 +427,8 @@ export default function CreateTeamMemberModal({ onClose, onSuccess }: CreateTeam
                                                 <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Review & Confirm Account</h3>
                                                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Please review member details before dispatching access.</p>
                                             </div>
-                                            <div className="bg-slate-50 dark:bg-[#181d24] rounded-md p-3.5 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                                            <div
+    className="bg-slate-50 dark:bg-[#181d24] rounded-lg p-3.5 border border-slate-200 dark:border-slate-800 space-y-2.5">
                                                 <div className="flex items-center gap-2.5">
                                                     <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-950/40 text-[#FF4A1F] flex items-center justify-center font-bold text-xs">
                                                         {(formData.firstName.charAt(0) || 'J') + (formData.lastName.charAt(0) || 'D')}
@@ -464,7 +468,8 @@ export default function CreateTeamMemberModal({ onClose, onSuccess }: CreateTeam
 
                         {/* Footer Controls */}
                         {!isSubmitted && (
-                            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex items-center justify-between shrink-0">
+                            <div
+    className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex items-center justify-between shrink-0">
                                 <Button
                                     variant="outline"
                                     className="h-8 px-3 text-xs"

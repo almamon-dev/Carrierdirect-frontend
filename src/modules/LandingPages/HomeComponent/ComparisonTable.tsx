@@ -34,7 +34,7 @@ export default function ComparisonTable() {
 
         {/* Section Title */}
         <div className="text-center mb-10">
-          <span className="text-[#ff4a1f] font-semibold tracking-wider uppercase text-xs mb-2 block">
+          <span className="text-[#ff4a1f] font-semibold tracking-wider  text-xs mb-2 block">
             Why Switch
           </span>
           <h2 className="text-[#0f0400] dark:text-slate-100 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
@@ -57,11 +57,11 @@ export default function ComparisonTable() {
             <div className="px-6 py-4 bg-gray-100/70 dark:bg-[#14181f] flex items-center justify-between border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#384150]">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-                <h3 className="text-gray-600 dark:text-slate-400 font-bold text-xs uppercase tracking-wider">
+                <h3 className="text-gray-600 dark:text-slate-400 font-bold text-xs  tracking-wider">
                   Traditional Brokers
                 </h3>
               </div>
-              <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-200/70 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
+              <span className="text-[10px] font-semibold  tracking-wider px-2 py-0.5 rounded bg-gray-200/70 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
                 Legacy
               </span>
             </div>
@@ -71,11 +71,11 @@ export default function ComparisonTable() {
               <div className="absolute inset-0 bg-gradient-to-r from-[#ff4a1f]/20 via-transparent to-[#ff4a1f]/10 pointer-events-none"></div>
               <div className="flex items-center gap-2 relative z-10">
                 <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
-                <h3 className="text-white font-bold text-xs uppercase tracking-wider">
+                <h3 className="text-white font-bold text-xs  tracking-wider">
                   Carrierdirect Platform
                 </h3>
               </div>
-              <span className="relative z-10 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#ff4a1f] text-white shadow-sm">
+              <span className="relative z-10 text-[10px] font-bold  tracking-wider px-2.5 py-0.5 rounded-full bg-[#ff4a1f] text-white shadow-sm">
                 Recommended
               </span>
             </div>

@@ -17,10 +17,11 @@ export const QuoteRequestCardDetails: React.FC<QuoteRequestCardDetailsProps> = (
     vehicleType,
     notes,
 }) => {
-    if (!isOpen) return null;
+    if (isOpen !== undefined && !isOpen) return null;
 
     return (
-        <div className="p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2 animate-in fade-in duration-150 text-[11.5px]">
+        <div
+    className="p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-[4px] border border-slate-200/70 dark:border-slate-800 space-y-2 animate-in fade-in duration-150 text-[11.5px]">
             <div className="grid grid-cols-2 gap-2">
                 <div>
                     <span className="text-[10.5px] text-slate-400 font-normal block">Pickup Date</span>

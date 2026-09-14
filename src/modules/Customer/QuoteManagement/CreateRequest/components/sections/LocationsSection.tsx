@@ -20,7 +20,7 @@ export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChang
                 
                 {/* Pickup Info */}
                 <div className="col-span-1 md:col-span-2 border-b border-slate-200/80 dark:border-slate-800 pb-3 mb-1">
-                    <h3 className="text-xs font-bold text-[#ff4a1f] uppercase tracking-wider mb-2 flex items-center gap-1.5 select-none">
+                    <h3 className="text-xs font-bold text-[#ff4a1f]  tracking-wider mb-2 flex items-center gap-1.5 select-none">
                         <MapPin size={14}/> Pickup Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-2">
@@ -40,7 +40,7 @@ export const LocationsSection: React.FC<SectionProps> = ({ formData, handleChang
                 
                 {/* Delivery Info */}
                 <div className="col-span-1 md:col-span-2 pt-1">
-                    <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5 select-none">
+                    <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400  tracking-wider mb-2 flex items-center gap-1.5 select-none">
                         <MapPin size={14}/> Delivery Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-2">

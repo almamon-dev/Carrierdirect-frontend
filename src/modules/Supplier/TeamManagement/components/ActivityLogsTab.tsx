@@ -184,28 +184,27 @@ export default function ActivityLogsTab({ headerTabs }: ActivityLogsTabProps = {
     const fetchLogs = async () => {
         setIsLoading(true);
         try {
-            // 1. Try fetching from dedicated activity-logs endpoint
+            // Fetch real activity logs for authenticated supplier from backend API
             let raw: any[] = [];
             try {
                 const res = await apiClient.get('/supplier/team/activity-logs');
-                const data = res.data?.data?.logs || res.data?.data?.activity_logs || res.data?.data || res.data?.logs || res.data;
-                if (Array.isArray(data) && data.length > 0) {
-                    raw = data;
+                const rawPayload = res.data?.data;
+                const list = Array.isArray(rawPayload?.data)
+                    ? rawPayload.data
+                    : Array.isArray(rawPayload?.logs)
+                        ? rawPayload.logs
+                        : Array.isArray(rawPayload)
+                            ? rawPayload
+                            : Array.isArray(res.data?.logs)
+                                ? res.data.logs
+                                : [];
+                if (Array.isArray(list)) {
+                    raw = list;
                 }
             } catch (err) {
-                // Fallback attempt
-                try {
-                    const res2 = await apiClient.get('/supplier/team/logs');
-                    const data2 = res2.data?.data?.logs || res2.data?.data || res2.data?.logs || res2.data;
-                    if (Array.isArray(data2) && data2.length > 0) {
-                        raw = data2;
-                    }
-                } catch {
-                    // ignore
-                }
+                console.error('Failed to fetch activity logs from API:', err);
             }
 
-            // If backend returned actual audit logs from the database:
             if (raw.length > 0) {
                 const mapped: ActivityLogItem[] = raw.map((l: any, idx: number) => {
                     const rawId = l.id || idx + 1;
@@ -223,15 +222,15 @@ export default function ActivityLogsTab({ headerTabs }: ActivityLogsTabProps = {
 
                     const rawCreatedAt = l.created_at || l.rawDate || new Date().toISOString();
                     const dateObj = new Date(rawCreatedAt);
-                    const timeFormatted = l.created_at_formatted || l.time || (isNaN(dateObj.getTime()) 
-                        ? 'Recently' 
-                        : dateObj.toLocaleDateString('en-GB', { 
-                            day: '2-digit', 
-                            month: 'short', 
+                    const timeFormatted = l.created_at_formatted || l.time || (!isNaN(dateObj.getTime())
+                        ? dateObj.toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
                             year: 'numeric',
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                        }));
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                        : 'Recently');
 
                     const userName = l.user_name || l.user?.name || l.user || l.actor || 'Staff Member';
                     const avatarStr = l.avatar || userName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
@@ -239,7 +238,7 @@ export default function ActivityLogsTab({ headerTabs }: ActivityLogsTabProps = {
                     return {
                         id: rawId,
                         rawId: rawId,
-                        logCode: l.log_code || l.logCode || `LOG-${String(rawId).padStart(4, '0')}`,
+                        logCode: l.log_code || l.logCode || ('LOG-' + String(rawId).padStart(4, '0')),
                         user: userName,
                         userRole: l.user_role || l.user?.role || l.userRole || l.role || 'Staff Member',
                         userEmail: l.user_email || l.user?.email || l.userEmail || '',
@@ -262,172 +261,9 @@ export default function ActivityLogsTab({ headerTabs }: ActivityLogsTabProps = {
                 });
 
                 setLogs(mapped);
-                return;
+            } else {
+                setLogs([]);
             }
-
-            // 2. Derive dynamic live logs from actual database records (members, invitations, roles)
-            const [membersRes, invRes, rolesRes] = await Promise.allSettled([
-                apiClient.get('/supplier/team/members'),
-                apiClient.get('/supplier/team/invitations'),
-                apiClient.get('/supplier/team/roles')
-            ]);
-
-            const dynamicLogs: ActivityLogItem[] = [];
-            let logIdx = 1;
-
-            // Live members from database
-            if (membersRes.status === 'fulfilled') {
-                const membersList = membersRes.value.data?.data?.members || membersRes.value.data?.data || membersRes.value.data || [];
-                if (Array.isArray(membersList)) {
-                    membersList.forEach((m: any) => {
-                        const mName = m.name || `${m.first_name || ''} ${m.last_name || ''}`.trim() || 'Team Member';
-                        const mRole = m.role?.name || m.role || 'Staff Member';
-                        const isBlocked = Boolean(m.is_blocked || m.status === 'blocked');
-                        const createdAt = m.created_at || new Date().toISOString();
-                        const dateObj = new Date(createdAt);
-                        const timeStr = !isNaN(dateObj.getTime())
-                            ? dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                            : 'Recently';
-
-                        dynamicLogs.push({
-                            id: `dyn-mem-${m.id || logIdx}`,
-                            rawId: m.id || logIdx,
-                            logCode: `LOG-${String(logIdx++).padStart(4, '0')}`,
-                            user: mName,
-                            userRole: mRole,
-                            userEmail: m.email || '',
-                            avatar: mName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'TM',
-                            action: isBlocked ? `Access blocked for ${mName}` : `Joined organization as ${mRole}`,
-                            rawAction: isBlocked ? 'block' : 'create',
-                            actionType: isBlocked ? 'security' : 'create',
-                            target: m.employee_id || `EMP-${m.id || logIdx}`,
-                            targetType: 'Team Member',
-                            category: 'Team',
-                            description: isBlocked 
-                                ? `Team member account was blocked. Reason: ${m.block_reason || 'Compliance restriction'}`
-                                : `Registered new active organization staff account in department "${m.department || 'Operations & Dispatch'}".`,
-                            ipAddress: m.last_ip || '192.168.1.10',
-                            location: m.location || m.city || 'HQ / Web',
-                            userAgent: 'Web Browser / HTTPS Client',
-                            status: isBlocked ? 'Warning' : 'Success',
-                            time: timeStr,
-                            timeAgo: 'Database Record',
-                            rawDate: createdAt,
-                        });
-
-                        if (m.last_active_at) {
-                            const actDate = new Date(m.last_active_at);
-                            dynamicLogs.push({
-                                id: `dyn-act-${m.id || logIdx}`,
-                                rawId: m.id || logIdx,
-                                logCode: `LOG-${String(logIdx++).padStart(4, '0')}`,
-                                user: mName,
-                                userRole: mRole,
-                                userEmail: m.email || '',
-                                avatar: mName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'TM',
-                                action: 'Session authenticated login',
-                                rawAction: 'login',
-                                actionType: 'security',
-                                target: 'Auth Portal',
-                                targetType: 'Authentication',
-                                category: 'Security',
-                                description: 'User successfully authenticated and active on portal session.',
-                                ipAddress: m.last_ip || '192.168.1.10',
-                                location: m.location || m.city || 'HQ / Web',
-                                userAgent: 'Web Browser / HTTPS Client',
-                                status: 'Success',
-                                time: !isNaN(actDate.getTime()) ? actDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recently',
-                                timeAgo: 'Database Record',
-                                rawDate: m.last_active_at,
-                            });
-                        }
-                    });
-                }
-            }
-
-            // Live invitations from database
-            if (invRes.status === 'fulfilled') {
-                const invList = invRes.value.data?.data?.invitations || invRes.value.data?.data || invRes.value.data || [];
-                if (Array.isArray(invList)) {
-                    invList.forEach((inv: any) => {
-                        const invRole = inv.role?.name || inv.role || 'Staff Member';
-                        const createdAt = inv.created_at || new Date().toISOString();
-                        const dateObj = new Date(createdAt);
-                        const timeStr = !isNaN(dateObj.getTime())
-                            ? dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                            : 'Recently';
-
-                        dynamicLogs.push({
-                            id: `dyn-inv-${inv.id || logIdx}`,
-                            rawId: inv.id || logIdx,
-                            logCode: `LOG-${String(logIdx++).padStart(4, '0')}`,
-                            user: 'Admin / System',
-                            userRole: 'Administrator',
-                            userEmail: inv.email || '',
-                            avatar: 'AD',
-                            action: `Dispatched invitation to ${inv.email}`,
-                            rawAction: 'invite',
-                            actionType: 'invite',
-                            target: inv.email,
-                            targetType: 'Invitation',
-                            category: 'Team',
-                            description: `Team invitation sent with role "${invRole}". Status: ${inv.status || 'Pending'}.`,
-                            ipAddress: '192.168.1.1',
-                            location: 'HQ Portal',
-                            userAgent: 'SMTP / Mail Service',
-                            status: inv.status === 'expired' ? 'Warning' : 'Success',
-                            time: timeStr,
-                            timeAgo: 'Database Record',
-                            rawDate: createdAt,
-                        });
-                    });
-                }
-            }
-
-            // Live custom roles from database
-            if (rolesRes.status === 'fulfilled') {
-                const rolesList = rolesRes.value.data?.data?.roles || rolesRes.value.data?.data || rolesRes.value.data || [];
-                if (Array.isArray(rolesList)) {
-                    rolesList.forEach((r: any) => {
-                        if (!r.is_default && !r.isSystemDefault) {
-                            const createdAt = r.created_at || new Date().toISOString();
-                            const dateObj = new Date(createdAt);
-                            const timeStr = !isNaN(dateObj.getTime())
-                                ? dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                                : 'Recently';
-
-                            dynamicLogs.push({
-                                id: `dyn-role-${r.id || logIdx}`,
-                                rawId: r.id || logIdx,
-                                logCode: `LOG-${String(logIdx++).padStart(4, '0')}`,
-                                user: 'Admin',
-                                userRole: 'Administrator',
-                                userEmail: '',
-                                avatar: 'AD',
-                                action: `Created custom access role "${r.name}"`,
-                                rawAction: 'create',
-                                actionType: 'create',
-                                target: r.name,
-                                targetType: 'Role Matrix',
-                                category: 'Roles',
-                                description: `Configured permissions matrix with ${r.permissions_count || (Array.isArray(r.permissions) ? r.permissions.length : 0)} access permissions.`,
-                                ipAddress: '192.168.1.1',
-                                location: 'HQ Portal',
-                                userAgent: 'Web Browser / HTTPS Client',
-                                status: 'Success',
-                                time: timeStr,
-                                timeAgo: 'Database Record',
-                                rawDate: createdAt,
-                            });
-                        }
-                    });
-                }
-            }
-
-            // Sort dynamic logs descending by date
-            dynamicLogs.sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
-
-            setLogs(dynamicLogs);
         } catch (err) {
             console.error('Failed to fetch activity logs:', err);
             setLogs([]);
@@ -784,12 +620,13 @@ export default function ActivityLogsTab({ headerTabs }: ActivityLogsTabProps = {
                     className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-2xs p-4 animate-in fade-in duration-150 font-sans"
                     onClick={() => setSelectedLog(null)}
                 >
-                    <div 
-                        className="bg-white dark:bg-[#181d24] w-full max-w-lg rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden font-sans animate-in zoom-in-95 duration-150"
+                    <div
+    className="bg-white dark:bg-[#181d24] w-full max-w-lg rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden font-sans animate-in zoom-in-95 duration-150"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                        <div
+    className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
                             <div className="flex items-center gap-2.5">
                                 <div className="w-8 h-8 rounded bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] flex items-center justify-center font-bold">
                                     <Activity size={16} />
@@ -816,7 +653,8 @@ export default function ActivityLogsTab({ headerTabs }: ActivityLogsTabProps = {
                         {/* Modal Body */}
                         <div className="p-5 space-y-4 text-xs font-sans">
                             {/* Actor Card */}
-                            <div className="p-3 bg-slate-50/80 dark:bg-slate-800/40 rounded-[4px] border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between">
+                            <div
+    className="p-3 bg-slate-50/80 dark:bg-slate-800/40 rounded-[4px] border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">
                                         {selectedLog.avatar}
@@ -832,7 +670,8 @@ export default function ActivityLogsTab({ headerTabs }: ActivityLogsTabProps = {
                             </div>
 
                             {/* Description Box */}
-                            <div className="p-3 bg-slate-50/60 dark:bg-slate-800/30 rounded-[4px] border border-slate-200/60 dark:border-slate-700/50 space-y-1">
+                            <div
+    className="p-3 bg-slate-50/60 dark:bg-slate-800/30 rounded-[4px] border border-slate-200/60 dark:border-slate-700/50 space-y-1">
                                 <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">Event Summary</span>
                                 <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
                                     {selectedLog.description}
@@ -895,7 +734,8 @@ export default function ActivityLogsTab({ headerTabs }: ActivityLogsTabProps = {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="flex items-center justify-between p-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                        <div
+    className="flex items-center justify-between p-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
                             <span className="text-[11px] text-slate-400 flex items-center gap-1 font-normal">
                                 <Clock size={12} /> {selectedLog.time}
                             </span>

@@ -7,6 +7,7 @@ export function mapRawQuoteRequest(q: any): QuoteRequest {
     return {
         id: q.request_id || q.formatted_id || (q.id ? (String(q.id).startsWith('REQ-') ? q.id : `REQ-${String(q.id).padStart(4, '0')}`) : 'REQ-0000'),
         rawId: q.rawId || q.id,
+        quoteId: q.quote_id || q.quoteId || q.my_quote?.id,
         slug: String(q.slug || q.id),
         requestDate: q.requestDate || formatDisplayDate(q.requested_date || q.pickup_date || q.created_at),
         pickupDate: q.pickupDate || (q.pickup_date ? String(q.pickup_date).replace('Pickup: ', '') : undefined),

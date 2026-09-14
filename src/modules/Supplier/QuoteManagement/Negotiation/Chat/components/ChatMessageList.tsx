@@ -76,7 +76,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
             )}
 
             {/* Scrollable Message List */}
-            <div className="flex-1 min-h-0 min-w-0 overflow-y-auto p-4 sm:p-6 flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex-1 min-h-0 min-w-0 overflow-y-auto p-2.5 sm:p-4 md:p-6 flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {currentMessages.map((msg, index) => {
                     const prevMsg = index > 0 ? currentMessages[index - 1] : null;
                     const nextMsg = index < currentMessages.length - 1 ? currentMessages[index + 1] : null;
@@ -104,13 +104,18 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                 {isCustomerTyping && (
                     <div className="flex gap-2.5 justify-start mt-3 mb-3 items-center animate-in fade-in slide-in-from-bottom-2 duration-200">
                         <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold text-xs shrink-0 shadow-2xs">
-                            {activeNegotiation.customerAvatar ? (
-                                <img src={activeNegotiation.customerAvatar} alt={activeNegotiation.customer} className="w-full h-full object-cover" />
+                            {activeNegotiation.customerAvatar && (activeNegotiation.customerAvatar.startsWith('http') || activeNegotiation.customerAvatar.startsWith('/storage') || activeNegotiation.customerAvatar.startsWith('data:') || activeNegotiation.customerAvatar.includes('.')) ? (
+                                <img
+                                    src={activeNegotiation.customerAvatar}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                                />
                             ) : (
-                                <span>{activeNegotiation.customer.charAt(0).toUpperCase()}</span>
+                                <span>{(activeNegotiation.customer || 'C').charAt(0).toUpperCase()}</span>
                             )}
                         </div>
-                        <div className="bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-2xl rounded-tl-xs flex items-center gap-1.5 shadow-2xs border border-slate-200/80 dark:border-slate-700">
+                        <div className="bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-lg rounded-tl-xs flex items-center gap-1.5 shadow-2xs border border-slate-200/80 dark:border-slate-700">
                             <span className="w-2 h-2 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                             <span className="w-2 h-2 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                             <span className="w-2 h-2 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />

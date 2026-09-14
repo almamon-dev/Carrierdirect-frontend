@@ -352,7 +352,7 @@ export default function CustomerSubscription() {
                 }`}
               >
                 {plan.popular && !plan.isCurrent && (
-                  <span className="absolute -top-2.5 right-3 bg-[#ff4a1f] text-white text-[9px] font-bold px-2 py-0.5 rounded-[3px] uppercase tracking-wider shadow-xs">
+                  <span className="absolute -top-2.5 right-3 bg-[#ff4a1f] text-white text-[9px] font-bold px-2 py-0.5 rounded-[3px]  tracking-wider shadow-xs">
                     {plan.badgeText || "Popular"}
                   </span>
                 )}
@@ -368,7 +368,7 @@ export default function CustomerSubscription() {
                       </p>
                     </div>
                     {plan.isCurrent && (
-                      <span className="shrink-0 px-1.5 py-0.5 bg-[#ff4a1f] text-white text-[9px] font-bold rounded-[3px] uppercase tracking-wider">
+                      <span className="shrink-0 px-1.5 py-0.5 bg-[#ff4a1f] text-white text-[9px] font-bold rounded-[3px]  tracking-wider">
                         Active
                       </span>
                     )}
@@ -450,7 +450,8 @@ export default function CustomerSubscription() {
             </Button>
           </CardHeader>
           <CardContent className="p-3.5">
-            <div className="p-3 bg-slate-50 rounded-[3px] border border-slate-200/80 flex items-center justify-between">
+            <div
+    className="p-3 bg-slate-50 rounded-[3px] border border-slate-200/80 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-[3px] bg-slate-900 text-white flex items-center justify-center font-bold text-[10px]">
                   CARD

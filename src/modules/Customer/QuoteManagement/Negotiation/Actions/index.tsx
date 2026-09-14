@@ -27,7 +27,7 @@ export default function ChatInputActions({
     scrollToBottom: () => void;
     onSendMessage?: (text: string, files?: File[]) => void;
     onSendCounterOffer?: (amount: number, note: string) => void;
-    onTyping?: () => void;
+    onTyping?: (isTyping?: boolean) => void;
     isSupplier?: boolean;
     isEditing?: boolean;
     onCancelEdit?: () => void;
@@ -69,7 +69,8 @@ export default function ChatInputActions({
     const hasContent = Boolean(inputValue.trim() || selectedFiles.length > 0);
 
     return (
-        <div className="relative border-t border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-[#181d24] transition-colors">
+        <div
+    className="relative border-t border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-[#181d24] transition-colors shrink-0">
             <ChatInputBanners
                 fileErrorMessage={fileErrorMessage}
                 setFileErrorMessage={setFileErrorMessage}
@@ -97,14 +98,25 @@ export default function ChatInputActions({
                     onAddEmoji={handleAddEmoji}
                 />
 
-                <div className="flex-1 min-w-0 bg-slate-100/90 dark:bg-[#232a34] rounded-[22px] px-3.5 py-2 border border-transparent focus-within:border-slate-300 dark:focus-within:border-slate-600 focus-within:bg-white dark:focus-within:bg-[#1c222b] focus-within:ring-2 focus-within:ring-slate-300/30 dark:focus-within:ring-slate-700/50 transition-all flex items-center">
+                <div
+    className="flex-1 min-w-0 bg-slate-100/90 dark:bg-[#232a34] rounded-[22px] px-3.5 py-2 border border-transparent focus-within:border-slate-300 dark:focus-within:border-slate-600 focus-within:bg-white dark:focus-within:bg-[#1c222b] focus-within:ring-2 focus-within:ring-slate-300/30 dark:focus-within:ring-slate-700/50 transition-all flex items-center">
                     <textarea
                         ref={textareaRef}
                         rows={1}
                         value={inputValue}
                         onChange={e => {
-                            setInputValue(e.target.value);
-                            if (onTyping) onTyping();
+                            const val = e.target.value;
+                            setInputValue(val);
+                            if (onTyping) {
+                                if (val.trim().length > 0) {
+                                    onTyping(true);
+                                } else {
+                                    onTyping(false);
+                                }
+                            }
+                        }}
+                        onBlur={() => {
+                            if (onTyping) onTyping(false);
                         }}
                         onKeyDown={handleKeyDown}
                         placeholder={isEditing ? 'Update your message...' : 'Type a message...'}

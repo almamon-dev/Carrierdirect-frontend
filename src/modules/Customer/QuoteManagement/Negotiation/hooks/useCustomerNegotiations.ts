@@ -39,8 +39,20 @@ export const useCustomerNegotiations = () => {
                     const supplierName = n.sender_name || n.supplier_name || n.supplier?.name || n.company_name || 'Carrier Partner';
                     const avatarUrl = n.profile_picture || n.supplier?.profile_picture || '';
 
-                    const origPrice = Number(n.base_amount_raw ?? n.base_amount ?? n.amount_raw ?? n.amount ?? 0);
-                    const currentPrice = Number(n.revised_amount_raw ?? n.revised_amount ?? n.amount_raw ?? n.amount ?? origPrice);
+                    const extraCharges = Array.isArray(n.extra_charges) ? n.extra_charges.map((c: any) => ({
+                        id: c.id,
+                        type: c.type || c.custom_name || "Extra Service",
+                        custom_name: c.custom_name || c.customName || c.type || "Extra Service",
+                        label: c.type === "Custom" ? (c.custom_name || "Extra Service") : (c.type || "Extra Service"),
+                        amount: Number(c.amount || 0)
+                    })).filter((c: any) => c.amount > 0) : [];
+                    const totalExtras = extraCharges.reduce((sum: number, c: any) => sum + (Number(c.amount) || 0), 0);
+                    const currentPrice = Number(n.revised_amount_raw ?? n.revised_amount ?? n.amount_raw ?? n.amount ?? 0);
+                    const origPrice = Number(
+                        n.base_amount_raw ??
+                        (n.base_amount ? parseFloat(String(n.base_amount).replace(/[^0-9.]/g, "")) : (currentPrice > totalExtras && totalExtras > 0 ? currentPrice - totalExtras : currentPrice))
+                    );
+                    const baseFreightAmount = origPrice;
 
                     const pickupLoc = n.origin || n.pickup_address || n.pickup || 'Pickup Location';
                     const deliveryLoc = n.destination || n.delivery_address || n.delivery || 'Delivery Destination';
@@ -82,6 +94,9 @@ export const useCustomerNegotiations = () => {
                         budget: `€ ${Number(origPrice || currentPrice).toLocaleString()}`,
                         originalAmount: origPrice,
                         currentOffer: currentPrice,
+                        baseFreightAmount: baseFreightAmount,
+                        extraCharges: extraCharges,
+                        totalExtras: totalExtras,
                         currency: '€',
                         priority: n.priority || (statusLabel === 'Counter Received' ? 'Urgent' : 'Normal'),
                         lastUpdated: n.time_ago || 'Recently',
@@ -96,6 +111,9 @@ export const useCustomerNegotiations = () => {
                         deliveryDate: n.delivery_date,
                         notes: n.message_snippet || n.notes,
                         declineReason: n.decline_reason || n.declineReason,
+                        isOnline: Boolean(n.is_online),
+                        lastSeenHuman: n.last_seen_human || (n.is_online ? "Active now" : "Offline"),
+                        lastSeenAt: n.last_seen_at,
                     };
                 });
                 setNegotiations(mapped);

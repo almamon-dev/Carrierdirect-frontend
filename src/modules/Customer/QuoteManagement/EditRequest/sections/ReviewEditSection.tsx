@@ -31,7 +31,8 @@ export const ReviewEditSection: React.FC<ReviewEditSectionProps> = ({
         <div className="space-y-4 animate-in fade-in duration-300">
             <TabHeader title="Review & Update Request" icon={CheckCircle2} />
 
-            <div className="bg-slate-50/80 dark:bg-[#181d24] border border-slate-200 dark:border-slate-800 rounded-md p-4 space-y-3.5 text-xs">
+            <div
+    className="bg-slate-50/80 dark:bg-[#181d24] border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3.5 text-xs">
                 {/* Header Info */}
                 <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div>
@@ -48,19 +49,21 @@ export const ReviewEditSection: React.FC<ReviewEditSectionProps> = ({
 
                 {/* Route */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 py-1">
-                    <div className="flex items-start gap-2 bg-white dark:bg-[#1e2329] p-2.5 rounded border border-slate-200/80 dark:border-slate-800">
+                    <div
+    className="flex items-start gap-2 bg-white dark:bg-[#1e2329] p-2.5 rounded border border-slate-200/80 dark:border-slate-800">
                         <MapPin size={15} className="text-emerald-500 shrink-0 mt-0.5" />
                         <div>
-                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Pickup</span>
+                            <span className="text-[11px] font-bold text-slate-400  tracking-wider block">Pickup</span>
                             <span className="font-semibold text-slate-800 dark:text-slate-200 block">{pickupLocation}</span>
                             <span className="text-[11px] text-slate-500">{formData.pickupDate} {formData.pickupTime && `at ${formData.pickupTime}`}</span>
                         </div>
                     </div>
 
-                    <div className="flex items-start gap-2 bg-white dark:bg-[#1e2329] p-2.5 rounded border border-slate-200/80 dark:border-slate-800">
+                    <div
+    className="flex items-start gap-2 bg-white dark:bg-[#1e2329] p-2.5 rounded border border-slate-200/80 dark:border-slate-800">
                         <MapPin size={15} className="text-red-500 shrink-0 mt-0.5" />
                         <div>
-                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Delivery</span>
+                            <span className="text-[11px] font-bold text-slate-400  tracking-wider block">Delivery</span>
                             <span className="font-semibold text-slate-800 dark:text-slate-200 block">{deliveryLocation}</span>
                             <span className="text-[11px] text-slate-500">{formData.deliveryDate || 'Flexible'} {formData.deliveryTime && `at ${formData.deliveryTime}`}</span>
                         </div>
@@ -69,27 +72,32 @@ export const ReviewEditSection: React.FC<ReviewEditSectionProps> = ({
 
                 {/* Cargo & Budget */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-1 border-t border-slate-200 dark:border-slate-800 pt-2.5">
-                    <div className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Vehicle</span>
+                    <div
+    className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
+                        <span className="text-[10px] text-slate-400 font-bold  block">Vehicle</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate block">{formData.vehicleType || '-'}</span>
                     </div>
-                    <div className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Weight / Pallets</span>
+                    <div
+    className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
+                        <span className="text-[10px] text-slate-400 font-bold  block">Weight / Pallets</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs block">{formData.weight ? `${formData.weight} kg` : '-'} / {formData.palletsCount || '-'}</span>
                     </div>
-                    <div className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Target Budget</span>
+                    <div
+    className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
+                        <span className="text-[10px] text-slate-400 font-bold  block">Target Budget</span>
                         <span className="font-bold text-[#ff4a1f] text-xs block">{formData.budget ? `${formData.currency}${formData.budget}` : 'Negotiable'}</span>
                     </div>
-                    <div className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Services Active</span>
+                    <div
+    className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
+                        <span className="text-[10px] text-slate-400 font-bold  block">Services Active</span>
                         <span className="font-semibold text-emerald-600 text-xs block">{servicesCount} selected</span>
                     </div>
                 </div>
             </div>
 
             {/* Action Bar */}
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-md p-4 space-y-3">
+            <div
+    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
                 <div className="flex flex-col sm:flex-row gap-2.5">
                     <Button
                         variant="primary"

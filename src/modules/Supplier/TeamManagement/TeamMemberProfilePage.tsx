@@ -121,7 +121,8 @@ export default function TeamMemberProfilePage() {
 
     if (isLoading) {
         return (
-            <div className="p-3.5 sm:p-4 w-full mx-auto min-h-[200px] h-auto bg-[#f8fafc] dark:bg-[#12161c] flex items-center justify-center font-sans">
+            <div
+    className="p-3.5 sm:p-4 w-full mx-auto min-h-[200px] h-auto bg-[#f8fafc] dark:bg-[#12161c] flex items-center justify-center font-sans">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#ff4a1f]" />
             </div>
         );
@@ -129,8 +130,10 @@ export default function TeamMemberProfilePage() {
 
     if (!member) {
         return (
-            <div className="p-3.5 sm:p-4 w-full mx-auto h-auto bg-[#f8fafc] dark:bg-[#12161c] space-y-2 font-sans">
-                <div className="bg-white dark:bg-[#1e2329] p-5 rounded-md border border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500">
+            <div
+    className="p-3.5 sm:p-4 w-full mx-auto h-auto bg-[#f8fafc] dark:bg-[#12161c] space-y-2 font-sans">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-5 rounded-lg border border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500">
                     Team Member not found.
                 </div>
             </div>
@@ -160,7 +163,8 @@ export default function TeamMemberProfilePage() {
     ];
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-4 h-auto font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-4 md:p-6 w-full mx-auto space-y-4 h-auto font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
@@ -196,7 +200,8 @@ export default function TeamMemberProfilePage() {
 
                 {/* Left Column: Member Card & Quick Actions */}
                 <div className="w-full lg:w-[300px] xl:w-[320px] shrink-0 space-y-2.5 h-auto">
-                    <div className="bg-white dark:bg-[#12161c] rounded-md border border-[#ebebeb] dark:border-slate-800 p-3.5 space-y-3 shadow-none h-auto">
+                    <div
+    className="bg-white dark:bg-[#12161c] rounded-lg border border-slate-200 dark:border-slate-800 border border-slate-200 dark:border-slate-800-[#ebebeb] dark:border border-slate-200 dark:border-slate-800-slate-800 p-3.5 space-y-3 shadow-none h-auto">
                         {/* Avatar & Core Identity */}
                         <div className="flex flex-col items-center text-center pb-2.5 border-b border-slate-100 dark:border-slate-800">
                             <div className="w-13 h-13 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm font-bold flex items-center justify-center mb-2 shadow-inner">
@@ -317,7 +322,8 @@ export default function TeamMemberProfilePage() {
                 </div>
 
                 {/* Right Column: Clean Single Card for Rules & Permissions */}
-                <div className="flex-1 w-full min-w-0 bg-white dark:bg-[#12161c] rounded-[3px] border border-[#ebebeb] dark:border-slate-800 shadow-none h-auto">
+                <div
+    className="flex-1 w-full min-w-0 bg-white dark:bg-[#12161c] rounded-[3px] border border-slate-200 dark:border-slate-800 border border-slate-200 dark:border-slate-800-[#ebebeb] dark:border border-slate-200 dark:border-slate-800-slate-800 shadow-none h-auto">
 
                     {/* Bottom: Clean Flat 3-Column Permissions Matrix (No Inner Boxes!) */}
                     <div className="p-4 space-y-3">

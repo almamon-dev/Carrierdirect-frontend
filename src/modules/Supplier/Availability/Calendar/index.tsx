@@ -101,7 +101,8 @@ export default function Calendar() {
     };
 
     return (
-        <div className="p-3 md:p-4 w-full mx-auto space-y-3 min-h-screen flex flex-col bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-3 md:p-4 w-full mx-auto space-y-3 min-h-screen flex flex-col bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                 <div>
@@ -167,7 +168,8 @@ export default function Calendar() {
                     {/* Calendar Grid */}
                     <div className="p-0 flex-1 flex flex-col">
                         {/* Weekday Headers */}
-                        <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
+                        <div
+    className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
                             {WEEKDAYS.map((day, i) => (
                                 <div key={i} className="py-1.5 text-center text-[10px] font-bold text-slate-500 border-r border-slate-100 last:border-r-0">
                                     {day}
@@ -176,7 +178,8 @@ export default function Calendar() {
                         </div>
 
                         {/* Days Grid */}
-                        <div className="grid grid-cols-7 border-b border-slate-100 bg-white flex-1">
+                        <div
+    className="grid grid-cols-7 border-b border-slate-100 bg-white flex-1">
                             {days.map((date, i) => {
                                 if (!date) {
                                     return <div key={i} className="min-h-[70px] bg-slate-50/50 border-b border-r border-slate-100 last:border-r-0"></div>;
@@ -200,7 +203,7 @@ export default function Calendar() {
                                             {dayData ? (
                                                 <>
                                                     {dayData.status === 'unavailable' && (
-                                                        <div className="group relative bg-red-50 border border-red-100 text-red-700 px-1.5 py-1 rounded-[3px] text-[9px] font-bold leading-tight flex items-start gap-1 cursor-help">
+                                                        <div className="group relative bg-red-50 border border-red-100 text-red-700 px-1.5 py-1 rounded-lg text-[9px] font-bold leading-tight flex items-start gap-1 cursor-help">
                                                             <X size={10} className="shrink-0 mt-0.5" />
                                                             <span className="truncate">{dayData.reason}</span>
                                                             
@@ -212,7 +215,7 @@ export default function Calendar() {
                                                         </div>
                                                     )}
                                                     {dayData.status === 'booked' && (
-                                                        <div className="group relative bg-slate-100 border border-slate-200 text-slate-700 px-1.5 py-1 rounded-[3px] text-[9px] font-bold leading-tight flex items-start gap-1 cursor-help">
+                                                        <div className="group relative bg-slate-100 border border-slate-200 text-slate-700 px-1.5 py-1 rounded-lg text-[9px] font-bold leading-tight flex items-start gap-1 cursor-help">
                                                             <Check size={10} className="shrink-0 mt-0.5" />
                                                             <span className="truncate">{dayData.reason}</span>
                                                             
@@ -224,7 +227,7 @@ export default function Calendar() {
                                                         </div>
                                                     )}
                                                     {dayData.status === 'partial' && (
-                                                        <div className="group relative bg-amber-50 border border-amber-100 text-amber-700 px-1.5 py-1 rounded-[3px] text-[9px] font-bold leading-tight flex items-start gap-1 cursor-help">
+                                                        <div className="group relative bg-amber-50 border border-amber-100 text-amber-700 px-1.5 py-1 rounded-lg text-[9px] font-bold leading-tight flex items-start gap-1 cursor-help">
                                                             <Clock size={10} className="shrink-0 mt-0.5" />
                                                             <span className="truncate">{dayData.reason}</span>
                                                             
@@ -251,7 +254,8 @@ export default function Calendar() {
                     </div>
 
                     {/* Legend */}
-                    <div className="px-3 py-2 bg-white flex flex-wrap items-center gap-4">
+                    <div
+    className="px-3 py-2 bg-white flex flex-wrap items-center gap-4">
                         <div className="flex items-center gap-1.5">
                             <div className="w-2.5 h-2.5 rounded-[2px] bg-emerald-500 border border-emerald-600"></div>
                             <span className="text-[10px] font-semibold text-slate-600">Available</span>
@@ -261,7 +265,8 @@ export default function Calendar() {
                             <span className="text-[10px] font-semibold text-slate-600">Partial</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-[2px] bg-slate-500 border border-slate-600"></div>
+                            <div
+    className="w-2.5 h-2.5 rounded-[2px] bg-slate-500 border border-slate-200 dark:border-slate-800 border border-slate-200 dark:border-slate-800-slate-600"></div>
                             <span className="text-[10px] font-semibold text-slate-600">Booked</span>
                         </div>
                         <div className="flex items-center gap-1.5">

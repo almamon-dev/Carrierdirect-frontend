@@ -36,7 +36,8 @@ export default function RequestList() {
     const columns = useMemo(() => getCustomerColumns(navigate), [navigate]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">

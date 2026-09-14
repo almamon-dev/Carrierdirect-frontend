@@ -94,7 +94,8 @@ export default function SubscriptionCheckout() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
-              <div className="p-3 bg-slate-50 rounded-[3px] border border-orange-200 flex items-center justify-between">
+              <div
+    className="p-3 bg-slate-50 rounded-[3px] border border-orange-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-[3px] bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                     CARD
@@ -111,10 +112,11 @@ export default function SubscriptionCheckout() {
         </div>
 
         <div>
-          <div className="bg-white rounded-[3px] border border-slate-200 shadow-2xs overflow-hidden sticky top-4">
+          <div
+    className="bg-white rounded-[3px] border border-slate-200 shadow-2xs overflow-hidden sticky top-4">
             <div className="p-4 bg-slate-900 text-white flex justify-between items-center">
               <div>
-                <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-[#ff4a1f]">Selected Plan</span>
+                <span className="text-[9.5px] font-extrabold  tracking-wider text-[#ff4a1f]">Selected Plan</span>
                 <h3 className="text-sm font-bold mt-0.5">{selectedPlanFromState.name}</h3>
               </div>
               <Badge className="bg-orange-50 text-[#ff4a1f] border border-orange-200 text-[10px] font-bold px-2 py-0.5">
@@ -226,7 +228,8 @@ export default function SubscriptionCheckout() {
 
       {isSuccessModalOpen && (
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
-          <div className="bg-white rounded-[5px] max-w-md w-full border border-slate-200 shadow-2xl p-6 text-center space-y-4 relative overflow-hidden">
+          <div
+    className="bg-white rounded-[5px] max-w-md w-full border border-slate-200 shadow-2xl p-6 text-center space-y-4 relative overflow-hidden">
             <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center border-4 border-emerald-50 shadow-inner">
               <CheckCircle2 size={32} className="text-emerald-600 animate-pulse" />
             </div>

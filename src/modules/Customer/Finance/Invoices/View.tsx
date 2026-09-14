@@ -41,7 +41,8 @@ export default function InvoiceView({ onBack, invoice }: InvoiceViewProps) {
     };
 
     return (
-        <div className="p-3 md:p-5 w-full mx-auto min-h-screen bg-slate-50/50 flex flex-col items-center font-sans antialiased pb-16">
+        <div
+    className="p-3 md:p-5 w-full mx-auto min-h-screen bg-slate-50/50 flex flex-col items-center font-sans antialiased pb-16">
             {/* Top Navigation & Action Bar */}
             <div className="w-full max-w-2xl flex flex-wrap items-center justify-between gap-2 mb-3">
                 <Button 
@@ -80,12 +81,13 @@ export default function InvoiceView({ onBack, invoice }: InvoiceViewProps) {
             </div>
 
             {/* Enterprise Compact Invoice Paper Container */}
-            <div className="w-full max-w-2xl bg-white shadow-2xs rounded-lg border border-slate-200 p-4 md:p-5 space-y-4">
+            <div
+    className="w-full max-w-2xl bg-white shadow-2xs rounded-lg border border-slate-200 p-4 md:p-5 space-y-4">
                 {/* Header & Logo */}
                 <div className="flex justify-between items-start gap-4 pb-4 border-b border-slate-100">
                     <div>
                         <div className="flex items-center gap-1.5 mb-1">
-                            <div className="w-6 h-6 bg-[#ff4a1f] rounded-md flex items-center justify-center shadow-2xs">
+                            <div className="w-6 h-6 bg-[#ff4a1f] rounded-lg flex items-center justify-center shadow-2xs">
                                 <span className="text-white font-black text-xs leading-none">G</span>
                             </div>
                             <span className="text-base font-bold text-slate-900 tracking-tight">GetItMoving</span>
@@ -103,7 +105,7 @@ export default function InvoiceView({ onBack, invoice }: InvoiceViewProps) {
 
                     <div className="text-right space-y-1">
                         <div>
-                            <span className="text-[10px] font-bold text-[#ff4a1f] tracking-wider uppercase">TAX INVOICE</span>
+                            <span className="text-[10px] font-bold text-[#ff4a1f] tracking-wider ">TAX INVOICE</span>
                             <h1 className="text-base font-extrabold text-slate-900 tracking-tight">{invoiceData.id}</h1>
                         </div>
 
@@ -140,7 +142,8 @@ export default function InvoiceView({ onBack, invoice }: InvoiceViewProps) {
 
                 {/* Billed To & Payment Method Info */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
-                    <div className="bg-slate-50/80 p-3 rounded-md border border-slate-200/80 space-y-0.5">
+                    <div
+    className="bg-slate-50/80 p-3 rounded-lg border border-slate-200/80 space-y-0.5">
                         <span className="text-[10.5px] font-bold text-slate-500 flex items-center gap-1 mb-1">
                             <Building2 size={12} className="text-[#ff4a1f]" /> Billed To
                         </span>
@@ -150,7 +153,8 @@ export default function InvoiceView({ onBack, invoice }: InvoiceViewProps) {
                         <p className="text-slate-500">Supplier: {invoiceData.supplier || 'Express Freight Logistics'}</p>
                     </div>
 
-                    <div className="bg-slate-50/80 p-3 rounded-md border border-slate-200/80 space-y-0.5">
+                    <div
+    className="bg-slate-50/80 p-3 rounded-lg border border-slate-200/80 space-y-0.5">
                         <span className="text-[10.5px] font-bold text-slate-500 flex items-center gap-1 mb-1">
                             <ShieldCheck size={12} className="text-[#ff4a1f]" /> Payment Information
                         </span>
@@ -162,7 +166,7 @@ export default function InvoiceView({ onBack, invoice }: InvoiceViewProps) {
                 </div>
 
                 {/* Itemized Invoice Table */}
-                <div className="rounded-md border border-slate-200 overflow-hidden">
+                <div className="rounded-lg border border-slate-200 overflow-hidden">
                     <table className="w-full text-[11px] text-left">
                         <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
                             <tr>
@@ -195,7 +199,8 @@ export default function InvoiceView({ onBack, invoice }: InvoiceViewProps) {
 
                 {/* Subtotal & Financial Breakdown */}
                 <div className="flex justify-end">
-                    <div className="w-full sm:w-64 space-y-1.5 text-[11px] bg-slate-50/50 p-3 rounded-md border border-slate-200/80">
+                    <div
+    className="w-full sm:w-64 space-y-1.5 text-[11px] bg-slate-50/50 p-3 rounded-lg border border-slate-200/80">
                         <div className="flex justify-between text-slate-600">
                             <span>Subtotal:</span>
                             <span className="font-semibold text-slate-900">{invoiceData.amount}</span>

@@ -116,7 +116,8 @@ export default function Drawer({
 
         {/* Footer */}
         {footer && (
-          <div className="px-4 py-3 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-end gap-3">
+          <div
+    className="px-4 py-3 border-t border-slate-100 bg-slate-50 shrink-0 flex items-center justify-end gap-3">
             {footer}
           </div>
         )}

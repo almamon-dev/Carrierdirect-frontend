@@ -146,7 +146,7 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
             {/* Search Box */}
             <div className="px-3 pt-3 pb-2">
                 <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                     <input
                         type="text"
                         placeholder="Search conversations..."

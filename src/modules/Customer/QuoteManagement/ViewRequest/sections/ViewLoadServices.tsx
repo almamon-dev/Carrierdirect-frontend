@@ -56,7 +56,7 @@ export const ViewLoadServices: React.FC<ViewLoadServicesProps> = ({ formData }) 
                 <ViewField label="Total Volume" value={`${formData.volume} CBM`} />
 
                 <SectionHeader title="Cargo Item Dimensions" icon={Box} />
-                <div className="col-span-1 md:col-span-2 overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-md">
+                <div className="col-span-1 md:col-span-2 overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
                     <table className="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-bold">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Send, Truck } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import FormLabel from '@/components/ui/label';
@@ -26,6 +27,7 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
     requestDetails,
     onSubmittedSuccess,
 }) => {
+    const navigate = useNavigate();
     const [price, setPrice] = useState<string>('');
     const [extraCharges, setExtraCharges] = useState<ExtraChargeItem[]>([]);
     const [notes, setNotes] = useState<string>('');
@@ -36,20 +38,35 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
 
     const { isStripeConnected, isCheckingConnect, showConnectModal, setShowConnectModal } = useStripeConnectCheck();
 
-    const isExpired = Boolean(
+    const isWon = Boolean(
+        (requestDetails as any).is_won ||
+        (requestDetails.status || '').toLowerCase() === 'won' ||
+        (requestDetails.status || '').toLowerCase() === 'booked' ||
+        (requestDetails as any).quote_submitted?.status === 'accepted' ||
+        (requestDetails as any).quote_submitted?.status === 'won'
+    );
+
+    const isExpired = !isWon && Boolean(
         (requestDetails as any).is_expired ||
         (requestDetails.status || '').toLowerCase() === 'expired' ||
         (requestDetails.status || '').toLowerCase() === 'cancelled' ||
-        (requestDetails.status || '').toLowerCase() === 'completed' ||
+        (requestDetails.status || '').toLowerCase() === 'lost' ||
         (requestDetails as any).can_submit_quote === false
     );
 
     useEffect(() => {
-        if (!price && requestDetails.budget && requestDetails.budget !== '—' && requestDetails.budget !== 'Open / Flexible' && requestDetails.budget !== 'Negotiable') {
+        const submitted = (requestDetails as any).quote_submitted;
+        if (submitted && submitted.amount) {
+            setPrice(String(submitted.amount));
+            if (submitted.notes) setNotes(submitted.notes);
+            if (submitted.extra_charges && Array.isArray(submitted.extra_charges)) {
+                setExtraCharges(submitted.extra_charges);
+            }
+        } else if (!price && requestDetails.budget && requestDetails.budget !== '—' && requestDetails.budget !== 'Open / Flexible' && requestDetails.budget !== 'Negotiable') {
             const numeric = requestDetails.budget.replace(/[^0-9.]/g, '');
             if (numeric && parseFloat(numeric) > 0) setPrice(numeric);
         }
-    }, [requestDetails.budget]);
+    }, [requestDetails]);
 
     const { isSubmitting, errorMessage, calculateTotal, handleSubmit } = useQuoteSubmit({
         slug,
@@ -61,14 +78,14 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
         paymentTerm,
         customPaymentTerm,
         notes,
-        isExpired,
+        isExpired: isExpired || isWon,
         isStripeConnected,
         setShowConnectModal,
         onSubmittedSuccess,
     });
 
     const applyBudgetPreset = () => {
-        if (isExpired) return;
+        if (isExpired || isWon) return;
         const numericBudget = (requestDetails.budget || '').replace(/[^0-9.]/g, '');
         if (numericBudget) setPrice(numericBudget);
         else setPrice('450');
@@ -78,9 +95,11 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
     const totalAmountNum = parseFloat(calculateTotal()) || 0;
 
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[3px] shadow-2xs p-3.5 sm:p-4 space-y-3 sticky top-6 font-sans w-full overflow-hidden">
+        <div
+    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs p-3 sm:p-4 space-y-3 sticky top-6 font-sans w-full overflow-hidden">
             <OfferFormHeader
                 requestId={requestDetails.id}
+                isWon={isWon}
                 isExpired={isExpired}
                 errorMessage={errorMessage}
                 isStripeConnected={isStripeConnected}
@@ -90,57 +109,74 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
 
             <div className="space-y-1">
                 <div className="flex justify-between items-center text-xs">
-                    <FormLabel required className="font-semibold text-slate-800 dark:text-slate-200 mb-0 text-xs">Base Freight Price</FormLabel>
+                    <FormLabel required className="font-semibold text-slate-800 dark:text-slate-200 mb-0 text-xs shrink-0">Base Freight Price</FormLabel>
                     {requestDetails.budget && requestDetails.budget !== '—' && (
-                        <div className="flex items-center gap-1.5 text-[11px]">
+                        <div className="flex items-center gap-1.5 text-[11px] truncate">
                             <span className="text-slate-400">Budget: <strong className="font-semibold text-slate-700 dark:text-slate-300">{requestDetails.budget}</strong></span>
-                            {!isExpired && <button type="button" onClick={applyBudgetPreset} className="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium hover:underline cursor-pointer">(Match)</button>}
+                            {!isExpired && !isWon && <button type="button" onClick={applyBudgetPreset} className="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium hover:underline cursor-pointer">(Match)</button>}
                         </div>
                     )}
                 </div>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 font-medium text-xs">€</div>
-                    <Input id="offer-price-input" type="number" disabled={isExpired} placeholder="0.00" className="pl-6 pr-11 font-semibold text-xs !h-8 border-slate-300 dark:border-slate-700 rounded-[3px]" value={price} onChange={(e) => setPrice(e.target.value)} />
-                    <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400 text-[11px] font-normal">EUR</div>
-                </div>
+                <Input
+                    id="offer-price-input"
+                    type="number"
+                    disabled={isExpired || isWon}
+                    placeholder="0.00"
+                    icon={<span className="text-slate-400 dark:text-slate-500 font-medium text-xs">€</span>}
+                    rightIcon={<span className="text-slate-400 text-[11px] font-normal">EUR</span>}
+                    className="font-semibold text-xs !h-8 border-slate-300 dark:border-slate-700 rounded-[3px]"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                />
             </div>
 
-            {!isExpired && <ExtraChargesSection extraCharges={extraCharges} onChange={setExtraCharges} />}
+            {!isExpired && !isWon && <ExtraChargesSection extraCharges={extraCharges} onChange={setExtraCharges} />}
 
             <OfferTermsSection
                 validity={validity} setValidity={setValidity}
                 customValidity={customValidity} setCustomValidity={setCustomValidity}
                 paymentTerm={paymentTerm} setPaymentTerm={setPaymentTerm}
                 customPaymentTerm={customPaymentTerm} setCustomPaymentTerm={setCustomPaymentTerm}
-                isExpired={isExpired}
+                isExpired={isExpired || isWon}
             />
 
-            <CommercialRemarksSection notes={notes} onChange={setNotes} isExpired={isExpired} />
+            <CommercialRemarksSection notes={notes} onChange={setNotes} isExpired={isExpired || isWon} />
 
             {totalAmountNum > 0 && (
                 <PriceBreakdownCard
                     basePrice={basePriceNum}
                     extraCharges={extraCharges}
                     totalAmount={totalAmountNum}
-                    isExpired={isExpired}
+                    isExpired={isExpired || isWon}
                     isStripeConnected={isStripeConnected}
                     onOpenConnect={() => setShowConnectModal(true)}
                 />
             )}
 
             <div className="pt-1 space-y-1">
-                <Button 
-                    variant="primary" 
-                    className={`w-full h-8 text-xs font-medium shadow-2xs rounded-[3px] flex items-center justify-center gap-1.5 ${
-                        isExpired ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed' : 'bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer'
-                    }`}
-                    icon={!isSubmitting && !isExpired ? <Send size={12} /> : undefined}
-                    isLoading={isSubmitting}
-                    onClick={handleSubmit}
-                    disabled={isExpired || totalAmountNum <= 0 || isSubmitting}
-                >
-                    {isExpired ? 'Quote Request Expired (Closed)' : `Submit Commercial Offer (€ ${calculateTotal()})`}
-                </Button>
+                {isWon ? (
+                    <Button 
+                        variant="primary" 
+                        className="w-full h-8.5 sm:h-9 text-xs font-semibold shadow-2xs rounded-[3px] flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                        icon={<Truck size={13} />}
+                        onClick={() => navigate('/supplier/orders/active-jobs')}
+                    >
+                        View Order in Active Jobs
+                    </Button>
+                ) : (
+                    <Button 
+                        variant="primary" 
+                        className={`w-full h-8.5 sm:h-9 text-xs font-semibold shadow-2xs rounded-[3px] flex items-center justify-center gap-1.5 ${
+                            isExpired ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed' : 'bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer'
+                        }`}
+                        icon={!isSubmitting && !isExpired ? <Send size={12} /> : undefined}
+                        isLoading={isSubmitting}
+                        onClick={handleSubmit}
+                        disabled={isExpired || totalAmountNum <= 0 || isSubmitting}
+                    >
+                        {isExpired ? 'Quote Request Expired (Closed)' : totalAmountNum > 0 ? `Submit Commercial Offer (€ ${totalAmountNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})` : 'Submit Commercial Offer'}
+                    </Button>
+                )}
             </div>
 
             <SupplierAccountConnectModal isOpen={showConnectModal} onClose={() => setShowConnectModal(false)} requestId={requestDetails.id} />

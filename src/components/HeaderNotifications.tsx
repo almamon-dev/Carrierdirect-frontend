@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
     Bell, CheckCheck, Check, Trash2, FileText, Package,
     MessageSquare, Euro, AlertTriangle, ExternalLink,
-    CheckCircle2, Clock, Sparkles
+    CheckCircle2, Clock, Sparkles, MoreVertical, Copy
 } from 'lucide-react';
 import { useHeaderNotifications, HeaderNotification, normalizeNotifLink } from '@/hooks/useHeaderNotifications';
 
@@ -50,6 +51,8 @@ const getNotificationIcon = (type: HeaderNotification['type']) => {
 export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role = 'supplier' }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+    const [activeMenuId, setActiveMenuId] = useState<string | number | null>(null);
+    const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
@@ -57,20 +60,78 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
         notifications,
         unreadCount,
         markAsRead,
+        markAsUnread,
         markAllAsRead,
         deleteNotification,
         clearAll,
     } = useHeaderNotifications(role);
 
+    const handleCloseMenu = () => setActiveMenuId(null);
+
+    const handleToggleMenu = (e: React.MouseEvent<HTMLButtonElement>, notifId: string | number) => {
+        e.stopPropagation();
+        if (activeMenuId === notifId) {
+            setActiveMenuId(null);
+        } else {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const menuWidth = 140;
+            const menuHeight = 115;
+            
+            // Align right edge of menu with right edge of button
+            const left = Math.max(10, Math.min(window.innerWidth - menuWidth - 10, rect.right - menuWidth));
+            
+            // Flip upwards if overflowing below screen
+            const top = (rect.bottom + menuHeight > window.innerHeight - 10)
+                ? Math.max(10, rect.top - menuHeight - 4)
+                : rect.bottom + 4;
+
+            setMenuPos({ top, left });
+            setActiveMenuId(notifId);
+        }
+    };
+
+    // Close menu on scroll or Escape
+    useEffect(() => {
+        if (!activeMenuId) return;
+        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') handleCloseMenu(); };
+        const handleScroll = () => handleCloseMenu();
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('scroll', handleScroll, true);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('scroll', handleScroll, true);
+        };
+    }, [activeMenuId]);
+
     // Close on outside click or Escape
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setIsOpen(false);
+            const target = e.target as HTMLElement;
+            if (!target) return;
+
+            // If clicked inside the header notification trigger/popover
+            if (dropdownRef.current && dropdownRef.current.contains(target)) {
+                return;
             }
+
+            // If clicked inside the active 3-dot portal menu
+            if (target.closest && target.closest('[data-notif-portal="true"]')) {
+                return;
+            }
+
+            setIsOpen(false);
+            setActiveMenuId(null);
         };
+
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setIsOpen(false);
+            if (e.key === 'Escape') {
+                if (activeMenuId) {
+                    setActiveMenuId(null);
+                } else {
+                    setIsOpen(false);
+                }
+            }
         };
 
         if (isOpen) {
@@ -81,7 +142,7 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [isOpen]);
+    }, [isOpen, activeMenuId]);
 
     const filteredNotifications = activeTab === 'unread'
         ? notifications.filter(n => n.unread)
@@ -92,6 +153,7 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
             markAsRead(notif.id);
         }
         setIsOpen(false);
+        setActiveMenuId(null);
         const targetLink = normalizeNotifLink(notif.link, role);
         navigate(targetLink);
     };
@@ -101,16 +163,19 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
             {/* Bell Trigger Button */}
             <button
                 type="button"
-                onClick={() => setIsOpen(prev => !prev)}
-                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition-colors relative cursor-pointer group"
+                onClick={() => {
+                    setIsOpen(prev => !prev);
+                    setActiveMenuId(null);
+                }}
+                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors relative shrink-0 cursor-pointer group"
                 title="Notifications"
                 aria-label="View notifications"
             >
-                <Bell size={18} className="group-hover:scale-105 transition-transform" />
+                <Bell size={17} className="group-hover:scale-105 transition-transform" />
 
                 {/* Dynamic Unread Badge */}
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 bg-[#ff4a1f] text-white text-[10.5px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#12161c] shadow-xs animate-in zoom-in duration-200">
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#ff4a1f] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#12161c] shadow-xs animate-in zoom-in duration-200 leading-none">
                         {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}
@@ -118,9 +183,11 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
 
             {/* Notification Popover Dropdown (Ultra-Compact, rounded-[3px]) */}
             {isOpen && (
-                <div className="absolute right-0 mt-1.5 w-80 sm:w-96 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200/90 dark:border-slate-700/80 z-50 overflow-hidden text-xs animate-in fade-in zoom-in-95 duration-150 flex flex-col font-sans">
+                <div
+    className="absolute right-0 mt-1.5 w-80 sm:w-96 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200/90 dark:border-slate-700/80 z-50 overflow-hidden text-xs animate-in fade-in zoom-in-95 duration-150 flex flex-col font-sans">
                     {/* Compact Header */}
-                    <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-[#181a20]/60">
+                    <div
+    className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-[#181a20]/60">
                         <div className="flex items-center gap-1.5">
                             <h3 className="text-[12.5px] font-bold text-slate-900 dark:text-slate-100">Notifications</h3>
                             {unreadCount > 0 ? (
@@ -148,7 +215,8 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                     </div>
 
                     {/* Filter Tabs (Compact) */}
-                    <div className="px-2.5 pt-1.5 pb-1 flex items-center gap-1 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#1e2329]">
+                    <div
+    className="px-2.5 pt-1.5 pb-1 flex items-center gap-1 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#1e2329]">
                         <button
                             type="button"
                             onClick={() => setActiveTab('all')}
@@ -195,7 +263,7 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                                         </div>
 
                                         {/* Content: Title & Full Details */}
-                                        <div className="flex-1 min-w-0 pr-2">
+                                        <div className="flex-1 min-w-0 pr-6">
                                             <div className="flex items-center gap-1.5">
                                                 <p className={`text-[12px] leading-snug font-bold ${
                                                     notif.unread
@@ -228,28 +296,22 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                                             </div>
                                         </div>
 
-                                        {/* Hover Actions */}
+                                        {/* Hover Actions: Three Dots Menu */}
                                         <div
-                                            className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-150"
+                                            className="absolute right-2 top-2 flex items-center"
                                             onClick={(e) => e.stopPropagation()}
                                         >
-                                            {notif.unread && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => markAsRead(notif.id)}
-                                                    className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-[3px] transition-colors cursor-pointer"
-                                                    title="Mark as read"
-                                                >
-                                                    <Check size={13} />
-                                                </button>
-                                            )}
                                             <button
                                                 type="button"
-                                                onClick={() => deleteNotification(notif.id)}
-                                                className="p-1.5 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
-                                                title="Delete notification"
+                                                onClick={(e) => handleToggleMenu(e, notif.id)}
+                                                className={`p-1 rounded-[3px] transition-all cursor-pointer ${
+                                                    activeMenuId === notif.id
+                                                        ? 'opacity-100 bg-slate-200/80 dark:bg-slate-700 text-slate-800 dark:text-slate-100'
+                                                        : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                                }`}
+                                                title="More options"
                                             >
-                                                <Trash2 size={13} />
+                                                <MoreVertical size={13.5} />
                                             </button>
                                         </div>
                                     </div>
@@ -271,7 +333,8 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                     </div>
 
                     {/* Compact Footer */}
-                    <div className="py-1.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-[#181a20]/60 flex items-center justify-between px-3">
+                    <div
+    className="py-1.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-[#181a20]/60 flex items-center justify-between px-3">
                         {notifications.length > 0 && (
                             <button
                                 type="button"
@@ -295,6 +358,104 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                     </div>
                 </div>
             )}
+
+            {/* Active 3-Dot Options Dropdown Portal */}
+            {isOpen && activeMenuId && (() => {
+                const activeNotif = notifications.find(n => n.id === activeMenuId);
+                if (!activeNotif) return null;
+
+                return createPortal(
+                    <div data-notif-portal="true">
+                        <div
+                            className="fixed inset-0 z-[9998] cursor-default bg-transparent"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleCloseMenu();
+                            }}
+                        />
+                        <div
+    className="fixed w-[140px] bg-white dark:bg-[#1e2329] rounded-[4px] shadow-lg border border-slate-200/90 dark:border-slate-700/80 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans text-xs"
+                            style={{ top: menuPos.top, left: menuPos.left }}
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                        >
+                            {/* Toggle Mark as read / Mark as unread */}
+                            {activeNotif.unread ? (
+                                <button
+                                    type="button"
+                                    className="w-full text-left px-2.5 py-1.5 text-[11px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 transition-colors font-medium cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        markAsRead(activeNotif.id);
+                                        handleCloseMenu();
+                                    }}
+                                >
+                                    <Check size={12.5} className="text-emerald-500 shrink-0" />
+                                    <span>Mark as read</span>
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="w-full text-left px-2.5 py-1.5 text-[11px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 transition-colors font-medium cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        markAsUnread(activeNotif.id);
+                                        handleCloseMenu();
+                                    }}
+                                >
+                                    <Clock size={12.5} className="text-[#ff4a1f] shrink-0" />
+                                    <span>Mark as unread</span>
+                                </button>
+                            )}
+
+                            {/* View details / Open link */}
+                            <button
+                                type="button"
+                                className="w-full text-left px-2.5 py-1.5 text-[11px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 transition-colors font-medium cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCloseMenu();
+                                    handleItemClick(activeNotif);
+                                }}
+                            >
+                                <ExternalLink size={12.5} className="text-slate-400 shrink-0" />
+                                <span>View Details</span>
+                            </button>
+
+                            {/* Copy text */}
+                            <button
+                                type="button"
+                                className="w-full text-left px-2.5 py-1.5 text-[11px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 transition-colors font-medium cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(`${activeNotif.title}: ${activeNotif.desc}`);
+                                    handleCloseMenu();
+                                }}
+                            >
+                                <Copy size={12.5} className="text-slate-400 shrink-0" />
+                                <span>Copy Text</span>
+                            </button>
+
+                            <div className="border-t border-slate-100 dark:border-slate-800 my-0.5" />
+
+                            {/* Delete Action */}
+                            <button
+                                type="button"
+                                className="w-full text-left px-2.5 py-1.5 text-[11px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-2 transition-colors font-semibold cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteNotification(activeNotif.id);
+                                    handleCloseMenu();
+                                }}
+                            >
+                                <Trash2 size={12.5} className="shrink-0" />
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    </div>,
+                    document.body
+                );
+            })()}
         </div>
     );
 };

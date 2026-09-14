@@ -250,7 +250,8 @@ export const QuoteLifecycleTracker: React.FC<QuoteLifecycleTrackerProps> = ({
         <>
             <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[5px] shadow-2xs overflow-hidden transition-all ${className}`}>
                 {/* Header with Title, Active Stage Badge, and View Full History Button */}
-                <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-2">
+                <div
+    className="px-4 py-2 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                         <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] flex items-center justify-center shrink-0">
                             <History size={12} />

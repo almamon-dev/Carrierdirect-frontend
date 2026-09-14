@@ -60,7 +60,7 @@ export default function HomeGetActuallyBook() {
             ref={text.ref}
             className={`flex flex-col justify-center order-1 lg:order-2 reveal ${text.isVisible ? "visible" : ""}`}
           >
-            <span className="inline-block text-[#ff4a1f] text-xs font-bold uppercase tracking-widest mb-4">
+            <span className="inline-block text-[#ff4a1f] text-xs font-bold  tracking-widest mb-4">
               For Shippers
             </span>
             <h2 className="text-[#0f0400] dark:text-slate-100 text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6">

@@ -16,7 +16,7 @@ export default function TableSearch({
 }: TableSearchProps) {
     return (
         <div className={`relative w-[320px] ${className}`}>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6d7175] dark:text-slate-400" size={14} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6d7175] dark:text-slate-400 pointer-events-none z-10" size={14} />
             <input 
                 type="text" 
                 value={value}

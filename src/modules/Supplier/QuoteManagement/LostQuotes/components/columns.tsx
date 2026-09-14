@@ -29,19 +29,19 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
         sortable: true,
         className: 'w-[130px]',
         render: (row) => (
-            <div className="flex items-center gap-2 whitespace-nowrap min-w-0 h-5">
+            <div className="flex items-center gap-2 min-w-0">
                 {row.customerAvatar ? (
                     <img
                         src={row.customerAvatar} alt={row.customer}
-                        className="w-5 h-5 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs grayscale"
+                        className="w-5 h-5 min-w-[20px] min-h-[20px] rounded-full object-cover shrink-0 aspect-square border border-slate-200 dark:border-slate-700 shadow-2xs grayscale"
                         onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                     />
                 ) : (
-                    <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">
+                    <div className="w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0 aspect-square">
                         {row.customer ? row.customer.charAt(0).toUpperCase() : 'C'}
                     </div>
                 )}
-                <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate max-w-[100px] leading-none" title={row.customer}>{row.customer}</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate max-w-[100px] leading-tight" title={row.customer}>{row.customer}</span>
             </div>
         ),
         skeleton: () => <div className="flex items-center gap-2 whitespace-nowrap min-w-0 h-5"><Skeleton className="w-5 h-5 rounded-full shrink-0" /><Skeleton className="h-3.5 w-24 rounded-[2px]" /></div>,
@@ -49,7 +49,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'pickup',
         label: 'Pickup Address',
-        className: 'min-w-0',
+        className: 'w-[160px] min-w-[150px]',
         render: (row) => (
             <div className="flex items-center min-w-0 pr-1 h-5" title={row.pickup}>
                 <span className="font-medium text-slate-700 dark:text-slate-300 text-xs truncate whitespace-nowrap leading-none">{row.pickup}</span>
@@ -60,7 +60,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
     {
         id: 'delivery',
         label: 'Delivery Address',
-        className: 'min-w-0',
+        className: 'w-[160px] min-w-[150px]',
         render: (row) => (
             <div className="flex items-center min-w-0 pr-1 h-5" title={row.delivery}>
                 <span className="font-medium text-slate-700 dark:text-slate-300 text-xs truncate whitespace-nowrap leading-none">{row.delivery}</span>

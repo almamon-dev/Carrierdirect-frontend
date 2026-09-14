@@ -1,5 +1,5 @@
 import { CustomerChatItem, CustomerChatMessage } from '../types';
-import { generateCustomerInitialMessages, formatLocalTime } from './customerChatUtils';
+import { formatLocalTime, generateCustomerInitialMessages } from './customerChatUtils';
 
 export const mapRawCustomerChatMessages = (
     rawMsgs: any[],
@@ -8,21 +8,49 @@ export const mapRawCustomerChatMessages = (
     isQuoteRejected: boolean,
     quoteDeclineReason?: string
 ): CustomerChatMessage[] => {
+    const hasAnyCounterOffers = Array.isArray(rawMsgs) && rawMsgs.some((m: any) => {
+        const rType = String(m.type || m.message_type || '').toLowerCase();
+        return rType === 'offer' || rType === 'counter_offer' || rType === 'counter-offer' || Boolean(m.proposed_amount);
+    });
+
     const initialItems = generateCustomerInitialMessages(activeChat).map(init => {
         if (init.type === 'quote_request') {
             if (isQuoteAccepted) return { ...init, status: 'accepted' as const };
             if (isQuoteRejected) return { ...init, status: 'rejected' as const, declineReason: quoteDeclineReason || init.declineReason };
+            if (hasAnyCounterOffers || activeChat?.raw?.revision_status === 'pending' || (activeChat?.currentPrice && activeChat?.raw?.amount && activeChat?.currentPrice !== activeChat?.raw?.amount)) {
+                return { ...init, status: 'superseded' as const, is_superseded: true };
+            }
         }
         return init;
     });
 
     const mapped: CustomerChatMessage[] = rawMsgs.map((m: any) => {
-        const isSent = Boolean(m.is_me || m.sender_type === 'customer' || m.sender_id === 5);
+        const isSent = m.is_me !== undefined ? Boolean(m.is_me) : Boolean(m.sender_type === 'customer' || m.sender_id === activeChat?.raw?.quote_request?.user_id || m.sender_id === 5);
+        const rawType = String(m.type || m.message_type || '').toLowerCase();
+        const textContent = String(m.text || m.message || m.message_text || m.body || '');
+
+        const isOffer = 
+            rawType === 'offer' || 
+            rawType === 'counter_offer' || 
+            rawType === 'counter-offer' ||
+            m.isCounterOffer === true ||
+            (Boolean(m.proposed_amount) && rawType !== 'quote_request' && rawType !== 'system') ||
+            textContent.toLowerCase().includes('submitted a counter offer') ||
+            textContent.toLowerCase().includes('counter offer of');
+
+        const isSystem = rawType === 'system' || textContent.startsWith('✅') || textContent.startsWith('❌');
+        const isQuoteRequest = rawType === 'quote_request';
+
+        const msgType = isSystem ? 'system' : (isQuoteRequest ? 'quote_request' : (isOffer ? 'offer' : (isSent ? 'sent' : 'received')));
+
+        const proposedAmt = m.proposed_amount ? Number(m.proposed_amount) : (m.newTotal ? Number(m.newTotal) : (m.amount ? Number(m.amount) : undefined));
+        const prevAmt = m.previous_amount ? Number(m.previous_amount) : (m.previousTotal ? Number(m.previousTotal) : (activeChat?.currentPrice || undefined));
+
         return {
             id: m.id || `msg-${Date.now()}-${Math.random()}`,
-            type: m.type === 'system' ? 'system' : (m.message_type === 'offer' ? 'offer' : (m.message_type === 'quote_request' ? 'quote_request' : (isSent ? 'sent' : 'received'))),
+            type: msgType,
             attachments: m.attachments || (m.attachment ? [m.attachment] : undefined),
-            text: m.text || m.message || m.message_text || m.body || '',
+            text: textContent,
             time: formatLocalTime(m.created_at, m.time || m.created_at_formatted),
             sender: m.sender || m.sender_name,
             avatar: m.avatar,
@@ -30,13 +58,21 @@ export const mapRawCustomerChatMessages = (
             seenAt: m.seen_at || m.read_at,
             isRead: Boolean(m.is_read),
             deliveryStatus: m.is_read ? 'seen' : (m.delivery_status || 'sent'),
-            status: m.status,
+            status: m.status || 'pending',
             declineReason: m.decline_reason || m.declineReason,
-            newTotal: m.proposed_amount ? Number(m.proposed_amount) : m.newTotal,
-            previousTotal: m.previous_amount ? Number(m.previous_amount) : m.previousTotal
+            newTotal: proposedAmt,
+            previousTotal: prevAmt,
+            title: m.title || (isOffer ? (isSent ? 'Counter Offer Submitted' : 'Counter Offer Received') : undefined),
+            notes: m.notes || (textContent.toLowerCase().includes('submitted a counter offer') ? '' : textContent),
+            is_me: isSent,
+            is_my_offer: m.is_my_offer !== undefined ? Boolean(m.is_my_offer) : isSent,
+            isPinned: Boolean(m.is_pinned ?? m.isPinned),
+            isDeleted: Boolean(m.is_deleted ?? m.isDeleted),
+            isEdited: Boolean(m.is_edited ?? m.edited_at),
         };
     });
 
-    const baseCards = initialItems.filter(item => item.type === 'quote_request' || String(item.id).includes('quote-proposal'));
-    return [...baseCards, ...mapped.filter(m => m.type !== 'quote_request' && !String(m.id).includes('quote-proposal'))];
+    const quoteRequestCard = initialItems.find(item => item.type === 'quote_request');
+    const filteredMapped = mapped.filter(m => m.type !== 'quote_request');
+    return quoteRequestCard ? [quoteRequestCard, ...filteredMapped] : filteredMapped;
 };

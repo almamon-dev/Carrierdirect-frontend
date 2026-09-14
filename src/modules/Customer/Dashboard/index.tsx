@@ -412,7 +412,8 @@ export default function Dashboard() {
     }, [orders]);
 
     return (
-        <div className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
+        <div
+    className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 md:gap-4 mt-0.5 sm:mt-1">
                 <MetricCard
@@ -462,7 +463,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5 sm:gap-4">
 
                 {/* Area Chart - Spending Overview */}
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 sm:mb-4 -mx-3.5 sm:-mx-4 px-3.5 sm:px-4 gap-2 sm:gap-0">
                         <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-orange-50 dark:bg-[#ff4a1f]/15 text-brand flex items-center justify-center shrink-0">
@@ -515,7 +517,8 @@ export default function Dashboard() {
                 </div>
 
                 {/* Line Chart - Request & Order Overview */}
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 sm:mb-4 -mx-3.5 sm:-mx-4 px-3.5 sm:px-4 gap-2 sm:gap-0">
                         <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-orange-50 dark:bg-[#ff4a1f]/15 text-brand flex items-center justify-center shrink-0">
@@ -568,8 +571,10 @@ export default function Dashboard() {
             </div>
 
             {/* Live Tracking - Active Shipments Section */}
-            <div className="bg-white dark:bg-[#1e2329] rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
-                <div className="flex items-center justify-between px-3.5 sm:px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50">
+            <div
+    className="bg-white dark:bg-[#1e2329] rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
+                <div
+    className="flex items-center justify-between px-3.5 sm:px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50">
                     <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg bg-orange-100/70 dark:bg-[#ff4a1f]/15 text-brand flex items-center justify-center shrink-0">
                             <Truck size={15} strokeWidth={2.5} />
@@ -612,7 +617,7 @@ export default function Dashboard() {
                         {/* Desktop & Tablet Table View */}
                         <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-left text-[12px]">
-                                <thead className="bg-slate-50 dark:bg-[#181a20] text-[10.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                                <thead className="bg-slate-50 dark:bg-[#181a20] text-[10.5px] font-bold text-slate-500 dark:text-slate-400  tracking-wider border-b border-slate-100 dark:border-slate-800">
                                     <tr>
                                         <th className="py-2.5 px-3.5">Order ID</th>
                                         <th className="py-2.5 px-3.5">Route & Checkpoint</th>
@@ -711,13 +716,14 @@ export default function Dashboard() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 dark:bg-[#181a20] p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                                        <div
+    className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 dark:bg-[#181a20] p-2 rounded-lg border border-slate-100 dark:border-slate-800">
                                             <div>
-                                                <span className="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold">Carrier</span>
+                                                <span className="text-slate-400 dark:text-slate-500 block text-[10px]  font-bold">Carrier</span>
                                                 <span className="font-medium text-slate-700 dark:text-slate-300 truncate block">{carrierDisplay}</span>
                                             </div>
                                             <div>
-                                                <span className="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold">ETA</span>
+                                                <span className="text-slate-400 dark:text-slate-500 block text-[10px]  font-bold">ETA</span>
                                                 <span className="font-medium text-slate-700 dark:text-slate-300 block">{etaDisplay}</span>
                                             </div>
                                         </div>
@@ -740,7 +746,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
 
                 {/* Recent Requests */}
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-2.5 -mx-3.5 sm:-mx-4 px-3.5 sm:px-4">
                         <h3 className="text-[13px] sm:text-[14px] font-bold text-slate-800 dark:text-slate-200">
                             Recent Requests ({quoteRequests.length})
@@ -782,7 +789,8 @@ export default function Dashboard() {
                 </div>
 
                 {/* Notifications */}
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-2.5 -mx-3.5 sm:-mx-4 px-3.5 sm:px-4">
                         <h3 className="text-[13px] sm:text-[14px] font-bold text-slate-800 dark:text-slate-200">
                             Notifications ({notifications.length})

@@ -20,7 +20,8 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
     setStatusFilter,
 }) => {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-[#181d24] rounded-[3px] border border-slate-200/80 dark:border-slate-800 mb-3">
+        <div
+    className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-[#181d24] rounded-[3px] border border-slate-200/80 dark:border-slate-800 mb-3">
             <div>
                 <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1 block">Category Type</label>
                 <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} showSearch={false}>

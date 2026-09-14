@@ -15,7 +15,8 @@ export const ViewSummaryReview: React.FC<ViewSummaryReviewProps> = ({ formData, 
             <TabHeader title="Summary & Specification Review" icon={CheckCircle2} />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
+                <div
+    className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
                         <MapPin size={15} className="text-slate-500" /> Route Overview
                     </div>
@@ -23,7 +24,8 @@ export const ViewSummaryReview: React.FC<ViewSummaryReviewProps> = ({ formData, 
                     <p className="text-[11px] text-slate-500">{formData.pickupDate} - {formData.deliveryDate}</p>
                 </div>
 
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
+                <div
+    className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
                         <Truck size={15} className="text-slate-500" /> Vehicle & Cargo
                     </div>
@@ -31,7 +33,8 @@ export const ViewSummaryReview: React.FC<ViewSummaryReviewProps> = ({ formData, 
                     <p className="text-[11px] text-slate-500">{formData.weight} KG • {servicesCount} Services Selected</p>
                 </div>
 
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
+                <div
+    className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
                         <Euro size={15} className="text-slate-500" /> Pricing & Budget
                     </div>

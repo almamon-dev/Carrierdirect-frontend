@@ -22,7 +22,7 @@ export default function TwoHomeGetActuallyBook() {
             ref={text.ref}
             className={`flex flex-col justify-center reveal ${text.isVisible ? "visible" : ""}`}
           >
-            <span className="inline-block text-[#ff4a1f] text-xs font-bold uppercase tracking-widest mb-4">
+            <span className="inline-block text-[#ff4a1f] text-xs font-bold  tracking-widest mb-4">
               For Carriers
             </span>
             <h2 className="text-white text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6">

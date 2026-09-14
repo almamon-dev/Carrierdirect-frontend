@@ -88,6 +88,10 @@ export const useSupplierNegotiations = () => {
                         deliveryDate: n.delivery_date,
                         notes: n.message_snippet || n.notes,
                         declineReason: n.decline_reason || n.declineReason,
+                        isOnline: Boolean(n.is_online),
+                        lastSeenHuman: n.last_seen_human || (n.is_online ? "Active now" : "Offline"),
+                        lastSeenAt: n.last_seen_at,
+                        isVerified: Boolean(n.is_verified ?? true),
                     };
                 });
 

@@ -75,6 +75,14 @@ const router = createBrowserRouter([
   },
   /* Direct Auth Aliases */
   {
+    path: '/invite/accept',
+    element: <RedirectWithQuery to="/web/invitation-accepted" />,
+  },
+  {
+    path: '/accept-invitation',
+    element: <RedirectWithQuery to="/web/invitation-accepted" />,
+  },
+  {
     path: '/login',
     element: <RedirectWithQuery to="/web/login" />,
   },

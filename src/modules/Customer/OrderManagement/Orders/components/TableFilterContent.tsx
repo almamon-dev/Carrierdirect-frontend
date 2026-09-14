@@ -41,18 +41,21 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     size="sm"
                     value={statusFilter}
                     onChange={(val) => {
-                        const v = typeof val === 'object' && val?.target ? val.target.value : val;
+                        const v = typeof val === 'object' && val?.target ? val.target.value : (val?.id ?? val?.value ?? val);
                         setStatusFilter(v);
                     }}
                     showSearch={false}
                     placeholder="All Statuses"
-                >
-                    <option value="all">All Statuses</option>
-                    <option value="in_transit">In Transit</option>
-                    <option value="pod_review">POD Review</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </Select>
+                    options={[
+                        { id: 'all', name: 'All Statuses' },
+                        { id: 'confirmed', name: 'Confirmed' },
+                        { id: 'driver_assigned', name: 'Driver Assigned' },
+                        { id: 'in_transit', name: 'In Transit' },
+                        { id: 'pod_review', name: 'POD Review' },
+                        { id: 'completed', name: 'Completed' },
+                        { id: 'cancelled', name: 'Cancelled' },
+                    ]}
+                />
             </div>
 
             <div>
@@ -63,19 +66,20 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     size="sm"
                     value={vehicleFilter}
                     onChange={(val) => {
-                        const v = typeof val === 'object' && val?.target ? val.target.value : val;
+                        const v = typeof val === 'object' && val?.target ? val.target.value : (val?.id ?? val?.value ?? val);
                         setVehicleFilter(v);
                     }}
                     showSearch={false}
                     placeholder="All Vehicles"
-                >
-                    <option value="all">All Vehicles</option>
-                    <option value="Covered Van">Covered Van</option>
-                    <option value="Flatbed">Flatbed Truck</option>
-                    <option value="Trailer">Trailer (40ft)</option>
-                    <option value="Container">Container</option>
-                    <option value="Refrigerated">Refrigerated</option>
-                </Select>
+                    options={[
+                        { id: 'all', name: 'All Vehicles' },
+                        { id: 'Covered Van', name: 'Covered Van' },
+                        { id: 'Flatbed', name: 'Flatbed Truck' },
+                        { id: 'Trailer', name: 'Trailer (40ft)' },
+                        { id: 'Container', name: 'Container' },
+                        { id: 'Refrigerated', name: 'Refrigerated' },
+                    ]}
+                />
             </div>
 
             <div>
@@ -86,18 +90,19 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     size="sm"
                     value={paymentFilter}
                     onChange={(val) => {
-                        const v = typeof val === 'object' && val?.target ? val.target.value : val;
+                        const v = typeof val === 'object' && val?.target ? val.target.value : (val?.id ?? val?.value ?? val);
                         setPaymentFilter(v);
                     }}
                     showSearch={false}
                     placeholder="All Payments"
-                >
-                    <option value="all">All Payments</option>
-                    <option value="paid">Paid</option>
-                    <option value="escrow">In Escrow</option>
-                    <option value="pending">Pending</option>
-                    <option value="refunded">Refunded</option>
-                </Select>
+                    options={[
+                        { id: 'all', name: 'All Payments' },
+                        { id: 'unpaid', name: 'Unpaid' },
+                        { id: 'paid', name: 'Paid' },
+                        { id: 'escrow', name: 'In Escrow' },
+                        { id: 'refunded', name: 'Refunded' },
+                    ]}
+                />
             </div>
 
             <div>

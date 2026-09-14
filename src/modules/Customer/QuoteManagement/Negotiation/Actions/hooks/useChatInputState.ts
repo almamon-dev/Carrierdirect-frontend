@@ -7,7 +7,7 @@ interface UseChatInputStateParams {
     setInputValue: (v: string) => void;
     scrollToBottom: () => void;
     onSendMessage?: (text: string, files?: File[]) => void;
-    onTyping?: () => void;
+    onTyping?: (isTyping?: boolean) => void;
 }
 
 export const useChatInputState = ({
@@ -52,6 +52,7 @@ export const useChatInputState = ({
 
     const handleSend = () => {
         if (!inputValue.trim() && selectedFiles.length === 0) return;
+        if (onTyping) onTyping(false);
         if (onSendMessage) {
             onSendMessage(inputValue, selectedFiles.length > 0 ? selectedFiles : undefined);
         }
@@ -99,7 +100,7 @@ export const useChatInputState = ({
     const handleAddEmoji = (emoji: string) => {
         setInputValue(inputValue + emoji);
         setShowEmojiPicker(false);
-        if (onTyping) onTyping();
+        if (onTyping) onTyping(true);
         if (textareaRef.current) textareaRef.current.focus();
     };
 

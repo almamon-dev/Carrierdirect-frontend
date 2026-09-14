@@ -69,7 +69,8 @@ export default function Payments() {
     );
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header matching Active Jobs & Team Management */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -81,7 +82,8 @@ export default function Payments() {
             {/* Top Stats Strip */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Outstanding Balance */}
-                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div
+    className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600">
                             <Receipt size={16} strokeWidth={2.5} />
@@ -94,7 +96,8 @@ export default function Payments() {
                 </div>
 
                 {/* Total Paid */}
-                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div
+    className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-50 text-[#ff4a1f]">
                             <FileText size={16} strokeWidth={2.5} />
@@ -107,7 +110,8 @@ export default function Payments() {
                 </div>
 
                 {/* Last Payment Date */}
-                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between">
+                <div
+    className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-600">
                             <Clock size={16} strokeWidth={2.5} />
@@ -120,7 +124,8 @@ export default function Payments() {
                 </div>
 
                 {/* Payment Method Card */}
-                <div className="bg-white p-3.5 rounded-md border border-slate-200 shadow-2xs flex flex-col justify-between border-indigo-100 ring-1 ring-indigo-50">
+                <div
+    className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs flex flex-col justify-between border-indigo-100 ring-1 ring-indigo-50">
                     <div className="flex justify-between items-start mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-900 text-white">
                             <CreditCard size={16} strokeWidth={2.5} />

@@ -326,9 +326,10 @@ export default function Select({
                     >
                         {/* Search Input Container */}
                         {shouldShowSearch && (
-                            <div className="p-2 bg-slate-50 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-700 shrink-0">
+                            <div
+    className="p-2 bg-slate-50 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-700 shrink-0">
                                 <div className="relative flex items-center">
-                                    <Search size={13} className="absolute left-2 text-slate-400" />
+                                    <Search size={13} className="absolute left-2 text-slate-400 pointer-events-none z-10" />
                                     <input
                                         ref={searchInputRef}
                                         type="text"

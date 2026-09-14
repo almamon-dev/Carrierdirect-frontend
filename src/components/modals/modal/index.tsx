@@ -77,7 +77,8 @@ export default function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/60 shrink-0">
+          <div
+    className="flex items-start justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/60 shrink-0">
             <div className="flex-1">
               {typeof title === 'string' ? (
                 <>
@@ -108,7 +109,8 @@ export default function Modal({
 
         {/* Footer */}
         {footer && (
-          <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#181d24] shrink-0 flex items-center justify-end gap-3 rounded-b-[5px]">
+          <div
+    className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#181d24] shrink-0 flex items-center justify-end gap-3 rounded-b-[5px]">
             {footer}
           </div>
         )}

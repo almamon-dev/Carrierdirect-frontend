@@ -97,7 +97,8 @@ function AddressCard({
       onSubmit={handleSave}
       className={`bg-white rounded-md border shadow-xs overflow-hidden ${accentColor}`}
     >
-      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
+      <div
+    className="flex items-center gap-3 px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${type === 'permanent' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'
           }`}>
           <Icon className="w-4 h-4" />
@@ -182,7 +183,8 @@ function AddressCard({
         </div>
       </div>
 
-      <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-end bg-slate-50/40">
+      <div
+    className="px-5 py-3 border-t border-slate-100 flex items-center justify-end bg-slate-50/40">
         <button
           type="submit"
           disabled={saving}
@@ -228,7 +230,8 @@ export default function AddressBookTab() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white p-4 rounded-md border border-slate-200 shadow-xs">
+      <div
+    className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
         <h3 className="text-sm font-bold text-slate-900">Address Book</h3>
         <p className="text-xs text-slate-500 mt-0.5">
           Keep your permanent and present addresses up to date for faster quote requests and deliveries.

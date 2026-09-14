@@ -162,7 +162,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                 <div className="p-3.5 space-y-2.5 max-h-[55vh] overflow-y-auto">
                     {/* Search Input - Same rounded pill design as Sidebar */}
                     <div className="relative">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                         <input
                             ref={searchInputRef}
                             type="text"

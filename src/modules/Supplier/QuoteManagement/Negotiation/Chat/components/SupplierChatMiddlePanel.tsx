@@ -11,6 +11,7 @@ interface SupplierChatMiddlePanelProps {
     showMobileDetails: boolean;
     setShowMobileDetails: (v: boolean) => void;
     onCallClick: (type: 'audio' | 'video') => void;
+    onOpenMobileSidebar?: () => void;
     currentMessages: ChatMessage[];
     editingMsgId: number | string | null;
     highlightedMsgId: number | string | null;
@@ -29,7 +30,7 @@ interface SupplierChatMiddlePanelProps {
     scrollToBottom: () => void;
     handleSendMessage: (text: string, files?: File[]) => void;
     handleSendCounterOffer: (amount: number, note: string) => void;
-    notifyTyping: () => void;
+    notifyTyping: (isTyping?: boolean) => void;
     handleCancelEdit: () => void;
     currentPrice: number;
 }
@@ -40,6 +41,7 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
     showMobileDetails,
     setShowMobileDetails,
     onCallClick,
+    onOpenMobileSidebar,
     currentMessages,
     editingMsgId,
     highlightedMsgId,
@@ -64,7 +66,8 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
 }) => {
     if (!activeNegotiation) {
         return (
-            <div className="flex-1 min-w-0 flex flex-col items-center justify-center p-8 text-center text-slate-400 bg-white">
+            <div
+    className="flex-1 min-w-0 flex flex-col items-center justify-center p-8 text-center text-slate-400 bg-white">
                 <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Select a negotiation to view messages</p>
             </div>
         );
@@ -78,6 +81,7 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
                 showMobileDetails={showMobileDetails}
                 setShowMobileDetails={setShowMobileDetails}
                 onCallClick={onCallClick}
+                onOpenMobileSidebar={onOpenMobileSidebar}
             />
 
             <ChatMessageList

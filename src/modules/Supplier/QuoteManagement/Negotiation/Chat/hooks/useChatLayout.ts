@@ -6,11 +6,16 @@ export const useChatLayout = () => {
         type: 'audio'
     });
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
     const [sidebarWidth, setSidebarWidth] = useState<number>(320);
     const [isResizing, setIsResizing] = useState<boolean>(false);
 
     const toggleSidebarCollapse = () => {
         setIsSidebarCollapsed(prev => !prev);
+    };
+
+    const toggleMobileSidebar = () => {
+        setIsMobileSidebarOpen(prev => !prev);
     };
 
     const handleResizeStart = (e: React.MouseEvent) => {
@@ -39,6 +44,9 @@ export const useChatLayout = () => {
         callModal,
         setCallModal,
         isSidebarCollapsed,
+        isMobileSidebarOpen,
+        setIsMobileSidebarOpen,
+        toggleMobileSidebar,
         sidebarWidth,
         isResizing,
         toggleSidebarCollapse,

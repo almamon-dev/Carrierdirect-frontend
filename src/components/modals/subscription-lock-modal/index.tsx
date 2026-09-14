@@ -46,8 +46,8 @@ export default function SubscriptionLockModal({
       className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fade-in font-sans"
       onClick={onClose}
     >
-      <div 
-        className="bg-white dark:bg-[#1e2329] rounded-[5px] max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative"
+      <div
+    className="bg-white dark:bg-[#1e2329] rounded-[5px] max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
       >
 
@@ -75,7 +75,8 @@ export default function SubscriptionLockModal({
         <div className="p-5 space-y-4">
 
           {/* Minimal Plan Info Box */}
-          <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-xs">
+          <div
+    className="p-3 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-xs">
             <div>
               <span className="text-slate-500 font-medium block">Locked feature:</span>
               <span className="font-bold text-slate-900 mt-0.5 block">{featureName}</span>

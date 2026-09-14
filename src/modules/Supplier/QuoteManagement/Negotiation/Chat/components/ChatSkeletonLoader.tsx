@@ -3,10 +3,12 @@ import Skeleton from '@/components/ui/skeleton';
 
 export function ChatSkeletonLoader() {
     return (
-        <div className="p-4 md:p-6 w-full mx-auto h-[calc(100vh-64px)] flex flex-col font-sans">
-            <div className="flex flex-1 min-h-[500px] min-w-0 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden shadow-sm relative">
+        <div className="p-0 sm:p-2 md:p-3 w-full mx-auto h-full flex flex-col font-sans min-h-0 overflow-hidden box-border">
+            <div
+                className="flex flex-1 min-h-0 min-w-0 bg-white dark:bg-[#12161c] border-0 sm:border border-slate-200 dark:border-slate-800 rounded-none sm:rounded-lg overflow-hidden shadow-none sm:shadow-sm relative">
                 {/* Left Sidebar Skeleton */}
-                <div className="w-[320px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-3 flex flex-col gap-3 bg-slate-50/50 dark:bg-[#181d24]/50">
+                <div
+    className="w-[320px] shrink-0 border-r border-slate-200 dark:border-slate-800 p-3 flex flex-col gap-3 bg-slate-50/50 dark:bg-[#181d24]/50">
                     <div className="flex items-center gap-2">
                         <Skeleton className="h-9 flex-1 rounded-xl" />
                     </div>
@@ -37,7 +39,8 @@ export function ChatSkeletonLoader() {
                 {/* Middle Chat Area Skeleton */}
                 <div className="flex-1 min-w-0 flex flex-col min-h-0 h-full bg-white dark:bg-[#12161c] relative">
                     {/* Header Skeleton */}
-                    <div className="h-14 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between bg-white dark:bg-[#181d24]">
+                    <div
+    className="h-14 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between bg-white dark:bg-[#181d24]">
                         <div className="flex items-center gap-3">
                             <Skeleton className="w-10 h-10 rounded-full shrink-0 aspect-square" />
                             <div className="space-y-1.5">
@@ -52,9 +55,11 @@ export function ChatSkeletonLoader() {
                     </div>
 
                     {/* Messages Area Skeleton */}
-                    <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-slate-50/40 dark:bg-slate-900/30">
+                    <div
+    className="flex-1 p-4 space-y-4 overflow-y-auto bg-slate-50/40 dark:bg-slate-900/30">
                         {/* Quote request card skeleton */}
-                        <div className="max-w-md mx-auto p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#181d24] space-y-3 shadow-2xs">
+                        <div
+    className="max-w-md mx-auto p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#181d24] space-y-3 shadow-2xs">
                             <div className="flex items-center justify-between">
                                 <Skeleton className="h-4 w-28 rounded-[2px]" />
                                 <Skeleton className="h-5 w-16 rounded-full" />
@@ -95,7 +100,8 @@ export function ChatSkeletonLoader() {
                     </div>
 
                     {/* Input Bar Skeleton */}
-                    <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 bg-white dark:bg-[#181d24]">
+                    <div
+    className="p-3 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 bg-white dark:bg-[#181d24]">
                         <Skeleton className="w-8 h-8 rounded-lg" />
                         <Skeleton className="w-8 h-8 rounded-lg" />
                         <Skeleton className="h-10 flex-1 rounded-xl" />
@@ -105,8 +111,10 @@ export function ChatSkeletonLoader() {
                 </div>
 
                 {/* Right Details Sidebar Skeleton */}
-                <div className="w-[300px] shrink-0 border-l border-slate-200 dark:border-slate-800 p-4 hidden xl:flex flex-col gap-4 bg-slate-50/50 dark:bg-[#181d24]/50">
-                    <div className="flex flex-col items-center p-4 bg-white dark:bg-[#181d24] rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                <div
+    className="w-[300px] shrink-0 border-l border-slate-200 dark:border-slate-800 p-4 hidden xl:flex flex-col gap-4 bg-slate-50/50 dark:bg-[#181d24]/50">
+                    <div
+    className="flex flex-col items-center p-4 bg-white dark:bg-[#181d24] rounded-lg border border-slate-200 dark:border-slate-800 space-y-2">
                         <Skeleton className="w-14 h-14 rounded-full aspect-square" />
                         <Skeleton className="h-4 w-28 rounded-[2px]" />
                         <Skeleton className="h-3 w-20 rounded-[2px]" />

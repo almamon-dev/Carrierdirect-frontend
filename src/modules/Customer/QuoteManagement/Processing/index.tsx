@@ -44,7 +44,8 @@ export default function Processing() {
     const columns = useMemo(() => getProcessingColumns(navigate), [navigate]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">Processing Quote Requests</h1>
@@ -66,7 +67,7 @@ export default function Processing() {
                 data={filteredRequests}
                 columns={columns}
                 actions={(row: any) => <ProcessingRowActions row={row} />}
-                actionsColumnClassName="w-[145px] min-w-[145px] text-right pr-3"
+                actionsColumnClassName="w-[48px] min-w-[48px] max-w-[48px] text-right pr-2"
                 headerTabs={<ProcessingFilterTabs stats={stats} activeFilterTab={activeFilterTab} setActiveFilterTab={setActiveFilterTab} />}
                 filterContent={
                     <TableFilterContent
@@ -87,7 +88,7 @@ export default function Processing() {
                 compact={true}
                 isLoading={isLoading || isRefreshing}
                 onRowClick={(row) => navigate(buildSecureQuoteUrl(row.rawId || row.id, 'view'))}
-                tableClassName="w-full min-w-[1050px]"
+                tableClassName="w-full"
                 emptyState={
                     <EmptyState
                         icon={Inbox}

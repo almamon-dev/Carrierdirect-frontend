@@ -9,7 +9,7 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
     return (
         <div className="mt-4 pt-3 border-t border-dashed border-gray-200 dark:border-[#384150]">
             <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400  tracking-wider flex items-center gap-1">
                     <Zap size={11} className="text-amber-500 fill-amber-500" /> Demo Credentials
                 </span>
                 <span className="text-[10px] text-gray-400 dark:text-slate-500">Click to fill</span>

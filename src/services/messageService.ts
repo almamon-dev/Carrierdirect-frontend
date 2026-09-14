@@ -31,6 +31,8 @@ export interface GeneralMessage {
     date?: string | null;
     created_at_human?: string;
     created_at?: string;
+    is_unsent?: boolean;
+    unsent_at?: string | null;
     is_edited?: boolean;
     is_pinned?: boolean;
     pinned_at?: string | null;
@@ -242,8 +244,8 @@ export const messageService = {
     /**
      * Soft delete a message
      */
-    async deleteMessage(messageId: number | string) {
-        return apiClient.delete(`/messages/${messageId}`);
+    async deleteMessage(messageId: number | string, type: 'everyone' | 'for_me' = 'everyone') {
+        return apiClient.delete(`/messages/${messageId}`, { params: { type } });
     },
 
     /**

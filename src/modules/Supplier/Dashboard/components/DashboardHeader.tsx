@@ -18,7 +18,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#181a20] p-4 sm:p-5 rounded-xl border border-slate-200/90 dark:border-[#384150] shadow-2xs">
+        <div
+    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#181a20] p-4 sm:p-5 rounded-lg border border-slate-200/90 dark:border-[#384150] shadow-2xs">
             <div>
                 <div className="flex items-center gap-2">
                     <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">

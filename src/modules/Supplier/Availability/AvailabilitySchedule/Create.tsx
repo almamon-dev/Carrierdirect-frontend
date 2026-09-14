@@ -36,7 +36,8 @@ export default function CreateAvailabilitySchedule() {
     ];
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen pb-20 font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen pb-20 font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-3">
@@ -66,8 +67,10 @@ export default function CreateAvailabilitySchedule() {
             {/* Layout */}
             <div className="flex flex-col md:flex-row gap-6 items-start">
                 {/* Sidebar Navigation */}
-                <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
-                    <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                <div
+    className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-2xs">
+                    <div
+    className="px-4 py-3 border-b border-slate-200 bg-slate-50">
                         <h3 className="text-[13px] font-bold text-slate-800">Configuration</h3>
                     </div>
                     <div className="flex flex-col">
@@ -96,7 +99,8 @@ export default function CreateAvailabilitySchedule() {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 bg-white border border-slate-200 rounded-lg shadow-2xs w-full">
+                <div
+    className="flex-1 bg-white border border-slate-200 rounded-lg shadow-2xs w-full">
                     <div className="p-5 md:p-6">
                         {activeTab === 'general' && (
                             <div className="flex flex-col gap-6 animate-in fade-in duration-300">
@@ -178,7 +182,8 @@ export default function CreateAvailabilitySchedule() {
                                                 </label>
                                             </div>
                                             {validity === 'temporary' && (
-                                                <div className="grid grid-cols-2 gap-3 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                                <div
+    className="grid grid-cols-2 gap-3 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
                                                     <Input
                                                         label="Start Date"
                                                         type="date"
@@ -224,7 +229,8 @@ export default function CreateAvailabilitySchedule() {
                                                 
                                                 {/* Left Column - 4 Days (Mon, Tue, Wed, Thu) */}
                                                 <div className="space-y-1">
-                                                    <div className="grid grid-cols-[90px_1fr_1fr] gap-3 px-3 py-2 bg-slate-50/90 rounded-md border border-slate-200/60 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                                    <div
+    className="grid grid-cols-[90px_1fr_1fr] gap-3 px-3 py-2 bg-slate-50/90 rounded-lg border border-slate-200/60 text-[10.5px] font-bold text-slate-500  tracking-wider mb-2">
                                                         <span>Day</span>
                                                         <span>Start Time</span>
                                                         <span>End Time</span>
@@ -260,7 +266,8 @@ export default function CreateAvailabilitySchedule() {
 
                                                 {/* Right Column - 3 Days (Fri, Sat, Sun) */}
                                                 <div className="space-y-1">
-                                                    <div className="grid grid-cols-[90px_1fr_1fr] gap-3 px-3 py-2 bg-slate-50/90 rounded-md border border-slate-200/60 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                                    <div
+    className="grid grid-cols-[90px_1fr_1fr] gap-3 px-3 py-2 bg-slate-50/90 rounded-lg border border-slate-200/60 text-[10.5px] font-bold text-slate-500  tracking-wider mb-2">
                                                         <span>Day</span>
                                                         <span>Start Time</span>
                                                         <span>End Time</span>

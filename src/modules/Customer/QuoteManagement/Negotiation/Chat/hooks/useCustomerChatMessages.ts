@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import apiClient from '@/lib/axios';
 import { CustomerChatItem, CustomerChatMessage } from '../types';
 import { generateCustomerInitialMessages } from '../utils/customerChatUtils';
@@ -31,8 +31,49 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
         });
     };
 
+    // Typing debounce and receiver timeout refs
+    const typingInactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastTypingSentRef = useRef<number>(0);
+    const typingAutoClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const notifyTyping = useCallback((isTyping = true) => {
+        if (!activeChatId) return;
+
+        if (!isTyping) {
+            if (typingInactivityTimerRef.current) {
+                clearTimeout(typingInactivityTimerRef.current);
+                typingInactivityTimerRef.current = null;
+            }
+            lastTypingSentRef.current = 0;
+            apiClient.post(`/customer/negotiations/${activeChatId}/typing`, { is_typing: false }).catch(() =>
+                apiClient.post(`/negotiations/${activeChatId}/typing`, { is_typing: false }).catch(() => {})
+            );
+            return;
+        }
+
+        const now = Date.now();
+        if (now - lastTypingSentRef.current >= 1500) {
+            lastTypingSentRef.current = now;
+            apiClient.post(`/customer/negotiations/${activeChatId}/typing`, { is_typing: true }).catch(() =>
+                apiClient.post(`/negotiations/${activeChatId}/typing`, { is_typing: true }).catch(() => {})
+            );
+        }
+
+        if (typingInactivityTimerRef.current) clearTimeout(typingInactivityTimerRef.current);
+        typingInactivityTimerRef.current = setTimeout(() => {
+            lastTypingSentRef.current = 0;
+            apiClient.post(`/customer/negotiations/${activeChatId}/typing`, { is_typing: false }).catch(() =>
+                apiClient.post(`/negotiations/${activeChatId}/typing`, { is_typing: false }).catch(() => {})
+            );
+        }, 2500);
+    }, [activeChatId]);
+
     useEffect(() => {
         if (!activeChatId || !activeChat) return;
+
+        // Reset typing state on chat change
+        setIsSupplierTyping(false);
+        if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
 
         setChatMessages(prev => {
             if (!prev[activeChatId] || prev[activeChatId].length === 0) {
@@ -58,8 +99,24 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
                 const isQuoteRejected = quoteObj?.status === 'rejected' || quoteObj?.status === 'declined' || activeChat?.raw?.status === 'rejected';
                 const quoteDeclineReason = quoteObj?.decline_reason || quoteObj?.declineReason || activeChat?.raw?.decline_reason;
 
+                const supplierObj = rawData?.supplier;
+                if (supplierObj && activeChat) {
+                    if (supplierObj.is_online !== undefined) {
+                        activeChat.isOnline = Boolean(supplierObj.is_online);
+                    }
+                    if (supplierObj.last_seen_human) {
+                        activeChat.lastSeenHuman = supplierObj.last_seen_human;
+                    }
+                }
                 if (rawData?.is_supplier_typing !== undefined || rawData?.is_typing !== undefined) {
-                    setIsSupplierTyping(Boolean(rawData?.is_supplier_typing ?? rawData?.is_typing));
+                    const isTypingNow = Boolean(rawData?.is_supplier_typing ?? rawData?.is_typing);
+                    setIsSupplierTyping(isTypingNow);
+                    if (isTypingNow) {
+                        if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
+                        typingAutoClearTimerRef.current = setTimeout(() => {
+                            setIsSupplierTyping(false);
+                        }, 3500);
+                    }
                 }
 
                 if (Array.isArray(rawMsgs) && rawMsgs.length > 0) {
@@ -69,27 +126,71 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
             } catch {}
         };
 
+        const pollTypingStatus = async () => {
+            try {
+                const res = await apiClient.get(`/customer/negotiations/${activeChatId}/typing`).catch(() =>
+                    apiClient.get(`/negotiations/${activeChatId}/typing`)
+                );
+                const raw = res?.data?.data || res?.data || res;
+                if (raw?.is_supplier_typing !== undefined || raw?.is_typing !== undefined) {
+                    const isTypingNow = Boolean(raw?.is_supplier_typing ?? raw?.is_typing);
+                    setIsSupplierTyping(isTypingNow);
+                    if (isTypingNow) {
+                        if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
+                        typingAutoClearTimerRef.current = setTimeout(() => {
+                            setIsSupplierTyping(false);
+                        }, 3500);
+                    }
+                }
+            } catch {}
+        };
+
         fetchMessagesFromApi();
         apiClient.post(`/customer/negotiations/${activeChatId}/seen`).catch(() => apiClient.post(`/negotiations/${activeChatId}/seen`).catch(() => {}));
-        const timer = setInterval(fetchMessagesFromApi, 6000);
-        return () => clearInterval(timer);
+        
+        const messageTimer = setInterval(fetchMessagesFromApi, 3000);
+        const typingTimer = setInterval(pollTypingStatus, 1500);
+
+        return () => {
+            clearInterval(messageTimer);
+            clearInterval(typingTimer);
+            if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
+            if (typingInactivityTimerRef.current) clearTimeout(typingInactivityTimerRef.current);
+        };
     }, [activeChatId, activeChat?.raw?.status]);
 
-    const { handleSendCounterOffer, handleAcceptOffer, handleRejectOffer } = useCustomerOfferActions({
+    const { handleSendCounterOffer: baseSendCounterOffer, handleAcceptOffer, handleRejectOffer } = useCustomerOfferActions({
         activeChatId,
         activeChat,
         updateMessagesForActiveChat,
         scrollToBottom,
     });
 
+    const handleSendCounterOffer = async (amount: number, note: string) => {
+        notifyTyping(false);
+        return baseSendCounterOffer(amount, note);
+    };
+
     const handleSendMessage = async (text: string, files?: File[]) => {
         const hasText = Boolean(text && text.trim());
         const hasFiles = Boolean(files && files.length > 0);
         if (!hasText && !hasFiles) return;
 
+        notifyTyping(false);
+
         if (editingMsgId) {
-            updateMessagesForActiveChat(prev => prev.map(m => m.id === editingMsgId ? { ...m, text, isEdited: true } : m));
-            setEditingMsgId(null); setEditingText(''); setInputValue(''); return;
+            const targetEditId = editingMsgId;
+            updateMessagesForActiveChat(prev => prev.map(m => m.id === targetEditId ? { ...m, text, isEdited: true } : m));
+            setEditingMsgId(null); setEditingText(''); setInputValue('');
+
+            if (typeof targetEditId === 'number' || (typeof targetEditId === 'string' && /^\d+$/.test(targetEditId))) {
+                try {
+                    await apiClient.patch(`/negotiations/${activeChatId}/messages/${targetEditId}`, { message: text }).catch(() =>
+                        apiClient.put(`/negotiations/${activeChatId}/messages/${targetEditId}`, { message: text }).catch(() => {})
+                    );
+                } catch {}
+            }
+            return;
         }
 
         const localAttachments = hasFiles ? files!.map(f => ({
@@ -120,12 +221,34 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
         } catch {}
     };
 
-    const lastTypingSentRef = useRef<number>(0);
-    const notifyTyping = () => {
-        const now = Date.now();
-        if (now - lastTypingSentRef.current < 2500) return;
-        lastTypingSentRef.current = now;
-        apiClient.post(`/customer/negotiations/${activeChatId}/typing`).catch(() => apiClient.post(`/negotiations/${activeChatId}/typing`).catch(() => {}));
+    const handleTogglePinMessage = async (msgId: number | string) => {
+        updateMessagesForActiveChat(prev =>
+            prev.map(m => m.id === msgId ? { ...m, isPinned: !m.isPinned } : m)
+        );
+
+        if (typeof msgId === 'number' || (typeof msgId === 'string' && /^\d+$/.test(msgId))) {
+            try {
+                await apiClient.post(`/customer/negotiations/${activeChatId}/messages/${msgId}/pin`).catch(() =>
+                    apiClient.post(`/negotiations/${activeChatId}/messages/${msgId}/pin`).catch(() =>
+                        apiClient.post(`/negotiations/messages/${msgId}/pin`).catch(() => {})
+                    )
+                );
+            } catch {}
+        }
+    };
+
+    const handleDeleteMessage = async (msgId: number | string) => {
+        updateMessagesForActiveChat(prev =>
+            prev.map(m => m.id === msgId ? { ...m, isDeleted: true, isPinned: false } : m)
+        );
+
+        if (typeof msgId === 'number' || (typeof msgId === 'string' && /^\d+$/.test(msgId))) {
+            try {
+                await apiClient.delete(`/negotiations/${activeChatId}/messages/${msgId}`).catch(() =>
+                    apiClient.post(`/negotiations/${activeChatId}/messages/${msgId}/delete`).catch(() => {})
+                );
+            } catch {}
+        }
     };
 
     const currentMessages = activeChatId ? (chatMessages[activeChatId] || generateCustomerInitialMessages(activeChat)) : [];
@@ -133,8 +256,8 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
     return {
         messagesEndRef, inputValue, setInputValue, editingMsgId, isSupplierTyping, notifyTyping, currentMessages,
         scrollToBottom, handleSendMessage, handleSendCounterOffer, handleAcceptOffer, handleRejectOffer,
-        handleTogglePinMessage: (msgId: number | string) => updateMessagesForActiveChat(prev => prev.map(m => m.id === msgId ? { ...m, isPinned: !m.isPinned } : m)),
-        handleDeleteMessage: (msgId: number | string) => updateMessagesForActiveChat(prev => prev.map(m => m.id === msgId ? { ...m, isDeleted: true, isPinned: false } : m)),
+        handleTogglePinMessage,
+        handleDeleteMessage,
         handleStartEdit: (msg: CustomerChatMessage) => { setEditingMsgId(msg.id); setEditingText(msg.text || ''); setInputValue(msg.text || ''); },
         handleCancelEdit: () => { setEditingMsgId(null); setEditingText(''); setInputValue(''); }
     };

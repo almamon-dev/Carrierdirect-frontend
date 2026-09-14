@@ -54,7 +54,8 @@ export const ChatInputMediaActions: React.FC<ChatInputMediaActionsProps> = ({
                     <Smile size={18} />
                 </button>
                 {showEmojiPicker && (
-                    <div className="absolute bottom-11 left-0 z-50 bg-white dark:bg-slate-800 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-700 p-2.5 grid grid-cols-4 gap-1.5 w-52 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                    <div
+    className="absolute bottom-11 left-0 z-50 bg-white dark:bg-slate-800 shadow-xl rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 grid grid-cols-4 gap-1.5 w-52 animate-in fade-in slide-in-from-bottom-2 duration-150">
                         {EMOJIS.map(e => (
                             <button
                                 key={e}

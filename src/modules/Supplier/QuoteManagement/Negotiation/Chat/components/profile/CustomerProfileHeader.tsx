@@ -1,5 +1,5 @@
-import React from 'react';
 import { BadgeCheck } from 'lucide-react';
+import React from 'react';
 
 interface CustomerProfileHeaderProps {
     customer: any;
@@ -12,7 +12,7 @@ export const CustomerProfileHeader: React.FC<CustomerProfileHeaderProps> = ({
     customerName,
     formattedId,
 }) => (
-    <div className="bg-gradient-to-r from-orange-50/70 via-white to-slate-50 border border-orange-200/60 rounded-xl p-4 shadow-2xs">
+    <div className="bg-gradient-to-r from-orange-50/70 via-white to-slate-50 border border-orange-200/60 rounded-lg p-4 shadow-2xs">
         <div className="flex items-center gap-3.5">
             {customer.customerAvatar ? (
                 <img

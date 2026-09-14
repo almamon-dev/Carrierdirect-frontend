@@ -13,7 +13,7 @@ export const SupplierActionButton: React.FC<SupplierActionButtonProps> = ({
     onQuoteAction,
     onClose,
 }) => {
-    const isQuoted = (row.status || '').toLowerCase() === 'quoted' || (row.status || '').toLowerCase() === 'done' || Boolean(row.isQuoted || row.hasQuoted);
+    const isQuoted = Boolean((row as any).has_quoted || (row as any).quote_submitted || (row as any).is_quoted || (row as any).quote_id || (row as any).my_quote || row.isQuoted || row.hasQuoted || (row.status || '').toLowerCase() === 'quoted' || (row.status || '').toLowerCase() === 'done' || (row as any).supplier_status?.toLowerCase() === 'quoted');
     const isBooked = (row.status || '').toLowerCase() === 'booked' || (row.status || '').toLowerCase() === 'won';
     const isExpired = Boolean(
         (row as any).is_expired ||
@@ -37,7 +37,8 @@ export const SupplierActionButton: React.FC<SupplierActionButtonProps> = ({
 
     if (isExpired) {
         return (
-            <div className="w-full text-left px-3.5 py-2 text-xs text-slate-400 dark:text-slate-500 flex items-center gap-2.5 font-medium cursor-not-allowed bg-slate-50/50 dark:bg-slate-800/30 select-none">
+            <div
+    className="w-full text-left px-3.5 py-2 text-xs text-slate-400 dark:text-slate-500 flex items-center gap-2.5 font-medium cursor-not-allowed bg-slate-50/50 dark:bg-slate-800/30 select-none">
                 <Clock size={14} className="text-slate-400 shrink-0" />
                 <span>Expired (Closed)</span>
             </div>

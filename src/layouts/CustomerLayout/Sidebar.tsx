@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Settings, ChevronRight } from 'lucide-react';
+import { LogOut, LayoutDashboard, Settings, ChevronRight, X } from 'lucide-react';
 import LogoBlack from '@/assets/Images/LogoBlack.png';
 import LogoWhite from '@/assets/Images/Logo.png';
 import LogoIcon from '@/assets/Images/LogoIcon.png';
@@ -9,14 +9,32 @@ import { TOKEN_CONFIG } from '@/config/auth';
 
 interface SidebarProps {
     isOpen: boolean;
+    onClose?: () => void;
 }
 
 const getSidebarItemBadge = (_path: string) => null;
 
-const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen: boolean }) => {
+const isSubItemActive = (subPath: string, currentPath: string) => {
+    if (currentPath === subPath) return true;
+    if (subPath !== '/' && currentPath.startsWith(subPath)) return true;
+
+    // Customer quotes sub-routes
+    if (subPath === '/customer/quotes/create') {
+        if (currentPath.startsWith('/customer/quotes/create/')) return true;
+    }
+    if (subPath === '/customer/quotes/received') {
+        if (currentPath.startsWith('/customer/quotes/received/')) return true;
+    }
+    if (subPath === '/customer/quotes/processing') {
+        if (currentPath.startsWith('/customer/quotes/processing/')) return true;
+    }
+
+    return false;
+};
+
+const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: any; isOpen: boolean; onClose?: () => void }) => {
     const isActiveGroup = item.items.some((subItem: any) => 
-        location.pathname === subItem.path || 
-        (subItem.path !== '/' && location.pathname.startsWith(subItem.path))
+        isSubItemActive(subItem.path, location.pathname)
     );
 
     // Initially off by default unless current route belongs to this group
@@ -61,13 +79,18 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
             {isExpanded && (
                 <div className={`${isOpen ? 'pl-[34px] pr-3' : 'px-1'} space-y-1 mb-1.5 mt-0.5`}>
                     {item.items.map((subItem: any) => {
-                        const isActive = location.pathname === subItem.path || (subItem.path !== '/' && location.pathname.startsWith(subItem.path));
+                        const isActive = isSubItemActive(subItem.path, location.pathname);
                         const badgeCount = subItem.badge || getSidebarItemBadge(subItem.path);
 
                         return (
                             <Link
                                 key={subItem.name}
                                 to={subItem.path}
+                                onClick={() => {
+                                    if (window.innerWidth < 1024) {
+                                        onClose?.();
+                                    }
+                                }}
                                 className={`flex items-center ${isOpen ? 'justify-between py-1.5 px-2' : 'justify-center py-2'} rounded-md text-[13px] font-medium transition-colors group ${
                                     isActive 
                                         ? 'text-[#ff4a1f] dark:text-orange-400 font-bold bg-orange-50 dark:bg-slate-800/90' 
@@ -99,7 +122,7 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
     );
 };
 
-export default function Sidebar({ isOpen }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const currentModule = location.pathname.split('/')[1] || 'dashboard';
@@ -123,18 +146,27 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     };
 
     return (
-        <aside className={`fixed lg:static inset-y-0 left-0 z-30 lg:z-auto bg-white dark:bg-[#12161c] border-r border-slate-200 dark:border-slate-800 transform transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:w-[72px] lg:translate-x-0'}`}>
-            <div className="h-16 flex items-center justify-center lg:justify-start px-5 border-b border-gray-100 dark:border-slate-800 shrink-0 whitespace-nowrap">
-                <Link to="/">
+        <aside className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto bg-white dark:bg-[#12161c] shadow-2xl lg:shadow-none border-r border-slate-200 dark:border-slate-800 transform transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:w-[72px] lg:translate-x-0'}`}>
+            <div className="h-16 flex items-center justify-between lg:justify-start px-4 sm:px-5 border-b border-gray-100 dark:border-slate-800 shrink-0 whitespace-nowrap">
+                <Link to="/" onClick={() => { if (window.innerWidth < 1024) onClose?.(); }}>
                     {isOpen ? (
                         <>
-                            <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300 cursor-pointer dark:hidden" />
-                            <img src={LogoWhite} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300 cursor-pointer hidden dark:block" />
+                            <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[170px] object-contain transition-opacity duration-300 cursor-pointer dark:hidden" />
+                            <img src={LogoWhite} alt="Get It Moving" className="h-10 max-w-[170px] object-contain transition-opacity duration-300 cursor-pointer hidden dark:block" />
                         </>
                     ) : (
                         <img src={LogoIcon} alt="Icon" className="w-10 h-10 object-contain shrink-0 cursor-pointer" />
                     )}
                 </Link>
+                {isOpen && (
+                    <button
+                        onClick={onClose}
+                        className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        title="Close menu"
+                    >
+                        <X size={20} />
+                    </button>
+                )}
             </div>
 
             <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 custom-scrollbar">
@@ -155,10 +187,15 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                             )}
                             
                             {item.group ? (
-                                <NavGroup item={item} location={location} isOpen={isOpen} />
+                                <NavGroup item={item} location={location} isOpen={isOpen} onClose={onClose} />
                             ) : (
                                 <Link
                                     to={item.path}
+                                    onClick={() => {
+                                        if (window.innerWidth < 1024) {
+                                            onClose?.();
+                                        }
+                                    }}
                                     title={!isOpen ? item.name : undefined}
                                     className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${
                                         (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))

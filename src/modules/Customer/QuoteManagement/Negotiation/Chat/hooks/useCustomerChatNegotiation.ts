@@ -43,17 +43,23 @@ export function useCustomerChatNegotiation() {
     const chats: CustomerChatItem[] = useMemo(() => {
         return allNegotiations.map(n => {
             const isTargetActive = String(n.rawId) === String(activeChatId);
+            const avatarUrl = n.customerAvatar || n.supplierAvatar || (n as any).profile_picture || '';
+            const supplierDisplayName = n.supplier || n.customer || 'Supplier';
+
             return {
                 id: n.rawId,
-                name: n.supplier || n.customer || '',
-                avatar: (n.supplier || n.customer || 'C').charAt(0).toUpperCase(),
+                name: supplierDisplayName,
+                avatar: avatarUrl,
                 preview: n.notes || `${n.pickup} → ${n.delivery}`,
                 time: n.lastUpdated || n.requestDate || '',
                 unreadCount: n.unreadCount || 0,
                 unread: (n.unreadCount || 0) > 0,
                 active: isTargetActive,
                 quoteNo: n.quoteId || (typeof n.id === 'string' && n.id.startsWith('QT-') ? n.id : `QT-${String(n.rawId).padStart(4, '0')}`),
-                baseFreight: `€ ${Number(n.currentOffer || n.originalAmount || 0).toLocaleString()}`,
+                baseFreight: `€ ${Number(n.baseFreightAmount || n.currentOffer || n.originalAmount || 0).toLocaleString()}`,
+                baseFreightAmount: n.baseFreightAmount || (n.totalExtras ? Math.max(0, Number(n.currentOffer || 0) - n.totalExtras) : Number(n.currentOffer || n.originalAmount || 0)),
+                extraCharges: n.extraCharges || [],
+                totalExtras: n.totalExtras || 0,
                 isVerified: true,
                 isPinned: Boolean(n.priority === 'Urgent'),
                 raw: n,
@@ -62,7 +68,10 @@ export function useCustomerChatNegotiation() {
                 destination: n.destination || n.delivery,
                 distance: n.distance || '—',
                 currentPrice: Number(n.currentOffer || n.originalAmount || 0),
-                vehicleType: n.vehicleType || '—'
+                vehicleType: n.vehicleType || '—',
+                isOnline: Boolean(n.isOnline),
+                lastSeenHuman: n.lastSeenHuman || (n.isOnline ? 'Active now' : 'Offline'),
+                lastSeenAt: n.lastSeenAt
             };
         });
     }, [allNegotiations, activeChatId]);

@@ -26,7 +26,8 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
         <div className="space-y-4 animate-in fade-in duration-300">
             <TabHeader title="Review Request Summary" icon={CheckCircle2} />
 
-            <div className="bg-slate-50/80 dark:bg-[#181d24] border border-slate-200 dark:border-slate-800 rounded-md p-4 space-y-3.5 text-xs">
+            <div
+    className="bg-slate-50/80 dark:bg-[#181d24] border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3.5 text-xs">
                 {/* Request Header */}
                 <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div>
@@ -46,7 +47,8 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
 
                 {/* Locations Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="p-3 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-md shadow-2xs">
+                    <div
+    className="p-3 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs">
                         <span className="font-bold text-purple-700 dark:text-purple-400 text-xs flex items-center gap-1.5 mb-1.5">
                             <MapPin size={13} /> Pickup Details
                         </span>
@@ -59,7 +61,8 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
                         )}
                     </div>
 
-                    <div className="p-3 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-md shadow-2xs">
+                    <div
+    className="p-3 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs">
                         <span className="font-bold text-emerald-700 dark:text-emerald-400 text-xs flex items-center gap-1.5 mb-1.5">
                             <MapPin size={13} /> Delivery Details
                         </span>
@@ -74,7 +77,8 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
                 </div>
 
                 {/* Cargo & Vehicle Specs */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-md shadow-2xs">
+                <div
+    className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs">
                     <div>
                         <span className="text-slate-400 dark:text-slate-500 block font-medium text-[11px]">Vehicle Type</span>
                         <span className="font-bold text-slate-900 dark:text-slate-100 text-[12px]">{formData.vehicleType || '-'}</span>
@@ -96,7 +100,8 @@ export const ReviewSubmitSection: React.FC<SectionProps> = ({
 
                 {/* Additional Specs if present */}
                 {(servicesCount > 0 || formData.internalReference || formData.customerNotes) && (
-                    <div className="p-3 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-md flex flex-wrap items-center justify-between gap-2 shadow-2xs text-slate-700 dark:text-slate-300">
+                    <div
+    className="p-3 bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-800 rounded-lg flex flex-wrap items-center justify-between gap-2 shadow-2xs text-slate-700 dark:text-slate-300">
                         {servicesCount > 0 && (
                             <span>Selected Services: <strong className="text-slate-900 dark:text-slate-100 font-bold">{servicesCount} Options Active</strong></span>
                         )}

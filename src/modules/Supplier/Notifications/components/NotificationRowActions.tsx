@@ -97,7 +97,7 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
                     />
 
                     <div
-                        className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
+    className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >

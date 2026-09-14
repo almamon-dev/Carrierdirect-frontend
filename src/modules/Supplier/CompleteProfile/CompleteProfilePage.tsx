@@ -117,7 +117,8 @@ function AutocompleteInput({
                 error={error}
             />
             {isOpen && !disabled && hasTypedText && (
-                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto font-sans antialiased">
+                <div
+    className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto font-sans antialiased">
                     {filtered.map((item, idx) => (
                         <div
                             key={idx}
@@ -511,7 +512,8 @@ export default function SupplierCompleteProfilePage() {
             </div>
 
             {/* Main Centered Card matching SupplierRegisterPage */}
-            <div className="main-auth-card flex flex-col md:flex-row w-full max-w-5xl bg-white dark:bg-[#181a20] rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-200 dark:border-[#384150] overflow-hidden min-h-[600px]">
+            <div
+    className="main-auth-card flex flex-col md:flex-row w-full max-w-5xl bg-white dark:bg-[#181a20] rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-200 dark:border-[#384150] overflow-hidden min-h-[600px]">
 
                 {/* Left Side - Logo & Radial Grid Pattern */}
                 <div className="hidden md:flex md:w-5/12 bg-[#f8fafc] flex-col items-center justify-center p-10 relative border-r border-gray-100">

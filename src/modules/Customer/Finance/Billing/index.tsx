@@ -59,11 +59,12 @@ export default function Billing() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
                 
                 {/* Active Subscription Summary */}
-                <div className="xl:col-span-2 bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div
+    className="xl:col-span-2 bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div>
                         <div className="flex justify-between items-start mb-3 border-b border-slate-100 pb-2.5">
                             <div>
-                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#ff4a1f]">Current Active Plan</span>
+                                <span className="text-[10px] font-extrabold  tracking-wider text-[#ff4a1f]">Current Active Plan</span>
                                 <h2 className="text-lg font-bold text-slate-900 mt-0.5">
                                     {subscription?.plan_name || subscription?.name || 'Shipper Basic'}
                                 </h2>
@@ -90,7 +91,8 @@ export default function Billing() {
                 </div>
 
                 {/* Outstanding & Stats Card */}
-                <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div
+    className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                     <h2 className="text-[13px] font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3">Billing Summary</h2>
 
                     <div className="space-y-3">
@@ -115,7 +117,8 @@ export default function Billing() {
             </div>
 
             {/* Invoices History Table */}
-            <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+            <div
+    className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                     <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                         <Receipt size={16} className="text-[#ff4a1f]" /> Recent Billing History

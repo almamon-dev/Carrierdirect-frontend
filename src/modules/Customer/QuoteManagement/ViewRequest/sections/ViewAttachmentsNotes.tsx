@@ -18,7 +18,8 @@ export const ViewAttachmentsNotes: React.FC<ViewAttachmentsNotesProps> = ({ form
                 <SectionHeader title="Attached Documents" icon={Paperclip} />
                 <div className="col-span-1 md:col-span-2 space-y-2">
                     {/* Packing List */}
-                    <div className="flex items-center justify-between p-3 border border-slate-200 rounded-md bg-slate-50">
+                    <div
+    className="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50">
                         <div className="flex items-center gap-2">
                             <FileText size={16} className="text-slate-500" />
                             <div>
@@ -43,7 +44,8 @@ export const ViewAttachmentsNotes: React.FC<ViewAttachmentsNotesProps> = ({ form
                     </div>
 
                     {/* Commercial Invoice */}
-                    <div className="flex items-center justify-between p-3 border border-slate-200 rounded-md bg-slate-50">
+                    <div
+    className="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50">
                         <div className="flex items-center gap-2">
                             <FileText size={16} className="text-slate-500" />
                             <div>

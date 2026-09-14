@@ -133,24 +133,24 @@ export const HeaderMessages: React.FC<HeaderMessagesProps> = ({ role = 'supplier
 
     return (
         <div className="relative" ref={dropdownRef}>
-            {/* Header Bell-style Message Trigger Button */}
+            {/* Header Message Trigger Button */}
             <button
                 type="button"
                 onClick={() => {
                     if (!isOpen) fetchConversations(true);
                     setIsOpen(!isOpen);
                 }}
-                className={`relative p-2 rounded-full border transition-all duration-200 cursor-pointer ${
+                className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all duration-200 cursor-pointer relative shrink-0 ${
                     isOpen
                         ? 'bg-orange-50 dark:bg-orange-950/40 border-[#FF4A1F] text-[#FF4A1F]'
-                        : 'bg-slate-100 dark:bg-[#1e2329] border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:text-[#FF4A1F] dark:hover:text-[#FF4A1F] hover:bg-slate-200/60 dark:hover:bg-[#252b33]'
+                        : 'bg-slate-100 dark:bg-[#1e2329] border-slate-200/80 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:text-[#FF4A1F] dark:hover:text-[#FF4A1F] hover:bg-slate-200/80 dark:hover:bg-slate-800'
                 }`}
                 title="Messages & General Chat"
                 aria-label="Messages"
             >
                 <MessageSquare className="w-4 h-4" />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#FF4A1F] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm ring-2 ring-white dark:ring-[#12161c] animate-in zoom-in">
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#FF4A1F] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#12161c] shadow-xs animate-in zoom-in duration-200 leading-none">
                         {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}
@@ -158,10 +158,12 @@ export const HeaderMessages: React.FC<HeaderMessagesProps> = ({ role = 'supplier
 
             {/* Dropdown Modal Container */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-[340px] sm:w-[390px] bg-white dark:bg-[#161b22] rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 z-[999] overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col font-sans">
+                <div
+    className="absolute right-0 mt-2 w-[340px] sm:w-[390px] bg-white dark:bg-[#161b22] rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 z-[999] overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col font-sans">
                     
                     {/* Header */}
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#12161c]/80 backdrop-blur-sm flex items-center justify-between">
+                    <div
+    className="px-4 py-3 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#12161c]/80 backdrop-blur-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] flex items-center justify-center font-bold">
                                 <MessageSquare size={14} />
@@ -193,7 +195,7 @@ export const HeaderMessages: React.FC<HeaderMessagesProps> = ({ role = 'supplier
                     {/* Search & Tabs */}
                     <div className="p-3 border-b border-slate-100 dark:border-slate-800/80 space-y-2">
                         <div className="relative">
-                            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                             <input
                                 type="text"
                                 placeholder="Search messages or people..."

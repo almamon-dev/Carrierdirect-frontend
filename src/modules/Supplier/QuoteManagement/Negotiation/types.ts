@@ -40,6 +40,9 @@ export interface NegotiationItem {
     documents?: Array<{ name: string; size: string; type?: string; url?: string }>;
     isVerified?: boolean;
     isUnderReview?: boolean;
+    isOnline?: boolean;
+    lastSeenHuman?: string;
+    lastSeenAt?: string;
 }
 
 export type NegotiationTab = 'active' | 'history';

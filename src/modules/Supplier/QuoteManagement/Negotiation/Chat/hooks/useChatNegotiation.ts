@@ -22,13 +22,22 @@ export function useChatNegotiation() {
         if (!id) return allNegotiations[0]?.rawId || '';
         const decrypted = decryptId(id);
         const rawNum = Number(String(decrypted).replace(/[^0-9]/g, ''));
-        const matched = allNegotiations.find(n =>
-            n.rawId === rawNum ||
-            String(n.rawId) === String(decrypted) ||
-            n.sessionKey === id ||
-            n.id === decrypted ||
-            n.id === id
-        );
+        const cleanDecrypted = String(decrypted).replace('REQ-', '').replace('QT-', '').trim();
+        const matched = allNegotiations.find(n => {
+            const nRawNum = Number(String(n.rawId).replace(/[^0-9]/g, ''));
+            const nReqNum = Number(String(n.requestId).replace(/[^0-9]/g, ''));
+            const nQuoteNum = Number(String(n.quoteId || n.id).replace(/[^0-9]/g, ''));
+            return (
+                (rawNum && (nRawNum === rawNum || nReqNum === rawNum || nQuoteNum === rawNum)) ||
+                String(n.rawId) === cleanDecrypted ||
+                String(n.rawId) === String(decrypted) ||
+                n.sessionKey === id ||
+                n.id === decrypted ||
+                n.id === id ||
+                n.requestId === decrypted ||
+                n.quoteId === decrypted
+            );
+        });
         return matched?.rawId || rawNum || allNegotiations[0]?.rawId || '';
     }, [id, allNegotiations]);
 

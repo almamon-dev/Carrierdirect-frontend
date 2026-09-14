@@ -109,11 +109,12 @@ export default function TableColumnToggle({
             </button>
             
             {isOpen && (
-                <div className="absolute right-0 mt-1.5 w-[240px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-[3px] shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                <div
+    className="absolute right-0 mt-1.5 w-[240px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-[3px] shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                     <div className="p-3">
                         <div className="flex items-center justify-between mb-2 px-1 border-b border-slate-100 dark:border-slate-800 pb-1.5">
                             <div className="flex items-center gap-1.5">
-                                <h3 className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Visible Columns</h3>
+                                <h3 className="text-[11px] font-bold text-slate-500 dark:text-slate-400  tracking-wider">Visible Columns</h3>
                             </div>
                             <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">{visibleColumns.length}/{columns.length}</span>
                         </div>

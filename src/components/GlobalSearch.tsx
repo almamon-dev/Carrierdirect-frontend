@@ -40,7 +40,8 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] sm:pt-[16vh] px-4">
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onClick={onClose} />
 
-            <div className="relative bg-white rounded-[3px] shadow-xl w-full max-w-lg overflow-hidden flex flex-col border border-slate-200/90 animate-in fade-in zoom-in-95 duration-150 font-sans">
+            <div
+    className="relative bg-white rounded-[3px] shadow-xl w-full max-w-lg overflow-hidden flex flex-col border border-slate-200/90 animate-in fade-in zoom-in-95 duration-150 font-sans">
                 {/* Search Input Bar (Compact) */}
                 <div className="flex items-center px-3.5 py-2.5 border-b border-slate-100 gap-2.5">
                     <Search className="text-[#FF4A1F] shrink-0" size={17} />
@@ -64,7 +65,7 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
                 {/* Quick Links List (Compact) */}
                 <div className="p-1.5 max-h-[50vh] overflow-y-auto">
                     {query.trim() === '' && (
-                        <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="px-2.5 pt-1.5 pb-1 text-[10px] font-bold text-slate-400  tracking-wider">
                             Suggested Quick Links
                         </div>
                     )}
@@ -101,7 +102,8 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
                 </div>
 
                 {/* Compact Keyboard Shortcuts Footer */}
-                <div className="bg-slate-50/90 px-3.5 py-2 border-t border-slate-100 text-[11px] text-slate-400 flex items-center gap-3">
+                <div
+    className="bg-slate-50/90 px-3.5 py-2 border-t border-slate-100 text-[11px] text-slate-400 flex items-center gap-3">
                     <span className="flex items-center gap-1">
                         <kbd className="bg-white border border-slate-200 rounded-[3px] px-1.5 py-0.5 text-[9.5px] font-bold shadow-2xs text-slate-500">esc</kbd> to close
                     </span>

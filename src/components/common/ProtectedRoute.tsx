@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 function getDashboardByRole(role: string): string {
-    if (role === 'supplier') return '/supplier/dashboard';
+    if (role === 'supplier' || role === 'supplier_employee') return '/supplier/dashboard';
     if (role === 'admin')    return '/admin/dashboard';
     return '/customer/dashboard';
 }
@@ -43,7 +43,7 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
 
             // ── 2a. Check Email Verification ──────────────────────────
             if (user && !user.email_verified_at && !location.pathname.startsWith('/web/verify-email')) {
-                return <Navigate to={`/web/verify-email-notice?email=${encodeURIComponent(user.email || '')}`} replace />;
+                return <Navigate to={`/web/verify-email-notice?email=${encodeURIComponent(user.email || "")}`} replace />;
             }
 
             // ── 2b. Check Supplier Profile Completion ─────────────────
@@ -63,6 +63,10 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
                 if (isProfileCompleted && location.pathname === '/supplier/complete-profile') {
                     return <Navigate to="/supplier/dashboard" replace />;
                 }
+            } else if (userRole === 'supplier_employee') {
+                if (location.pathname === '/supplier/complete-profile') {
+                    return <Navigate to="/supplier/dashboard" replace />;
+                }
             }
         } catch {
             // Corrupt data — clear and redirect to login
@@ -77,9 +81,16 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
     }
 
     // ── 3. Role check ─────────────────────────────────────────────────────────
-    // If we know the role AND an allowedRole is specified AND they don't match,
-    // redirect to the correct dashboard for that role.
-    if (allowedRole && userRole && userRole !== allowedRole) {
+    const isRoleAllowed = (requiredRole?: string, actualRole?: string | null) => {
+        if (!requiredRole) return true;
+        if (!actualRole) return false;
+        if (requiredRole === 'supplier') {
+            return actualRole === 'supplier' || actualRole === 'supplier_employee';
+        }
+        return actualRole === requiredRole;
+    };
+
+    if (allowedRole && userRole && !isRoleAllowed(allowedRole, userRole)) {
         return <Navigate to={getDashboardByRole(userRole)} replace />;
     }
 

@@ -15,7 +15,7 @@ function getAuthUser() {
     try {
         const raw = localStorage.getItem(TOKEN_CONFIG.userKey);
         if (!raw) return null;
-        return JSON.parse(raw) as { name?: string; email?: string; user_type?: string };
+        return JSON.parse(raw) as { name?: string; email?: string; user_type?: string; profile_picture?: string };
     } catch {
         return null;
     }
@@ -65,6 +65,7 @@ export default function SupplierLayout() {
     const [isScrolled, setIsScrolled] = useState(false);
 
     const location = useLocation();
+    const isChatRoute = location.pathname.includes("/messages") || location.pathname.includes("/negotiation/conversation") || location.pathname.includes("/chat");
     const navigate = useNavigate();
 
     const profileRef = useRef<HTMLDivElement>(null);
@@ -85,7 +86,11 @@ export default function SupplierLayout() {
     useEffect(() => {
         const sync = () => setAuthUser(getAuthUser());
         window.addEventListener('storage', sync);
-        return () => window.removeEventListener('storage', sync);
+        window.addEventListener('user-profile-updated', sync);
+        return () => {
+            window.removeEventListener('storage', sync);
+            window.removeEventListener('user-profile-updated', sync);
+        };
     }, []);
 
     // Track scroll position on main container to trigger header border
@@ -170,8 +175,14 @@ export default function SupplierLayout() {
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-[#282f38] transition-colors cursor-pointer"
                             >
-                                <div className="w-7 h-7 rounded-full bg-[#ff4a1f] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-xs">
-                                    {authUser?.name ? initials(authUser.name) : <User size={14} />}
+                                <div className="w-7 h-7 rounded-full bg-[#ff4a1f] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-xs overflow-hidden">
+                                    {authUser?.profile_picture ? (
+                                        <img src={authUser.profile_picture} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : authUser?.name ? (
+                                        initials(authUser.name)
+                                    ) : (
+                                        <User size={14} />
+                                    )}
                                 </div>
                                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[120px] sm:max-w-[160px] truncate">
                                     {authUser?.name || 'Account'}
@@ -184,8 +195,14 @@ export default function SupplierLayout() {
                                 <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-2xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[999] overflow-hidden text-xs font-medium">
                                     {/* User info */}
                                     <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-[#181a20]/50">
-                                        <div className="w-9 h-9 rounded-full bg-slate-700 dark:bg-[#ff4a1f] text-white flex items-center justify-center text-sm font-black shrink-0">
-                                            {authUser?.name ? initials(authUser.name) : <User size={16} />}
+                                        <div className="w-9 h-9 rounded-full bg-slate-700 dark:bg-[#ff4a1f] text-white flex items-center justify-center text-sm font-black shrink-0 overflow-hidden">
+                                            {authUser?.profile_picture ? (
+                                                <img src={authUser.profile_picture} alt="Avatar" className="w-full h-full object-cover" />
+                                            ) : authUser?.name ? (
+                                                initials(authUser.name)
+                                            ) : (
+                                                <User size={16} />
+                                            )}
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{authUser?.name || 'Guest User'}</p>
@@ -242,19 +259,26 @@ export default function SupplierLayout() {
                 </header>
 
                 {/* Main Scrollable Content */}
-                <main ref={mainRef} className={`flex-1 ${location.pathname.includes('/messages') ? 'overflow-hidden h-[calc(100vh-64px)]' : 'overflow-y-auto overflow-x-hidden'} bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
-                    <React.Suspense fallback={<RouteLoadingFallback />}>
-                        <div className={`w-full ${location.pathname.includes('/messages') ? 'h-full pb-0' : 'pb-16'}`}>
-                            <Outlet />
-                        </div>
-                    </React.Suspense>
-                </main>
+                {(() => {
+                    const isFullHeightChat = location.pathname.includes('/messages') ||
+                                             location.pathname.includes('/negotiation/conversation') ||
+                                             location.pathname.includes('/negotiation/view');
+                    return (
+                        <main ref={mainRef} className={`flex-1 ${isFullHeightChat ? 'overflow-hidden h-[calc(100vh-64px)]' : 'overflow-y-auto overflow-x-hidden'} bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
+                            <React.Suspense fallback={<RouteLoadingFallback />}>
+                                <div className={`w-full ${isFullHeightChat ? 'h-full pb-0' : 'pb-16'}`}>
+                                    <Outlet />
+                                </div>
+                            </React.Suspense>
+                        </main>
+                    );
+                })()}
             </div>
 
             <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
             {/* Floating Negotiation Chat Widget */}
-            {!location.pathname.includes('/messages') && <NegotiationChatWidget />}
+            {!location.pathname.includes('/messages') && !location.pathname.includes('/negotiation/conversation') && !location.pathname.includes('/negotiation/view') && <NegotiationChatWidget />}
         </div>
     );
 }

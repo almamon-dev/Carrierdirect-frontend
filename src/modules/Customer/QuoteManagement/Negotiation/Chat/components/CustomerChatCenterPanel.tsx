@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FileText, Info } from 'lucide-react';
-import ChatInputActions from '../../Actions';
+import { CustomerChatItem, CustomerChatMessage } from '../types';
 import { CustomerChatMessageBubble } from './CustomerChatMessageBubble';
 import { CustomerChatTypingIndicator } from './CustomerChatTypingIndicator';
-import { CustomerChatItem, CustomerChatMessage } from '../types';
+import ChatInputActions from '../../Actions';
+import { CounterOfferModal } from '../../Actions/components/CounterOfferModal';
 
 interface CustomerChatCenterPanelProps {
     activeChat: CustomerChatItem | null;
     showDetailsPanel: boolean;
-    setShowDetailsPanel: React.Dispatch<React.SetStateAction<boolean>>;
+    setShowDetailsPanel: (show: boolean) => void;
     currentMessages: CustomerChatMessage[];
     editingMsgId: string | number | null;
     isSupplierTyping: boolean;
     messagesEndRef: React.RefObject<HTMLDivElement | null>;
     inputValue: string;
-    setInputValue: (val: string) => void;
+    setInputValue: (value: string) => void;
     scrollToBottom: () => void;
     handleSendMessage: (text: string, files?: File[]) => Promise<void> | void;
     handleSendCounterOffer: (amount: number, note: string) => Promise<void> | void;
@@ -24,7 +25,7 @@ interface CustomerChatCenterPanelProps {
     handleDeleteMessage: (id: string | number) => void;
     handleStartEdit: (msg: CustomerChatMessage) => void;
     handleCancelEdit: () => void;
-    notifyTyping: () => void;
+    notifyTyping: (isTyping?: boolean) => void;
 }
 
 export const CustomerChatCenterPanel: React.FC<CustomerChatCenterPanelProps> = ({
@@ -48,6 +49,8 @@ export const CustomerChatCenterPanel: React.FC<CustomerChatCenterPanelProps> = (
     handleCancelEdit,
     notifyTyping
 }) => {
+    const [showTopCounterModal, setShowTopCounterModal] = useState(false);
+
     return (
         <div className={`${showDetailsPanel ? 'xl:col-span-6 lg:col-span-8' : 'lg:col-span-8 xl:col-span-9'} flex flex-col min-h-0 h-full border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0b1016]`}>
             {!activeChat ? (
@@ -60,21 +63,35 @@ export const CustomerChatCenterPanel: React.FC<CustomerChatCenterPanelProps> = (
                 </div>
             ) : (
                 <>
-                    <div className="h-14 px-4 sm:px-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#12161c] shrink-0">
+                    <div
+    className="h-14 px-4 sm:px-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#12161c] shrink-0">
                         <div className="flex items-center gap-3 min-w-0">
-                            <div className="relative">
-                                <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold text-xs shadow-2xs">
-                                    {activeChat.avatar ? (
-                                        <img src={activeChat.avatar} alt={activeChat.name} className="w-full h-full object-cover" />
+                            <div className="relative shrink-0">
+                                <div className="w-9 h-9 rounded-full overflow-hidden bg-orange-50 dark:bg-orange-950/40 border border-orange-200/80 dark:border-orange-900/50 flex items-center justify-center text-[#FF4A1F] font-bold text-xs shadow-2xs">
+                                    {activeChat.avatar && (activeChat.avatar.startsWith('http') || activeChat.avatar.startsWith('/storage') || activeChat.avatar.startsWith('data:') || activeChat.avatar.includes('.')) ? (
+                                        <img
+                                            src={activeChat.avatar}
+                                            alt=""
+                                            className="w-full h-full object-contain"
+                                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                        />
                                     ) : (
                                         <span>{(activeChat.name || 'S').charAt(0).toUpperCase()}</span>
                                     )}
                                 </div>
-                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00a884] border-2 border-white dark:border-[#12161c] rounded-full" />
+                                <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 border-2 border-white dark:border-[#12161c] rounded-full z-10 ${activeChat.isOnline ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-600"}`} />
                             </div>
                             <div className="min-w-0">
                                 <h2 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{activeChat.name}</h2>
-                                <p className="text-[11px] text-slate-500 truncate">{activeChat.quoteNo} • {activeChat.routeText}</p>
+                                <p className="text-[11px] text-slate-500 truncate flex items-center gap-1.5">
+                                    <span className={activeChat.isOnline ? "text-emerald-600 font-semibold" : "text-slate-400"}>
+                                        {activeChat.lastSeenHuman || (activeChat.isOnline ? "Active now" : "Offline")}
+                                    </span>
+                                    <span className="text-slate-300">•</span>
+                                    <span>{activeChat.quoteNo}</span>
+                                    <span className="text-slate-300">•</span>
+                                    <span>{activeChat.routeText}</span>
+                                </p>
                             </div>
                         </div>
 
@@ -109,6 +126,7 @@ export const CustomerChatCenterPanel: React.FC<CustomerChatCenterPanelProps> = (
                                     onAcceptOffer={handleAcceptOffer}
                                     onRejectOffer={handleRejectOffer}
                                     onSendCounterOffer={handleSendCounterOffer}
+                                    onOpenCounterOffer={() => setShowTopCounterModal(true)}
                                     onStartEdit={handleStartEdit}
                                     onDeleteMessage={handleDeleteMessage}
                                     onTogglePinMessage={handleTogglePinMessage}
@@ -132,6 +150,17 @@ export const CustomerChatCenterPanel: React.FC<CustomerChatCenterPanelProps> = (
                         originalOfferAmount={activeChat?.currentPrice || activeChat?.raw?.amount || activeChat?.raw?.total_price}
                         targetBudget={activeChat?.raw?.budget || activeChat?.raw?.target_budget}
                         carrierName={activeChat?.carrier || activeChat?.company || activeChat?.name}
+                    />
+
+                    <CounterOfferModal
+                        isOpen={showTopCounterModal}
+                        onClose={() => setShowTopCounterModal(false)}
+                        isSupplier={false}
+                        originalOfferAmount={activeChat?.currentPrice || activeChat?.raw?.amount || activeChat?.raw?.total_price}
+                        targetBudget={activeChat?.raw?.budget || activeChat?.raw?.target_budget}
+                        carrierName={activeChat?.carrier || activeChat?.company || activeChat?.name}
+                        currency="€"
+                        onSubmit={(amt, note) => handleSendCounterOffer(amt, note)}
                     />
                 </>
             )}

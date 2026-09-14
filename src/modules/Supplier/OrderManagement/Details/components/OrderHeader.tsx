@@ -21,16 +21,16 @@ export const OrderHeader: React.FC<OrderHeaderProps> = ({
     const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div>
-                <button 
-                    onClick={() => navigate('/supplier/orders/active-jobs')} 
-                    className="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 flex items-center transition-colors font-medium mb-1 cursor-pointer"
-                >
-                    <ArrowLeft size={13} className="mr-1" /> Back to Active Jobs
-                </button>
-                <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+        <div className="space-y-2 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <button 
+                onClick={() => navigate('/supplier/orders/active-jobs')} 
+                className="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 inline-flex items-center transition-colors font-medium cursor-pointer"
+            >
+                <ArrowLeft size={13} className="mr-1" /> Back to Active Jobs
+            </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap min-w-0">
+                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                         Order Details: {order.id}
                     </h1>
                     <Badge 
@@ -45,36 +45,36 @@ export const OrderHeader: React.FC<OrderHeaderProps> = ({
                         {currentStatus}
                     </Badge>
                 </div>
-            </div>
 
-            {/* Toolbar */}
-            <div className="flex items-center gap-2">
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-9 text-xs font-semibold cursor-pointer"
-                    onClick={() => alert(`Downloading Invoice & Specs for ${order.id}...`)}
-                >
-                    <Download size={13} className="mr-1.5" /> PDF Invoice
-                </Button>
+                {/* Toolbar */}
+                <div className="flex items-center flex-wrap gap-2 shrink-0">
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 sm:h-9 text-xs font-semibold cursor-pointer"
+                        onClick={() => alert(`Downloading Invoice & Specs for ${order.id}...`)}
+                    >
+                        <Download size={13} className="mr-1.5" /> PDF Invoice
+                    </Button>
 
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-9 text-xs font-semibold cursor-pointer"
-                    onClick={onOpenUploadModal}
-                >
-                    <Upload size={13} className="mr-1.5" /> Upload POD
-                </Button>
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 sm:h-9 text-xs font-semibold cursor-pointer"
+                        onClick={onOpenUploadModal}
+                    >
+                        <Upload size={13} className="mr-1.5" /> Upload POD
+                    </Button>
 
-                <Button 
-                    variant="primary" 
-                    size="sm" 
-                    className="h-9 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer"
-                    onClick={onOpenStatusModal}
-                >
-                    <RefreshCw size={13} className="mr-1.5" /> Update Status
-                </Button>
+                    <Button 
+                        variant="primary" 
+                        size="sm" 
+                        className="h-8 sm:h-9 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer"
+                        onClick={onOpenStatusModal}
+                    >
+                        <RefreshCw size={13} className="mr-1.5" /> Update Status
+                    </Button>
+                </div>
             </div>
         </div>
     );

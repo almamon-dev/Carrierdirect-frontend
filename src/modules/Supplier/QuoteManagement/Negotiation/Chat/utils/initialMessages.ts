@@ -43,14 +43,6 @@ Best regards`;
             previousTotal: origAmount,
             status: initialStatus,
             declineReason: (item as any).declineReason || (item as any).decline_reason
-        },
-        {
-            id: `msg-quote-proposal-${item.rawId || item.id || 1}`,
-            type: 'received',
-            sender: customerName,
-            avatar: customerName.charAt(0).toUpperCase(),
-            text: supplierQuoteProposal,
-            time: item.lastUpdated || item.requestDate || '10:05 AM'
         }
     ];
 }

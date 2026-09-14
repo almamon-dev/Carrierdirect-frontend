@@ -65,22 +65,23 @@ export const ViewQuoteCompare: React.FC<ViewQuoteCompareProps> = ({
                 />
 
                 <div className="flex items-center gap-2">
-                    <span className="text-[11.5px] text-slate-500 dark:text-slate-400 whitespace-nowrap">Sort:</span>
-                    <div className="w-[175px]">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap font-medium"></span>
+                    <div className="w-[185px]">
                         <Select
                             value={sortBy}
                             onChange={(val) => {
                                 const v = typeof val === 'object' && val?.target ? val.target.value : val;
                                 setSortBy(v);
                             }}
+                            size="sm"
                             showSearch={false}
                             icon={ArrowUpDown}
-                            placeholder="Sort bids..."
-                            className="rounded-[4px] text-[11.5px]"
+                            placeholder="Sort by..."
+                            className="rounded-[4px] text-xs"
                         >
                             <option value="lowest_price">Price: Low to High</option>
                             <option value="highest_price">Price: High to Low</option>
-                            <option value="top_rated">Top Rated Carrier</option>
+                            <option value="top_rated">Top Rated</option>
                             <option value="fastest">Fastest Transit</option>
                         </Select>
                     </div>
@@ -113,13 +114,12 @@ export const ViewQuoteCompare: React.FC<ViewQuoteCompareProps> = ({
                             return (
                                 <tr
                                     key={sq.id}
-                                    className={`transition-colors ${
-                                        isWon
-                                            ? 'bg-emerald-50/50 dark:bg-emerald-950/20'
-                                            : isSelected
+                                    className={`transition-colors ${isWon
+                                        ? 'bg-emerald-50/50 dark:bg-emerald-950/20'
+                                        : isSelected
                                             ? 'bg-slate-50/80 dark:bg-slate-800/40'
                                             : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30'
-                                    }`}
+                                        }`}
                                 >
                                     {/* Carrier Info */}
                                     <td className="py-1.5 px-2">
@@ -132,11 +132,10 @@ export const ViewQuoteCompare: React.FC<ViewQuoteCompareProps> = ({
                                                     onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                                                 />
                                             ) : (
-                                                <div className={`w-6 h-6 min-w-[24px] min-h-[24px] aspect-square rounded-full flex items-center justify-center text-[10.5px] font-bold shrink-0 ${
-                                                    isWon
-                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
-                                                        : 'bg-orange-100 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] border border-orange-200/60 dark:border-orange-500/20'
-                                                }`}>
+                                                <div className={`w-6 h-6 min-w-[24px] min-h-[24px] aspect-square rounded-full flex items-center justify-center text-[10.5px] font-bold shrink-0 ${isWon
+                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700'
+                                                    : 'bg-orange-100 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] border border-orange-200/60 dark:border-orange-500/20'
+                                                    }`}>
                                                     {carrierName.charAt(0).toUpperCase()}
                                                 </div>
                                             )}
@@ -191,9 +190,8 @@ export const ViewQuoteCompare: React.FC<ViewQuoteCompareProps> = ({
 
                                     {/* Total Price */}
                                     <td className="py-1.5 px-2 text-right">
-                                        <span className={`font-bold text-[12px] ${
-                                            isWon ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-slate-100'
-                                        }`}>
+                                        <span className={`font-bold text-[12px] ${isWon ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-slate-100'
+                                            }`}>
                                             {sq.amount}
                                         </span>
                                     </td>
@@ -213,11 +211,10 @@ export const ViewQuoteCompare: React.FC<ViewQuoteCompareProps> = ({
 
                                             <button
                                                 type="button"
-                                                className={`h-[25px] px-2 text-[10.5px] rounded-[4px] border font-medium flex items-center gap-1 cursor-pointer transition-colors ${
-                                                    isSelected
-                                                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600 font-semibold'
-                                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
-                                                }`}
+                                                className={`h-[25px] px-2 text-[10.5px] rounded-[4px] border font-medium flex items-center gap-1 cursor-pointer transition-colors ${isSelected
+                                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-600 font-semibold'
+                                                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
+                                                    }`}
                                                 onClick={() => onSelectQuote(sq, 'pricing')}
                                             >
                                                 <Eye size={10.5} className={isSelected ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400'} />
@@ -250,4 +247,3 @@ export const ViewQuoteCompare: React.FC<ViewQuoteCompareProps> = ({
         </div>
     );
 };
-

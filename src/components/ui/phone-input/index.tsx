@@ -288,9 +288,10 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                         className="phone-country-dropdown z-[999999] max-h-60 overflow-hidden rounded-md bg-white text-[12px] shadow-2xl border border-slate-200 focus:outline-none flex flex-col animate-in fade-in zoom-in-95 duration-100 font-sans"
                     >
                         {/* Search Filter */}
-                        <div className="p-1.5 bg-slate-50 border-b border-slate-200 shrink-0">
+                        <div
+    className="p-1.5 bg-slate-50 border-b border-slate-200 shrink-0">
                             <div className="relative flex items-center">
-                                <Search size={13} className="absolute left-2 text-slate-400" />
+                                <Search size={13} className="absolute left-2 text-slate-400 pointer-events-none z-10" />
                                 <input
                                     ref={searchInputRef}
                                     type="text"

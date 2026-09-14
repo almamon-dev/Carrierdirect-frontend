@@ -38,7 +38,8 @@ export const EditRequestSectionContent: React.FC<EditRequestSectionContentProps>
     handleSaveUpdate,
 }) => {
     return (
-        <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs w-full p-5 md:p-6 space-y-6">
+        <div
+    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs w-full p-5 md:p-6 space-y-6">
             {activeTab === 'general' && (
                 <BasicInfoSection
                     formData={formData}

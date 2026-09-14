@@ -48,7 +48,8 @@ export const TemplateDownloadDropdown: React.FC<TemplateDownloadDropdownProps> =
             </Button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-1 w-56 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
+                <div
+    className="absolute right-0 mt-1 w-56 bg-white dark:bg-[#1e2329] rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
                     <div className="px-2.5 pt-1 pb-0.5 text-[10.5px] font-semibold text-slate-500 dark:text-slate-400">
                         Blank Templates (Data Entry)
                     </div>

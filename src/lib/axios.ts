@@ -70,13 +70,17 @@ class ApiClient {
         }
 
         if (actualParams && Object.keys(actualParams).length > 0) {
+            const separator = url.includes('?') ? '&' : '?';
             const searchParams = new URLSearchParams();
             Object.entries(actualParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null) {
                     searchParams.append(key, String(value));
                 }
             });
-            url += `?${searchParams.toString()}`;
+            const searchStr = searchParams.toString();
+            if (searchStr) {
+                url += `${separator}${searchStr}`;
+            }
         }
 
         return url;
@@ -227,9 +231,23 @@ class ApiClient {
         });
     }
 
-    public delete<T = any>(endpoint: string, headers?: HeadersInit | { headers?: HeadersInit }) {
+    public delete<T = any>(endpoint: string, paramsOrOptions?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
+        let params = paramsOrOptions;
+        let isSilent = false;
+        let body: any = undefined;
+        if (paramsOrOptions && typeof paramsOrOptions === 'object') {
+            if ('params' in paramsOrOptions) params = paramsOrOptions.params;
+            if ('silent' in paramsOrOptions) isSilent = Boolean(paramsOrOptions.silent);
+            if ('body' in paramsOrOptions || 'data' in paramsOrOptions) body = paramsOrOptions.body || paramsOrOptions.data;
+        }
         const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
-        return this.request<T>(endpoint, { method: 'DELETE', headers: resolvedHeaders });
+        return this.request<T>(endpoint, {
+            method: 'DELETE',
+            params,
+            body: body ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined,
+            headers: resolvedHeaders,
+            silent: isSilent,
+        });
     }
 }
 

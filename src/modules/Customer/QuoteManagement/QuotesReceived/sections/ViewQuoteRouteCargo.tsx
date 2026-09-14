@@ -70,7 +70,8 @@ export const ViewQuoteRouteCargo: React.FC<ViewQuoteRouteCargoProps> = ({ quote,
                         label="Special Notes"
                         colSpan
                         value={
-                            <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-[5px] text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+                            <div
+    className="p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs leading-relaxed text-slate-700 dark:text-slate-300">
                                 {req.additional_notes || req.cargo_description || quote.notes}
                             </div>
                         }

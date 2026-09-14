@@ -1,7 +1,7 @@
 import React from 'react';
-import { ShieldCheck, Star, MapPin, ArrowRight, Clock, Package } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
+import { ShieldCheck, Star, MapPin, ArrowRight, Clock } from 'lucide-react';
 import { formatDisplayDate } from '@/lib/utils';
 import { CustomerOrderItem } from '../types';
 
@@ -18,7 +18,7 @@ export const getOrderColumns = (
             return (
                 <button
                     type="button"
-                    onClick={() => navigate(`/customer/orders/${row.id}`, { state: { orderData: row } })}
+                    onClick={() => navigate(`/customer/orders/details/${row.slug || row.id}`, { state: { orderData: row } })}
                     className="text-[#ff4a1f] font-bold hover:underline whitespace-nowrap cursor-pointer text-xs"
                 >
                     {displayId}
@@ -27,45 +27,47 @@ export const getOrderColumns = (
         }
     },
     {
-        id: 'supplier',
+        id: 'carrier',
         label: 'Carrier / Supplier',
         sortable: true,
-        className: 'min-w-[210px]',
+        className: 'min-w-[170px]',
         render: (row) => {
-            const name = row.supplier_name || row.supplier?.company_name || row.supplier?.name || row.carrier_name || 'Carrier Partner';
-            const avatar = row.supplier?.profile_picture || row.supplier?.avatar || row.supplier_avatar || row.carrier_avatar;
-            const rating = row.rating || row.supplier?.rating || '4.8';
-            const completedLoads = row.supplier?.completed_orders || '150+ loads';
-            const completedText = typeof completedLoads === 'number' ? `${completedLoads} completed` : String(completedLoads);
+            const name = row.supplier_name || row.carrier_name || row.supplier?.company_name || row.supplier?.name || 'Carrier Fleet';
+            const avatar = row.carrier_avatar || row.supplier?.profile_picture || row.supplier?.avatar;
+            const rating = row.carrier_rating || row.supplier?.rating || row.rating || '4.8';
+            const completedCount = row.supplier?.completed_orders || row.completed_orders || '150+ loads';
+            const completedText = typeof completedCount === 'number' ? `${completedCount} loads` : completedCount;
+            const isVerified = row.carrier_verified ?? row.supplier?.is_verified ?? true;
 
             return (
-                <div className="flex items-center gap-2.5 py-0.5 min-w-0">
-                    {avatar ? (
-                        <img
-                            src={avatar.startsWith('http') || avatar.startsWith('/') ? avatar : `/storage/${avatar}`}
-                            alt={name}
-                            className="w-7 h-7 min-w-[28px] min-h-[28px] aspect-square rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs"
-                            onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
-                        />
-                    ) : (
-                        <div className="w-7 h-7 min-w-[28px] min-h-[28px] aspect-square rounded-full bg-gradient-to-br from-[#ff4a1f] to-orange-400 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-2xs">
-                            {name.charAt(0).toUpperCase()}
-                        </div>
-                    )}
-                    <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[145px]" title={name}>
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="relative shrink-0">
+                        {avatar ? (
+                            <img
+                                src={avatar}
+                                alt={name}
+                                className="w-6 h-6 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                            />
+                        ) : (
+                            <div className="w-6 h-6 rounded-full bg-linear-to-br from-orange-400 to-[#ff4a1f] flex items-center justify-center text-[10px] font-bold text-white shadow-2xs">
+                                {name.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex flex-col min-w-0 leading-tight">
+                        <div className="flex items-center gap-1">
+                            <span className="font-semibold text-xs text-slate-800 dark:text-slate-100 whitespace-nowrap" title={name}>
                                 {name}
                             </span>
-                            {(row.supplier?.is_verified ?? true) && (
+                            {isVerified && (
                                 <span title="Verified Carrier" className="inline-flex items-center">
-                                    <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
+                                    <ShieldCheck size={11} className="text-emerald-500 shrink-0" />
                                 </span>
                             )}
                         </div>
-                        <div className="flex items-center gap-1.5 text-[11px] mt-0.5 whitespace-nowrap">
-                            <span className="flex items-center gap-0.5 font-bold text-amber-500">
-                                <Star size={11} className="fill-amber-500 text-amber-500" />
+                        <div className="flex items-center gap-1 text-[10.5px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                            <span className="flex items-center gap-0.5 text-amber-500 font-semibold">
+                                <Star size={9.5} className="fill-amber-400 stroke-amber-500" />
                                 <span>{rating}</span>
                             </span>
                             <span className="text-slate-300 dark:text-slate-600">•</span>
@@ -82,17 +84,17 @@ export const getOrderColumns = (
         id: 'route',
         label: 'Route',
         sortable: true,
-        className: 'min-w-[170px]',
+        className: 'min-w-[180px]',
         render: (row) => {
-            const origin = row.pickup_city || (row.pickup_address ? row.pickup_address.split(',')[0]?.trim() : '') || 'Dhaka';
-            const destination = row.delivery_city || (row.delivery_address ? row.delivery_address.split(',')[0]?.trim() : '') || 'Chittagong';
+            const origin = row.pickup_city || (row.pickup_address ? row.pickup_address.split(',')[0]?.trim() : '') || 'Origin';
+            const destination = row.delivery_city || (row.delivery_address ? row.delivery_address.split(',')[0]?.trim() : '') || 'Destination';
 
             return (
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap min-h-[26px]" title={`${origin} → ${destination}`}>
                     <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
-                    <span className="truncate max-w-[75px]">{origin}</span>
+                    <span>{origin}</span>
                     <ArrowRight size={11} className="text-slate-400 shrink-0" />
-                    <span className="truncate max-w-[75px]">{destination}</span>
+                    <span>{destination}</span>
                 </div>
             );
         }
@@ -104,7 +106,7 @@ export const getOrderColumns = (
         className: 'min-w-[130px]',
         render: (row) => {
             const vehicle = row.vehicle || row.vehicle_type || row.truck_type || 'Covered Van (20ft)';
-            return <span className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-300 font-medium truncate max-w-[125px]" title={vehicle}>{vehicle}</span>;
+            return <span className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-300 font-medium" title={vehicle}>{vehicle}</span>;
         }
     },
     {
@@ -148,7 +150,7 @@ export const getOrderColumns = (
                 <div className="flex items-center gap-1.5 min-h-[26px]">
                     <Clock size={12} className="text-slate-400 shrink-0" />
                     <span className="whitespace-nowrap text-xs text-slate-700 dark:text-slate-300 font-semibold">
-                        {delivery ? formatDisplayDate(delivery, 'Upcoming') : 'In Transit'}
+                        {delivery ? formatDisplayDate(delivery, 'Scheduled') : 'Scheduled'}
                     </span>
                 </div>
             );
@@ -163,7 +165,7 @@ export const getOrderColumns = (
             let formattedAmt = '—';
             const raw = row.amount_raw ?? row.amount ?? row.total_amount;
             if (typeof raw === 'number') {
-                formattedAmt = `€ ${raw.toLocaleString('de-DE')}`;
+                formattedAmt = `€ ${raw.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
             } else if (typeof raw === 'string' && raw) {
                 formattedAmt = raw.startsWith('€') || raw.startsWith('EUR') || raw.startsWith('$') ? raw : `€ ${raw}`;
             }
@@ -176,11 +178,11 @@ export const getOrderColumns = (
         sortable: true,
         className: 'w-[115px] min-w-[115px] text-center',
         render: (row) => {
-            const ps = String(row.payment_status || 'Paid').toLowerCase();
-            let variant: any = 'success';
-            let label = 'Escrow Held';
+            const ps = String(row.payment_status || 'unpaid').toLowerCase().trim();
+            let variant: any = 'warning';
+            let label = 'Unpaid';
 
-            if (ps.includes('paid') || ps.includes('released')) {
+            if (ps === 'paid' || ps.includes('released')) {
                 variant = 'success';
                 label = 'Paid';
             } else if (ps.includes('escrow')) {
@@ -189,9 +191,12 @@ export const getOrderColumns = (
             } else if (ps.includes('refund')) {
                 variant = 'outline';
                 label = 'Refunded';
+            } else if (ps === 'due' || ps === 'unpaid' || ps === 'pending') {
+                variant = 'warning';
+                label = 'Unpaid';
             } else {
                 variant = 'warning';
-                label = row.payment_status || 'Pending';
+                label = row.payment_status ? (row.payment_status.charAt(0).toUpperCase() + row.payment_status.slice(1)) : 'Unpaid';
             }
 
             return (
@@ -209,24 +214,34 @@ export const getOrderColumns = (
         sortable: true,
         className: 'w-[125px] min-w-[125px] text-center',
         render: (row) => {
-            const rawStatus = String(row.status_raw || row.status || 'in_transit').toLowerCase();
-            let displayStatus = 'In Transit';
-            let variant: any = 'warning';
+            const rawStatus = String(row.status_raw || row.status || 'confirmed').toLowerCase().trim();
+            let displayStatus = 'Confirmed';
+            let variant: any = 'info';
 
             if (rawStatus === 'completed' || rawStatus === 'pod accepted') {
                 displayStatus = 'Completed';
                 variant = 'success';
-            } else if (rawStatus.includes('review') || rawStatus.includes('pod_uploaded') || rawStatus.includes('delivered')) {
+            } else if (rawStatus.includes('review') || rawStatus.includes('pod_uploaded') || rawStatus === 'delivered') {
                 displayStatus = 'POD Review';
                 variant = 'secondary';
             } else if (rawStatus.includes('cancel')) {
                 displayStatus = 'Cancelled';
                 variant = 'critical';
-            } else if (rawStatus.includes('transit') || rawStatus.includes('progress') || rawStatus.includes('confirmed') || rawStatus.includes('picked')) {
+            } else if (rawStatus === 'in_transit' || rawStatus === 'on_the_way') {
                 displayStatus = 'In Transit';
                 variant = 'warning';
+            } else if (rawStatus === 'picked_up' || rawStatus === 'in_progress') {
+                displayStatus = 'Picked Up';
+                variant = 'warning';
+            } else if (rawStatus === 'driver_assigned' || rawStatus === 'assigned' || rawStatus === 'dispatched') {
+                displayStatus = 'Driver Assigned';
+                variant = 'info';
+            } else if (rawStatus === 'confirmed' || rawStatus === 'scheduled' || rawStatus === 'pending') {
+                displayStatus = 'Confirmed';
+                variant = 'info';
             } else {
-                displayStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+                displayStatus = row.status || (rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1));
+                variant = 'secondary';
             }
 
             return (

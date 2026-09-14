@@ -14,7 +14,8 @@ export default function CapacityManagement() {
     const utilizationPct = Math.min(100, Math.round((parseFloat(allocatedTonnage) / parseFloat(maxTonnage)) * 100));
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-6 bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-6 bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Fleet Capacity Management</h1>
@@ -27,7 +28,8 @@ export default function CapacityManagement() {
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
+                <div
+    className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
                     <span className="text-xs text-slate-500 font-medium">Max Daily Tonnage Capacity</span>
                     <div className="flex items-baseline gap-1.5">
                         <span className="text-xl font-extrabold text-slate-900">{maxTonnage}</span>
@@ -35,7 +37,8 @@ export default function CapacityManagement() {
                     </div>
                 </div>
 
-                <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
+                <div
+    className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
                     <span className="text-xs text-slate-500 font-medium">Allocated / Booked Tonnage</span>
                     <div className="flex items-baseline gap-1.5">
                         <span className="text-xl font-extrabold text-emerald-700">{allocatedTonnage}</span>
@@ -43,7 +46,8 @@ export default function CapacityManagement() {
                     </div>
                 </div>
 
-                <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
+                <div
+    className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
                     <span className="text-xs text-slate-500 font-medium">Available Remaining Capacity</span>
                     <div className="flex items-baseline gap-1.5">
                         <span className="text-xl font-extrabold text-blue-700">{remainingTonnage}</span>
@@ -51,7 +55,8 @@ export default function CapacityManagement() {
                     </div>
                 </div>
 
-                <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
+                <div
+    className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
                     <span className="text-xs text-slate-500 font-medium">Fleet Utilization</span>
                     <div className="flex items-baseline gap-1.5">
                         <span className="text-xl font-extrabold text-slate-900">{utilizationPct}%</span>
@@ -61,7 +66,8 @@ export default function CapacityManagement() {
             </div>
 
             {/* Utilization Bar */}
-            <div className="p-5 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3">
+            <div
+    className="p-5 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-3">
                 <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-slate-800">Fleet Capacity Utilization Progress</span>
                     <span className="font-bold text-slate-900">{allocatedTonnage} / {maxTonnage} Tons ({utilizationPct}%)</span>
@@ -77,7 +83,8 @@ export default function CapacityManagement() {
             </div>
 
             {/* Interactive Capacity Rule Adjustment Card */}
-            <div className="p-6 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-4 max-w-2xl">
+            <div
+    className="p-6 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-4 max-w-2xl">
                 <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">Adjust Daily Capacity Thresholds</h3>
 
                 <div className="space-y-4 text-xs">

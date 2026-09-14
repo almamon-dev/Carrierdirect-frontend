@@ -19,14 +19,19 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
         let cancelled = 0;
 
         orders.forEach((o) => {
-            const st = String(o.status_raw || o.status || '').toLowerCase();
-            if (st === 'completed' || st === 'pod accepted') {
-                completed++;
-            } else if (st.includes('review') || st.includes('pod') || st.includes('delivered')) {
-                podReview++;
-            } else if (st.includes('cancel')) {
+            const st = String(o.status_raw || o.status || '').toLowerCase().trim();
+            const isCompleted = st === 'completed' || st === 'pod accepted';
+            const isPodReview = st.includes('review') || st.includes('pod_uploaded') || st === 'delivered';
+            const isCancelled = st.includes('cancel');
+            const isInTransit = st === 'in_transit' || st === 'on_the_way' || st === 'picked_up' || st === 'in_progress' || st === 'driver_assigned';
+
+            if (isCancelled) {
                 cancelled++;
-            } else {
+            } else if (isCompleted) {
+                completed++;
+            } else if (isPodReview) {
+                podReview++;
+            } else if (isInTransit) {
                 inTransit++;
             }
         });

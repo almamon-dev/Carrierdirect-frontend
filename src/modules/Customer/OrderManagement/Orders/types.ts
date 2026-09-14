@@ -3,6 +3,7 @@ export type OrderFilterTab = 'all' | 'in_transit' | 'pod_review' | 'completed' |
 export interface CustomerOrderItem {
     id: string | number;
     rawId?: string | number;
+    slug?: string;
     order_id?: string;
     order_number?: string;
     quote_id?: string | number;
@@ -24,6 +25,9 @@ export interface CustomerOrderItem {
     supplier_avatar?: string;
     carrier_name?: string;
     carrier_avatar?: string;
+    carrier_rating?: number | string;
+    carrier_verified?: boolean;
+    completed_orders?: number | string;
     supplier?: {
         id?: string | number;
         name?: string;

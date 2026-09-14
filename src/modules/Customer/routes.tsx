@@ -44,6 +44,8 @@ export const customerRoutes: RouteObject[] = [
     { path: 'quotes/received/:id', element: <TrackBids /> },
     { path: 'quotes/received/view/:quoteId', element: <QuoteView /> },
     { path: 'quotes/received/checkout/:quoteId', element: <QuoteAcceptCheckout /> },
+    { path: 'quotes/checkout/:quoteId', element: <QuoteAcceptCheckout /> },
+    { path: 'checkout/:quoteId', element: <QuoteAcceptCheckout /> },
     { path: 'quotes/negotiation', element: <QuoteNegotiation /> },
     { path: 'quotes/negotiation/conversation/:id', element: <QuoteNegotiationChat /> },
     { path: 'quotes/negotiation/view/:id', element: <QuoteNegotiationChat /> },

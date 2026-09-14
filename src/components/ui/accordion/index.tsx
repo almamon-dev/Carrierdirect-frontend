@@ -19,7 +19,8 @@ export default function Accordion({ className = '', items = [] }: AccordionProps
                         <span className={`transform transition-transform ${activeIndex === index ? 'rotate-180' : ''}`}>▼</span>
                     </button>
                     {activeIndex === index && (
-                        <div className="px-4 py-3 text-gray-600 bg-white border-t border-gray-200">
+                        <div
+    className="px-4 py-3 text-gray-600 bg-white border-t border-gray-200">
                             {item.content}
                         </div>
                     )}

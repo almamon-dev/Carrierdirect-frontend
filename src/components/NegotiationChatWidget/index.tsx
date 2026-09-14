@@ -500,10 +500,12 @@ export default function NegotiationChatWidget() {
 
       {/* Clean iOS Style Floating Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50 bg-white border border-slate-200/90 shadow-2xl rounded-3xl flex flex-col w-[94vw] sm:w-[460px] h-[640px] max-h-[85vh] font-sans antialiased overflow-hidden">
+        <div
+    className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50 bg-white border border-slate-200/90 shadow-2xl rounded-lg flex flex-col w-[94vw] sm:w-[460px] h-[640px] max-h-[85vh] font-sans antialiased overflow-hidden">
 
           {/* iOS Clean Header Bar */}
-          <div className="bg-white px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0 relative font-sans">
+          <div
+    className="bg-white px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0 relative font-sans">
 
             {/* Supplier Avatar & Info */}
             <div className="flex items-center gap-3 min-w-0 font-sans">
@@ -563,7 +565,8 @@ export default function NegotiationChatWidget() {
 
                 {/* Conversation Switcher Dropdown */}
                 {showConvDropdown && (
-                  <div className="absolute top-10 right-0 w-64 sm:w-72 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 overflow-hidden animate-fade-in p-2 space-y-1 font-sans antialiased">
+                  <div
+    className="absolute top-10 right-0 w-64 sm:w-72 bg-white rounded-lg border border-slate-200 shadow-2xl z-50 overflow-hidden animate-fade-in p-2 space-y-1 font-sans antialiased">
                     <div className="px-3 py-1 text-[11px] font-bold text-slate-800 tracking-tight flex items-center justify-between border-b border-slate-100 pb-1.5 mb-1 font-sans">
                       <span>Active Negotiations</span>
                       <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-semibold rounded-full font-sans">
@@ -621,7 +624,8 @@ export default function NegotiationChatWidget() {
 
                 {/* Dropdown Menu */}
                 {showMoreActionsMenu && (
-                  <div className="absolute top-10 right-0 w-56 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 overflow-hidden animate-fade-in py-1.5 text-[11px] font-sans antialiased">
+                  <div
+    className="absolute top-10 right-0 w-56 bg-white rounded-lg border border-slate-200 shadow-xl z-50 overflow-hidden animate-fade-in py-1.5 text-[11px] font-sans antialiased">
 
                     <button
                       onClick={handleGoToFullDetails}
@@ -719,7 +723,8 @@ export default function NegotiationChatWidget() {
 
             {/* iOS Style Compact Hero Offer Card */}
             {showOfferBanner && (
-              <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between gap-3 shrink-0 relative pr-7 font-sans">
+              <div
+    className="bg-white p-3 sm:p-3.5 rounded-lg border border-slate-200/80 shadow-2xs flex items-center justify-between gap-3 shrink-0 relative pr-7 font-sans">
 
                 {/* Dismiss Cross */}
                 <button
@@ -732,7 +737,7 @@ export default function NegotiationChatWidget() {
                 </button>
 
                 <div className="min-w-0 font-sans">
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-sans">Current Offer</p>
+                  <p className="text-[10px] font-semibold text-slate-400  tracking-wider font-sans">Current Offer</p>
                   <div className="flex items-baseline gap-2 mt-0.5 font-sans">
                     <span className="text-base sm:text-lg font-bold text-slate-900 tracking-tight font-sans">
                       {activeConv.currentOffer}
@@ -825,7 +830,8 @@ export default function NegotiationChatWidget() {
                   </div>
 
                   {extraFees.length === 0 ? (
-                    <div className="p-2 bg-slate-50/60 rounded-md border border-dashed border-slate-200 text-center text-[10.5px] text-slate-400 font-normal font-sans">
+                    <div
+    className="p-2 bg-slate-50/60 rounded-lg border border-dashed border-slate-200 text-center text-[10.5px] text-slate-400 font-normal font-sans">
                       No extra fees added. Click <span className="font-semibold text-[#ff4a1f] cursor-pointer hover:underline" onClick={handleAddExtraFeeRow}>+ Add Fee</span> to include loading, insurance, etc.
                     </div>
                   ) : (
@@ -869,7 +875,7 @@ export default function NegotiationChatWidget() {
                 </div>
 
                 {/* Calculation Summary Card */}
-                <div className="bg-[#f8fafc] p-2.5 rounded-md border border-slate-200/80 space-y-1 text-[11px] font-sans">
+                <div className="bg-[#f8fafc] p-2.5 rounded-lg border border-slate-200/80 space-y-1 text-[11px] font-sans">
                   <div className="flex items-center justify-between text-slate-600 font-sans">
                     <span>Base Offer:</span>
                     <span className="font-semibold text-slate-800 font-sans">€{(parseFloat(counterPrice) || 0).toLocaleString()}</span>
@@ -946,7 +952,8 @@ export default function NegotiationChatWidget() {
 
                       {/* Counter Offer Card Bubble */}
                       {msg.isCounterOffer && msg.offerAmount && (
-                        <div className="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5 font-sans">
+                        <div
+    className="bg-white p-3 rounded-lg border border-slate-200/90 shadow-2xs space-y-2.5 font-sans">
                           <div className="p-2.5 bg-emerald-50/80 rounded-md border border-emerald-200/70 space-y-2 font-sans">
                             <div className="flex items-center justify-between gap-2.5 font-sans">
                               <div className="flex items-center gap-2.5 font-sans">
@@ -1002,7 +1009,8 @@ export default function NegotiationChatWidget() {
                       {msg.attachment && (
                         <div className="mt-1 font-sans">
                           {msg.attachment.type === 'image' && msg.attachment.url && (
-                            <div className="rounded-md overflow-hidden border border-slate-200 max-w-xs shadow-2xs bg-white">
+                            <div
+    className="rounded-lg overflow-hidden border border-slate-200 max-w-xs shadow-2xs bg-white">
                               <img src={msg.attachment.url} alt={msg.attachment.name} className="max-h-44 w-full object-cover" />
                               <p className="p-1.5 text-[10px] text-slate-500 font-normal bg-slate-50 border-t border-slate-100 truncate">
                                 {msg.attachment.name}
@@ -1010,7 +1018,8 @@ export default function NegotiationChatWidget() {
                             </div>
                           )}
                           {msg.attachment.type === 'file' && (
-                            <div className="flex items-center gap-2 p-2 bg-white rounded-md border border-slate-200 shadow-2xs max-w-xs text-left">
+                            <div
+    className="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 shadow-2xs max-w-xs text-left">
                               <div className="w-7 h-7 rounded-lg bg-orange-50 text-[#ff4a1f] flex items-center justify-center shrink-0">
                                 <FileText className="w-3.5 h-3.5" />
                               </div>
@@ -1050,7 +1059,8 @@ export default function NegotiationChatWidget() {
           </div>
 
           {/* Full-Width iOS Footer Message Composer */}
-          <div className="bg-white px-4 py-3 border-t border-slate-100 space-y-1.5 shrink-0 w-full font-sans antialiased relative">
+          <div
+    className="bg-white px-4 py-3 border-t border-slate-100 space-y-1.5 shrink-0 w-full font-sans antialiased relative">
             <form onSubmit={handleSendMessage} className="flex items-center gap-2 font-sans">
 
               {/* Action Icons */}
@@ -1073,7 +1083,8 @@ export default function NegotiationChatWidget() {
 
                   {/* Quick Actions Popover */}
                   {showPlusMenu && (
-                    <div className="absolute bottom-9 left-0 w-52 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 overflow-hidden animate-fade-in py-1 text-[11px] font-sans antialiased">
+                    <div
+    className="absolute bottom-9 left-0 w-52 bg-white rounded-lg border border-slate-200 shadow-xl z-50 overflow-hidden animate-fade-in py-1 text-[11px] font-sans antialiased">
                       <button
                         type="button"
                         onClick={() => {
@@ -1170,7 +1181,8 @@ export default function NegotiationChatWidget() {
 
                 {/* Emoji Picker Popover */}
                 {showEmojiPicker && (
-                  <div className="absolute bottom-11 right-0 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 overflow-hidden animate-fade-in p-2.5 font-sans antialiased">
+                  <div
+    className="absolute bottom-11 right-0 w-64 bg-white rounded-lg border border-slate-200 shadow-2xl z-50 overflow-hidden animate-fade-in p-2.5 font-sans antialiased">
                     <div className="px-1 pb-1.5 mb-1.5 border-b border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-800">
                       <span>Quick Emojis</span>
                       <button

@@ -91,7 +91,8 @@ export default function TrackBids() {
     const columns = useMemo(() => getTrackBidsColumns(navigate, quoteRequestDetails), [navigate, quoteRequestDetails]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] space-y-5">
+        <div
+    className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] space-y-5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
                     <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -141,7 +142,8 @@ export default function TrackBids() {
                     <span className="text-xs font-medium">Fetching live bids...</span>
                 </div>
             ) : sortedQuotes.length === 0 ? (
-                <div className="p-12 text-center bg-white dark:bg-[#1e2329] rounded-[5px] border border-slate-200 dark:border-slate-800 text-slate-500 space-y-2">
+                <div
+    className="p-12 text-center bg-white dark:bg-[#1e2329] rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 space-y-2">
                     <Truck size={36} className="mx-auto text-slate-300 dark:text-slate-600" />
                     <h3 className="font-bold text-slate-700 dark:text-slate-300 text-sm">No Bids Received For This Request Yet</h3>
                     <p className="text-xs text-slate-400 max-w-sm mx-auto">Verified freight suppliers have been notified and will submit competitive quotes shortly.</p>

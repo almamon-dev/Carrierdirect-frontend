@@ -23,6 +23,7 @@ export interface ChatMessage {
     seenAt?: string;
     isRead?: boolean;
     deliveryStatus?: 'sending' | 'sent' | 'delivered' | 'seen';
-    status?: 'pending' | 'accepted' | 'rejected';
+    status?: 'pending' | 'accepted' | 'rejected' | 'superseded' | 'withdrawn';
+    is_superseded?: boolean;
     declineReason?: string;
 }

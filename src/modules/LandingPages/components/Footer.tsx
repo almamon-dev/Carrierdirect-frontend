@@ -58,7 +58,7 @@ export default function Footer() {
           </div>
 
           <div className="col-span-1">
-            <h3 className="text-white text-[11px] font-bold uppercase tracking-[0.2em] mb-4">Company</h3>
+            <h3 className="text-white text-[11px] font-bold  tracking-[0.2em] mb-4">Company</h3>
             <ul className="space-y-2.5">
               {["About Us", "Careers", "Contact Us", "News"].map((label, i) => (
                 <li key={i}>
@@ -74,7 +74,7 @@ export default function Footer() {
           </div>
 
           <div className="col-span-1">
-            <h3 className="text-white text-[11px] font-bold uppercase tracking-[0.2em] mb-4">Platform</h3>
+            <h3 className="text-white text-[11px] font-bold  tracking-[0.2em] mb-4">Platform</h3>
             <ul className="space-y-2.5">
               {[
                 { label: "Features", sectionId: "features" },
@@ -106,7 +106,7 @@ export default function Footer() {
           </div>
 
           <div className="col-span-1">
-            <h3 className="text-white text-[11px] font-bold uppercase tracking-[0.2em] mb-4">Legal</h3>
+            <h3 className="text-white text-[11px] font-bold  tracking-[0.2em] mb-4">Legal</h3>
             <ul className="space-y-2.5">
               {[
                 { label: "Terms & Conditions", href: "/terms-and-conditions" },

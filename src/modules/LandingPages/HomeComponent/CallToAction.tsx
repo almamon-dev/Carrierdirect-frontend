@@ -47,7 +47,7 @@ export default function CallToAction() {
           <div className="flex-1 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 border border-white/10 mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f] animate-pulse"></span>
-              <span className="text-white/80 text-[10px] font-bold tracking-wider uppercase">Start Shipping Today</span>
+              <span className="text-white/80 text-[10px] font-bold tracking-wider ">Start Shipping Today</span>
             </div>
 
             <h2 className="text-white font-bold text-2xl sm:text-3xl tracking-tight mb-2 drop-shadow-sm">

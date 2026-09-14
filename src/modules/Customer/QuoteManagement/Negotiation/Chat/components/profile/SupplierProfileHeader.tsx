@@ -16,13 +16,13 @@ export const SupplierProfileHeader: React.FC<SupplierProfileHeaderProps> = ({
     rating,
     completedOrders,
 }) => (
-    <div className="bg-gradient-to-r from-orange-50/70 via-white to-slate-50 border border-orange-200/60 rounded-[5px] p-4 shadow-2xs">
+    <div className="bg-gradient-to-r from-orange-50/70 via-white to-slate-50 border border-orange-200/60 rounded-lg p-4 shadow-2xs">
         <div className="flex items-center gap-3.5">
             {supplier.supplierAvatar ? (
                 <img
                     src={supplier.supplierAvatar}
                     alt={supplierName}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-orange-300/80 shadow-xs shrink-0"
+                    className="w-14 h-14 rounded-full object-contain border-2 border-orange-300/80 shadow-xs shrink-0 bg-white"
                 />
             ) : (
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#FF4A1F] to-[#E03E15] text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">

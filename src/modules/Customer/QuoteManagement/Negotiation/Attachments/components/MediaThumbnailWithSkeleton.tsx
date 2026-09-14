@@ -55,14 +55,14 @@ export const MediaThumbnailWithSkeleton: React.FC<MediaThumbnailWithSkeletonProp
             ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400 p-1 text-center">
                     <ImageIcon size={18} className="opacity-50 mb-0.5" />
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Image</span>
+                    <span className="text-[9px] font-bold  tracking-wider text-slate-400">Image</span>
                 </div>
             )}
 
             {isLastSlot && (
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-[1px] flex flex-col items-center justify-center text-white font-extrabold group-hover:bg-black/80 transition-colors z-10">
                     <span className="text-sm sm:text-base leading-none">+{hiddenMediaCount}</span>
-                    <span className="text-[9px] font-semibold text-slate-200 uppercase tracking-wider mt-0.5">more</span>
+                    <span className="text-[9px] font-semibold text-slate-200  tracking-wider mt-0.5">more</span>
                 </div>
             )}
         </div>

@@ -40,17 +40,17 @@ export const CommercialRemarksSection: React.FC<CommercialRemarksSectionProps> =
     return (
         <div className="space-y-1.5 font-sans">
             <div className="flex items-center justify-between gap-2">
-                <FormLabel className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-0 flex items-center gap-1.5">
-                    <FileText size={12} className="text-slate-400" />
-                    <span>Commercial Remarks</span>
+                <FormLabel className="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-0 flex items-center gap-1.5 shrink-0">
+                    <FileText size={12} className="text-slate-400 shrink-0" />
+                    <span className="whitespace-nowrap">Commercial Remarks</span>
                 </FormLabel>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
                     {!isExpired && (
                         <select
                             value={selectedTemplateId}
                             onChange={(e) => handleTemplateSelect(e.target.value)}
-                            className="text-[11px] h-6 px-1.5 py-0 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[3px] text-slate-600 dark:text-slate-300 focus:outline-none focus:border-slate-400 cursor-pointer font-normal"
+                            className="text-[11px] h-6 px-1.5 py-0 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[3px] text-slate-600 dark:text-slate-300 focus:outline-none focus:border-slate-400 cursor-pointer font-normal max-w-[130px] sm:max-w-none truncate"
                         >
                             <option value="">⚡ Load template...</option>
                             {FREIGHT_TEMPLATES.map((tmpl) => (
@@ -65,7 +65,7 @@ export const CommercialRemarksSection: React.FC<CommercialRemarksSectionProps> =
                         <button
                             type="button"
                             onClick={handleClear}
-                            className="text-[10.5px] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 font-normal cursor-pointer transition-colors flex items-center gap-0.5"
+                            className="text-[10.5px] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 font-normal cursor-pointer transition-colors flex items-center gap-0.5 shrink-0"
                             title="Clear remarks"
                         >
                             <X size={10.5} /> Clear
@@ -88,8 +88,8 @@ export const CommercialRemarksSection: React.FC<CommercialRemarksSectionProps> =
             />
 
             {!isExpired && (
-                <div className="flex flex-wrap items-center gap-1 pt-0.5 max-w-full">
-                    <span className="text-[10px] text-slate-400 font-normal flex items-center gap-0.5 mr-0.5 shrink-0">
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] text-slate-400 font-normal flex items-center gap-0.5 shrink-0 pr-0.5">
                         <Sparkles size={10} className="text-amber-500" />
                         Quick:
                     </span>
@@ -101,10 +101,10 @@ export const CommercialRemarksSection: React.FC<CommercialRemarksSectionProps> =
                                 type="button"
                                 onClick={() => handleAddClause(clause.text)}
                                 disabled={isAdded}
-                                className={`text-[10px] px-1.5 py-0.5 rounded-[3px] font-normal transition-all border flex items-center gap-0.5 cursor-pointer ${
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-normal transition-all border flex items-center gap-1 cursor-pointer shrink-0 ${
                                     isAdded
                                         ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 cursor-default opacity-85'
-                                        : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80'
+                                        : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 active:scale-95'
                                 }`}
                             >
                                 {isAdded ? (

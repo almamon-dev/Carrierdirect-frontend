@@ -38,10 +38,15 @@ export const SidebarHeaderProfile: React.FC<SidebarHeaderProfileProps> = ({
             )}
             <div className="relative mb-2">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-orange-50 text-[#FF4A1F] border border-orange-200 flex items-center justify-center font-bold text-2xl shadow-2xs">
-                    {activeNegotiation.customerAvatar ? (
-                        <img src={activeNegotiation.customerAvatar} alt={activeNegotiation.customer} className="w-full h-full object-cover" />
+                    {activeNegotiation.customerAvatar && (activeNegotiation.customerAvatar.startsWith('http') || activeNegotiation.customerAvatar.startsWith('/storage') || activeNegotiation.customerAvatar.startsWith('data:') || activeNegotiation.customerAvatar.includes('.')) ? (
+                        <img
+                            src={activeNegotiation.customerAvatar}
+                            alt=""
+                            className="w-full h-full object-contain"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
                     ) : (
-                        <span>{activeNegotiation.customer.charAt(0).toUpperCase()}</span>
+                        <span>{(activeNegotiation.customer || 'C').charAt(0).toUpperCase()}</span>
                     )}
                 </div>
                 <span className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full z-10 shadow-xs" />

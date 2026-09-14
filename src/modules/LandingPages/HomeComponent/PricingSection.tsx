@@ -91,7 +91,7 @@ export default function PricingSection() {
           ref={heading.ref}
           className={`text-center max-w-3xl mx-auto mb-12 reveal ${heading.isVisible ? "visible" : ""}`}
         >
-          <span className="text-[#ff4a1f] font-semibold tracking-wider uppercase text-sm mb-3 block">Simple Pricing</span>
+          <span className="text-[#ff4a1f] font-semibold tracking-wider  text-sm mb-3 block">Simple Pricing</span>
           <h2 className="text-[#0f0400] dark:text-slate-100 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
             Transparent Pricing for Everyone
           </h2>
@@ -136,7 +136,7 @@ export default function PricingSection() {
               >
                 {plan.is_popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-[#ff4a1f] text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full shadow-md">
+                    <span className="bg-[#ff4a1f] text-white text-[10px] font-bold  tracking-widest py-1 px-3 rounded-full shadow-md">
                       Most Popular
                     </span>
                   </div>

@@ -52,12 +52,26 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
     const documents = [...(activeNegotiation.documents || []), ...messageAttachments];
 
     return (
-        <div className={`shrink-0 flex-col min-h-0 h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${showMobileDetails ? 'flex fixed xl:static inset-y-0 right-0 z-50 w-80 xl:w-[290px] 2xl:w-[320px] shadow-2xl xl:shadow-none bg-white' : 'hidden'}`}>
-            <SidebarHeaderProfile
-                activeNegotiation={activeNegotiation} statusText={statusText} isAccepted={isAccepted} isRejected={isRejected}
-                showMobileDetails={showMobileDetails} setShowMobileDetails={setShowMobileDetails}
-                onOpenProfile={() => setShowProfileModal(true)} onDocumentsClick={handleDocumentsClick}
-            />
+        <>
+            {/* Mobile Backdrop for Details Sidebar */}
+            {showMobileDetails && (
+                <div
+                    className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs z-50 xl:hidden animate-in fade-in duration-200"
+                    onClick={() => setShowMobileDetails(false)}
+                    aria-hidden="true"
+                />
+            )}
+
+            <div className={`shrink-0 flex-col min-h-0 h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
+                showMobileDetails
+                    ? 'flex fixed xl:static inset-y-0 right-0 z-50 w-[88vw] max-w-[360px] xl:w-[290px] 2xl:w-[320px] shadow-2xl xl:shadow-none bg-white animate-in slide-in-from-right duration-200'
+                    : 'hidden'
+            }`}>
+                <SidebarHeaderProfile
+                    activeNegotiation={activeNegotiation} statusText={statusText} isAccepted={isAccepted} isRejected={isRejected}
+                    showMobileDetails={showMobileDetails} setShowMobileDetails={setShowMobileDetails}
+                    onOpenProfile={() => setShowProfileModal(true)} onDocumentsClick={handleDocumentsClick}
+                />
 
             <div className="flex flex-col divide-y divide-slate-100">
                 <div>
@@ -103,5 +117,6 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
 
             <CustomerProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} customer={activeNegotiation} onCallClick={() => onCallClick?.('audio')} />
         </div>
+        </>
     );
 };

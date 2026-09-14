@@ -285,7 +285,8 @@ export default function SecurityTab() {
       </form>
 
       {/* Two-Factor Authentication Card */}
-      <div className="bg-white p-4 sm:p-5 rounded-md border border-slate-200 shadow-xs flex items-center justify-between gap-4">
+      <div
+    className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-xs flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${twoFactor ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-[#ff4a1f]'
             }`}>
@@ -316,7 +317,8 @@ export default function SecurityTab() {
       </div>
 
       {/* Active Login Sessions */}
-      <div className="bg-white p-4 sm:p-5 rounded-md border border-slate-200 shadow-xs space-y-3">
+      <div
+    className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-xs space-y-3">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <h4 className="font-bold text-slate-900 text-xs">Active Sessions &amp; Devices</h4>
           {sessions.length > 1 && (
@@ -464,7 +466,8 @@ export default function SecurityTab() {
 
             {/* Right Column: High-Precision Local SVG QR Renderer */}
             <div className="flex flex-col items-center justify-center space-y-2 border-l border-slate-100 pl-0 md:pl-4">
-              <div className="relative p-2 bg-white rounded-md border border-slate-200 shadow-xs group overflow-hidden w-[160px] h-[160px] flex items-center justify-center">
+              <div
+    className="relative p-2 bg-white rounded-lg border border-slate-200 shadow-xs group overflow-hidden w-[160px] h-[160px] flex items-center justify-center">
                 <div className={`transition-all duration-300 ${isQRExpired
                     ? 'blur-md opacity-25 scale-95 pointer-events-none'
                     : isRefreshingQR
@@ -523,7 +526,8 @@ export default function SecurityTab() {
               </div>
 
               {/* Base32 Secret Key Box */}
-              <div className="flex items-center justify-between gap-1.5 w-full max-w-[200px] text-[11px] font-mono bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
+              <div
+    className="flex items-center justify-between gap-1.5 w-full max-w-[200px] text-[11px] font-mono bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
                 <span className="text-slate-600 font-bold truncate" title={rawSecret}>{formattedKey}</span>
                 <button
                   type="button"
@@ -556,7 +560,8 @@ export default function SecurityTab() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-800">
-                <div className="space-y-0.5 bg-white p-2 rounded border border-orange-100">
+                <div
+    className="space-y-0.5 bg-white p-2 rounded border border-orange-100">
                   <p className="font-bold text-slate-900 flex items-center gap-1 text-[11px]">
                     <ShieldCheck size={12} className="text-[#ff4a1f]" /> Authenticator App:
                   </p>
@@ -567,7 +572,8 @@ export default function SecurityTab() {
                   </ol>
                 </div>
 
-                <div className="space-y-0.5 bg-white p-2 rounded border border-orange-100">
+                <div
+    className="space-y-0.5 bg-white p-2 rounded border border-orange-100">
                   <p className="font-bold text-slate-900 flex items-center gap-1 text-[11px]">
                     <Key size={12} className="text-[#ff4a1f]" /> Manual Key Setup:
                   </p>

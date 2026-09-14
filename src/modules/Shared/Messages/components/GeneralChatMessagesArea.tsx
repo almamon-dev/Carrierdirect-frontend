@@ -12,7 +12,7 @@ interface GeneralChatMessagesAreaProps {
     messagesEndRef?: React.RefObject<HTMLDivElement | null>;
     onOpenLightbox: (images: MessageAttachment[], index: number) => void;
     onStartEditMessage?: (msg: GeneralMessage) => void;
-    onDeleteMessage: (messageId: number | string) => Promise<any>;
+    onDeleteMessage: (messageId: number | string, type?: "everyone" | "for_me") => Promise<any>;
     onReplyMessage?: (msg: GeneralMessage) => void;
     onToggleReaction?: (messageId: number | string, emoji: string) => void;
     onTogglePin?: (messageId: number | string) => void;

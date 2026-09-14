@@ -3,27 +3,33 @@ import Badge from '@/components/ui/badge';
 import { CustomerNegotiationItem } from '../types';
 import { getStatusBadgeClass } from '@/modules/Supplier/QuoteManagement/utils/statusStyles';
 
-export const SupplierCell: React.FC<{ row: CustomerNegotiationItem }> = ({ row }) => (
-    <div className="flex items-center gap-2 whitespace-nowrap min-w-0 min-h-[26px]">
-        {row.customerAvatar || row.supplierAvatar ? (
-            <img
-                src={row.customerAvatar || row.supplierAvatar}
-                alt={row.customer || row.supplier}
-                className="w-5 h-5 min-w-[20px] min-h-[20px] aspect-square rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs"
-                onError={(e) => {
-                    (e.currentTarget as HTMLElement).style.display = 'none';
-                }}
-            />
-        ) : (
-            <div className="w-5 h-5 min-w-[20px] min-h-[20px] aspect-square rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 dark:border-orange-500/20 text-[#ff4a1f] flex items-center justify-center text-[10px] font-bold shrink-0">
-                {(row.customer || row.supplier) ? (row.customer || row.supplier).charAt(0).toUpperCase() : 'S'}
+export const SupplierCell: React.FC<{ row: CustomerNegotiationItem }> = ({ row }) => {
+    const avatarUrl = (row.customerAvatar || row.supplierAvatar);
+    const hasValidUrl = Boolean(avatarUrl && (avatarUrl.startsWith('http') || avatarUrl.startsWith('/storage') || avatarUrl.startsWith('data:') || avatarUrl.includes('.')));
+    const initial = ((row.customer || row.supplier) ? (row.customer || row.supplier).charAt(0).toUpperCase() : 'S');
+
+    return (
+        <div className="flex items-center gap-2 whitespace-nowrap min-w-0 min-h-[26px]">
+            <div className="w-5 h-5 min-w-[20px] min-h-[20px] aspect-square rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 dark:border-orange-500/20 text-[#ff4a1f] flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden">
+                {hasValidUrl ? (
+                    <img
+                        src={avatarUrl}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                        }}
+                    />
+                ) : (
+                    <span>{initial}</span>
+                )}
             </div>
-        )}
-        <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[105px]" title={row.customer || row.supplier}>
-            {row.customer || row.supplier}
-        </span>
-    </div>
-);
+            <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[105px]" title={row.customer || row.supplier}>
+                {row.customer || row.supplier}
+            </span>
+        </div>
+    );
+};
 
 export const PriorityCell: React.FC<{ priority: string }> = ({ priority }) => (
     <div className="flex items-center min-h-[26px]">

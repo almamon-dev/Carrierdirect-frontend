@@ -157,6 +157,7 @@ export const useGeneralMessages = (
                         sender_id: Number(raw.last_message.sender_id || 0),
                         message: raw.last_message.message || raw.last_message.body || raw.last_message.text || '',
                         message_type: raw.last_message.message_type || (raw.last_message.attachments?.length ? 'file' : 'text'),
+                        is_unsent: Boolean(raw.last_message.is_unsent),
                         is_me: Boolean(raw.last_message.is_me),
                         is_read: Boolean(raw.last_message.is_read),
                         created_at_human: raw.last_message.created_at_human,
@@ -232,7 +233,9 @@ export const useGeneralMessages = (
                     read_at: m.read_at,
                     is_pinned: Boolean(m.is_pinned ?? (m as any).isPinned),
                     pinned_at: m.pinned_at || null,
-                    is_edited: Boolean(m.is_edited),
+                    is_unsent: Boolean(m.is_unsent === true || m.is_unsent === 1 || m.is_unsent === '1' || m.is_unsent === 'true' || m.unsent_at),
+                    unsent_at: m.unsent_at || null,
+                    is_edited: Boolean(m.is_edited === true || m.is_edited === 1 || m.is_edited === '1' || m.is_edited === 'true' || m.edited_at),
                     time: formatLocalTime(m.created_at, m.time),
                     date: m.date || (m.created_at ? new Date(m.created_at).toLocaleDateString() : ''),
                     created_at_human: m.created_at_human || 'Just now',
@@ -481,14 +484,24 @@ export const useGeneralMessages = (
     }, [activePartnerId]);
 
     // 8. Delete a message
-    const deleteMessage = useCallback(async (messageId: number | string) => {
+    const deleteMessage = useCallback(async (messageId: number | string, type: 'everyone' | 'for_me' = 'everyone') => {
         try {
-            await messageService.deleteMessage(messageId);
-            setMessages(prev => prev.filter(m => m.id !== Number(messageId)));
+            await messageService.deleteMessage(messageId, type);
 
-            if (activePartnerId) {
-                const currentCache = messagesCacheRef.current.get(activePartnerId) || [];
-                messagesCacheRef.current.set(activePartnerId, currentCache.filter(m => m.id !== Number(messageId)));
+            if (type === 'everyone') {
+                // For everyone: update message in-place to show 'You unsent a message'
+                setMessages(prev => prev.map(m => m.id === Number(messageId) ? { ...m, is_unsent: true, message: null, attachments: null } : m));
+                if (activePartnerId) {
+                    const currentCache = messagesCacheRef.current.get(activePartnerId) || [];
+                    messagesCacheRef.current.set(activePartnerId, currentCache.map(m => m.id === Number(messageId) ? { ...m, is_unsent: true, message: null, attachments: null } : m));
+                }
+            } else {
+                // For me: remove completely from current user screen
+                setMessages(prev => prev.filter(m => m.id !== Number(messageId)));
+                if (activePartnerId) {
+                    const currentCache = messagesCacheRef.current.get(activePartnerId) || [];
+                    messagesCacheRef.current.set(activePartnerId, currentCache.filter(m => m.id !== Number(messageId)));
+                }
             }
 
             return true;

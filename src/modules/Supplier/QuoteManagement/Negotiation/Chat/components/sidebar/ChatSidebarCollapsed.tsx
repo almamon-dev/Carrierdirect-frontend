@@ -1,6 +1,6 @@
-import React from 'react';
-import { ArrowLeft, PanelLeftOpen, Pin, Search } from 'lucide-react';
 import Button from '@/components/ui/button';
+import { ArrowLeft, PanelLeftOpen, Pin, Search } from 'lucide-react';
+import React from 'react';
 import { NegotiationItem } from '../../../types';
 import { ChatMessage } from '../../types';
 
@@ -32,7 +32,8 @@ export const ChatSidebarCollapsed: React.FC<ChatSidebarCollapsedProps> = ({
     onNavigateBack,
 }) => {
     return (
-        <div className="hidden lg:flex w-[72px] shrink-0 flex-col min-h-0 h-full bg-white border-r border-slate-200 select-none relative transition-[width] duration-200 z-10">
+        <div
+            className="hidden lg:flex w-[72px] shrink-0 flex-col min-h-0 h-full bg-white border-r border-slate-200 select-none relative transition-[width] duration-200 z-10">
             <div className="p-3 flex flex-col items-center border-b border-slate-100 gap-2">
                 <Button
                     variant="ghost" size="icon" onClick={onToggleCollapse}
@@ -85,12 +86,11 @@ export const ChatSidebarCollapsed: React.FC<ChatSidebarCollapsedProps> = ({
                             className="relative group flex items-center justify-center py-1 cursor-pointer w-full"
                         >
                             <div className={`relative rounded-full transition-all ${isActive ? 'ring-2 ring-[#FF4A1F] ring-offset-2 scale-105' : 'hover:scale-105'}`}>
-                                <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-base overflow-hidden border shadow-2xs ${
-                                    isActive
+                                <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-base overflow-hidden border shadow-2xs ${isActive
                                         ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-200/80 dark:border-blue-900/50 text-[#2563EB]'
                                         : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
-                                }`}>
-                                    {item.customerAvatar ? (
+                                    }`}>
+                                    {item.customerAvatar && (item.customerAvatar.startsWith('http') || item.customerAvatar.startsWith('/storage') || item.customerAvatar.startsWith('data:') || item.customerAvatar.includes('.')) ? (
                                         <img src={item.customerAvatar} alt={item.customer} className="w-full h-full object-cover" />
                                     ) : (
                                         <span>{item.customer.charAt(0).toUpperCase()}</span>

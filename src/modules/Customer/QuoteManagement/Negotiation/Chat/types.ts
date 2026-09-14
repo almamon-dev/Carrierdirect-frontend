@@ -1,3 +1,12 @@
+export interface ExtraChargeItem {
+    id?: number | string;
+    type: string;
+    custom_name?: string;
+    customName?: string;
+    label?: string;
+    amount: number;
+}
+
 export interface CustomerChatItem {
     id: number | string;
     name: string;
@@ -9,6 +18,9 @@ export interface CustomerChatItem {
     active: boolean;
     quoteNo: string;
     baseFreight: string;
+    baseFreightAmount?: number;
+    extraCharges?: ExtraChargeItem[];
+    totalExtras?: number;
     isVerified: boolean;
     isPinned: boolean;
     raw: any;
@@ -20,6 +32,9 @@ export interface CustomerChatItem {
     vehicleType: string;
     carrier?: string;
     company?: string;
+    isOnline?: boolean;
+    lastSeenHuman?: string;
+    lastSeenAt?: string;
 }
 
 export interface CustomerChatAttachment {
@@ -40,7 +55,8 @@ export interface CustomerChatMessage {
     newTotal?: number;
     previousTotal?: number;
     quoteNo?: string;
-    status?: 'pending' | 'accepted' | 'rejected';
+    status?: 'pending' | 'accepted' | 'rejected' | 'superseded' | 'withdrawn';
+    is_superseded?: boolean;
     declineReason?: string;
     attachments?: CustomerChatAttachment[];
     isPinned?: boolean;

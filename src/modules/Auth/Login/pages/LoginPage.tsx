@@ -11,11 +11,13 @@ import { TOKEN_CONFIG } from '../../../../config/auth';
 import ProcessingOverlay from '../components/ProcessingOverlay';
 import TwoFactorModal from '../components/TwoFactorModal';
 import DemoCredentials from '../components/DemoCredentials';
+import { getRoleDashboardUrl } from '../../../../utils/roleDashboard';
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const emailParam = searchParams.get("email") || "";
+    const passwordParam = searchParams.get("password") || searchParams.get("temp_pass") || searchParams.get("pass") || "";
     const invitationToken = searchParams.get("invitation_token") || searchParams.get("token") || "";
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -27,13 +29,29 @@ export default function LoginPage() {
     // 2FA state
     const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
     const [pendingLoginRes, setPendingLoginRes] = useState<any>(null);
+    const [invitationAccepted, setInvitationAccepted] = useState(false);
+
+    // Auto-accept invitation token on page load
+    useEffect(() => {
+        if (invitationToken) {
+            apiClient.post("/auth/accept-invitation", { token: invitationToken })
+                .then(() => {
+                    setInvitationAccepted(true);
+                })
+                .catch((err) => {
+                    console.log("Invitation token status:", err?.response?.data?.message || err.message);
+                });
+        }
+    }, [invitationToken]);
 
     
     useEffect(() => {
-        if (emailParam && !formData.email) {
-            setFormData(prev => ({ ...prev, email: emailParam }));
-        }
-    }, [emailParam]);
+        setFormData(prev => ({
+            ...prev,
+            email: emailParam || prev.email,
+            password: passwordParam || prev.password,
+        }));
+    }, [emailParam, passwordParam]);
 
     // ── Guard: redirect already-authenticated users ───────────────────────────
     useEffect(() => {
@@ -46,7 +64,9 @@ export default function LoginPage() {
             const role = user?.user_type;
             if (role === 'admin') {
                 window.location.href = '/admin/dashboard';
-            } else if (role === 'supplier' || role === 'supplier_employee') {
+            } else if (role === 'supplier_employee') {
+                navigate(getRoleDashboardUrl(user), { replace: true });
+            } else if (role === 'supplier') {
                 const isProfileCompleted = Boolean(
                     user?.is_profile_completed ||
                     user?.is_profile_complete ||
@@ -86,7 +106,14 @@ export default function LoginPage() {
             return;
         }
 
-        if (userType === 'supplier' || userType === 'supplier_employee') {
+        if (userType === 'supplier_employee') {
+            setTimeout(() => {
+                navigate(getRoleDashboardUrl(res.user));
+            }, 1200);
+            return;
+        }
+
+        if (userType === 'supplier') {
             let userObj = res.user;
             let isProfileCompleted = Boolean(
                 userObj?.is_profile_completed ||
@@ -95,7 +122,7 @@ export default function LoginPage() {
             );
 
             // Live verify with backend in case user object in login response is missing location fields
-            if (!isProfileCompleted && userType === 'supplier') {
+            if (!isProfileCompleted) {
                 try {
                     const profRes = await apiClient.get('/supplier/profile');
                     const profData = profRes.data?.data || profRes.data;
@@ -141,7 +168,8 @@ export default function LoginPage() {
             const res = await authService.login({
                 email: formData.email,
                 password: formData.password,
-            });
+                invitation_token: invitationToken || undefined,
+            } as any);
 
             if (res.requiresPayment && res.checkoutUrl) {
                 window.location.href = res.checkoutUrl;
@@ -229,14 +257,16 @@ export default function LoginPage() {
                     
                     {/* Invitation Welcome Banner */}
                     {invitationToken && (
-                        <div className="mb-4 p-3.5 bg-orange-50 dark:bg-[#ff4a1f]/10 border border-orange-200 dark:border-[#ff4a1f]/30 rounded-lg flex items-start gap-3 text-left">
-                            <div className="w-8 h-8 rounded-full bg-[#ff4a1f]/15 flex items-center justify-center shrink-0 text-[#ff4a1f] font-bold text-sm">
-                                ✉️
+                        <div className="mb-4 p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-lg flex items-start gap-3 text-left animate-in fade-in">
+                            <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center shrink-0 text-emerald-600 font-bold text-sm">
+                                ✓
                             </div>
                             <div>
-                                <div className="text-xs font-bold text-slate-800 dark:text-slate-100">Team Member Invitation</div>
-                                <div className="text-[11.5px] text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
-                                    Sign in with your temporary password below to accept the invitation and activate your account.
+                                <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                                    {invitationAccepted ? "Invitation Accepted & Account Active!" : "Team Member Invitation"}
+                                </div>
+                                <div className="text-[11.5px] text-emerald-700 dark:text-emerald-400 mt-0.5 leading-relaxed font-medium">
+                                    Your invitation has been accepted. Sign in with your credentials below to access your team workspace.
                                 </div>
                             </div>
                         </div>
@@ -322,7 +352,7 @@ export default function LoginPage() {
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-gray-200 dark:border-[#384150]" />
                         </div>
-                        <div className="relative flex justify-center text-[11px] uppercase">
+                        <div className="relative flex justify-center text-[11px] ">
                             <span className="bg-white dark:bg-[#181a20] px-3 text-gray-400 dark:text-slate-400 font-semibold tracking-wider">Or continue with</span>
                         </div>
                     </div>

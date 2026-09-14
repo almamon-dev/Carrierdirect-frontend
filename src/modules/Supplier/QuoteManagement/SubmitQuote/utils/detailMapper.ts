@@ -5,12 +5,30 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
     const d = raw.quote_details || {};
     const apiData = { ...d, id: raw.id, quote_submitted: raw.quote_submitted };
 
-    const computedStatus = resolveSupplierQuoteStatus({
+    const isWon = Boolean(
+        raw.is_won ||
+        raw.status === 'Won' ||
+        raw.supplier_status === 'Won' ||
+        raw.quote_submitted?.status === 'accepted' ||
+        raw.quote_submitted?.status === 'won' ||
+        (raw.status === 'completed' && raw.quote_submitted)
+    );
+
+    const isExpired = !isWon && Boolean(
+        raw.is_expired ||
+        raw.status === 'Expired' ||
+        raw.supplier_status === 'Expired'
+    );
+
+    const computedStatus = isWon ? 'Won' : resolveSupplierQuoteStatus({
         id: raw.id || cleanId,
         rawId: raw.id || cleanId,
         status: raw.status || d.status,
-        quote_submitted: raw.quote_submitted || raw.is_quoted,
-        is_booked: raw.is_booked,
+        supplier_status: raw.supplier_status || d.supplier_status,
+        quote_submitted: Boolean(raw.quote_submitted || raw.is_quoted),
+        is_booked: Boolean(raw.is_booked || isWon),
+        is_won: isWon,
+        is_expired: isExpired,
     });
     
     const rawItems = Array.isArray(d.items) ? d.items : (Array.isArray(raw.items) ? raw.items : []);
@@ -43,8 +61,11 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         id: `REQ-${raw.id || cleanId}`,
         slug: String(raw.id || cleanId),
         status: computedStatus,
+        is_won: isWon,
+        is_expired: isExpired,
+        quote_submitted: raw.quote_submitted,
         customer: d.client_name || d.customer_name || raw.customer?.name || raw.user?.name || raw.customer_name || 'Verified Shipper',
-        customerAvatar: raw.customer?.profile_picture || raw.user?.avatar || raw.user?.avatar_url || '',
+        customerAvatar: d.client_avatar || d.customer_avatar || raw.customer_avatar || raw.customerAvatar || raw.customer?.avatar || raw.customer?.profile_picture || raw.user?.avatar || raw.user?.avatar_url || '',
         customerPhone: d.client_phone || raw.customer?.phone || raw.user?.phone || '',
         customerRating: Number(d.client_rating || raw.customer?.rating || raw.user?.rating || 4.9),
         customerOrdersCount: d.client_orders_count ?? raw.customer?.orders_count ?? raw.user?.orders_count ?? 1,

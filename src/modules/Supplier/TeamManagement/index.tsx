@@ -58,7 +58,8 @@ export default function TeamManagement() {
     );
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div
+    className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header Title & Actions matching RequestList */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>

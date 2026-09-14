@@ -46,15 +46,16 @@ export default function ProcessingTrack() {
     const timeline = buildOrderTimeline(isPodAccepted, order);
 
     return (
-        <div className="p-3.5 md:p-5 w-full mx-auto flex flex-col min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] pb-16 space-y-4">
-            {/* Minimal Header Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div
+    className="p-3.5 md:p-5 w-full mx-auto flex flex-col min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] pb-16 space-y-4">
+            {/* Clean Header Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 border-b border-slate-200 dark:border-slate-800 pb-3.5">
                 <div>
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none">
-                            Track Shipment {order.id}
+                    <div className="flex items-center gap-2.5">
+                        <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none">
+                            Track Shipment <span className="font-mono text-slate-500 dark:text-slate-400 font-semibold">{order.id}</span>
                         </h1>
-                        <Badge className={`px-1.5 py-0.5 text-[10px] font-bold rounded-[3px] ${
+                        <Badge className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${
                             isPodAccepted
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
                                 : 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
@@ -62,24 +63,28 @@ export default function ProcessingTrack() {
                             {order.status}
                         </Badge>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1 leading-none">
-                        Route: <span className="text-slate-700 dark:text-slate-300 font-semibold">{order.from}</span> ➔ <span className="text-slate-700 dark:text-slate-300 font-semibold">{order.to}</span>
-                    </p>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+                        <span>Route:</span>
+                        <span className="text-slate-800 dark:text-slate-200 font-semibold">{order.from}</span>
+                        <span className="text-slate-400">➔</span>
+                        <span className="text-slate-800 dark:text-slate-200 font-semibold">{order.to}</span>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        ETA: <strong className="text-slate-900 dark:text-slate-100 font-semibold">{order.estArrival}</strong>
-                    </span>
+                <div className="flex items-center gap-2 flex-wrap sm:justify-end">
+                    <div
+    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] text-xs shadow-2xs">
+                        <span className="text-slate-400 font-medium">ETA:</span>
+                        <strong className="text-slate-800 dark:text-slate-100 font-semibold">{order.estArrival}</strong>
+                    </div>
 
-                    <Button
-                        variant="outline"
-                        size="sm"
+                    <button
                         onClick={() => setIsPodAccepted(!isPodAccepted)}
-                        className="h-7 px-2.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-[4px] cursor-pointer"
+                        className="h-8 px-2 text-[11px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-300 rounded-[4px] cursor-pointer transition-colors"
+                        title="Simulate POD Accepted status"
                     >
-                        <span>{isPodAccepted ? 'Reset POD' : 'Simulate POD Accept'}</span>
-                    </Button>
+                        {isPodAccepted ? 'Reset' : 'Simulate'}
+                    </button>
                 </div>
             </div>
 

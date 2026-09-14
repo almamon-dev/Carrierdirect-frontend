@@ -273,6 +273,14 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
         } catch {}
     }, [role]);
 
+    const markAsUnread = useCallback(async (id: string | number) => {
+        setLocalNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: true } : n));
+        setApiNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: true } : n));
+        try {
+            await apiClient.post(`/${role}/notifications/${id}/unread`).catch(() => {});
+        } catch {}
+    }, [role]);
+
     const markAllAsRead = useCallback(async () => {
         setLocalNotifs(prev => prev.map(n => ({ ...n, unread: false })));
         setApiNotifs(prev => prev.map(n => ({ ...n, unread: false })));
@@ -317,6 +325,7 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
         isLoading,
         refresh: fetchNotifications,
         markAsRead,
+        markAsUnread,
         markAllAsRead,
         deleteNotification,
         clearAll,

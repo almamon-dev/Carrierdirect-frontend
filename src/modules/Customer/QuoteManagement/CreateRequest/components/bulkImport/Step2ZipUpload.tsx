@@ -51,7 +51,8 @@ export const Step2ZipUpload: React.FC<Step2ZipUploadProps> = ({
                 </p>
 
                 {uploadedZipName ? (
-                    <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-[5px] border border-slate-200 text-xs font-medium text-slate-900 shadow-2xs">
+                    <div
+    className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-900 shadow-2xs">
                         <Paperclip size={14} className="text-slate-600" />
                         <span>{uploadedZipName}</span>
                         {localZipSize && <span className="text-slate-500 font-normal text-2xs">({localZipSize})</span>}

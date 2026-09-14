@@ -38,6 +38,7 @@ export const useChatOfferActions = ({
                 note,
                 negotiation_id: activeRawId
             });
+            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
         } catch {
             await apiClient.post(`/negotiations/${activeRawId}/counter-offer`, {
                 amount,
@@ -45,6 +46,7 @@ export const useChatOfferActions = ({
                 note,
                 negotiation_id: activeRawId
             }).catch(() => {});
+            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
         }
     };
 
@@ -79,12 +81,14 @@ export const useChatOfferActions = ({
                 amount: acceptedTotal,
                 proposed_amount: acceptedTotal
             });
+            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
         } catch {
             await apiClient.post(`/negotiations/${activeRawId}/accept`, {
                 offer_id: offerMsg?.id,
                 amount: acceptedTotal,
                 proposed_amount: acceptedTotal
             }).catch(() => {});
+            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
         }
     };
 

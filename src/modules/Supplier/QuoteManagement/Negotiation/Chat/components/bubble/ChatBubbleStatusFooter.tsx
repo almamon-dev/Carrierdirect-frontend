@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, CheckCheck } from 'lucide-react';
+import { Check, CheckCheck, Pin } from 'lucide-react';
 import { ChatMessage } from '../../types';
 
 interface ChatBubbleStatusFooterProps {
@@ -9,6 +9,9 @@ interface ChatBubbleStatusFooterProps {
 
 export const ChatBubbleStatusFooter: React.FC<ChatBubbleStatusFooterProps> = ({ msg, isSent }) => (
     <div className={`flex items-center gap-1.5 mt-1 px-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 ${isSent ? 'justify-end' : 'justify-start'}`}>
+        {msg.isPinned && (
+            <Pin size={10} className="text-amber-500 fill-amber-500 mr-0.5 shrink-0 rotate-45" />
+        )}
         <span>{msg.time}</span>
         {msg.isEdited && <span className="italic text-[9.5px]">(edited)</span>}
         {isSent && (

@@ -82,19 +82,11 @@ export function useQuoteViewDetail(quoteId?: string, requestId?: string) {
         fetchQuoteDetail();
     }, [cleanQuoteId, cleanReqId]);
 
-    const handleAcceptQuote = async () => {
+    const handleAcceptQuote = () => {
         if (!quote) return;
-        setIsAccepting(true);
-        try {
-            await apiClient.post(`/customer/quotes/${quote.id}/accept`);
-            showToast('Quote accepted! Order booked successfully.', 'success');
-            navigate('/customer/orders');
-        } catch (err: any) {
-            const msg = err?.response?.data?.message || err?.message || 'Failed to accept quote.';
-            showToast(msg, 'error');
-        } finally {
-            setIsAccepting(false);
-        }
+        navigate(`/customer/checkout/${encryptId(quote.id)}`, {
+            state: { quote }
+        });
     };
 
     const handleRejectQuote = async (reason: string) => {

@@ -1,40 +1,41 @@
 import React, { useState } from 'react';
-import { User, FileText, ChevronDown, BadgeCheck, CreditCard } from 'lucide-react';
+import { BadgeCheck, ChevronDown, CreditCard, FileText, User } from 'lucide-react';
 import { CustomerChatItem, CustomerChatMessage } from '../types';
-import AttachmentsList from '@/modules/Customer/QuoteManagement/Negotiation/Attachments';
-import { SupplierProfileModal } from './SupplierProfileModal';
 import { CustomerChatOverviewSection } from './details/CustomerChatOverviewSection';
 import { CustomerChatLogisticsSection } from './details/CustomerChatLogisticsSection';
+import { SupplierProfileModal } from './SupplierProfileModal';
+import AttachmentsList from '@/modules/Customer/QuoteManagement/Negotiation/Attachments';
 
 interface CustomerChatDetailsPanelProps {
-    activeChat: CustomerChatItem | null;
+    activeChat: CustomerChatItem;
+    showDetailsPanel: boolean;
+    setShowDetailsPanel?: (val: boolean) => void;
     currentMessages?: CustomerChatMessage[];
-    showDetailsPanel?: boolean;
 }
 
-export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> = ({ activeChat, currentMessages = [], showDetailsPanel = true }) => {
-    const [showProfileModal, setShowProfileModal] = useState(false);
+export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> = ({
+    activeChat,
+    showDetailsPanel,
+    currentMessages = []
+}) => {
     const [openSections, setOpenSections] = useState({ overview: true, logistics: false, pricing: false, documents: false });
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
-    const toggleSection = (section: keyof typeof openSections) => {
-        setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+    const toggleSection = (sec: keyof typeof openSections) => {
+        setOpenSections(prev => ({ ...prev, [sec]: !prev[sec] }));
     };
-
-    if (!activeChat) return null;
 
     const handleDocumentsClick = () => {
         setOpenSections(prev => ({ ...prev, documents: true }));
-        setTimeout(() => {
-            document.getElementById('customer-sidebar-documents-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 50);
+        setTimeout(() => { document.getElementById('customer-sidebar-documents-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50);
     };
 
-    const messageAttachments = (currentMessages || [])
-        .flatMap(m => {
-            const atts: any[] = m.attachments || [];
-            if (atts.length > 0) return atts;
-            if (((m as any).type === 'image' || (m as any).message_type === 'image') && m.text) return [{ name: 'Photo', url: m.text, type: 'image' }];
-            return [];
+    const messageAttachments = currentMessages
+        .flatMap(m => m.attachments || [])
+        .filter(att => {
+            const name = (att.name || '').toLowerCase();
+            const url = (att.url || '').toLowerCase();
+            return !name.endsWith('.mp3') && !name.endsWith('.wav') && !name.endsWith('.ogg') && !name.endsWith('.m4a') && !url.includes('blob:');
         })
         .map(att => ({
             name: att.name || 'Attachment',
@@ -50,14 +51,30 @@ export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> =
                 <div className="flex flex-col items-center pt-8 pb-4">
                     <div
                         onClick={() => setShowProfileModal(true)}
-                        className="w-16 h-16 shrink-0 aspect-square rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center font-bold text-2xl mb-3 relative shadow-2xs cursor-pointer hover:opacity-90 transition-opacity"
+                        className="relative mb-3 cursor-pointer group"
                     >
-                        {activeChat.avatar}
-                        <div className="absolute bottom-0 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
+                        <div className="w-16 h-16 shrink-0 aspect-square rounded-full bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/80 dark:border-orange-900/50 flex items-center justify-center font-bold text-2xl shadow-2xs group-hover:opacity-90 transition-opacity overflow-hidden">
+                            {activeChat.avatar && (activeChat.avatar.startsWith('http') || activeChat.avatar.startsWith('/storage') || activeChat.avatar.startsWith('data:') || activeChat.avatar.includes('.')) ? (
+                                <img
+                                    src={activeChat.avatar}
+                                    alt=""
+                                    className="w-full h-full object-contain"
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                            ) : (
+                                <span>{(activeChat.name || 'S').charAt(0).toUpperCase()}</span>
+                            )}
+                        </div>
+                        <span
+                            className={`absolute bottom-0 right-0 w-4 h-4 border-2 border-white dark:border-slate-900 rounded-full z-10 shadow-xs ${
+                                activeChat.isOnline ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-600"
+                            }`}
+                            title={activeChat.isOnline ? "Active now" : (activeChat.lastSeenHuman || "Offline")}
+                        />
                     </div>
                     <div className="flex items-center gap-1 justify-center cursor-pointer" onClick={() => setShowProfileModal(true)}>
                         <h3 className="text-[14px] font-bold text-slate-800 dark:text-slate-100 hover:text-[#FF4A1F] transition-colors">{activeChat.name}</h3>
-                        <span title="Verified Carrier"><BadgeCheck size={16} className="text-emerald-500" /></span>
+                        <span title="Verified Carrier"><BadgeCheck size={16} className="text-[#FF4A1F]" /></span>
                     </div>
                     <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{activeChat.quoteNo}</p>
 
@@ -95,24 +112,68 @@ export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> =
                             <span className="text-[12.5px] font-bold text-slate-800 dark:text-slate-200">Pricing Breakdown</span>
                             <ChevronDown size={15} className={`text-slate-400 transition-transform ${openSections.pricing ? 'rotate-180' : ''}`} />
                         </div>
-                        {openSections.pricing && (
-                            <div className="px-4 pb-3">
-                                <table className="w-full text-[11.5px] border-collapse">
-                                    <tbody>
-                                        <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
-                                            <td className="py-1.5 text-slate-500 font-medium whitespace-nowrap w-[95px]"><div className="flex items-center gap-1.5"><CreditCard size={12} className="text-slate-400 shrink-0" /><span>Initial Rate</span></div></td>
-                                            <td className="py-1.5 text-slate-400 font-bold text-center w-[20px] select-none">:</td>
-                                            <td className="py-1.5 pl-1 font-medium text-slate-800 dark:text-slate-200 text-left">€ {activeChat.currentPrice.toLocaleString()}</td>
-                                        </tr>
-                                        <tr>
-                                            <td className="py-2 text-slate-800 dark:text-slate-200 font-bold whitespace-nowrap w-[95px]"><div className="flex items-center gap-1.5"><CreditCard size={12} className="text-emerald-500 shrink-0" /><span>Current Total</span></div></td>
-                                            <td className="py-2 text-slate-400 font-bold text-center w-[20px] select-none">:</td>
-                                            <td className="py-2 pl-1 font-black text-emerald-600 dark:text-emerald-400 text-left text-sm">€ {activeChat.currentPrice.toLocaleString()}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
+                        {openSections.pricing && (() => {
+                            const extraCharges = (activeChat?.extraCharges && activeChat.extraCharges.length > 0)
+                                ? activeChat.extraCharges
+                                : (activeChat?.raw?.extra_charges || activeChat?.raw?.extraCharges || []);
+                            const totalExtras = extraCharges.reduce((acc: number, c: any) => acc + Number(c.amount || 0), 0);
+                            const currentPrice = Number(activeChat.currentPrice || 0);
+                            const baseFreight = activeChat?.baseFreightAmount || (
+                                activeChat?.raw?.base_amount_raw ??
+                                (activeChat?.raw?.base_amount ? parseFloat(String(activeChat.raw.base_amount).replace(/[^0-9.]/g, "")) : (currentPrice > totalExtras && totalExtras > 0 ? currentPrice - totalExtras : currentPrice))
+                            );
+
+                            return (
+                                <div className="px-4 pb-3">
+                                    <table className="w-full text-[11.5px] border-collapse">
+                                        <tbody>
+                                            <tr className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                                <td className="py-1.5 text-slate-500 font-medium whitespace-nowrap w-[130px]">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <CreditCard size={12} className="text-slate-400 shrink-0" />
+                                                        <span>Base Freight</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-1.5 text-slate-400 font-bold text-center w-[20px] select-none">:</td>
+                                                <td className="py-1.5 pl-1 font-bold text-slate-800 dark:text-slate-200 text-right">
+                                                    € {baseFreight.toLocaleString()}
+                                                </td>
+                                            </tr>
+
+                                            {extraCharges.map((charge: any, idx: number) => (
+                                                <tr key={idx} className="border-b border-slate-100/80 dark:border-slate-800/80">
+                                                    <td className="py-1.5 text-slate-500 font-medium whitespace-nowrap w-[130px]">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f] shrink-0" />
+                                                            <span className="truncate max-w-[110px]" title={charge.custom_name || charge.customName || charge.label || charge.type}>
+                                                                {charge.custom_name || charge.customName || charge.label || charge.type || `Extra Charge #${idx + 1}`}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-1.5 text-slate-400 font-bold text-center w-[20px] select-none">:</td>
+                                                    <td className="py-1.5 pl-1 font-semibold text-slate-700 dark:text-slate-300 text-right">
+                                                        +€ {Number(charge.amount || 0).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))}
+
+                                            <tr>
+                                                <td className="py-2 text-slate-800 dark:text-slate-200 font-bold whitespace-nowrap w-[130px]">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <CreditCard size={12} className="text-[#FF4A1F] shrink-0" />
+                                                        <span>Current Total</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-2 text-slate-400 font-bold text-center w-[20px] select-none">:</td>
+                                                <td className="py-2 pl-1 text-[13.5px] font-black text-[#FF4A1F] text-right">
+                                                    € {currentPrice.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     <div id="customer-sidebar-documents-section">

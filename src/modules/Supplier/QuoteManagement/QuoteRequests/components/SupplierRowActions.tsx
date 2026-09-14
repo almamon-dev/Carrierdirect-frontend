@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, Eye, Copy } from 'lucide-react';
+import { MoreVertical, Eye, Copy, MessageSquare } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 import { encryptId } from '@/lib/encryption';
@@ -51,6 +51,8 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
         };
     }, [isOpen]);
 
+    const isQuoted = Boolean((row as any).has_quoted || (row as any).quote_submitted || (row as any).is_quoted || (row as any).quote_id || (row as any).my_quote || row.isQuoted || row.hasQuoted || (row.status || '').toLowerCase() === 'quoted' || (row.status || '').toLowerCase() === 'done' || (row as any).supplier_status?.toLowerCase() === 'quoted');
+
     return (
         <div className="relative flex items-center justify-end w-full">
             <Button
@@ -70,7 +72,7 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
                     />
 
                     <div
-                        className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
+    className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -92,6 +94,22 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
                             onQuoteAction={onQuoteAction}
                             onClose={handleClose}
                         />
+
+                        {isQuoted && (
+                            <button
+                                type="button"
+                                className="w-full text-left px-3.5 py-2 text-xs text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                                onClick={() => {
+                                    handleClose();
+                                    const targetId = (row as any).quote_id || (row as any).chat_id || row.quoteId || row.rawId || row.slug || row.id;
+                                    const rawId = String(targetId).replace('REQ-', '').replace('QT-', '').trim();
+                                    navigate(`/supplier/quotes/negotiation/conversation/${encryptId(rawId)}`);
+                                }}
+                            >
+                                <MessageSquare size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                <span>Negotiation</span>
+                            </button>
+                        )}
 
                         <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
 

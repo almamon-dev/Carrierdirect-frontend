@@ -4,7 +4,8 @@ import { NegotiationItem } from '../../../types';
 
 export const SidebarLogisticsSection: React.FC<{ activeNegotiation: NegotiationItem }> = ({ activeNegotiation }) => (
     <div className="px-4 pb-3 space-y-2">
-        <div className="bg-slate-50 p-2.5 rounded border border-slate-200/70 space-y-1.5">
+        <div
+    className="bg-slate-50 p-2.5 rounded border border-slate-200/70 space-y-1.5">
             <div className="flex items-start gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shrink-0" />
                 <span className="font-semibold text-slate-800 leading-tight break-words">{activeNegotiation.pickup}</span>

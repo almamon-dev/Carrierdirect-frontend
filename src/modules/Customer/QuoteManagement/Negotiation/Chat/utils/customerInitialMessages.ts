@@ -44,14 +44,6 @@ Best regards`;
             quoteNo: quoteNum,
             status: initialStatus,
             declineReason: raw?.declineReason || raw?.decline_reason
-        },
-        {
-            id: `msg-quote-proposal-${chatItem?.id || raw?.id || 1}`,
-            type: 'received',
-            sender: chatItem?.name || raw?.supplier || 'Carrier Partner',
-            avatar: chatItem?.avatar || (raw?.supplier || 'C').charAt(0).toUpperCase(),
-            text: supplierProposal,
-            time: raw?.lastUpdated || raw?.requestDate || '10:05 AM'
         }
     ];
 };

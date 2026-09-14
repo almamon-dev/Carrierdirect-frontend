@@ -18,6 +18,7 @@ interface CustomerChatMessageBubbleProps {
     onAcceptOffer: (msg: CustomerChatMessage) => void;
     onRejectOffer: (msg: CustomerChatMessage, reason?: string) => void;
     onSendCounterOffer: (amount: number, note: string) => void;
+    onOpenCounterOffer?: () => void;
     onStartEdit?: (msg: CustomerChatMessage) => void;
     onDeleteMessage?: (msgId: number | string) => void;
     onTogglePinMessage?: (msgId: number | string) => void;
@@ -31,6 +32,7 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
     editingMsgId,
     onAcceptOffer,
     onRejectOffer,
+    onOpenCounterOffer,
     onStartEdit,
     onDeleteMessage,
     onTogglePinMessage
@@ -40,16 +42,29 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
     if (msg.type === 'quote_request') {
         return (
             <CustomerQuoteRequestCard
-                msg={msg} activeChat={activeChat} spacingClass={spacingClass}
-                onAcceptOffer={onAcceptOffer} onRejectOffer={onRejectOffer}
+                msg={msg}
+                activeChat={activeChat}
+                spacingClass={spacingClass}
+                onAcceptOffer={onAcceptOffer}
+                onRejectOffer={onRejectOffer}
+                onOpenCounterOffer={onOpenCounterOffer}
+                onTogglePinMessage={onTogglePinMessage}
+                onDeleteMessage={onDeleteMessage}
             />
         );
     }
 
     if (msg.type === 'offer') {
         return (
-            <div className={spacingClass}>
-                <CounterOfferMessage msg={msg as any} onAccept={() => onAcceptOffer(msg)} onReject={(reason) => onRejectOffer(msg, reason)} />
+            <div className={`flex justify-center ${spacingClass} group relative items-center w-full px-1`}>
+                <CounterOfferMessage
+                    msg={msg as any}
+                    activeChat={activeChat}
+                    onAccept={() => onAcceptOffer(msg)}
+                    onReject={(reason) => onRejectOffer(msg, reason)}
+                    onTogglePin={onTogglePinMessage ? () => onTogglePinMessage(msg.id) : undefined}
+                    onDelete={onDeleteMessage ? () => onDeleteMessage(msg.id) : undefined}
+                />
             </div>
         );
     }
@@ -73,7 +88,21 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
     if (msg.isDeleted) {
         return (
             <div className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'} ${spacingClass}`}>
-                <div className="px-3.5 py-1.5 rounded-2xl text-[12.5px] italic text-slate-400 border border-slate-200/80 bg-slate-50 flex items-center gap-1.5 font-medium shadow-2xs">
+                {!isSent && (
+                    isFirstInGroup ? (
+                        <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs shadow-2xs self-start mt-0.5 shrink-0 overflow-hidden">
+                            {activeChat?.avatar && (activeChat.avatar.startsWith('http') || activeChat.avatar.startsWith('/storage') || activeChat.avatar.startsWith('data:') || activeChat.avatar.includes('.')) ? (
+                                <img src={activeChat.avatar} alt="" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                            ) : (
+                                activeChat?.carrier?.charAt(0).toUpperCase() || activeChat?.name?.charAt(0).toUpperCase() || 'S'
+                            )}
+                        </div>
+                    ) : (
+                        <div className="w-7 shrink-0" aria-hidden="true" />
+                    )
+                )}
+                <div
+                    className="px-3.5 py-1.5 rounded-lg text-[12.5px] italic text-slate-400 border border-slate-200/80 bg-slate-50 flex items-center gap-1.5 font-medium shadow-2xs">
                     <Ban size={13} className="text-slate-400 shrink-0" />
                     <span>{isSent ? 'You deleted this message' : 'This message was deleted'}</span>
                 </div>
@@ -83,10 +112,18 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
 
     return (
         <div className={`flex gap-2.5 ${isSent ? 'justify-end' : 'justify-start'} ${spacingClass} group relative`}>
-            {!isSent && isFirstInGroup && (
-                <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs shadow-2xs self-start mt-0.5">
-                    {activeChat?.carrier?.charAt(0).toUpperCase() || 'S'}
-                </div>
+            {!isSent && (
+                isFirstInGroup ? (
+                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs shadow-2xs self-start mt-0.5 shrink-0 overflow-hidden">
+                        {activeChat?.avatar && (activeChat.avatar.startsWith('http') || activeChat.avatar.startsWith('/storage') || activeChat.avatar.startsWith('data:') || activeChat.avatar.includes('.')) ? (
+                            <img src={activeChat.avatar} alt="" className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        ) : (
+                            activeChat?.carrier?.charAt(0).toUpperCase() || activeChat?.name?.charAt(0).toUpperCase() || 'S'
+                        )}
+                    </div>
+                ) : (
+                    <div className="w-7 shrink-0" aria-hidden="true" />
+                )
             )}
 
             <div className={`max-w-[85%] sm:max-w-[75%] md:max-w-[65%] min-w-0 flex flex-col ${isSent ? 'items-end' : 'items-start'} relative group`}>
@@ -101,16 +138,13 @@ export const CustomerChatMessageBubble: React.FC<CustomerChatMessageBubbleProps>
                     </div>
                 )}
 
-                {msg.isPinned && (
-                    <div className={`absolute -top-1.5 ${isSent ? '-left-1.5' : '-right-1.5'} w-4.5 h-4.5 bg-[#FF4A1F] text-white rounded-full flex items-center justify-center shadow-xs z-10`}>
-                        <Pin size={9} className="fill-white rotate-45" />
-                    </div>
-                )}
-
                 <CustomerChatAttachmentList attachments={allAttachments} isSent={isSent} onImageClick={(idx) => setLightboxIndex(idx)} />
                 {hasText && <CustomerChatTextBubble text={msg.text || ''} isSent={isSent} />}
 
                 <div className={`flex items-center gap-1.5 mt-1 px-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 ${isSent ? 'justify-end' : 'justify-start'}`}>
+                    {msg.isPinned && (
+                        <Pin size={10} className="text-amber-500 fill-amber-500 mr-0.5 shrink-0 rotate-45" />
+                    )}
                     <span>{msg.time}</span>
                     {msg.isEdited && <span className="italic text-[9.5px]">(edited)</span>}
                     {isSent && (

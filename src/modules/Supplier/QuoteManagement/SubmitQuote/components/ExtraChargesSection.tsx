@@ -78,12 +78,12 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
                                         <option value="Custom">✏️ Custom</option>
                                     </Select>
                                 </div>
-                                <div className="relative w-24 shrink-0">
-                                    <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 text-xs font-medium">€</div>
+                                <div className="w-24 shrink-0">
                                     <Input 
                                         type="number" 
                                         placeholder="0.00" 
-                                        className="pl-6 text-xs !h-7.5 font-medium rounded-[3px]"
+                                        icon={<span className="text-slate-400 text-xs font-medium">€</span>}
+                                        className="text-xs !h-7.5 font-medium rounded-[3px]"
                                         value={charge.amount}
                                         onChange={(e) => handleUpdateCharge(idx, 'amount', e.target.value)}
                                     />
