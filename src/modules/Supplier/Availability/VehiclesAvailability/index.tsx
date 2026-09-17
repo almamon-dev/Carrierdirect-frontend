@@ -148,8 +148,10 @@ export default function VehiclesAvailability() {
     className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5 bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Vehicles & Fleet Capacity</h1>
-                    <p className="text-xs text-slate-500 font-medium">Manage fleet capacity, vehicle specs, and maintenance schedules.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Vehicles & Fleet Capacity</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Manage fleet capacity, vehicle specs, and maintenance schedules.
+                    </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="h-9 text-xs font-semibold" onClick={() => alert('Exporting fleet list...')}>

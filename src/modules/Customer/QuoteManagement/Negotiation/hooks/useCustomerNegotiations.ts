@@ -47,12 +47,12 @@ export const useCustomerNegotiations = () => {
                         amount: Number(c.amount || 0)
                     })).filter((c: any) => c.amount > 0) : [];
                     const totalExtras = extraCharges.reduce((sum: number, c: any) => sum + (Number(c.amount) || 0), 0);
-                    const currentPrice = Number(n.revised_amount_raw ?? n.revised_amount ?? n.amount_raw ?? n.amount ?? 0);
-                    const origPrice = Number(
+                    const origPrice = Number(n.amount_raw ?? n.amount ?? (n.base_amount_raw ? Number(n.base_amount_raw) + totalExtras : 0));
+                    const currentPrice = Number(n.revised_amount_raw ?? n.revised_amount ?? origPrice);
+                    const baseFreightAmount = Number(
                         n.base_amount_raw ??
-                        (n.base_amount ? parseFloat(String(n.base_amount).replace(/[^0-9.]/g, "")) : (currentPrice > totalExtras && totalExtras > 0 ? currentPrice - totalExtras : currentPrice))
+                        (n.base_amount ? parseFloat(String(n.base_amount).replace(/[^0-9.]/g, "")) : (origPrice > totalExtras && totalExtras > 0 ? origPrice - totalExtras : origPrice))
                     );
-                    const baseFreightAmount = origPrice;
 
                     const pickupLoc = n.origin || n.pickup_address || n.pickup || 'Pickup Location';
                     const deliveryLoc = n.destination || n.delivery_address || n.delivery || 'Delivery Destination';
@@ -104,7 +104,7 @@ export const useCustomerNegotiations = () => {
                         status: statusLabel,
                         statusRaw: n.status_raw || 'pending',
                         revisionStatus: n.revision_status || 'none',
-                        unreadCount: Number(n.unread_count ?? (statusLabel.includes('Counter') ? 1 : 0)),
+                        unreadCount: typeof n.unread_count === 'number' ? Number(n.unread_count) : (n.is_read === false ? 1 : 0),
                         palletType: n.pallet_type || 'Standard Euro Pallet',
                         vehicleType: n.vehicle_type || 'Curtainsider (13.6m)',
                         pickupDate: n.pickup_date,
@@ -114,6 +114,8 @@ export const useCustomerNegotiations = () => {
                         isOnline: Boolean(n.is_online),
                         lastSeenHuman: n.last_seen_human || (n.is_online ? "Active now" : "Offline"),
                         lastSeenAt: n.last_seen_at,
+                        baseFreight: baseFreightAmount,
+                        raw: n,
                     };
                 });
                 setNegotiations(mapped);

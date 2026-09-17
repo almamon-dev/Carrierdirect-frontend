@@ -37,7 +37,7 @@ const decryptId = (hash?: string): string | undefined => {
 };
 
 interface SharedMessagesProps {
-    role: 'supplier' | 'customer';
+    role: 'supplier' | 'customer' | 'driver';
 }
 
 export const SharedMessages: React.FC<SharedMessagesProps> = ({ role }) => {
@@ -77,7 +77,7 @@ export const SharedMessages: React.FC<SharedMessagesProps> = ({ role }) => {
     const [replyingTo, setReplyingTo] = useState<GeneralMessage | null>(null);
     const [editingMessage, setEditingMessage] = useState<GeneralMessage | null>(null);
 
-    const basePath = role === 'supplier' ? '/supplier/messages' : '/customer/messages';
+    const basePath = role === 'driver' ? '/driver/chat' : (role === 'supplier' ? '/supplier/messages' : '/customer/messages');
 
     // Reset parent/window scroll on mount so page never loads scrolled down
     useEffect(() => {
@@ -125,7 +125,7 @@ export const SharedMessages: React.FC<SharedMessagesProps> = ({ role }) => {
             id: Number(activePartnerId),
             name: 'Partner',
             company_name: 'Partner',
-            user_type: role === 'supplier' ? 'customer' : 'supplier',
+            user_type: role === 'supplier' ? 'customer' : (role === 'driver' ? 'dispatcher' : 'supplier'),
             is_verified: false,
             is_online: false,
             last_seen_human: 'Offline'

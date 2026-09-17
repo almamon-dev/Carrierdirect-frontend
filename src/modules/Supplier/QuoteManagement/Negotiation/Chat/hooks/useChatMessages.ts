@@ -100,6 +100,32 @@ export function useChatMessages(activeNegotiation: NegotiationItem, allNegotiati
                 const rawData = res?.data?.data || res?.data || res;
                 const rawMsgs = rawData?.all_messages || rawData?.messages || res?.data?.all_messages || res?.all_messages || (Array.isArray(rawData) ? rawData : []);
                 const quoteObj = rawData?.quote || rawData?.original_quote || res?.data?.quote || activeNegotiation;
+                if (quoteObj && activeNegotiation) {
+                    const rawOrder = quoteObj.order || rawData?.original_quote?.order || activeNegotiation.raw?.order;
+                    const rawInvoice = quoteObj.invoice || rawData?.original_quote?.invoice || activeNegotiation.raw?.invoice;
+                    const isPaidFlag = Boolean(
+                        quoteObj.is_paid ||
+                        rawData?.original_quote?.is_paid ||
+                        (rawInvoice && (rawInvoice.status === 'paid' || rawInvoice.invoice_type === 'pay_later')) ||
+                        (rawOrder && ['in_progress', 'confirmed', 'completed', 'delivered'].includes(rawOrder.status))
+                    );
+                    const hasOrderFlag = Boolean(quoteObj.has_order || rawData?.original_quote?.has_order || rawOrder || quoteObj.order_id || rawData?.original_quote?.order_id);
+
+                    activeNegotiation.raw = {
+                        ...(activeNegotiation.raw || {}),
+                        ...(quoteObj || {}),
+                        has_order: hasOrderFlag,
+                        is_paid: isPaidFlag,
+                        order_number: quoteObj.order_number || rawData?.original_quote?.order_number || rawOrder?.order_number || activeNegotiation.raw?.order_number,
+                        order_id: quoteObj.order_id || rawData?.original_quote?.order_id || rawOrder?.id || activeNegotiation.raw?.order_id,
+                        order: rawOrder,
+                        invoice: rawInvoice,
+                    };
+                    activeNegotiation.hasOrder = hasOrderFlag;
+                    activeNegotiation.isPaid = isPaidFlag;
+                    activeNegotiation.orderNumber = activeNegotiation.raw.order_number;
+                    activeNegotiation.orderId = activeNegotiation.raw.order_id;
+                }
                 const hasAcceptedMsg = Array.isArray(rawMsgs) && rawMsgs.some((m: any) => m.status === 'accepted' || (typeof m.message === 'string' && m.message.includes('accepted')));
                 const isQuoteAccepted = quoteObj?.status === 'accepted' || quoteObj?.status === 'Accepted' || quoteObj?.status === 'confirmed' || quoteObj?.status === 'completed' || (activeNegotiation as any)?.status === 'Accepted' || hasAcceptedMsg;
                 const isQuoteRejected = quoteObj?.status === 'rejected' || quoteObj?.status === 'declined' || (activeNegotiation as any)?.status === 'Offer Declined' || (activeNegotiation as any)?.status === 'rejected';
@@ -112,6 +138,23 @@ export function useChatMessages(activeNegotiation: NegotiationItem, allNegotiati
                     }
                     if (customerObj.last_seen_human) {
                         activeNegotiation.lastSeenHuman = customerObj.last_seen_human;
+                    }
+                }
+
+                if (quoteObj && activeNegotiation) {
+                    if (Array.isArray(quoteObj.extra_charges) && quoteObj.extra_charges.length > 0) {
+                        const freshCharges = quoteObj.extra_charges.map((c: any) => ({
+                            id: c.id,
+                            type: c.type || c.custom_name || c.customName || "Custom",
+                            customName: c.custom_name || c.customName || c.label || c.type,
+                            label: c.type === "Custom" ? (c.custom_name || c.customName || "Custom") : (c.custom_name || c.customName || c.type),
+                            amount: Number(c.amount || 0)
+                        })).filter((c: any) => c.amount > 0);
+                        activeNegotiation.extraCharges = freshCharges;
+                        activeNegotiation.totalExtras = freshCharges.reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
+                    }
+                    if (quoteObj.base_amount_raw || quoteObj.base_amount) {
+                        activeNegotiation.baseFreight = Number(quoteObj.base_amount_raw ?? parseFloat(String(quoteObj.base_amount).replace(/[^0-9.]/g, "")) ?? activeNegotiation.baseFreight);
                     }
                 }
                 if (rawData?.is_customer_typing !== undefined || rawData?.is_typing !== undefined) {
@@ -127,6 +170,9 @@ export function useChatMessages(activeNegotiation: NegotiationItem, allNegotiati
 
                 if (Array.isArray(rawMsgs) && rawMsgs.length > 0) {
                     const finalMessages = mapRawChatMessages(rawMsgs, activeNegotiation, isQuoteAccepted, isQuoteRejected, quoteDeclineReason);
+                    setChatMessages(prev => ({ ...prev, [activeRawId]: finalMessages, [String(activeRawId)]: finalMessages }));
+                } else if (activeNegotiation) {
+                    const finalMessages = generateInitialMessages(activeNegotiation);
                     setChatMessages(prev => ({ ...prev, [activeRawId]: finalMessages, [String(activeRawId)]: finalMessages }));
                 }
             } catch {}
@@ -173,9 +219,9 @@ export function useChatMessages(activeNegotiation: NegotiationItem, allNegotiati
         scrollToBottom,
     });
 
-    const handleSendCounterOffer = async (amount: number, note: string) => {
+    const handleSendCounterOffer = async (amount: number, note: string, extraCharges?: any[], baseFreight?: number) => {
         notifyTyping(false);
-        return baseSendCounterOffer(amount, note);
+        return baseSendCounterOffer(amount, note, extraCharges, baseFreight);
     };
 
     const handleSendMessage = async (text: string, files?: File[]) => {

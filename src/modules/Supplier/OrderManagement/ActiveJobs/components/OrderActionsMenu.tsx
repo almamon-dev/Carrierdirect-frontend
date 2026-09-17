@@ -9,7 +9,8 @@ import {
     FileCheck, 
     Star, 
     FileText,
-    UserCheck
+    UserCheck,
+    RefreshCw
 } from 'lucide-react';
 import { SupplierOrderItem } from '../types';
 
@@ -26,6 +27,7 @@ interface OrderActionsMenuProps {
     onManagePOD: () => void;
     onCopyId: () => void;
     onAssignDriver?: () => void;
+    onUpdateStatus?: () => void;
 }
 
 export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
@@ -41,6 +43,7 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
     onManagePOD,
     onCopyId,
     onAssignDriver,
+    onUpdateStatus,
 }) => {
     if (!isOpen) return null;
 
@@ -87,6 +90,21 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
                     >
                         <UserCheck size={14} className="text-[#ff4a1f] shrink-0" />
                         <span>{rawStatus === 'driver_assigned' ? 'Reassign Driver & Vehicle' : 'Assign Driver & Vehicle'}</span>
+                    </button>
+                )}
+
+                {/* Update Status */}
+                {!isCompleted && onUpdateStatus && (
+                    <button
+                        type="button"
+                        className="w-full text-left px-3.5 py-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
+                        onClick={() => {
+                            onClose();
+                            onUpdateStatus();
+                        }}
+                    >
+                        <RefreshCw size={14} className="text-blue-500 shrink-0" />
+                        <span>Update Shipment Status</span>
                     </button>
                 )}
 

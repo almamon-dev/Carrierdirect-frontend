@@ -93,12 +93,12 @@ export default function TrackBids() {
     return (
         <div
     className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] space-y-5">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         {cleanId ? `Bids for Request #${cleanId.startsWith('REQ-') ? cleanId : `REQ-${String(cleanId).padStart(4, '0')}`}` : 'Track Bids & Offers'}
                     </h1>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Compare incoming supplier quotes and choose the best offer for your shipment.
                     </p>
                 </div>

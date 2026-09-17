@@ -247,6 +247,14 @@ export default function CustomerAcceptCheckout() {
             if (targetQuoteId) {
                 acceptRes = await apiClient.post(`/customer/quotes/${targetQuoteId}/accept`, {
                     discount_amount: discountAmount,
+                    payment_option: paymentOption,
+                    ...(paymentOption === 'pay_now' ? {
+                        card_name: cardData.cardName,
+                        card_number: cardData.cardNumber,
+                        card_last_four: cardData.cardNumber?.replace(/\s/g, '').slice(-4),
+                        card_brand: 'Visa',
+                        card_expiry: cardData.expDate,
+                    } : {}),
                 });
             }
 
@@ -262,23 +270,8 @@ export default function CustomerAcceptCheckout() {
                 invoice_id: invoiceId,
             });
 
-            // If Pay Later selected, settle with Pay Later endpoint
-            if (paymentOption === "pay_later" && invoiceId) {
-                try {
-                    await apiClient.post(`/customer/invoices/${invoiceId}/pay-later`);
-                } catch (e: any) {
-                    console.log("Pay later invoice auto-settle status:", e?.message);
-                }
-            } else if (paymentOption === "pay_now" && invoiceId) {
-                // If user selected instant card payment
-                try {
-                    const payRes = await apiClient.post(`/customer/invoices/${invoiceId}/pay`);
-                    const checkoutUrl = payRes?.data?.data?.checkout_url || payRes?.data?.checkout_url;
-                    if (checkoutUrl && payNowMethod === "card") {
-                        // User can be redirected or we show the Escrow success modal
-                    }
-                } catch { }
-            }
+            // Checkout is complete - invoice status is set correctly by the checkout endpoint.
+            // Pay Later = 'due', Pay Now = 'paid'
 
             window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
             showToast("Quote accepted & booking confirmed successfully!", "success");
@@ -346,138 +339,136 @@ export default function CustomerAcceptCheckout() {
                 </div>
 
                 <div className="lg:col-span-5 space-y-3.5">
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-lg p-4 shadow-2xs space-y-3">
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                            <h2 className="text-xs font-bold text-slate-900 dark:text-slate-100">Payment Breakdown</h2>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] border border-orange-200/80 dark:border-orange-900/50">
-                                Protected Rate
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-lg shadow-2xs overflow-hidden font-sans">
+
+                        {/* Card Header */}
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-7 h-7 rounded-[5px] bg-[#FF4A1F]/10 dark:bg-[#FF4A1F]/20 border border-[#FF4A1F]/20 flex items-center justify-center shrink-0">
+                                    <Lock size={14} className="text-[#FF4A1F]" />
+                                </div>
+                                <span className="text-[12.5px] font-bold text-slate-900 dark:text-slate-100">Payment Summary</span>
+                            </div>
+                            <span className="px-1.5 py-0.5 bg-teal-50 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60 rounded-[3px] text-[10px] font-bold font-mono leading-none">
+                                {quote.id}
                             </span>
                         </div>
 
-                        <div className="space-y-2 text-[11.5px] text-slate-600 dark:text-slate-400">
-                            {/* Base Freight Rate */}
-                            <div className="flex justify-between items-center">
-                                <span className="font-medium text-slate-700 dark:text-slate-300">Base Freight Transport</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">€{quote.baseFreightAmount.toLocaleString()}</span>
+                        <div className="p-4 space-y-3.5">
+                            {/* Price Breakdown rows */}
+                            <div className="space-y-2 text-[12px]">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-700 dark:text-slate-300 font-medium">Base Freight Price</span>
+                                    <span className="font-bold text-slate-900 dark:text-slate-100">€{quote.baseFreightAmount.toLocaleString()}</span>
+                                </div>
+
+                                {quote.extraCharges.map((charge, idx) => (
+                                    <div key={idx} className="flex justify-between items-center">
+                                        <span className="text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1.5">
+                                            <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0" />
+                                            {charge.custom_name || charge.type}
+                                        </span>
+                                        <span className="font-semibold text-slate-400 dark:text-slate-500">+€{Number(charge.amount).toLocaleString()}</span>
+                                    </div>
+                                ))}
+
+                                {quote.insuranceAmount > 0 && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-slate-400 dark:text-slate-500 font-medium">Cargo Insurance</span>
+                                        <span className="font-semibold text-slate-400 dark:text-slate-500">+€{quote.insuranceAmount.toLocaleString()}</span>
+                                    </div>
+                                )}
+
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-400 dark:text-slate-500 font-medium">Platform Fee ({quote.systemChargePercent}%)</span>
+                                    <span className="font-semibold text-slate-400 dark:text-slate-500">€{quote.systemChargeAmount.toLocaleString()}</span>
+                                </div>
+
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-400 dark:text-slate-500 font-medium">Discount / Promo</span>
+                                    <span className={`font-semibold ${quote.discountAmount > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`}>
+                                        {quote.discountAmount > 0 ? `-€${quote.discountAmount.toLocaleString()}` : "€0.00"}
+                                    </span>
+                                </div>
+
+                                <div className="border-t border-slate-100 dark:border-slate-800 pt-2.5 mt-1">
+                                    <div className="flex justify-between items-baseline">
+                                        <span className="text-[13px] font-bold text-slate-900 dark:text-slate-100">Total Amount</span>
+                                        <span className="text-[22px] font-extrabold text-[#FF4A1F] leading-none">€{quote.totalAmount.toLocaleString()}</span>
+                                    </div>
+                                </div>
                             </div>
-
-                            {/* Dashed Separator Line between Base Freight and Additions */}
-                            {(quote.extraCharges.length > 0 || quote.insuranceAmount > 0 || quote.loadingUnloadingAmount > 0) && (
-                                <div className="border-t border-dashed border-slate-200 dark:border-slate-800 my-1" />
-                            )}
-
-                            {/* Extra Surcharges & Services breakdown */}
-                            {quote.extraCharges.length > 0 && (
-                                <div className="space-y-1.5 pl-2">
-                                    {quote.extraCharges.map((charge, idx) => (
-                                        <div key={idx} className="flex justify-between items-center">
-                                            <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f] shrink-0" />
-                                                <span>{charge.custom_name || charge.type || `Extra Service #${idx + 1}`}</span>
-                                            </span>
-                                            <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                                +€{Number(charge.amount).toLocaleString()}
-                                            </span>
+                            {/* What happens next */}
+                            <div>
+                                <p className="text-[11.5px] font-bold text-slate-700 dark:text-slate-300 mb-2.5">What happens next?</p>
+                                <div className="space-y-2">
+                                    {[
+                                        "Your payment will be securely processed.",
+                                        "The supplier will be notified.",
+                                        "You'll receive a confirmation once the booking is active.",
+                                        "Track your shipment in real-time.",
+                                    ].map((text, i) => (
+                                        <div key={i} className="flex items-start gap-2.5">
+                                            <div className="w-5 h-5 rounded-full bg-[#FF4A1F] flex items-center justify-center shrink-0 mt-px">
+                                                <span className="text-[9px] font-bold text-white leading-none">{i + 1}</span>
+                                            </div>
+                                            <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-tight pt-0.5">{text}</p>
                                         </div>
                                     ))}
                                 </div>
-                            )}
-
-                            {/* Goods Cargo Insurance */}
-                            {quote.insuranceAmount > 0 && (
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium text-slate-700 dark:text-slate-300">Goods Cargo Insurance</span>
-                                    <span className="font-bold text-slate-900 dark:text-slate-100">+€{quote.insuranceAmount.toLocaleString()}</span>
-                                </div>
-                            )}
-
-                            {/* Loading/Unloading */}
-                            {quote.loadingUnloadingAmount > 0 && (
-                                <div className="flex justify-between items-center">
-                                    <span className="font-medium text-slate-700 dark:text-slate-300">Loading / Unloading Service</span>
-                                    <span className="font-bold text-slate-900 dark:text-slate-100">+€{quote.loadingUnloadingAmount.toLocaleString()}</span>
-                                </div>
-                            )}
-
-                            {/* Dashed Separator Line before Platform Charge */}
-                            <div className="border-t border-dashed border-slate-200 dark:border-slate-800 my-1" />
-
-                            {/* Platform Charge */}
-                            <div className="flex justify-between items-center">
-                                <span className="font-medium text-slate-700 dark:text-slate-300">Platform System Charge ({quote.systemChargePercent}%)</span>
-                                <span className="font-bold text-slate-900 dark:text-slate-100">€{quote.systemChargeAmount.toLocaleString()}</span>
                             </div>
 
-                            {/* Dashed Separator Line between Platform Charge and Promo/Discount */}
-                            <div className="border-t border-dashed border-slate-200 dark:border-slate-800 my-1" />
-
-                            {/* Discount Row */}
-                            <div className={`flex justify-between items-center ${quote.discountAmount > 0 ? "text-emerald-600 dark:text-emerald-400 font-semibold" : ""}`}>
-                                <span className="font-medium text-slate-700 dark:text-slate-300">Discount / Promo</span>
-                                <span className={quote.discountAmount > 0 ? "font-bold" : "font-bold text-slate-900 dark:text-slate-100"}>
-                                    {quote.discountAmount > 0 ? `-€${quote.discountAmount.toLocaleString()}` : "€0"}
-                                </span>
-                            </div>
-
-                            {/* Dashed Separator Line before Total */}
-                            <div className="border-t border-dashed border-slate-200 dark:border-slate-800 my-1" />
-
-                            {/* Total Row */}
-                            <div className="pt-2 pb-1 flex justify-between items-baseline">
-                                <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">Total Authorized Amount</span>
-                                <span className="text-xl font-black text-[#ff4a1f]">€{quote.totalAmount.toLocaleString()}</span>
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleConfirmBooking} className="space-y-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
-                            <div className="flex items-start gap-2 pt-0.5">
-                                <input
-                                    id="checkout-agree-terms"
-                                    type="checkbox"
-                                    checked={agreedTerms}
-                                    onChange={(e) => setAgreedTerms(e.target.checked)}
-                                    className="w-4 h-4 mt-0.5 text-[#ff4a1f] accent-[#ff4a1f] border-slate-300 rounded-[3px] cursor-pointer shrink-0"
-                                />
-                                <label
-                                    htmlFor="checkout-agree-terms"
-                                    className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none leading-relaxed"
-                                >
-                                    I agree to CarrierDirect{" "}
-                                    <Link
-                                        to="/support/terms"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="text-[#ff4a1f] hover:underline font-bold inline-flex items-center gap-0.5"
+                            {/* Terms + Submit */}
+                            <form onSubmit={handleConfirmBooking} className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                <div className="flex items-start gap-2">
+                                    <input
+                                        id="checkout-agree-terms"
+                                        type="checkbox"
+                                        checked={agreedTerms}
+                                        onChange={(e) => setAgreedTerms(e.target.checked)}
+                                        className="w-4 h-4 mt-0.5 text-[#ff4a1f] accent-[#ff4a1f] border-slate-300 rounded-[3px] cursor-pointer shrink-0"
+                                    />
+                                    <label
+                                        htmlFor="checkout-agree-terms"
+                                        className="text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none leading-relaxed"
                                     >
-                                        <span>Terms and Conditions</span>
-                                    </Link>{" "}
-                                    & authorize carrier booking.
-                                </label>
-                            </div>
+                                        I agree to CarrierDirect{" "}
+                                        <Link
+                                            to="/support/terms"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="text-[#ff4a1f] hover:underline font-bold"
+                                        >
+                                            Terms and Conditions
+                                        </Link>{" "}
+                                        &amp; authorize carrier booking.
+                                    </label>
+                                </div>
 
-                            <Button
-                                type="submit"
-                                disabled={!agreedTerms || isProcessing}
-                                className="w-full h-10 bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold text-xs shadow-xs rounded-[4px] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 mt-1"
-                            >
-                                {isProcessing ? (
-                                    <>
-                                        <Loader2 size={14} className="animate-spin" />
-                                        <span>Authorizing Booking...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Lock size={13.5} />
-                                        <span>
-                                            {paymentOption === "pay_later"
-                                                ? `Confirm Net-30 Booking (€${quote.totalAmount.toLocaleString()})`
-                                                : `Confirm & Authorize €${quote.totalAmount.toLocaleString()}`}
-                                        </span>
-                                    </>
-                                )}
-                            </Button>
-                        </form>
+                                <Button
+                                    type="submit"
+                                    disabled={!agreedTerms || isProcessing}
+                                    className="w-full h-10 bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold text-xs shadow-xs rounded-[4px] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader2 size={14} className="animate-spin" />
+                                            <span>Authorizing Booking...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Lock size={13.5} />
+                                            <span>
+                                                {paymentOption === "pay_later"
+                                                    ? `Confirm Net-30 Booking (€${quote.totalAmount.toLocaleString()})`
+                                                    : `Confirm & Authorize €${quote.totalAmount.toLocaleString()}`}
+                                            </span>
+                                        </>
+                                    )}
+                                </Button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

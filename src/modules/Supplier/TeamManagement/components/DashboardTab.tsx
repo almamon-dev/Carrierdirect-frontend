@@ -26,34 +26,7 @@ import {
     Zap
 } from 'lucide-react';
 
-const MetricCard = ({ title, description, value, trend, icon: Icon, colorClass }: any) => (
-    <div
-    className="bg-white dark:bg-[#181d24] p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between shadow-2xs group">
-        <div className="flex justify-between items-start w-full mb-2">
-            <div className={`w-7 h-7 rounded flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${colorClass}`}>
-                <Icon size={14} strokeWidth={2} />
-            </div>
-            {trend && (
-                <span className="text-[10.5px] font-normal text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 leading-none">
-                    <ArrowUpRight size={11} />
-                    {trend}
-                </span>
-            )}
-        </div>
-
-        <div>
-            <div className="mb-0.5">
-                <span className="text-lg font-semibold text-slate-800 dark:text-slate-200 tracking-tight leading-none">{value}</span>
-            </div>
-            <h3 className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 leading-tight">
-                {title}
-            </h3>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight truncate mt-0.5">
-                {description}
-            </p>
-        </div>
-    </div>
-);
+import MetricCard from '@/components/cards/metric-card';
 
 interface DashboardTabProps {
     headerTabs?: React.ReactNode;

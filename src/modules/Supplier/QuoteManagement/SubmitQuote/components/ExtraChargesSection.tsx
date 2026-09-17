@@ -1,13 +1,15 @@
 /**
  * Extra Charges Line Items Section Component
- * Allows carriers to add optional surcharges (Tolls, Fuel, Loading, Custom) to their quote offer.
+ * Dynamically loads available services from Database (cargo_services) and allows carriers to add surcharges with Lucide icons.
  */
 
-import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Plus, Trash2, LucideIcon } from 'lucide-react';
 import FormLabel from '@/components/ui/label';
 import Select from '@/components/ui/select';
 import Input from '@/components/ui/input';
+import { useCargoServices } from '@/hooks/useCargoServices';
+import { getServiceIcon } from '@/modules/Customer/QuoteManagement/Negotiation/Actions/components/CounterOfferModal';
 
 export interface ExtraChargeItem {
     type: string;
@@ -20,10 +22,60 @@ interface ExtraChargesSectionProps {
     onChange: (charges: ExtraChargeItem[]) => void;
 }
 
+const DEFAULT_SURCHARGES = [
+    { type: 'Toll', label: 'Toll Charges' },
+    { type: 'Fuel Surcharge', label: 'Fuel Surcharge' },
+    { type: 'Customs Clearance', label: 'Customs Clearance' },
+];
+
 export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
     extraCharges,
     onChange,
 }) => {
+    const { allServices } = useCargoServices();
+
+    const availableOptions = useMemo(() => {
+        const list: Array<{ type: string; label: string; icon?: LucideIcon }> = [...DEFAULT_SURCHARGES];
+
+        if (allServices && allServices.length > 0) {
+            allServices.forEach(s => {
+                if (!list.some(item => item.label.toLowerCase() === s.label.toLowerCase())) {
+                    list.push({
+                        type: s.label,
+                        label: s.label,
+                        icon: getServiceIcon(s.key || s.label)
+                    });
+                }
+            });
+        } else {
+            list.push(
+                { type: 'Loading / Unloading', label: 'Loading / Unloading', icon: getServiceIcon('Loading / Unloading') },
+                { type: 'Cargo Insurance', label: 'Cargo Insurance', icon: getServiceIcon('Cargo Insurance') },
+                { type: 'Lift Gate Needed', label: 'Lift Gate Needed (Tail-lift)', icon: getServiceIcon('Lift Gate Needed') },
+                { type: 'Hazardous Material (ADR)', label: 'Hazardous Material (ADR)', icon: getServiceIcon('Hazardous Material (ADR)') },
+                { type: 'Storage Facility', label: 'Storage Facility', icon: getServiceIcon('Storage Facility') },
+                { type: 'Inside Delivery', label: 'Inside Delivery', icon: getServiceIcon('Inside Delivery') },
+                { type: 'Packaging Required', label: 'Packaging Required', icon: getServiceIcon('Packaging Required') }
+            );
+        }
+
+        list.push({ type: 'Custom', label: 'Custom', icon: getServiceIcon('Custom') });
+        return list;
+    }, [allServices]);
+
+    const selectOptions = useMemo(() => {
+        return [
+            { id: '', value: '', label: 'Select charge type...', name: 'Select charge type...' },
+            ...availableOptions.map(opt => ({
+                id: opt.type,
+                value: opt.type,
+                label: opt.label,
+                name: opt.label,
+                icon: opt.icon || getServiceIcon(opt.label || opt.type),
+            }))
+        ];
+    }, [availableOptions]);
+
     const handleAddCharge = () => {
         onChange([...extraCharges, { type: '', customName: '', amount: '' }]);
     };
@@ -64,19 +116,11 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
                                 <div className="flex-1 min-w-0">
                                     <Select
                                         value={charge.type}
-                                        onChange={(e) => handleUpdateCharge(idx, 'type', e.target.value)}
+                                        onChange={(e) => handleUpdateCharge(idx, 'type', typeof e === 'object' ? (e.target?.value ?? e.value) : e)}
+                                        options={selectOptions}
                                         showSearch={false}
                                         className="text-xs !h-7.5 py-0 rounded-[3px]"
-                                    >
-                                        <option value="">Select charge type...</option>
-                                        <option value="Toll">🛣️ Toll Charges</option>
-                                        <option value="Fuel Surcharge">⛽ Fuel Surcharge</option>
-                                        <option value="Loading/Unloading">📦 Loading / Unloading</option>
-                                        <option value="Insurance">🛡️ Insurance</option>
-                                        <option value="Hazardous">⚠️ Hazardous Handling</option>
-                                        <option value="Storage">🏭 Storage Fee</option>
-                                        <option value="Custom">✏️ Custom</option>
-                                    </Select>
+                                    />
                                 </div>
                                 <div className="w-24 shrink-0">
                                     <Input 
@@ -112,3 +156,5 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
         </div>
     );
 };
+
+export default ExtraChargesSection;

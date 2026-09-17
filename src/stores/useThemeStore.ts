@@ -8,51 +8,28 @@ interface ThemeState {
 
 const STORAGE_KEY = 'carrierdirect_theme';
 
-const getInitialTheme = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved !== null) {
-    return saved === 'dark';
-  }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-};
-
-export const useThemeStore = create<ThemeState>((set) => {
-  const initialIsDark = getInitialTheme();
-
+export const useThemeStore = create<ThemeState>(() => {
   if (typeof window !== 'undefined') {
-    if (initialIsDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove('dark');
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.setItem(STORAGE_KEY, 'light');
+    } catch {
+      // Ignore localStorage errors
     }
   }
 
   return {
-    isDark: initialIsDark,
-    toggleTheme: () =>
-      set((state) => {
-        const nextIsDark = !state.isDark;
-        if (typeof window !== 'undefined') {
-          if (nextIsDark) {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-          localStorage.setItem(STORAGE_KEY, nextIsDark ? 'dark' : 'light');
-        }
-        return { isDark: nextIsDark };
-      }),
-    setTheme: (isDark: boolean) => {
+    isDark: false,
+    toggleTheme: () => {
       if (typeof window !== 'undefined') {
-        if (isDark) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-        localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light');
+        document.documentElement.classList.remove('dark');
       }
-      set({ isDark });
+    },
+    setTheme: () => {
+      if (typeof window !== 'undefined') {
+        document.documentElement.classList.remove('dark');
+      }
     },
   };
 });

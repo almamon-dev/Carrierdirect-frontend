@@ -31,6 +31,9 @@ Best regards`;
     const isAccepted = raw?.status === 'accepted' || raw?.status === 'Accepted' || raw?.status === 'completed' || raw?.status === 'confirmed' || raw?.revisionStatus === 'accepted' || raw?.status_raw === 'accepted' || raw?.status_raw === 'completed';
     const initialStatus = isAccepted ? 'accepted' : isRejected ? 'rejected' : 'pending';
 
+    const extraCharges = chatItem?.extraCharges || raw?.extraCharges || raw?.extra_charges || [];
+    const baseFreight = chatItem?.baseFreightAmount ?? chatItem?.baseFreight ?? raw?.base_amount_raw ?? (origAmount > (chatItem?.totalExtras || 0) ? origAmount - (chatItem?.totalExtras || 0) : origAmount);
+
     return [
         {
             id: `req-${chatItem?.id || raw?.id || 1}`,
@@ -41,6 +44,9 @@ Best regards`;
             time: raw?.lastUpdated || raw?.requestDate || 'Today',
             newTotal: origAmount,
             previousTotal: origAmount,
+            base_amount: baseFreight,
+            extra_charges: extraCharges,
+            extraCharges: extraCharges,
             quoteNo: quoteNum,
             status: initialStatus,
             declineReason: raw?.declineReason || raw?.decline_reason

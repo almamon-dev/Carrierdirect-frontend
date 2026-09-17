@@ -126,7 +126,7 @@ export const usePODOrders = () => {
                     if (paymentObj.formatted) {
                         formattedAmt = paymentObj.formatted;
                     } else if (typeof rawTotal === 'number') {
-                        formattedAmt = `€ ${rawTotal.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
+                        formattedAmt = `€ ${rawTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
                     } else if (typeof rawTotal === 'string' && rawTotal) {
                         formattedAmt = rawTotal.startsWith('€') || rawTotal.startsWith('$') ? rawTotal : `€ ${rawTotal}`;
                     }

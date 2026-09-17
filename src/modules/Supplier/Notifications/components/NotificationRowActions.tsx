@@ -77,11 +77,11 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
             <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 rounded-[3px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto flex items-center justify-center"
+                className="h-7 w-7 p-0 rounded-[3px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto flex items-center justify-center shrink-0"
                 onClick={handleToggle}
                 title="More actions"
             >
-                <MoreVertical size={15} />
+                <MoreVertical size={14} />
             </Button>
 
             {/* Dropdown Menu via Portal */}

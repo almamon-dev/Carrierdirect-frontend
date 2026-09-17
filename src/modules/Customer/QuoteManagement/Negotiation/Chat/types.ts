@@ -37,16 +37,35 @@ export interface CustomerChatItem {
     lastSeenAt?: string;
 }
 
+export interface CustomerContactGroup {
+    contactId: string;
+    senderId?: number | string;
+    name: string;
+    avatar: string;
+    isOnline: boolean;
+    lastSeenHuman?: string;
+    lastSeenAt?: string;
+    isVerified: boolean;
+    quotes: CustomerChatItem[];
+    activeQuoteId: number | string;
+    latestActivityTime: string;
+    latestPreview: string;
+    totalUnreadCount: number;
+    hasUnread: boolean;
+    hasPendingOffer: boolean;
+    isPinned: boolean;
+}
+
 export interface CustomerChatAttachment {
     name: string;
     size: string;
-    type: 'image' | 'file';
+    type: "image" | "file";
     url?: string;
 }
 
 export interface CustomerChatMessage {
     id: string | number;
-    type: 'sent' | 'received' | 'system' | 'offer' | 'quote_request';
+    type: "sent" | "received" | "system" | "offer" | "quote_request";
     text?: string;
     time: string;
     sender?: string;
@@ -55,7 +74,7 @@ export interface CustomerChatMessage {
     newTotal?: number;
     previousTotal?: number;
     quoteNo?: string;
-    status?: 'pending' | 'accepted' | 'rejected' | 'superseded' | 'withdrawn';
+    status?: "pending" | "accepted" | "rejected" | "superseded" | "withdrawn";
     is_superseded?: boolean;
     declineReason?: string;
     attachments?: CustomerChatAttachment[];
@@ -65,7 +84,14 @@ export interface CustomerChatMessage {
     seen?: boolean;
     seenAt?: string;
     isRead?: boolean;
-    deliveryStatus?: 'sending' | 'sent' | 'delivered' | 'seen';
+    deliveryStatus?: "sending" | "sent" | "delivered" | "seen";
+    base_amount?: number;
+    extra_charges?: any[];
+    extraCharges?: any[];
+    is_me?: boolean;
+    is_my_offer?: boolean;
+    notes?: string;
+    currency?: string;
 }
 
 export interface LinkPreviewData {

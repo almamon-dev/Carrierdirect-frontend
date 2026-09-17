@@ -1,10 +1,27 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { encryptId } from '@/lib/encryption';
-import Button from '@/components/ui/button';
-import { Check, CheckCircle2, ChevronDown, Clock, Copy, MoreVertical, Pin, Tag, Trash2, XCircle, Loader2, ArrowRight, CreditCard, Eye, Truck, HelpCircle } from 'lucide-react';
-import { DeclineOfferModal } from '../Chat/components/DeclineOfferModal';
-import { QuotePaymentInstructionModal } from '../Chat/components/QuotePaymentInstructionModal';
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { encryptId } from "@/lib/encryption";
+import Button from "@/components/ui/button";
+import {
+    Check,
+    CheckCircle2,
+    Building2,
+    ShieldCheck,
+    ChevronDown,
+    Clock,
+    Copy,
+    MoreVertical,
+    Pin,
+    Tag,
+    Trash2,
+    XCircle,
+    Loader2,
+    ReceiptText,
+    ArrowRight,
+} from "lucide-react";
+import { DeclineOfferModal } from "../Chat/components/DeclineOfferModal";
+import { QuotePaymentInstructionModal } from "../Chat/components/QuotePaymentInstructionModal";
+import { getServiceIcon } from "@/modules/Customer/QuoteManagement/Negotiation/Actions/components/CounterOfferModal";
 
 export interface CounterOfferMessageProps {
     msg: any;
@@ -17,7 +34,6 @@ export interface CounterOfferMessageProps {
 }
 
 export default function CounterOfferMessage({
-
     msg,
     activeChat,
     activeNegotiation,
@@ -28,8 +44,8 @@ export default function CounterOfferMessage({
 }: CounterOfferMessageProps) {
     const navigate = useNavigate();
     const [isAccepting, setIsAccepting] = useState(false);
-    const [localStatus, setLocalStatus] = useState<'pending' | 'accepted' | 'rejected' | null>(null);
-    const [localReason, setLocalReason] = useState<string>('');
+    const [localStatus, setLocalStatus] = useState<"pending" | "accepted" | "rejected" | null>(null);
+    const [localReason, setLocalReason] = useState<string>("");
     const [showDeclineModal, setShowDeclineModal] = useState(false);
     const [showInstructionModal, setShowInstructionModal] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -37,14 +53,14 @@ export default function CounterOfferMessage({
     const [copied, setCopied] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    const status = localStatus || msg.status || 'pending';
+    const status = localStatus || msg.status || "pending";
     const isSentByMe = Boolean(
         msg.is_my_offer !== undefined ? msg.is_my_offer :
             msg.is_me !== undefined ? msg.is_me :
                 msg.isSent !== undefined ? msg.isSent :
-                    (msg.title && String(msg.title).toLowerCase().includes('submitted'))
+                    (msg.title && String(msg.title).toLowerCase().includes("submitted"))
     );
-    const currency = msg.currency || '€';
+    const currency = msg.currency || "€";
 
     const activeData = activeChat || activeNegotiation || {};
     const rawData = activeData.raw || {};
@@ -55,77 +71,142 @@ export default function CounterOfferMessage({
         activeData.carrier ||
         activeData.company ||
         activeData.name ||
-        (isSentByMe ? 'Recipient' : 'Supplier');
+        (isSentByMe ? "Recipient" : "Supplier");
 
     const quoteNum =
         msg.quoteNo ||
         activeData.quoteNo ||
         activeData.quoteId ||
         activeData.id ||
-        'QT-0001';
+        "QT-0001";
 
     const pickupLoc =
         activeData.origin ||
         activeData.pickup ||
         rawData.origin ||
         rawData.pickup_location ||
-        'Pickup Location';
+        "Pickup Location";
 
     const deliveryLoc =
         activeData.destination ||
         activeData.delivery ||
         rawData.destination ||
         rawData.delivery_location ||
-        'Delivery Destination';
+        "Delivery Destination";
 
     const distanceStr =
         activeData.distance ||
         rawData.distance ||
-        '520 km';
+        "520 km";
 
     const pickupDate =
         activeData.pickupDate ||
         rawData.pickup_date ||
-        'Flexible / Today';
+        "Flexible / Today";
 
     const deliveryDate =
         activeData.deliveryDate ||
         rawData.delivery_date ||
-        'Standard Delivery';
+        "Standard Delivery";
 
     const palletType =
         activeData.palletType ||
         rawData.pallet_type ||
-        'Standard Euro Pallet';
+        "Standard Euro Pallet";
 
     const vehicleType =
         activeData.vehicleType ||
         rawData.vehicle_type ||
-        'Curtainsider 13.6m';
+        "Curtainsider 13.6m";
 
     const notesText =
         msg.notes ||
         activeData.notes ||
         rawData.notes ||
-        (msg.text && !String(msg.text).toLowerCase().includes('submitted a counter offer') ? msg.text : '') ||
-        'GPS live tracking & loading assistance included.';
+        (msg.text && !String(msg.text).toLowerCase().includes("submitted a counter offer") ? msg.text : "") ||
+        "";
 
     const prevPrice =
         msg.previousTotal ? Number(msg.previousTotal) :
             (msg.previous_amount ? Number(msg.previous_amount) :
                 (msg.amount ? Number(msg.amount) :
-                    (activeData.originalAmount || activeData.currentPrice || (activeData.budget ? Number(String(activeData.budget).replace(/[^0-9.]/g, '')) : 45000))));
+                    (activeData.originalAmount || activeData.currentPrice || (activeData.budget ? Number(String(activeData.budget).replace(/[^0-9.]/g, "")) : 45000))));
 
     const proposedPrice =
         msg.newTotal ? Number(msg.newTotal) :
             (msg.proposed_amount ? Number(msg.proposed_amount) : 40000);
 
-    const isSuperseded = status === 'superseded' || msg.is_superseded === true;
-    const isWithdrawn = status === 'withdrawn';
-    const isAccepted = status === 'accepted' || (activeData as any)?.status === 'Accepted';
-    const isDeclined = status === 'rejected' || status === 'declined' || (activeData as any)?.status === 'Offer Declined' || (activeData as any)?.status === 'rejected';
-    const isPending = status === 'pending' && !isSuperseded && !isWithdrawn && !isAccepted && !isDeclined;
+    const extraList = useMemo(() => {
+        let list: any[] = [];
+        if (Array.isArray(msg.extra_charges) && msg.extra_charges.length > 0) {
+            list = msg.extra_charges;
+        } else if (Array.isArray(msg.extraCharges) && msg.extraCharges.length > 0) {
+            list = msg.extraCharges;
+        } else if (Array.isArray(activeData.extraCharges) && activeData.extraCharges.length > 0) {
+            list = activeData.extraCharges;
+        } else if (Array.isArray(rawData.extra_charges) && rawData.extra_charges.length > 0) {
+            list = rawData.extra_charges;
+        } else if (notesText && notesText.includes("[Extras:")) {
+            const match = notesText.match(/\[Extras:\s*([^\]]+)\]/i);
+            if (match && match[1]) {
+                const parts = match[1].split(",");
+                list = parts.map(p => {
+                    const [namePart, amtPart] = p.split(":");
+                    const amt = parseFloat(String(amtPart || "").replace(/[^0-9.]/g, "")) || 0;
+                    return {
+                        type: (namePart || "Extra Charge").trim(),
+                        customName: (namePart || "Extra Charge").trim(),
+                        amount: amt
+                    };
+                }).filter(item => item.amount > 0);
+            }
+        }
+        return list;
+    }, [msg, rawData, activeData, notesText]);
+
+    const totalExtras = useMemo(() => {
+        return extraList.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    }, [extraList]);
+
+    const basePrice = useMemo(() => {
+        if (msg.base_amount !== undefined && msg.base_amount !== null && Number(msg.base_amount) > 0) return Number(msg.base_amount);
+        if (msg.baseFreight !== undefined && msg.baseFreight !== null && Number(msg.baseFreight) > 0) return Number(msg.baseFreight);
+        if (activeData.baseFreight !== undefined && activeData.baseFreight !== null && Number(activeData.baseFreight) > 0) return Number(activeData.baseFreight);
+        if (activeData.baseFreightAmount !== undefined && activeData.baseFreightAmount !== null && Number(activeData.baseFreightAmount) > 0) return Number(activeData.baseFreightAmount);
+        if (rawData.base_amount_raw) return Number(rawData.base_amount_raw);
+        if (totalExtras > 0 && proposedPrice > totalExtras) {
+            return proposedPrice - totalExtras;
+        }
+        return proposedPrice;
+    }, [msg, rawData, activeData, proposedPrice, totalExtras]);
+
+    const isSuperseded = status === "superseded" || msg.is_superseded === true;
+    const isWithdrawn = status === "withdrawn";
+    const isAccepted = status === "accepted" || (activeData as any)?.status === "Accepted";
+    const isDeclined = status === "rejected" || status === "declined" || (activeData as any)?.status === "Offer Declined" || (activeData as any)?.status === "rejected";
+    const isPending = status === "pending" && !isSuperseded && !isWithdrawn && !isAccepted && !isDeclined;
     const canAccept = !isSentByMe && isPending;
+
+    const isOrderPaid = Boolean(
+        rawData.is_paid ||
+        rawData.has_order ||
+        rawData.order_id ||
+        rawData.order?.status === "in_progress" ||
+        rawData.order?.status === "completed" ||
+        rawData.order?.status === "confirmed" ||
+        rawData.order?.status === "delivered" ||
+        rawData.invoice?.status === "paid" ||
+        rawData.invoice?.invoice_type === "pay_later" ||
+        activeData.isPaid ||
+        activeData.hasOrder ||
+        activeData.is_paid ||
+        activeData.has_order ||
+        msg.is_paid ||
+        msg.has_order
+    );
+
+    const orderId = rawData.order_id || rawData.order?.id || activeData.orderId || activeData.order_id;
+    const targetQuoteId = rawData.quote_id || rawData.id || activeData.quoteId || activeData.quote_id || activeData.id || msg.id || 1;
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -134,10 +215,10 @@ export default function CounterOfferMessage({
             }
         };
         if (isMenuOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener("mousedown", handleClickOutside);
         }
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [isMenuOpen]);
 
@@ -158,18 +239,16 @@ Notes: ${notesText}`;
         }, 1200);
     };
 
-    const handleConfirmAccept = async () => {
+    const handleConfirmAccept = () => {
         setIsAccepting(true);
-        try {
-            setLocalStatus('accepted');
-            if (onAccept) await onAccept(msg);
-        } finally {
-            setTimeout(() => setIsAccepting(false), 1000);
-        }
+        setLocalStatus("accepted");
+        setShowInstructionModal(true);
+        if (onAccept) onAccept(msg);
+        setTimeout(() => setIsAccepting(false), 200);
     };
 
     const handleConfirmDecline = (reason: string) => {
-        setLocalStatus('rejected');
+        setLocalStatus("rejected");
         setLocalReason(reason);
         setShowDeclineModal(false);
         if (onReject) onReject(msg, reason);
@@ -190,9 +269,9 @@ Notes: ${notesText}`;
                             </div>
                             <div className="min-w-0">
                                 <h3 className="text-[12.5px] font-bold text-slate-900 dark:text-white leading-tight truncate">
-                                    {isSentByMe ? 'Counter Offer Details' : 'Counter Offer Received'}
+                                    {isSentByMe ? "Counter Offer Details" : "Counter Offer Received"}
                                 </h3>
-                                <p className="text-[10px] text-slate-400 font-medium mt-0.5">{msg.time || 'Just now'}</p>
+                                <p className="text-[10px] text-slate-400 font-medium mt-0.5">{msg.time || "Just now"}</p>
                             </div>
                         </div>
 
@@ -224,19 +303,62 @@ Notes: ${notesText}`;
                         </span>
                     </div>
 
-                    {/* Price Comparison Box */}
-                    <div className="bg-slate-50/90 dark:bg-slate-800/50 rounded p-2.5 flex items-center justify-between gap-3 border border-slate-200/80 dark:border-slate-700/80">
-                        <div>
-                            <span className="text-[10px] text-slate-400 font-semibold block">Previous</span>
-                            <span className="text-xs font-bold text-slate-400 line-through">
-                                {currency} {prevPrice.toLocaleString()}
+                    {/* Compact Payment Breakdown Card */}
+                    <div className="rounded bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 p-2 text-xs space-y-1">
+                        <div className="flex items-center justify-between text-[11px] pb-1 border-b border-slate-200/60 dark:border-slate-700/60">
+                            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
+                                <ReceiptText size={11} className="text-[#FF4A1F]" /> Payment Breakdown
                             </span>
+                            <span className="text-[10px] text-slate-400">Currency: {currency}</span>
                         </div>
-                        <div className="text-right">
-                            <span className="text-[10px] text-[#FF4A1F] font-bold block">Counter Offer</span>
-                            <span className="text-[15px] font-black text-[#FF4A1F]">
-                                {currency} {proposedPrice.toLocaleString()}
-                            </span>
+
+                        {/* Itemized Line Items */}
+                        <div className="py-0.5 space-y-0.5 text-[11px]">
+                            <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                                <span>Base Freight Rate</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                    {currency} {basePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
+
+                            {extraList.length > 0 && (
+                                <div className="space-y-0.5 pt-0.5 border-t border-dashed border-slate-200/60 dark:border-slate-700/60">
+                                    {extraList.map((ext: any, idx: number) => {
+                                        const ExtIcon = getServiceIcon(ext.customName || ext.custom_name || ext.type || ext.label || "Extra Fee");
+                                        const label = ext.customName || ext.custom_name || ext.label || ext.type || "Additional Fee";
+                                        return (
+                                            <div key={idx} className="flex items-center justify-between text-[10.5px] text-slate-600 dark:text-slate-400 pl-1">
+                                                <span className="flex items-center gap-1 truncate max-w-[210px]" title={label}>
+                                                    <ExtIcon size={10.5} className="text-[#FF4A1F] shrink-0" />
+                                                    <span className="truncate">{label}</span>
+                                                </span>
+                                                <span className="font-medium text-slate-700 dark:text-slate-300 shrink-0">
+                                                    +{currency} {Number(ext.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Total Offer Row with Previous Strikethrough Price */}
+                        <div className="pt-1.5 border-t border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between bg-orange-50/70 dark:bg-orange-950/35 -mx-2 -mb-2 px-2.5 py-1.5 rounded-b">
+                            <div>
+                                {prevPrice > 0 && prevPrice !== proposedPrice && (
+                                    <span className="text-[10px] text-slate-400 block line-through leading-none">
+                                        Prev: {currency} {prevPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                )}
+                                <span className="font-bold text-slate-900 dark:text-white text-[11.5px] leading-tight mt-0.5 block">
+                                    {isSentByMe ? "Total Offered Rate" : "Counter Offer Rate"}
+                                </span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-sm sm:text-base font-black text-[#FF4A1F]">
+                                    {currency} {proposedPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -281,7 +403,7 @@ Notes: ${notesText}`;
                                     onClick={() => setIsDetailsOpen(false)}
                                     className="inline-flex items-center gap-1 font-bold text-[10.5px] text-[#00a884] hover:underline cursor-pointer"
                                 >
-                                    <span>Hide details</span>
+                                    <span>Read less</span>
                                     <ChevronDown size={11} className="rotate-180" />
                                 </button>
                             </div>
@@ -292,95 +414,106 @@ Notes: ${notesText}`;
                     {isSuperseded ? (
                         <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 rounded px-2.5 py-1.5 text-center text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
                             <Tag size={12} className="text-slate-400" />
-                            <span>Offer Superseded by Newer Negotiation</span>
+                            <span>Counter Offer Superseded by Newer Offer</span>
+                        </div>
+                    ) : isWithdrawn ? (
+                        <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 rounded px-2.5 py-1.5 text-center text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
+                            <Clock size={12} className="text-slate-400" />
+                            <span>Offer Withdrawn</span>
                         </div>
                     ) : isAccepted ? (
-                        <div className="space-y-1.5 pt-1 font-sans">
-                            {/* Top Row: Side-by-side Accepted Status + Checkout Button */}
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 flex items-center justify-center gap-1.5 h-8 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/60 rounded-[5px] text-xs font-semibold">
-                                    <CheckCircle2 size={13.5} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                    <span>Accepted</span>
+                        <div className="space-y-1.5 pt-0.5">
+                            {isOrderPaid ? (
+                                Boolean(rawData.invoice?.invoice_type === "pay_later" || activeData.invoice?.invoice_type === "pay_later" || notesText.toLowerCase().includes("pay later")) ? (
+                                    <div className="flex items-center justify-between p-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 rounded-[5px] text-[11px] font-semibold">
+                                        <div className="flex items-center gap-1.5">
+                                            <Building2 size={13.5} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                            <span>Pay Later (Net-30 Authorized)</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (window.location.pathname.includes("/supplier")) {
+                                                    navigate("/supplier/orders/active-jobs");
+                                                } else if (orderId) {
+                                                    navigate(`/customer/orders/${encryptId(orderId)}`);
+                                                } else {
+                                                    navigate("/customer/orders");
+                                                }
+                                            }}
+                                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 underline text-[10.5px] font-bold cursor-pointer inline-flex items-center gap-0.5"
+                                        >
+                                            <span>{window.location.pathname.includes("/supplier") ? "Active Jobs" : "Track Order"}</span>
+                                            <ArrowRight size={10} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 rounded-[5px] text-[11px] font-semibold">
+                                        <div className="flex items-center gap-1.5">
+                                            <ShieldCheck size={13.5} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                            <span>Paid (100% in Escrow)</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (window.location.pathname.includes("/supplier")) {
+                                                    navigate("/supplier/orders/active-jobs");
+                                                } else if (orderId) {
+                                                    navigate(`/customer/orders/${encryptId(orderId)}`);
+                                                } else {
+                                                    navigate("/customer/orders");
+                                                }
+                                            }}
+                                            className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 underline text-[10.5px] font-bold cursor-pointer inline-flex items-center gap-0.5"
+                                        >
+                                            <span>{window.location.pathname.includes("/supplier") ? "Active Jobs" : "Track Order"}</span>
+                                            <ArrowRight size={10} />
+                                        </button>
+                                    </div>
+                                )
+                            ) : (
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 rounded-[5px] text-[11px] font-semibold">
+                                        <div className="flex items-center gap-1.5">
+                                            <CheckCircle2 size={13.5} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                            <span>Offer Accepted</span>
+                                        </div>
+                                        {!window.location.pathname.includes("/supplier") ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowInstructionModal(true);
+                                                }}
+                                                className="bg-[#FF4A1F] hover:bg-[#e03e15] text-white px-2.5 py-1 rounded text-[10.5px] font-bold cursor-pointer inline-flex items-center gap-1 shadow-2xs transition-colors"
+                                            >
+                                                <span>Checkout & Pay</span>
+                                                <ArrowRight size={10} />
+                                            </button>
+                                        ) : (
+                                            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">Awaiting Checkout</span>
+                                        )}
+                                    </div>
                                 </div>
-
-                                <Button
-                                    type="button"
-                                    onClick={() => {
-                                        const targetQuoteId = activeChat?.raw?.quote_id || activeChat?.raw?.id || (activeChat as any)?.quoteId || activeChat?.id || msg?.id || 1;
-                                        navigate(`/customer/checkout/${encryptId(targetQuoteId)}`, {
-                                            state: { quote: activeChat?.raw || activeChat }
-                                        });
-                                    }}
-                                    className="flex-1 h-8 rounded-[5px] bg-[#FF4A1F] hover:bg-[#e03e15] text-white text-xs font-bold cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-2xs hover:shadow-xs"
-                                >
-                                    <CreditCard size={13} className="shrink-0" />
-                                    <span>Checkout & Pay</span>
-                                    <ArrowRight size={12} className="shrink-0" />
-                                </Button>
-                            </div>
-
-                            {/* Bottom Row: Clean Hyperlinks */}
-                            <div className="flex items-center justify-center gap-3 pt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const targetQuoteId = activeChat?.raw?.quote_id || activeChat?.raw?.id || (activeChat as any)?.quoteId || activeChat?.id || msg?.id || 1;
-                                        navigate(`/customer/quotes/received/view/${encryptId(targetQuoteId)}`);
-                                    }}
-                                    className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-[#FF4A1F] dark:hover:text-[#FF4A1F] transition-colors cursor-pointer"
-                                >
-                                    <Eye size={12} />
-                                    <span className="underline-offset-2 hover:underline">Details</span>
-                                </button>
-
-                                <span className="text-slate-300 dark:text-slate-700">•</span>
-
-                                <button
-                                    type="button"
-                                    onClick={() => navigate("/customer/orders")}
-                                    className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-[#FF4A1F] dark:hover:text-[#FF4A1F] transition-colors cursor-pointer"
-                                >
-                                    <Truck size={12} />
-                                    <span className="underline-offset-2 hover:underline">Track</span>
-                                </button>
-
-                                <span className="text-slate-300 dark:text-slate-700">•</span>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowInstructionModal(true)}
-                                    className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-[#FF4A1F] dark:hover:text-[#FF4A1F] transition-colors cursor-pointer"
-                                >
-                                    <HelpCircle size={12} />
-                                    <span className="underline-offset-2 hover:underline">Payment Info</span>
-                                </button>
-                            </div>
-                        </div>
-                    ) : isDeclined ? (
-                        <div className="flex flex-col items-center justify-center py-1.5 px-2 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/80 rounded text-[11.5px] font-semibold">
-                            <div className="flex items-center gap-1.5">
-                                <XCircle size={13} className="text-rose-600" />
-                                <span>Offer Declined</span>
-                            </div>
-                            {(msg.declineReason || localReason) && (
-                                <p className="text-[10.5px] text-rose-600/80 dark:text-rose-400/80 font-normal mt-0.5 text-center">
-                                    Reason: {msg.declineReason || localReason}
-                                </p>
                             )}
                         </div>
+                    ) : isDeclined ? (
+                        <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 rounded px-2.5 py-1.5 text-center text-[11px] text-rose-700 dark:text-rose-400 flex items-center justify-center gap-1.5">
+                            <XCircle size={12} className="text-rose-500" />
+                            <span>Offer Declined</span>
+                        </div>
                     ) : canAccept ? (
-                        <div className="space-y-1.5 pt-1">
+                        <div className="space-y-1.5">
                             <div className="flex items-center gap-2">
                                 <Button
                                     type="button"
                                     disabled={isAccepting}
                                     onClick={handleConfirmAccept}
-                                    className="flex-1 h-7.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11.5px] font-semibold cursor-pointer transition-all flex items-center justify-center gap-1 disabled:opacity-60"
+                                    className="flex-1 h-7.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11.5px] font-semibold cursor-pointer transition-all flex items-center justify-center gap-1 disabled:opacity-75 disabled:cursor-not-allowed"
                                 >
                                     {isAccepting ? (
                                         <>
-                                            <Loader2 size={12} className="animate-spin text-white" />
-                                            <span>Accepting...</span>
+                                            <Loader2 size={12} className="animate-spin text-white shrink-0" />
+                                            <span>Processing...</span>
                                         </>
                                     ) : (
                                         <>
@@ -391,8 +524,9 @@ Notes: ${notesText}`;
                                 </Button>
                                 <Button
                                     type="button"
-                                    onClick={() => { (document.querySelector('button[title*="Counter"], button[title*="Revise"]') as HTMLButtonElement)?.click(); }}
-                                    className="flex-1 h-7.5 rounded bg-[#FF4A1F] hover:bg-[#e03e15] text-white text-[11.5px] font-semibold cursor-pointer transition-all flex items-center justify-center gap-1"
+                                    disabled={isAccepting}
+                                    onClick={() => { (document.querySelector("button[title*=\"Counter\"], button[title*=\"Revise\"]") as HTMLButtonElement)?.click(); }}
+                                    className="flex-1 h-7.5 rounded bg-[#FF4A1F] hover:bg-[#e03e15] text-white text-[11.5px] font-semibold cursor-pointer transition-all flex items-center justify-center gap-1 disabled:opacity-60"
                                 >
                                     Counter Offer
                                 </Button>
@@ -416,7 +550,7 @@ Notes: ${notesText}`;
                 {/* Floating Three-Dot Button on Hover */}
                 <div
                     className={`absolute top-1/2 -translate-y-1/2 left-full ml-2 transition-opacity duration-150 z-30 ${
-                        isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     }`}
                     ref={menuRef}
                 >
@@ -428,8 +562,8 @@ Notes: ${notesText}`;
                         }}
                         className={`w-6.5 h-6.5 rounded-full flex items-center justify-center transition-colors cursor-pointer border shadow-2xs ${
                             isMenuOpen
-                                ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white border-slate-300 dark:border-slate-600'
-                                : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200/90 dark:border-slate-700'
+                                ? "bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white border-slate-300 dark:border-slate-600"
+                                : "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200/90 dark:border-slate-700"
                         }`}
                         title="More options"
                         aria-label="More options"
@@ -492,14 +626,16 @@ Notes: ${notesText}`;
                 onConfirm={handleConfirmDecline}
             />
 
-            <QuotePaymentInstructionModal
-                isOpen={showInstructionModal}
-                onClose={() => setShowInstructionModal(false)}
-                quoteId={activeChat?.raw?.quote_id || activeChat?.raw?.id || (activeChat as any)?.quoteId || activeChat?.id || msg?.id || 1}
-                quoteAmount={proposedPrice || prevPrice || 45000}
-                supplierName={otherPartyName || "Carrier Partner"}
-                quoteData={activeChat?.raw || activeChat}
-            />
+            {!isOrderPaid && (
+                <QuotePaymentInstructionModal
+                    isOpen={showInstructionModal}
+                    onClose={() => setShowInstructionModal(false)}
+                    quoteId={targetQuoteId}
+                    quoteAmount={proposedPrice || prevPrice || 45000}
+                    supplierName={otherPartyName || "Carrier Partner"}
+                    quoteData={activeChat?.raw || activeChat}
+                />
+            )}
         </div>
     );
 }

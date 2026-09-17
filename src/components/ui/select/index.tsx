@@ -7,7 +7,9 @@ export interface SelectOption {
     id?: string | number;
     value?: string | number;
     name?: string | React.ReactNode;
+    label?: string | React.ReactNode;
     image?: string;
+    icon?: LucideIcon | React.ElementType | React.ReactNode;
     [key: string]: any;
 }
 
@@ -60,7 +62,8 @@ export default function Select({
                     value: val,
                     name: label,
                     label: label,
-                    image: child.props['data-image'] || child.props.image
+                    image: child.props['data-image'] || child.props.image,
+                    icon: child.props['data-icon'] || child.props.icon
                 };
             })
             .filter(opt => opt.id !== undefined);
@@ -87,6 +90,7 @@ export default function Select({
                 name,
                 label: name,
                 image: opt.image || opt['data-image'],
+                icon: opt.icon || opt['data-icon'],
             };
         });
     }, [options, childOptions]);
@@ -136,13 +140,45 @@ export default function Select({
             const selectedItems = finalOptions.filter(opt =>
                 Array.isArray(normalizedValue) && normalizedValue.map(v => String(v)).includes(String(opt.id))
             );
-            return selectedItems.length > 0 ? selectedItems.map(i => i.name || i.label).join(', ') : placeholder;
+            if (selectedItems.length === 0) return placeholder;
+            return (
+                <span className="text-slate-800 dark:text-slate-200 font-semibold">
+                    {selectedItems.length} selected
+                </span>
+            );
         }
         const selected = finalOptions.find(opt => 
             String(opt.id) === String(normalizedValue) || 
             String(opt.value) === String(normalizedValue)
         );
-        return selected ? (selected.name || selected.label) : placeholder;
+        if (!selected) return placeholder;
+
+        return (
+            <div className="flex items-center gap-1.5 truncate">
+                {selected.image && (
+                    <img
+                        src={selected.image.startsWith('http') ? selected.image : `/storage/${selected.image}`}
+                        className="w-3.5 h-3.5 object-contain shrink-0"
+                        alt=""
+                    />
+                )}
+                {selected.icon && !Icon && (
+                    typeof selected.icon === 'function' ? (
+                        React.createElement(selected.icon, {
+                            size: size === "sm" ? 13 : 14,
+                            className: "shrink-0 text-slate-500 dark:text-slate-400"
+                        })
+                    ) : React.isValidElement(selected.icon) ? (
+                        <span className="shrink-0 text-slate-500 dark:text-slate-400">
+                            {selected.icon}
+                        </span>
+                    ) : null
+                )}
+                <span className="truncate">
+                    {typeof (selected.name || selected.label) === 'string' ? (selected.name || selected.label) : (selected.name || selected.label)}
+                </span>
+            </div>
+        );
     };
 
     const isSelected = (optId: any) => {
@@ -326,8 +362,7 @@ export default function Select({
                     >
                         {/* Search Input Container */}
                         {shouldShowSearch && (
-                            <div
-    className="p-2 bg-slate-50 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-700 shrink-0">
+                            <div className="p-2 bg-slate-50 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-700 shrink-0">
                                 <div className="relative flex items-center">
                                     <Search size={13} className="absolute left-2 text-slate-400 pointer-events-none z-10" />
                                     <input
@@ -363,17 +398,29 @@ export default function Select({
                                                     "cursor-pointer select-none border-b border-slate-100/50 dark:border-slate-800/50 last:border-0 flex items-center justify-between transition-colors",
                                                     size === "sm" ? "py-1.5 px-2.5 text-xs" : "py-2 px-3 text-[12.5px]",
                                                     active 
-                                                        ? "bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#FF4A1F] font-medium" 
+                                                        ? "bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#FF4A1F] font-semibold" 
                                                         : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 font-normal"
                                                 )}
                                             >
-                                                <div className="flex items-center gap-1.5 truncate">
+                                                <div className="flex items-center gap-2 truncate">
                                                     {option.image && (
                                                         <img
                                                             src={option.image.startsWith('http') ? option.image : `/storage/${option.image}`}
                                                             className="w-3.5 h-3.5 object-contain shrink-0"
                                                             alt=""
                                                         />
+                                                    )}
+                                                    {option.icon && (
+                                                        typeof option.icon === 'function' ? (
+                                                            React.createElement(option.icon, {
+                                                                size: size === "sm" ? 13 : 14,
+                                                                className: cn("shrink-0", active ? "text-[#FF4A1F]" : "text-slate-400 dark:text-slate-500")
+                                                            })
+                                                        ) : React.isValidElement(option.icon) ? (
+                                                            <span className={cn("shrink-0", active ? "text-[#FF4A1F]" : "text-slate-400 dark:text-slate-500")}>
+                                                                {option.icon}
+                                                            </span>
+                                                        ) : null
                                                     )}
                                                     <span className={cn("truncate", size === "sm" ? "text-xs" : "text-[12.5px]")}>
                                                         {option.name || option.label}
@@ -386,7 +433,7 @@ export default function Select({
                                         );
                                     })}
 
-                                    {onCreateProp && searchQuery && !filteredOptions.find(o => (o.name || o.label || "").toLowerCase() === searchQuery.toLowerCase()) && (
+                                    {onCreateProp && searchQuery && !filteredOptions.find(o => String(o.name || o.label || "").toLowerCase() === searchQuery.toLowerCase()) && (
                                         <button
                                             type="button"
                                             onClick={() => onCreate(searchQuery)}

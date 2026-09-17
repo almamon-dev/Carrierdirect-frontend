@@ -107,9 +107,9 @@ export const navigationMap: Record<string, any[]> = {
             icon: Euro,
             permission: 'finance.view_earnings',
             items: [
-                { name: 'Earnings', path: '/supplier/finance/earnings', icon: HandCoins, permission: 'finance.view_earnings' },
-                { name: 'Withdrawal', path: '/supplier/finance/withdrawal', icon: CreditCard, permission: 'finance.withdraw' },
-                { name: 'Payments', path: '/supplier/finance/payments', icon: Receipt, permission: 'finance.invoices' },
+                { name: 'Billing', path: '/supplier/finance/billing', icon: Receipt, permission: 'finance.view_earnings' },
+                { name: 'Invoices', path: '/supplier/finance/invoices', icon: FileText, permission: 'finance.invoices' },
+                { name: 'Payments', path: '/supplier/finance/payments', icon: CreditCard, permission: 'finance.invoices' },
             ]
         },
         { category: 'Main Menu', name: 'Subscription', path: '/supplier/subscription', icon: ShieldCheck, ownerOnly: true },
@@ -153,5 +153,20 @@ export const navigationMap: Record<string, any[]> = {
         { category: 'Main Menu', name: 'Notifications', path: '/customer/notifications', icon: Bell },
         { category: 'Main Menu', name: 'Messages', path: '/customer/messages', icon: MessageSquare },
         { category: 'Main Menu', name: 'Settings', path: '/customer/settings', icon: Settings },
+    ],
+    'driver': [
+        { category: 'Main Menu', name: 'Dashboard', path: '/driver/dashboard', icon: LayoutDashboard },
+        { category: 'Main Menu', name: 'Shipments', path: '/driver/shipments', icon: Truck },
+        { category: 'Main Menu', name: 'Messages', path: '/driver/chat', icon: MessageSquare },
+        { category: 'Main Menu', name: 'Notifications', path: '/driver/notifications', icon: Bell },
+        {
+            category: 'Main Menu',
+            group: 'Profile Settings',
+            icon: UserCircle,
+            items: [
+                { name: 'Overview & Profile', path: '/driver/profile#general', icon: UserCircle },
+                { name: 'Driver License & DOT', path: '/driver/profile#credentials', icon: ShieldCheck }
+            ]
+        },
     ],
 };

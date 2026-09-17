@@ -44,10 +44,10 @@ export default function LostQuotes() {
             {/* Page Header */}
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Expired Quotes
                     </h1>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 line-clamp-1 sm:line-clamp-none">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Review past quote requests that were expired, outbid, or declined.
                     </p>
                 </div>

@@ -16,7 +16,7 @@ import { getAttachmentUrl } from '@/modules/Customer/QuoteManagement/Negotiation
 import { encryptId } from '@/lib/encryption';
 
 interface HeaderMessagesProps {
-    role?: 'supplier' | 'customer';
+    role?: 'supplier' | 'customer' | 'driver';
 }
 
 const formatChatTime = (timeStr?: string | null, lastMsg?: any): string => {
@@ -95,7 +95,7 @@ export const HeaderMessages: React.FC<HeaderMessagesProps> = ({ role = 'supplier
         };
     }, [isOpen]);
 
-    const messagesBasePath = role === 'supplier' ? '/supplier/messages' : '/customer/messages';
+    const messagesBasePath = role === 'driver' ? '/driver/chat' : (role === 'supplier' ? '/supplier/messages' : '/customer/messages');
 
     const filteredConversations = conversations.filter(item => {
         const nameMatch = (item.user?.name || item.user?.company_name || '')

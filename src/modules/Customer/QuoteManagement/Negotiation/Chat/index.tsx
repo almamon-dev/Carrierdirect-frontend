@@ -21,8 +21,13 @@ export default function CustomerNegotiationChat() {
         activeChatId,
         chats,
         activeChat,
+        contactGroups,
+        filteredContactGroups,
+        activeContactGroup,
+        contactQuotes,
         filteredChats,
         handleSelectChat,
+        handleSelectContact,
         isLoading
     } = useCustomerChatNegotiation();
 
@@ -55,20 +60,27 @@ export default function CustomerNegotiationChat() {
     );
 
     const isOrderPaid = Boolean(
+        activeChat?.raw?.is_paid ||
+        activeChat?.raw?.has_order ||
+        activeChat?.raw?.order_id ||
         activeChat?.raw?.order?.status === "in_progress" ||
         activeChat?.raw?.order?.status === "completed" ||
-        activeChat?.raw?.invoice?.status === "paid"
+        activeChat?.raw?.order?.status === "confirmed" ||
+        activeChat?.raw?.order?.status === "delivered" ||
+        activeChat?.raw?.invoice?.status === "paid" ||
+        activeChat?.raw?.invoice?.invoice_type === "pay_later" ||
+        (activeChat as any)?.isPaid ||
+        (activeChat as any)?.hasOrder
     );
 
     const dismissedChatsRef = React.useRef<Set<string | number>>(new Set());
 
     useEffect(() => {
-        if (!activeChat) return;
-        const currentId = activeChat.id || activeChatId;
-        if (isQuoteAccepted && !isOrderPaid && !dismissedChatsRef.current.has(currentId)) {
+        const currentId = activeChat?.id || activeChatId;
+        if (isQuoteAccepted && !isOrderPaid && currentId && !dismissedChatsRef.current.has(currentId)) {
             setShowPaymentModal(true);
         }
-    }, [activeChatId, isQuoteAccepted, isOrderPaid, activeChat]);
+    }, [activeChatId, isQuoteAccepted, isOrderPaid, activeChat?.id]);
 
     const handleDismissModal = () => {
         if (activeChat) {
@@ -111,8 +123,12 @@ export default function CustomerNegotiationChat() {
                     setFilterTab={setFilterTab}
                     chats={chats}
                     filteredChats={filteredChats}
+                    contactGroups={contactGroups}
+                    filteredContactGroups={filteredContactGroups}
+                    activeContactGroup={activeContactGroup}
                     activeChatId={activeChatId}
                     handleSelectChat={handleSelectChat}
+                    handleSelectContact={handleSelectContact}
                     onBack={() => navigate(-1)}
                 />
 
@@ -142,6 +158,8 @@ export default function CustomerNegotiationChat() {
                     activeChat={activeChat}
                     currentMessages={currentMessages}
                     showDetailsPanel={showDetailsPanel}
+                    contactQuotes={contactQuotes}
+                    onSelectQuote={handleSelectChat}
                 />
             </div>
 

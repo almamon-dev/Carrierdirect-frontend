@@ -36,12 +36,12 @@ export default function ViewRequestForm() {
                 <div className="flex items-center gap-3">
 
                     <div>
-                        <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100">
-                            Quote Request REQ-{cleanId}
-                        </h1>
-                        <p className="text-[13px] font-medium text-[#ff4a1f] mt-0.5">
-                            Detailed transportation quote request specifications and cargo requirements.
-                        </p>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Quote Request REQ-{cleanId}
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Detailed transportation quote request specifications and cargo requirements.
+                    </p>
                     </div>
                 </div>
 

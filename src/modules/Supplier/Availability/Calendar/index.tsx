@@ -106,10 +106,12 @@ export default function Calendar() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900 flex items-center gap-2">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Availability Calendar
                     </h1>
-                    <p className="text-[12px] text-slate-500 mt-0.5">Manage your working days, time-offs, and booking capacity.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Manage your working days, time-offs, and booking capacity.
+                    </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm" onClick={() => navigate('/supplier/availability/settings')}>

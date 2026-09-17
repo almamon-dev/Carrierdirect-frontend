@@ -335,71 +335,83 @@ export default function CreateTeamMemberModal({ onClose, onSuccess }: CreateTeam
 
                                     {/* Step 3: Role */}
                                     {step === 3 && (
-                                        <div className="space-y-3.5 max-w-lg">
+                                        <div className="space-y-3 max-w-lg">
                                             <div>
                                                 <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Select Access Role</h3>
                                                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Choose the permission level from database configured roles.</p>
                                             </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[240px] overflow-y-auto pr-1">
-                                                {displayRoles.map((r) => (
-                                                    <div
-                                                        key={r.id}
-                                                        onClick={() => handleChange('role', r.id)}
-                                                        className={`p-3 rounded-md border cursor-pointer transition-all ${formData.role === r.id
-                                                            ? 'border-[#FF4A1F] bg-orange-50/50 dark:bg-[#ff4a1f]/10 shadow-xs'
-                                                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1">
+                                                {displayRoles.map((r) => {
+                                                    const isSelected = formData.role === r.id;
+                                                    return (
+                                                        <div
+                                                            key={r.id}
+                                                            onClick={() => handleChange('role', r.id)}
+                                                            className={`p-2 sm:py-2 sm:px-2.5 rounded-[3px] border cursor-pointer transition-all flex items-start gap-2 ${
+                                                                isSelected
+                                                                    ? 'border-[#FF4A1F] bg-orange-50/50 dark:bg-[#ff4a1f]/10 shadow-2xs'
+                                                                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#181d24]'
                                                             }`}
-                                                    >
-                                                        <div className="flex items-center justify-between mb-0.5">
-                                                            <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs">{r.name}</h4>
-                                                            {formData.role === r.id && (
-                                                                <div className="w-4 h-4 rounded-full bg-[#FF4A1F] flex items-center justify-center">
-                                                                    <CheckCircle size={10} className="text-white" />
+                                                        >
+                                                            <div className={`w-3.5 h-3.5 rounded-full border mt-0.5 shrink-0 flex items-center justify-center transition-colors ${
+                                                                isSelected
+                                                                    ? 'border-[#FF4A1F] bg-[#FF4A1F]'
+                                                                    : 'border-slate-300 dark:border-slate-600'
+                                                            }`}>
+                                                                {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                                    <h4 className={`text-xs font-bold truncate ${isSelected ? 'text-[#FF4A1F] dark:text-[#ff4a1f]' : 'text-slate-900 dark:text-slate-100'}`}>
+                                                                        {r.name}
+                                                                    </h4>
                                                                 </div>
-                                                            )}
+                                                                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight line-clamp-1">
+                                                                    {r.desc}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <p className="text-[10.5px] text-slate-500 dark:text-slate-400 leading-tight line-clamp-2">{r.desc}</p>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     )}
 
                                     {/* Step 4: System Access */}
                                     {step === 4 && (
-                                        <div className="space-y-3.5 max-w-lg">
+                                        <div className="space-y-3 max-w-lg">
                                             <div>
                                                 <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Security & Access Method</h3>
                                                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Define how the team member logs into the portal.</p>
                                             </div>
-                                            <div className="space-y-2.5">
+                                            <div className="space-y-2">
                                                 <div
                                                     onClick={() => handleChange('accessMethod', 'email')}
-                                                    className={`p-3 rounded-md border cursor-pointer flex items-start gap-2.5 transition-all ${formData.accessMethod === 'email' ? 'border-[#FF4A1F] bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'border-slate-200 dark:border-slate-800'
+                                                    className={`p-2.5 rounded-[3px] border cursor-pointer flex items-start gap-2.5 transition-all ${formData.accessMethod === 'email' ? 'border-[#FF4A1F] bg-orange-50/40 dark:bg-[#ff4a1f]/10 shadow-2xs' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#181d24]'
                                                         }`}
                                                 >
                                                     <input type="radio" name="accessMethod" checked={formData.accessMethod === 'email'} readOnly className="mt-0.5 accent-[#FF4A1F]" />
                                                     <div>
                                                         <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs">Send Email Invitation Link (Recommended)</h4>
-                                                        <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5">The user will receive an email with a secure token to set their password.</p>
+                                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">The user will receive an email with a secure token to set their password.</p>
                                                     </div>
                                                 </div>
 
                                                 <div
                                                     onClick={() => handleChange('accessMethod', 'temp')}
-                                                    className={`p-3 rounded-md border cursor-pointer transition-all ${formData.accessMethod === 'temp' ? 'border-[#FF4A1F] bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'border-slate-200 dark:border-slate-800'
+                                                    className={`p-2.5 rounded-[3px] border cursor-pointer transition-all ${formData.accessMethod === 'temp' ? 'border-[#FF4A1F] bg-orange-50/40 dark:bg-[#ff4a1f]/10 shadow-2xs' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#181d24]'
                                                         }`}
                                                 >
                                                     <div className="flex items-start gap-2.5">
                                                         <input type="radio" name="accessMethod" checked={formData.accessMethod === 'temp'} readOnly className="mt-0.5 accent-[#FF4A1F]" />
                                                         <div>
                                                             <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs">Set Temporary Initial Password</h4>
-                                                            <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5">Manually specify a temporary password for immediate first-time access.</p>
+                                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Manually specify a temporary password for immediate first-time access.</p>
                                                         </div>
                                                     </div>
 
                                                     {formData.accessMethod === 'temp' && (
-                                                        <div className="mt-3 pt-2.5 border-t border-orange-200/60 dark:border-orange-500/20 pl-6" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="mt-2.5 pt-2 border-t border-orange-200/60 dark:border-orange-500/20 pl-6" onClick={(e) => e.stopPropagation()}>
                                                             <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                                                 Temporary Password * (Min. 6 characters)
                                                             </label>

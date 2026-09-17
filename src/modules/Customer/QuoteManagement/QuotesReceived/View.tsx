@@ -88,9 +88,9 @@ export default function QuoteView() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
                 <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                            Quote {quote.quote_id || `QT-${cleanQuoteId.padStart(4, '0')}`}
-                        </h1>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Quote {quote.quote_id || `QT-${cleanQuoteId.padStart(4, '0')}`}
+                    </h1>
                         <Badge variant="secondary" className={`text-[11px] font-semibold rounded-[5px] border ${getStatusBadgeClass(statusInfo.statusKey)}`}>
                             {statusInfo.text}
                         </Badge>

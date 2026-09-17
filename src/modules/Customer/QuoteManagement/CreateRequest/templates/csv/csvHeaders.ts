@@ -1,3 +1,5 @@
+import { API_CONFIG } from '@/config/api';
+
 /**
  * CSV Headers and Blank Template Generator
  */
@@ -70,7 +72,27 @@ export const CSV_HEADERS = [
     "Attached ZIP Archive File"
 ].join(",") + "\n";
 
-export const downloadBlankCSVTemplate = () => {
+export const downloadBlankCSVTemplate = async () => {
+    try {
+        const baseUrl = API_CONFIG.baseURL || '';
+        const downloadUrl = `${baseUrl}/customer/quote-requests/template/download?format=csv`;
+        const res = await fetch(downloadUrl);
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'QuoteRequest-Template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            return;
+        }
+    } catch (e) {
+        console.warn('API CSV download failed, using client-side fallback:', e);
+    }
+
     const blob = new Blob([CSV_HEADERS], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

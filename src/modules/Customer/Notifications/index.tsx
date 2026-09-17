@@ -118,21 +118,21 @@ export default function CustomerNotifications() {
                             variant="outline"
                             size="sm"
                             onClick={handleClearAll}
-                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-red-600 rounded-[3px]"
+                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-red-50/40 dark:hover:bg-red-950/20 hover:border-red-200 dark:hover:border-red-900/40 text-slate-600 dark:text-slate-300 hover:text-red-600 rounded-[3px] shadow-2xs transition-colors"
                         >
-                            <Trash2 size={13} />
+                            <Trash2 size={13} className="shrink-0" />
                             <span>Clear all</span>
                         </Button>
                     )}
 
                     <Button
-                        variant="outline"
+                        variant="primary"
                         size="sm"
                         onClick={handleMarkAllRead}
                         disabled={unreadCount === 0}
-                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-[3px]"
+                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-xs rounded-[3px] disabled:opacity-50"
                     >
-                        <CheckCheck size={13} className="text-[#ff4a1f]" />
+                        <CheckCheck size={13} className="text-white shrink-0" />
                         <span>Mark all read</span>
                     </Button>
 
@@ -141,9 +141,9 @@ export default function CustomerNotifications() {
                         size="sm"
                         onClick={handleRefresh}
                         disabled={isRefreshing}
-                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-[3px]"
+                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:border-[#ff4a1f] dark:hover:border-[#ff4a1f] hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-slate-700 dark:text-slate-200 rounded-[3px] shadow-2xs transition-colors"
                     >
-                        <RefreshCw size={13} className={isRefreshing ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
+                        <RefreshCw size={13} className={isRefreshing ? "animate-spin text-[#ff4a1f] shrink-0" : "text-slate-500 shrink-0"} />
                         <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
                     </Button>
                 </div>
@@ -181,7 +181,9 @@ export default function CustomerNotifications() {
                 hideViewToggle={false}
                 isLoading={isRefreshing}
                 tableLayout="fixed"
-                tableClassName="min-w-[950px]"
+                disableHorizontalScroll={true}
+                tableClassName="w-full table-fixed"
+                actionsColumnClassName="w-[45px] min-w-[45px] max-w-[45px] text-right"
                 emptyState={
                     <EmptyState
                         icon={Bell}

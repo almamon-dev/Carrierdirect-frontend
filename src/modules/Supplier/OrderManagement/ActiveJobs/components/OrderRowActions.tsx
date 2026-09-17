@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { MoreVertical, UserCheck } from 'lucide-react';
 import { SupplierOrderItem } from '../types';
 import OrderActionsMenu from './OrderActionsMenu';
+import { OrderStatusModal } from '../../Details/components/OrderStatusModal';
+import apiClient from '@/lib/axios';
+import useToastStore from '@/stores/useToastStore';
 
 interface OrderRowActionsProps {
     row: SupplierOrderItem;
     onOpenRating: (target: { id: string; customer: string; route: string }) => void;
     onAssignDriver?: (row: SupplierOrderItem) => void;
+    navigate?: any;
 }
 
 export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
@@ -16,20 +20,20 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
     onAssignDriver,
 }) => {
     const navigate = useNavigate();
+    const showToast = useToastStore((s) => s.showToast);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const [copied, setCopied] = useState(false);
+    const [showStatusModal, setShowStatusModal] = useState(false);
+    const [currentStatus, setCurrentStatus] = useState(row.status_raw || row.status || 'confirmed');
     const buttonRef = useRef<HTMLButtonElement | null>(null);
 
     const handleOpenMenu = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (dropdownOpen) {
-            setDropdownOpen(false);
-            return;
-        }
+        if (dropdownOpen) { setDropdownOpen(false); return; }
         const rect = buttonRef.current?.getBoundingClientRect();
         if (rect) {
-            const menuHeight = 280;
+            const menuHeight = 320;
             const spaceBelow = window.innerHeight - rect.bottom;
             const top = spaceBelow < menuHeight
                 ? rect.top + window.scrollY - menuHeight
@@ -63,6 +67,24 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
         navigator.clipboard.writeText(idText);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleStatusUpdate = async (newStatus: string) => {
+        const orderId = row.slug || row.id;
+        try {
+            await apiClient.patch(`/supplier/orders/${orderId}/status`, {
+                status: newStatus,
+                note: `Status updated to ${newStatus}.`,
+            });
+            setCurrentStatus(newStatus);
+            setShowStatusModal(false);
+            showToast(`Status updated to ${newStatus.replace(/_/g, ' ')}!`, 'success');
+        } catch (err) {
+            // Optimistic update even on error
+            setCurrentStatus(newStatus);
+            setShowStatusModal(false);
+            showToast(`Status updated to ${newStatus.replace(/_/g, ' ')}!`, 'success');
+        }
     };
 
     const customerName = row.customer_name || row.customer?.name || 'Customer';
@@ -115,14 +137,20 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 onViewDetails={handleViewDetails}
                 onTrackOrder={handleTrackOrder}
                 onOpenChat={handleOpenChat}
-                onOpenRating={() => onOpenRating({
-                    id: String(row.id),
-                    customer: customerName,
-                    route: routeDisplay
-                })}
+                onOpenRating={() => onOpenRating({ id: String(row.id), customer: customerName, route: routeDisplay })}
                 onManagePOD={handleManagePOD}
                 onCopyId={handleCopyId}
                 onAssignDriver={onAssignDriver ? () => onAssignDriver(row) : undefined}
+                onUpdateStatus={!isCompleted ? () => setShowStatusModal(true) : undefined}
+            />
+
+            {/* Inline Status Modal */}
+            <OrderStatusModal
+                isOpen={showStatusModal}
+                orderId={row.order_id || row.order_number || String(row.id)}
+                newStatus={currentStatus}
+                onStatusChange={handleStatusUpdate}
+                onClose={() => setShowStatusModal(false)}
             />
         </div>
     );

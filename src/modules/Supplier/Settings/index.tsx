@@ -33,13 +33,14 @@ export default function SupplierSettings() {
   };
 
   return (
-    <div
-    className="p-3 sm:p-4 md:p-5 w-full mx-auto space-y-4 min-h-screen pb-12 font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+    <div className="p-4 sm:p-5 md:p-6 w-full space-y-4 font-sans antialiased min-h-screen pb-16">
       {/* Compact Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">Supplier Account Settings</h1>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Supplier Settings
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             Manage your carrier business identity, payouts, notifications, and security.
           </p>
         </div>
@@ -49,7 +50,7 @@ export default function SupplierSettings() {
             type="submit"
             form={FORM_MAP[activeTab].formId}
             variant="primary"
-            className="h-7.5 text-[11px] px-3.5 bg-[#ff4a1f] hover:bg-[#e63d15] font-semibold text-white shadow-2xs cursor-pointer rounded-[4px] flex items-center gap-1.5 shrink-0 self-start sm:self-center"
+            className="h-8 text-xs px-3.5 bg-[#ff4a1f] hover:bg-[#e63d15] font-bold text-white shadow-2xs cursor-pointer rounded-[4px] flex items-center gap-1.5 shrink-0 self-start sm:self-center transition-all"
           >
             <Save size={13} />
             <span>{FORM_MAP[activeTab].label}</span>
@@ -57,30 +58,32 @@ export default function SupplierSettings() {
         )}
       </div>
 
-      {/* Navigation Tabs - Sleek & Compact */}
-      <div className="flex gap-5 overflow-x-auto border-b border-slate-200 dark:border-slate-800 [&::-webkit-scrollbar]:hidden">
-        {SUPPLIER_SETTINGS_TABS.map((tab) => {
+      {/* Navigation Tabs - Flush Underline */}
+      <div className="border-b border-slate-200 dark:border-slate-800 flex items-center gap-1 overflow-x-auto overflow-y-hidden hide-scrollbar no-scrollbar">
+        {SUPPLIER_SETTINGS_TABS.map((tab, idx) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-1.5 pb-2.5 border-b-2 font-semibold text-xs whitespace-nowrap transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 border-b-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer -mb-px ${
+                idx === 0 ? 'pl-0.5 pr-3' : 'px-3'
+              } ${
                 isActive
                   ? 'border-[#ff4a1f] text-[#ff4a1f]'
-                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300'
+                  : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
-              <Icon size={14} className={isActive ? 'text-[#ff4a1f]' : 'text-slate-400'} />
+              <Icon size={14} className={isActive ? 'text-[#ff4a1f]' : 'text-slate-400 dark:text-slate-500'} />
               <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Tab Content Renderer */}
-      <div className="min-h-[400px]">
+      {/* Tab Content */}
+      <div className="pt-1 w-full max-w-5xl">
         {activeTab === 'profile' && <CompanyProfileTab />}
         {activeTab === 'payouts' && <PayoutStripeTab />}
         {activeTab === 'notifications' && <NotificationsTab />}

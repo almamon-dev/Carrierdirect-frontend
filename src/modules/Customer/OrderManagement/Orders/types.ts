@@ -3,6 +3,7 @@ export type OrderFilterTab = 'all' | 'in_transit' | 'pod_review' | 'completed' |
 export interface CustomerOrderItem {
     id: string | number;
     rawId?: string | number;
+    raw_id?: string | number;
     slug?: string;
     order_id?: string;
     order_number?: string;
@@ -23,11 +24,13 @@ export interface CustomerOrderItem {
     delivery_address?: string;
     supplier_name?: string;
     supplier_avatar?: string;
+    carrier?: string;
     carrier_name?: string;
     carrier_avatar?: string;
     carrier_rating?: number | string;
     carrier_verified?: boolean;
     completed_orders?: number | string;
+    completed_orders_count?: number | string;
     supplier?: {
         id?: string | number;
         name?: string;
@@ -37,6 +40,7 @@ export interface CustomerOrderItem {
         rating?: number | string;
         is_verified?: boolean;
         completed_orders?: number | string;
+        completed_orders_count?: number | string;
         phone?: string;
         email?: string;
     };
@@ -51,6 +55,13 @@ export interface CustomerOrderItem {
     pallets?: string;
     amount?: string | number;
     total_amount?: string | number;
+    total_amount_formatted?: string;
+    gross_amount?: string | number;
+    gross_amount_formatted?: string;
+    subtotal?: string | number;
+    subtotal_formatted?: string;
+    platform_fee?: string | number;
+    platform_fee_formatted?: string;
     amount_raw?: number;
     payment_status?: string;
     status?: string;

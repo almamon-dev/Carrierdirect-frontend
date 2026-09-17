@@ -77,7 +77,7 @@ export const EditRequestSectionContent: React.FC<EditRequestSectionContentProps>
                 />
             )}
 
-            {activeTab === 'attachments' && (
+            {(activeTab === 'attachments' || activeTab === 'files') && (
                 <AttachmentsNotesSection
                     formData={formData}
                     handleChange={handleChange}

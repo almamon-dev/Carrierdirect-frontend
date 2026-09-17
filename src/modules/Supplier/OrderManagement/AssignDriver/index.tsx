@@ -77,7 +77,7 @@ const normalizeOrderItem = (o: any): SupplierOrderItem => {
     if (paymentObj.formatted) {
         formattedAmt = paymentObj.formatted;
     } else if (typeof rawTotal === 'number') {
-        formattedAmt = `€ ${rawTotal.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
+        formattedAmt = `€ ${rawTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
     } else if (typeof rawTotal === 'string' && rawTotal) {
         formattedAmt = rawTotal.startsWith('€') || rawTotal.startsWith('$') ? rawTotal : `€ ${rawTotal}`;
     }
@@ -195,6 +195,19 @@ export default function AssignDriverPage() {
                 const rawList = ordersRes.value.data?.data?.orders || ordersRes.value.data?.data || ordersRes.value.data || [];
                 if (Array.isArray(rawList)) {
                     mappedOrders = rawList.map(normalizeOrderItem);
+                    const stateOrder = location.state?.selectedOrder || location.state?.orderData || location.state?.order;
+                    if (stateOrder) {
+                        const targetId = String(stateOrder.id || stateOrder.order_id || stateOrder.order_no || stateOrder.slug || '');
+                        const exists = mappedOrders.some(o => 
+                            String(o.id) === targetId || 
+                            String(o.order_id) === targetId || 
+                            String(o.order_no) === targetId || 
+                            String(o.slug) === targetId
+                        );
+                        if (!exists) {
+                            mappedOrders.unshift(normalizeOrderItem(stateOrder));
+                        }
+                    }
                     setOrders(mappedOrders);
                 }
             }
@@ -221,16 +234,11 @@ export default function AssignDriverPage() {
                         email: m.email || m.user?.email || ''
                     }));
                     setFleetDrivers(formattedTeam);
-                    if (formattedTeam.length > 0 && !selectedDriverId) {
-                        setSelectedDriverId(formattedTeam[0].id);
-                    }
+                    
                 }
             }
 
-            // Auto-select first order if none selected
-            if (mappedOrders.length > 0 && !selectedOrderId) {
-                setSelectedOrderId(String(mappedOrders[0].id || mappedOrders[0].order_id));
-            }
+            
         } catch (err) {
             console.error('Error fetching data:', err);
         } finally {
@@ -247,9 +255,23 @@ export default function AssignDriverPage() {
     useEffect(() => {
         const stateOrder = location.state?.selectedOrder || location.state?.orderData || location.state?.order;
         if (stateOrder) {
-            const targetId = stateOrder.id || stateOrder.order_id || stateOrder.order_no || stateOrder.slug;
+            const targetId = String(stateOrder.id || stateOrder.order_id || stateOrder.order_no || stateOrder.slug || '');
             if (targetId) {
-                handleSelectOrder(String(targetId));
+                setSelectedOrderId(targetId);
+                const normalized = normalizeOrderItem(stateOrder);
+                setOrders(prev => {
+                    const exists = prev.some(o => 
+                        String(o.id) === targetId || 
+                        String(o.order_id) === targetId || 
+                        String(o.order_no) === targetId || 
+                        String(o.slug) === targetId
+                    );
+                    if (!exists) {
+                        return [normalized, ...prev];
+                    }
+                    return prev;
+                });
+                handleSelectOrder(targetId);
             }
         }
     }, [location.state]);
@@ -385,17 +407,12 @@ export default function AssignDriverPage() {
     return (
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c] space-y-5">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-[#ff4a1f]/10 text-[#ff4a1f] flex items-center justify-center font-bold">
-                            <UserCheck size={18} />
-                        </div>
-                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                            Assign Driver & Dispatch
-                        </h1>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Assign Driver & Dispatch
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Select an active shipment and allocate a driver from your fleet team to begin delivery.
                     </p>
                 </div>
@@ -434,48 +451,7 @@ export default function AssignDriverPage() {
                 </div>
             </div>
 
-            {/* Quick KPI Stats Banner */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] flex items-center justify-center shrink-0">
-                        <AlertCircle size={18} />
-                    </div>
-                    <div>
-                        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 font-medium">Pending Assignment</p>
-                        <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{pendingCount} <span className="text-xs font-normal text-slate-400">jobs</span></p>
-                    </div>
-                </div>
 
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <Navigation size={18} />
-                    </div>
-                    <div>
-                        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 font-medium">Dispatched & Active</p>
-                        <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{assignedCount} <span className="text-xs font-normal text-slate-400">jobs</span></p>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                        <Users size={18} />
-                    </div>
-                    <div>
-                        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 font-medium">Fleet Drivers</p>
-                        <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{fleetDrivers.length} <span className="text-xs font-normal text-slate-400">members</span></p>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                        <Package size={18} />
-                    </div>
-                    <div>
-                        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 font-medium">Total Active Jobs</p>
-                        <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{orders.length} <span className="text-xs font-normal text-slate-400">total</span></p>
-                    </div>
-                </div>
-            </div>
 
             {/* Main Content Workspace: Left Assignment Form / Right Jobs Queue */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">

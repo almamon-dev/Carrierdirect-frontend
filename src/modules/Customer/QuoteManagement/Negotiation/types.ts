@@ -43,6 +43,7 @@ export interface CustomerNegotiationItem {
     isOnline?: boolean;
     lastSeenHuman?: string;
     lastSeenAt?: string;
+    raw?: any;
 }
 
 export type NegotiationTab = 'active' | 'history';

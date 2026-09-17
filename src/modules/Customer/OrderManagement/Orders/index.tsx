@@ -50,7 +50,7 @@ export default function CustomerOrders() {
         endDate,
     });
 
-    const columns = useMemo(() => getOrderColumns(navigate), [navigate]);
+    const columns = useMemo(() => getOrderColumns((order) => setRatingTarget({ id: String(order.id), supplier: order.supplier_name || "Supplier", route: order.route || "" })), [setRatingTarget]);
 
     const handleExportCSV = () => {
         if (!filteredOrders || filteredOrders.length === 0) return;
@@ -80,9 +80,9 @@ export default function CustomerOrders() {
 
     return (
         <div
-    className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c] space-y-5">
+    className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c] space-y-3.5">
             {/* Header with Title, Refresh, Export, and Create New Request */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Customer Orders
@@ -136,7 +136,7 @@ export default function CustomerOrders() {
                         onOpenRating={(target) => setRatingTarget(target)}
                     />
                 )}
-                actionsColumnClassName="w-[115px] min-w-[115px] text-right pr-3"
+                actionsColumnClassName="w-[85px] min-w-[80px] text-right pr-2"
                 headerTabs={
                     <OrderFilterTabs
                         orders={orders}
@@ -163,7 +163,7 @@ export default function CustomerOrders() {
                 compact={true}
                 isLoading={isLoading || isRefreshing}
                 onRowClick={(row) => navigate(`/customer/orders/${row.id}`, { state: { orderData: row } })}
-                tableClassName="w-full min-w-[1100px]"
+                tableClassName="w-full"
                 emptyState={
                     <EmptyState
                         icon={PackageSearch}

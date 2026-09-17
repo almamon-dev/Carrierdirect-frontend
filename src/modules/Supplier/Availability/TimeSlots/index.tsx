@@ -109,8 +109,10 @@ export default function TimeSlots() {
     className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5 bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Time Slots & Schedule Windows</h1>
-                    <p className="text-xs text-slate-500 font-medium">Configure allowed pickup and delivery time windows and daily volume limits.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Time Slots & Schedule Windows</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Configure allowed pickup and delivery time windows and daily volume limits.
+                    </p>
                 </div>
                 <Button variant="primary" size="sm" className="h-9 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white" onClick={() => setShowModal(true)}>
                     <Plus size={13} className="mr-1.5" /> Add Time Slot

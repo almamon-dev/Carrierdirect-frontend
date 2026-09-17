@@ -19,13 +19,13 @@ export function getRoleDashboardUrl(userOrStr?: any): string {
     if (!user) return '/supplier/dashboard';
     if (user.user_type === 'admin') return '/admin/dashboard';
     if (user.user_type === 'customer') return '/customer/dashboard';
-    if (user.user_type === 'supplier') return '/supplier/dashboard';
+    if (user.user_type === 'driver') return '/driver/dashboard';
 
     // supplier_employee roles
     const roleSlug = String(user.role?.slug || user.role?.name || user.role || '').toLowerCase();
 
     if (roleSlug.includes('driver')) {
-        return '/supplier/driver/dashboard';
+        return '/driver/dashboard';
     }
     if (roleSlug.includes('finance') || roleSlug.includes('billing')) {
         return '/supplier/finance/dashboard';

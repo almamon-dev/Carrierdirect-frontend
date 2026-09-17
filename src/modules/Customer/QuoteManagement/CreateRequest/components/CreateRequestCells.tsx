@@ -22,21 +22,35 @@ export const RequestIdCell: React.FC<{ row: CustomerQuoteRequestItem; onNavigate
 export const TitleCell: React.FC<{ row: CustomerQuoteRequestItem }> = ({ row }) => {
     const title = row.title || row.request_title || row.requestTitle || '—';
     return (
-        <div className="flex items-center min-w-0 pr-1 min-h-[26px]" title={title}>
-            <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+        <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={title}>
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate block max-w-full leading-normal">
                 {title}
             </span>
         </div>
     );
 };
 
-export const AddressCell: React.FC<{ address: string }> = ({ address }) => (
-    <div className="flex items-center min-w-0 pr-1 min-h-[26px]" title={address}>
-        <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-            {address}
-        </span>
-    </div>
-);
+const cleanAddressWithoutZip = (addr: string): string => {
+    if (!addr || addr === '—') return addr;
+    return addr
+        .replace(/\s*\(?ZIP:?\s*\d+\)?/gi, '')
+        .replace(/(?:ZIP|Postal Code):?\s*\d+/gi, '')
+        .replace(/\s+\d{4,6}(?=[,\s]|$)/g, '')
+        .replace(/\s*,\s*,/g, ',')
+        .replace(/,\s*$/g, '')
+        .trim();
+};
+
+export const AddressCell: React.FC<{ address: string }> = ({ address }) => {
+    const displayAddr = cleanAddressWithoutZip(address);
+    return (
+        <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={displayAddr}>
+            <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate block max-w-full leading-normal">
+                {displayAddr}
+            </span>
+        </div>
+    );
+};
 
 export const DistanceCell: React.FC<{ distance: string }> = ({ distance }) => (
     <div className="flex items-center min-h-[26px]">
@@ -107,7 +121,7 @@ export const DateCell: React.FC<{ row: CustomerQuoteRequestItem }> = ({ row }) =
         : formatDisplayDate((row as any).created_at || (row as any).requested_date || (row as any).pickup_date || row.date);
 
     return (
-        <div className="flex items-center min-h-[26px]">
+        <div className="flex items-center justify-center min-h-[26px]">
             <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">
                 {dateVal}
             </span>

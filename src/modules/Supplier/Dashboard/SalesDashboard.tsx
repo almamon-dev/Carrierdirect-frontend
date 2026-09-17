@@ -35,7 +35,7 @@ export default function SalesDashboard() {
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Sales & Quote Bidding Center</h1>
+                            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Sales & Quote Bidding Center</h1>
                             <span className="px-2 py-0.5 text-[11px] font-semibold bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 rounded-full">Bidding Active</span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Browse open customer lead requests, submit bids, and negotiate pricing.</p>

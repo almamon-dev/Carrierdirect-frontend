@@ -108,6 +108,20 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
                         activeChat.lastSeenHuman = supplierObj.last_seen_human;
                     }
                 }
+
+                if (quoteObj && activeChat) {
+                    if (Array.isArray(quoteObj.extra_charges) && quoteObj.extra_charges.length > 0) {
+                        const freshCharges = quoteObj.extra_charges.map((c: any) => ({
+                            id: c.id,
+                            type: c.type || c.custom_name || c.customName || "Custom",
+                            custom_name: c.custom_name || c.customName || c.type || "Custom",
+                            label: c.type === "Custom" ? (c.custom_name || "Custom") : (c.custom_name || c.type),
+                            amount: Number(c.amount || 0)
+                        })).filter((c: any) => c.amount > 0);
+                        activeChat.extraCharges = freshCharges;
+                        activeChat.totalExtras = freshCharges.reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
+                    }
+                }
                 if (rawData?.is_supplier_typing !== undefined || rawData?.is_typing !== undefined) {
                     const isTypingNow = Boolean(rawData?.is_supplier_typing ?? rawData?.is_typing);
                     setIsSupplierTyping(isTypingNow);
@@ -121,6 +135,9 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
 
                 if (Array.isArray(rawMsgs) && rawMsgs.length > 0) {
                     const finalMessages = mapRawCustomerChatMessages(rawMsgs, activeChat, isQuoteAccepted, isQuoteRejected, quoteDeclineReason);
+                    setChatMessages(prev => ({ ...prev, [activeChatId]: finalMessages, [String(activeChatId)]: finalMessages }));
+                } else if (activeChat) {
+                    const finalMessages = generateCustomerInitialMessages(activeChat);
                     setChatMessages(prev => ({ ...prev, [activeChatId]: finalMessages, [String(activeChatId)]: finalMessages }));
                 }
             } catch {}

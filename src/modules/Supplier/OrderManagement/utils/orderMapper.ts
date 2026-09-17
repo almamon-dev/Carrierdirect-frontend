@@ -34,13 +34,36 @@ export function mapApiOrderToSupplierOrder(o: any): SupplierOrder {
     const customerName = clientObj.name || o?.customer?.name || o?.client_name || o?.user?.name || o?.customer_name || 'Verified Customer';
 
     const rawTotal = paymentObj.total ?? o?.total_amount ?? o?.total ?? o?.amount ?? o?.agreed_price;
-    const formattedTotal = paymentObj.formatted || (rawTotal ? (String(rawTotal).includes('€') ? String(rawTotal) : `€${Number(rawTotal).toLocaleString('de-DE', { minimumFractionDigits: 2 })}`) : '€0.00');
+    const formattedTotal = paymentObj.formatted || (rawTotal ? (String(rawTotal).includes('€') ? String(rawTotal) : `€${Number(rawTotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}`) : '€0.00');
 
     const rawWeight = shipmentObj.total_weight || (o?.weight ? `${o.weight} kg` : null);
     const weight = rawWeight && !String(rawWeight).toUpperCase().includes('N/A') ? (String(rawWeight).toLowerCase().includes('kg') ? String(rawWeight) : `${rawWeight} kg`) : '1,500 kg';
 
     const rawLoadType = shipmentObj.description || o?.load_type || shippingObj.service || o?.pallet_type;
     const loadType = rawLoadType && rawLoadType !== '0 Items' && !String(rawLoadType).toUpperCase().includes('N/A') ? rawLoadType : 'Pallet Transport';
+
+    const isPayLater = Boolean(
+        o?.is_pay_later || 
+        o?.payment?.is_pay_later ||
+        paymentObj.is_pay_later ||
+        paymentObj.invoice_type === 'pay_later' || 
+        o?.invoice_type === 'pay_later' || 
+        o?.payment_method === 'pay_later' || 
+        o?.payment_type === 'pay_later' ||
+        paymentObj.payment_method === 'pay_later' ||
+        o?.payment_status?.toLowerCase().includes('pay later') ||
+        paymentObj.status?.toLowerCase().includes('pay later')
+    );
+    const isPaid = Boolean(
+        !isPayLater && (
+            o?.is_paid || 
+            paymentObj.is_paid || 
+            o?.payment_status?.toLowerCase() === 'paid' || 
+            paymentObj.status?.toLowerCase() === 'paid' ||
+            status === 'Delivered'
+        )
+    );
+    const paymentStatus = o?.payment_status || paymentObj.status || (isPayLater ? 'Pay Later (Net-30)' : (isPaid ? 'Paid' : 'In Escrow'));
 
     return {
         id: o?.order_no || o?.order_number || (o?.id ? `ORD-${o.id}` : `ORD-${o?.slug || '0000'}`),
@@ -58,7 +81,7 @@ export function mapApiOrderToSupplierOrder(o: any): SupplierOrder {
         deliveryTimeWindow: o?.delivery_time_window || '14:00 – 18:00',
         distance: o?.est_distance || o?.distance_miles ? `${o.est_distance || o.distance_miles} km` : (shippingObj.route ? `${shippingObj.route}` : '450 km'),
         estimatedDuration: o?.duration || o?.estimated_duration || 'Scheduled',
-        driver: o?.driver?.name || o?.driver_name || 'Assigned Carrier Team',
+        driver: o?.driver?.name || o?.driver_name || '',
         driverPhone: o?.driver?.phone || o?.driver_phone || '',
         vehicle: shippingObj.service || o?.pallet_type || o?.vehicle?.name || o?.vehicle_name || 'Pallet Transport',
         vehiclePlate: o?.vehicle?.plate || o?.vehicle_plate || 'GB-24-TRK',
@@ -67,12 +90,20 @@ export function mapApiOrderToSupplierOrder(o: any): SupplierOrder {
         weight,
         volume: o?.volume ? `${o.volume} m³` : '12 m³',
         agreedPrice: formattedTotal,
-        platformFee: o?.platform_fee ? `€${Number(o.platform_fee).toLocaleString('de-DE', { minimumFractionDigits: 2 })}` : '€0.00',
+        platformFee: o?.platform_fee ? `€${Number(o.platform_fee).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '€0.00',
         netPayout: formattedTotal,
         podStatus,
         podFileUrl: trackingObj.proof || o?.pod_document_url || o?.pod_url || o?.pod_file_url || '',
         podUploadDate: o?.pod_uploaded_at ? new Date(o.pod_uploaded_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : undefined,
         cargoItemsCount: shipmentObj.items_count || o?.items_count || (Array.isArray(o?.items) ? o.items.length : 1),
+        payment_status: paymentStatus,
+        payout_status: paymentStatus,
+        payment_method: o?.payment_method || paymentObj.payment_method || (isPayLater ? 'pay_later' : undefined),
+        invoice_type: o?.invoice_type || paymentObj.invoice_type || (isPayLater ? 'pay_later' : undefined),
+        is_pay_later: isPayLater,
+        is_paid: isPaid,
+        is_escrow: !isPayLater && !isPaid,
+        payment: paymentObj,
         timeline: trackingObj.history || o?.timeline || [
             { title: 'Order Booked', description: 'Shipper confirmed quote and booked order.', timestamp: '10:00 AM', completed: true },
             { title: 'In Transit', description: 'Cargo picked up and in transit.', timestamp: '01:00 PM', completed: ['In Transit', 'Arrived', 'Delivered'].includes(status), current: status === 'In Transit' },

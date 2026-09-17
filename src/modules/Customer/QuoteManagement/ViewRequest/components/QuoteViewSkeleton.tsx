@@ -25,8 +25,10 @@ export const QuoteViewSkeleton: React.FC<QuoteViewSkeletonProps> = ({ activeTab 
         <div className="p-6 md:p-8 mx-auto bg-[#f8f9fa] min-h-screen pb-24 animate-in fade-in duration-200">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900">View Quote Request</h1>
-                    <p className="text-[14px] font-medium text-brand mt-1">Review the details of your quote request.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">View Quote Request</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Review the details of your quote request.
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Skeleton className="h-[32px] w-20 rounded-[2px]" />

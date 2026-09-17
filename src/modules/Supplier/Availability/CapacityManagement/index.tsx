@@ -4,6 +4,7 @@ import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Badge from '@/components/ui/badge';
 import FormLabel from '@/components/ui/label';
+import MetricCard from '@/components/cards/metric-card';
 
 export default function CapacityManagement() {
     const [maxTonnage, setMaxTonnage] = useState('50.0');
@@ -16,10 +17,12 @@ export default function CapacityManagement() {
     return (
         <div
     className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-6 bg-[#f8fafc] dark:bg-[#12161c]">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Fleet Capacity Management</h1>
-                    <p className="text-xs text-slate-500 font-medium">Real-time daily payload allocation, max tonnage thresholds, and fleet volume metrics.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Fleet Capacity Management</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Real-time daily payload allocation, max tonnage thresholds, and fleet volume metrics.
+                    </p>
                 </div>
                 <Button variant="primary" size="sm" className="h-9 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white" onClick={() => alert('Capacity allocation saved!')}>
                     <RefreshCw size={13} className="mr-1.5" /> Save Allocation Rules
@@ -27,42 +30,39 @@ export default function CapacityManagement() {
             </div>
 
             {/* Metrics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div
-    className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
-                    <span className="text-xs text-slate-500 font-medium">Max Daily Tonnage Capacity</span>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl font-extrabold text-slate-900">{maxTonnage}</span>
-                        <span className="text-xs text-slate-500 font-semibold">Tons</span>
-                    </div>
-                </div>
-
-                <div
-    className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
-                    <span className="text-xs text-slate-500 font-medium">Allocated / Booked Tonnage</span>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl font-extrabold text-emerald-700">{allocatedTonnage}</span>
-                        <span className="text-xs text-slate-500 font-semibold">Tons</span>
-                    </div>
-                </div>
-
-                <div
-    className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
-                    <span className="text-xs text-slate-500 font-medium">Available Remaining Capacity</span>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl font-extrabold text-blue-700">{remainingTonnage}</span>
-                        <span className="text-xs text-slate-500 font-semibold">Tons</span>
-                    </div>
-                </div>
-
-                <div
-    className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-1">
-                    <span className="text-xs text-slate-500 font-medium">Fleet Utilization</span>
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl font-extrabold text-slate-900">{utilizationPct}%</span>
-                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[10px] ml-1">Optimal</Badge>
-                    </div>
-                </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                <MetricCard
+                    title="Max Daily Tonnage"
+                    description="Maximum fleet payload limit per day"
+                    value={`${maxTonnage} T`}
+                    icon={Scale}
+                    colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
+                    badge={<Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200">Cap</Badge>}
+                />
+                <MetricCard
+                    title="Allocated Tonnage"
+                    description="Current scheduled booking weight"
+                    value={`${allocatedTonnage} T`}
+                    icon={Box}
+                    colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
+                    badge={<Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">Booked</Badge>}
+                />
+                <MetricCard
+                    title="Remaining Capacity"
+                    description="Available cargo capacity ready to assign"
+                    value={`${remainingTonnage} T`}
+                    icon={Truck}
+                    colorClass="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
+                    badge={<Badge variant="secondary" className="bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-200">Free</Badge>}
+                />
+                <MetricCard
+                    title="Fleet Utilization"
+                    description="Overall daily capacity efficiency"
+                    value={`${utilizationPct}%`}
+                    icon={TrendingUp}
+                    colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
+                    badge={<Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">Optimal</Badge>}
+                />
             </div>
 
             {/* Utilization Bar */}

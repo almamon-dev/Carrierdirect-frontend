@@ -79,8 +79,10 @@ export default function SubscriptionCheckout() {
           <ArrowLeft size={14} className="mr-1" /> Back
         </Button>
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Subscription Checkout</h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">Review your selected logistics plan and confirm secure payment.</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Subscription Checkout</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Review your selected logistics plan and confirm secure payment.
+                    </p>
         </div>
       </div>
 

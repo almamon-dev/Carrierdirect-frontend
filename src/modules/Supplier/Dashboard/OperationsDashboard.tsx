@@ -35,7 +35,7 @@ export default function OperationsDashboard() {
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Operations & Fleet Command</h1>
+                            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Operations & Fleet Command</h1>
                             <span className="px-2 py-0.5 text-[11px] font-semibold bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 rounded-full">Live Dispatch</span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage active fleet allocations, route logistics, and order fulfillment.</p>

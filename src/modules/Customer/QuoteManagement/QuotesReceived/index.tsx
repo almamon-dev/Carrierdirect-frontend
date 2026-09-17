@@ -59,8 +59,10 @@ export default function QuotesReceived() {
     className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">Quotes Received</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Review, compare, negotiate, and accept competitive shipping quotes from verified suppliers.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Quotes Received</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Review, compare, negotiate, and accept competitive shipping quotes from verified suppliers.
+                    </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => fetchQuotes(true)} disabled={isRefreshing} className="h-9 px-3 text-xs font-semibold flex items-center gap-1.5 bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700">

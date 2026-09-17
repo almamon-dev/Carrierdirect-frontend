@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import apiClient from "@/lib/axios";
-import { encryptId } from "@/lib/encryption";
 import { useToastStore } from "@/stores/useToastStore";
 import { CustomerChatItem, CustomerChatMessage } from "../types";
 
@@ -18,7 +16,6 @@ export const useCustomerOfferActions = ({
     updateMessagesForActiveChat,
     scrollToBottom,
 }: UseCustomerOfferActionsProps) => {
-    const navigate = useNavigate();
     const showToast = useToastStore((state) => state.showToast);
     const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
 
@@ -52,48 +49,43 @@ export const useCustomerOfferActions = ({
     const handleAcceptOffer = async (offerMsg: any) => {
         setIsAcceptingOffer(true);
         const acceptedTotal = Number(offerMsg?.newTotal || offerMsg?.proposed_amount || activeChat?.currentPrice || 0);
-        const isCounter = Boolean(
-            offerMsg?.type === "offer" || 
-            offerMsg?.message_type === "offer" || 
-            offerMsg?.isCounterOffer || 
-            (offerMsg?.title && String(offerMsg.title).toLowerCase().includes("counter"))
-        );
-        const confirmMsg: CustomerChatMessage = {
-            id: `system-${Date.now()}`,
-            type: "system",
-            text: isCounter
-                ? `✅ Counter offer of € ${acceptedTotal.toLocaleString()} has been accepted and confirmed!`
-                : `✅ Quote offer of € ${acceptedTotal.toLocaleString()} has been accepted and confirmed!`,
-            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        const customerName = activeChat?.raw?.quote_request?.user?.name || "Customer 1";
+        const rawQuoteNum = activeChat?.quoteNo || activeChat?.raw?.quote_id || activeChat?.raw?.id || "0003";
+        const quoteNoStr = String(rawQuoteNum).startsWith("QT-") ? rawQuoteNum : `QT-${String(rawQuoteNum).padStart(4, "0")}`;
+
+        const customerTextMsg: CustomerChatMessage = {
+            id: `accept-text-${Date.now()}`,
+            type: "sent",
+            text: "Hi,\nWe've reviewed the quote and it looks good.\nWe would like to accept the offer.",
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            is_me: true
         };
+
+        const confirmMsg: CustomerChatMessage = {
+            id: `system-${Date.now() + 1}`,
+            type: "system",
+            text: `Offer Accepted\n${customerName} has accepted your quote (${quoteNoStr}).`,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            status: "accepted",
+            newTotal: acceptedTotal
+        };
+
         updateMessagesForActiveChat(prev =>
-            prev.map(m => (m.type === "quote_request" || m.id === offerMsg?.id || m.type === "offer") ? { ...m, status: "accepted" as const, newTotal: acceptedTotal } : m).concat(confirmMsg)
+            prev.map(m => (m.type === "quote_request" || m.id === offerMsg?.id || m.type === "offer") ? { ...m, status: "accepted" as const, newTotal: acceptedTotal } : m).concat([customerTextMsg, confirmMsg])
         );
+
         if (activeChat?.raw) {
             activeChat.raw.status = "accepted";
             activeChat.raw.status_raw = "accepted";
         }
         setTimeout(scrollToBottom, 100);
 
-        const targetQuoteId =
-            activeChat?.raw?.quote_id ||
-            activeChat?.raw?.id ||
-            (activeChat as any)?.quoteId ||
-            activeChat?.id ||
-            activeChatId;
-
         try {
             await apiClient.post(`/customer/negotiations/${activeChatId}/accept`, {
                 offer_id: offerMsg?.id, amount: acceptedTotal, proposed_amount: acceptedTotal
             });
             window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
-            showToast("Quote accepted! Redirecting to secure checkout...", "success");
-
-            setTimeout(() => {
-                navigate(`/customer/checkout/${encryptId(targetQuoteId)}`, {
-                    state: { quote: activeChat?.raw || activeChat }
-                });
-            }, 600);
+            showToast("Offer accepted successfully! Please proceed to payment to confirm your booking.", "success");
         } catch {
             try {
                 await apiClient.post(`/negotiations/${activeChatId}/accept`, {
@@ -101,15 +93,9 @@ export const useCustomerOfferActions = ({
                 });
             } catch {}
             window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
-            showToast("Quote accepted! Redirecting to secure checkout...", "success");
-
-            setTimeout(() => {
-                navigate(`/customer/checkout/${encryptId(targetQuoteId)}`, {
-                    state: { quote: activeChat?.raw || activeChat }
-                });
-            }, 600);
+            showToast("Offer accepted successfully! Please proceed to payment to confirm your booking.", "success");
         } finally {
-            setTimeout(() => setIsAcceptingOffer(false), 800);
+            setTimeout(() => setIsAcceptingOffer(false), 500);
         }
     };
 

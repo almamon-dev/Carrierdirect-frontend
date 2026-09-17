@@ -35,7 +35,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
         id: 'requestId',
         label: 'Requested ID',
         sortable: true,
-        className: 'w-[100px] min-w-[100px]',
+        className: 'w-[95px] min-w-[90px]',
         render: (row) => {
             const rawReq = row.requestId ? String(row.requestId).replace('REQ-', '') : '';
             return (
@@ -59,7 +59,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
         id: 'customer',
         label: 'Supplier',
         sortable: true,
-        className: 'w-[140px] min-w-[140px]',
+        className: 'w-[130px] min-w-[125px]',
         render: (row) => <SupplierCell row={row} />,
         skeleton: () => (
             <div className="flex items-center gap-2 min-h-[26px]">
@@ -71,7 +71,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'pickup',
         label: 'Pickup Address',
-        className: 'min-w-0',
+        className: 'w-[18%] min-w-[130px] max-w-[180px]',
         render: (row) => (
             <div className="flex items-center min-w-0 pr-1 min-h-[26px]" title={row.pickup}>
                 <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate whitespace-nowrap">{row.pickup}</span>
@@ -82,7 +82,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
     {
         id: 'delivery',
         label: 'Delivery Address',
-        className: 'min-w-0',
+        className: 'w-[18%] min-w-[130px] max-w-[180px]',
         render: (row) => (
             <div className="flex items-center min-w-0 pr-1 min-h-[26px]" title={row.delivery}>
                 <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate whitespace-nowrap">{row.delivery}</span>
@@ -94,15 +94,15 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
         id: 'distance',
         label: 'Distance',
         sortable: true,
-        className: 'w-[85px] min-w-[85px] text-center',
-        render: (row) => <div className="flex items-center min-h-[26px]"><span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold">{row.distance}</span></div>,
-        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-3.5 w-12 rounded-[3px]" /></div>
+        className: 'w-[75px] min-w-[70px] text-center',
+        render: (row) => <div className="flex items-center justify-center min-h-[26px]"><span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold">{row.distance}</span></div>,
+        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-3.5 w-12 rounded-[3px]" /></div>
     },
     {
         id: 'budget',
         label: 'Budget',
         sortable: true,
-        className: 'w-[95px] min-w-[95px]',
+        className: 'w-[90px] min-w-[85px]',
         render: (row) => (
             <div className="flex items-center min-h-[26px]">
                 <span className="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100 text-xs">
@@ -116,25 +116,25 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
         id: 'priority',
         label: 'Priority',
         sortable: true,
-        className: 'w-[90px] min-w-[90px] text-center',
+        className: 'w-[85px] min-w-[80px] text-center',
         render: (row) => <PriorityCell priority={row.priority} />,
-        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-5 w-14 rounded-[3px]" /></div>
+        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-5 w-14 rounded-[3px]" /></div>
     },
     {
         id: 'status',
         label: 'Status',
         sortable: true,
-        className: 'w-[110px] min-w-[110px] text-center',
+        className: 'w-[130px] min-w-[125px] text-center',
         render: (row) => <StatusCell status={row.status} />,
-        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-5 w-18 rounded-[3px]" /></div>
+        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-5 w-20 rounded-[3px]" /></div>
     },
     {
         id: 'requestDate',
         label: 'Date',
         sortable: true,
-        className: 'w-[115px] min-w-[115px] text-center',
-        render: (row) => <div className="flex items-center min-h-[26px]"><span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium">{row.requestDate}</span></div>,
-        skeleton: () => <div className="flex items-center min-h-[26px]"><Skeleton className="h-3.5 w-16 rounded-[3px]" /></div>
+        className: 'w-[105px] min-w-[100px] text-center',
+        render: (row) => <div className="flex items-center justify-center min-h-[26px]"><span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium">{row.requestDate}</span></div>,
+        skeleton: () => <div className="flex items-center justify-center min-h-[26px]"><Skeleton className="h-3.5 w-16 rounded-[3px]" /></div>
     }
 ];
 

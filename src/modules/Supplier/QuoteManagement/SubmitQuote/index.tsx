@@ -70,9 +70,9 @@ export default function SubmitQuote() {
                 </button>
                 <div className="flex items-center justify-between gap-2.5">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 min-w-0">
-                        <h1 className="text-base sm:text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                            Quote Request: {requestDetails.id}
-                        </h1>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Quote Request: {requestDetails.id}
+                    </h1>
                         <span className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[10.5px] sm:text-[11px] font-medium border shrink-0 ${
                             isWon
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 font-semibold'

@@ -25,7 +25,7 @@ export const mapRawCustomerChatMessages = (
     });
 
     const mapped: CustomerChatMessage[] = rawMsgs.map((m: any) => {
-        const isSent = m.is_me !== undefined ? Boolean(m.is_me) : Boolean(m.sender_type === 'customer' || m.sender_id === activeChat?.raw?.quote_request?.user_id || m.sender_id === 5);
+        const isSent = m.is_me !== undefined ? Boolean(m.is_me) : Boolean(m.sender_type === 'customer' || (m.sender_id && activeChat?.raw?.quote_request?.user_id && m.sender_id === activeChat.raw.quote_request.user_id));
         const rawType = String(m.type || m.message_type || '').toLowerCase();
         const textContent = String(m.text || m.message || m.message_text || m.body || '');
 
@@ -38,7 +38,7 @@ export const mapRawCustomerChatMessages = (
             textContent.toLowerCase().includes('submitted a counter offer') ||
             textContent.toLowerCase().includes('counter offer of');
 
-        const isSystem = rawType === 'system' || textContent.startsWith('✅') || textContent.startsWith('❌');
+        const isSystem = rawType === 'system' || textContent.startsWith('✅') || textContent.startsWith('❌') || textContent.startsWith('Offer Accepted') || textContent.startsWith('Payment completed!') || textContent.startsWith('Booking confirmed!');
         const isQuoteRequest = rawType === 'quote_request';
 
         const msgType = isSystem ? 'system' : (isQuoteRequest ? 'quote_request' : (isOffer ? 'offer' : (isSent ? 'sent' : 'received')));
@@ -62,6 +62,9 @@ export const mapRawCustomerChatMessages = (
             declineReason: m.decline_reason || m.declineReason,
             newTotal: proposedAmt,
             previousTotal: prevAmt,
+            base_amount: m.base_amount !== undefined && m.base_amount !== null ? Number(m.base_amount) : undefined,
+            extra_charges: m.extra_charges || m.extraCharges || undefined,
+            extraCharges: m.extra_charges || m.extraCharges || undefined,
             title: m.title || (isOffer ? (isSent ? 'Counter Offer Submitted' : 'Counter Offer Received') : undefined),
             notes: m.notes || (textContent.toLowerCase().includes('submitted a counter offer') ? '' : textContent),
             is_me: isSent,

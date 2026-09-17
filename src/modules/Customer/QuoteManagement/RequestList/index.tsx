@@ -40,10 +40,10 @@ export default function RequestList() {
     className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Quote Requests
                     </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Manage, track, and create freight quote requests for carrier bidding.
                     </p>
                 </div>
@@ -67,7 +67,7 @@ export default function RequestList() {
                         onDeleteRequest={deleteState.handleDeleteRequestClick}
                     />
                 )}
-                actionsColumnClassName="w-[140px] min-w-[140px] text-right pr-3"
+                actionsColumnClassName="w-[52px] min-w-[52px] max-w-[52px] text-center px-1"
                 headerTabs={<FilterTabs requestData={requestData} activeTab={filters.activeFilterTab} onSelectTab={filters.setActiveFilterTab} />}
                 filterContent={
                     <TableFilterContent
@@ -88,7 +88,8 @@ export default function RequestList() {
                 compact={true}
                 isLoading={isLoading}
                 onRowClick={(row) => navigate(buildSecureQuoteUrl('view', row.rawId || row.id))}
-                tableClassName="w-full min-w-[1050px]"
+                tableLayout="fixed"
+                tableClassName="w-full"
                 emptyState={
                     <EmptyState
                         icon={Inbox}

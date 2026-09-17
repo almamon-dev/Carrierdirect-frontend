@@ -3,9 +3,11 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import ProtectedRoute from './components/common/ProtectedRoute';
 import CustomerLayout from './layouts/CustomerLayout';
 import SupplierLayout from './layouts/SupplierLayout';
+import DriverLayout from './layouts/DriverLayout';
 import { authRoutes } from './modules/Auth';
 import { customerRoutes } from './modules/Customer/routes';
 import { supplierRoutes } from './modules/Supplier/routes';
+import { driverRoutes } from './modules/Driver/routes';
 import { supportRoutes } from './modules/Support/routes';
 
 import ContactUs from './modules/LandingPages/ContactUs';
@@ -135,6 +137,15 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: supplierRoutes,
+  },
+  {
+    path: '/driver',
+    element: (
+      <ProtectedRoute allowedRole="driver">
+        <DriverLayout />
+      </ProtectedRoute>
+    ),
+    children: driverRoutes,
   },
   {
     path: '*',

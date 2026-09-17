@@ -14,6 +14,7 @@ const QuoteView = lazy(() => import('./QuoteManagement/QuotesReceived/View'));
 const QuoteAcceptCheckout = lazy(() => import('./QuoteManagement/QuotesReceived/AcceptCheckout'));
 const QuoteNegotiation = lazy(() => import('./QuoteManagement/Negotiation'));
 const QuoteNegotiationChat = lazy(() => import('./QuoteManagement/Negotiation/Chat'));
+const SupplierQuotations = lazy(() => import('./QuoteManagement/Negotiation/SupplierQuotations'));
 const Orders = lazy(() => import('./OrderManagement/Orders'));
 
 const OrderDetails = lazy(() => import('./OrderManagement/Details'));
@@ -48,7 +49,10 @@ export const customerRoutes: RouteObject[] = [
     { path: 'checkout/:quoteId', element: <QuoteAcceptCheckout /> },
     { path: 'quotes/negotiation', element: <QuoteNegotiation /> },
     { path: 'quotes/negotiation/conversation/:id', element: <QuoteNegotiationChat /> },
+    { path: 'quotes/negotiation/conversation/:id/:sessionKey', element: <QuoteNegotiationChat /> },
     { path: 'quotes/negotiation/view/:id', element: <QuoteNegotiationChat /> },
+    { path: 'quotes/negotiation/view/:id/:sessionKey', element: <QuoteNegotiationChat /> },
+    { path: 'quotes/negotiation/supplier/:slug', element: <SupplierQuotations /> },
     { path: 'orders', element: <Orders /> },
 
     { path: 'orders/:id', element: <OrderDetails /> },

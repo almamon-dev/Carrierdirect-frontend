@@ -31,6 +31,9 @@ Best regards`;
     const isAccepted = item.status === 'Accepted' || (item as any).status === 'accepted' || (item as any).status === 'confirmed' || (item as any).status === 'completed' || (item as any).statusRaw === 'accepted' || (item as any).statusRaw === 'completed';
     const initialStatus = isAccepted ? 'accepted' : isRejected ? 'rejected' : 'pending';
 
+    const extraCharges = item.extraCharges || (item as any)?.raw?.extra_charges || [];
+    const baseFreight = item.baseFreight !== undefined && item.baseFreight !== null ? item.baseFreight : (origAmount > (item.totalExtras || 0) ? origAmount - (item.totalExtras || 0) : origAmount);
+
     return [
         {
             id: `req-${item.rawId || item.id || 1}`,
@@ -41,6 +44,9 @@ Best regards`;
             time: item.lastUpdated || item.requestDate || 'Today',
             newTotal: origAmount,
             previousTotal: origAmount,
+            base_amount: baseFreight,
+            extra_charges: extraCharges,
+            extraCharges: extraCharges,
             status: initialStatus,
             declineReason: (item as any).declineReason || (item as any).decline_reason
         }

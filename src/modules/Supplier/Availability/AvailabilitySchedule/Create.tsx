@@ -49,8 +49,10 @@ export default function CreateAvailabilitySchedule() {
                         <ArrowLeft size={16} />
                     </Button>
                     <div>
-                        <h1 className="text-[18px] font-bold text-slate-900">Create Schedule</h1>
-                        <p className="text-[12px] text-slate-500 mt-0.5">Define working hours, locations, and validity periods.</p>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Create Schedule</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Define working hours, locations, and validity periods.
+                    </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">

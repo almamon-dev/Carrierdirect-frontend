@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, User, Settings, LogOut, ChevronDown, Sun } from 'lucide-react';
+import { Search, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import Sidebar from './Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import HeaderNotifications from '@/components/HeaderNotifications';
 import HeaderMessages from '@/components/HeaderMessages';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
-import ThemeSwitcher from '@/components/common/theme-switcher';
 import { useUserHeartbeat } from '@/hooks/useUserHeartbeat';
 import { TOKEN_CONFIG } from '@/config/auth';
 
@@ -234,16 +233,7 @@ export default function CustomerLayout() {
                                     </div>
 
                                     <div className="p-1.5 space-y-0.5">
-                                        {/* Theme Switcher Row */}
-                                        <div className="flex items-center justify-between px-3 py-2 rounded-[3px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
-                                            <div className="flex items-center gap-2.5">
-                                                <Sun size={15} className="text-slate-500 dark:text-slate-400" />
-                                                <span className="font-medium text-xs">Theme Mode</span>
-                                            </div>
-                                            <ThemeSwitcher />
-                                        </div>
-
-                                        <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+                                        
 
                                         <Link
                                             to="/customer/settings?tab=profile"

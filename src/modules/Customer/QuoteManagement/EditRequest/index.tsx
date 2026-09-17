@@ -49,10 +49,10 @@ export default function EditRequest() {
         <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 font-sans antialiased">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Edit Quote Request REQ-{cleanId}
                     </h1>
-                    <p className="text-[13px] font-medium text-[#ff4a1f] mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Update and refine the specifications for your transportation quote.
                     </p>
                 </div>

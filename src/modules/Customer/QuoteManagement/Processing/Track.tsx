@@ -52,9 +52,9 @@ export default function ProcessingTrack() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 border-b border-slate-200 dark:border-slate-800 pb-3.5">
                 <div>
                     <div className="flex items-center gap-2.5">
-                        <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none">
-                            Track Shipment <span className="font-mono text-slate-500 dark:text-slate-400 font-semibold">{order.id}</span>
-                        </h1>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1 flex items-center gap-2">
+                        Track Shipment <span className="font-mono text-slate-500 dark:text-slate-400 font-semibold">{order.id}</span>
+                    </h1>
                         <Badge className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${
                             isPodAccepted
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'

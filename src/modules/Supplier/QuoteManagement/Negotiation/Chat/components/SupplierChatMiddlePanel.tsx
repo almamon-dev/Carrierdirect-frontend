@@ -29,7 +29,7 @@ interface SupplierChatMiddlePanelProps {
     setInputValue: (v: string) => void;
     scrollToBottom: () => void;
     handleSendMessage: (text: string, files?: File[]) => void;
-    handleSendCounterOffer: (amount: number, note: string) => void;
+    handleSendCounterOffer: (amount: number, note: string, extraCharges?: any[], baseFreight?: number) => void;
     notifyTyping: (isTyping?: boolean) => void;
     handleCancelEdit: () => void;
     currentPrice: number;
@@ -111,7 +111,11 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
                 isSupplier={true}
                 isEditing={!!editingMsgId}
                 onCancelEdit={handleCancelEdit}
-                initialBaseFreight={currentPrice}
+                initialBaseFreight={activeNegotiation?.baseFreight || currentPrice}
+                originalOfferAmount={currentPrice}
+                targetBudget={activeNegotiation?.budget}
+                carrierName={activeNegotiation?.customer}
+                extraCharges={activeNegotiation?.extraCharges}
                 currency="€"
             />
         </div>

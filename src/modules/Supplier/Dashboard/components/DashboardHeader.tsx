@@ -22,7 +22,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#181a20] p-4 sm:p-5 rounded-lg border border-slate-200/90 dark:border-[#384150] shadow-2xs">
             <div>
                 <div className="flex items-center gap-2">
-                    <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Supplier Dashboard
                     </h1>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">

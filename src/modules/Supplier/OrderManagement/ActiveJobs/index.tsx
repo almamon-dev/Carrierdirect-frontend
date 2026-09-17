@@ -74,8 +74,8 @@ const ActiveJobRowActions = ({
 
     const rawStatus = (row.status || '').toLowerCase().trim();
     const isCompleted = rawStatus === 'completed' || rawStatus === 'delivered' || rawStatus === 'pod accepted';
-    const hasDriver = Boolean(row.driver && !row.driver.toLowerCase().includes('unassigned') && !row.driver.toLowerCase().includes('pending'));
-    const isAssigned = hasDriver || rawStatus === 'driver assigned' || rawStatus === 'driver_assigned' || rawStatus === 'in transit' || rawStatus === 'in_transit';
+    const hasDriver = Boolean(row.driver && !row.driver.toLowerCase().includes('unassigned') && !row.driver.toLowerCase().includes('pending') && !row.driver.toLowerCase().includes('assigned carrier') && !row.driver.toLowerCase().includes('assigned driver'));
+    const isAssigned = hasDriver;
 
     return (
         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -335,7 +335,7 @@ export default function ActiveJobs() {
             id: 'id', 
             label: 'Job ID', 
             sortable: true,
-            className: 'w-[120px] min-w-[110px] text-left',
+            className: 'w-[125px] min-w-[120px] text-left',
             render: (row) => (
                 <div className="flex items-center h-5">
                     <button 
@@ -355,7 +355,7 @@ export default function ActiveJobs() {
             id: 'customer', 
             label: 'Customer', 
             sortable: true,
-            className: 'min-w-[140px]',
+            className: 'w-[140px] min-w-[130px]',
             render: (row) => {
                 const initial = row.customer ? row.customer.charAt(0).toUpperCase() : 'C';
                 return (
@@ -363,7 +363,7 @@ export default function ActiveJobs() {
                         <div className="w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 text-[#ff4a1f] flex items-center justify-center text-[10px] font-bold shrink-0 aspect-square">
                             {initial}
                         </div>
-                        <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs whitespace-nowrap leading-tight">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[110px] leading-tight">
                             {row.customer}
                         </span>
                     </div>
@@ -371,16 +371,30 @@ export default function ActiveJobs() {
             } 
         },
         {
-            id: 'route',
-            label: 'Route',
+            id: 'pickup',
+            label: 'Pickup Address',
             sortable: true,
-            className: 'min-w-[180px]',
+            className: 'w-[18%] min-w-[140px] max-w-[220px]',
             render: (row) => (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap h-5" title={`${row.pickup} → ${row.delivery}`}>
+                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.pickupFullAddress || row.pickup}>
                     <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
-                    <span>{row.pickup}</span>
-                    <ArrowRight size={11} className="text-slate-400 shrink-0" />
-                    <span>{row.delivery}</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+                        {row.pickupFullAddress || row.pickup}
+                    </span>
+                </div>
+            )
+        },
+        {
+            id: 'delivery',
+            label: 'Delivery Address',
+            sortable: true,
+            className: 'w-[18%] min-w-[140px] max-w-[220px]',
+            render: (row) => (
+                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.deliveryFullAddress || row.delivery}>
+                    <MapPin size={12} className="text-emerald-500 shrink-0" />
+                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+                        {row.deliveryFullAddress || row.delivery}
+                    </span>
                 </div>
             )
         },
@@ -401,19 +415,29 @@ export default function ActiveJobs() {
             id: 'driver',
             label: 'Driver & Vehicle',
             sortable: true,
-            className: 'min-w-[150px]',
+            className: 'w-[150px] min-w-[140px]',
             render: (row) => {
-                const hasDriver = row.driver && !row.driver.toLowerCase().includes('unassigned');
-                return (
-                    <div className="flex items-center gap-1.5 h-5 min-w-0" title={`${row.driver} • ${row.vehicle || ''}`}>
-                        <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
-                            hasDriver ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                            {hasDriver ? row.driver.charAt(0) : '?'}
+                const driverName = row.driver ? String(row.driver).trim() : '';
+                const hasDriver = Boolean(driverName && !driverName.toLowerCase().includes('unassigned') && !driverName.toLowerCase().includes('pending') && !driverName.toLowerCase().includes('assigned carrier') && !driverName.toLowerCase().includes('assigned driver'));
+                
+                if (hasDriver) {
+                    return (
+                        <div className="flex items-center gap-1.5 h-5 min-w-0" title={`${row.driver} • ${row.vehicle || ''}`}>
+                            <div className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                                {row.driver.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[120px] leading-none">
+                                {row.driver}
+                            </span>
                         </div>
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap leading-none">
-                            {row.driver || 'Pending'}
-                        </span>
+                    );
+                }
+
+                return (
+                    <div className="flex items-center h-5">
+                        <Badge variant="warning" className="text-[10px] font-bold whitespace-nowrap bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
+                            Unassigned
+                        </Badge>
                     </div>
                 );
             }
@@ -422,12 +446,12 @@ export default function ActiveJobs() {
             id: 'status',
             label: 'Status',
             sortable: true,
-            className: 'w-[110px] min-w-[110px] text-center',
+            className: 'w-[120px] min-w-[115px] text-center',
             render: (row) => {
                 const st = (row.status || 'Confirmed').toLowerCase();
                 let variant: any = 'info';
                 if (st.includes('delivered') || st.includes('completed')) variant = 'success';
-                else if (st.includes('transit')) variant = 'warning';
+                else if (st.includes('transit') || st.includes('progress') || st.includes('picked')) variant = 'warning';
                 else if (st.includes('cancel')) variant = 'critical';
 
                 return (
@@ -440,12 +464,61 @@ export default function ActiveJobs() {
             }
         },
         {
+            id: 'payment_status',
+            label: 'Payment Terms',
+            sortable: true,
+            className: 'w-[135px] min-w-[130px] text-center',
+            render: (row) => {
+                const isPayLater = Boolean(
+                    row.is_pay_later || 
+                    row.payment_method === 'pay_later' || 
+                    row.invoice_type === 'pay_later' || 
+                    row.payment_status?.toLowerCase().includes('pay later')
+                );
+                const isPaid = Boolean(
+                    !isPayLater && (
+                        row.is_paid || 
+                        row.payment_status?.toLowerCase().includes('paid') ||
+                        row.status === 'Delivered'
+                    )
+                );
+
+                if (isPayLater) {
+                    return (
+                        <div className="flex items-center justify-center h-5">
+                            <Badge variant="warning" showDot className="text-[10.5px] font-bold whitespace-nowrap">
+                                Pay Later (Due)
+                            </Badge>
+                        </div>
+                    );
+                }
+
+                if (isPaid) {
+                    return (
+                        <div className="flex items-center justify-center h-5">
+                            <Badge variant="success" showDot className="text-[10.5px] font-bold whitespace-nowrap">
+                                Paid
+                            </Badge>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="flex items-center justify-center h-5">
+                        <Badge variant="info" showDot className="text-[10.5px] font-bold whitespace-nowrap">
+                            In Escrow
+                        </Badge>
+                    </div>
+                );
+            }
+        },
+        {
             id: 'payout',
             label: 'Net Payout',
             sortable: true,
-            className: 'w-[105px] min-w-[100px]',
+            className: 'w-[110px] min-w-[105px] text-right pr-2',
             render: (row) => (
-                <div className="flex items-center h-5">
+                <div className="flex items-center justify-end h-5">
                     <span className="whitespace-nowrap text-xs font-bold text-emerald-600 dark:text-emerald-400 leading-none">
                         {row.netPayout || row.agreedPrice || '—'}
                     </span>
@@ -459,10 +532,10 @@ export default function ActiveJobs() {
             {/* Page Header */}
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Active Jobs & Deliveries
                     </h1>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 line-clamp-1 sm:line-clamp-none">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Monitor active deliveries, submit PODs, and assign fleet drivers.
                     </p>
                 </div>
@@ -493,7 +566,7 @@ export default function ActiveJobs() {
                         navigate={navigate}
                     />
                 )}
-                actionsColumnClassName="w-[125px] min-w-[125px] text-right pr-3"
+                actionsColumnClassName="w-[140px] min-w-[135px] text-right pr-3"
                 headerTabs={
                     <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar mb-[-1px]">
                         {tabs.map((tab) => {
@@ -582,8 +655,7 @@ export default function ActiveJobs() {
                 }
                 isLoading={isLoading || isRefreshing}
                 onRowClick={(row) => navigate(`/supplier/orders/details/${row.slug}`)}
-                tableLayout="fixed"
-                tableClassName="min-w-[1050px]"
+                tableClassName="w-full min-w-[1250px]"
                 emptyState={
                     <EmptyState
                         icon={Truck}

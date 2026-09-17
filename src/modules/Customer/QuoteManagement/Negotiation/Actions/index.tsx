@@ -20,13 +20,14 @@ export default function ChatInputActions({
     originalOfferAmount,
     targetBudget,
     carrierName,
-    currency = '€'
+    currency = '€',
+    extraCharges,
 }: {
     inputValue: string;
     setInputValue: (v: string) => void;
     scrollToBottom: () => void;
     onSendMessage?: (text: string, files?: File[]) => void;
-    onSendCounterOffer?: (amount: number, note: string) => void;
+    onSendCounterOffer?: (amount: number, note: string, extraCharges?: any[], baseFreight?: number) => void;
     onTyping?: (isTyping?: boolean) => void;
     isSupplier?: boolean;
     isEditing?: boolean;
@@ -36,6 +37,7 @@ export default function ChatInputActions({
     targetBudget?: number | string;
     carrierName?: string;
     currency?: string;
+    extraCharges?: any[];
 }) {
     const {
         selectedFiles,
@@ -163,7 +165,8 @@ export default function ChatInputActions({
                 targetBudget={targetBudget}
                 carrierName={carrierName}
                 currency={currency}
-                onSubmit={(amt, note) => onSendCounterOffer && onSendCounterOffer(amt, note)}
+                extraCharges={extraCharges}
+                onSubmit={(amt, note, extras) => onSendCounterOffer && onSendCounterOffer(amt, note, extras, initialBaseFreight ? Number(initialBaseFreight) : undefined)}
             />
         </div>
     );

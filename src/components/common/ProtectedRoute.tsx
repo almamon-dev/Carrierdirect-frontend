@@ -3,11 +3,12 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { TOKEN_CONFIG } from '../../config/auth';
 
 interface ProtectedRouteProps {
-    allowedRole?: 'customer' | 'supplier' | 'admin';
+    allowedRole?: 'customer' | 'supplier' | 'admin' | 'driver';
     children?: React.ReactNode;
 }
 
 function getDashboardByRole(role: string): string {
+    if (role === 'driver') return '/driver/dashboard';
     if (role === 'supplier' || role === 'supplier_employee') return '/supplier/dashboard';
     if (role === 'admin')    return '/admin/dashboard';
     return '/customer/dashboard';
@@ -86,6 +87,9 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
         if (!actualRole) return false;
         if (requiredRole === 'supplier') {
             return actualRole === 'supplier' || actualRole === 'supplier_employee';
+        }
+        if (requiredRole === 'driver') {
+            return actualRole === 'driver' || actualRole === 'supplier' || actualRole === 'supplier_employee' || actualRole === 'customer';
         }
         return actualRole === requiredRole;
     };

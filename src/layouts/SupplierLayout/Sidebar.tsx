@@ -16,9 +16,10 @@ interface SidebarProps {
 
 const getSidebarItemBadge = (_path: string) => null;
 
-const isSubItemActive = (subPath: string, currentPath: string) => {
-    if (currentPath === subPath) return true;
-    if (subPath !== '/' && currentPath.startsWith(subPath)) return true;
+const isSubItemActive = (subPath: string, currentPath: string, currentHash?: string) => {
+    const fullPath = currentHash ? `${currentPath}${currentHash}` : currentPath;
+    if (fullPath === subPath || currentPath === subPath) return true;
+    if (subPath !== '/' && (fullPath.startsWith(subPath) || currentPath.startsWith(subPath))) return true;
 
     // Supplier Order details & tracking belong to Active Jobs
     if (subPath === '/supplier/orders/active-jobs') {
@@ -43,7 +44,7 @@ const isSubItemActive = (subPath: string, currentPath: string) => {
 
 const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: any; isOpen: boolean; onClose?: () => void }) => {
     const isActiveGroup = Array.isArray(item.items) && item.items.some((subItem: any) => 
-        isSubItemActive(subItem.path, location.pathname)
+        isSubItemActive(subItem.path, location.pathname, location.hash)
     );
 
     // Initially off by default unless current route belongs to this group
@@ -53,15 +54,16 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
         if (isActiveGroup) {
             setIsExpanded(true);
         }
-    }, [isActiveGroup, location.pathname]);
+    }, [isActiveGroup, location.pathname, location.hash]);
 
     if (!item.items || item.items.length === 0) return null;
 
     return (
         <div className="mb-0.5">
             <button
+                type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                title={!isOpen ? item.group : undefined}
+                title={!isOpen ? String(item.group || '') : undefined}
                 className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group cursor-pointer ${
                     isActiveGroup 
                         ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80' 
@@ -76,7 +78,7 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
                             className={isActiveGroup ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'} 
                         />
                     )}
-                    {isOpen && <span className="whitespace-nowrap">{item.group}</span>}
+                    {isOpen && <span className="whitespace-nowrap">{String(item.group || '')}</span>}
                 </div>
                 {isOpen && (
                     <ChevronRight 
@@ -88,45 +90,91 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
             </button>
             
             {isExpanded && (
-                <div className={`${isOpen ? 'pl-[34px] pr-3' : 'px-1'} space-y-1 mb-1.5 mt-0.5`}>
-                    {item.items.map((subItem: any) => {
-                        const isActive = isSubItemActive(subItem.path, location.pathname);
-                        const badgeCount = subItem.badge || getSidebarItemBadge(subItem.path);
+                <div className={`${isOpen ? 'relative ml-[22px] pr-2' : 'px-1'} mb-1 mt-0.5`}>
+                    {(() => {
+                        const activeIdx = Array.isArray(item.items)
+                            ? item.items.findIndex((subItem: any) => isSubItemActive(subItem.path, location.pathname, location.hash))
+                            : -1;
 
-                        return (
-                            <Link
-                                key={subItem.name}
-                                to={subItem.path}
-                                onClick={() => {
-                                    if (window.innerWidth < 1024) {
-                                        onClose?.();
-                                    }
-                                }}
-                                className={`flex items-center ${isOpen ? 'justify-between py-1.5 px-2' : 'justify-center py-2'} rounded-md text-[13px] font-medium transition-colors group ${
-                                    isActive 
-                                        ? 'text-[#ff4a1f] dark:text-orange-400 font-bold bg-orange-50 dark:bg-slate-800/90' 
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/40'
-                                }`}
-                                title={!isOpen ? subItem.name : undefined}
-                            >
-                                <div className={`flex items-center ${isOpen ? 'gap-3' : 'justify-center'} whitespace-nowrap min-w-0`}>
-                                    {isOpen ? (
+                        return item.items.map((subItem: any, sIdx: number) => {
+                            const isActive = isSubItemActive(subItem.path, location.pathname, location.hash);
+                            const badgeCount = subItem.badge || getSidebarItemBadge(subItem.path);
+                            const isLast = sIdx === item.items.length - 1;
+
+                            const isBeforeActive = activeIdx !== -1 && sIdx < activeIdx;
+                            const isCurrentActive = activeIdx !== -1 && sIdx === activeIdx;
+
+                            return (
+                                <Link
+                                    key={subItem.path || subItem.name || sIdx}
+                                    to={subItem.path}
+                                    onClick={() => {
+                                        if (window.innerWidth < 1024) {
+                                            onClose?.();
+                                        }
+                                    }}
+                                    className={`relative flex items-center ${isOpen ? 'justify-between py-1.5 pl-[18px] pr-1.5' : 'justify-center py-2'} rounded-md text-[13.5px] transition-colors group ${
+                                        isActive 
+                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-bold' 
+                                            : 'text-slate-600 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-slate-200'
+                                    }`}
+                                    title={!isOpen ? String(subItem.name || '') : undefined}
+                                >
+                                    {isOpen && (
                                         <>
-                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600 group-hover:bg-slate-400 dark:group-hover:bg-slate-300'}`} />
-                                            <span className="truncate">{subItem.name}</span>
+                                            {/* Top vertical connector (top-0 to 50%) */}
+                                            <div 
+                                                className={`absolute left-0 top-0 h-1/2 w-[1.5px] transition-colors ${
+                                                    isBeforeActive || isCurrentActive 
+                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                                        : 'bg-slate-300 dark:bg-slate-700'
+                                                }`} 
+                                            />
+                                            
+                                            {/* Bottom vertical connector (50% to bottom-0, only if not last item) */}
+                                            {!isLast && (
+                                                <div 
+                                                    className={`absolute left-0 top-1/2 h-1/2 w-[1.5px] transition-colors ${
+                                                        isBeforeActive 
+                                                            ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                                            : 'bg-slate-300 dark:bg-slate-700'
+                                                    }`} 
+                                                />
+                                            )}
+                                            
+                                            {/* Horizontal connector branch (X-axis) */}
+                                            <div 
+                                                className={`absolute left-0 top-1/2 w-[13px] h-[1.5px] transition-colors ${
+                                                    isCurrentActive 
+                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                                        : 'bg-slate-300 dark:bg-slate-700'
+                                                }`} 
+                                            />
                                         </>
-                                    ) : (
-                                        <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600'}`} />
                                     )}
-                                </div>
-                                {isOpen && Number(badgeCount) > 0 ? (
-                                    <span className="ml-auto shrink-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold text-white bg-[#ff4a1f] rounded-full leading-none text-center shadow-xs">
-                                        {badgeCount}
-                                    </span>
-                                ) : null}
-                            </Link>
-                        );
-                    })}
+
+                                    <div className={`flex items-center ${isOpen ? 'gap-2 relative' : 'justify-center'} whitespace-nowrap min-w-0`}>
+                                        {isOpen ? (
+                                            <>
+                                                {/* Dot Indicator */}
+                                                <div className={`relative flex items-center justify-center shrink-0 w-3.5 h-3.5 rounded-full ${isActive ? 'bg-orange-100 dark:bg-orange-950/60 ring-2 ring-[#ff4a1f]/25' : 'bg-transparent'}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-500' : 'bg-slate-400 dark:bg-slate-500 group-hover:bg-slate-600 dark:group-hover:bg-slate-300'}`} />
+                                                </div>
+                                                <span className="truncate">{String(subItem.name || '')}</span>
+                                            </>
+                                        ) : (
+                                            <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                        )}
+                                    </div>
+                                    {isOpen && Number(badgeCount) > 0 ? (
+                                        <span className="ml-auto shrink-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold text-white bg-[#ff4a1f] rounded-full leading-none text-center shadow-xs">
+                                            {badgeCount}
+                                        </span>
+                                    ) : null}
+                                </Link>
+                            );
+                        });
+                    })()}
                 </div>
             )}
         </div>

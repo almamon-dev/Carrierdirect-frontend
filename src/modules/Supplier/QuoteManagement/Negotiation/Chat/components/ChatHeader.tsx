@@ -77,12 +77,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                         <span className={`shrink-0 font-semibold ${activeNegotiation.isOnline ? "text-emerald-600" : "text-slate-400"}`}>{activeNegotiation.lastSeenHuman || (activeNegotiation.isOnline ? "Active now" : "Offline")}</span>
                         <span className="text-slate-300">•</span>
                         <span className="font-bold text-slate-700 shrink-0">{activeNegotiation.quoteId}</span>
-                        {activeNegotiation.pickup && (
-                            <>
-                                <span className="text-slate-300 hidden sm:inline">•</span>
-                                <span className="text-slate-400 hidden sm:inline truncate">{activeNegotiation.pickup}</span>
-                            </>
-                        )}
+
                     </div>
                 </div>
             </div>
@@ -92,8 +87,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
                 <button
                     type="button"
                     className={`h-8 w-8 rounded-full flex items-center justify-center cursor-pointer transition-colors border ${showMobileDetails
-                            ? 'bg-orange-50 text-[#FF4A1F] border-orange-200/80 shadow-2xs'
-                            : 'text-slate-500 hover:text-slate-800 border-slate-200/80 hover:bg-slate-100'
+                        ? 'bg-orange-50 text-[#FF4A1F] border-orange-200/80 shadow-2xs'
+                        : 'text-slate-500 hover:text-slate-800 border-slate-200/80 hover:bg-slate-100'
                         }`}
                     onClick={() => setShowMobileDetails(!showMobileDetails)}
                     title={showMobileDetails ? 'Hide Quote Details' : 'Show Quote Details'}

@@ -13,7 +13,7 @@ const getPriorityClass = (p: string) => {
 
 export const getNegotiationColumns = (navigate: (path: string) => void): Column<NegotiationItem>[] => [
     {
-        id: 'id', label: 'Quote ID', sortable: true, className: 'w-[80px] min-w-[80px]',
+        id: 'id', label: 'Quote ID', sortable: true, className: 'w-[85px] min-w-[85px]',
         render: (row) => (
             <div className="flex items-center h-5">
                 <button
@@ -31,7 +31,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
         )
     },
     {
-        id: 'requestId', label: 'Requested ID', sortable: true, className: 'w-[100px] min-w-[100px]',
+        id: 'requestId', label: 'Requested ID', sortable: true, className: 'w-[95px] min-w-[90px]',
         render: (row) => {
             const rawReq = row.requestId ? String(row.requestId).replace('REQ-', '') : '';
             return (
@@ -48,7 +48,7 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
         }
     },
     {
-        id: 'customer', label: 'Customer', sortable: true, className: 'w-[140px] min-w-[140px]',
+        id: 'customer', label: 'Customer', sortable: true, className: 'w-[130px] min-w-[125px]',
         render: (row) => (
             <div className="flex items-center gap-2 min-w-0">
                 {row.customerAvatar ? (
@@ -63,31 +63,31 @@ export const getNegotiationColumns = (navigate: (path: string) => void): Column<
         )
     },
     {
-        id: 'pickup', label: 'Pickup Address', className: 'w-[160px] min-w-[150px]',
+        id: 'pickup', label: 'Pickup Address', className: 'w-[18%] min-w-[130px] max-w-[180px]',
         render: (row) => <div className="flex items-center min-w-0 pr-1 h-5" title={row.pickup}><span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">{row.pickup}</span></div>
     },
     {
-        id: 'delivery', label: 'Delivery Address', className: 'w-[160px] min-w-[150px]',
+        id: 'delivery', label: 'Delivery Address', className: 'w-[18%] min-w-[130px] max-w-[180px]',
         render: (row) => <div className="flex items-center min-w-0 pr-1 h-5" title={row.delivery}><span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">{row.delivery}</span></div>
     },
     {
-        id: 'distance', label: 'Distance', sortable: true, className: 'w-[85px] min-w-[85px] text-center',
+        id: 'distance', label: 'Distance', sortable: true, className: 'w-[75px] min-w-[70px] text-center',
         render: (row) => <div className="flex items-center justify-center h-5"><span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold leading-none">{row.distance}</span></div>
     },
     {
-        id: 'budget', label: 'Budget', sortable: true, className: 'w-[95px] min-w-[95px]',
+        id: 'budget', label: 'Budget', sortable: true, className: 'w-[90px] min-w-[85px]',
         render: (row) => <div className="flex items-center h-5"><span className="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100 text-xs leading-none">{row.budget ? (String(row.budget).includes('€') ? row.budget : `€ ${row.budget}`) : '€ 0'}</span></div>
     },
     {
-        id: 'priority', label: 'Priority', sortable: true, className: 'w-[90px] min-w-[90px] text-center',
+        id: 'priority', label: 'Priority', sortable: true, className: 'w-[85px] min-w-[80px] text-center',
         render: (row) => <div className="flex items-center justify-center h-5"><Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${getPriorityClass(row.priority)}`}>{row.priority}</Badge></div>
     },
     {
-        id: 'status', label: 'Status', sortable: true, className: 'w-[110px] min-w-[110px] text-center',
+        id: 'status', label: 'Status', sortable: true, className: 'w-[130px] min-w-[125px] text-center',
         render: (row) => <div className="flex items-center justify-center h-5"><Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${getStatusBadgeClass(row.status)}`}>{row.status}</Badge></div>
     },
     {
-        id: 'requestDate', label: 'Date', sortable: true, className: 'w-[125px] min-w-[125px] text-center',
+        id: 'requestDate', label: 'Date', sortable: true, className: 'w-[105px] min-w-[100px] text-center',
         render: (row) => <div className="flex items-center justify-center h-5"><span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">{row.requestDate}</span></div>
     },
 ];

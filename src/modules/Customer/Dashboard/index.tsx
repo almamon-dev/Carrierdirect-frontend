@@ -11,40 +11,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Select from '@/components/ui/select';
 import apiClient from '@/lib/axios';
 
-interface MetricCardProps {
-    title: string;
-    description: string;
-    value: string | number;
-    icon: React.ElementType;
-    colorClass: string;
-    isLastOnMobile?: boolean;
-    loading?: boolean;
-}
-
-const MetricCard: React.FC<MetricCardProps> = ({
-    title, description, value, icon: Icon, colorClass, isLastOnMobile = false, loading = false
-}) => (
-    <div className={`bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs transition-all flex flex-col justify-between w-full ${isLastOnMobile ? 'col-span-2 sm:col-span-1' : ''}`}>
-        <div>
-            <div className="flex justify-between items-start w-full mb-2 sm:mb-3">
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0 flex items-center justify-center ${colorClass}`}>
-                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2} />
-                </div>
-                {loading ? (
-                    <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                ) : (
-                    <span className="text-[18px] sm:text-[20px] font-extrabold text-slate-900 dark:text-slate-200 tracking-tight">{value}</span>
-                )}
-            </div>
-            <h3 className="text-[12.5px] sm:text-[13px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">
-                {title}
-            </h3>
-        </div>
-        <p className="text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400 font-medium leading-snug line-clamp-2 mt-1">
-            {description}
-        </p>
-    </div>
-);
+import MetricCard from '@/components/cards/metric-card';
 
 // Helpers
 function formatCurrency(num: number | string | undefined): string {
@@ -422,7 +389,7 @@ export default function Dashboard() {
                     value={formatCurrency(metrics.totalSpending)}
                     icon={Euro}
                     colorClass="bg-brand-light dark:bg-[#ff4a1f]/15 text-brand"
-                    loading={loading}
+                    isLoading={loading}
                 />
                 <MetricCard
                     title="Active Orders"
@@ -430,7 +397,7 @@ export default function Dashboard() {
                     value={metrics.activeOrders}
                     icon={Package}
                     colorClass="bg-brand-light dark:bg-[#ff4a1f]/15 text-brand"
-                    loading={loading}
+                    isLoading={loading}
                 />
                 <MetricCard
                     title="Active Requests"
@@ -438,7 +405,7 @@ export default function Dashboard() {
                     value={metrics.activeRequests}
                     icon={FileText}
                     colorClass="bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400"
-                    loading={loading}
+                    isLoading={loading}
                 />
                 <MetricCard
                     title="Wallet Balance"
@@ -446,7 +413,7 @@ export default function Dashboard() {
                     value={formatCurrency(metrics.walletBalance)}
                     icon={CreditCard}
                     colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-                    loading={loading}
+                    isLoading={loading}
                 />
                 <MetricCard
                     title="Avg. Rating"
@@ -455,7 +422,7 @@ export default function Dashboard() {
                     icon={Star}
                     colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
                     isLastOnMobile={true}
-                    loading={loading}
+                    isLoading={loading}
                 />
             </div>
 

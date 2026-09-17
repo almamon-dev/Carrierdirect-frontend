@@ -35,6 +35,7 @@ const TeamMemberProfilePage = lazy(() => import('./TeamManagement/TeamMemberProf
 const Earnings = lazy(() => import('./Finance/Earnings'));
 const Withdrawal = lazy(() => import('./Finance/Withdrawal'));
 const Payments = lazy(() => import('./Finance/Payments'));
+const Invoices = lazy(() => import('./Finance/Invoices'));
 const Subscription = lazy(() => import('./Subscription'));
 import Notifications from './Notifications';
 import Messages from './Messages';
@@ -448,7 +449,31 @@ export const supplierRoutes: RouteObject[] = [
     // Finance & Billing
     { 
         path: 'finance', 
-        element: <Navigate to="/supplier/finance/withdrawal" replace /> 
+        element: <Navigate to="/supplier/finance/billing" replace /> 
+    },
+    { 
+        path: 'finance/billing', 
+        element: (
+            <PermissionGuard requiredPermission="finance.view_earnings">
+                <Withdrawal />
+            </PermissionGuard>
+        ) 
+    },
+    { 
+        path: 'finance/invoices', 
+        element: (
+            <PermissionGuard requiredPermission="finance.invoices">
+                <Invoices />
+            </PermissionGuard>
+        ) 
+    },
+    { 
+        path: 'finance/payments', 
+        element: (
+            <PermissionGuard requiredPermission="finance.invoices">
+                <Payments />
+            </PermissionGuard>
+        ) 
     },
     { 
         path: 'finance/earnings', 
@@ -463,14 +488,6 @@ export const supplierRoutes: RouteObject[] = [
         element: (
             <PermissionGuard requiredPermission="finance.withdraw">
                 <Withdrawal />
-            </PermissionGuard>
-        ) 
-    },
-    { 
-        path: 'finance/payments', 
-        element: (
-            <PermissionGuard requiredPermission="finance.invoices">
-                <Payments />
             </PermissionGuard>
         ) 
     },

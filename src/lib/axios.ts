@@ -249,6 +249,16 @@ class ApiClient {
             silent: isSilent,
         });
     }
+
+    public async getBlob(endpoint: string, params?: any): Promise<Blob> {
+        const url = this.buildUrl(endpoint, params);
+        const headers = this.getHeaders({ Accept: "application/pdf, application/octet-stream, */*" });
+        const response = await fetch(url, { method: "GET", headers });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+        }
+        return await response.blob();
+    }
 }
 
 export const apiClient = new ApiClient();

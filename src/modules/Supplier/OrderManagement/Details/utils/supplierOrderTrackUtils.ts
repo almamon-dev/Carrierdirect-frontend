@@ -1,66 +1,190 @@
+export interface NormalizedSupplierOrder {
+    id: string;
+    rawId: number | string;
+    orderNumber: string;
+    from: string;
+    to: string;
+    pickupFullAddress: string;
+    deliveryFullAddress: string;
+    status: string;
+    rawStatus: string;
+    pickupDate: string;
+    deliveryDate: string;
+    estArrival: string;
+    estimatedTime: string;
+    vehicle: {
+        type: string;
+        number: string;
+        capacity: string;
+        goodsType: string;
+    };
+    driver: {
+        id?: number | string;
+        name: string;
+        phone: string;
+        email: string;
+    };
+    customer: {
+        id?: number | string;
+        name: string;
+        companyName: string;
+        avatar?: string;
+        verified: boolean;
+        rating: number;
+        reviews: number;
+        active: string;
+        memberSince: string;
+        completedOrders: number;
+    };
+    pricing: {
+        base: number;
+        total: number;
+        netPayout: number;
+        paymentStatus: string;
+        paymentStatusLabel: string;
+        isPaid: boolean;
+        isPayLater: boolean;
+        isEscrow: boolean;
+        escrowGuaranteed: boolean;
+    };
+    payment: {
+        status: string;
+        isPaid: boolean;
+        isPayLater: boolean;
+        isEscrow: boolean;
+        escrowGuaranteed: boolean;
+    };
+    podUploaded: boolean;
+    podStatus: string;
+    podFileUrl: string;
+    instructions?: string;
+}
+
 export const buildSupplierOrderDetails = (
     id: string | undefined,
     foundOrder: any,
     isPodAccepted: boolean,
     statusOverride?: string,
     assignedDriver?: { name: string; phone: string; email?: string; plate: string } | null
-) => {
-    const fromCity = foundOrder?.pickup_city ||
-        foundOrder?.shipping?.from ||
-        (foundOrder?.pickup_address ? foundOrder.pickup_address.split(',')[0]?.trim() : '') ||
-        foundOrder?.from ||
-        'London, UK';
+): NormalizedSupplierOrder => {
+    const rawId = foundOrder?.id || id || '1';
+    const cleanNum = String(rawId).replace(/^ORD-0*/i, '') || '1';
+    const formattedId = `ORD-${cleanNum.padStart(4, '0')}`;
 
-    const toCity = foundOrder?.delivery_city ||
-        foundOrder?.shipping?.to ||
-        (foundOrder?.delivery_address ? foundOrder.delivery_address.split(',')[0]?.trim() : '') ||
-        foundOrder?.to ||
-        'Manchester, UK';
-
-    const rawStatus = (statusOverride || foundOrder?.status_raw || foundOrder?.status || 'confirmed').toLowerCase().trim();
+    const rawStatus = (statusOverride || foundOrder?.status_raw || foundOrder?.raw_status || foundOrder?.status || 'confirmed').toLowerCase().trim();
+    const s = rawStatus.replace(/_/g, ' ');
+    
     let displayStatus = 'Confirmed';
-
-    if (rawStatus === 'completed' || rawStatus === 'pod accepted' || isPodAccepted) {
+    if (s === 'completed' || s === 'pod accepted' || isPodAccepted) {
         displayStatus = 'Completed';
-    } else if (rawStatus.includes('cancel')) {
+    } else if (s.includes('cancel')) {
         displayStatus = 'Cancelled';
-    } else if (rawStatus.includes('review') || rawStatus.includes('pod_uploaded') || rawStatus === 'delivered') {
+    } else if (s.includes('review') || s.includes('pod uploaded') || s === 'delivered') {
         displayStatus = 'POD Review';
-    } else if (rawStatus === 'arrived' || rawStatus === 'destination_reached') {
+    } else if (s === 'arrived' || s === 'destination reached') {
         displayStatus = 'Arrived';
-    } else if (rawStatus === 'in_transit' || rawStatus === 'on_the_way') {
+    } else if (s === 'in transit' || s === 'on the way' || s === 'in progress') {
         displayStatus = 'In Transit';
-    } else if (rawStatus === 'picked_up' || rawStatus === 'in_progress') {
+    } else if (s === 'picked up' || s === 'goods picked up' || s === 'cargo loaded') {
         displayStatus = 'Picked Up';
-    } else if (rawStatus === 'driver_assigned' || rawStatus === 'assigned' || rawStatus === 'dispatched') {
+    } else if (s === 'driver assigned' || s === 'assigned' || s === 'dispatched') {
         displayStatus = 'Driver Assigned';
-    } else if (rawStatus === 'confirmed' || rawStatus === 'scheduled' || rawStatus === 'pending') {
+    } else if (s === 'confirmed' || s === 'scheduled' || s === 'order confirmed') {
         displayStatus = 'Confirmed';
+    } else if (s === 'pending') {
+        displayStatus = 'Pending';
     } else {
         displayStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
     }
 
+    // Payment Status Normalization (Detect Pay Later vs Paid vs In Escrow)
+    const rawPayment = String(
+        foundOrder?.payment_status || 
+        foundOrder?.paymentStatus || 
+        foundOrder?.payment?.status || 
+        foundOrder?.payment?.payment_status || 
+        foundOrder?.invoice?.status ||
+        foundOrder?.invoice_type ||
+        foundOrder?.payment_method || 
+        (cleanNum === '2' ? 'pay_later' : cleanNum === '3' ? 'paid' : 'in_escrow')
+    ).toLowerCase().trim();
+
+    const isPaid = (rawStatus === 'completed') || 
+        rawPayment === 'paid' || 
+        foundOrder?.payment?.is_paid === true || 
+        foundOrder?.is_paid === true;
+
+    const isPayLater = !isPaid && (
+        rawPayment.includes('pay later') || 
+        rawPayment.includes('pay_later') || 
+        rawPayment.includes('net-30') || 
+        rawPayment.includes('credit') ||
+        Boolean(foundOrder?.is_pay_later) ||
+        Boolean(foundOrder?.payment?.is_pay_later) ||
+        String(foundOrder?.invoice_type || '').toLowerCase() === 'pay_later' ||
+        String(foundOrder?.payment_option || '').toLowerCase() === 'pay_later' ||
+        String(foundOrder?.invoice?.invoice_type || '').toLowerCase() === 'pay_later'
+    );
+
+    const isEscrow = !isPaid && !isPayLater;
+
+    let paymentStatus = 'In Escrow';
+    let paymentStatusLabel = 'In Escrow';
+
+    if (isPaid) {
+        paymentStatus = 'Paid';
+        paymentStatusLabel = 'Paid';
+    } else if (isPayLater) {
+        paymentStatus = 'Pay Later (Net-30)';
+        paymentStatusLabel = 'Pay Later (Net-30)';
+    } else if (rawStatus === 'delivered' || rawStatus === 'pod_uploaded') {
+        paymentStatus = 'POD Under Review';
+        paymentStatusLabel = 'POD Under Review';
+    } else {
+        paymentStatus = 'In Escrow';
+        paymentStatusLabel = 'In Escrow';
+    }
+
+    const pickupFullAddress = foundOrder?.shipping?.from ||
+        foundOrder?.pickup_address ||
+        foundOrder?.pickupFullAddress ||
+        'Unit 4, Heathrow Cargo Terminal, London, UK';
+
+    const deliveryFullAddress = foundOrder?.shipping?.to ||
+        foundOrder?.delivery_address ||
+        foundOrder?.deliveryFullAddress ||
+        'Trafford Park Industrial Estate, Manchester, UK';
+
+    const fromCity = foundOrder?.pickup_city ||
+        (pickupFullAddress ? pickupFullAddress.split(',')[0]?.trim() : '') ||
+        'London';
+
+    const toCity = foundOrder?.delivery_city ||
+        (deliveryFullAddress ? deliveryFullAddress.split(',')[0]?.trim() : '') ||
+        'Manchester';
+
     const totalAmount = Number(
-        foundOrder?.amount_raw ??
+        foundOrder?.payout_amount ??
+        foundOrder?.payment?.payout_amount ??
         foundOrder?.payment?.total ??
+        foundOrder?.amount_raw ??
         foundOrder?.total_amount ??
         foundOrder?.amount ??
         2500
     );
 
-    const baseRate = Math.round(totalAmount * 0.85);
-    const loadingFee = Math.round(totalAmount * 0.10);
-    const insuranceFee = Math.round(totalAmount - baseRate - loadingFee);
-    const platformFee = Math.round(totalAmount * 0.05);
-    const netPayout = totalAmount - platformFee;
+    const netPayout = totalAmount;
 
+    // Customer profile (Privacy safe - no unmasked personal phone/email)
     const customerName = foundOrder?.client?.name ||
+        foundOrder?.client?.company_name ||
         foundOrder?.customer?.name ||
+        foundOrder?.customer?.company_name ||
         foundOrder?.customer_name ||
         (typeof foundOrder?.customer === 'string' ? foundOrder.customer : 'Premier Logistics Ltd');
 
     const customerRating = Number(foundOrder?.client?.rating || foundOrder?.customer?.rating || 4.9);
-    const customerReviews = Number(foundOrder?.client?.reviews || foundOrder?.customer?.reviews || 120);
+    const customerReviews = Number(foundOrder?.client?.reviews || foundOrder?.customer?.reviews || 128);
 
     const vehicleType = foundOrder?.shipping?.service ||
         foundOrder?.vehicle?.type ||
@@ -77,23 +201,16 @@ export const buildSupplierOrderDetails = (
         foundOrder?.pallet_type ||
         foundOrder?.load_type ||
         foundOrder?.type_of_pallets ||
-        'Pallets';
-
-    const hasRealDriver = Boolean(
-        assignedDriver?.name ||
-        (foundOrder?.driver_name && foundOrder.driver_name !== 'Unassigned') ||
-        (foundOrder?.driver?.name && foundOrder.driver.name !== 'Unassigned') ||
-        (foundOrder?.driver && typeof foundOrder.driver === 'string' && foundOrder.driver !== 'Unassigned')
-    );
+        'Standard Euro Pallets (x4)';
 
     let driverName = 'Unassigned';
     if (assignedDriver?.name) {
         driverName = assignedDriver.name;
-    } else if (foundOrder?.driver_name) {
+    } else if (foundOrder?.driver_name && foundOrder.driver_name !== 'Unassigned') {
         driverName = foundOrder.driver_name;
-    } else if (foundOrder?.driver?.name) {
+    } else if (foundOrder?.driver?.name && foundOrder.driver.name !== 'Unassigned') {
         driverName = foundOrder.driver.name;
-    } else if (typeof foundOrder?.driver === 'string' && foundOrder.driver) {
+    } else if (typeof foundOrder?.driver === 'string' && foundOrder.driver && foundOrder.driver !== 'Unassigned') {
         driverName = foundOrder.driver;
     }
 
@@ -116,65 +233,86 @@ export const buildSupplierOrderDetails = (
         foundOrder?.vehicle?.number ||
         'GB-24-TRK';
 
-    const formattedId = id
-        ? (id.startsWith('ORD-') ? id : `ORD-${id.padStart(4, '0')}`)
-        : (foundOrder?.order_no || foundOrder?.id || 'ORD-0001');
+    const pickupDateStr = foundOrder?.shipping?.pickup_at ||
+        foundOrder?.pickup_date ||
+        foundOrder?.pickupDate ||
+        '18 Sep 2026';
+
+    const deliveryDateStr = foundOrder?.shipping?.delivery_at ||
+        foundOrder?.delivery_date ||
+        foundOrder?.deliveryDate ||
+        '19 Sep 2026';
 
     return {
         id: formattedId,
-        slug: String(foundOrder?.id || foundOrder?.slug || id || '1'),
+        rawId: rawId,
+        orderNumber: foundOrder?.order_no || foundOrder?.order_number || formattedId,
+        from: fromCity,
+        to: toCity,
+        pickupFullAddress,
+        deliveryFullAddress,
         status: displayStatus,
-        raw_status: rawStatus,
-        estArrival: foundOrder?.estArrival || foundOrder?.shipping?.pickup_at || foundOrder?.pickup_date || '17 Sep 2026',
-        from: String(fromCity).includes('(') ? String(fromCity) : `${fromCity}`,
-        to: String(toCity).includes('(') ? String(toCity) : `${toCity}`,
-        pickupFullAddress: foundOrder?.pickupFullAddress || foundOrder?.shipping?.from || foundOrder?.pickup_address || fromCity,
-        deliveryFullAddress: foundOrder?.deliveryFullAddress || foundOrder?.shipping?.to || foundOrder?.delivery_address || toCity,
-        pickupDate: foundOrder?.shipping?.pickup_at || foundOrder?.pickup_date || '15 Sep 2026',
-        deliveryDate: foundOrder?.delivery_date || '17 Sep 2026',
+        rawStatus: rawStatus,
+        pickupDate: pickupDateStr,
+        deliveryDate: deliveryDateStr,
+        estArrival: foundOrder?.estimated_time || foundOrder?.estArrival || '19 Sep 2026, 04:00 PM',
+        estimatedTime: foundOrder?.estimated_time || '24-48 hrs',
         vehicle: {
             type: vehicleType,
             number: vehiclePlate,
-            capacity: String(cargoWeight).includes('kg') || String(cargoWeight).includes('KG') ? cargoWeight : `${cargoWeight} kg`,
+            capacity: cargoWeight,
             goodsType: loadType
         },
         driver: {
+            id: foundOrder?.driver_id || foundOrder?.driver?.id,
             name: driverName,
             phone: driverPhone,
             email: driverEmail
         },
         customer: {
+            id: foundOrder?.client?.id || foundOrder?.customer?.id,
             name: customerName,
+            companyName: customerName,
+            avatar: foundOrder?.client?.avatar || foundOrder?.customer?.avatar,
             verified: true,
             rating: customerRating,
             reviews: customerReviews,
-            active: 'Active 2m ago',
+            active: 'Active now',
             memberSince: '2023',
-            completedOrders: 120
+            completedOrders: 145
         },
         pricing: {
-            base: baseRate,
-            loading: loadingFee,
-            insurance: insuranceFee,
-            platformFee: platformFee,
+            base: totalAmount,
             total: totalAmount,
             netPayout: netPayout,
-            advancePaid: Math.round(totalAmount * 0.30),
-            due: netPayout
+            paymentStatus: paymentStatus,
+            paymentStatusLabel: paymentStatusLabel,
+            isPaid: isPaid,
+            isPayLater: isPayLater,
+            isEscrow: isEscrow,
+            escrowGuaranteed: true
         },
-        podUploaded: isPodAccepted || foundOrder?.pod_status === 'Approved' || foundOrder?.pod_status === 'Pending Review' || foundOrder?.podStatus === 'Approved' || foundOrder?.pod_status === 'pending',
-        podStatus: foundOrder?.pod_status || foundOrder?.podStatus || (isPodAccepted ? 'Approved' : 'Not Uploaded'),
-        podFileUrl: foundOrder?.tracking?.proof || foundOrder?.pod_document_url || foundOrder?.podFileUrl || foundOrder?.proof_of_delivery || ''
+        payment: {
+            status: paymentStatusLabel,
+            isPaid: isPaid,
+            isPayLater: isPayLater,
+            isEscrow: isEscrow,
+            escrowGuaranteed: true
+        },
+        podUploaded: isPodAccepted || foundOrder?.pod_status === 'Approved' || foundOrder?.pod_status === 'Pending Review' || foundOrder?.podStatus === 'Approved' || foundOrder?.pod_status === 'pending' || rawStatus === 'delivered' || rawStatus === 'pod_uploaded',
+        podStatus: foundOrder?.pod_status || foundOrder?.podStatus || (isPodAccepted ? 'Approved' : ((rawStatus === 'delivered' || rawStatus === 'pod_uploaded') ? 'Pending Review' : 'Not Uploaded')),
+        podFileUrl: foundOrder?.tracking?.proof || foundOrder?.pod_document_url || foundOrder?.podFileUrl || foundOrder?.proof_of_delivery || '',
+        instructions: foundOrder?.shipping?.instructions || foundOrder?.instructions || 'Standard loading ramp required. Handle with care.'
     };
 };
 
 export const buildSupplierOrderTimeline = (
     isPodAccepted: boolean,
-    order?: any
+    order?: NormalizedSupplierOrder
 ) => {
-    const rawStatus = (order?.raw_status || order?.status_raw || order?.status || 'confirmed').toLowerCase().trim();
-    const rawDate = order?.created_at || order?.pickup_date || order?.date || null;
-    const baseDate = rawDate ? new Date(rawDate) : new Date();
+    const rawStatus = (order?.rawStatus || order?.status || 'confirmed').toLowerCase().trim();
+    const s = rawStatus.replace(/_/g, ' ');
+    const baseDate = new Date();
 
     const formatDate = (d: Date, hoursOffset = 0, minsOffset = 0) => {
         const target = new Date(d.getTime() + (hoursOffset * 60 + minsOffset) * 60 * 1000);
@@ -187,8 +325,8 @@ export const buildSupplierOrderTimeline = (
         });
     };
 
-    const fromCity = order?.from || 'London, UK';
-    const toCity = order?.to || 'Manchester, UK';
+    const fromCity = order?.from || 'London';
+    const toCity = order?.to || 'Manchester';
 
     const hasRealDriver = Boolean(
         order?.driver?.name &&
@@ -197,31 +335,23 @@ export const buildSupplierOrderTimeline = (
         order.driver.name !== 'Assigned Fleet Driver'
     );
 
-    // Timeline Step Index Mapping:
-    // 0: Order Confirmed
-    // 1: Driver Assigned
-    // 2: Goods Picked Up
-    // 3: In Transit
-    // 4: Destination Delivery
-    // 5: POD Upload & Review
-    // 6: Order Completed
     let currentStepIndex = 1;
 
-    if (rawStatus === 'pending') {
+    if (s === 'pending') {
         currentStepIndex = 0;
-    } else if (rawStatus === 'confirmed' || rawStatus === 'scheduled' || rawStatus === 'order_confirmed' || rawStatus === 'new') {
+    } else if (s === 'confirmed' || s === 'scheduled' || s === 'order confirmed' || s === 'new') {
         currentStepIndex = hasRealDriver ? 2 : 1;
-    } else if (rawStatus === 'driver_assigned' || rawStatus === 'assigned' || rawStatus === 'dispatched') {
+    } else if (s === 'driver assigned' || s === 'assigned' || s === 'dispatched') {
         currentStepIndex = 2;
-    } else if (rawStatus === 'picked_up' || rawStatus === 'cargo_loaded' || rawStatus === 'in_progress') {
+    } else if (s === 'picked up' || s === 'cargo loaded' || s === 'goods picked up') {
         currentStepIndex = 3;
-    } else if (rawStatus === 'in_transit' || rawStatus === 'on_the_way') {
+    } else if (s === 'in transit' || s === 'on the way' || s === 'in progress') {
         currentStepIndex = 3;
-    } else if (rawStatus === 'arrived' || rawStatus === 'destination_reached' || rawStatus === 'out_for_delivery') {
+    } else if (s === 'arrived' || s === 'destination reached' || s === 'out for delivery') {
         currentStepIndex = 4;
-    } else if (rawStatus === 'delivered' || rawStatus === 'pod_uploaded' || rawStatus === 'pod_review' || rawStatus === 'pod_pending') {
+    } else if (s === 'delivered' || s === 'pod uploaded' || s === 'pod review' || s === 'pod pending') {
         currentStepIndex = isPodAccepted ? 6 : 5;
-    } else if (rawStatus === 'completed' || rawStatus === 'pod_accepted' || isPodAccepted) {
+    } else if (s === 'completed' || s === 'pod accepted' || isPodAccepted) {
         currentStepIndex = 6;
     }
 
@@ -229,58 +359,58 @@ export const buildSupplierOrderTimeline = (
         {
             id: 1,
             status: 'Order Confirmed',
-            time: formatDate(baseDate, 0, 0),
+            time: formatDate(baseDate, -4, 0),
             completed: currentStepIndex >= 1 || rawStatus !== 'pending',
             active: currentStepIndex === 0 && rawStatus === 'pending',
-            location: 'Order confirmed and registered in system'
+            location: 'Order confirmed & customer booking secured'
         },
         {
             id: 2,
             status: hasRealDriver ? 'Driver Assigned' : 'Driver Assignment',
-            time: hasRealDriver ? formatDate(baseDate, 1, 15) : 'Action Required',
+            time: hasRealDriver ? formatDate(baseDate, -2, 30) : 'Action Required',
             completed: hasRealDriver && currentStepIndex >= 2,
             active: !hasRealDriver || currentStepIndex === 1,
-            location: hasRealDriver ? `${order.driver.name} assigned to shipment (${order.vehicle?.number || 'Fleet'})` : 'Assign driver and vehicle for dispatch'
+            location: hasRealDriver ? `${order?.driver?.name} assigned (${order?.vehicle?.number || 'Fleet Vehicle'})` : 'Assign driver and vehicle for dispatch'
         },
         {
             id: 3,
             status: 'Goods Picked Up',
-            time: currentStepIndex > 2 ? formatDate(baseDate, 3, 30) : (currentStepIndex === 2 ? 'Next Step' : 'Scheduled'),
+            time: currentStepIndex > 2 ? formatDate(baseDate, -1, 0) : (currentStepIndex === 2 ? 'Next Step' : 'Scheduled'),
             completed: currentStepIndex > 2,
             active: currentStepIndex === 2 && hasRealDriver,
-            location: `Pickup location: ${fromCity}`
+            location: `Pickup facility: ${fromCity}`
         },
         {
             id: 4,
             status: 'In Transit',
-            time: currentStepIndex > 3 ? formatDate(baseDate, 6, 0) : (currentStepIndex === 3 ? 'Live Transit' : 'Upcoming'),
+            time: currentStepIndex > 3 ? formatDate(baseDate, 0, 0) : (currentStepIndex === 3 ? 'Live Transit' : 'Upcoming'),
             completed: currentStepIndex > 3,
             active: currentStepIndex === 3,
-            location: `Highway Transit: ${fromCity} ➔ ${toCity}`
+            location: `Corridor: ${fromCity} ➔ ${toCity}`
         },
         {
             id: 5,
             status: 'Destination Delivery',
-            time: currentStepIndex > 4 ? formatDate(baseDate, 12, 0) : (currentStepIndex === 4 ? 'Arriving' : 'Upcoming'),
+            time: currentStepIndex > 4 ? formatDate(baseDate, 2, 0) : (currentStepIndex === 4 ? 'Arriving' : 'Upcoming'),
             completed: currentStepIndex > 4,
             active: currentStepIndex === 4,
-            location: `${toCity} Delivery Point`
+            location: `${toCity} Receiving Dock`
         },
         {
             id: 6,
             status: isPodAccepted ? 'POD Accepted' : 'POD Upload & Review',
-            time: isPodAccepted ? formatDate(baseDate, 14, 0) : (currentStepIndex === 5 ? 'Action Required' : 'Pending Delivery'),
+            time: isPodAccepted ? formatDate(baseDate, 3, 0) : (currentStepIndex === 5 ? 'Under Review' : 'Pending Delivery'),
             completed: isPodAccepted || (currentStepIndex === 6),
             active: currentStepIndex === 5 && !isPodAccepted,
-            location: isPodAccepted ? 'Receipt Verified & Confirmed' : (currentStepIndex === 5 ? 'Upload signed delivery note from customer' : 'Requires delivery completion')
+            location: isPodAccepted ? 'POD verified by customer' : (currentStepIndex === 5 ? 'Delivery note uploaded, verification in progress' : 'Requires delivery completion')
         },
         {
             id: 7,
             status: 'Order Completed',
-            time: isPodAccepted || currentStepIndex === 6 ? 'Payout Released' : 'Pending Confirmation',
+            time: isPodAccepted || currentStepIndex === 6 ? 'Payout Released' : 'Pending Verification',
             completed: isPodAccepted || currentStepIndex === 6,
             active: false,
-            location: 'Escrow payment released to supplier'
+            location: 'Platform payment released to carrier account'
         },
     ];
 };

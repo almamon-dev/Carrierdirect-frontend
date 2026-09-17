@@ -1,33 +1,36 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useSearchParams } from 'react-router-dom';
-import {
-  RotateCcw,
-  Plus,
-  Download,
-  Check,
-  X,
-  Loader2,
-  Sparkles,
-  Inbox,
-  CreditCard,
-  Building2,
-  ShieldCheck,
-  ArrowRight,
-  Receipt,
-  Wallet,
-  TrendingUp,
-  AlertCircle,
-  Clock
-} from 'lucide-react';
+import MetricCard from '@/components/cards/metric-card';
 import { DataTable, EmptyState } from '@/components/tables';
 import type { Column } from '@/components/tables/data-table';
-import Button from '@/components/ui/button';
 import Badge from '@/components/ui/badge';
+import Button from '@/components/ui/button';
 import apiClient from '@/lib/axios';
+import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
 import { useToastStore } from '@/stores/useToastStore';
+import {
+  Check,
+  CheckCircle2,
+  Clock,
+  Copy,
+  CreditCard,
+  Download,
+  Inbox,
+  Loader2,
+  Plus,
+  Receipt,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+  Wallet,
+  X
+} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export interface PayLaterInvoiceItem {
+  pickup_address?: string;
+  delivery_address?: string;
+  order_id?: number | string;
   id: string;
   rawId: number | string;
   orderId: string;
@@ -38,7 +41,7 @@ export interface PayLaterInvoiceItem {
   issueDate: string;
   dueDate: string;
   amount: number;
-  status: 'unsettled' | 'due_soon' | 'settled';
+  status: 'due' | 'due_soon' | 'overdue' | 'settled' | 'unsettled';
   daysLeft: number;
   raw?: any;
 }
@@ -55,6 +58,7 @@ export interface CreditRequestItem {
 
 export default function PayLaterFacilityPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const showToast = useToastStore((state) => state.showToast);
 
   const getValidTab = (tab: string | null): 'Invoices' | 'Limit Requests' => {
@@ -204,15 +208,22 @@ export default function PayLaterFacilityPage() {
         const payLaterInvoices = rawInvoices.filter((inv: any) => inv.is_pay_later !== false && inv.invoice_type !== 'subscription');
         const mapped: PayLaterInvoiceItem[] = payLaterInvoices.map((inv: any) => {
           const rawSt = (inv.raw_status || inv.status || 'due').toLowerCase().trim();
-          const isSettled = rawSt === 'paid';
+          const isSettled = rawSt === 'paid' || rawSt === 'settled';
           const dueDateStr = inv.due_date || '30 Days';
           const days = calculateDaysLeft(dueDateStr);
-          const isDueSoon = !isSettled && (days <= 7 && days >= 0);
+          const isOverdue = !isSettled && (rawSt === 'overdue' || days < 0);
+          const isDueSoon = !isSettled && !isOverdue && (days <= 7 && days >= 0);
           const amt = Number(inv.total_amount ?? (typeof inv.amount === 'number' ? inv.amount : parseFloat(String(inv.amount || '0').replace(/[^0-9.-]+/g, '')) || 0));
 
           if (!isSettled) {
             calculatedUsed += amt;
           }
+
+          let invoiceStatus: 'due' | 'due_soon' | 'overdue' | 'settled' = 'due';
+          if (isSettled) invoiceStatus = 'settled';
+          else if (isOverdue) invoiceStatus = 'overdue';
+          else if (isDueSoon) invoiceStatus = 'due_soon';
+          else invoiceStatus = 'due';
 
           return {
             id: inv.invoice_number || (inv.id ? `INV-${String(inv.id).padStart(4, '0')}` : 'INV-0001'),
@@ -225,8 +236,11 @@ export default function PayLaterFacilityPage() {
             issueDate: inv.invoice_date || inv.created_at || '14 Sep 2026',
             dueDate: dueDateStr,
             amount: amt,
-            status: isSettled ? 'settled' : (isDueSoon ? 'due_soon' : 'unsettled'),
+            status: invoiceStatus,
             daysLeft: isSettled ? 0 : days,
+            pickup_address: inv.pickup_address || inv.pickup || inv.pickup_city || inv.from || 'Pickup Location',
+            delivery_address: inv.delivery_address || inv.delivery || inv.delivery_city || inv.to || 'Delivery Location',
+            order_id: inv.order_id || inv.raw?.order_id,
             raw: inv
           };
         });
@@ -272,8 +286,9 @@ export default function PayLaterFacilityPage() {
   const filteredData = useMemo(() => {
     return invoices.filter((item) => {
       if (statusFilter !== 'All') {
-        if (statusFilter === 'Unsettled' && item.status !== 'unsettled' && item.status !== 'due_soon') return false;
+        if (statusFilter === 'Due (Net-30)' && item.status !== 'due' && item.status !== 'unsettled') return false;
         if (statusFilter === 'Due Soon' && item.status !== 'due_soon') return false;
+        if (statusFilter === 'Overdue' && item.status !== 'overdue') return false;
         if (statusFilter === 'Settled' && item.status !== 'settled') return false;
       }
       return true;
@@ -303,153 +318,237 @@ export default function PayLaterFacilityPage() {
       window.URL.revokeObjectURL(url);
       showToast(`Invoice ${row.id} downloaded successfully.`, 'success');
     } catch {
-      showToast('Downloaded consolidated invoice document.', 'success');
+      exportInvoicePdf(row as any);
     }
   };
 
   // Compact Single-Line Columns for Invoices
   const invoiceColumns = useMemo<Column<PayLaterInvoiceItem>[]>(() => [
     {
-      id: 'id',
-      label: 'Invoice ID',
-      className: 'w-[12%] min-w-[120px]',
+      id: "id",
+      label: "Invoice ID",
+      className: "whitespace-nowrap",
       sortable: true,
       render: (row) => (
-        <div className="flex items-center min-h-[26px]">
-          <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">{row.id}</span>
+        <div className="flex items-center gap-1.5 group min-h-[22px]">
+          <span className="font-bold text-[#ff4a1f] text-xs whitespace-nowrap">{row.id}</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigator.clipboard.writeText(row.id);
+              showToast(`Copied invoice ${row.id}`, "success");
+            }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+            title="Copy Invoice ID"
+          >
+            <Copy size={12} />
+          </button>
         </div>
       ),
     },
     {
-      id: 'orderId',
-      label: 'Order Ref',
-      className: 'w-[11%] min-w-[100px]',
+      id: "orderId",
+      label: "Order Ref",
+      className: "whitespace-nowrap",
       sortable: true,
       render: (row) => (
-        <div className="flex items-center min-h-[26px]">
-          <span className="font-mono text-slate-600 dark:text-slate-400 text-xs font-semibold">{row.orderId}</span>
+        <div className="flex items-center min-h-[22px]">
+          {row.order_id ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/customer/orders/${row.order_id}`);
+              }}
+              className="font-semibold text-slate-700 dark:text-slate-300 hover:text-[#ff4a1f] hover:underline cursor-pointer text-xs whitespace-nowrap"
+            >
+              {row.orderId}
+            </button>
+          ) : (
+            <span className="text-slate-500 dark:text-slate-400 text-xs font-semibold whitespace-nowrap">{row.orderId}</span>
+          )}
         </div>
       ),
     },
     {
-      id: 'carrier',
-      label: 'Carrier',
-      className: 'w-[18%] min-w-[140px]',
+      id: "carrier",
+      label: "Supplier",
+      className: "whitespace-nowrap",
+      sortable: true,
+      render: (row) => {
+        const supplierName = row.carrier || "Carrier Direct";
+        const initial = supplierName.charAt(0).toUpperCase();
+        return (
+          <div className="flex items-center gap-2 whitespace-nowrap min-h-[22px]">
+            <div className="w-5 h-5 min-w-[20px] min-h-[20px] aspect-square rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 dark:border-orange-500/20 text-[#ff4a1f] flex items-center justify-center text-[10px] font-bold shrink-0">
+              <span>{initial}</span>
+            </div>
+            <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs whitespace-nowrap" title={supplierName}>
+              {supplierName}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "route",
+      label: "Pickup & Delivery",
+      className: "min-w-[160px]",
+      render: (row) => {
+        const pickup = row.pickup_address || row.from || "Pickup Location";
+        const delivery = row.delivery_address || row.to || "Delivery Location";
+        return (
+          <div className="flex flex-col justify-center gap-0.5 py-0.5 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0" title={`Pickup: ${pickup}`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate">
+                {pickup}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 min-w-0" title={`Delivery: ${delivery}`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f] shrink-0" />
+              <span className="text-slate-500 dark:text-slate-400 text-xs truncate">
+                {delivery}
+              </span>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      id: "issueDate",
+      label: "Issue Date",
+      className: "whitespace-nowrap text-center",
       sortable: true,
       render: (row) => (
-        <div className="flex items-center min-h-[26px] truncate" title={row.carrier}>
-          <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate">{row.carrier}</span>
+        <div className="flex items-center justify-center min-h-[22px]">
+          <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap text-xs font-medium">{row.issueDate}</span>
         </div>
       ),
     },
     {
-      id: 'route',
-      label: 'Freight Route',
-      className: 'w-[22%] min-w-[160px]',
+      id: "dueDate",
+      label: "Due Date",
+      className: "whitespace-nowrap text-center",
       sortable: true,
-      render: (row) => (
-        <div className="flex items-center min-h-[26px] truncate" title={row.route}>
-          <span className="font-medium text-slate-700 dark:text-slate-300 text-xs truncate">{row.route}</span>
-        </div>
-      ),
+      render: (row) => {
+        const isSettled = row.status === "settled";
+        const isOverdue = row.status === "overdue";
+        const isDueSoon = row.status === "due_soon";
+
+        return (
+          <div className="flex flex-col items-center justify-center min-h-[22px] leading-tight">
+            <span className={`whitespace-nowrap text-xs font-semibold ${
+              isOverdue ? "text-rose-600 dark:text-rose-400" : isDueSoon ? "text-amber-600 dark:text-amber-400" : isSettled ? "text-slate-500 dark:text-slate-400" : "text-slate-700 dark:text-slate-300"
+            }`}>
+              {row.dueDate}
+            </span>
+            {!isSettled && (
+              <span className={`text-[9.5px] whitespace-nowrap font-medium ${
+                isOverdue ? "text-rose-500 font-bold" : isDueSoon ? "text-amber-600 font-semibold" : "text-slate-400"
+              }`}>
+                {isOverdue ? `${Math.abs(row.daysLeft)}d overdue` : `${row.daysLeft}d left`}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
-      id: 'issueDate',
-      label: 'Issue Date',
-      className: 'w-[10%] min-w-[95px]',
+      id: "amount",
+      label: "Amount",
+      className: "whitespace-nowrap text-right",
       sortable: true,
       render: (row) => (
-        <div className="flex items-center min-h-[26px]">
-          <span className="text-slate-600 dark:text-slate-400 text-xs">{row.issueDate}</span>
-        </div>
-      ),
-    },
-    {
-      id: 'dueDate',
-      label: 'Due Date',
-      className: 'w-[10%] min-w-[95px]',
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center min-h-[26px]">
-          <span className={`text-xs font-medium ${row.status === 'due_soon' ? 'text-rose-600 font-bold' : 'text-slate-800 dark:text-slate-200'}`}>
-            {row.dueDate}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: 'amount',
-      label: 'Amount',
-      className: 'w-[11%] min-w-[100px] text-right',
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center justify-end min-h-[26px]">
-          <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">
+        <div className="flex items-center justify-end min-h-[22px]">
+          <span className="font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap text-xs">
             € {row.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
       ),
     },
     {
-      id: 'status',
-      label: 'Status',
-      className: 'w-[6%] min-w-[90px] text-center',
+      id: "status",
+      label: "Payment Status",
+      className: "whitespace-nowrap text-center",
       render: (row) => {
-        const badgeStyle = row.status === 'settled'
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
-          : row.status === 'due_soon'
-          ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60'
-          : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60';
-
+        if (row.status === "settled") {
+          return (
+            <div className="flex items-center justify-center min-h-[22px]">
+              <Badge variant="secondary" className="whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-semibold border rounded-[3px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60">
+                Settled (Paid)
+              </Badge>
+            </div>
+          );
+        }
+        if (row.status === "overdue") {
+          return (
+            <div className="flex items-center justify-center min-h-[22px]">
+              <Badge variant="secondary" className="whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-bold border rounded-[3px] bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60">
+                Overdue
+              </Badge>
+            </div>
+          );
+        }
+        if (row.status === "due_soon") {
+          return (
+            <div className="flex items-center justify-center min-h-[22px]">
+              <Badge variant="secondary" className="whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-semibold border rounded-[3px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60">
+                Due Soon ({row.daysLeft}d)
+              </Badge>
+            </div>
+          );
+        }
         return (
-          <div className="flex items-center justify-center min-h-[26px]">
-            <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${badgeStyle}`}>
-              {row.status === 'settled' ? 'Settled' : row.status === 'due_soon' ? 'Due Soon' : 'Unsettled'}
+          <div className="flex items-center justify-center min-h-[22px]">
+            <Badge variant="secondary" className="whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-semibold border rounded-[3px] bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60">
+              Due (Net-30)
             </Badge>
           </div>
         );
       },
     },
-  ], []);
+  ], [navigate, showToast]);
 
   // Compact Single-Line Columns for Limit Requests
   const requestColumns = useMemo<Column<CreditRequestItem>[]>(() => [
     {
       id: 'id',
       label: 'Request ID',
-      className: 'w-[14%] min-w-[120px]',
+      className: 'whitespace-nowrap',
       sortable: true,
       render: (row) => (
-        <div className="flex items-center min-h-[26px]">
-          <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">{row.id}</span>
+        <div className="flex items-center min-h-[22px]">
+          <span className="font-bold text-slate-900 dark:text-slate-100 text-xs whitespace-nowrap">{row.id}</span>
         </div>
       ),
     },
     {
       id: 'limitType',
       label: 'Limit Type',
-      className: 'w-[14%] min-w-[110px]',
+      className: 'whitespace-nowrap',
       render: (row) => {
         const typeStr = (row.limitType || 'max').toLowerCase();
         const label = typeStr.includes('month')
           ? 'Monthly Limit'
           : typeStr.includes('week')
-          ? 'Weekly Limit'
-          : typeStr.includes('day') || typeStr.includes('daily')
-          ? 'Daily Limit'
-          : 'Max Credit';
+            ? 'Weekly Limit'
+            : typeStr.includes('day') || typeStr.includes('daily')
+              ? 'Daily Limit'
+              : 'Max Credit';
 
         const badgeClass = typeStr.includes('month')
           ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60'
           : typeStr.includes('week')
-          ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60'
-          : typeStr.includes('day') || typeStr.includes('daily')
-          ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
-          : 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800/60';
+            ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60'
+            : typeStr.includes('day') || typeStr.includes('daily')
+              ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
+              : 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800/60';
 
         return (
-          <div className="flex items-center min-h-[26px]">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-bold border ${badgeClass}`}>
+          <div className="flex items-center min-h-[22px]">
+            <span className={`inline-flex items-center px-1.5 py-0.25 rounded-[3px] text-[9.5px] font-semibold border whitespace-nowrap ${badgeClass}`}>
               {label}
             </span>
           </div>
@@ -459,22 +558,22 @@ export default function PayLaterFacilityPage() {
     {
       id: 'date',
       label: 'Request Date',
-      className: 'w-[12%] min-w-[100px]',
+      className: 'whitespace-nowrap',
       sortable: true,
       render: (row) => (
-        <div className="flex items-center min-h-[26px]">
-          <span className="text-slate-600 dark:text-slate-400 text-xs">{row.date}</span>
+        <div className="flex items-center min-h-[22px]">
+          <span className="text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">{row.date}</span>
         </div>
       ),
     },
     {
       id: 'requestedAmount',
       label: 'Requested Limit',
-      className: 'w-[15%] min-w-[120px] text-right',
+      className: 'whitespace-nowrap text-right',
       sortable: true,
       render: (row) => (
-        <div className="flex items-center justify-end min-h-[26px]">
-          <span className="font-bold text-[#ff4a1f] text-xs">
+        <div className="flex items-center justify-end min-h-[22px]">
+          <span className="font-bold text-[#ff4a1f] text-xs whitespace-nowrap">
             € {row.requestedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
@@ -483,11 +582,11 @@ export default function PayLaterFacilityPage() {
     {
       id: 'currentAmount',
       label: 'Previous Limit',
-      className: 'w-[15%] min-w-[120px] text-right',
+      className: 'whitespace-nowrap text-right',
       sortable: true,
       render: (row) => (
-        <div className="flex items-center justify-end min-h-[26px]">
-          <span className="text-slate-500 dark:text-slate-400 text-xs font-semibold">
+        <div className="flex items-center justify-end min-h-[22px]">
+          <span className="text-slate-500 dark:text-slate-400 text-xs font-semibold whitespace-nowrap">
             € {row.currentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         </div>
@@ -495,19 +594,21 @@ export default function PayLaterFacilityPage() {
     },
     {
       id: 'status',
-      label: 'Status',
-      className: 'w-[10%] min-w-[90px] text-center',
+      label: 'Request Status',
+      className: 'whitespace-nowrap text-center',
       render: (row) => {
         const badgeStyle = row.status === 'approved'
           ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
           : row.status === 'under_review' || row.status === 'pending'
-          ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
-          : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60';
+            ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
+            : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60';
+
+        const label = row.status === 'approved' ? 'Approved' : (row.status === 'rejected' ? 'Declined' : 'Under Review');
 
         return (
-          <div className="flex items-center justify-center min-h-[26px]">
-            <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${badgeStyle}`}>
-              {row.status === 'approved' ? 'Approved' : (row.status === 'rejected' ? 'Declined' : 'Under Review')}
+          <div className="flex items-center justify-center min-h-[22px]">
+            <Badge variant="secondary" className={`whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-semibold border rounded-[3px] ${badgeStyle}`}>
+              {label}
             </Badge>
           </div>
         );
@@ -516,10 +617,10 @@ export default function PayLaterFacilityPage() {
     {
       id: 'notes',
       label: 'Reason & Notes',
-      className: 'w-[20%] min-w-[150px]',
+      className: 'whitespace-nowrap',
       render: (row) => (
-        <div className="flex items-center min-h-[26px] truncate" title={row.notes}>
-          <span className="text-slate-600 dark:text-slate-400 text-xs truncate">{row.notes}</span>
+        <div className="flex items-center min-h-[22px]" title={row.notes}>
+          <span className="text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">{row.notes}</span>
         </div>
       ),
     },
@@ -527,7 +628,7 @@ export default function PayLaterFacilityPage() {
 
   // Shared Header Tabs Bar
   const renderHeaderTabs = () => (
-    <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar mb-[-1px]">
+    <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto hide-scrollbar mb-[-1px]">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -535,21 +636,19 @@ export default function PayLaterFacilityPage() {
             key={tab.id}
             type="button"
             onClick={() => handleTabChange(tab.id)}
-            className={`flex items-center gap-2 pb-2.5 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
-              isActive
+            className={`flex items-center gap-1.5 sm:gap-2 pb-2.5 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${isActive
                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+              }`}
           >
             <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>
               {tab.label}
             </span>
             <span
-              className={`text-[11px] font-medium px-2 py-0.2 rounded-full ${
-                isActive
+              className={`text-[11px] font-medium px-1.5 py-0.25 rounded-full ${isActive
                   ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-              }`}
+                }`}
             >
               {tab.count}
             </span>
@@ -574,10 +673,10 @@ export default function PayLaterFacilityPage() {
     const limitTypeParam = increaseTarget === 'Monthly Limit'
       ? 'monthly'
       : increaseTarget === 'Weekly Limit'
-      ? 'weekly'
-      : increaseTarget === 'Daily Limit'
-      ? 'daily'
-      : 'max';
+        ? 'weekly'
+        : increaseTarget === 'Daily Limit'
+          ? 'daily'
+          : 'max';
 
     const noteText = increaseReason || `${increaseTarget} increase request.`;
 
@@ -653,10 +752,10 @@ export default function PayLaterFacilityPage() {
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
         <div>
-          <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
             Pay Later & Credit Facility
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-none">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Manage, track, and settle post-delivery 30-day credit invoices and financing lines.
           </p>
         </div>
@@ -709,169 +808,166 @@ export default function PayLaterFacilityPage() {
         </div>
       </div>
 
-      {/* Compact Single-Row Stat Cards (7 Cards) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+      {/* 7 Standard Metric Cards (Compact & Uniform CSS) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-2.5">
         {/* 1. Max Credit Limit */}
-        <div className="p-2.5 bg-white dark:bg-[#1e2329] rounded-[6px] border border-[#eaecf0] dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">Max Credit</span>
+        <MetricCard
+          title="Max Credit"
+          description="Total facility cap"
+          value={`€ ${totalCreditLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
+          icon={CreditCard}
+          colorClass="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
+          badge={
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setIncreaseTarget('Max Credit');
                 setNewRequestedLimit('');
                 setIncreaseReason('');
                 setIsIncreaseModalOpen(true);
               }}
-              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 cursor-pointer"
+              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-1.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60 cursor-pointer transition-colors"
             >
               + Increase
             </button>
-          </div>
-          <div className="mt-1.5">
-            <span className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight block truncate">
-              € {totalCreditLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block truncate">
-            Total facility cap
-          </span>
-        </div>
+          }
+          valueClassName="text-xs sm:text-sm xl:text-[14px]"
+          className="p-2 sm:p-2.5"
+          isLoading={isLoading}
+        />
 
         {/* 2. Monthly Limit */}
-        <div className="p-2.5 bg-white dark:bg-[#1e2329] rounded-[6px] border border-[#eaecf0] dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">Monthly Limit</span>
+        <MetricCard
+          title="Monthly Limit"
+          description="Per 30-day cycle"
+          value={`€ ${monthlyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
+          icon={Clock}
+          colorClass="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400"
+          badge={
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setIncreaseTarget('Monthly Limit');
                 setNewRequestedLimit('');
                 setIncreaseReason('');
                 setIsIncreaseModalOpen(true);
               }}
-              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 cursor-pointer"
+              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-1.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60 cursor-pointer transition-colors"
             >
               + Increase
             </button>
-          </div>
-          <div className="mt-1.5">
-            <span className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight block truncate">
-              € {monthlyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block truncate">
-            Left: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">€ {monthlyAvailable >= 1000 ? (monthlyAvailable/1000).toFixed(0) + 'k' : monthlyAvailable.toFixed(0)}</strong>
-          </span>
-        </div>
+          }
+          valueClassName="text-xs sm:text-sm xl:text-[14px]"
+          className="p-2 sm:p-2.5"
+          isLoading={isLoading}
+        />
 
         {/* 3. Weekly Limit */}
-        <div className="p-2.5 bg-white dark:bg-[#1e2329] rounded-[6px] border border-[#eaecf0] dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">Weekly Limit</span>
+        <MetricCard
+          title="Weekly Limit"
+          description="Per calendar week"
+          value={`€ ${weeklyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
+          icon={Clock}
+          colorClass="bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"
+          badge={
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setIncreaseTarget('Weekly Limit');
                 setNewRequestedLimit('');
                 setIncreaseReason('');
                 setIsIncreaseModalOpen(true);
               }}
-              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 cursor-pointer"
+              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-1.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60 cursor-pointer transition-colors"
             >
               + Increase
             </button>
-          </div>
-          <div className="mt-1.5">
-            <span className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight block truncate">
-              € {weeklyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block truncate">
-            Left: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">€ {weeklyAvailable >= 1000 ? (weeklyAvailable/1000).toFixed(0) + 'k' : weeklyAvailable.toFixed(0)}</strong>
-          </span>
-        </div>
+          }
+          valueClassName="text-xs sm:text-sm xl:text-[14px]"
+          className="p-2 sm:p-2.5"
+          isLoading={isLoading}
+        />
 
         {/* 4. Daily Limit */}
-        <div className="p-2.5 bg-white dark:bg-[#1e2329] rounded-[6px] border border-[#eaecf0] dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">Daily Limit</span>
+        <MetricCard
+          title="Daily Limit"
+          description="Per 24h window"
+          value={`€ ${dailyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
+          icon={Sparkles}
+          colorClass="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"
+          badge={
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 setIncreaseTarget('Daily Limit');
                 setNewRequestedLimit('');
                 setIncreaseReason('');
                 setIsIncreaseModalOpen(true);
               }}
-              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 cursor-pointer"
+              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-1.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60 cursor-pointer transition-colors"
             >
               + Increase
             </button>
-          </div>
-          <div className="mt-1.5">
-            <span className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight block truncate">
-              € {dailyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block truncate">
-            Left: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">€ {dailyAvailable >= 1000 ? (dailyAvailable/1000).toFixed(0) + 'k' : dailyAvailable.toFixed(0)}</strong>
-          </span>
-        </div>
+          }
+          valueClassName="text-xs sm:text-sm xl:text-[14px]"
+          className="p-2 sm:p-2.5"
+          isLoading={isLoading}
+        />
 
         {/* 5. Credit Line Used */}
-        <div className="p-2.5 bg-white dark:bg-[#1e2329] rounded-[6px] border border-[#eaecf0] dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">Credit Used</span>
-            <span className="text-[9.5px] font-bold px-1 py-0.2 rounded bg-orange-50 text-[#ea580c] dark:bg-orange-950/60 dark:text-orange-400 border border-orange-200/60">
+        <MetricCard
+          title="Credit Used"
+          description="Total unpaid invoices"
+          value={`€ ${creditUsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          icon={Receipt}
+          colorClass="bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
+          badge={
+            <Badge variant="secondary" className="bg-orange-50 text-[#ea580c] dark:bg-orange-950/60 dark:text-orange-400 border border-orange-200/60 text-[9.5px] font-semibold px-1.5 py-0.25">
               {usedPercentage}%
-            </span>
-          </div>
-          <div className="mt-1.5">
-            <span className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight block truncate">
-              € {creditUsed.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block truncate">
-            Total unpaid invoices
-          </span>
-        </div>
+            </Badge>
+          }
+          valueClassName="text-xs sm:text-sm xl:text-[14px]"
+          className="p-2 sm:p-2.5"
+          isLoading={isLoading}
+        />
 
         {/* 6. Available Credit */}
-        <div className="p-2.5 bg-white dark:bg-[#1e2329] rounded-[6px] border border-[#eaecf0] dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">Available</span>
-            <span className="text-[9.5px] font-bold px-1 py-0.2 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/60">
+        <MetricCard
+          title="Available"
+          description="Available for orders"
+          value={`€ ${creditAvailable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          icon={CheckCircle2}
+          colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
+          badge={
+            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/60 text-[9.5px] font-semibold px-1.5 py-0.25">
               Ready
-            </span>
-          </div>
-          <div className="mt-1.5">
-            <span className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight block truncate">
-              € {creditAvailable.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-            </span>
-          </div>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 block truncate font-medium">
-            Available for orders
-          </span>
-        </div>
+            </Badge>
+          }
+          valueClassName="text-xs sm:text-sm xl:text-[14px]"
+          className="p-2 sm:p-2.5"
+          isLoading={isLoading}
+        />
 
         {/* 7. Facility Status */}
-        <div className="p-2.5 bg-white dark:bg-[#1e2329] rounded-[6px] border border-[#eaecf0] dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">Facility Status</span>
-            <span className="text-[9.5px] font-bold px-1 py-0.2 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border border-indigo-200/60">
+        <MetricCard
+          title="Credit Status"
+          description={`${payLaterDays}d term • ${onTimeRate}% on-time`}
+          value={payLaterStatus === 'approved' ? 'Active Approved' : (payLaterStatus === 'pending' ? 'Pending' : payLaterStatus)}
+          icon={ShieldCheck}
+          colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
+          badge={
+            <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border border-indigo-200/60 text-[9.5px] font-semibold px-1.5 py-0.25">
               {tier.replace(' Shipper', '')}
-            </span>
-          </div>
-          <div className="mt-1.5">
-            <span className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight block capitalize truncate">
-              {payLaterStatus === 'approved' ? 'Active' : (payLaterStatus === 'pending' ? 'Pending' : payLaterStatus)}
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block truncate">
-            {payLaterDays}d term • {onTimeRate}% rate
-          </span>
-        </div>
+            </Badge>
+          }
+          valueClassName="text-xs sm:text-sm xl:text-[13px] capitalize"
+          className="p-2 sm:p-2.5"
+          isLoading={isLoading}
+        />
       </div>
 
       {/* Main DataTable - Compact Layout */}
@@ -880,7 +976,7 @@ export default function PayLaterFacilityPage() {
           data={filteredData}
           columns={invoiceColumns}
           actions={(row) => (
-            <div className="flex items-center justify-end min-h-[26px]">
+            <div className="flex items-center justify-end min-h-[22px]">
               {row.status !== 'settled' ? (
                 <Button
                   variant="primary"
@@ -889,7 +985,7 @@ export default function PayLaterFacilityPage() {
                     setSelectedInvoice(row);
                     setIsPayModalOpen(true);
                   }}
-                  className="h-6 px-2.5 text-[11px] font-bold bg-[#ff4a1f] hover:bg-[#e03d15] text-white rounded-[3px] cursor-pointer whitespace-nowrap shadow-2xs"
+                  className="h-[25px] px-2 text-[11px] font-bold bg-[#ff4a1f] hover:bg-[#e03d15] text-white rounded-[3px] cursor-pointer whitespace-nowrap shadow-2xs"
                 >
                   Pay Now
                 </Button>
@@ -898,7 +994,7 @@ export default function PayLaterFacilityPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleDownloadInvoice(row)}
-                  className="h-6 px-2 text-[11px] font-medium text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-[3px] cursor-pointer whitespace-nowrap flex items-center gap-1"
+                  className="h-[25px] px-2 text-[11px] font-medium text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-[3px] cursor-pointer whitespace-nowrap flex items-center gap-1"
                 >
                   <Download size={11} />
                   <span>Receipt</span>
@@ -906,7 +1002,7 @@ export default function PayLaterFacilityPage() {
               )}
             </div>
           )}
-          actionsColumnClassName="w-[100px] min-w-[100px] text-right pr-2"
+          actionsColumnClassName="w-[85px] min-w-[80px] text-right pr-2"
           headerTabs={renderHeaderTabs()}
           filterContent={
             <div className="flex items-center gap-2 flex-wrap">
@@ -917,10 +1013,11 @@ export default function PayLaterFacilityPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="text-xs border border-slate-200 dark:border-slate-700 rounded px-2 py-0.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200"
                 >
-                  <option value="All">All Statuses</option>
-                  <option value="Unsettled">Unsettled</option>
-                  <option value="Due Soon">Due Soon</option>
-                  <option value="Settled">Settled</option>
+                  <option value="All">All Invoices ({invoices.length})</option>
+                  <option value="Due (Net-30)">Due (Net-30) ({invoices.filter(i => i.status === 'due' || i.status === 'unsettled').length})</option>
+                  <option value="Due Soon">Due Soon ({invoices.filter(i => i.status === 'due_soon').length})</option>
+                  <option value="Overdue">Overdue ({invoices.filter(i => i.status === 'overdue').length})</option>
+                  <option value="Settled">Settled / Paid ({invoices.filter(i => i.status === 'settled').length})</option>
                 </select>
               </div>
 
@@ -1014,11 +1111,10 @@ export default function PayLaterFacilityPage() {
                       key={inc}
                       type="button"
                       onClick={() => setNewRequestedLimit(String(inc))}
-                      className={`px-2 py-0.5 rounded text-[10.5px] font-semibold border transition-all cursor-pointer ${
-                        newRequestedLimit === String(inc)
+                      className={`px-2 py-0.5 rounded text-[10.5px] font-semibold border transition-all cursor-pointer ${newRequestedLimit === String(inc)
                           ? 'bg-[#ff4a1f] text-white border-[#ff4a1f]'
                           : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                      }`}
+                        }`}
                     >
                       + €{(inc / 1000).toFixed(0)}k
                     </button>
@@ -1043,9 +1139,9 @@ export default function PayLaterFacilityPage() {
                     <span>New {increaseTarget}:</span>
                     <strong className="text-xs font-bold text-[#ea580c] dark:text-orange-400">
                       € {(parseFloat(newRequestedLimit) > getCurrentTargetLimit()
-                          ? parseFloat(newRequestedLimit)
-                          : getCurrentTargetLimit() + parseFloat(newRequestedLimit)
-                        ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ? parseFloat(newRequestedLimit)
+                        : getCurrentTargetLimit() + parseFloat(newRequestedLimit)
+                      ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </strong>
                   </div>
                 )}

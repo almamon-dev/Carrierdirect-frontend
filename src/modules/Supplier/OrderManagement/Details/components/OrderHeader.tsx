@@ -1,3 +1,4 @@
+import { exportInvoicePdf, openInvoicePreview } from "@/utils/exportInvoicePdf";
 import React from 'react';
 import { ArrowLeft, Download, Upload, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -30,7 +31,7 @@ export const OrderHeader: React.FC<OrderHeaderProps> = ({
             </button>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap min-w-0">
-                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Order Details: {order.id}
                     </h1>
                     <Badge 
@@ -52,7 +53,7 @@ export const OrderHeader: React.FC<OrderHeaderProps> = ({
                         variant="outline" 
                         size="sm" 
                         className="h-8 sm:h-9 text-xs font-semibold cursor-pointer"
-                        onClick={() => alert(`Downloading Invoice & Specs for ${order.id}...`)}
+                        onClick={() => openInvoicePreview(order)}
                     >
                         <Download size={13} className="mr-1.5" /> PDF Invoice
                     </Button>

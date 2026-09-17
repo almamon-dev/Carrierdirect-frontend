@@ -96,49 +96,49 @@ export default function InvitationAcceptedPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50/50 dark:bg-[#0e1117] relative p-4 sm:p-6 font-sans antialiased">
-            {/* Top-Left Back Link */}
-            <Link 
-                to="/web/login" 
-                className="absolute top-5 left-5 sm:top-8 sm:left-8 z-30 inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#ff4a1f] hover:underline transition-colors"
-            >
-                <ArrowLeft className="w-4 h-4 text-[#ff4a1f]" />
-                Back to Login
-            </Link>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0e1117] relative p-4 font-sans">
+            {/* Top Left Back Button */}
+            <div className="absolute top-6 left-6 z-20">
+                <Link to="/web/login" className="flex items-center text-sm font-medium text-[#FF4A1F] hover:text-[#D13915] transition-colors">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Login
+                </Link>
+            </div>
 
-            {/* Main Card Container */}
-            <div className="flex flex-col md:flex-row w-full max-w-5xl bg-white dark:bg-[#181a20] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none overflow-hidden min-h-[520px] border border-slate-100 dark:border-slate-800">
+            {/* The Main Centered Split Card */}
+            <div className="main-auth-card flex flex-col md:flex-row w-full max-w-4xl bg-white dark:bg-[#181a20] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border-2 border-gray-200 dark:border-[#384150] overflow-hidden min-h-[460px]">
 
                 {/* Left Side - Logo & Branding */}
-                <div className="hidden md:flex md:w-5/12 bg-[#f8fafc] dark:bg-[#12161c] flex-col items-center justify-center p-10 relative border-r border-gray-100 dark:border-slate-800">
-                    <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.1]" style={{ backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
+                <div className="hidden md:flex md:w-1/2 bg-[#f8fafc] dark:bg-[#12161c] flex-col items-center justify-center p-8 md:p-10 relative border-r border-gray-100 dark:border-[#384150]">
+                    <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.1]" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
                     <div className="relative z-10 flex flex-col items-center w-full">
                         <Link to="/">
-                            <img src={LogoBlack} alt="CarrierDirect Logo" className="w-full max-w-[280px] object-contain dark:hidden" />
-                            <img src={LogoWhite} alt="CarrierDirect Logo" className="w-full max-w-[280px] object-contain hidden dark:block" />
+                            <img src={LogoBlack} alt="CarrierDirect Logo" className="w-full max-w-[240px] md:max-w-[280px] object-contain scale-105 dark:hidden" />
+                            <img src={LogoWhite} alt="CarrierDirect Logo" className="w-full max-w-[240px] md:max-w-[280px] object-contain scale-105 hidden dark:block" />
                         </Link>
-                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mt-10 text-center tracking-tight">Team Onboarding</h2>
-                        <p className="mt-3 text-sm text-gray-500 dark:text-slate-400 text-center leading-relaxed max-w-xs">
+                        <h2 className="text-[15px] font-bold text-slate-800 dark:text-white mt-8 text-center tracking-tight">Team Onboarding</h2>
+                        <p className="mt-2 text-xs text-gray-500 dark:text-slate-400 text-center leading-relaxed max-w-xs">
                             Welcome to CarrierDirect. Your workspace is configured and ready for action.
                         </p>
                     </div>
                 </div>
 
                 {/* Right Side - Status Content */}
-                <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center text-center">
+                <div className="w-full md:w-1/2 p-6 sm:p-8 md:p-10 flex flex-col justify-center text-center bg-white dark:bg-[#181a20]">
 
                     {/* State 1: Verifying */}
                     {status === "verifying" && (
-                        <div className="py-6 animate-in fade-in">
-                            <div className="w-16 h-16 bg-orange-50 dark:bg-[#ff4a1f]/10 text-[#ff4a1f] rounded-full flex items-center justify-center mx-auto mb-5 border border-orange-100 dark:border-[#ff4a1f]/20 animate-pulse">
-                                <RefreshCw className="w-8 h-8 animate-spin" />
+                        <div className="py-4 animate-in fade-in">
+                            <div className="w-12 h-12 bg-orange-50 dark:bg-[#ff4a1f]/10 text-[#ff4a1f] rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-[#ff4a1f]/20 animate-pulse">
+                                <RefreshCw className="w-6 h-6 animate-spin" />
                             </div>
                             
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1.5 tracking-tight">
                                 Activating Your Invitation...
                             </h2>
                             
-                            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-md mx-auto">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
                                 Please wait a moment while we verify your invitation token and activate your team account.
                             </p>
                         </div>
@@ -147,37 +147,37 @@ export default function InvitationAcceptedPage() {
                     {/* State 2: Invitation Accepted Successfully */}
                     {status === "success" && (
                         <div className="py-2 animate-in fade-in">
-                            <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-5 border border-emerald-100 dark:border-emerald-800/40 shadow-xs">
-                                <CheckCircle2 className="w-8 h-8" />
+                            <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3.5 border border-emerald-100 dark:border-emerald-800/40 shadow-2xs">
+                                <CheckCircle2 className="w-6 h-6" />
                             </div>
                             
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1 tracking-tight">
                                 Welcome to the Team! 🎉
                             </h2>
                             
-                            <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed max-w-md mx-auto">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed max-w-sm mx-auto">
                                 Your invitation has been successfully accepted. Your account is now active and ready to use.
                             </p>
 
                             {/* Credentials Reminder Box */}
                             {(emailParam || passwordParam) && (
-                                <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800 max-w-md mx-auto text-left text-xs space-y-2">
-                                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-[4px] border border-slate-200 dark:border-slate-800 max-w-sm mx-auto text-left text-xs space-y-2">
+                                    <div className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                                         Your Login Credentials
                                     </div>
                                     
                                     {emailParam && (
-                                        <div className="flex items-center justify-between py-1">
+                                        <div className="flex items-center justify-between py-0.5 text-xs">
                                             <span className="text-slate-500 dark:text-slate-400 font-medium">Email:</span>
                                             <span className="font-semibold text-slate-800 dark:text-slate-200">{emailParam}</span>
                                         </div>
                                     )}
 
                                     {passwordParam && (
-                                        <div className="flex items-center justify-between py-1 border-t border-slate-200/60 dark:border-slate-800 pt-2">
+                                        <div className="flex items-center justify-between py-1 border-t border-slate-200/60 dark:border-slate-800 pt-1.5 text-xs">
                                             <span className="text-slate-500 dark:text-slate-400 font-medium">Password:</span>
-                                            <div className="flex items-center gap-2">
-                                                <code className="px-2 py-0.5 rounded bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 font-mono font-bold text-slate-800 dark:text-slate-100">
+                                            <div className="flex items-center gap-1.5">
+                                                <code className="px-2 py-0.5 rounded-[3px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 font-mono font-bold text-xs text-slate-800 dark:text-slate-100">
                                                     {passwordParam}
                                                 </code>
                                                 <button
@@ -194,13 +194,13 @@ export default function InvitationAcceptedPage() {
                                 </div>
                             )}
 
-                            <div className="space-y-3 max-w-md mx-auto w-full">
+                            <div className="space-y-2.5 max-w-sm mx-auto w-full">
                                 <Button
                                     onClick={handleContinue}
                                     isLoading={isNavigating}
                                     disabled={isNavigating}
                                     variant="primary"
-                                    className="w-full h-11 text-xs font-bold text-white bg-[#ff4a1f] hover:bg-[#e03e15] rounded-lg shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full h-10 text-xs font-bold text-white bg-[#ff4a1f] hover:bg-[#e03e15] rounded-[4px] shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <span>Continue to Dashboard / Sign In</span>
                                     {!isNavigating && <ArrowRight className="w-4 h-4" />}
@@ -208,7 +208,7 @@ export default function InvitationAcceptedPage() {
 
                                 <Link
                                     to="/"
-                                    className="w-full h-11 flex items-center justify-center gap-2 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    className="w-full h-10 flex items-center justify-center gap-2 px-4 border border-slate-200 dark:border-slate-700 rounded-[4px] text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
                                 >
                                     <span>Return to Home</span>
                                 </Link>
@@ -219,22 +219,22 @@ export default function InvitationAcceptedPage() {
                     {/* State 3: Error */}
                     {status === "error" && (
                         <div className="py-2 animate-in fade-in">
-                            <div className="w-16 h-16 bg-red-50 dark:bg-red-950/40 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 border border-red-100 dark:border-red-800/40">
-                                <AlertCircle className="w-8 h-8" />
+                            <div className="w-12 h-12 bg-red-50 dark:bg-red-950/40 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3.5 border border-red-100 dark:border-red-800/40">
+                                <AlertCircle className="w-6 h-6" />
                             </div>
                             
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1.5 tracking-tight">
                                 Invalid or Expired Invitation
                             </h2>
                             
-                            <p className="text-sm text-slate-600 dark:text-slate-300 mb-8 leading-relaxed max-w-md mx-auto">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed max-w-sm mx-auto">
                                 {errorMessage || "This invitation token is invalid or has already been used."}
                             </p>
 
-                            <div className="space-y-3 max-w-md mx-auto w-full">
+                            <div className="space-y-2.5 max-w-sm mx-auto w-full">
                                 <Link
                                     to="/web/login"
-                                    className="w-full h-11 text-xs font-bold text-white bg-[#ff4a1f] hover:bg-[#e03e15] rounded-lg shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full h-10 text-xs font-bold text-white bg-[#ff4a1f] hover:bg-[#e03e15] rounded-[4px] shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <span>Proceed to Login</span>
                                     <ArrowRight className="w-4 h-4" />
@@ -242,7 +242,7 @@ export default function InvitationAcceptedPage() {
 
                                 <Link
                                     to="/contact-us"
-                                    className="w-full h-11 flex items-center justify-center gap-2 px-4 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    className="w-full h-10 flex items-center justify-center gap-2 px-4 border border-slate-200 dark:border-slate-700 rounded-[4px] text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
                                 >
                                     <span>Contact Support</span>
                                 </Link>

@@ -12,7 +12,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'id', 
         label: 'Request ID', 
-        className: 'w-[95px] min-w-[95px]',
+        className: 'w-[90px] min-w-[85px]',
         sortable: true,
         render: (row) => <RequestIdCell row={row} onNavigate={navigate} />,
         skeleton: () => (
@@ -24,7 +24,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     {
         id: 'title',
         label: 'Title',
-        className: 'min-w-[140px] max-w-[200px]',
+        className: 'w-[15%] min-w-[110px] max-w-[150px]',
         sortable: true,
         render: (row) => <TitleCell row={row} />,
         skeleton: () => (
@@ -36,7 +36,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'pickup', 
         label: 'Pickup Address', 
-        className: 'min-w-0',
+        className: 'w-[18%] min-w-[120px] max-w-[180px]',
         render: (row) => <AddressCell address={row.pickup} />,
         skeleton: () => (
             <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
@@ -47,7 +47,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'delivery', 
         label: 'Delivery Address', 
-        className: 'min-w-0',
+        className: 'w-[18%] min-w-[120px] max-w-[180px]',
         render: (row) => <AddressCell address={row.delivery} />,
         skeleton: () => (
             <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
@@ -58,7 +58,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'distance', 
         label: 'Distance', 
-        className: 'w-[75px] text-center',
+        className: 'w-[68px] min-w-[65px] text-center',
         sortable: true,
         render: (row) => <DistanceCell distance={row.distance} />,
         skeleton: () => (
@@ -70,7 +70,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'budget', 
         label: 'Budget', 
-        className: 'w-[90px]',
+        className: 'w-[85px] min-w-[80px]',
         sortable: true,
         render: (row) => <BudgetCell budget={row.budget} />,
         skeleton: () => (
@@ -82,7 +82,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'quotesReceived', 
         label: 'Quotes', 
-        className: 'w-[75px] text-center',
+        className: 'w-[68px] min-w-[65px] text-center',
         sortable: true,
         render: (row) => <QuotesCountCell count={row.quotesReceived} />,
         skeleton: () => (
@@ -94,7 +94,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'priority', 
         label: 'Priority', 
-        className: 'w-[80px] text-center',
+        className: 'w-[75px] min-w-[70px] text-center',
         sortable: true,
         render: (row) => <PriorityBadgeCell priority={row.priority} />,
         skeleton: () => (
@@ -106,7 +106,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'status', 
         label: 'Status', 
-        className: 'w-[105px] text-center',
+        className: 'w-[82px] min-w-[80px] text-center',
         sortable: true,
         render: (row) => <StatusBadgeCell status={row.status} />,
         skeleton: () => (
@@ -118,7 +118,7 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'date', 
         label: 'Date', 
-        className: 'w-[110px] text-center',
+        className: 'w-[95px] min-w-[90px] text-center',
         sortable: true,
         render: (row) => <DateCell row={row} />,
         skeleton: () => (

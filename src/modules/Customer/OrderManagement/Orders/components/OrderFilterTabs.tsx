@@ -54,7 +54,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
     ];
 
     return (
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto hide-scrollbar mb-[-1px]">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto hide-scrollbar mb-[-1px]">
             {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -62,17 +62,17 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => onSelectTab(tab.id)}
-                        className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${
+                        className={`flex items-center gap-1.5 pb-2.5 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${
                             isActive
                                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
                     >
-                        <span className={`text-[14px] ${isActive ? 'font-bold' : 'font-medium'}`}>
+                        <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>
                             {tab.label}
                         </span>
                         <span
-                            className={`text-[12px] font-medium px-2 py-0.5 rounded-full transition-colors ${
+                            className={`text-[11px] font-medium px-1.5 py-0.25 rounded-full transition-colors ${
                                 isActive
                                     ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'

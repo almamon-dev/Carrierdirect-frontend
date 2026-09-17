@@ -17,7 +17,7 @@ export const useChatOfferActions = ({
     updateMessagesForChat,
     scrollToBottom,
 }: UseChatOfferActionsProps) => {
-    const handleSendCounterOffer = async (amount: number, note: string) => {
+    const handleSendCounterOffer = async (amount: number, note: string, extraCharges?: any[], baseFreight?: number) => {
         const newOfferMsg: ChatMessage = {
             id: `offer-${Date.now()}`,
             type: 'offer',
@@ -26,8 +26,12 @@ export const useChatOfferActions = ({
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             newTotal: amount,
             previousTotal: currentPrice,
-            status: 'pending'
-        };
+            status: 'pending',
+            is_me: true,
+            is_my_offer: true,
+            extra_charges: extraCharges || [],
+            base_amount: baseFreight,
+        } as any;
         updateMessagesForChat(activeRawId, prev => [...prev, newOfferMsg]);
         setTimeout(scrollToBottom, 100);
 
@@ -36,6 +40,8 @@ export const useChatOfferActions = ({
                 amount,
                 proposed_amount: amount,
                 note,
+                extra_charges: extraCharges,
+                base_amount: baseFreight,
                 negotiation_id: activeRawId
             });
             window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
@@ -44,6 +50,8 @@ export const useChatOfferActions = ({
                 amount,
                 proposed_amount: amount,
                 note,
+                extra_charges: extraCharges,
+                base_amount: baseFreight,
                 negotiation_id: activeRawId
             }).catch(() => {});
             window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
@@ -52,22 +60,29 @@ export const useChatOfferActions = ({
 
     const handleAcceptOffer = async (offerMsg: any) => {
         const acceptedTotal = Number(offerMsg?.newTotal || offerMsg?.proposed_amount || currentPrice);
-        const isCounter = Boolean(
-            offerMsg?.type === 'offer' || 
-            offerMsg?.message_type === 'offer' || 
-            offerMsg?.isCounterOffer || 
-            (offerMsg?.title && String(offerMsg.title).toLowerCase().includes('counter'))
-        );
+        const supplierName = (activeNegotiation?.raw as any)?.user?.name || "Supplier";
+        const rawQuoteNum = (activeNegotiation as any)?.quoteNo || activeNegotiation?.quoteId || activeNegotiation?.id || "0003";
+        const quoteNoStr = String(rawQuoteNum).startsWith("QT-") ? rawQuoteNum : `QT-${String(rawQuoteNum).padStart(4, "0")}`;
+
+        const supplierTextMsg: ChatMessage = {
+            id: `accept-text-${Date.now()}`,
+            type: "sent",
+            text: "Hi,\nWe've reviewed your counter offer and we accept it.\nPlease proceed with the payment.",
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            is_me: true
+        } as any;
+
         const confirmMsg: ChatMessage = {
-            id: `system-${Date.now()}`,
+            id: `system-${Date.now() + 1}`,
             type: 'system',
-            text: isCounter
-                ? `✅ Counter offer of € ${acceptedTotal.toLocaleString()} has been accepted!`
-                : `✅ Quote offer of € ${acceptedTotal.toLocaleString()} has been accepted!`,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            text: `Offer Accepted\n${supplierName} has accepted your counter offer (${quoteNoStr}).`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: 'accepted',
+            newTotal: acceptedTotal
         };
+
         updateMessagesForChat(activeRawId, prev =>
-            prev.map(m => (m.type === 'quote_request' || m.id === offerMsg?.id || m.type === 'offer') ? { ...m, status: 'accepted' as const, newTotal: acceptedTotal } : m).concat(confirmMsg)
+            prev.map(m => (m.type === 'quote_request' || m.id === offerMsg?.id || m.type === 'offer') ? { ...m, status: 'accepted' as const, newTotal: acceptedTotal } : m).concat([supplierTextMsg, confirmMsg])
         );
         if (activeNegotiation) {
             (activeNegotiation as any).status = 'Accepted';

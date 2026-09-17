@@ -21,10 +21,12 @@ export default function AvailabilitySettings() {
     return (
         <div
     className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-6 bg-[#f8fafc] dark:bg-[#12161c]">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 tracking-tight mb-1">Availability & Dispatch Settings</h1>
-                    <p className="text-xs text-slate-500 font-medium">Configure auto-booking rules, buffer times between trips, and dispatch notices.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Availability & Dispatch Settings</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Configure auto-booking rules, buffer times between trips, and dispatch notices.
+                    </p>
                 </div>
             </div>
 

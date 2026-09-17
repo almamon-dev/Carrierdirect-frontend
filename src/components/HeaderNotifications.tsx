@@ -9,7 +9,7 @@ import {
 import { useHeaderNotifications, HeaderNotification, normalizeNotifLink } from '@/hooks/useHeaderNotifications';
 
 interface HeaderNotificationsProps {
-    role?: 'supplier' | 'customer';
+    role?: 'supplier' | 'customer' | 'driver';
 }
 
 const getNotificationIcon = (type: HeaderNotification['type']) => {
@@ -348,7 +348,7 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                             type="button"
                             onClick={() => {
                                 setIsOpen(false);
-                                navigate(role === 'supplier' ? '/supplier/notifications' : '/customer/notifications');
+                                navigate(role === 'driver' ? '/driver/notifications' : (role === 'supplier' ? '/supplier/notifications' : '/customer/notifications'));
                             }}
                             className="text-[10.5px] font-bold text-[#ff4a1f] hover:underline flex items-center gap-1 ml-auto cursor-pointer"
                         >

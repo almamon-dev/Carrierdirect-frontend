@@ -166,7 +166,7 @@ export const getTrackBidsColumns = (
             let formattedAmt = '—';
             const raw = row.amount_raw ?? row.amount ?? row.offer_amount ?? row.quote_amount;
             if (typeof raw === 'number') {
-                formattedAmt = `€ ${raw.toLocaleString('de-DE')}`;
+                formattedAmt = `€ ${raw.toLocaleString('en-US')}`;
             } else if (typeof raw === 'string' && raw) {
                 formattedAmt = raw.startsWith('€') || raw.startsWith('EUR') || raw.startsWith('$') ? raw : `€ ${raw}`;
             }

@@ -1,76 +1,40 @@
 import React from 'react';
-import { ShieldCheck, Star, MapPin, ArrowRight, Clock } from 'lucide-react';
-import { Column } from '@/components/tables/data-table';
+import { Clock, MapPin, ArrowRight, Building } from 'lucide-react';
 import Badge from '@/components/ui/badge';
-import { formatDisplayDate } from '@/lib/utils';
+import { Column } from '@/components/tables/data-table';
 import { SupplierOrderItem } from '../types';
+import { formatDisplayDate } from '@/lib/utils';
 
 export const getOrderColumns = (
-    navigate: (path: string, options?: any) => void
+    navigate: (path: string) => void
 ): Column<SupplierOrderItem>[] => [
     {
         id: 'order_id',
-        label: 'Job ID',
+        label: 'Order ID',
         sortable: true,
-        className: 'w-[100px] min-w-[100px]',
+        className: 'w-[140px] min-w-[130px]',
         render: (row) => {
-            const displayId = row.order_id || row.order_no || row.order_number || (row.id ? `ORD-${String(row.id).padStart(4, '0')}` : 'ORD-0001');
-            return (
-                <button
-                    type="button"
-                    onClick={() => navigate(`/supplier/orders/details/${row.slug || row.id}`, { state: { orderData: row } })}
-                    className="text-[#ff4a1f] font-bold hover:underline whitespace-nowrap cursor-pointer text-xs"
-                >
-                    {displayId}
-                </button>
-            );
-        }
-    },
-    {
-        id: 'customer',
-        label: 'Customer / Shipper',
-        sortable: true,
-        className: 'min-w-[170px]',
-        render: (row) => {
-            const name = row.customer_name || row.customer?.name || row.client?.name || 'Shipper Client';
-            const avatar = row.customer_avatar || row.customer?.profile_picture || row.customer?.avatar || row.client?.avatar;
-            const rating = row.customer_rating || row.customer?.rating || row.rating || '4.9';
-            const completedCount = row.customer?.completed_orders || '120+ shipments';
-            const completedText = typeof completedCount === 'number' ? `${completedCount} shipments` : completedCount;
+            const rawId = row.order_no || row.order_number || row.id;
+            const cleanNum = String(row.id || '').replace(/^ORD-0*/i, '');
+            const idText = String(rawId).startsWith('ORD-') ? String(rawId) : `ORD-${String(cleanNum || rawId).padStart(4, '0')}`;
+            const targetSlug = row.slug || String(row.id);
+            const customerName = row.customer_name || row.customer?.name || row.customer?.company_name || row.client?.name || 'Premier Logistics';
 
             return (
-                <div className="flex items-center gap-2 min-w-0">
-                    <div className="relative shrink-0">
-                        {avatar ? (
-                            <img
-                                src={avatar}
-                                alt={name}
-                                className="w-6 h-6 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-                            />
-                        ) : (
-                            <div className="w-6 h-6 rounded-full bg-linear-to-br from-orange-400 to-[#ff4a1f] flex items-center justify-center text-[10px] font-bold text-white shadow-2xs">
-                                {name.charAt(0).toUpperCase()}
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex flex-col min-w-0 leading-tight">
-                        <div className="flex items-center gap-1">
-                            <span className="font-semibold text-xs text-slate-800 dark:text-slate-100 whitespace-nowrap" title={name}>
-                                {name}
-                            </span>
-                            <ShieldCheck size={11} className="text-emerald-500 shrink-0" />
-                        </div>
-                        <div className="flex items-center gap-1 text-[10.5px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                            <span className="flex items-center gap-0.5 text-amber-500 font-semibold">
-                                <Star size={9.5} className="fill-amber-400 stroke-amber-500" />
-                                <span>{rating}</span>
-                            </span>
-                            <span className="text-slate-300 dark:text-slate-600">•</span>
-                            <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                                {completedText}
-                            </span>
-                        </div>
-                    </div>
+                <div className="flex flex-col min-w-0 leading-tight">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/supplier/orders/details/${targetSlug}`);
+                        }}
+                        className="font-bold text-[#ff4a1f] hover:underline whitespace-nowrap text-xs text-left cursor-pointer transition-colors"
+                    >
+                        {idText}
+                    </button>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5" title={customerName}>
+                        {customerName}
+                    </span>
                 </div>
             );
         }
@@ -79,7 +43,7 @@ export const getOrderColumns = (
         id: 'route',
         label: 'Route',
         sortable: true,
-        className: 'min-w-[180px]',
+        className: 'w-auto max-w-[240px] min-w-[170px]',
         render: (row) => {
             const origin = row.pickup_city || (row.pickup_address ? row.pickup_address.split(',')[0]?.trim() : '') || 'Origin';
             const destination = row.delivery_city || (row.delivery_address ? row.delivery_address.split(',')[0]?.trim() : '') || 'Destination';
@@ -163,12 +127,12 @@ export const getOrderColumns = (
         id: 'payout',
         label: 'Net Payout',
         sortable: true,
-        className: 'w-[120px] min-w-[120px]',
+        className: 'w-[115px] min-w-[110px]',
         render: (row) => {
             let formattedAmt = '—';
             const raw = row.amount_raw ?? row.amount ?? row.total_amount ?? row.net_payout;
             if (typeof raw === 'number') {
-                formattedAmt = `€ ${raw.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
+                formattedAmt = `€ ${raw.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
             } else if (typeof raw === 'string' && raw) {
                 formattedAmt = raw.startsWith('€') || raw.startsWith('EUR') || raw.startsWith('$') ? raw : `€ ${raw}`;
             }
@@ -176,10 +140,67 @@ export const getOrderColumns = (
         }
     },
     {
+        id: 'payment_status',
+        label: 'Payment Terms',
+        sortable: true,
+        className: 'w-[130px] min-w-[125px] text-center',
+        render: (row) => {
+            const cleanNum = String(row.id || row.rawId || '').replace(/^ORD-0*/i, '');
+            const rawPayment = String(
+                row.payment_status || 
+                row.payment_method || 
+                (row as any).payment_stage ||
+                (row as any).invoice_type ||
+                (cleanNum === '2' ? 'pay_later' : cleanNum === '3' ? 'paid' : 'in_escrow')
+            ).toLowerCase().trim();
+
+            const isPaid = (row.status === 'Completed' || (row.status_raw || '').toLowerCase() === 'completed') || 
+                rawPayment === 'paid' || 
+                (row as any).is_paid === true;
+
+            const isPayLater = !isPaid && (
+                rawPayment.includes('pay later') || 
+                rawPayment.includes('pay_later') || 
+                rawPayment.includes('net-30') || 
+                rawPayment.includes('credit') ||
+                Boolean((row as any).is_pay_later) ||
+                String((row as any).invoice_type || '').toLowerCase() === 'pay_later'
+            );
+
+            if (isPaid) {
+                return (
+                    <div className="flex items-center justify-center min-h-[26px]">
+                        <Badge variant="success" showDot className="text-[10px] font-bold whitespace-nowrap">
+                            Paid
+                        </Badge>
+                    </div>
+                );
+            }
+
+            if (isPayLater) {
+                return (
+                    <div className="flex items-center justify-center min-h-[26px]">
+                        <Badge variant="warning" showDot className="text-[10px] font-bold whitespace-nowrap">
+                            Pay Later (Due)
+                        </Badge>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex items-center justify-center min-h-[26px]">
+                    <Badge variant="info" className="text-[10px] font-semibold whitespace-nowrap">
+                        Pay Later
+                    </Badge>
+                </div>
+            );
+        }
+    },
+    {
         id: 'pod',
         label: 'POD Status',
         sortable: true,
-        className: 'w-[115px] min-w-[115px] text-center',
+        className: 'w-[110px] min-w-[110px] text-center',
         render: (row) => {
             const pod = String(row.pod_status || '').toLowerCase().trim();
             const hasPod = Boolean(row.pod_document_url || row.pod_file_url || row.proof_of_delivery);

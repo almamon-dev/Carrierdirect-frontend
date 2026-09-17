@@ -4,7 +4,6 @@ import { AllImages } from "@/components/AllPhotos/AllImages";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { TOKEN_CONFIG } from "@/config/auth";
 import authService from "@/services/authService";
-import ThemeSwitcher from "@/components/common/theme-switcher";
 
 const NavigationLink = [
   { id: 1, navigationText: "Home", sectionId: "home" },
@@ -260,7 +259,6 @@ export default function Header() {
 
         {/* Desktop CTA */}
         <div className="hidden sm:flex items-center gap-3">
-          <ThemeSwitcher variant={isScrolled ? 'default' : 'hero'} />
           <AuthWidget />
         </div>
 
@@ -297,9 +295,6 @@ export default function Header() {
           ))}
 
           <div className="pt-4 border-t border-slate-200/40 dark:border-slate-800 space-y-3">
-            <div className="flex justify-start">
-              <ThemeSwitcher showText variant={isScrolled ? 'default' : 'hero'} />
-            </div>
             <AuthWidget mobile />
           </div>
         </div>

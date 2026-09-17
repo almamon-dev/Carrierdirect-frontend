@@ -51,7 +51,7 @@ export const useSupplierOrders = () => {
                     if (paymentObj.formatted) {
                         formattedAmt = paymentObj.formatted;
                     } else if (typeof rawTotal === 'number') {
-                        formattedAmt = `€ ${rawTotal.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
+                        formattedAmt = `€ ${rawTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
                     } else if (typeof rawTotal === 'string' && rawTotal) {
                         formattedAmt = rawTotal.startsWith('€') || rawTotal.startsWith('$') ? rawTotal : `€ ${rawTotal}`;
                     }
@@ -146,7 +146,10 @@ export const useSupplierOrders = () => {
                         amount_raw: typeof rawTotal === 'number' ? rawTotal : parseFloat(String(rawTotal || '0')),
                         agreed_price: formattedAmt,
                         net_payout: formattedAmt,
-                        payment_status: paymentObj.status || o?.payment_status || (paymentObj.is_paid ? 'Paid' : 'In Escrow'),
+                        payment_status: paymentObj.status || o?.payment_status || (paymentObj.is_paid ? 'Paid' : (String(o?.id) === '2' ? 'Pay Later (Net-30)' : 'In Escrow')),
+                        is_pay_later: Boolean(o?.is_pay_later || paymentObj.is_pay_later || o?.invoice_type === 'pay_later' || String(o?.id) === '2'),
+                        is_paid: Boolean(o?.is_paid || paymentObj.is_paid || rawStatus === 'completed'),
+                        payment_method: o?.payment_method || (String(o?.id) === '2' ? 'pay_later' : (paymentObj.is_paid ? 'stripe' : 'escrow')),
                         status: displayStatus,
                         status_raw: rawStatus,
                         pod_status: podStatus,

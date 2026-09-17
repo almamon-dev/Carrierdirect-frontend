@@ -1,6 +1,17 @@
 import { CustomerQuoteRequestItem } from '../types';
 import { formatDisplayDate } from '@/lib/utils';
 
+const cleanAddressWithoutZip = (addr: string): string => {
+    if (!addr || addr === '—') return addr;
+    return addr
+        .replace(/\s*\(?ZIP:?\s*\d+\)?/gi, '')
+        .replace(/(?:ZIP|Postal Code):?\s*\d+/gi, '')
+        .replace(/\s+\d{4,6}(?=[,\s]|$)/g, '')
+        .replace(/\s*,\s*,/g, ',')
+        .replace(/,\s*$/g, '')
+        .trim();
+};
+
 export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes: any[]): CustomerQuoteRequestItem[] => {
     return rawItems.map((q: any) => {
         const matchingQuotes = allReceivedQuotes.filter(item => {
@@ -64,8 +75,8 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
             request_title: titleStr,
             requestTitle: titleStr,
             date: dateStr,
-            pickup: (q.pickup_address || q.pickup_city || '—').trim(),
-            delivery: (q.delivery_address || q.delivery_city || '—').trim(),
+            pickup: cleanAddressWithoutZip((q.pickup_address || q.pickup_city || '—').trim()),
+            delivery: cleanAddressWithoutZip((q.delivery_address || q.delivery_city || '—').trim()),
             distance: distanceStr,
             budget: budgetStr,
             priority: q.priority || 'Normal',

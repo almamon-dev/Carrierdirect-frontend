@@ -8,6 +8,7 @@ import Badge from '@/components/ui/badge';
 import DataTable from '@/components/tables/data-table';
 import Skeleton from '@/components/ui/skeleton';
 import Button from '@/components/ui/button';
+import MetricCard from '@/components/cards/metric-card';
 import { apiClient } from '@/lib/axios';
 import { TOKEN_CONFIG } from '@/config/auth';
 
@@ -278,10 +279,10 @@ export default function Withdrawal() {
             {/* Header matching Price Negotiation */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="min-w-0">
-                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Withdrawals & Settlements
                     </h1>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 line-clamp-1 sm:line-clamp-none">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Automatic bank payouts powered by Stripe Connect and settlement ledger history.
                     </p>
                 </div>
@@ -388,110 +389,53 @@ export default function Withdrawal() {
             )}
 
             {/* Top Stats Strip */}
-            {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="bg-white dark:bg-[#12161c] p-3.5 rounded-[4px] border border-slate-200/90 dark:border-slate-800 shadow-2xs space-y-3">
-                            <div className="flex justify-between items-center">
-                                <Skeleton className="w-7 h-7 rounded-[4px]" />
-                                <Skeleton className="w-12 h-4 rounded" />
-                            </div>
-                            <div className="space-y-1.5 pt-1">
-                                <Skeleton className="w-24 h-6 rounded" />
-                                <Skeleton className="w-20 h-3 rounded" />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {/* Available Balance */}
-                    <div
-    className="bg-white dark:bg-[#12161c] p-3.5 rounded-[4px] border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="w-7 h-7 rounded-[4px] flex items-center justify-center bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f]">
-                                <Euro size={15} strokeWidth={2.5} />
-                            </div>
-                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-[3px]">Auto Transfer</span>
-                        </div>
-                        <div className="mt-auto">
-                            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-0.5">€{stats.availableBalance.toFixed(2)}</h3>
-                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Available Balance</p>
-                        </div>
-                    </div>
-
-                    {/* Pending Clearance */}
-                    <div
-    className="bg-white dark:bg-[#12161c] p-3.5 rounded-[4px] border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="w-7 h-7 rounded-[4px] flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 text-amber-600">
-                                <Clock size={15} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                        <div>
-                            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-0.5">€{stats.escrowBalance.toFixed(2)}</h3>
-                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Clearance</p>
-                        </div>
-                    </div>
-
-                    {/* Lifetime Settled */}
-                    <div
-    className="bg-white dark:bg-[#12161c] p-3.5 rounded-[4px] border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
-                        <div className="flex justify-between items-start mb-2">
-                            <div className="w-7 h-7 rounded-[4px] flex items-center justify-center bg-purple-50 dark:bg-purple-950/40 text-purple-600">
-                                <TrendingUp size={15} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                        <div>
-                            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-0.5">€{stats.totalWithdrawn.toFixed(2)}</h3>
-                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Lifetime Settled</p>
-                        </div>
-                    </div>
-
-                    {/* Stripe Connect Account */}
-                    <div className={`p-3.5 rounded-[4px] border transition-all flex flex-col justify-between ${
-                        !isStripeConnected
-                            ? 'bg-red-50/30 dark:bg-red-950/20 border-red-300 dark:border-red-900/60 ring-2 ring-red-500/20 shadow-xs'
-                            : 'bg-white dark:bg-[#12161c] border-slate-200/90 dark:border-slate-800 shadow-2xs'
-                    }`}>
-                        <div className="flex justify-between items-start mb-2">
-                            <div className={`w-7 h-7 rounded-[4px] flex items-center justify-center ${
-                                isStripeConnected ? 'bg-[#635BFF]/10 text-[#635BFF]' : 'bg-red-100 text-red-600'
-                            }`}>
-                                {isStripeConnected ? <ShieldCheck size={15} strokeWidth={2.5} /> : <AlertCircle size={15} strokeWidth={2.5} />}
-                            </div>
-                            {isStripeConnected ? (
-                                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 font-semibold text-[10px]">
-                                    Connected
-                                </Badge>
-                            ) : (
-                                <span className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded-full shadow-2xs animate-pulse">
-                                    Action Required
-                                </span>
-                            )}
-                        </div>
-                        <div className="flex items-end justify-between mt-auto">
-                            <div>
-                                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-0.5">Stripe Connect</h3>
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                    {isStripeConnected ? (stripeAccountData?.stripe_account?.stripe_account_id ? 'Bank Linked' : 'Connected') : 'Setup required'}
-                                </p>
-                            </div>
-                            <button
-                                className="text-xs text-[#635BFF] hover:underline font-bold transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                                onClick={() => handleRedirectToStripeOnboarding('card_stat', isStripeConnected)}
-                                disabled={redirectingTarget !== null}
-                            >
-                                {redirectingTarget === 'card_stat' ? (
-                                    <span className="flex items-center gap-1">
-                                        <Loader2 className="w-3 h-3 animate-spin text-[#635bff]" /> Opening...
-                                    </span>
-                                ) : isStripeConnected ? 'Manage' : 'Setup'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                <MetricCard
+                    title="Available Balance"
+                    description="Cleared funds ready for auto payout"
+                    value={`€${stats.availableBalance.toFixed(2)}`}
+                    icon={Euro}
+                    colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
+                    badge={<span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-[3px]">Auto Transfer</span>}
+                    isLoading={loading}
+                />
+                <MetricCard
+                    title="Pending Clearance"
+                    description="Funds in escrow awaiting delivery"
+                    value={`€${stats.escrowBalance.toFixed(2)}`}
+                    icon={Clock}
+                    colorClass="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"
+                    isLoading={loading}
+                />
+                <MetricCard
+                    title="Lifetime Settled"
+                    description="Total cumulative settled payout sum"
+                    value={`€${stats.totalWithdrawn.toFixed(2)}`}
+                    icon={TrendingUp}
+                    colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
+                    isLoading={loading}
+                />
+                <MetricCard
+                    title="Stripe Connect"
+                    description={isStripeConnected ? (stripeAccountData?.stripe_account?.stripe_account_id ? 'Direct Bank Linked & Active' : 'Connected & Ready') : 'Direct bank payout setup required'}
+                    value={isStripeConnected ? "Connected" : "Setup Needed"}
+                    icon={isStripeConnected ? ShieldCheck : AlertCircle}
+                    colorClass={isStripeConnected ? "bg-[#635BFF]/10 text-[#635BFF]" : "bg-red-50 dark:bg-red-950/40 text-red-600"}
+                    badge={
+                        isStripeConnected ? (
+                            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 font-semibold text-[10px]">
+                                Active
+                            </Badge>
+                        ) : (
+                            <span className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded shadow-2xs animate-pulse">
+                                Required
+                            </span>
+                        )
+                    }
+                    onClick={() => handleRedirectToStripeOnboarding('card_stat', isStripeConnected)}
+                    isLoading={loading}
+                />
+            </div>
 
             {/* Full-Width Modern DataTable Matching Negotiation Page */}
             <DataTable

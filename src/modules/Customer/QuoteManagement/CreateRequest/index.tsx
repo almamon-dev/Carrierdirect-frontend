@@ -37,10 +37,10 @@ export default function CreateRequestForm() {
             {/* Header Toolbar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         {isRepeatMode ? `Repeat Quote Request (${repeatSource})` : 'Create New Quote Request'}
                     </h1>
-                    <p className="text-[13px] font-medium text-[#ff4a1f] mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Fill in all specifications to receive competitive bids from verified carriers.
                     </p>
                 </div>

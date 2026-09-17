@@ -43,11 +43,36 @@ export const CustomerQuoteRequestCard: React.FC<CustomerQuoteRequestCardProps> =
         ? activeChat.extraCharges
         : (activeChat?.raw?.extra_charges || activeChat?.raw?.extraCharges || []);
     const totalExtras = extraCharges.reduce((acc: number, c: any) => acc + Number(c.amount || 0), 0);
-    const totalQuotationAmount = Number(msg.newTotal || activeChat?.currentPrice || activeChat?.raw?.amount || 0);
-    const baseFreightRate = activeChat?.baseFreightAmount || (
+    const rawTotal = Number(msg.newTotal || activeChat?.currentPrice || activeChat?.raw?.amount || 0);
+    const rawBase = activeChat?.baseFreightAmount ?? (
         activeChat?.raw?.base_amount_raw ??
-        (activeChat?.raw?.base_amount ? parseFloat(String(activeChat.raw.base_amount).replace(/[^0-9.]/g, "")) : (totalQuotationAmount > totalExtras && totalExtras > 0 ? totalQuotationAmount - totalExtras : totalQuotationAmount))
+        (activeChat?.raw?.base_amount ? parseFloat(String(activeChat.raw.base_amount).replace(/[^0-9.]/g, "")) : null)
     );
+
+    let baseFreightRate = 0;
+    let totalQuotationAmount = 0;
+
+    if (totalExtras > 0) {
+        if (rawBase !== null && rawBase > 0) {
+            baseFreightRate = rawBase;
+            if (rawTotal > rawBase) {
+                totalQuotationAmount = rawTotal;
+            } else {
+                totalQuotationAmount = rawBase + totalExtras;
+            }
+        } else {
+            if (rawTotal > totalExtras) {
+                baseFreightRate = rawTotal - totalExtras;
+                totalQuotationAmount = rawTotal;
+            } else {
+                baseFreightRate = rawTotal;
+                totalQuotationAmount = rawTotal + totalExtras;
+            }
+        }
+    } else {
+        baseFreightRate = rawTotal;
+        totalQuotationAmount = rawTotal;
+    }
 
     const pickupDate = (activeChat as any)?.pickupDate || activeChat?.raw?.pickup_date || 'Flexible / Today';
     const deliveryDate = (activeChat as any)?.deliveryDate || activeChat?.raw?.delivery_date || 'Standard Delivery';

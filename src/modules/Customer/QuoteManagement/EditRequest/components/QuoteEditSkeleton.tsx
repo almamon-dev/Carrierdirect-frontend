@@ -25,8 +25,10 @@ export const QuoteEditSkeleton: React.FC<QuoteEditSkeletonProps> = ({ activeTab 
         <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 animate-in fade-in duration-200 font-sans antialiased">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100">Edit Quote Request</h1>
-                    <p className="text-[13px] font-medium text-[#ff4a1f] mt-0.5">Update the required information to modify the request.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Edit Quote Request</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Update the required information to modify the request.
+                    </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-[34px] w-36 rounded-md" />

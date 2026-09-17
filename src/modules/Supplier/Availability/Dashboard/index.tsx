@@ -69,8 +69,10 @@ export default function AvailabilityDashboard() {
     className="p-4 w-full mx-auto space-y-4 min-h-screen bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header */}
             <div>
-                <h1 className="text-[18px] font-bold text-slate-900">Availability Dashboard</h1>
-                <p className="text-[12px] text-slate-500 mt-0.5">Overview of your capacity, assets, and booking utilization.</p>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Availability Dashboard</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Overview of your capacity, assets, and booking utilization.
+                    </p>
             </div>
 
             {/* Top Metric Widgets Grid */}

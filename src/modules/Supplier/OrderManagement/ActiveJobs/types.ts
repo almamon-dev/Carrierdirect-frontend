@@ -75,6 +75,12 @@ export interface SupplierOrderItem {
     net_payout?: string;
     platform_fee?: string;
     payment_status?: string;
+    payment_method?: string;
+    payment_stage?: string;
+    invoice_type?: string;
+    is_pay_later?: boolean;
+    is_paid?: boolean;
+    payment?: any;
     status?: string;
     status_raw?: string;
     pod_status?: string;

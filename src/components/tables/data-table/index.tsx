@@ -44,6 +44,7 @@ export interface DataTableProps<T = any> {
     emptyState?: React.ReactNode;
     tableClassName?: string;
     tableLayout?: 'auto' | 'fixed';
+    disableHorizontalScroll?: boolean;
     actionsColumnClassName?: string;
     onRowClick?: (item: T) => void;
     syncUrlParams?: boolean;
@@ -71,6 +72,7 @@ export default function DataTable<T extends Record<string, any>>({
     emptyState, 
     tableClassName, 
     tableLayout = 'auto', 
+    disableHorizontalScroll = false,
     actionsColumnClassName,
     onRowClick,
     syncUrlParams = true,
@@ -109,8 +111,8 @@ export default function DataTable<T extends Record<string, any>>({
         setCurrentPage(1);
     };
 
-    const rowHeightClass = compact ? 'min-h-[44px]' : 'min-h-[50px]';
-    const cellPaddingClass = compact ? 'px-2.5 py-2.5' : 'px-3.5 py-3';
+    const rowHeightClass = compact ? 'min-h-[38px]' : 'min-h-[50px]';
+    const cellPaddingClass = compact ? 'px-2 py-1.5' : 'px-3.5 py-3';
     const [search, setSearch] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
@@ -574,7 +576,7 @@ export default function DataTable<T extends Record<string, any>>({
             <div className="animate-in fade-in duration-300">
                 {/* Header Tabs (Inside container) */}
                 {headerTabs && (
-                    <div className="px-4 pt-3 border-b border-[#ebebeb] dark:border-slate-800">
+                    <div className="px-3.5 pt-2 border-b border-[#ebebeb] dark:border-slate-800">
                         {headerTabs}
                     </div>
                 )}
@@ -654,7 +656,7 @@ export default function DataTable<T extends Record<string, any>>({
                         {emptyState ?? <EmptyState />}
                     </div>
                 ) : (
-                    <div className="overflow-x-auto custom-scrollbar">
+                    <div className={disableHorizontalScroll ? "overflow-hidden" : "overflow-x-auto custom-scrollbar"}>
                         <table className={`w-full text-left border-collapse ${tableLayout === 'fixed' ? 'table-fixed' : ''} ${tableClassName || ''}`}>
                             <thead>
                                 <tr className="bg-slate-50/90 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400   whitespace-nowrap">
@@ -698,7 +700,7 @@ export default function DataTable<T extends Record<string, any>>({
                                                         }
                                                     }
                                                 }}
-                                                className={`${compact ? 'px-2.5 py-2' : 'px-3.5 py-3'} font-bold   text-slate-600 dark:text-slate-300 text-[11px] ${col.className || ''} ${col.sortable !== false ? 'cursor-pointer hover:text-slate-900 dark:hover:text-white' : ''}`}
+                                                className={`${compact ? 'px-2 py-1.5' : 'px-3.5 py-3'} font-bold   text-slate-600 dark:text-slate-300 text-[11px] ${col.className || ''} ${col.sortable !== false ? 'cursor-pointer hover:text-slate-900 dark:hover:text-white' : ''}`}
                                                 onClick={() => col.sortable !== false && handleSort(col.id)}
                                             >
                                                 <div className={`flex items-center gap-1 ${isCentered ? 'justify-center' : isRight ? 'justify-end' : 'justify-start'}`}>
@@ -713,7 +715,7 @@ export default function DataTable<T extends Record<string, any>>({
                                         );
                                     })}
                                     {actions && (
-                                        <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} text-right pr-3.5 sm:pr-4   text-[11px] font-bold text-slate-600 dark:text-slate-300 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
+                                        <th className={`${compact ? 'px-2 py-1.5' : 'px-3.5 py-3'} text-right pr-3.5 sm:pr-4   text-[11px] font-bold text-slate-600 dark:text-slate-300 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
                                             Actions
                                         </th>
                                     )}

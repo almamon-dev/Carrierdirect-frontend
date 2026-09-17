@@ -29,9 +29,9 @@ export const downloadBlankPDFTemplate = () => {
 
     <h2>Basic Information</h2>
     <div class="field-row"><span class="field-label"><span>Request Title<span class="req-star">*</span></span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
-    <div class="field-row"><span class="field-label"><span>Priority</span><span>:</span></span><span class="field-val">[  ] Low &nbsp;&nbsp; [  ] Normal &nbsp;&nbsp; [  ] High &nbsp;&nbsp; [  ] Urgent</span></div>
-    <div class="field-row"><span class="field-label"><span>Shipment Type</span><span>:</span></span><span class="field-val">[  ] One Way &nbsp;&nbsp; [  ] Round Trip</span></div>
-    <div class="field-row"><span class="field-label"><span>Service Type</span><span>:</span></span><span class="field-val">[  ] Standard &nbsp;&nbsp; [  ] Express</span></div>
+    <div class="field-row"><span class="field-label"><span>Priority</span><span>:</span></span><span class="field-val">[ ] Low &nbsp;&nbsp; [ ] Normal &nbsp;&nbsp; [ ] High &nbsp;&nbsp; [ ] Urgent</span></div>
+    <div class="field-row"><span class="field-label"><span>Shipment Type</span><span>:</span></span><span class="field-val">[ ] One Way &nbsp;&nbsp; [ ] Round Trip</span></div>
+    <div class="field-row"><span class="field-label"><span>Service Type</span><span>:</span></span><span class="field-val">[ ] Standard &nbsp;&nbsp; [ ] Express</span></div>
     <div class="field-row"><span class="field-label"><span>Pickup Date<span class="req-star">*</span></span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 180px;"></span> &nbsp;&nbsp; (YYYY-MM-DD)</span></div>
     <div class="field-row"><span class="field-label"><span>Pickup Time</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 180px;"></span> &nbsp;&nbsp; (e.g. 09:00 AM)</span></div>
     <div class="field-row"><span class="field-label"><span>Delivery Date<span class="req-star">*</span></span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 180px;"></span> &nbsp;&nbsp; (YYYY-MM-DD)</span></div>
@@ -93,16 +93,15 @@ export const downloadBlankPDFTemplate = () => {
     <hr />
 
     <h2>Budget & Bidding Preferences</h2>
-    <div class="field-row"><span class="field-label"><span>Target Budget (€)</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 180px;"></span></span></div>
-    <div class="field-row"><span class="field-label"><span>Auto Expire RFQ</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 180px;"></span></span></div>
-    <div class="field-row"><span class="field-label"><span>Negotiation / Multiple Bids</span><span>:</span></span><span class="field-val">[ ] Allow Negotiation &nbsp;&nbsp; [ ] Receive Multiple Bids</span></div>
+    <div class="field-row"><span class="field-label"><span>Target Budget Rate (EUR)</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 180px;"></span></span></div>
+    <div class="field-row"><span class="field-label"><span>Allow Negotiation / Multiple Bids</span><span>:</span></span><span class="field-val">[ ] Allow Negotiation &nbsp;&nbsp; [ ] Receive Multiple Bids</span></div>
+    <div class="field-row"><span class="field-label"><span>Auto Expire Duration</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 180px;"></span></span></div>
     <hr />
 
-    <h2>Attachments & Additional Notes</h2>
-    <div class="field-row"><span class="field-label"><span>Internal Reference</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 250px;"></span></span></div>
+    <h2>Notes & Attachments</h2>
     <div class="field-row"><span class="field-label"><span>Customer Notes</span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
     <div class="field-row"><span class="field-label"><span>Special Instructions</span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
-    <div class="field-row"><span class="field-label"><span>Packing List / Invoice</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 250px;"></span></span></div>
+    <div class="field-row"><span class="field-label"><span>Internal Reference ID</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 250px;"></span></span></div>
 </body>
 </html>
     `);

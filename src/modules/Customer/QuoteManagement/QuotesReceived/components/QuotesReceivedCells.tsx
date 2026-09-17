@@ -28,11 +28,11 @@ export const QuotesReceivedAmountCell: React.FC<{ row: any }> = ({ row }) => {
     let formattedAmt = '—';
     const raw = row.amount_raw ?? row.amount ?? row.offer_amount ?? row.quote_amount;
     if (typeof raw === 'number') {
-        formattedAmt = `€ ${raw.toLocaleString('de-DE')}`;
+        formattedAmt = `€ ${raw.toLocaleString('en-US')}`;
     } else if (typeof raw === 'string' && raw) {
         const cleanStr = raw.replace(/^€\s*|^EUR\s*|^\$\s*|^USD\s*/i, '').trim();
         const numVal = parseFloat(cleanStr.replace(/\./g, '').replace(/,/g, '.'));
-        formattedAmt = !isNaN(numVal) ? `€ ${numVal.toLocaleString('de-DE')}` : `€ ${cleanStr}`;
+        formattedAmt = !isNaN(numVal) ? `€ ${numVal.toLocaleString('en-US')}` : `€ ${cleanStr}`;
     }
     return (
         <div className="flex items-center min-h-[26px]">
