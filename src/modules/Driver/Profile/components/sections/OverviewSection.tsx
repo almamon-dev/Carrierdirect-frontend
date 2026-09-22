@@ -1,73 +1,97 @@
-import React, { useRef, useState } from 'react';
-import { 
-    User, ShieldCheck, CheckCircle2, Edit3, 
-    BadgeCheck, Camera
+import React, { useRef, useState, useEffect } from 'react';
+import {
+    User,
+    CheckCircle2,
+    Edit3,
+    Camera,
+    Building2,
+    PhoneCall,
+    Save,
+    Truck,
+    Clock,
 } from 'lucide-react';
 import { DriverProfile } from '../../../types';
+import { driverApi } from '../../../services/driverApi';
 import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 
 interface Props {
     profile: DriverProfile;
-    onUpdateAvatar?: (avatarUrl: string) => Promise<any> | void;
+    onUpdateAvatar?: (avatarDataUrl: string) => Promise<any> | void;
     onUpdateProfile?: (updates: Partial<DriverProfile>) => Promise<any> | void;
     onToggleDuty?: (status: DriverProfile['dutyStatus']) => Promise<any> | void;
 }
 
-const FormFieldRow = ({ label, required = false, children, isVerified = false, valueText, isEdit = false }: any) => (
-    <div className={`flex ${isEdit ? 'items-start sm:items-center' : 'items-center'} gap-2`}>
-        <div className={`w-[130px] sm:w-[140px] shrink-0 flex items-center justify-between text-[12.5px] ${isEdit ? 'font-bold text-slate-700 dark:text-slate-300 pt-1.5 sm:pt-0' : 'font-medium text-slate-500 dark:text-slate-400'}`}>
-            <span>{label} {required && isEdit && <span className="text-[#ff4a1f]">*</span>}</span>
-            <span className="text-slate-300 dark:text-slate-600">:</span>
-        </div>
-        <div className="flex-1 relative min-w-0">
-            {isEdit ? children : (
-                <div className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 py-0.5 min-h-[26px] flex items-center break-words">
-                    {valueText || '—'}
-                </div>
-            )}
-            {isVerified && !isEdit && (
-                <span className="inline-flex items-center text-emerald-500 ml-1.5" title="Verified">
-                   <CheckCircle2 size={15} strokeWidth={2.5} />
-                </span>
-            )}
-        </div>
-    </div>
-);
-
-export const OverviewSection: React.FC<Props> = ({ 
-    profile, 
-    onUpdateAvatar, 
-    onUpdateProfile, 
-    onToggleDuty 
+export const OverviewSection: React.FC<Props> = ({
+    profile,
+    onUpdateAvatar,
+    onUpdateProfile,
+    onToggleDuty,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState<string | undefined>(profile.avatar);
+    const [imgError, setImgError] = useState(false);
 
-    // Form state using driver profile data
-    const [name, setName] = useState(profile.name || 'James Wilson');
-    const [email, setEmail] = useState(profile.email || 'james.wilson@carrierdirect.com');
-    const [phone, setPhone] = useState(profile.phone || '+1 (555) 123-4567');
-    const [role, setRole] = useState(profile.employmentStatus || 'Company Driver');
-    
-    const [homeTerminal, setHomeTerminal] = useState(profile.homeTerminal || 'Newark Regional Freight Center, Hub #4');
-    const [emergencyContact, setEmergencyContact] = useState(profile.emergencyContact?.name || 'Sarah Wilson');
-    const [emergencyPhone, setEmergencyPhone] = useState(profile.emergencyContact?.phone || '+1 (555) 999-0000');
-    const [address, setAddress] = useState(profile.address || '1244 Commerce Way, Suite 400, Newark, NJ 07102');
+    // Form inputs state
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [homeTerminal, setHomeTerminal] = useState('');
+    const [address, setAddress] = useState('');
+    const [emergencyContact, setEmergencyContact] = useState('');
+    const [emergencyPhone, setEmergencyPhone] = useState('');
+    const [relationship, setRelationship] = useState('');
+    const [slogan, setSlogan] = useState('');
+
+    // Fleet state
+    const [tractorModel, setTractorModel] = useState('');
+    const [unitNumber, setUnitNumber] = useState('');
+    const [trailerNumber, setTrailerNumber] = useState('');
+    const [licensePlate, setLicensePlate] = useState('');
+    const [vinNumber, setVinNumber] = useState('');
+
+    // Sync with incoming profile
+    const syncWithProfile = () => {
+        setName(profile.name || '');
+        setEmail(profile.email || '');
+        setPhone(profile.phone || '');
+        setHomeTerminal(profile.homeTerminal || '');
+        setAddress(profile.address || '');
+        setEmergencyContact(profile.emergencyContact?.name || '');
+        setEmergencyPhone(profile.emergencyContact?.phone || '');
+        setRelationship(profile.emergencyContact?.relationship || '');
+        setSlogan(profile.slogan || '');
+        setAvatarUrl(profile.avatar);
+
+        const fleet = profile.fleetEquipment || ({} as any);
+        setTractorModel(fleet.tractorModel || '');
+        setUnitNumber(fleet.unitNumber || '');
+        setTrailerNumber(fleet.trailerNumber || '');
+        setLicensePlate(fleet.licensePlate || '');
+        setVinNumber(fleet.vin || fleet.vinNumber || '');
+    };
+
+    useEffect(() => {
+        syncWithProfile();
+    }, [profile]);
 
     const handleAvatarClick = () => {
-        if (isEditMode) {
-            fileInputRef.current?.click();
-        }
+        fileInputRef.current?.click();
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file && onUpdateAvatar) {
+        if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 if (typeof reader.result === 'string') {
-                    onUpdateAvatar(reader.result);
+                    setAvatarUrl(reader.result);
+                    setImgError(false);
+                    if (onUpdateAvatar) {
+                        onUpdateAvatar(reader.result);
+                    }
                 }
             };
             reader.readAsDataURL(file);
@@ -76,237 +100,519 @@ export const OverviewSection: React.FC<Props> = ({
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!onUpdateProfile) {
-            setIsEditMode(false);
-            return;
-        }
         setIsSaving(true);
         try {
-            await onUpdateProfile({
+            await driverApi.updatePersonalInfo({
                 name,
-                email,
                 phone,
-                employmentStatus: role as any,
-                homeTerminal: homeTerminal,
                 address,
-                emergencyContact: {
-                    name: emergencyContact,
-                    relationship: profile.emergencyContact?.relationship || 'Spouse',
-                    phone: emergencyPhone
-                }
+                bio: slogan,
             });
+            await driverApi.updateEmergency({
+                emergency_contact_name: emergencyContact,
+                emergency_contact_phone: emergencyPhone,
+                emergency_contact_relation: relationship,
+                terminal_location: homeTerminal,
+            });
+            await driverApi.updateEquipment({
+                tractor_model: tractorModel,
+                truck_number: unitNumber,
+                trailer_number: trailerNumber,
+                license_plate: licensePlate,
+                vin_number: vinNumber,
+            });
+
+            if (onUpdateProfile) {
+                await onUpdateProfile({
+                    name,
+                    phone,
+                    homeTerminal,
+                    address,
+                    slogan,
+                    emergencyContact: {
+                        name: emergencyContact,
+                        phone: emergencyPhone,
+                        relationship,
+                    },
+                    fleetEquipment: {
+                        ...profile.fleetEquipment,
+                        tractorModel,
+                        unitNumber,
+                        trailerNumber,
+                        licensePlate,
+                        vin: vinNumber,
+                    } as any,
+                });
+            }
             setIsEditMode(false);
+        } catch (err) {
+            console.error('Failed to save driver profile:', err);
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleCancel = () => {
-        // Reset state back to initial profile values
-        setName(profile.name || 'James Wilson');
-        setEmail(profile.email || 'james.wilson@carrierdirect.com');
-        setPhone(profile.phone || '+1 (555) 123-4567');
-        setRole(profile.employmentStatus || 'Company Driver');
-        setHomeTerminal(profile.homeTerminal || 'Newark Regional Freight Center, Hub #4');
-        setEmergencyContact(profile.emergencyContact?.name || 'Sarah Wilson');
-        setEmergencyPhone(profile.emergencyContact?.phone || '+1 (555) 999-0000');
-        setAddress(profile.address || '1244 Commerce Way, Suite 400, Newark, NJ 07102');
+        syncWithProfile();
         setIsEditMode(false);
     };
 
-    const inputClasses = "w-full h-8 px-2.5 bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded text-[13px] font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-orange-300 dark:focus:border-orange-800 focus:ring-1 focus:ring-orange-300 dark:focus:ring-orange-800 transition-shadow";
+    const isVerified = Boolean(profile.isVerified);
+    const isUnderReview = profile.verificationStatus === 'under_review';
+    const isOnline = profile.dutyStatus === 'online' || profile.dutyStatus === 'on_trip';
+    const employer = profile.employerCarrier;
+    const companyName = employer?.companyName || employer?.company_name;
 
     return (
-        <div className="animate-in fade-in duration-200">
-            {/* Hidden File Input for Avatar Photo Upload */}
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-            />
+        <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-2xs w-full">
+            <form onSubmit={handleSaveProfile}>
+                {/* SINGLE CARD UNIFIED 3-COLUMN LAYOUT */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 dark:divide-slate-800/80">
+                    
+                    {/* SECTION 1: Driver Dossier & Status */}
+                    <div className="flex flex-col justify-between space-y-3 pt-0 lg:pr-6">
+                        <div>
+                            {/* Section Header */}
+                            <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100 dark:border-slate-800/80">
+                                <div className="flex items-center gap-1.5">
+                                    <User size={14} className="text-[#FF4A1F]" />
+                                    <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                                        Driver Dossier & Status
+                                    </h3>
+                                </div>
+                                {isVerified ? (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/70 dark:border-emerald-800/70 rounded-[3px] flex items-center gap-1">
+                                        <CheckCircle2 size={10} />
+                                        <span>Active Verified</span>
+                                    </span>
+                                ) : isUnderReview ? (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200/70 dark:border-amber-800/70 rounded-[3px] flex items-center gap-1">
+                                        <Clock size={10} />
+                                        <span>Under Review</span>
+                                    </span>
+                                ) : (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[3px]">
+                                        Pending Setup
+                                    </span>
+                                )}
+                            </div>
 
-            <form onSubmit={handleSaveProfile} className="flex flex-col">
-                
-                {/* 1. Header Area: Avatar & Badges */}
-                <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100 dark:border-slate-800/80">
-                    <div className="flex items-center gap-3">
-                        <div 
-                            onClick={handleAvatarClick}
-                            title="Click to upload or change profile photo"
-                            className="relative w-11 h-11 shrink-0 rounded-full bg-orange-50 dark:bg-orange-950/40 flex items-center justify-center border border-orange-200 dark:border-orange-900/40 text-orange-600 dark:text-orange-400 cursor-pointer group hover:ring-2 hover:ring-[#ff4a1f]/40 transition-all"
-                        >
-                            {profile.avatar ? (
-                                <img
-                                    src={profile.avatar}
-                                    alt={name}
-                                    className="w-11 h-11 rounded-full object-cover"
-                                />
+                            {/* Driver Header Profile Info */}
+                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100 dark:border-slate-800/60">
+                                <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+                                    <div className="w-11 h-11 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+                                        {avatarUrl && !imgError ? (
+                                            <img
+                                                src={avatarUrl}
+                                                alt={name}
+                                                onError={() => setImgError(true)}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-[#FF4A1F]/10 dark:bg-[#FF4A1F]/20 text-[#FF4A1F] flex items-center justify-center font-bold text-sm">
+                                                {name ? name.charAt(0).toUpperCase() : 'D'}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        aria-label="Upload Driver Avatar"
+                                        className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white"
+                                    >
+                                        <Camera size={13} />
+                                    </button>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                    />
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                            {name || 'Driver'}
+                                        </h4>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                                        <span className="font-mono text-[#FF4A1F] font-bold">
+                                            {`DRV-${profile.id || '0'}`}
+                                        </span>
+                                        {profile.licenseBadge && (
+                                            <>
+                                                <span>•</span>
+                                                <span className="px-1 py-0.2 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-bold rounded-[2px] text-[10px]">
+                                                    {profile.licenseBadge}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dossier Key-Values */}
+                            <div className="space-y-2 text-xs">
+                                {/* Duty Status */}
+                                <div className="grid grid-cols-[105px_14px_1fr] items-center min-w-0">
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Duty Status</span>
+                                    <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <span
+                                            className={`inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.2 rounded-[3px] ${
+                                                isOnline
+                                                    ? 'text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                                    : 'text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300'
+                                            }`}
+                                        >
+                                            <span
+                                                className={`w-1.5 h-1.5 rounded-full ${
+                                                    isOnline
+                                                        ? 'bg-emerald-500 animate-pulse'
+                                                        : 'bg-slate-400'
+                                                }`}
+                                            />
+                                            <span>
+                                                {isOnline ? 'Online' : 'Offline'}
+                                            </span>
+                                        </span>
+                                        {onToggleDuty && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    onToggleDuty(
+                                                        isOnline ? 'offline' : 'online'
+                                                    )
+                                                }
+                                                className="text-[10px] text-[#FF4A1F] hover:underline font-bold cursor-pointer shrink-0"
+                                            >
+                                                {isOnline ? 'Go Offline' : 'Switch to Online'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Email Address */}
+                                <div className="grid grid-cols-[105px_14px_1fr] items-center min-w-0">
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Email Address</span>
+                                    <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                    <span className="text-slate-800 dark:text-slate-200 truncate font-mono text-[11.5px]" title={email}>
+                                        {email || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                </div>
+
+                                {/* Phone Number */}
+                                <div className="grid grid-cols-[105px_14px_1fr] items-center min-w-0">
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Phone Number</span>
+                                    <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                    {isEditMode ? (
+                                        <Input
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            placeholder="e.g. +1 (555) 000-0000"
+                                            className="h-7 text-xs"
+                                        />
+                                    ) : (
+                                        <span className="font-mono font-bold text-slate-800 dark:text-slate-200 truncate">
+                                            {phone || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Carrier Fleet */}
+                                <div className="grid grid-cols-[105px_14px_1fr] items-center min-w-0">
+                                    <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Carrier Fleet</span>
+                                    <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                    <span className="font-semibold text-slate-800 dark:text-slate-200 truncate" title={companyName}>
+                                        {companyName || <span className="text-slate-400 italic font-normal">Not assigned</span>}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                            {!isEditMode ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditMode(true)}
+                                    className="h-7 px-2.5 text-xs font-bold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-orange-950/40 border border-[#FF4A1F]/30 rounded-[3px] inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                                >
+                                    <Edit3 size={12} />
+                                    <span>Edit Profile</span>
+                                </button>
                             ) : (
-                                <User size={19} />
+                                <div className="flex items-center gap-1.5 w-full justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={handleCancel}
+                                        disabled={isSaving}
+                                        className="h-7 px-2.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-[3px] transition-colors cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <Button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="h-7 px-3 text-xs font-bold bg-[#FF4A1F] hover:bg-[#E03E15] text-white rounded-[3px] flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                    >
+                                        <Save size={12} />
+                                        <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                                    </Button>
+                                </div>
                             )}
-                            
-                            {/* Duty Status dot (Top Right) */}
-                            <div className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#1e2329] ${profile.dutyStatus === 'online' ? 'bg-emerald-500' : 'bg-slate-400'}`} title={profile.dutyStatus === 'online' ? 'On Duty' : 'Off Duty'} />
-                            
-                            {/* Camera Upload Badge (Bottom Right) */}
-                            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#ff4a1f] text-white flex items-center justify-center border-2 border-white dark:border-[#1e2329] shadow-2xs group-hover:scale-110 transition-transform">
-                                <Camera size={9} strokeWidth={2.5} />
-                            </div>
-                        </div>
-
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-[14px] font-extrabold text-slate-900 dark:text-white">
-                                    {name}
-                                </h2>
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded border border-blue-200/60 dark:border-blue-800/60 shrink-0 uppercase tracking-wider">
-                                    <BadgeCheck size={10} className="fill-blue-500 text-white" />
-                                    {role}
-                                </span>
-                            </div>
-                            <div className="text-[11.5px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
-                                {email} • ID: <span className="font-bold text-slate-700 dark:text-slate-300">{profile.id || 'DRV-9872'}</span>
-                            </div>
                         </div>
                     </div>
 
-                    <div className="shrink-0 flex items-center gap-2">
-                        {!isEditMode ? (
-                            <button
-                                type="button"
-                                onClick={() => setIsEditMode(true)}
-                                className="h-8 px-3 text-[12px] font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-[#181d24] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                                <Edit3 size={13} className="text-[#ff4a1f]" />
-                                <span>Edit Profile</span>
-                            </button>
-                        ) : (
-                            <span className="h-8 px-3 text-[11.5px] font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 rounded border border-orange-200/60 dark:border-orange-900/60 flex items-center">
-                                Editing Mode
+                    {/* SECTION 2: Personal & Emergency Contact */}
+                    <div className="flex flex-col space-y-3 pt-4 lg:pt-0 lg:px-6">
+                        {/* Section Header */}
+                        <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-100 dark:border-slate-800/80">
+                            <div className="flex items-center gap-1.5">
+                                <PhoneCall size={14} className="text-[#FF4A1F]" />
+                                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                                    Personal & Emergency Contact
+                                </h3>
+                            </div>
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-[3px] flex items-center gap-1">
+                                <Building2 size={10} />
+                                <span>Contact Details</span>
                             </span>
-                        )}
-                        <span className="hidden sm:inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-[#181d24] border border-slate-200 dark:border-slate-700 rounded shadow-2xs">
-                            <ShieldCheck size={14} className="text-[#ff4a1f]" />
-                            <span>Authorized Driver</span>
-                        </span>
+                        </div>
+
+                        {/* Contact Key-Values */}
+                        <div className="space-y-2 text-xs">
+                            {/* Home Address */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Home Address</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={address}
+                                        onChange={(e) => setAddress(e.target.value)}
+                                        placeholder="e.g. 742 Evergreen Terr, Springfield"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="text-slate-800 dark:text-slate-200 truncate" title={address}>
+                                        {address || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Home Terminal */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Home Terminal</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={homeTerminal}
+                                        onChange={(e) => setHomeTerminal(e.target.value)}
+                                        placeholder="e.g. Chicago Logistics Hub #4"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="text-slate-800 dark:text-slate-200 truncate" title={homeTerminal}>
+                                        {homeTerminal || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Emergency Contact Name */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Emergency Name</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={emergencyContact}
+                                        onChange={(e) => setEmergencyContact(e.target.value)}
+                                        placeholder="e.g. Sarah Jenkins"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                        {emergencyContact || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Emergency Contact Phone */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Emergency Phone</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={emergencyPhone}
+                                        onChange={(e) => setEmergencyPhone(e.target.value)}
+                                        placeholder="e.g. +1 (555) 999-1122"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="font-mono font-bold text-red-600 dark:text-red-400 truncate">
+                                        {emergencyPhone || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Emergency Relationship */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Relationship</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={relationship}
+                                        onChange={(e) => setRelationship(e.target.value)}
+                                        placeholder="e.g. Spouse / Sibling"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                        {relationship || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Driver Bio / Notes */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Driver Bio</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={slogan}
+                                        onChange={(e) => setSlogan(e.target.value)}
+                                        placeholder="Short note or safety slogan"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="text-slate-800 dark:text-slate-200 truncate italic">
+                                        {slogan || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                     </div>
+
+                    {/* SECTION 3: Assigned Equipment & Fleet */}
+                    <div className="flex flex-col space-y-3 pt-4 lg:pt-0 lg:pl-6">
+                        {/* Section Header */}
+                        <div className="flex items-center justify-between pb-2 mb-1 border-b border-slate-100 dark:border-slate-800/80">
+                            <div className="flex items-center gap-1.5">
+                                <Truck size={14} className="text-[#FF4A1F]" />
+                                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                                    Assigned Equipment & Fleet
+                                </h3>
+                            </div>
+                            {unitNumber ? (
+                                <span className="px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/70 dark:border-emerald-800/70 rounded-[3px] flex items-center gap-1">
+                                    <CheckCircle2 size={10} />
+                                    <span>Assigned</span>
+                                </span>
+                            ) : (
+                                <span className="px-1.5 py-0.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-[3px]">
+                                    Unassigned
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Equipment Key-Values */}
+                        <div className="space-y-2 text-xs">
+                            {/* Tractor Model */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Tractor Model</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={tractorModel}
+                                        onChange={(e) => setTractorModel(e.target.value)}
+                                        placeholder="e.g. Freightliner Cascadia"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="font-bold text-slate-900 dark:text-slate-100 truncate">
+                                        {tractorModel || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Power Unit Number */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Power Unit</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={unitNumber}
+                                        onChange={(e) => setUnitNumber(e.target.value)}
+                                        placeholder="e.g. TRK-101"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="font-mono font-bold text-blue-700 dark:text-blue-400 truncate">
+                                        {unitNumber || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Trailer Number */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Trailer Unit</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={trailerNumber}
+                                        onChange={(e) => setTrailerNumber(e.target.value)}
+                                        placeholder="e.g. TRL-559"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                        {trailerNumber || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* License Plate */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">License Plate</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={licensePlate}
+                                        onChange={(e) => setLicensePlate(e.target.value)}
+                                        placeholder="e.g. ABC-12345"
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                                        {licensePlate || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* VIN Number */}
+                            <div className="grid grid-cols-[115px_14px_1fr] items-center min-w-0">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">VIN Number</span>
+                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
+                                {isEditMode ? (
+                                    <Input
+                                        value={vinNumber}
+                                        onChange={(e) => setVinNumber(e.target.value)}
+                                        placeholder="e.g. 1FT8W3BT9H..."
+                                        className="h-7 text-xs"
+                                    />
+                                ) : (
+                                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                        {vinNumber || <span className="text-slate-400 italic font-normal">Not added</span>}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-
-                {/* 2. Personal & Contact Info */}
-                <div className="mb-4">
-                    <h3 className="text-[12.5px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5 border-b border-slate-100 dark:border-slate-800/80 pb-1">
-                        Personal & Contact Info
-                    </h3>
-                    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-x-8 ${isEditMode ? 'gap-y-3' : 'gap-y-1.5'}`}>
-                        <FormFieldRow label="Full Name" required valueText={name} isEdit={isEditMode}>
-                            <input 
-                                type="text" 
-                                value={name} 
-                                onChange={(e) => setName(e.target.value)} 
-                                className={inputClasses} 
-                                required
-                            />
-                        </FormFieldRow>
-                        
-                        <FormFieldRow label="Email Address" required isVerified valueText={email} isEdit={isEditMode}>
-                            <input 
-                                type="email" 
-                                value={email} 
-                                readOnly
-                                className={`${inputClasses} pr-10 bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-90`} 
-                            />
-                        </FormFieldRow>
-                        
-                        <FormFieldRow label="Phone Number" valueText={phone} isEdit={isEditMode}>
-                            <input 
-                                type="tel" 
-                                value={phone} 
-                                onChange={(e) => setPhone(e.target.value)} 
-                                className={inputClasses} 
-                            />
-                        </FormFieldRow>
-                        
-                        <FormFieldRow label="Designation / Role" valueText={role} isEdit={isEditMode}>
-                            <input 
-                                type="text" 
-                                value={role} 
-                                onChange={(e) => setRole(e.target.value)} 
-                                className={inputClasses} 
-                            />
-                        </FormFieldRow>
-                    </div>
-                </div>
-
-                {/* 3. Driver Details & Emergency */}
-                <div className="mb-3">
-                    <h3 className="text-[12.5px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5 border-b border-slate-100 dark:border-slate-800/80 pb-1">
-                        Terminal & Emergency Info
-                    </h3>
-                    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-x-8 ${isEditMode ? 'gap-y-3' : 'gap-y-1.5'}`}>
-                        <FormFieldRow label="Base Location" valueText={homeTerminal} isEdit={isEditMode}>
-                            <input 
-                                type="text" 
-                                value={homeTerminal} 
-                                onChange={(e) => setHomeTerminal(e.target.value)} 
-                                className={inputClasses} 
-                            />
-                        </FormFieldRow>
-                        
-                        <FormFieldRow label="Driver Address" valueText={address} isEdit={isEditMode}>
-                            <input 
-                                type="text" 
-                                value={address} 
-                                onChange={(e) => setAddress(e.target.value)} 
-                                className={inputClasses} 
-                            />
-                        </FormFieldRow>
-
-                        <FormFieldRow label="Emergency Contact" valueText={emergencyContact} isEdit={isEditMode}>
-                            <input 
-                                type="text" 
-                                value={emergencyContact} 
-                                onChange={(e) => setEmergencyContact(e.target.value)} 
-                                className={inputClasses} 
-                                placeholder="Name of contact"
-                            />
-                        </FormFieldRow>
-
-                        <FormFieldRow label="Emergency Phone" required valueText={emergencyPhone} isEdit={isEditMode}>
-                            <input 
-                                type="tel" 
-                                value={emergencyPhone} 
-                                onChange={(e) => setEmergencyPhone(e.target.value)} 
-                                className={inputClasses} 
-                                required
-                            />
-                        </FormFieldRow>
-                    </div>
-                </div>
-
-                {/* 4. Actions (Only in Edit Mode) */}
-                {isEditMode && (
-                    <div className="flex justify-end pt-4 mt-2 border-t border-slate-100 dark:border-slate-800/80 gap-2.5">
-                        <button
-                            type="button"
-                            onClick={handleCancel}
-                            disabled={isSaving}
-                            className="h-8 px-4 text-[12.5px] font-bold bg-white dark:bg-[#181d24] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-[4px] flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <Button
-                            type="submit"
-                            disabled={isSaving}
-                            className="h-8 px-4 text-[12.5px] font-bold bg-[#1a9f53] hover:bg-[#168a47] text-white rounded-[4px] flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-colors"
-                        >
-                            {isSaving ? 'Saving...' : 'Save Profile Settings'}
-                        </Button>
-                    </div>
-                )}
-                
             </form>
         </div>
     );
 };
+
+export default OverviewSection;

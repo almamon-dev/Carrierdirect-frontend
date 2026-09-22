@@ -117,6 +117,21 @@ export default function DataTable<T extends Record<string, any>>({
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
+
+    // Automatically prune selectedIds that no longer exist in current data (e.g. after deletion or refetch)
+    useEffect(() => {
+        setSelectedIds(prev => {
+            if (!prev || prev.length === 0) return prev;
+            const validIds = new Set(data.map(item => String(keyExtractor(item))));
+            const next = prev.filter(id => validIds.has(String(id)));
+            return next.length === prev.length ? prev : next;
+        });
+    }, [data, keyExtractor]);
+
+    // Reset selection when search query or filter tabs change
+    useEffect(() => {
+        setSelectedIds([]);
+    }, [search, headerTabs]);
     const [expandedRows, setExpandedRows] = useState<Set<number | string>>(new Set());
     const [gridLimit, setGridLimit] = useState(12);
 
@@ -309,11 +324,24 @@ export default function DataTable<T extends Record<string, any>>({
         setVisibleColumns(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
     };
 
+    const isIdSelected = useCallback((id: number | string) => {
+        return selectedIds.some(sId => String(sId) === String(id));
+    }, [selectedIds]);
+
+    const isAllPageSelected = paginatedData.length > 0 && paginatedData.every(item => isIdSelected(keyExtractor(item)));
+    const isSomePageSelected = !isAllPageSelected && paginatedData.some(item => isIdSelected(keyExtractor(item)));
+
     const toggleSelectAll = () => {
-        if (selectedIds.length === paginatedData.length && paginatedData.length > 0) {
-            setSelectedIds([]);
+        if (isAllPageSelected) {
+            const pageIds = new Set(paginatedData.map(item => String(keyExtractor(item))));
+            setSelectedIds(prev => prev.filter(id => !pageIds.has(String(id))));
         } else {
-            setSelectedIds(paginatedData.map(item => keyExtractor(item)));
+            const pageIds = paginatedData.map(item => keyExtractor(item));
+            setSelectedIds(prev => {
+                const currentSet = new Set(prev.map(id => String(id)));
+                const toAdd = pageIds.filter(id => !currentSet.has(String(id)));
+                return [...prev, ...toAdd];
+            });
         }
     };
 
@@ -322,7 +350,11 @@ export default function DataTable<T extends Record<string, any>>({
     };
 
     const toggleSelect = (id: number | string) => {
-        setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+        setSelectedIds(prev => 
+            prev.some(sId => String(sId) === String(id))
+                ? prev.filter(sId => String(sId) !== String(id))
+                : [...prev, id]
+        );
     };
 
     const toggleExpand = (id: number | string) => {
@@ -347,7 +379,7 @@ export default function DataTable<T extends Record<string, any>>({
     className="absolute inset-0 bg-slate-100/95 dark:bg-[#1e2329]/95 backdrop-blur-xs z-20 flex items-center justify-between px-4 animate-in fade-in duration-200">
                                 <div className="flex items-center gap-1.5 text-[13px]">
                                     <span className="text-slate-800 dark:text-slate-200">
-                                        All <strong>{selectedIds.length}</strong> items on this page are selected.
+                                        <strong>{selectedIds.length}</strong> {selectedIds.length === 1 ? 'item' : 'items'} selected.
                                     </span>
                                     {totalItems > selectedIds.length && (
                                         <button 
@@ -510,6 +542,7 @@ export default function DataTable<T extends Record<string, any>>({
                 {renderGridView ? (
                     renderGridView({
                         data: paginatedData,
+                        allData: sortedData,
                         columns: currentColumns,
                         visibleColumns,
                         selectedIds,
@@ -543,7 +576,7 @@ export default function DataTable<T extends Record<string, any>>({
                 )}
 
                 {/* Standalone Grid Pagination */}
-                {!hidePagination && (
+                {!hidePagination && !(isGridMode && renderGridView) && (
                     <TablePagination 
                         total={totalItems}
                         fromIdx={totalItems > 0 ? startIndex + 1 : 0}
@@ -664,7 +697,7 @@ export default function DataTable<T extends Record<string, any>>({
                                         <div className="flex items-center justify-center">
                                             <input 
                                                 type="checkbox" 
-                                                checked={selectedIds.length === paginatedData.length && paginatedData.length > 0}
+                                                checked={isAllPageSelected}
                                                 onChange={toggleSelectAll}
                                                 className="table-checkbox" 
                                             />
@@ -742,8 +775,8 @@ export default function DataTable<T extends Record<string, any>>({
                                                         );
                                                     }
 
-                                                    const colId = col.id.toLowerCase();
-                                                    const colLabel = col.label.toLowerCase();
+                                                    const colId = String(col?.id || '').toLowerCase();
+                                                    const colLabel = typeof col?.label === 'string' ? col.label.toLowerCase() : '';
 
                                                     if (colId === 'id' || colId === 'code' || colLabel.includes('id') || colLabel.includes('code')) {
                                                         return (
@@ -865,7 +898,7 @@ export default function DataTable<T extends Record<string, any>>({
                                 ) : (
                                     paginatedData.map(item => {
                                         const id = keyExtractor(item);
-                                        const isSelected = selectedIds.includes(id);
+                                        const isSelected = isIdSelected(id);
                                         return (
                                             <React.Fragment key={id}>
                                                 <tr 

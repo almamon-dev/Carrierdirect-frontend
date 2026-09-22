@@ -43,7 +43,7 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
         pickupDate: q.pickup_date ? String(q.pickup_date).split('T')[0] : '',
         pickupTime: q.pickup_time_from || q.pickup_time || q.pickupTime || '',
         deliveryDate: q.delivery_date ? String(q.delivery_date).split('T')[0] : '',
-        deliveryTime: q.delivery_time_from || q.delivery_time || q.deliveryTime || '',
+        deliveryTime: q.delivery_time_till || q.delivery_time_from || q.delivery_time || q.deliveryTime || '',
         expectedTransitTime: q.expected_transit_time ? String(q.expected_transit_time) : '',
 
         pickupCompany,

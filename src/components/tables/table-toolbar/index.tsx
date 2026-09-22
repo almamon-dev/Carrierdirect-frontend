@@ -29,7 +29,7 @@ export default function TableToolbar({
                 <div className={`absolute inset-0 bg-slate-100/95 dark:bg-[#1e2329]/95 backdrop-blur-xs z-20 flex items-center justify-center px-4 ${borderBottom ? 'border-b border-slate-200 dark:border-slate-800' : ''} animate-in fade-in duration-200`}>
                     <div className="flex items-center gap-1.5 text-[13px]">
                         <span className="text-slate-800 dark:text-slate-200">
-                            All <strong>{selectedCount}</strong> items on this page are selected.
+                            <strong>{selectedCount}</strong> {selectedCount === 1 ? 'item' : 'items'} selected.
                         </span>
                         {totalCount > selectedCount && onSelectAll && (
                             <button 

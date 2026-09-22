@@ -50,32 +50,32 @@ export const TodayOverviewCards: React.FC<Props> = ({ metrics, onOpenGPS, onOpen
                 />
             </div>
 
-            {/* 3 Quick Action Buttons Row - Compact rounded-[4px] */}
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+            {/* 3 Quick Action Buttons Row - Standardized height */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
                 <button
                     type="button"
                     onClick={onOpenGPS}
-                    className="py-2 px-3 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer"
+                    className="h-8 px-3 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer"
                 >
-                    <GitFork size={14} className="text-blue-500" />
+                    <GitFork size={13} className="text-blue-500" />
                     <span>Live GPS</span>
                 </button>
 
                 <button
                     type="button"
                     onClick={onOpenBOL}
-                    className="py-2 px-3 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer"
+                    className="h-8 px-3 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer"
                 >
-                    <FileText size={14} className="text-[#FF4A1F]" />
+                    <FileText size={13} className="text-[#FF4A1F]" />
                     <span>Digital BOL</span>
                 </button>
 
                 <button
                     type="button"
                     onClick={onOpenReports}
-                    className="py-2 px-3 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer"
+                    className="h-8 px-3 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer"
                 >
-                    <BarChart3 size={14} className="text-emerald-500" />
+                    <BarChart3 size={13} className="text-emerald-500" />
                     <span>Reports</span>
                 </button>
             </div>

@@ -5,6 +5,7 @@ import EmptyState from '../empty-state';
 
 export interface DataTableGridProps<T = any> {
     data: T[];
+    allData?: T[];
     columns: Column<T>[];
     visibleColumns: string[];
     selectedIds: (number | string)[];

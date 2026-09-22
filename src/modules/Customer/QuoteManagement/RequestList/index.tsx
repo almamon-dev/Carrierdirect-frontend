@@ -68,6 +68,7 @@ export default function RequestList() {
                     />
                 )}
                 actionsColumnClassName="w-[52px] min-w-[52px] max-w-[52px] text-center px-1"
+                onDeleteSelected={deleteState.handleDeleteSelectedClick}
                 headerTabs={<FilterTabs requestData={requestData} activeTab={filters.activeFilterTab} onSelectTab={filters.setActiveFilterTab} />}
                 filterContent={
                     <TableFilterContent

@@ -15,6 +15,7 @@ export const buildQuoteRequestFormData = (
 
     if (formData.pickupDate) submitData.append('pickup_date', formData.pickupDate);
     if (formData.pickupTime) submitData.append('pickup_time_from', formData.pickupTime);
+    if (formData.pickupTimeTill) submitData.append('pickup_time_till', formData.pickupTimeTill);
     if (formData.pickupCompany) submitData.append('pickup_company', formData.pickupCompany);
     if (formData.pickupContactName) submitData.append('pickup_contact_name', formData.pickupContactName);
     if (formData.pickupPhone) submitData.append('pickup_phone', formData.pickupPhone);

@@ -1,22 +1,17 @@
-/**
- * Driver Profile Main Page
- * Layout driven by Global Sidebar navigation (via hash routes #general / #credentials).
- */
-
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
-    Loader2, RotateCcw, ShieldCheck, CheckCircle2
+    Loader2, User, ShieldCheck
 } from 'lucide-react';
-import Button from '@/components/ui/button';
 import { useDriverProfile } from './hooks/useDriverProfile';
 import { OverviewSection } from './components/sections/OverviewSection';
 import { CredentialsSection } from './components/sections/CredentialsSection';
 
 export default function DriverProfilePage() {
-    const { profile, isLoading, updateProfile, toggleDuty, reloadProfile } = useDriverProfile();
+    const { profile, isLoading, updateProfile, toggleDuty } = useDriverProfile();
     const location = useLocation();
-    const [activeTab, setActiveTab] = useState('general');
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState<'general' | 'credentials'>('general');
 
     // Sync active tab with URL hash
     useEffect(() => {
@@ -27,18 +22,53 @@ export default function DriverProfilePage() {
         }
     }, [location.hash]);
 
+    const handleTabChange = (tab: 'general' | 'credentials') => {
+        setActiveTab(tab);
+        navigate(`/driver/profile#${tab}`, { replace: true });
+    };
+
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 gap-3 font-sans">
                 <Loader2 size={32} className="animate-spin text-[#FF4A1F]" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Loading driver profile...</span>
             </div>
         );
     }
 
     return (
-        <div className="p-4 sm:p-6 mx-auto bg-[#f8fafc] dark:bg-[#12161c] min-h-screen pb-16 font-sans antialiased w-full">
-            {/* Flat Layout: Content Area based on Sub-menu selection */}
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-md shadow-sm w-full p-5 sm:p-6">
+        <div className="p-2.5 sm:p-4 mx-auto bg-[#f8fafc] dark:bg-[#12161c] h-auto pb-12 font-sans antialiased w-full space-y-4">
+            {/* Pill Tabs Switcher */}
+            <div className="flex items-center gap-1 p-1 bg-slate-200/70 dark:bg-[#1e2329] rounded-[6px] w-fit shadow-2xs">
+                <button
+                    type="button"
+                    onClick={() => handleTabChange('general')}
+                    className={`h-8 px-3.5 inline-flex items-center gap-1.5 text-xs font-bold rounded-[4px] transition-all cursor-pointer ${
+                        activeTab === 'general'
+                            ? 'bg-white dark:bg-[#12161c] text-[#FF4A1F] shadow-2xs'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                >
+                    <User size={13} />
+                    <span>General Information</span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => handleTabChange('credentials')}
+                    className={`h-8 px-3.5 inline-flex items-center gap-1.5 text-xs font-bold rounded-[4px] transition-all cursor-pointer ${
+                        activeTab === 'credentials'
+                            ? 'bg-white dark:bg-[#12161c] text-[#FF4A1F] shadow-2xs'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                >
+                    <ShieldCheck size={13} />
+                    <span>Credentials & Compliance</span>
+                </button>
+            </div>
+
+            {/* Tab Content Panels */}
+            <div className="w-full">
                 {activeTab === 'general' && (
                     <OverviewSection
                         profile={profile}
@@ -61,8 +91,8 @@ export default function DriverProfilePage() {
                 )}
             </div>
             
-            <div className="text-center text-xs text-slate-400 dark:text-slate-500 pt-6">
-                Driver Portal Version 2.4.1
+            <div className="text-center text-[11px] text-slate-400 dark:text-slate-500 pt-4">
+                CarrierDirect Driver Portal • Compliant Dispatch Hub
             </div>
         </div>
     );

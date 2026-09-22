@@ -2,15 +2,31 @@ export interface DriverProfile {
     id: string | number;
     name: string;
     avatar: string;
-    title: string; // e.g. "Driver Captain"
-    slogan: string; // e.g. "Safe Drive • On Time • Happy Customers"
-    licenseBadge: string; // e.g. "CDL-A"
+    title: string;
+    slogan: string;
+    licenseBadge: string;
     isVerified: boolean;
-    employmentStatus?: 'Active' | 'On Leave' | 'Suspended';
-    dutyStatus: 'online' | 'offline' | 'on_trip' | 'break';
+    verificationStatus?: "pending_setup" | "under_review" | "verified" | "rejected" | "suspended";
+    rejectionReason?: string;
+    employerCarrier?: {
+        id: number | string;
+        company_name?: string;
+        companyName?: string;
+        email: string;
+        phone?: string;
+        dot_number?: string;
+        dotNumber?: string;
+        terminal_address?: string;
+        terminalAddress?: string;
+    };
+    employmentStatus?: "Active" | "On Leave" | "Suspended";
+    dutyStatus: "online" | "offline" | "on_trip" | "break";
     phone: string;
     email: string;
     address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
     cdlDetails?: {
         cdlNumber: string;
         licenseClass: string;
@@ -32,31 +48,35 @@ export interface DriverProfile {
         mcsaForm: string;
         mcsaFormUrl: string;
     };
-    fleetEquipment?: {
+        fleetEquipment?: {
         tractorModel: string;
-        year: number | string;
+        year?: number | string;
         unitNumber: string;
-        vin: string;
+        vin?: string;
         licensePlate: string;
         equipmentType: string;
-        eldUnitId: string;
-        currentMileage: string;
-        trailerNumber: string;
-        trailerVin: string;
-        trailerType: string;
-        gpsTracker: string;
-        inspectionStatus: string;
-        inspectionCertificateName: string;
-        inspectionCertificateUrl: string;
-        insuranceStatus: string;
-        insuranceCertificateUrl: string;
+        eldUnitId?: string;
+        currentMileage?: string;
+        trailerNumber?: string;
+        trailerVin?: string;
+        trailerType?: string;
+        gpsTracker?: string;
+        inspectionStatus?: string;
+        inspectionCertificateName?: string;
+        inspectionCertificateUrl?: string;
+        insuranceProvider?: string;
+        insurancePolicyNumber?: string;
+        insuranceEffectiveDate?: string;
+        insuranceExpiryDate?: string;
+        insuranceStatus?: string;
+        insuranceCertificateUrl?: string;
     };
     vehicleAssigned: {
         plate: string;
         model: string;
         type: string;
         capacity: string;
-        status: 'Active' | 'Maintenance' | 'Inactive';
+        status: "Active" | "Maintenance" | "Inactive";
     };
     driverLicense: string;
     joinedDate: string;
@@ -76,7 +96,7 @@ export interface DriverProfile {
         completedTrips: number;
     };
     preferences: {
-        navigationApp: 'Google Truck GPS' | 'Waze' | 'Apple Maps' | 'HERE WeGo';
+        navigationApp: "Google Truck GPS" | "Waze" | "Apple Maps" | "HERE WeGo";
         notificationSounds: boolean;
         autoAcceptDispatch: boolean;
         offlineMaps: boolean;
@@ -85,13 +105,13 @@ export interface DriverProfile {
 }
 
 export type ShipmentStatus = 
-    | 'assigned' 
-    | 'accepted' 
-    | 'at_pickup' 
-    | 'in_transit' 
-    | 'at_delivery' 
-    | 'delivered' 
-    | 'cancelled';
+    | "assigned" 
+    | "accepted" 
+    | "at_pickup" 
+    | "in_transit" 
+    | "at_delivery" 
+    | "delivered" 
+    | "cancelled";
 
 export interface ShipmentMilestone {
     key: ShipmentStatus;
@@ -107,7 +127,7 @@ export interface ShipmentItem {
     orderNumber: string;
     trackingNumber: string;
     status: ShipmentStatus;
-    priority: 'Standard' | 'Urgent' | 'High Value';
+    priority: "Standard" | "Urgent" | "High Value";
     shipper: {
         name: string;
         company: string;
@@ -172,21 +192,21 @@ export interface DriverChatMessage {
     id: string;
     senderId: string;
     senderName: string;
-    senderRole: 'driver' | 'dispatcher' | 'customer' | 'support';
+    senderRole: "driver" | "dispatcher" | "customer" | "support";
     senderAvatar?: string;
     message: string;
-    type: 'text' | 'image' | 'status_update' | 'location_share' | 'voice_note';
+    type: "text" | "image" | "status_update" | "location_share" | "voice_note";
     timestamp: string;
     attachmentUrl?: string;
     metadata?: any;
     isMe: boolean;
-    status?: 'sent' | 'delivered' | 'read';
+    status?: "sent" | "delivered" | "read";
 }
 
 export interface DriverChatConversation {
     id: string;
     title: string;
-    role: 'Dispatcher' | 'Customer' | 'Safety & Ops' | 'Support';
+    role: "Dispatcher" | "Customer" | "Safety & Ops" | "Support";
     lastMessage: string;
     lastMessageTime: string;
     unreadCount: number;
@@ -200,9 +220,9 @@ export interface DriverNotification {
     id: string;
     title: string;
     message: string;
-    type: 'trip_assigned' | 'route_update' | 'safety_alert' | 'payout' | 'system';
+    type: "trip_assigned" | "route_update" | "safety_alert" | "payout" | "system";
     timestamp: string;
     isRead: boolean;
     actionUrl?: string;
-    priority?: 'normal' | 'high' | 'urgent';
+    priority?: "normal" | "high" | "urgent";
 }

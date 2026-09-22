@@ -1,33 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Truck, MessageSquare, Bell, UserCircle, Settings, ChevronRight, X } from 'lucide-react';
-import LogoBlack from '@/assets/Images/LogoBlack.png';
+import { 
+    LayoutDashboard, 
+    Truck, 
+    MessageSquare, 
+    Bell, 
+    UserCircle, 
+    LogOut, 
+    X, 
+    ChevronRight,
+    Lock
+} from 'lucide-react';
 import LogoWhite from '@/assets/Images/Logo.png';
+import LogoBlack from '@/assets/Images/LogoBlack.png';
 import LogoIcon from '@/assets/Images/LogoIcon.png';
-import { navigationMap } from '@/constants/navigation';
 import { TOKEN_CONFIG } from '@/config/auth';
-import { requireDriverCompliance } from '@/modules/Driver/Compliance';
+import { useDriverCompliance } from '@/modules/Driver/Compliance';
 
 interface SidebarProps {
     isOpen: boolean;
     onClose?: () => void;
 }
 
-const getSidebarItemBadge = (_path: string) => null;
-
-const isSubItemActive = (subPath: string, currentPath: string, currentHash?: string) => {
-    const fullPath = currentHash ? `${currentPath}${currentHash}` : currentPath;
-    if (fullPath === subPath || currentPath === subPath) return true;
-    if (subPath !== '/' && fullPath.startsWith(subPath)) return true;
-    return false;
+// Map custom navigation structure
+const navigationMap: Record<string, any[]> = {
+    driver: [
+        { category: 'Main Menu', name: 'Dashboard', path: '/driver/dashboard', icon: LayoutDashboard },
+        { category: 'Main Menu', name: 'Shipments', path: '/driver/shipments', icon: Truck },
+        { category: 'Main Menu', name: 'Live Chat', path: '/driver/chat', icon: MessageSquare },
+        { category: 'Main Menu', name: 'Notifications', path: '/driver/notifications', icon: Bell },
+        { category: 'Account & Settings', name: 'Driver Profile', path: '/driver/profile', icon: UserCircle },
+    ]
 };
 
-const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: any; isOpen: boolean; onClose?: () => void }) => {
-    const isActiveGroup = Array.isArray(item.items) && item.items.some((subItem: any) => 
+const isSubItemActive = (subItemPath: string, currentPath: string, currentHash: string) => {
+    if (!subItemPath) return false;
+    if (subItemPath.includes('#')) {
+        const [p, h] = subItemPath.split('#');
+        return currentPath === p && currentHash === `#${h}`;
+    }
+    return currentPath === subItemPath || (subItemPath !== '/driver/dashboard' && currentPath.startsWith(subItemPath));
+};
+
+const getSidebarItemBadge = (path: string) => {
+    try {
+        if (path === '/driver/chat') {
+            const raw = localStorage.getItem('driver_unread_chat_count');
+            return raw ? parseInt(raw, 10) : 0;
+        }
+        if (path === '/driver/notifications') {
+            const raw = localStorage.getItem('driver_unread_notifications_count');
+            return raw ? parseInt(raw, 10) : 0;
+        }
+    } catch {
+        return 0;
+    }
+    return 0;
+};
+
+const isItemProtected = (path?: string) => {
+    if (!path) return false;
+    if (path.includes('/profile')) return false;
+    return true;
+};
+
+const NavGroup = ({ item, location, isOpen, onClose, isVerified }: { item: any; location: any; isOpen: boolean; onClose?: () => void; isVerified: boolean }) => {
+    const isActiveGroup = item.items?.some((subItem: any) => 
         isSubItemActive(subItem.path, location.pathname, location.hash)
     );
-
-    // Initially off by default unless current route belongs to this group
     const [isExpanded, setIsExpanded] = useState(isActiveGroup);
 
     useEffect(() => {
@@ -82,26 +122,22 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
                             const isActive = isSubItemActive(subItem.path, location.pathname, location.hash);
                             const badgeCount = subItem.badge || getSidebarItemBadge(subItem.path);
                             const isLast = sIdx === item.items.length - 1;
-
                             const isBeforeActive = activeIdx !== -1 && sIdx < activeIdx;
                             const isCurrentActive = activeIdx !== -1 && sIdx === activeIdx;
+                            const locked = !isVerified && isItemProtected(subItem.path);
 
                             return (
                                 <Link
                                     key={subItem.path || subItem.name || sIdx}
-                                    to={subItem.path || '/driver/dashboard'}
+                                    to={locked ? '#' : (subItem.path || '/driver/dashboard')}
                                     onClick={(e) => {
-                                        const isVerified = localStorage.getItem('carrierdirect_driver_compliance_completed') === 'true';
-                                        if (!isVerified) {
+                                        if (locked) {
                                             e.preventDefault();
                                             window.dispatchEvent(
                                                 new CustomEvent('open-driver-lock-prompt', {
-                                                    detail: { featureName: subItem.name || 'Driver Portal Features' },
+                                                    detail: { featureName: subItem.name || 'Shipments & Dispatch' },
                                                 })
                                             );
-                                            if (window.innerWidth < 1024) {
-                                                onClose?.();
-                                            }
                                             return;
                                         }
                                         if (window.innerWidth < 1024) {
@@ -117,7 +153,6 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
                                 >
                                     {isOpen && (
                                         <>
-                                            {/* Top vertical connector (top-0 to 50%) */}
                                             <div 
                                                 className={`absolute left-0 top-0 h-1/2 w-[1.5px] transition-colors ${
                                                     isBeforeActive || isCurrentActive 
@@ -125,8 +160,6 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
                                                         : 'bg-slate-300 dark:bg-slate-700'
                                                 }`} 
                                             />
-                                            
-                                            {/* Bottom vertical connector (50% to bottom-0, only if not last item) */}
                                             {!isLast && (
                                                 <div 
                                                     className={`absolute left-0 top-1/2 h-1/2 w-[1.5px] transition-colors ${
@@ -136,10 +169,8 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
                                                     }`} 
                                                 />
                                             )}
-                                            
-                                            {/* Horizontal connector branch (X-axis) */}
                                             <div 
-                                                className={`absolute left-0 top-1/2 w-[13px] h-[1.5px] transition-colors ${
+                                                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[12px] h-[1.5px] transition-colors ${
                                                     isCurrentActive 
                                                         ? 'bg-[#ff4a1f] dark:bg-orange-500' 
                                                         : 'bg-slate-300 dark:bg-slate-700'
@@ -148,20 +179,14 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
                                         </>
                                     )}
 
-                                    <div className={`flex items-center ${isOpen ? 'gap-2 relative' : 'justify-center'} whitespace-nowrap min-w-0`}>
-                                        {isOpen ? (
-                                            <>
-                                                {/* Dot Indicator */}
-                                                <div className={`relative flex items-center justify-center shrink-0 w-3.5 h-3.5 rounded-full ${isActive ? 'bg-orange-100 dark:bg-orange-950/60 ring-2 ring-[#ff4a1f]/25' : 'bg-transparent'}`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-500' : 'bg-slate-400 dark:bg-slate-500 group-hover:bg-slate-600 dark:group-hover:bg-slate-300'}`} />
-                                                </div>
-                                                <span className="truncate">{String(subItem.name || '')}</span>
-                                            </>
-                                        ) : (
-                                            <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                    <div className="flex items-center gap-2 truncate">
+                                        <span className="truncate">{String(subItem.name || '')}</span>
+                                        {locked && isOpen && (
+                                            <Lock size={12} className="text-amber-500 shrink-0" />
                                         )}
                                     </div>
-                                    {isOpen && Number(badgeCount) > 0 ? (
+
+                                    {badgeCount > 0 && isOpen ? (
                                         <span className="ml-auto shrink-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold text-white bg-[#ff4a1f] rounded-full leading-none text-center shadow-xs">
                                             {badgeCount}
                                         </span>
@@ -177,6 +202,7 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
 };
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+    const { isVerified } = useDriverCompliance();
     const location = useLocation();
     const navigate = useNavigate();
     const currentModule = 'driver';
@@ -186,7 +212,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         { category: 'Main Menu', name: 'Shipments', path: '/driver/shipments', icon: Truck },
         { category: 'Main Menu', name: 'Live Chat', path: '/driver/chat', icon: MessageSquare },
         { category: 'Main Menu', name: 'Notifications', path: '/driver/notifications', icon: Bell },
-        { category: 'Main Menu', name: 'Profile', path: '/driver/profile', icon: UserCircle },
+        { category: 'Account & Settings', name: 'Driver Profile', path: '/driver/profile', icon: UserCircle },
     ];
 
     const handleLogout = () => {
@@ -199,7 +225,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         localStorage.removeItem('erp_user_data');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        navigate('/');
+        navigate('/web/login');
     };
 
     return (
@@ -232,6 +258,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     const prevCategory = idx > 0 ? navItems[idx - 1]?.category : null;
                     const showCategory = Boolean(item?.category && item.category !== prevCategory);
                     const IconComp = item?.icon;
+                    const locked = !isVerified && isItemProtected(item?.path);
 
                     return (
                         <React.Fragment key={item?.path || item?.name || idx}>
@@ -246,22 +273,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             )}
                             
                             {item?.group ? (
-                                <NavGroup item={item} location={location} isOpen={isOpen} onClose={onClose} />
+                                <NavGroup item={item} location={location} isOpen={isOpen} onClose={onClose} isVerified={isVerified} />
                             ) : (
                                 <Link
-                                    to={item?.path || '/driver/dashboard'}
+                                    to={locked ? '#' : (item?.path || '/driver/dashboard')}
                                     onClick={(e) => {
-                                        const isVerified = localStorage.getItem('carrierdirect_driver_compliance_completed') === 'true';
-                                        if (!isVerified) {
+                                        if (locked) {
                                             e.preventDefault();
                                             window.dispatchEvent(
                                                 new CustomEvent('open-driver-lock-prompt', {
-                                                    detail: { featureName: item.name || 'Driver Portal Features' },
+                                                    detail: { featureName: item.name || 'Shipments & Dispatch' },
                                                 })
                                             );
-                                            if (window.innerWidth < 1024) {
-                                                onClose?.();
-                                            }
                                             return;
                                         }
                                         if (window.innerWidth < 1024) {
@@ -285,6 +308,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                         )}
                                         {isOpen && <span className="whitespace-nowrap">{String(item?.name || '')}</span>}
                                     </div>
+                                    {locked && isOpen && (
+                                        <Lock size={13} className="text-amber-500 shrink-0" />
+                                    )}
                                 </Link>
                             )}
                         </React.Fragment>

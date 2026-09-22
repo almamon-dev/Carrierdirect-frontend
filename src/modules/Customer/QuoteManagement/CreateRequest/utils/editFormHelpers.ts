@@ -107,7 +107,7 @@ export const buildUpdatePayload = (formData: QuoteFormData, cleanId?: string) =>
         pickup_date: formData.pickupDate || new Date().toISOString().split('T')[0],
         delivery_date: formData.deliveryDate || null,
         pickup_time_from: formData.pickupTime || '',
-        pickup_time_till: '',
+        pickup_time_till: formData.pickupTimeTill || null,
         delivery_time_from: formData.deliveryTime || null,
 
         vehicle_type: formData.vehicleType || '',

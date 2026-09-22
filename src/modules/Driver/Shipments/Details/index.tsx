@@ -1,22 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Truck, Navigation, FileCheck, Loader2, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { Loader2, Truck, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { driverApi } from '../../services/driverApi';
 import { ShipmentItem, ShipmentStatus } from '../../types';
-import { ShipmentStatusBadge } from '../components/ShipmentStatusBadge';
-import { MilestoneStepper } from './components/MilestoneStepper';
-import { CargoSpecsCard } from './components/CargoSpecsCard';
-import { ContactPartyCard } from './components/ContactPartyCard';
-import { PODUploadModal } from './components/PODUploadModal';
-
 import { requireDriverCompliance } from '../../Compliance';
 
-export default function ShipmentDetailsPage() {
+import { DriverShipmentHeader } from './components/DriverShipmentHeader';
+import { DriverShipmentMapSection } from './components/DriverShipmentMapSection';
+import { DriverShipmentLocationsCard } from './components/DriverShipmentLocationsCard';
+import { DriverShipmentCargoSpecsCard } from './components/DriverShipmentCargoSpecsCard';
+import { DriverShipmentActionCard } from './components/DriverShipmentActionCard';
+import { DriverShipmentSidebarTimeline } from './components/DriverShipmentSidebarTimeline';
+import { PODUploadModal } from './components/PODUploadModal';
+import { GPSComingSoonModal } from '@/components/modals';
+
+export default function DriverShipmentDetailPage() {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
     const [shipment, setShipment] = useState<ShipmentItem | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isPODOpen, setIsPODOpen] = useState(false);
+    const [isGPSOpen, setIsGPSOpen] = useState(false);
+    const [gpsDestination, setGpsDestination] = useState<string | undefined>(undefined);
+    const [actionMessage, setActionMessage] = useState<string | null>(null);
 
     const loadShipment = async () => {
         if (!id) return;
@@ -34,11 +39,21 @@ export default function ShipmentDetailsPage() {
         loadShipment();
     }, [id]);
 
+    
+    const handleOpenGPS = (dest?: string) => {
+        requireDriverCompliance(() => {
+            setGpsDestination(dest || (shipment ? `${shipment.consignee.address}, ${shipment.consignee.city}` : undefined));
+            setIsGPSOpen(true);
+        }, 'Live GPS Navigation');
+    };
+
     const handleUpdateMilestone = async (nextStatus: ShipmentStatus) => {
         requireDriverCompliance(async () => {
             if (!shipment) return;
             const updated = await driverApi.updateShipmentMilestone(shipment.id, nextStatus);
             setShipment(updated);
+            setActionMessage(`Shipment milestone successfully updated to "${nextStatus.replace('_', ' ').toUpperCase()}"!`);
+            setTimeout(() => setActionMessage(null), 4500);
         }, 'Update Delivery Milestone');
     };
 
@@ -52,133 +67,103 @@ export default function ShipmentDetailsPage() {
         if (!shipment) return;
         const updated = await driverApi.submitPOD(shipment.id, podData);
         setShipment(updated);
+        setIsPODOpen(false);
+        setActionMessage('Proof of Delivery (POD) confirmed and saved successfully!');
+        setTimeout(() => setActionMessage(null), 5000);
     };
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 size={32} className="animate-spin text-[#FF4A1F]" />
+            <div className="p-12 flex flex-col items-center justify-center text-slate-500 gap-3 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
+                <Loader2 size={30} className="animate-spin text-[#FF4A1F]" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    Loading load details #{id}...
+                </span>
             </div>
         );
     }
 
     if (!shipment) {
         return (
-            <div className="max-w-4xl mx-auto p-8 bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200 dark:border-slate-800 text-center space-y-3">
-                <Truck size={36} className="mx-auto text-slate-300 dark:text-slate-600" />
-                <h2 className="text-sm font-bold text-slate-900 dark:text-white">Shipment Not Found</h2>
-                <Link to="/driver/shipments">
-                    <button
-                        type="button"
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200 rounded-[4px] text-xs font-bold transition-colors cursor-pointer"
+            <div className="w-full max-w-2xl mx-auto my-12 p-8 bg-white dark:bg-[#1e2329] rounded-lg border border-slate-200 dark:border-slate-800 text-center space-y-3 font-sans">
+                <Truck size={40} className="mx-auto text-slate-300 dark:text-slate-600" />
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">Assigned Load Not Found</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                    The requested load ID could not be retrieved from your driver manifest.
+                </p>
+                <div className="pt-2">
+                    <Link
+                        to="/driver/shipments"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#FF4A1F] hover:bg-[#E03E15] text-white rounded text-xs font-bold transition-colors cursor-pointer"
                     >
-                        Back to Shipments
-                    </button>
-                </Link>
+                        <ArrowLeft size={13} />
+                        <span>Return to Assigned Loads</span>
+                    </Link>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 max-w-5xl mx-auto pb-16 animate-in fade-in duration-150">
-            {/* Top Back & Header Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-[4px] border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-                <div className="flex items-center gap-3">
-                    <Link
-                        to="/driver/shipments"
-                        className="p-1.5 rounded-[4px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer shrink-0"
-                    >
-                        <ArrowLeft size={16} />
-                    </Link>
-                    <div>
-                        <div className="flex items-center gap-2.5">
-                            <h1 className="text-base font-bold text-slate-900 dark:text-white font-mono">
-                                {shipment.orderNumber}
-                            </h1>
-                            <ShipmentStatusBadge status={shipment.status} />
-                        </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                            Tracking: <span className="font-mono font-semibold">{shipment.trackingNumber}</span> • Priority: {shipment.priority}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-start sm:self-auto">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            requireDriverCompliance(() => {
-                                window.open(
-                                    `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(shipment.consignee.address + ', ' + shipment.consignee.city)}`,
-                                    '_blank'
-                                );
-                            }, 'Live GPS Navigation');
-                        }}
-                        className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100/80 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/60 dark:border-orange-900/40 rounded-[4px] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                        <Navigation size={13} />
-                        <span>Launch GPS</span>
-                    </button>
-
-                    {shipment.status !== 'delivered' && (
-                        <button
-                            type="button"
-                            onClick={handleOpenPOD}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-[4px] flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-                        >
-                            <FileCheck size={13} />
-                            <span>Upload POD</span>
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* 1. Milestone Stepper & Status Action */}
-            <MilestoneStepper
-                status={shipment.status}
-                onUpdateStatus={handleUpdateMilestone}
-                onOpenPOD={handleOpenPOD}
-            />
-
-            {/* 2. Route Map & Addresses Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
-                <ContactPartyCard title="Origin / Pickup Facility" type="shipper" party={shipment.shipper} />
-                <ContactPartyCard title="Destination / Consignee" type="consignee" party={shipment.consignee} />
-            </div>
-
-            {/* 3. Cargo Specifications & Payout details */}
-            <CargoSpecsCard cargo={shipment.cargo} payout={shipment.payout} />
-
-            {/* 4. Verified POD Result (if delivered) */}
-            {shipment.podData && (
-                <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 rounded-[4px] p-3.5 sm:p-4 space-y-2.5">
-                    <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-xs">
-                        <CheckCircle2 size={16} className="text-emerald-600" />
-                        <span>Proof of Delivery (POD) Sign-Off Verified</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-                        <div>
-                            <span className="text-slate-400 text-[11px] block">Signed By:</span>
-                            <span className="font-bold">{shipment.podData.receiverName}</span>
-                        </div>
-                        <div>
-                            <span className="text-slate-400 text-[11px] block">Timestamp:</span>
-                            <span className="font-bold">{new Date(shipment.podData.uploadedAt).toLocaleString()}</span>
-                        </div>
-                        <div>
-                            <span className="text-slate-400 text-[11px] block">Notes:</span>
-                            <span>{shipment.podData.notes || 'Delivered in good condition.'}</span>
-                        </div>
-                    </div>
+        <div className="p-2.5 sm:p-4 w-full flex flex-col min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] pb-8 space-y-2.5 text-slate-800 dark:text-slate-200 antialiased">
+            {/* Top Action Notification Banner */}
+            {actionMessage && (
+                <div className="p-2.5 px-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200 shadow-2xs">
+                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                    <span>{actionMessage}</span>
                 </div>
             )}
 
-            {/* POD Modal */}
+            {/* Top Full-Width Minimal Header Bar with Live GPS Tracking */}
+            <DriverShipmentHeader
+                shipment={shipment}
+                onOpenGPS={() => handleOpenGPS(shipment ? `${shipment.consignee.address}, ${shipment.consignee.city}` : undefined)}
+            />
+
+            {/* Main 12-Column Responsive Dashboard Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-start">
+                {/* Left Column (8 cols) */}
+                <div className="lg:col-span-8 flex flex-col gap-2.5">
+                    {/* Live Corridor Map & Visual Progress Stepper */}
+                    <DriverShipmentMapSection shipment={shipment} />
+
+                    {/* Facility Pickup & Delivery Location Card (Clean 2-Column Split, NO footer buttons) */}
+                    <DriverShipmentLocationsCard shipment={shipment} />
+
+                    {/* Vehicle & Cargo Specs Card */}
+                    <DriverShipmentCargoSpecsCard
+                        cargo={shipment.cargo}
+                        route={shipment.route}
+                    />
+                </div>
+
+                {/* Right Column (4 cols) */}
+                <div className="lg:col-span-4 flex flex-col gap-2.5">
+                    {/* Milestone Action & Delivery Sign-Off Card */}
+                    <DriverShipmentActionCard
+                        shipment={shipment}
+                        onUpdateStatus={handleUpdateMilestone}
+                        onOpenPOD={handleOpenPOD}
+                    />
+
+                    {/* Activity Log & Direct Dispatch Contacts Card */}
+                    <DriverShipmentSidebarTimeline shipment={shipment} />
+                </div>
+            </div>
+
+            {/* Proof of Delivery Upload Modal */}
             <PODUploadModal
                 isOpen={isPODOpen}
                 orderNumber={shipment.orderNumber}
                 onClose={() => setIsPODOpen(false)}
                 onSubmitPOD={handlePODSubmit}
+            />
+
+            {/* GPS Coming Soon Modal */}
+            <GPSComingSoonModal
+                isOpen={isGPSOpen}
+                destination={gpsDestination}
+                onClose={() => setIsGPSOpen(false)}
             />
         </div>
     );

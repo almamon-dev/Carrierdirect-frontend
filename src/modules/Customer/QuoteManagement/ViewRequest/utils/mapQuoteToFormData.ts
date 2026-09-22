@@ -15,7 +15,7 @@ export function mapQuoteToFormData(q: any, cleanId: string) {
         pickupDate: q.pickup_date || q.pickupDate || '-',
         pickupTime: q.pickup_time_from || q.pickupTime || '-',
         deliveryDate: q.delivery_date || q.deliveryDate || '-',
-        deliveryTime: q.delivery_time_from || q.deliveryTime || '-',
+        deliveryTime: q.delivery_time_till || q.delivery_time_from || q.deliveryTime || '-',
         expectedTransitTime: q.expected_transit_time || q.expectedTransitTime || '-',
         estDistance: q.estimated_distance || q.estDistance || '-',
 

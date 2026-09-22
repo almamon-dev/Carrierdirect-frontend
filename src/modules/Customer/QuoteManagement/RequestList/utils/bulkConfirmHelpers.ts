@@ -1,6 +1,7 @@
 function formatTimeTo24h(timeStr: any, defaultVal = "09:00:00"): string {
     if (!timeStr) return defaultVal;
-    const str = String(timeStr).trim();
+    let str = String(timeStr).trim();
+    str = str.replace(/\s*\(.*?\)/g, '').trim();
     if (/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/.test(str)) {
         const parts = str.split(":");
         const h = parts[0].padStart(2, "0");
@@ -61,7 +62,7 @@ export function buildBulkQuoteRequestsPayload(extractedData: any) {
             pickup_phone: row.pickupPhone || row.pickup_phone || '',
             pickup_email: row.pickupEmail || row.pickup_email || '',
             pickup_map_url: row.pickupMapUrl || row.pickup_map_url || null,
-            pickup_date: row.pickupDate || row.pickup_date || row.date || new Date().toISOString().split('T')[0],
+            pickup_date: String(row.pickupDate || row.pickup_date || row.date || '').replace(/\s*\(.*?\)/g, '').trim() || new Date().toISOString().split('T')[0],
             pickup_time_from: formatTimeTo24h(row.pickup_time_from || row.pickupTime || '09:00:00', '09:00:00'),
             pickup_time_till: formatTimeTo24h(row.pickup_time_till || '17:00:00', '17:00:00'),
             pickup_instructions: row.pickupInstructions || row.pickup_instructions || '',
@@ -76,7 +77,7 @@ export function buildBulkQuoteRequestsPayload(extractedData: any) {
             delivery_phone: row.deliveryPhone || row.delivery_phone || '',
             delivery_email: row.deliveryEmail || row.delivery_email || '',
             delivery_map_url: row.deliveryMapUrl || row.delivery_map_url || null,
-            delivery_date: row.deliveryDate || row.delivery_date || '',
+            delivery_date: String(row.deliveryDate || row.delivery_date || '').replace(/\s*\(.*?\)/g, '').trim() || '',
             delivery_time_from: formatTimeTo24h(row.delivery_time_from || row.deliveryTimeFrom || '09:00:00', '09:00:00'),
             delivery_time_till: formatTimeTo24h(row.delivery_time_till || row.deliveryTime || '17:00:00', '17:00:00'),
             delivery_instructions: row.deliveryInstructions || row.delivery_instructions || '',

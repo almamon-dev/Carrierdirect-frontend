@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Navigation, MapPin, Check, Save } from 'lucide-react';
 import { DriverProfile } from '../../../types';
 import Button from '@/components/ui/button';
+import Select from '@/components/ui/select';
 import TabHeader from '@/components/ui/tab-header';
 
 interface Props {
@@ -85,15 +86,18 @@ export const NavigationSection: React.FC<Props> = ({ profile, onSave }) => {
                     <KeyValueItem 
                         label="Primary Truck GPS App" 
                         value={
-                            <select
-                                value={selectedApp}
-                                onChange={(e) => setSelectedApp(e.target.value as any)}
-                                className="h-7 px-2 text-xs bg-slate-50 dark:bg-[#161a22] border border-slate-200 dark:border-slate-700 rounded-[3px] text-slate-900 dark:text-white focus:outline-none focus:border-[#ff4a1f]"
-                            >
-                                {NAV_APPS.map(app => (
-                                    <option key={app.id} value={app.id}>{app.name}</option>
-                                ))}
-                            </select>
+                            <div className="w-48">
+                                <Select
+                                    value={selectedApp}
+                                    onChange={(e) => setSelectedApp((e?.target?.value ?? e) as any)}
+                                    size="sm"
+                                    showSearch={false}
+                                >
+                                    {NAV_APPS.map(app => (
+                                        <option key={app.id} value={app.id}>{app.name}</option>
+                                    ))}
+                                </Select>
+                            </div>
                         }
                     />
 

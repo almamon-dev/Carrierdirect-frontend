@@ -5,9 +5,10 @@ import { MapPin, FileText, ChevronRight, Triangle } from 'lucide-react';
 interface Props {
     shipment: any;
     onOpenBOL: () => void;
+    onOpenGPS?: () => void;
 }
 
-export const ActiveShipmentCard: React.FC<Props> = ({ shipment, onOpenBOL }) => {
+export const ActiveShipmentCard: React.FC<Props> = ({ shipment, onOpenBOL, onOpenGPS }) => {
     if (!shipment) return null;
 
     return (
@@ -82,21 +83,20 @@ export const ActiveShipmentCard: React.FC<Props> = ({ shipment, onOpenBOL }) => 
                 </div>
 
                 {/* Two Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                    <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(shipment.destination?.address || '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="py-2 px-3 bg-[#FF4A1F] hover:bg-[#E03E15] text-white rounded-[4px] text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-98"
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <button
+                        type="button"
+                        onClick={onOpenGPS}
+                        className="h-8 px-3.5 bg-[#FF4A1F] hover:bg-[#E03E15] text-white rounded-[4px] text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer"
                     >
                         <Triangle size={11} className="fill-white rotate-0" />
                         <span>Live GPS Tracking</span>
-                    </a>
+                    </button>
 
                     <button
                         type="button"
                         onClick={onOpenBOL}
-                        className="py-2 px-3 bg-white dark:bg-[#161a22] hover:bg-slate-50 dark:hover:bg-[#1f2530] border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                        className="h-8 px-3.5 bg-white dark:bg-[#161a22] hover:bg-slate-50 dark:hover:bg-[#1f2530] border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-800 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                     >
                         <FileText size={14} className="text-slate-500" />
                         <span>View BOL</span>

@@ -22,3 +22,6 @@ export type { RatingModalProps } from './rating-modal/index';
 export { default as SupplierAccountConnectModal } from './supplier-connect-modal';
 export type { SupplierAccountConnectModalProps } from './supplier-connect-modal';
 
+
+export { default as GPSComingSoonModal, GPSComingSoonModal as GPSComingSoonModalComponent } from './gps-coming-soon-modal';
+export type { GPSComingSoonModalProps } from './gps-coming-soon-modal';

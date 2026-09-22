@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { GPSComingSoonModal } from '@/components/modals';
 import { Phone, MessageSquare, MapPin, Building2, User, Clock, Navigation } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -22,6 +23,7 @@ interface Props {
 
 export const ContactPartyCard: React.FC<Props> = ({ title, type, party }) => {
     const isShipper = type === 'shipper';
+    const [isGPSOpen, setIsGPSOpen] = useState(false);
 
     return (
         <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200/90 dark:border-slate-800 p-3.5 sm:p-4 shadow-2xs space-y-3">
@@ -82,16 +84,21 @@ export const ContactPartyCard: React.FC<Props> = ({ title, type, party }) => {
                     <span>Chat</span>
                 </Link>
 
-                <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(party.address + ', ' + party.city)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="py-1.5 px-2 bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/60 dark:border-orange-900/50 rounded-[4px] text-xs font-bold flex items-center justify-center gap-1 transition-colors"
+                <button
+                    type="button"
+                    onClick={() => setIsGPSOpen(true)}
+                    className="py-1.5 px-2 bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/60 dark:border-orange-900/50 rounded-[4px] text-xs font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                 >
                     <Navigation size={12} />
                     <span>GPS</span>
-                </a>
+                </button>
             </div>
+
+            <GPSComingSoonModal
+                isOpen={isGPSOpen}
+                destination={`${party.address}, ${party.city}`}
+                onClose={() => setIsGPSOpen(false)}
+            />
         </div>
     );
 };

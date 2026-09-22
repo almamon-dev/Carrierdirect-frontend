@@ -1,13 +1,8 @@
-import React from 'react';
+import * as React from "react";
+import Input, { InputProps } from "@/components/ui/input";
 
-export interface DatePickerProps {
-    className?: string;
-}
+export interface DatePickerProps extends Omit<InputProps, "type"> {}
 
-export default function DatePicker({ className = '' }: DatePickerProps) {
-    return (
-        <div className={`relative ${className}`}>
-            <input type="date" className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-        </div>
-    );
+export default function DatePicker(props: DatePickerProps) {
+    return <Input type="date" {...props} />;
 }

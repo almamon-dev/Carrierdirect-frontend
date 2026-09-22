@@ -130,14 +130,14 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-[4px] transition-colors cursor-pointer"
+                            className="h-8 px-3.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-[4px] transition-colors cursor-pointer inline-flex items-center justify-center"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting || !receiverName.trim()}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-[4px] text-xs font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                            className="h-8 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[4px] text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors disabled:opacity-60"
                         >
                             {isSubmitting ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
                             <span>Confirm & Finish Delivery</span>
