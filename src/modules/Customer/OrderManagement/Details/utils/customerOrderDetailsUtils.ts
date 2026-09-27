@@ -1,3 +1,12 @@
+import { decryptId } from '@/lib/encryption';
+
+export interface ExtraChargeItem {
+    id?: string | number;
+    name: string;
+    amount: number;
+    amountFormatted: string;
+}
+
 export interface NormalizedCustomerOrder {
     id: string;
     rawId: string | number;
@@ -9,6 +18,8 @@ export interface NormalizedCustomerOrder {
     isEscrow: boolean;
     isPayLater: boolean;
     payLaterDueDate: string;
+    payLaterDaysLeft?: number;
+    payLaterTimeLeftFormatted?: string;
     paymentMethod?: string;
     pickup: {
         city: string;
@@ -58,17 +69,15 @@ export interface NormalizedCustomerOrder {
         email?: string;
     };
     pricing: {
-        subtotal: number;
         base: number;
-        loading: number;
-        insurance: number;
-        platformFee: number;
+        extra: number;
+        extraCharges: ExtraChargeItem[];
         total: number;
+        baseFormatted: string;
+        extraFormatted: string;
+        totalFormatted: string;
         advancePaid: number;
         due: number;
-        subtotalFormatted: string;
-        platformFeeFormatted: string;
-        totalFormatted: string;
         advanceFormatted: string;
         dueFormatted: string;
     };
@@ -92,10 +101,11 @@ export const buildNormalizedCustomerOrder = (
     isPodAcceptedState?: boolean,
     isPaidOverride?: boolean
 ): NormalizedCustomerOrder => {
-    const rawId = foundOrder?.id || paramId || '1';
+    const decryptedParamId = paramId ? decryptId(paramId) : undefined;
+    const rawId = foundOrder?.id || decryptedParamId || '1';
     const cleanNumericId = String(rawId).replace(/^ORD-0*/i, '') || '1';
-    const formattedId = paramId
-        ? (paramId.startsWith('ORD-') ? paramId : `ORD-${String(paramId).replace(/^ORD-0*/i, '').padStart(4, '0')}`)
+    const formattedId = decryptedParamId
+        ? (decryptedParamId.startsWith('ORD-') ? decryptedParamId : `ORD-${String(decryptedParamId).replace(/^ORD-0*/i, '').padStart(4, '0')}`)
         : (foundOrder?.order_number || foundOrder?.order_id || `ORD-${String(cleanNumericId).padStart(4, '0')}`);
 
     // Status Normalization
@@ -157,6 +167,26 @@ export const buildNormalizedCustomerOrder = (
 
     const payLaterDueDate = foundOrder?.due_date || foundOrder?.pay_later_due_date || '17 Oct 2026';
 
+    // Calculate days/time left for Pay Later
+    const calculatePayLaterDaysLeft = (dueDateStr?: string): number => {
+        if (!dueDateStr) return 23;
+        try {
+            const due = new Date(dueDateStr);
+            if (isNaN(due.getTime())) return 23;
+            const now = new Date();
+            const diffMs = due.getTime() - now.getTime();
+            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            return Math.max(0, diffDays);
+        } catch {
+            return 23;
+        }
+    };
+
+    const payLaterDaysLeft = isPayLater ? calculatePayLaterDaysLeft(payLaterDueDate) : undefined;
+    const payLaterTimeLeftFormatted = isPayLater
+        ? (payLaterDaysLeft === 0 ? 'Due Today' : payLaterDaysLeft === 1 ? '1 Day Left' : `${payLaterDaysLeft} Days Left`)
+        : undefined;
+
     // Address & City Normalization
     const pickupAddress = foundOrder?.pickup_address || foundOrder?.pickupAddress || 'Berlin Central Logistics Hub, Industrial Park 4, 10115 Berlin, Germany';
     const deliveryAddress = foundOrder?.delivery_address || foundOrder?.deliveryAddress || 'Hamburg Port Terminal 2, Hafenstrasse 18, 20457 Hamburg, Germany';
@@ -170,11 +200,53 @@ export const buildNormalizedCustomerOrder = (
         (foundOrder?.total_amount ? parseFloat(String(foundOrder.total_amount).replace(/[^0-9.]/g, '')) : (foundOrder?.amount ? parseFloat(String(foundOrder.amount).replace(/[^0-9.]/g, '')) : 1250))
     ) || 1250;
 
-    const subtotal = foundOrder?.subtotal ? Number(foundOrder.subtotal) : Math.round(totalAmount / 1.05);
-    const platformFee = foundOrder?.platform_fee ? Number(foundOrder.platform_fee) : Math.round(totalAmount - subtotal);
-    const baseRate = Math.round(subtotal * 0.85);
-    const loadingFee = Math.round(subtotal * 0.10);
-    const insuranceFee = Math.max(0, subtotal - baseRate - loadingFee);
+    // Individual itemized extra charges breakdown
+    let extraChargesList: ExtraChargeItem[] = [];
+    const rawExtraCharges = foundOrder?.extra_charges || foundOrder?.extraCharges || foundOrder?.quote?.extra_charges;
+    if (Array.isArray(rawExtraCharges) && rawExtraCharges.length > 0) {
+        extraChargesList = rawExtraCharges.map((ch: any, idx: number) => {
+            const amount = Number(ch.amount ?? ch.price ?? 0);
+            const name = ch.custom_name || ch.customName || ch.name || ch.title || ch.type || `Extra Service #${idx + 1}`;
+            return {
+                id: ch.id || idx,
+                name: name,
+                amount: amount,
+                amountFormatted: `+€ ${amount.toLocaleString()}`,
+            };
+        });
+    }
+
+    const extraTotalCalculated = extraChargesList.reduce((acc, c) => acc + c.amount, 0);
+
+    const basePrice = Number(
+        foundOrder?.base_price ??
+        foundOrder?.base_amount ??
+        foundOrder?.base_rate ??
+        foundOrder?.base ??
+        (extraTotalCalculated > 0 && totalAmount > extraTotalCalculated ? (totalAmount - extraTotalCalculated) : Math.round(totalAmount * 0.85))
+    );
+
+    const extraPrice = extraTotalCalculated > 0 ? extraTotalCalculated : Number(foundOrder?.extra_price ?? foundOrder?.extra ?? Math.max(0, totalAmount - basePrice));
+
+    if (extraChargesList.length === 0 && extraPrice > 0) {
+        const loadingAmt = Math.round(extraPrice * 0.55);
+        const insuranceAmt = extraPrice - loadingAmt;
+        extraChargesList = [
+            {
+                id: 'loading',
+                name: 'Loading & Handling',
+                amount: loadingAmt,
+                amountFormatted: `+€ ${loadingAmt.toLocaleString()}`,
+            },
+            {
+                id: 'insurance',
+                name: 'CMR Cargo Insurance',
+                amount: insuranceAmt,
+                amountFormatted: `+€ ${insuranceAmt.toLocaleString()}`,
+            },
+        ];
+    }
+
     const advancePaid = isPaid ? totalAmount : isPayLater ? 0 : Math.round(totalAmount * 0.30);
     const dueBalance = isPaid ? 0 : isPayLater ? totalAmount : totalAmount - advancePaid;
 
@@ -213,6 +285,8 @@ export const buildNormalizedCustomerOrder = (
         isEscrow: isEscrow,
         isPayLater: isPayLater,
         payLaterDueDate: payLaterDueDate,
+        payLaterDaysLeft: payLaterDaysLeft,
+        payLaterTimeLeftFormatted: payLaterTimeLeftFormatted,
         pickup: {
             city: fromCity,
             address: pickupAddress,
@@ -230,7 +304,7 @@ export const buildNormalizedCustomerOrder = (
             time: foundOrder?.delivery_time || '04:00 PM CET',
         },
         route: `${fromCity} ➔ ${toCity}`,
-        distance: foundOrder?.distance || '290 km',
+        distance: foundOrder?.distance || (foundOrder?.distance_km ? `${foundOrder.distance_km} km` : '—'),
         estArrival: foundOrder?.delivery_date || foundOrder?.estimated_delivery || foundOrder?.eta || 'Tomorrow, 4:00 PM',
         vehicle: {
             type: vehicleType,
@@ -265,19 +339,17 @@ export const buildNormalizedCustomerOrder = (
             email: supplierObj?.email || 'dispatch@carrierdirect.eu',
         },
         pricing: {
-            subtotal: subtotal,
-            base: baseRate,
-            loading: loadingFee,
-            insurance: insuranceFee,
-            platformFee: platformFee,
+            base: basePrice,
+            extra: extraPrice,
+            extraCharges: extraChargesList,
             total: totalAmount,
+            baseFormatted: `€ ${basePrice.toLocaleString()}`,
+            extraFormatted: `€ ${extraPrice.toLocaleString()}`,
+            totalFormatted: `€ ${totalAmount.toLocaleString()}`,
             advancePaid: advancePaid,
             due: dueBalance,
-            subtotalFormatted: `€ ${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            platformFeeFormatted: `€ ${platformFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            totalFormatted: `€ ${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            advanceFormatted: `€ ${advancePaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            dueFormatted: `€ ${dueBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            advanceFormatted: `€ ${advancePaid.toLocaleString()}`,
+            dueFormatted: `€ ${dueBalance.toLocaleString()}`,
         },
         pod: {
             isAvailable: isPodAvailable && !isPodAccepted,
@@ -352,7 +424,7 @@ export const buildCustomerOrderTimeline = (order: NormalizedCustomerOrder) => {
         {
             id: 3,
             status: 'Goods Picked Up',
-            time: stepIndex >= 3 ? formatDate(-4, 0) : 'Scheduled Window',
+            time: stepIndex >= 3 ? formatDate(-4, 0) : 'Scheduled Date',
             completed: stepIndex >= 3,
             active: stepIndex === 3,
             location: order.pickup.address,

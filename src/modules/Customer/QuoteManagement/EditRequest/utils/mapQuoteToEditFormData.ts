@@ -18,7 +18,6 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
     const pickupState = q.pickup_state || q.pickup_location?.state || q.pickupState || '';
     const pickupCountry = q.pickup_country || q.pickup_location?.country || q.pickupCountry || 'Bangladesh';
     const pickupZip = q.pickup_zip || q.pickup_location?.zip || q.pickupZip || '';
-    const pickupMapUrl = q.pickup_map_url || q.pickup_location?.map_url || q.pickupMapUrl || '';
     const pickupInstructions = q.pickup_instructions || q.pickup_location?.instructions || q.pickupInstructions || '';
 
     const deliveryCompany = q.delivery_company || q.delivery_company_name || q.delivery_location?.company_name || q.deliveryCompany || '';
@@ -30,7 +29,6 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
     const deliveryState = q.delivery_state || q.delivery_location?.state || q.deliveryState || '';
     const deliveryCountry = q.delivery_country || q.delivery_location?.country || q.deliveryCountry || 'Bangladesh';
     const deliveryZip = q.delivery_zip || q.delivery_location?.zip || q.deliveryZip || '';
-    const deliveryMapUrl = q.delivery_map_url || q.delivery_location?.map_url || q.deliveryMapUrl || '';
     const deliveryInstructions = q.delivery_instructions || q.delivery_location?.instructions || q.deliveryInstructions || '';
 
     return {
@@ -55,8 +53,9 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
         pickupCity,
         pickupZip,
         pickupAddress,
-        pickupMapUrl,
         pickupInstructions,
+        pickupLat: q.pickup_lat ?? q.pickupLat ?? null,
+        pickupLng: q.pickup_lng ?? q.pickupLng ?? null,
 
         deliveryCompany,
         deliveryContactName,
@@ -67,8 +66,11 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
         deliveryCity,
         deliveryZip,
         deliveryAddress,
-        deliveryMapUrl,
         deliveryInstructions,
+        deliveryLat: q.delivery_lat ?? q.deliveryLat ?? null,
+        deliveryLng: q.delivery_lng ?? q.deliveryLng ?? null,
+        distanceKm: q.distance_km ?? q.distanceKm ?? null,
+        estimatedDurationMinutes: q.estimated_duration_minutes ?? q.estimatedDurationMinutes ?? null,
 
         vehicleType: q.vehicle_type || q.vehicleType || q.vehicle || '',
         loadType: q.load_type || q.loadType || q.load || '',

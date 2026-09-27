@@ -57,64 +57,64 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
                 }}
             />
             <div
-    className="fixed w-52 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
+                className="fixed min-w-[230px] w-max max-w-[calc(100vw-16px)] bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans overflow-hidden"
                 style={{ top: dropdownPos.top, left: dropdownPos.left }}
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
                     type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap"
                     onClick={() => {
                         onClose();
                         onViewDetails();
                     }}
                 >
                     <Eye size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                    <span>View Order Details</span>
+                    <span className="whitespace-nowrap">View Order Details</span>
                 </button>
 
                 <button
                     type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-bold cursor-pointer whitespace-nowrap"
                     onClick={() => {
                         onClose();
                         onTrackOrder();
                     }}
                 >
                     <Navigation size={14} className="text-[#ff4a1f] shrink-0" />
-                    <span>Live GPS Tracking</span>
+                    <span className="whitespace-nowrap">Live GPS Tracking</span>
                 </button>
 
                 <button
                     type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap"
                     onClick={() => {
                         onClose();
                         onOpenChat();
                     }}
                 >
                     <MessageSquare size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                    <span>Chat with Carrier</span>
+                    <span className="whitespace-nowrap">Chat with Carrier</span>
                 </button>
 
                 {isCompleted && (
                     <button
                         type="button"
-                        className="w-full text-left px-3.5 py-2 text-xs text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
+                        className="w-full text-left px-3.5 py-2 text-xs text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer whitespace-nowrap"
                         onClick={() => {
                             onClose();
                             onOpenRating();
                         }}
                     >
                         <Star size={14} className="text-amber-500 fill-amber-500 shrink-0" />
-                        <span>Rate Carrier & Service</span>
+                        <span className="whitespace-nowrap">Rate Carrier & Service</span>
                     </button>
                 )}
 
                 {hasPod && (
                     <button
                         type="button"
-                        className="w-full text-left px-3.5 py-2 text-xs text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
+                        className="w-full text-left px-3.5 py-2 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer whitespace-nowrap"
                         onClick={() => {
                             onClose();
                             if (row.pod_document_url) window.open(row.pod_document_url, '_blank');
@@ -122,7 +122,7 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
                         }}
                     >
                         <FileCheck size={14} className="text-emerald-500 shrink-0" />
-                        <span>View Signed POD (Challan)</span>
+                        <span className="whitespace-nowrap">View Signed POD (Challan)</span>
                     </button>
                 )}
 
@@ -130,42 +130,42 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
 
                 <button
                     type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap"
                     onClick={() => {
                         onClose();
                         onDownloadInvoice();
                     }}
                 >
                     <FileText size={14} className="text-slate-400 shrink-0" />
-                    <span>Download Invoice</span>
+                    <span className="whitespace-nowrap">Download Invoice</span>
                 </button>
 
                 <button
                     type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap"
                     onClick={() => {
                         onClose();
                         onRepeatOrder();
                     }}
                 >
                     <RotateCcw size={14} className="text-slate-400 shrink-0" />
-                    <span>Repeat Order</span>
+                    <span className="whitespace-nowrap">Repeat Order</span>
                 </button>
 
                 <button
                     type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap"
                     onClick={onCopyId}
                 >
                     {copied ? (
                         <>
                             <Check size={14} className="text-emerald-500 shrink-0" />
-                            <span className="text-emerald-600 font-semibold">Copied!</span>
+                            <span className="text-emerald-600 font-semibold whitespace-nowrap">Copied!</span>
                         </>
                     ) : (
                         <>
                             <Copy size={14} className="text-slate-400 shrink-0" />
-                            <span>Copy Order ID</span>
+                            <span className="whitespace-nowrap">Copy Order ID</span>
                         </>
                     )}
                 </button>

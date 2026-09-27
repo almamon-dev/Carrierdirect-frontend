@@ -130,6 +130,7 @@ export const useSupplierOrders = () => {
                         driver: o?.driver?.name || o?.driver_name || 'Assigned Driver',
                         driver_name: o?.driver?.name || o?.driver_name || 'Assigned Driver',
                         driver_phone: o?.driver?.phone || o?.driver_phone || '',
+                        driver_email: o?.driver?.email || o?.driver_email || '',
                         weight: weightVal,
                         cargo_weight: weightVal,
                         pallets: palletsVal,

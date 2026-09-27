@@ -39,9 +39,10 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
             ? (String(q.budget).includes('€') || String(q.budget).includes('$') || String(q.budget).includes('৳') ? String(q.budget) : `€${q.budget}`)
             : 'Negotiable';
 
-        const distanceStr = q.est_distance || q.distance_miles 
-            ? `${q.est_distance || q.distance_miles} km` 
-            : '245 km';
+        const rawDist = q.distance_km ?? q.distance ?? q.est_distance ?? q.distance_miles;
+        const distanceStr = rawDist !== undefined && rawDist !== null && rawDist !== ''
+            ? (String(rawDist).toLowerCase().includes('km') ? String(rawDist) : `${rawDist} km`)
+            : '—';
 
         const titleStr = (
             q.request_title ||

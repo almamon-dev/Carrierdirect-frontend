@@ -1,4 +1,5 @@
 import apiClient from '@/lib/axios';
+import { decryptId } from '@/lib/encryption';
 
 /**
  * Opens the real backend-rendered PDF (from resources/views/pdf/invoice.blade.php)
@@ -9,12 +10,13 @@ export const openInvoicePreview = async (data: any): Promise<boolean> => {
 
     try {
         const id = data.rawId || data.id;
-        const cleanId = String(id).replace(/^ORD-0*/i, '').replace(/^INV-0*/i, '');
+        const decryptedId = decryptId(id);
+        const cleanId = String(decryptedId).replace(/^ORD-0*/i, '').replace(/^INV-0*/i, '');
         const isOrder = Boolean(data.order_number || data.order_id || data.pickup_address || data.tracking || String(id).startsWith('ORD-'));
         
         let url = isOrder 
-            ? `/customer/orders/${cleanId || id}/invoice-download`
-            : `/customer/invoices/${cleanId || id}/download`;
+            ? `/customer/orders/${cleanId || decryptedId || id}/invoice-download`
+            : `/customer/invoices/${cleanId || decryptedId || id}/download`;
 
         let blob: Blob | null = null;
         try {

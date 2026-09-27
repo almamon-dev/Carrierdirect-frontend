@@ -79,7 +79,7 @@ export function mapApiOrderToSupplierOrder(o: any): SupplierOrder {
         deliveryFullAddress: deliveryAddress,
         deliveryDate: o?.delivery_date ? new Date(o.delivery_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Tomorrow',
         deliveryTimeWindow: o?.delivery_time_window || '14:00 – 18:00',
-        distance: o?.est_distance || o?.distance_miles ? `${o.est_distance || o.distance_miles} km` : (shippingObj.route ? `${shippingObj.route}` : '450 km'),
+        distance: o?.distance_km ? `${o.distance_km} km` : (o?.est_distance || o?.distance_miles ? `${o.est_distance || o.distance_miles} km` : (shippingObj.route ? `${shippingObj.route}` : '—')),
         estimatedDuration: o?.duration || o?.estimated_duration || 'Scheduled',
         driver: o?.driver?.name || o?.driver_name || '',
         driverPhone: o?.driver?.phone || o?.driver_phone || '',

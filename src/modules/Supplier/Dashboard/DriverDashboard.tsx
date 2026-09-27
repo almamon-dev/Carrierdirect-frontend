@@ -31,7 +31,7 @@ export default function DriverDashboard() {
         <div className="space-y-6 pb-12">
             {/* Header */}
             <div
-    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#12161c] p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs">
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#12161c] p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] flex items-center justify-center font-bold text-xl shrink-0">
                         <Truck size={26} />
@@ -63,7 +63,7 @@ export default function DriverDashboard() {
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div
-    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
                     <div>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Assigned Active Jobs</p>
                         <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{activeJobs.length}</p>
@@ -74,7 +74,7 @@ export default function DriverDashboard() {
                 </div>
 
                 <div
-    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
                     <div>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Pending POD Slips</p>
                         <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{pendingPOD.length}</p>
@@ -85,7 +85,7 @@ export default function DriverDashboard() {
                 </div>
 
                 <div
-    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
                     <div>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Completed Deliveries</p>
                         <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{completedJobs.length}</p>
@@ -96,7 +96,7 @@ export default function DriverDashboard() {
                 </div>
 
                 <div
-    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
                     <div>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">GPS Unit Status</p>
                         <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1.5 flex items-center gap-1.5">
@@ -112,7 +112,7 @@ export default function DriverDashboard() {
 
             {/* Active Jobs Table */}
             <div
-    className="bg-white dark:bg-[#12161c] rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+                className="bg-white dark:bg-[#12161c] rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
                 <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Package size={16} className="text-[#FF4A1F]" />
@@ -120,7 +120,7 @@ export default function DriverDashboard() {
                     </h2>
                     <Link to="/supplier/orders/active-jobs" className="text-xs text-[#FF4A1F] hover:underline font-semibold flex items-center gap-1">
                         <span>View All Jobs</span>
-                        <ArrowUpRight size={13} />
+
                     </Link>
                 </div>
 

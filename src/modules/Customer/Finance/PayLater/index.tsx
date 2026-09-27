@@ -6,6 +6,7 @@ import Button from '@/components/ui/button';
 import apiClient from '@/lib/axios';
 import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
 import { useToastStore } from '@/stores/useToastStore';
+import { encryptId } from '@/lib/encryption';
 import {
   Check,
   CheckCircle2,
@@ -359,7 +360,7 @@ export default function PayLaterFacilityPage() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/customer/orders/${row.order_id}`);
+                navigate(`/customer/orders/${encryptId(row.order_id)}`);
               }}
               className="font-semibold text-slate-700 dark:text-slate-300 hover:text-[#ff4a1f] hover:underline cursor-pointer text-xs whitespace-nowrap"
             >

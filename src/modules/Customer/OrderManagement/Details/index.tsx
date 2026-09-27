@@ -1,6 +1,6 @@
 import RatingModal from '@/components/modals/rating-modal';
 import apiClient from '@/lib/axios';
-import { encryptId } from '@/lib/encryption';
+import { encryptId, decryptId } from '@/lib/encryption';
 import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -32,15 +32,25 @@ export default function CustomerOrderDetailPage() {
     const [actionMessage, setActionMessage] = useState<string | null>(null);
     const [isRatingOpen, setIsRatingOpen] = useState<boolean>(false);
 
-    const cleanId = id ? String(id).replace(/^ORD-0*/i, '') : '1';
+    // Decrypt incoming token if encrypted, otherwise normalize raw ID
+    const decryptedRawId = decryptId(id);
+    const cleanId = decryptedRawId ? String(decryptedRawId).replace(/^ORD-0*/i, '') : '1';
 
-    // Fetch live order data from API
+    // Obfuscate URL: If accessed via unencrypted plain ID (e.g. /customer/orders/2), silently replace with encrypted URL
+    useEffect(() => {
+        if (id && !id.startsWith('enc_') && !id.startsWith('sec_') && !id.startsWith('q_')) {
+            const encrypted = encryptId(cleanId || id);
+            navigate(`/customer/orders/${encrypted}`, { replace: true, state: location.state });
+        }
+    }, [id, cleanId, navigate, location.state]);
+
+    // Fetch live order data from API using decrypted ID
     useEffect(() => {
         let isMounted = true;
-        if (id) {
+        if (cleanId) {
             setIsLoading(!apiOrder);
             apiClient
-                .get(`/customer/orders/${cleanId || id}`)
+                .get(`/customer/orders/${cleanId}`)
                 .then((res) => {
                     const data = res.data?.data || res.data;
                     if (!isMounted || !data) return;
@@ -59,11 +69,11 @@ export default function CustomerOrderDetailPage() {
         return () => {
             isMounted = false;
         };
-    }, [id, cleanId]);
+    }, [cleanId]);
 
     // Build normalized order & timeline structures
     const order: NormalizedCustomerOrder = buildNormalizedCustomerOrder(
-        id,
+        cleanId,
         apiOrder || location.state?.orderData,
         isPodAccepted
     );

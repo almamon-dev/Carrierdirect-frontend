@@ -23,6 +23,7 @@ import apiClient from '@/lib/axios';
 import { formatDisplayDate } from '@/lib/utils';
 import InvoiceView from './View';
 import RatingModal from '@/components/modals/rating-modal';
+import { encryptId } from '@/lib/encryption';
 import InvoiceRowActions from './components/InvoiceRowActions';
 import { exportInvoicePdf, openInvoicePreview } from "@/utils/exportInvoicePdf";
 import { useNavigate } from 'react-router-dom';
@@ -167,7 +168,7 @@ export default function Invoices() {
             {row.order_id ? (
               <button
                 type="button"
-                onClick={() => navigate(`/customer/orders/${row.order_id}`)}
+                onClick={() => navigate(`/customer/orders/${encryptId(row.order_id)}`)}
                 className="font-semibold text-slate-700 dark:text-slate-300 hover:text-[#ff4a1f] hover:underline cursor-pointer text-xs whitespace-nowrap"
               >
                 {ordNumber}

@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import DataTable from '@/components/tables/data-table';
 import Button from '@/components/ui/button';
 import EmptyState from '@/components/tables/empty-state';
+import { QuotaReminderBanner } from '@/components';
+import { SubscriptionLockModal } from '@/components/modals';
+import { useSubscriptionQuota } from '@/hooks/useSubscriptionQuota';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
 import { TableFilterContent } from '../Negotiation/components/TableFilterContent';
 import { useProcessingRequests } from './hooks/useProcessingRequests';
@@ -15,6 +18,19 @@ import { ProcessingRowActions } from './components/ProcessingRowActions';
 export default function Processing() {
     const navigate = useNavigate();
     const { requests, isLoading, isRefreshing, stats, fetchProcessingRequests } = useProcessingRequests();
+    const {
+        isTrial,
+        daysRemaining,
+        quotesLimit,
+        quotesUsed,
+        isPaidUnlimited,
+        isLockModalOpen,
+        setIsLockModalOpen,
+        modalTitle,
+        modalDescription,
+        checkOrLock,
+        handleUpgradeRedirect,
+    } = useSubscriptionQuota();
 
     const [activeFilterTab, setActiveFilterTab] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -44,9 +60,8 @@ export default function Processing() {
     const columns = useMemo(() => getProcessingColumns(navigate), [navigate]);
 
     return (
-        <div
-    className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
-            <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c] space-y-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Processing Quote Requests</h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -58,12 +73,23 @@ export default function Processing() {
                         <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#ff4a1f]' : 'text-slate-500'} />
                         <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
                     </Button>
-                    <Button variant="primary" size="sm" onClick={() => navigate('/customer/quotes/create/new')} className="h-9 px-4 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5">
+                    <Button variant="primary" size="sm" onClick={() => checkOrLock(() => navigate('/customer/quotes/create/new'))} className="h-9 px-4 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5">
                         <Plus size={14} />
                         <span>Create New Request</span>
                     </Button>
                 </div>
             </div>
+
+            {/* Quota Banner when on trial or limit reached */}
+            {!isPaidUnlimited && (
+                <QuotaReminderBanner
+                    title={isTrial ? '7-Day Free Trial Quota Reminder' : 'Free Plan Quota Reminder'}
+                    quotaUsed={quotesUsed}
+                    maxQuota={quotesLimit}
+                    daysRemaining={daysRemaining}
+                    onUpgradeClick={handleUpgradeRedirect}
+                />
+            )}
 
             <DataTable
                 data={filteredRequests}
@@ -97,9 +123,28 @@ export default function Processing() {
                         title="No Active Requests Found"
                         description={activeFilterTab === 'all' ? 'Create a shipping request to receive competitive carrier quotations.' : `No quote requests match '${activeFilterTab}'.`}
                         actionLabel="Create Quote Request"
-                        onAction={() => navigate('/customer/quotes/create/new')}
+                        onAction={() => checkOrLock(() => navigate('/customer/quotes/create/new'))}
                     />
                 }
+            />
+
+            {/* Subscription Upgrade Modal */}
+            <SubscriptionLockModal
+                isOpen={isLockModalOpen}
+                onClose={() => setIsLockModalOpen(false)}
+                onUpgrade={handleUpgradeRedirect}
+                userType="customer"
+                title={modalTitle}
+                description={modalDescription}
+                featureName="Quote Request Quota"
+                requiredPlan="Starter Shipper (€29/mo)"
+                benefits={[
+                    "Unlimited Single Quote Requests & RFQs",
+                    "Multi-Carrier Quote Comparison & Price Breakdown",
+                    "Direct Carrier Live Chat & Negotiation",
+                    "Real-time Order Tracking & Digital POD (Challan)",
+                    "Secure Stripe Escrow Payments & Card Checkout"
+                ]}
             />
         </div>
     );

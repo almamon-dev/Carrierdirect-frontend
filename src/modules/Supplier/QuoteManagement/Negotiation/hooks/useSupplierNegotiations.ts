@@ -57,7 +57,7 @@ export const useSupplierNegotiations = () => {
 
                     const pickupLoc = n.origin || n.pickup_address || n.pickup || "Pickup Location";
                     const deliveryLoc = n.destination || n.delivery_address || n.delivery || "Delivery Destination";
-                    const distStr = n.distance || `${n.distance_km || 450} km`;
+                    const distStr = n.distance || (n.distance_km ? `${n.distance_km} km` : '—');
                     const dateFormatted = formatDisplayDate(n.created_at || n.request_date || n.date);
 
                     let statusLabel = n.status || "Active";

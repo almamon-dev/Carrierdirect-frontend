@@ -52,57 +52,46 @@ export const CustomerOrderSupplierProfile: React.FC<CustomerOrderSupplierProfile
             </div>
 
             {/* Performance Metrics */}
-            <div className="space-y-1.5 text-xs pt-2.5 border-t border-slate-100 dark:border-slate-800/80">
-                <div className="flex justify-between items-center min-h-[19px]">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                        <Award size={12} className="text-slate-400" />
-                        <span>Completed Loads</span>
-                    </span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        {supplier.completedOrders}
-                    </span>
-                </div>
+            <div className="grid grid-cols-[115px_12px_1fr] sm:grid-cols-[125px_14px_1fr] gap-y-2 items-center text-xs pt-2.5 border-t border-slate-100 dark:border-slate-800/80">
+                <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 truncate">
+                    <Award size={12} className="text-slate-400 shrink-0" />
+                    <span>Completed Loads</span>
+                </span>
+                <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {supplier.completedOrders}
+                </span>
 
-                <div className="flex justify-between items-center min-h-[19px]">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                        <CheckCircle2 size={12} className="text-emerald-500" />
-                        <span>On-Time Success</span>
-                    </span>
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                        {supplier.successRate}
-                    </span>
-                </div>
+                <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 truncate">
+                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                    <span>On-Time Success</span>
+                </span>
+                <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                    {supplier.successRate}
+                </span>
 
-                <div className="flex justify-between items-center min-h-[19px]">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                        <Clock size={12} className="text-slate-400" />
-                        <span>Response Time</span>
-                    </span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        {supplier.responseTime}
-                    </span>
-                </div>
+                <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 truncate">
+                    <Clock size={12} className="text-slate-400 shrink-0" />
+                    <span>Response Time</span>
+                </span>
+                <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {supplier.responseTime}
+                </span>
             </div>
 
-            {/* Actions with standard h-8 height */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-2 gap-1.5">
+            {/* Action with full width */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
                 <Button
                     variant="outline"
                     size="sm"
                     onClick={onOpenChat}
-                    className="h-8 text-xs font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                    className="w-full h-8 text-xs font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                 >
                     <MessageSquare size={12} className="text-[#ff4a1f]" />
-                    <span>Chat Carrier</span>
+                    <span>Chat with Carrier</span>
                 </Button>
-
-                <a
-                    href={`tel:${supplier.phone || '+49892020440'}`}
-                    className="h-8 text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-[3px] bg-white dark:bg-[#1e2329] cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
-                >
-                    <Phone size={12} className="text-emerald-600" />
-                    <span>Call Carrier</span>
-                </a>
             </div>
         </div>
     );

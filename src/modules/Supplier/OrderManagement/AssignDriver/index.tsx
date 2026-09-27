@@ -63,7 +63,7 @@ const normalizeOrderItem = (o: any): SupplierOrderItem => {
     const routeDisplay = `${pickupCity} → ${deliveryCity}`;
 
     const vehicle = shippingObj.service || o?.vehicle || o?.vehicle_type || o?.truck_type || o?.service || 'Pallet Transport';
-    
+
     const rawWeight = shipmentObj.total_weight || o?.total_weight || o?.weight || o?.cargo_weight;
     let weightVal = '1,500 KG';
     if (rawWeight && !String(rawWeight).toUpperCase().includes('N/A') && rawWeight !== '0 kg' && rawWeight !== 0) {
@@ -140,6 +140,7 @@ const normalizeOrderItem = (o: any): SupplierOrderItem => {
         driver: driverName || 'Pending Assignment',
         driver_name: driverName || 'Pending Assignment',
         driver_phone: o?.driver?.phone || o?.driver_phone || '',
+        driver_email: o?.driver?.email || o?.driver_email || '',
         weight: weightVal,
         cargo_weight: weightVal,
         pallets: palletsVal,
@@ -198,10 +199,10 @@ export default function AssignDriverPage() {
                     const stateOrder = location.state?.selectedOrder || location.state?.orderData || location.state?.order;
                     if (stateOrder) {
                         const targetId = String(stateOrder.id || stateOrder.order_id || stateOrder.order_no || stateOrder.slug || '');
-                        const exists = mappedOrders.some(o => 
-                            String(o.id) === targetId || 
-                            String(o.order_id) === targetId || 
-                            String(o.order_no) === targetId || 
+                        const exists = mappedOrders.some(o =>
+                            String(o.id) === targetId ||
+                            String(o.order_id) === targetId ||
+                            String(o.order_no) === targetId ||
                             String(o.slug) === targetId
                         );
                         if (!exists) {
@@ -234,11 +235,11 @@ export default function AssignDriverPage() {
                         email: m.email || m.user?.email || ''
                     }));
                     setFleetDrivers(formattedTeam);
-                    
+
                 }
             }
 
-            
+
         } catch (err) {
             console.error('Error fetching data:', err);
         } finally {
@@ -260,10 +261,10 @@ export default function AssignDriverPage() {
                 setSelectedOrderId(targetId);
                 const normalized = normalizeOrderItem(stateOrder);
                 setOrders(prev => {
-                    const exists = prev.some(o => 
-                        String(o.id) === targetId || 
-                        String(o.order_id) === targetId || 
-                        String(o.order_no) === targetId || 
+                    const exists = prev.some(o =>
+                        String(o.id) === targetId ||
+                        String(o.order_id) === targetId ||
+                        String(o.order_no) === targetId ||
                         String(o.slug) === targetId
                     );
                     if (!exists) {
@@ -281,9 +282,9 @@ export default function AssignDriverPage() {
         if (!selectedOrderId) return null;
         return orders.find(
             (o) => String(o.id) === String(selectedOrderId) ||
-                   String(o.order_id) === String(selectedOrderId) ||
-                   String(o.order_no) === String(selectedOrderId) ||
-                   String(o.slug) === String(selectedOrderId)
+                String(o.order_id) === String(selectedOrderId) ||
+                String(o.order_no) === String(selectedOrderId) ||
+                String(o.slug) === String(selectedOrderId)
         ) || null;
     }, [orders, selectedOrderId]);
 
@@ -298,9 +299,9 @@ export default function AssignDriverPage() {
         setSelectedOrderId(idVal);
         const target = orders.find(
             (o) => String(o.id) === String(idVal) ||
-                   String(o.order_id) === String(idVal) ||
-                   String(o.order_no) === String(idVal) ||
-                   String(o.slug) === String(idVal)
+                String(o.order_id) === String(idVal) ||
+                String(o.order_no) === String(idVal) ||
+                String(o.slug) === String(idVal)
         );
 
         if (target) {
@@ -372,7 +373,7 @@ export default function AssignDriverPage() {
         return orders.filter((o) => {
             const rawStatus = (o.status_raw || o.status || 'confirmed').toLowerCase().trim();
             const isAssigned = rawStatus === 'driver_assigned' || rawStatus === 'assigned' || rawStatus === 'in_transit' || rawStatus === 'picked_up' || rawStatus === 'in_progress';
-            
+
             if (queueTab === 'pending' && isAssigned) return false;
             if (queueTab === 'assigned' && !isAssigned) return false;
 
@@ -688,7 +689,7 @@ export default function AssignDriverPage() {
                                 ) : (
                                     <>
                                         <UserCheck size={14} />
-                                        <span>{selectedOrder && ((selectedOrder.status_raw || selectedOrder.status || '').toLowerCase().includes('assign') || (selectedOrder.status_raw || selectedOrder.status || '').toLowerCase().includes('transit')) ? "Update Driver & Reassign" : "Confirm & Dispatch Driver"}</span>
+                                        <span>{selectedOrder && ((selectedOrder.status_raw || selectedOrder.status || '').toLowerCase().includes('assign') || (selectedOrder.status_raw || selectedOrder.status || '').toLowerCase().includes('transit')) ? "Update Driver & Reassign" : "Confirm Dispatch"}</span>
                                     </>
                                 )}
                             </Button>
@@ -709,37 +710,34 @@ export default function AssignDriverPage() {
                         </div>
 
                         {/* Filter Tabs */}
-                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-md text-xs">
+                        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-[4px] text-xs">
                             <button
                                 type="button"
                                 onClick={() => setQueueTab('all')}
-                                className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer transition-colors ${
-                                    queueTab === 'all'
-                                        ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs'
-                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                                }`}
+                                className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer transition-colors ${queueTab === 'all'
+                                    ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs'
+                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                    }`}
                             >
                                 All ({orders.length})
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setQueueTab('pending')}
-                                className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer transition-colors ${
-                                    queueTab === 'pending'
-                                        ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs'
-                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                                }`}
+                                className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer transition-colors ${queueTab === 'pending'
+                                    ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs'
+                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                    }`}
                             >
                                 Pending ({pendingCount})
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setQueueTab('assigned')}
-                                className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer transition-colors ${
-                                    queueTab === 'assigned'
-                                        ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs'
-                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                                }`}
+                                className={`px-2.5 py-1 rounded text-[11px] font-semibold cursor-pointer transition-colors ${queueTab === 'assigned'
+                                    ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs'
+                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                    }`}
                             >
                                 Dispatched ({assignedCount})
                             </button>
@@ -773,6 +771,7 @@ export default function AssignDriverPage() {
                                 const isSelected = String(item.id) === String(selectedOrderId) || String(item.order_id) === String(selectedOrderId);
 
                                 const dName = item.driver_name || (typeof item.driver === 'string' ? item.driver : (item.driver as any)?.name);
+                                const dEmail = item.driver_email || (item.driver as any)?.email;
                                 const hasRealDriver = dName && !dName.toLowerCase().includes('assigned driver') && !dName.toLowerCase().includes('unassigned') && !dName.toLowerCase().includes('pending');
 
                                 const origin = item.pickup_city || 'Origin';
@@ -782,11 +781,10 @@ export default function AssignDriverPage() {
                                     <div
                                         key={item.id}
                                         onClick={() => handleSelectOrder(String(item.id))}
-                                        className={`p-3 rounded-lg border transition-all cursor-pointer text-xs ${
-                                            isSelected
-                                                ? 'border-[#ff4a1f] bg-orange-50/50 dark:bg-[#ff4a1f]/10 shadow-xs'
-                                                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#12161c]'
-                                        }`}
+                                        className={`p-3 rounded-[4px] border transition-all cursor-pointer text-xs ${isSelected
+                                            ? 'border-[#ff4a1f] bg-orange-50/50 dark:bg-[#ff4a1f]/10 shadow-xs'
+                                            : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#12161c]'
+                                            }`}
                                     >
                                         <div className="flex items-center justify-between mb-1.5">
                                             <div className="flex items-center gap-2">
@@ -799,9 +797,16 @@ export default function AssignDriverPage() {
                                             </div>
 
                                             {isAssigned ? (
-                                                <Badge variant="info" className="text-[10px] font-bold">
-                                                    ✓ {hasRealDriver ? dName : 'Driver Assigned'}
-                                                </Badge>
+                                                <div className="flex flex-col items-end">
+                                                    <Badge variant="info" className="text-[10px] font-bold">
+                                                        ✓ {hasRealDriver ? dName : 'Driver Assigned'}
+                                                    </Badge>
+                                                    {dEmail && (
+                                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 max-w-[150px] truncate text-right" title={dEmail}>
+                                                            {dEmail}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             ) : (
                                                 <Badge variant="warning" className="text-[10px] font-bold animate-pulse">
                                                     Pending Dispatch
@@ -834,12 +839,10 @@ export default function AssignDriverPage() {
                                                     e.stopPropagation();
                                                     handleSelectOrder(String(item.id));
                                                 }}
-                                                className={`text-[11px] font-bold flex items-center gap-1 hover:underline cursor-pointer ${
-                                                    isSelected ? 'text-[#ff4a1f]' : 'text-slate-600 dark:text-slate-400'
-                                                }`}
+                                                className={`text-[11px] font-bold flex items-center gap-1 hover:underline cursor-pointer ${isSelected ? 'text-[#ff4a1f]' : 'text-slate-600 dark:text-slate-400'
+                                                    }`}
                                             >
                                                 <span>{isAssigned ? 'Reassign Driver' : 'Assign This Job'}</span>
-                                                <ChevronRight size={12} />
                                             </button>
                                         </div>
                                     </div>

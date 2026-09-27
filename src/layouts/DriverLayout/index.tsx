@@ -184,34 +184,35 @@ export default function DriverLayout() {
 
             {/* Main Application Area */}
             <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-                {/* Clean Flat Header */}
+                {/* Header */}
                 <header
-                    className={`h-16 px-4 sm:px-6 flex items-center justify-between shrink-0 z-10 transition-all duration-200 ${
+                    className={`h-16 bg-white dark:bg-[#12161c] flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 transition-all duration-300 ${
                         isScrolled
-                            ? 'bg-white dark:bg-[#12161c] border-b border-slate-200/80 dark:border-slate-800'
-                            : 'bg-white dark:bg-[#12161c] border-b border-slate-100 dark:border-slate-800/80'
+                            ? 'border-b border-slate-200 dark:border-slate-800 shadow-sm'
+                            : 'border-b border-transparent shadow-none'
                     }`}
                 >
-                    {/* Left: Sidebar Toggle & Section Title */}
-                    <div className="flex items-center gap-3">
+                    {/* Left: Sidebar Toggle, Section Title & Search */}
+                    <div className="flex items-center gap-6">
                         <button
                             type="button"
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="p-2 -ml-2 rounded-[4px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            className="text-slate-600 dark:text-slate-300 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] transition-colors cursor-pointer"
                             aria-label="Toggle Navigation"
                         >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 6h16M4 12h10M4 18h16" />
                             </svg>
                         </button>
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-900 dark:text-white capitalize">
+                        {/* Module Title */}
+                        <div className="hidden lg:flex items-center gap-2.5">
+                            <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100 capitalize tracking-wide">
                                 {currentModuleLabel}
-                            </span>
+                            </h1>
                             {/* Verification Chip Status in Header */}
                             <span
-                                className={`hidden sm:inline-flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full ${
+                                className={`inline-flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full ${
                                     isVerified
                                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/60'
                                         : verificationStatus === 'under_review'
@@ -225,63 +226,61 @@ export default function DriverLayout() {
                                 {isVerified ? 'Verified' : verificationStatus === 'under_review' ? 'Under Review' : verificationStatus === 'rejected' ? 'Revision Needed' : 'Unverified'}
                             </span>
                         </div>
-                    </div>
 
-                    {/* Right: Actions, Notifications & Profile */}
-                    <div className="flex items-center gap-1.5 sm:gap-2.5">
-                        {/* Global Search Trigger */}
+                        {/* Search Bar matching Supplier layout */}
                         <button
                             type="button"
                             onClick={() => setIsSearchOpen(true)}
-                            className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-[4px] transition-colors cursor-pointer"
-                            title="Quick Search (Ctrl+K)"
+                            className="hidden md:flex items-center bg-gray-50 dark:bg-[#1e2329] px-4 py-2 rounded-full w-[280px] border border-gray-200 dark:border-slate-700/80 hover:border-[#ff4a1f] dark:hover:border-[#ff4a1f] hover:bg-white dark:hover:bg-[#252b33] transition-colors text-left group cursor-pointer"
                         >
-                            <Search size={18} />
+                            <Search size={16} className="text-gray-400 dark:text-slate-500 mr-2 shrink-0 group-hover:text-[#ff4a1f]" />
+                            <span className="text-[13px] text-gray-400 dark:text-slate-400 w-full group-hover:text-gray-600 dark:group-hover:text-slate-200 truncate">Search loads, jobs...</span>
+                            <span className="text-[10px] font-bold text-gray-400 dark:text-slate-400 bg-gray-200 dark:bg-slate-800 px-1.5 py-0.5 rounded ml-auto border border-gray-300 dark:border-slate-700">⌘K</span>
                         </button>
+                    </div>
 
+                    {/* Right: Actions, Notifications & Profile */}
+                    <div className="flex items-center gap-3 sm:gap-4">
                         {/* Direct Notification Popovers */}
                         <HeaderNotifications role="driver" />
                         <HeaderMessages role="driver" />
 
-                        {/* Driver Profile Dropdown */}
-                        <div className="relative ml-1" ref={profileRef}>
+                        {/* Driver Profile Dropdown Pill matching Supplier */}
+                        <div className="relative" ref={profileRef}>
                             <button
                                 type="button"
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-[4px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                                className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                             >
-                                <div className="w-8 h-8 rounded-[4px] bg-[#FF4A1F] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                                <div className="w-7 h-7 rounded-full bg-[#ff4a1f] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-xs overflow-hidden">
                                     {authUser?.profile_picture ? (
                                         <img
                                             src={authUser.profile_picture}
                                             alt={authUser?.name || 'Driver'}
-                                            className="w-full h-full object-cover rounded-[4px]"
+                                            className="w-full h-full object-cover"
                                         />
+                                    ) : authUser?.name ? (
+                                        initials(authUser.name)
                                     ) : (
-                                        initials(authUser?.name)
+                                        <User size={14} />
                                     )}
                                 </div>
-                                <div className="hidden md:flex flex-col text-left">
-                                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">
-                                        {String(authUser?.name || 'Commercial Driver')}
-                                    </span>
-                                    <span className="text-[10.5px] text-slate-500 dark:text-slate-400 capitalize">
-                                        {isVerified ? 'FMCSA Verified' : verificationStatus === 'under_review' ? 'Under Review' : 'Action Needed'}
-                                    </span>
-                                </div>
-                                <ChevronDown size={14} className="text-slate-400 ml-0.5" />
+                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[120px] sm:max-w-[160px] truncate">
+                                    {authUser?.name || 'Commercial Driver'}
+                                </span>
+                                <ChevronDown size={14} className="text-slate-500 dark:text-slate-400 shrink-0" />
                             </button>
 
-                            {/* Dropdown Menu */}
+                            {/* Dropdown Menu matching Supplier Layout */}
                             {isProfileOpen && (
-                                <div className="absolute right-0 mt-1.5 w-64 bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200 dark:border-slate-800 shadow-xl py-1 text-xs z-50 animate-in fade-in-50 duration-100">
-                                    <div className="px-3 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
-                                        <div className="w-9 h-9 rounded-[4px] bg-[#FF4A1F] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#1e2329] rounded-[4px] shadow-2xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[999] overflow-hidden text-xs font-medium animate-in fade-in-50 duration-100">
+                                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-[#181a20]/50">
+                                        <div className="w-9 h-9 rounded-full bg-slate-700 dark:bg-[#ff4a1f] text-white flex items-center justify-center text-sm font-black shrink-0 overflow-hidden">
                                             {authUser?.profile_picture ? (
                                                 <img
                                                     src={authUser.profile_picture}
                                                     alt={authUser?.name}
-                                                    className="w-full h-full object-cover rounded-[4px]"
+                                                    className="w-full h-full object-cover"
                                                 />
                                             ) : (
                                                 initials(authUser?.name)
@@ -296,7 +295,7 @@ export default function DriverLayout() {
                                         </div>
                                     </div>
 
-                                    <div className="p-2 space-y-1">
+                                    <div className="p-1.5 space-y-0.5">
                                         {/* Compliance Status Button */}
                                         <button
                                             type="button"
@@ -304,32 +303,32 @@ export default function DriverLayout() {
                                                 setIsProfileOpen(false);
                                                 setIsVerificationModalOpen(true);
                                             }}
-                                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-[4px] bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left border border-slate-200/60 dark:border-slate-700/60"
+                                            className="w-full flex items-center justify-between px-3 py-2 rounded-[3px] bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-left border border-slate-200/60 dark:border-slate-700/60 mb-1"
                                         >
-                                            <div className="flex items-center gap-2.5">
-                                                <Shield size={15} className={isVerified ? "text-emerald-500" : verificationStatus === "under_review" ? "text-amber-500" : "text-[#FF4A1F]"} />
+                                            <div className="flex items-center gap-2">
+                                                <Shield size={14} className={isVerified ? "text-emerald-500" : verificationStatus === "under_review" ? "text-amber-500" : "text-[#FF4A1F]"} />
                                                 <span className="font-semibold text-xs text-slate-800 dark:text-slate-200">Compliance Status</span>
                                             </div>
                                             <span
-                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${
+                                                className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded-full whitespace-nowrap ${
                                                     isVerified
-                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60'
+                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
                                                         : verificationStatus === 'under_review'
-                                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60'
+                                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400'
                                                         : verificationStatus === 'rejected'
-                                                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60'
-                                                        : 'bg-orange-100 text-[#FF4A1F] dark:bg-orange-950/60 dark:text-orange-400 border border-orange-200 dark:border-orange-800/60'
+                                                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400'
+                                                        : 'bg-orange-100 text-[#FF4A1F] dark:bg-orange-950/60 dark:text-orange-400'
                                                 }`}
                                             >
-                                                {isVerified ? 'Verified' : verificationStatus === 'under_review' ? 'Under Review' : verificationStatus === 'rejected' ? 'Revision Needed' : 'Action Needed'}
+                                                {isVerified ? 'Verified' : verificationStatus === 'under_review' ? 'Under Review' : verificationStatus === 'rejected' ? 'Action Needed' : 'Action Needed'}
                                             </span>
                                         </button>
 
-                                        {/* Driver Profile Link (Never blocked) */}
+                                        {/* Driver Profile Link */}
                                         <Link
                                             to="/driver/profile"
                                             onClick={() => setIsProfileOpen(false)}
-                                            className="flex items-center gap-2.5 px-3 py-2 rounded-[4px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+                                            className="flex items-center gap-2.5 px-3 py-2 rounded-[3px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white transition-colors"
                                         >
                                             <User size={15} className="text-slate-400 dark:text-slate-400" />
                                             <span>Driver Profile</span>
@@ -346,7 +345,7 @@ export default function DriverLayout() {
                                                     setIsLockPromptOpen(true);
                                                 }
                                             }}
-                                            className="flex items-center justify-between px-3 py-2 rounded-[4px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+                                            className="flex items-center justify-between px-3 py-2 rounded-[3px] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white transition-colors"
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <Truck size={15} className="text-slate-400 dark:text-slate-400" />
@@ -361,7 +360,7 @@ export default function DriverLayout() {
                                         <button
                                             type="button"
                                             onClick={() => { setIsProfileOpen(false); handleLogout(); }}
-                                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[4px] text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors text-left font-bold cursor-pointer"
+                                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[3px] text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors text-left font-bold cursor-pointer"
                                         >
                                             <LogOut size={15} />
                                             <span>Logout</span>

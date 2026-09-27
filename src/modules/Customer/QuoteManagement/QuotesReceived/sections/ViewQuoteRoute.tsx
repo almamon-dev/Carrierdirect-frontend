@@ -35,7 +35,7 @@ export const ViewQuoteRoute: React.FC<ViewQuoteRouteProps> = ({ quote, requestDe
 
                 <SectionHeader title="Route & Transit Specifications" icon={Navigation} />
                 <ViewField label="Est. Transit Time" value={<span className="font-bold text-slate-900 dark:text-slate-100">{quote.estimated_delivery || req.expected_transit_time || '48 Hours'}</span>} />
-                <ViewField label="Estimated Distance" value={<span className="font-semibold text-slate-800 dark:text-slate-200">{req.distance ? `${req.distance} KM` : '245 KM'}</span>} />
+                <ViewField label="Estimated Distance" value={<span className="font-semibold text-slate-800 dark:text-slate-200">{req.distance_km ? `${req.distance_km} KM` : (req.distance ? (String(req.distance).toUpperCase().includes('KM') ? req.distance : `${req.distance} KM`) : '—')}</span>} />
                 <ViewField label="Route Type" value="Direct Point-to-Point Transport" />
                 <ViewField label="Tracking / GPS" value={<span className="text-emerald-600 font-semibold">Live GPS Updates Included</span>} />
             </div>

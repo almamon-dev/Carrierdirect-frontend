@@ -7,6 +7,7 @@ import LogoWhite from '../../../../assets/Images/Logo.png';
 import apiClient from '../../../../lib/axios';
 import { ENDPOINTS } from '../../../../config/api';
 import { TOKEN_CONFIG } from '../../../../config/auth';
+import { getRoleDashboardUrl } from '../../../../utils/roleDashboard';
 
 export default function VerifyEmailPage() {
     const navigate = useNavigate();
@@ -64,7 +65,7 @@ export default function VerifyEmailPage() {
                         setNextRedirect('/admin/dashboard');
                     } else {
                         setVerifiedUser(userData);
-                        setNextRedirect('/customer/dashboard');
+                        setNextRedirect(getRoleDashboardUrl(userData));
                     }
                 }
                 setStatus('success');
@@ -111,7 +112,7 @@ export default function VerifyEmailPage() {
             } else if (user?.user_type === 'admin') {
                 window.location.href = '/admin/dashboard';
             } else {
-                navigate('/customer/dashboard');
+                navigate(getRoleDashboardUrl(user));
             }
         } catch {
             navigate(nextRedirect || '/web/login');

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
     Truck, ShieldCheck, FileText, CheckCircle2,
     Calendar, Tag, Hash, CreditCard, Box, Radio, Gauge, Navigation,
@@ -200,9 +201,9 @@ export const VehicleSection: React.FC<Props> = ({ profile }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-1">
                     {/* Column 1: Power Unit Specs */}
                     <div className="space-y-1">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1.5">
+                        <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
                             <Tag size={12} />
-                            <span>Power Unit Specs</span>
+                            <span>Power unit specs</span>
                         </div>
                         <KeyValueRow
                             label="Tractor Model"
@@ -231,9 +232,9 @@ export const VehicleSection: React.FC<Props> = ({ profile }) => {
 
                     {/* Column 2: Equipment & Trailer */}
                     <div className="space-y-1">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1.5">
+                        <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
                             <Box size={12} />
-                            <span>Assigned Trailer</span>
+                            <span>Assigned trailer</span>
                         </div>
                         <KeyValueRow
                             label="Equipment Type"
@@ -261,9 +262,9 @@ export const VehicleSection: React.FC<Props> = ({ profile }) => {
 
                     {/* Column 3: Commercial Insurance */}
                     <div className="space-y-1">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1.5">
+                        <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
                             <ShieldCheck size={12} />
-                            <span>Fleet Insurance</span>
+                            <span>Fleet insurance</span>
                         </div>
                         <KeyValueRow
                             label="Carrier Insurer"
@@ -293,9 +294,9 @@ export const VehicleSection: React.FC<Props> = ({ profile }) => {
             </div>
 
             {/* Edit Equipment Modal */}
-            {isEditOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-[#1e2329] rounded-xl border border-slate-200 dark:border-slate-800 w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            {isEditOpen && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200" onClick={() => setIsEditOpen(false)}>
+                    <div className="bg-white dark:bg-[#1e2329] rounded-xl border border-slate-200 dark:border-slate-800 w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                         {/* Modal Header */}
                         <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-[#15191e]/50">
                             <div className="flex items-center gap-2">
@@ -426,7 +427,8 @@ export const VehicleSection: React.FC<Props> = ({ profile }) => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Document Preview Modal */}

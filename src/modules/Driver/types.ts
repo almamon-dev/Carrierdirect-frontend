@@ -177,6 +177,21 @@ export interface ShipmentItem {
         bonus?: number;
         currency: string;
     };
+    history?: Array<{
+        status: string;
+        title: string;
+        description: string;
+        time?: string;
+        date: string;
+        raw_date?: string;
+        time_ago?: string;
+    }>;
+    driver?: {
+        name: string;
+        phone: string;
+        vehiclePlate: string;
+        vehicleType: string;
+    };
     podData?: {
         uploadedAt: string;
         receiverName: string;

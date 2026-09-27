@@ -1,6 +1,7 @@
 import React from 'react';
-import { MapPin, Navigation, ShieldCheck, Star, Package, Calendar } from 'lucide-react';
+import { MapPin, Navigation, ShieldCheck, Star, Package } from 'lucide-react';
 import { QuoteRequest } from '../../data/quoteRequestsData';
+import { formatCurrency } from '@/lib/utils';
 
 interface CustomerRouteCardProps {
     requestDetails: QuoteRequest;
@@ -8,10 +9,10 @@ interface CustomerRouteCardProps {
 
 export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDetails }) => {
     const customerInitial = (requestDetails.customer || 'C').charAt(0).toUpperCase();
+    const budgetDisplay = formatCurrency(requestDetails.budget, (requestDetails as any).currency || 'EUR');
 
     return (
-        <div
-    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs p-3 sm:p-4 space-y-2.5 sm:space-y-3 font-sans">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs p-3 sm:p-4 space-y-2.5 sm:space-y-3 font-sans">
             {/* Customer & Budget Header */}
             <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-slate-100 dark:border-slate-800 gap-2">
                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -54,18 +55,16 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
                     </div>
                 </div>
 
-                <div
-    className="bg-slate-50 dark:bg-[#181d24] border border-slate-200/90 dark:border-slate-800 rounded-lg px-2.5 py-1 sm:px-3.5 sm:py-2 text-right shrink-0">
+                <div className="bg-slate-50 dark:bg-[#181d24] border border-slate-200/90 dark:border-slate-800 rounded-lg px-2.5 py-1 sm:px-3.5 sm:py-2 text-right shrink-0">
                     <span className="text-[10px] sm:text-[11px] font-normal text-slate-500 dark:text-slate-400 block leading-none">Target Budget</span>
-                    <span className="text-sm sm:text-lg font-bold text-slate-900 dark:text-slate-100 block leading-tight mt-0.5">{requestDetails.budget || 'Negotiable'}</span>
+                    <span className="text-sm sm:text-lg font-bold text-slate-900 dark:text-slate-100 block leading-tight mt-0.5">{budgetDisplay}</span>
                 </div>
             </div>
 
             {/* Route Cards */}
             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 items-stretch">
                 {/* Pickup Card */}
-                <div
-    className="p-2.5 sm:p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex flex-col justify-between space-y-2">
+                <div className="p-2.5 sm:p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex flex-col justify-between space-y-2">
                     <div className="pb-1 sm:pb-1.5 border-b border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
                         <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
                             <MapPin size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" /> Pickup Location
@@ -118,8 +117,7 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
                 </div>
 
                 {/* Delivery Card */}
-                <div
-    className="p-2.5 sm:p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex flex-col justify-between space-y-2">
+                <div className="p-2.5 sm:p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex flex-col justify-between space-y-2">
                     <div className="pb-1 sm:pb-1.5 border-b border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
                         <span className="text-xs font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
                             <MapPin size={13} className="text-rose-500 dark:text-rose-400 shrink-0" /> Delivery Location
@@ -154,3 +152,5 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
         </div>
     );
 };
+
+export default CustomerRouteCard;

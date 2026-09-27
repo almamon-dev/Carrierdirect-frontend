@@ -3,11 +3,13 @@ import { AllImages } from "@/components/AllPhotos/AllImages";
 import { Link } from 'react-router-dom';
 import { Shield, Check, Clock, Lock } from "lucide-react";
 import { TOKEN_CONFIG } from "@/config/auth";
+import { getRoleDashboardUrl, getUserEffectiveRole } from "@/utils/roleDashboard";
 
 export default function HomeHero() {
-  const [authState, setAuthState] = useState<{ isLoggedIn: boolean; userType: string | null }>({
+  const [authState, setAuthState] = useState<{ isLoggedIn: boolean; userType: string | null; user: any | null }>({
     isLoggedIn: false,
     userType: null,
+    user: null,
   });
 
   useEffect(() => {
@@ -18,9 +20,10 @@ export default function HomeHero() {
       setAuthState({
         isLoggedIn: !!token,
         userType: user?.user_type || user?.role || null,
+        user,
       });
     } catch {
-      setAuthState({ isLoggedIn: false, userType: null });
+      setAuthState({ isLoggedIn: false, userType: null, user: null });
     }
   }, []);
 
@@ -73,9 +76,15 @@ export default function HomeHero() {
           {/* Action Buttons: Create a Quote & Become a Supplier */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-14">
             {isLoggedIn ? (
-              <Link to={userType === "supplier" ? "/supplier/dashboard" : "/customer/dashboard"}>
+              <Link to={getRoleDashboardUrl(authState.user)}>
                 <button className="h-11 px-6 rounded-md bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer">
-                  {userType === "supplier" ? "See Quote Requests" : "My Quotes"}
+                  {getUserEffectiveRole(authState.user) === "driver"
+                    ? "Driver Dashboard"
+                    : getUserEffectiveRole(authState.user) === "supplier"
+                    ? "See Quote Requests"
+                    : getUserEffectiveRole(authState.user) === "admin"
+                    ? "Admin Dashboard"
+                    : "My Quotes"}
                 </button>
               </Link>
             ) : (

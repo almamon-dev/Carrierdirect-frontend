@@ -19,6 +19,7 @@ interface EditRequestSectionContentProps {
     addDimensionRow: () => void;
     updateDimension: (id: number, field: string, value: string) => void;
     removeDimension: (id: number) => void;
+    handleLocationSelect?: (prefix: 'pickup' | 'delivery', data: any) => void;
     handleSaveUpdate: (e?: any) => Promise<void> | void;
 }
 
@@ -35,6 +36,7 @@ export const EditRequestSectionContent: React.FC<EditRequestSectionContentProps>
     addDimensionRow,
     updateDimension,
     removeDimension,
+    handleLocationSelect,
     handleSaveUpdate,
 }) => {
     return (
@@ -53,6 +55,7 @@ export const EditRequestSectionContent: React.FC<EditRequestSectionContentProps>
                 <LocationsSection
                     formData={formData}
                     handleChange={handleChange}
+                    onLocationSelect={handleLocationSelect}
                 />
             )}
 

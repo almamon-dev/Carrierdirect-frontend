@@ -17,7 +17,13 @@ export function mapQuoteToFormData(q: any, cleanId: string) {
         deliveryDate: q.delivery_date || q.deliveryDate || '-',
         deliveryTime: q.delivery_time_till || q.delivery_time_from || q.deliveryTime || '-',
         expectedTransitTime: q.expected_transit_time || q.expectedTransitTime || '-',
-        estDistance: q.estimated_distance || q.estDistance || '-',
+        estDistance: q.distance_km ? `${Number(q.distance_km).toFixed(1)} km` : (q.distance || q.estimated_distance || q.estDistance || '-'),
+        distanceKm: q.distance_km ?? null,
+        estimatedDurationFormatted: q.estimated_duration_formatted ?? (q.estimated_duration_minutes ? `${Math.floor(q.estimated_duration_minutes / 60)}h ${Math.round(q.estimated_duration_minutes % 60)}m` : null),
+        pickupLat: q.pickup_lat ?? null,
+        pickupLng: q.pickup_lng ?? null,
+        deliveryLat: q.delivery_lat ?? null,
+        deliveryLng: q.delivery_lng ?? null,
 
         pickupCompany: q.pickup_company || q.pickupCompany || '-',
         pickupContactName: q.pickup_contact_name || q.pickupContactName || '-',
@@ -28,7 +34,6 @@ export function mapQuoteToFormData(q: any, cleanId: string) {
         pickupCity: q.pickup_city || q.pickupCity || '-',
         pickupZip: q.pickup_zip || q.pickupZip || '-',
         pickupAddress: q.pickup_address || q.pickupAddress || q.pickup || '-',
-        pickupMapUrl: q.pickup_map_url || q.pickupMapUrl || '-',
         pickupInstructions: String(q.pickup_instructions || q.pickupInstructions || '-').replace(/\\n/g, '\n'),
 
         deliveryCompany: q.delivery_company || q.deliveryCompany || '-',
@@ -40,7 +45,6 @@ export function mapQuoteToFormData(q: any, cleanId: string) {
         deliveryCity: q.delivery_city || q.deliveryCity || '-',
         deliveryZip: q.delivery_zip || q.deliveryZip || '-',
         deliveryAddress: q.delivery_address || q.deliveryAddress || q.delivery || '-',
-        deliveryMapUrl: q.delivery_map_url || q.deliveryMapUrl || '-',
         deliveryInstructions: String(q.delivery_instructions || q.deliveryInstructions || '-').replace(/\\n/g, '\n'),
 
         vehicleType: q.vehicle_type || q.vehicleType || q.vehicle || '-',

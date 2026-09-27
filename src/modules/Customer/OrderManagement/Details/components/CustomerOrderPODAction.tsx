@@ -180,42 +180,39 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
                                 </div>
 
                                 {/* Detailed Order & Delivery Specs Grid */}
-                                <div className="bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700/80 space-y-1.5 text-[11.5px]">
-                                    <div className="flex justify-between items-start gap-2">
-                                        <span className="text-slate-500 shrink-0">Delivery Point:</span>
-                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right leading-tight">
-                                            {deliveryAddress}
-                                        </span>
-                                    </div>
+                                <div className="bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700/80 grid grid-cols-[105px_12px_1fr] sm:grid-cols-[115px_14px_1fr] gap-y-2 items-start text-[11.5px]">
+                                    <span className="text-slate-500 font-medium">Delivery Point</span>
+                                    <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                                    <span className="font-semibold text-slate-800 dark:text-slate-200 leading-tight">
+                                        {deliveryAddress}
+                                    </span>
 
-                                    <div className="flex justify-between items-center gap-2">
-                                        <span className="text-slate-500 shrink-0">Recipient Signer:</span>
-                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right">
-                                            {receiverName}
-                                        </span>
-                                    </div>
+                                    <span className="text-slate-500 font-medium">Recipient Signer</span>
+                                    <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                        {receiverName}
+                                    </span>
 
-                                    <div className="flex justify-between items-center gap-2">
-                                        <span className="text-slate-500 shrink-0">Carrier / Driver:</span>
-                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right">
-                                            {carrierDriver}
-                                        </span>
-                                    </div>
+                                    <span className="text-slate-500 font-medium">Carrier / Driver</span>
+                                    <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                        {carrierDriver}
+                                    </span>
 
-                                    <div className="flex justify-between items-center gap-2">
-                                        <span className="text-slate-500 shrink-0">Escrow Payout:</span>
-                                        <span className="font-bold text-emerald-600 dark:text-emerald-400 text-right">
-                                            {order.pricing?.totalFormatted || '€ 0.00'}
-                                        </span>
-                                    </div>
+                                    <span className="text-slate-500 font-medium">Escrow Payout</span>
+                                    <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                        {order.pricing?.totalFormatted || '€ 0.00'}
+                                    </span>
 
                                     {order.pod.note && (
-                                        <div className="flex justify-between items-start gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/60">
-                                            <span className="text-slate-500 shrink-0">Remarks:</span>
-                                            <span className="font-medium text-slate-700 dark:text-slate-300 text-right italic">
+                                        <>
+                                            <span className="text-slate-500 font-medium pt-1 border-t border-slate-200 dark:border-slate-700/60">Remarks</span>
+                                            <span className="text-slate-400 dark:text-slate-500 font-medium pt-1 border-t border-slate-200 dark:border-slate-700/60">:</span>
+                                            <span className="font-medium text-slate-700 dark:text-slate-300 italic pt-1 border-t border-slate-200 dark:border-slate-700/60">
                                                 "{order.pod.note}"
                                             </span>
-                                        </div>
+                                        </>
                                     )}
                                 </div>
 

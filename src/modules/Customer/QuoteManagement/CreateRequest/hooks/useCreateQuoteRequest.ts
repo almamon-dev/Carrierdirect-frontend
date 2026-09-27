@@ -68,6 +68,19 @@ export function useCreateQuoteRequest() {
         setFormData(prev => ({ ...prev, [name]: checked }));
     };
 
+    const handleLocationSelect = (prefix: 'pickup' | 'delivery', locData: any) => {
+        setFormData(prev => ({
+            ...prev,
+            [`${prefix}Address`]: locData.address || (prev as any)[`${prefix}Address`],
+            [`${prefix}Lat`]: locData.lat !== undefined ? locData.lat : (prev as any)[`${prefix}Lat`],
+            [`${prefix}Lng`]: locData.lng !== undefined ? locData.lng : (prev as any)[`${prefix}Lng`],
+            [`${prefix}City`]: locData.city || (prev as any)[`${prefix}City`],
+            [`${prefix}State`]: locData.state || (prev as any)[`${prefix}State`],
+            [`${prefix}Country`]: locData.country || (prev as any)[`${prefix}Country`],
+            [`${prefix}Zip`]: locData.zip || (prev as any)[`${prefix}Zip`],
+        }));
+    };
+
     const handleFileUpload = (field: 'images' | 'packingList' | 'invoice', files: FileList | null) => {
         if (!files || files.length === 0) return;
         if (field === 'images') {
@@ -118,8 +131,23 @@ export function useCreateQuoteRequest() {
             showToast(targetStatus === 'pending' ? 'Quote request saved as draft!' : 'Quote request posted successfully!', 'success');
             navigate('/customer/quotes/create');
         } catch (err: any) {
-            const msg = err.response?.data?.message || 'Failed to submit quote request';
-            showToast(msg, 'error');
+            const status = err?.status || err?.response?.status;
+            const data = err?.data || err?.response?.data;
+            const msg = data?.message || err?.message || 'Failed to submit quote request';
+
+            if (
+                status === 403 ||
+                data?.upgrade_required ||
+                data?.reason === 'trial_limit_reached' ||
+                data?.reason === 'subscription_expired' ||
+                msg.toLowerCase().includes('trial limit') ||
+                msg.toLowerCase().includes('free trial') ||
+                msg.toLowerCase().includes('upgrade')
+            ) {
+                setIsLockModalOpen(true);
+            } else {
+                showToast(msg, 'error');
+            }
         } finally {
             setIsSubmitting(false);
             setSubmittingStatus(null);
@@ -131,7 +159,7 @@ export function useCreateQuoteRequest() {
     return {
         formData, activeTab, setActiveTab, isSubmitting, submittingStatus,
         isLockModalOpen, setIsLockModalOpen, isRepeatMode, repeatSource, servicesCount,
-        resetForm, handleChange, handleSelectChange, handleCheckboxChange,
+        resetForm, handleChange, handleSelectChange, handleCheckboxChange, handleLocationSelect,
         handleFileUpload, addDimensionRow, updateDimension, removeDimension, handleSubmit,
     };
 }

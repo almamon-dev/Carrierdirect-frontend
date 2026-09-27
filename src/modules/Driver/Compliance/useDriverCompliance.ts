@@ -291,8 +291,8 @@ export function useDriverCompliance() {
             await loadLiveCompliance();
         } catch (err) {
             console.error("Failed to submit compliance to API:", err);
+            throw err;
         } finally {
-            setIsVerificationModalOpen(false);
             setIsLockPromptOpen(false);
         }
     }, [loadLiveCompliance]);

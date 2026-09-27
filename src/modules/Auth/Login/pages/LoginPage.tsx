@@ -11,7 +11,7 @@ import { TOKEN_CONFIG } from '../../../../config/auth';
 import ProcessingOverlay from '../components/ProcessingOverlay';
 import TwoFactorModal from '../components/TwoFactorModal';
 import DemoCredentials from '../components/DemoCredentials';
-import { getRoleDashboardUrl } from '../../../../utils/roleDashboard';
+import { getRoleDashboardUrl, isDriverUser } from '../../../../utils/roleDashboard';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -61,20 +61,23 @@ export default function LoginPage() {
 
         try {
             const user = JSON.parse(userStr);
-            const role = user?.user_type;
-            if (role === 'admin') {
+            if (user?.user_type === 'admin') {
                 window.location.href = '/admin/dashboard';
-            } else if (role === 'supplier_employee') {
+            } else if (isDriverUser(user)) {
+                navigate('/driver/dashboard', { replace: true });
+            } else if (user?.user_type === 'supplier_employee') {
                 navigate(getRoleDashboardUrl(user), { replace: true });
-            } else if (role === 'supplier') {
+            } else if (user?.user_type === 'supplier') {
                 const isProfileCompleted = Boolean(
                     user?.is_profile_completed ||
                     user?.is_profile_complete ||
                     (user?.country && user?.city && user?.zip_code)
                 );
                 navigate(isProfileCompleted ? '/supplier/dashboard' : '/supplier/complete-profile', { replace: true });
-            } else if (role === 'customer') {
+            } else if (user?.user_type === 'customer') {
                 navigate('/customer/dashboard', { replace: true });
+            } else {
+                navigate(getRoleDashboardUrl(user), { replace: true });
             }
         } catch {
             localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
@@ -95,8 +98,10 @@ export default function LoginPage() {
     };
 
     const completeLoginRedirect = async (res: any) => {
-        const userType = res.user?.user_type || 'customer';
-        setRedirectUserType(userType);
+        const user = res.user;
+        const userType = user?.user_type || 'customer';
+        const isDriver = isDriverUser(user);
+        setRedirectUserType(isDriver ? 'driver' : userType);
         setProcessing(true);
 
         if (userType === 'admin') {
@@ -106,9 +111,16 @@ export default function LoginPage() {
             return;
         }
 
+        if (isDriver) {
+            setTimeout(() => {
+                navigate('/driver/dashboard');
+            }, 1200);
+            return;
+        }
+
         if (userType === 'supplier_employee') {
             setTimeout(() => {
-                navigate(getRoleDashboardUrl(res.user));
+                navigate(getRoleDashboardUrl(user));
             }, 1200);
             return;
         }

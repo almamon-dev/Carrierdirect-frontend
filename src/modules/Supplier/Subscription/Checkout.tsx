@@ -95,7 +95,7 @@ export const renderCardLogo = (brand?: string) => {
   );
 };
 
-export default function SubscriptionCheckout() {
+export default function SupplierSubscriptionCheckout() {
     const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -115,10 +115,10 @@ export default function SubscriptionCheckout() {
       ...planFromState,
       cycle: initialCycle,
     } : {
-      id: queryPlanId ? (isNaN(Number(queryPlanId)) ? queryPlanId : Number(queryPlanId)) : 9,
-      name: "Growth Logistics",
-      priceMonthly: 79,
-      priceYearly: 790,
+      id: queryPlanId ? (isNaN(Number(queryPlanId)) ? queryPlanId : Number(queryPlanId)) : 2,
+      name: "Professional Carrier",
+      priceMonthly: 49,
+      priceYearly: 490,
       cycle: initialCycle,
       features: [
         "Unlimited Single Quote Requests & RFQs",
@@ -224,7 +224,7 @@ export default function SubscriptionCheckout() {
       if (!targetPlanKey) return;
 
       try {
-        const res: any = await apiClient.get(`/subscription/plans?user_type=customer`);
+        const res: any = await apiClient.get(`/subscription/plans?user_type=supplier`);
         const rawPlans = res?.data?.plans || res?.data?.data?.plans || res?.data?.data || res?.data || [];
         const plansList = Array.isArray(rawPlans) ? rawPlans : (rawPlans?.data || []);
 
@@ -247,7 +247,7 @@ export default function SubscriptionCheckout() {
               (p.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim().toLowerCase() === baseName
             );
 
-            const monthlyPrice = Number(monthlyVariant?.price || matched.monthly_price || matched.price || 79);
+            const monthlyPrice = Number(monthlyVariant?.price || matched.monthly_price || matched.price || 49);
             const yearlyPrice = Number(yearlyVariant?.price || matched.yearly_price || (monthlyPrice * 10));
 
             const determinedCycle: "monthly" | "yearly" = (matched.billing_period === "annual" || matched.billing_period === "yearly")
@@ -1164,7 +1164,7 @@ export default function SubscriptionCheckout() {
                 className="w-full h-9 text-xs font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white cursor-pointer shadow-xs flex items-center justify-center gap-1.5 rounded-[3px]"
                 onClick={() => {
                   setIsSuccessModalOpen(false);
-                  navigate("/customer/subscription");
+                  navigate("/supplier/subscription");
                 }}
               >
                 <span>Go to Subscription Dashboard</span>

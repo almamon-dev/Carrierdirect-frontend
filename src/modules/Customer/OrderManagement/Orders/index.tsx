@@ -12,6 +12,7 @@ import { TableFilterContent } from './components/TableFilterContent';
 import { useCustomerOrders } from './hooks/useCustomerOrders';
 import { useFilteredCustomerOrders } from './hooks/useFilteredCustomerOrders';
 import { OrderFilterTab } from './types';
+import { encryptId } from '@/lib/encryption';
 
 export default function CustomerOrders() {
     const navigate = useNavigate();
@@ -162,7 +163,7 @@ export default function CustomerOrders() {
                 searchPlaceholder="Search by Order ID, carrier, route, or vehicle..."
                 compact={true}
                 isLoading={isLoading || isRefreshing}
-                onRowClick={(row) => navigate(`/customer/orders/${row.id}`, { state: { orderData: row } })}
+                onRowClick={(row) => navigate(`/customer/orders/${encryptId(row.id)}`, { state: { orderData: row } })}
                 tableClassName="w-full"
                 emptyState={
                     <EmptyState

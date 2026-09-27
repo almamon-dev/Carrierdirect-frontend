@@ -202,6 +202,38 @@ html.dark input[type="file"]::-webkit-file-upload-button {
   border-color: #384150 !important;
 }
 
+/* ── Global Date / Time Inputs: Text Left, Calendar Icon Far Right ── */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  display: block;
+  width: 100%;
+}
+
+input[type="date"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit,
+input[type="datetime-local"]::-webkit-datetime-edit {
+  display: inline-flex;
+  text-align: left;
+  padding: 0;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  margin-left: auto !important;
+  cursor: pointer !important;
+  opacity: 0.65;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  padding: 2px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 html.dark input[type="date"]::-webkit-calendar-picker-indicator,
 html.dark input[type="time"]::-webkit-calendar-picker-indicator,
 html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
@@ -713,4 +745,14 @@ html.dark .animate-live-shimmer {
 .highlight-pulse-message {
   animation: highlightPulseMessage 1.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
   z-index: 30 !important;
+}
+
+
+/* Google Places Autocomplete dropdown z-index fix */
+.pac-container {
+    z-index: 99999 !important;
+    border-radius: 6px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbd5e1;
+    font-family: inherit;
 }

@@ -149,7 +149,7 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                     <input
                         type="text"
-                        placeholder="Search conversations..."
+                        placeholder="Search conversations"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full h-[36px] pl-9 pr-4 text-[12.5px] bg-slate-100 dark:bg-[#181d24] border-none outline-none focus:outline-none focus:ring-0 rounded-full text-slate-800 dark:text-slate-200 placeholder-slate-400"

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, ShieldCheck, CheckCircle2, AlertTriangle, Clock, FileCheck2, HardHat, FileText } from 'lucide-react';
 import Button from '@/components/ui/button';
 
@@ -17,9 +18,9 @@ export const SafetyComplianceModal: React.FC<Props> = ({ isOpen, onClose }) => {
         { title: 'Hazardous Materials Endorsement', desc: 'Compliant with HazMat 49 CFR security clearance', status: 'Active' },
     ];
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-[#12161c] rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200" onClick={onClose}>
+            <div className="bg-white dark:bg-[#12161c] rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
@@ -89,6 +90,7 @@ export const SafetyComplianceModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     </Button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

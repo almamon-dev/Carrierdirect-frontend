@@ -12,6 +12,7 @@ import {
     XCircle 
 } from 'lucide-react';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
+import { encryptId } from '@/lib/encryption';
 
 interface ProcessingRowActionsMenuProps {
     isOpen: boolean;
@@ -19,6 +20,7 @@ interface ProcessingRowActionsMenuProps {
     dropdownPos: { top: number; left: number };
     row: any;
     onClose: () => void;
+    onTrack?: () => void;
     onDelete?: (row: any) => void;
 }
 
@@ -28,6 +30,7 @@ export const ProcessingRowActionsMenu: React.FC<ProcessingRowActionsMenuProps> =
     dropdownPos,
     row,
     onClose,
+    onTrack,
     onDelete,
 }) => {
     const navigate = useNavigate();
@@ -40,60 +43,61 @@ export const ProcessingRowActionsMenu: React.FC<ProcessingRowActionsMenuProps> =
     return createPortal(
         <div 
             ref={dropdownRef}
-            className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
+            className="fixed min-w-[200px] w-max max-w-[calc(100vw-16px)] bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans overflow-hidden"
             style={{ top: dropdownPos.top, left: dropdownPos.left }}
             onClick={(e) => e.stopPropagation()}
         >
             {/* 1. Track Shipment */}
             <button 
                 type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
+                className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-bold cursor-pointer whitespace-nowrap"
                 onClick={() => {
                     onClose();
-                    navigate(`/customer/quotes/processing/track/${rawId || '1'}`);
+                    if (onTrack) onTrack();
+                    else navigate(`/customer/orders/${encryptId(rawId || row.id)}`);
                 }}
             >
                 <Navigation size={14} className="text-[#ff4a1f] shrink-0" />
-                <span>Track Shipment</span>
+                <span className="whitespace-nowrap">Track Shipment</span>
             </button>
 
             {/* 2. View Received Quotes */}
             <button 
                 type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
+                className="w-full text-left px-3.5 py-2 text-xs text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer whitespace-nowrap"
                 onClick={() => {
                     onClose();
                     navigate(`/customer/quotes/received?requestId=${rawId || row.id}`);
                 }}
             >
                 <Tag size={14} className="text-emerald-600 shrink-0" />
-                <span>View Quotes {row.bidsCount ? `(${row.bidsCount})` : ''}</span>
+                <span className="whitespace-nowrap">View Quotes {row.bidsCount ? `(${row.bidsCount})` : ''}</span>
             </button>
 
             {/* 3. Chat & Negotiate */}
             <button 
                 type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
+                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap" 
                 onClick={() => { 
                     onClose(); 
                     navigate('/customer/quotes/negotiation'); 
                 }}
             >
                 <MessageSquare size={14} className="text-blue-500 shrink-0" />
-                <span>Chat & Negotiate</span>
+                <span className="whitespace-nowrap">Chat & Negotiate</span>
             </button>
 
             {/* 4. Duplicate Request */}
             <button 
                 type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 font-medium transition-colors cursor-pointer" 
+                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 font-medium transition-colors cursor-pointer whitespace-nowrap" 
                 onClick={() => {
                     onClose();
                     navigate('/customer/quotes/create/new', { state: { cloneData: row } });
                 }}
             >
                 <Copy size={14} className="text-slate-400 shrink-0" />
-                <span>Duplicate Request</span>
+                <span className="whitespace-nowrap">Duplicate Request</span>
             </button>
 
             <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
@@ -101,7 +105,7 @@ export const ProcessingRowActionsMenu: React.FC<ProcessingRowActionsMenuProps> =
             {/* 5. Cancel / Delete Request */}
             <button 
                 type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 flex items-center gap-2.5 cursor-pointer font-medium transition-colors" 
+                className="w-full text-left px-3.5 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 flex items-center gap-2.5 cursor-pointer font-medium transition-colors whitespace-nowrap" 
                 onClick={() => {
                     onClose();
                     if (onDelete) onDelete(row);
@@ -110,12 +114,12 @@ export const ProcessingRowActionsMenu: React.FC<ProcessingRowActionsMenuProps> =
                 {row.status === 'Active' || row.status === 'Bidding Active' ? (
                     <>
                         <XCircle size={14} className="text-red-500 shrink-0" />
-                        <span>Cancel Request</span>
+                        <span className="whitespace-nowrap">Cancel Request</span>
                     </>
                 ) : (
                     <>
                         <Trash2 size={14} className="text-red-500 shrink-0" />
-                        <span>Delete</span>
+                        <span className="whitespace-nowrap">Delete</span>
                     </>
                 )}
             </button>

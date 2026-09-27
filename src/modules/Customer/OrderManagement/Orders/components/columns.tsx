@@ -5,6 +5,7 @@ import Badge from '@/components/ui/badge';
 import { Column } from '@/components/tables/data-table';
 import { CustomerOrderItem } from '../types';
 import { formatDisplayDate } from '@/lib/utils';
+import { encryptId } from '@/lib/encryption';
 
 export const getOrderColumns = (
     handleRatingClick?: (order: CustomerOrderItem) => void,
@@ -21,7 +22,7 @@ export const getOrderColumns = (
                 return (
                     <div className="flex items-center min-h-[22px]">
                         <Link
-                            to={`/customer/orders/details/${targetId}`}
+                            to={`/customer/orders/${encryptId(targetId)}`}
                             className="font-bold text-[#ff4a1f] hover:underline whitespace-nowrap text-xs text-left"
                         >
                             {rawId}

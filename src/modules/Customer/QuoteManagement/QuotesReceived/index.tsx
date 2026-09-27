@@ -5,6 +5,8 @@ import DataTable from '@/components/tables/data-table';
 import Button from '@/components/ui/button';
 import EmptyState from '@/components/tables/empty-state';
 import { DeclineOfferModal } from '../Negotiation/Chat/components/DeclineOfferModal';
+import { SubscriptionLockModal } from '@/components/modals';
+import { useSubscriptionQuota } from '@/hooks/useSubscriptionQuota';
 import { TableFilterContent } from './Filters/TableFilterContent';
 import { QuoteReceivedRowActions } from './Actions/QuoteReceivedRowActions';
 import { useCustomerQuotesReceived } from './hooks/useCustomerQuotesReceived';
@@ -26,6 +28,15 @@ export default function QuotesReceived() {
         handleAccept,
         handleConfirmReject,
     } = useCustomerQuotesReceived();
+
+    const {
+        isLockModalOpen,
+        setIsLockModalOpen,
+        modalTitle,
+        modalDescription,
+        checkOrLock,
+        handleUpgradeRedirect,
+    } = useSubscriptionQuota();
 
     const [activeFilterTab, setActiveFilterTab] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -55,8 +66,7 @@ export default function QuotesReceived() {
     const columns = useMemo(() => getQuotesReceivedColumns(navigate), [navigate]);
 
     return (
-        <div
-    className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Quotes Received</h1>
@@ -69,7 +79,7 @@ export default function QuotesReceived() {
                         <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#ff4a1f]' : 'text-slate-500'} />
                         <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
                     </Button>
-                    <Button variant="primary" size="sm" onClick={() => navigate('/customer/quotes/create/new')} className="h-9 px-4 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5">
+                    <Button variant="primary" size="sm" onClick={() => checkOrLock(() => navigate('/customer/quotes/create/new'))} className="h-9 px-4 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5">
                         <Plus size={14} />
                         <span>Create New Request</span>
                     </Button>
@@ -110,7 +120,7 @@ export default function QuotesReceived() {
                         title="No Quotes Received Yet"
                         description={activeFilterTab === 'all' ? 'When verified suppliers submit quotes for your shipping requests, they will appear here.' : `No received quotes match '${activeFilterTab}'.`}
                         actionLabel="Create Quote Request"
-                        onAction={() => navigate('/customer/quotes/create/new')}
+                        onAction={() => checkOrLock(() => navigate('/customer/quotes/create/new'))}
                     />
                 }
             />
@@ -121,6 +131,25 @@ export default function QuotesReceived() {
                 offerAmount={rejectModalQuote?.amount_raw || (rejectModalQuote?.amount ? parseFloat(String(rejectModalQuote.amount).replace(/[^0-9.]/g, '')) : undefined)}
                 currency="€"
                 onConfirm={handleConfirmReject}
+            />
+
+            {/* Subscription Upgrade Modal */}
+            <SubscriptionLockModal
+                isOpen={isLockModalOpen}
+                onClose={() => setIsLockModalOpen(false)}
+                onUpgrade={handleUpgradeRedirect}
+                userType="customer"
+                title={modalTitle}
+                description={modalDescription}
+                featureName="Quote Request Quota"
+                requiredPlan="Starter Shipper (€29/mo)"
+                benefits={[
+                    "Unlimited Single Quote Requests & RFQs",
+                    "Multi-Carrier Quote Comparison & Price Breakdown",
+                    "Direct Carrier Live Chat & Negotiation",
+                    "Real-time Order Tracking & Digital POD (Challan)",
+                    "Secure Stripe Escrow Payments & Card Checkout"
+                ]}
             />
         </div>
     );

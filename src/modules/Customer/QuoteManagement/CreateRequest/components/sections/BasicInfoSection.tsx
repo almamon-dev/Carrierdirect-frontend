@@ -1,6 +1,8 @@
 import React from 'react';
 import { FileText, Activity } from 'lucide-react';
 import Input from '@/components/ui/input';
+import DatePicker from '@/components/ui/date-picker';
+import TimePicker from '@/components/ui/time-picker';
 import Select from '@/components/ui/select';
 import TabHeader from '@/components/ui/tab-header';
 import { QuoteFormData } from '../../types/formTypes';
@@ -81,19 +83,19 @@ export const BasicInfoSection: React.FC<SectionProps> = ({ formData, handleChang
                 <SectionHeader title="Schedule" icon={Activity} />
                 
                 <FormRow label="Pickup Date" required>
-                    <Input type="date" name="pickupDate" value={formData.pickupDate} onChange={handleChange} />
+                    <DatePicker name="pickupDate" value={formData.pickupDate} onChange={handleChange} placeholder="YYYY-MM-DD" />
                 </FormRow>
                 
                 <FormRow label="Pickup Time" required>
-                    <Input type="time" name="pickupTime" value={formData.pickupTime} onChange={handleChange} />
+                    <TimePicker name="pickupTime" value={formData.pickupTime} onChange={handleChange} placeholder="HH:MM AM/PM" />
                 </FormRow>
                 
                 <FormRow label="Delivery Date">
-                    <Input type="date" name="deliveryDate" value={formData.deliveryDate} onChange={handleChange} />
+                    <DatePicker name="deliveryDate" value={formData.deliveryDate} onChange={handleChange} placeholder="YYYY-MM-DD" />
                 </FormRow>
                 
                 <FormRow label="Delivery Time">
-                    <Input type="time" name="deliveryTime" value={formData.deliveryTime} onChange={handleChange} />
+                    <TimePicker name="deliveryTime" value={formData.deliveryTime} onChange={handleChange} placeholder="HH:MM AM/PM" />
                 </FormRow>
 
                 <FormRow label="Transit Time (Days)">

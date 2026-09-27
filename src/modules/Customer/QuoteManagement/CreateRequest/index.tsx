@@ -1,11 +1,10 @@
-import React from 'react';
-import { 
-    FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2, 
-    RotateCcw, Sparkles, ChevronRight 
-} from 'lucide-react';
+import React, { useEffect } from 'react';
+import { FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2, ChevronRight, RotateCcw } from 'lucide-react';
 import Button from '@/components/ui/button';
-import { SubscriptionLockModal } from '@/components/modals';
 import { QuotaReminderBanner } from '@/components';
+import { SubscriptionLockModal } from '@/components/modals';
+import { useSubscriptionQuota } from '@/hooks/useSubscriptionQuota';
+
 import { useCreateQuoteRequest } from './hooks/useCreateQuoteRequest';
 import { BasicInfoSection } from './components/sections/BasicInfoSection';
 import { LocationsSection } from './components/sections/LocationsSection';
@@ -26,11 +25,41 @@ const CREATE_TABS = [
 export default function CreateRequestForm() {
     const {
         formData, activeTab, setActiveTab, isSubmitting, submittingStatus,
-        isLockModalOpen, setIsLockModalOpen, isRepeatMode, repeatSource, servicesCount,
-        resetForm, handleChange, handleSelectChange,
+        isLockModalOpen: formLockModalOpen, setIsLockModalOpen: setFormLockModalOpen,
+        isRepeatMode, repeatSource, servicesCount,
+        resetForm, handleChange, handleSelectChange, handleLocationSelect,
         handleCheckboxChange, handleFileUpload, addDimensionRow, updateDimension,
         removeDimension, handleSubmit,
     } = useCreateQuoteRequest();
+
+    const {
+        status: subscriptionStatus,
+        isTrial,
+        daysRemaining,
+        isExpired,
+        quotesLimit,
+        quotesUsed,
+        isTrialLimitReached,
+        isPaidUnlimited,
+        isLockModalOpen: quotaLockModalOpen,
+        setIsLockModalOpen: setQuotaLockModalOpen,
+        modalTitle,
+        modalDescription,
+        handleUpgradeRedirect,
+    } = useSubscriptionQuota();
+
+    const isModalOpen = formLockModalOpen || quotaLockModalOpen;
+    const closeModal = () => {
+        setFormLockModalOpen(false);
+        setQuotaLockModalOpen(false);
+    };
+
+    // Auto trigger lock modal on page entry if trial limit is reached or expired
+    useEffect(() => {
+        if (subscriptionStatus && (isTrialLimitReached || isExpired || subscriptionStatus.can_create_quote === false)) {
+            setQuotaLockModalOpen(true);
+        }
+    }, [subscriptionStatus, isTrialLimitReached, isExpired]);
 
     return (
         <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 font-sans antialiased">
@@ -57,17 +86,24 @@ export default function CreateRequestForm() {
                 </div>
             </div>
 
-            {/* Quota Reminder Banner below Header */}
-            <QuotaReminderBanner className="mb-5" />
+            {/* Quota Reminder Banner below Header (Hidden on active unlimited paid plans) */}
+            {!isPaidUnlimited && (
+                <QuotaReminderBanner
+                    className="mb-5"
+                    title={isTrial ? '7-Day Free Trial Quota Reminder' : 'Free Plan Quota Reminder'}
+                    quotaUsed={quotesUsed}
+                    maxQuota={quotesLimit}
+                    daysRemaining={daysRemaining}
+                    onUpgradeClick={handleUpgradeRedirect}
+                />
+            )}
 
             {/* Layout: Sidebar on Left, Content on Right */}
             <div className="flex flex-col lg:flex-row gap-6 items-start">
                 {/* Left Sidebar Navigation */}
-                <div
-    className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-2xs">
-                    <div
-    className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
-                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200  tracking-wider">
+                <div className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-2xs">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+                        <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wider">
                             Categories
                         </h3>
                     </div>
@@ -105,13 +141,12 @@ export default function CreateRequestForm() {
                 </div>
 
                 {/* Right Form Content Area */}
-                <div
-    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs w-full p-5 md:p-6 space-y-6">
+                <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs w-full p-5 md:p-6 space-y-6">
                     {activeTab === 'general' && (
                         <BasicInfoSection formData={formData} handleChange={handleChange} handleSelectChange={handleSelectChange} />
                     )}
                     {activeTab === 'locations' && (
-                        <LocationsSection formData={formData} handleChange={handleChange} />
+                        <LocationsSection formData={formData} handleChange={handleChange} onLocationSelect={handleLocationSelect} />
                     )}
                     {activeTab === 'load' && (
                         <LoadServicesSection
@@ -138,13 +173,36 @@ export default function CreateRequestForm() {
                             servicesCount={servicesCount}
                             isSubmitting={isSubmitting}
                             submittingStatus={submittingStatus}
-                            onSubmit={(_e, status) => handleSubmit(status || 'active')}
+                            onSubmit={(_e, targetStatus) => {
+                                if (isTrialLimitReached || isExpired || (subscriptionStatus && subscriptionStatus.can_create_quote === false)) {
+                                    setQuotaLockModalOpen(true);
+                                    return;
+                                }
+                                handleSubmit(targetStatus || 'active');
+                            }}
                         />
                     )}
                 </div>
             </div>
 
-            <SubscriptionLockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} />
+            {/* Trial Limit / Subscription Expired Lock Modal */}
+            <SubscriptionLockModal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                onUpgrade={handleUpgradeRedirect}
+                userType="customer"
+                title={modalTitle}
+                description={modalDescription}
+                featureName="Quote Request Quota"
+                requiredPlan="Starter Shipper (€29/mo)"
+                benefits={[
+                    "Unlimited Single Quote Requests & RFQs",
+                    "Multi-Carrier Quote Comparison & Price Breakdown",
+                    "Direct Carrier Live Chat & Negotiation",
+                    "Real-time Order Tracking & Digital POD (Challan)",
+                    "Secure Stripe Escrow Payments & Card Checkout"
+                ]}
+            />
         </div>
     );
 }

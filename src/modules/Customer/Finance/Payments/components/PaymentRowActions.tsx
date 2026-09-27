@@ -12,6 +12,7 @@ import {
   Receipt
 } from 'lucide-react';
 import Button from '@/components/ui/button';
+import { encryptId } from '@/lib/encryption';
 
 interface PaymentRowActionsProps {
   row: any;
@@ -140,7 +141,7 @@ export const PaymentRowActions: React.FC<PaymentRowActionsProps> = ({
                 className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
                 onClick={() => {
                   handleClose();
-                  navigate(`/customer/orders/${row.order_id}`);
+                  navigate(`/customer/orders/${encryptId(row.order_id)}`);
                 }}
               >
                 <ExternalLink size={14} className="text-slate-400 shrink-0" />

@@ -69,10 +69,20 @@ export const DriverVerificationRequiredModal: React.FC<Props> = ({
 
             {/* Bottom Sheet Container */}
             <div className="bg-white dark:bg-[#1e2329] rounded-t-3xl border-t border-slate-200/90 dark:border-slate-800 w-full shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 ease-out text-center pt-4 pb-10 px-6 sm:px-12 relative z-10 h-auto max-h-[92vh] overflow-y-auto">
-                {/* Top Drag Handle Bar (Centered) */}
-                <div className="pb-3 flex justify-center">
-                    <div className="w-16 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full" />
-                </div>
+                {/* Top Drag Handle Bar (Centered - Click to minimize if dismissible) */}
+                <button
+                    type="button"
+                    onClick={canDismiss ? onClose : undefined}
+                    disabled={!canDismiss}
+                    className={`pb-3 flex justify-center w-full bg-transparent focus:outline-hidden ${
+                        canDismiss ? "cursor-pointer group" : "cursor-default"
+                    }`}
+                    title={canDismiss ? "Click to minimize or close" : undefined}
+                >
+                    <div className={`w-16 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full transition-all ${
+                        canDismiss ? "group-hover:bg-[#FF4A1F] dark:group-hover:bg-[#FF4A1F] group-hover:w-20" : ""
+                    }`} />
+                </button>
 
                 {/* Close X (only visible if dismissible) */}
                 {canDismiss && (

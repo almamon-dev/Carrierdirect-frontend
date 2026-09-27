@@ -4,6 +4,7 @@ import { Eye, Navigation, MoreVertical, Star } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
 import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
+import { GPSComingSoonModal } from '@/components/modals';
 import { OrderActionsMenu } from './OrderActionsMenu';
 import { CustomerOrderItem } from '../types';
 
@@ -18,6 +19,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
 }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
+    const [isGpsModalOpen, setIsGpsModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -37,20 +39,31 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
             setIsOpen(false);
         } else {
             const rect = e.currentTarget.getBoundingClientRect();
+            const menuWidth = 235;
+            const menuHeight = 280;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            const left = Math.max(8, Math.min(rect.right - menuWidth, viewportWidth - menuWidth - 8));
+            const spaceBelow = viewportHeight - rect.bottom;
+            const top = spaceBelow < menuHeight && rect.top > menuHeight
+                ? rect.top - menuHeight - 4
+                : rect.bottom + 4;
+
             setDropdownPos({
-                top: rect.bottom + 4,
-                left: Math.max(10, rect.right - 208)
+                top: Math.max(8, top),
+                left: Math.max(8, left)
             });
             setIsOpen(true);
         }
     };
 
     const handleViewDetails = () => {
-        navigate(`/customer/orders/${row.id}`, { state: { orderData: row } });
+        navigate(`/customer/orders/${encryptId(row.id)}`, { state: { orderData: row } });
     };
 
     const handleTrackOrder = () => {
-        navigate(`/customer/quotes/processing/track/${row.id}`, { state: { order: row } });
+        setIsGpsModalOpen(true);
     };
 
     const handleOpenChat = () => {
@@ -169,6 +182,13 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 onDownloadInvoice={handleDownloadInvoice}
                 onRepeatOrder={handleRepeatOrder}
                 onCopyId={handleCopyId}
+            />
+
+            {/* Live GPS Tracking Coming Soon Modal */}
+            <GPSComingSoonModal
+                isOpen={isGpsModalOpen}
+                onClose={() => setIsGpsModalOpen(false)}
+                destination={routeDisplay}
             />
         </div>
     );

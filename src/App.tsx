@@ -54,6 +54,17 @@ const RedirectWithQuery: React.FC<{ to: string }> = ({ to }) => {
   return <Navigate to={`${to}${search}`} replace />;
 };
 
+const PaymentRedirect: React.FC<{ status: 'success' | 'cancel' }> = ({ status }) => {
+  const search = typeof window !== "undefined" ? window.location.search : "";
+  const params = new URLSearchParams(search);
+  const type = params.get('type') || 'subscription';
+
+  if (type === 'quote' || type === 'invoice' || type === 'order') {
+    return <Navigate to={`/customer/finance/invoices?payment=${status}`} replace />;
+  }
+  return <Navigate to={`/customer/subscription?payment=${status}`} replace />;
+};
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -74,6 +85,15 @@ const router = createBrowserRouter([
   {
     path: '/pay-later-facility',
     element: <PayLaterFacility />,
+  },
+  /* Stripe Payment Callbacks */
+  {
+    path: '/payment/success',
+    element: <PaymentRedirect status="success" />,
+  },
+  {
+    path: '/payment/cancel',
+    element: <PaymentRedirect status="cancel" />,
   },
   /* Direct Auth Aliases */
   {

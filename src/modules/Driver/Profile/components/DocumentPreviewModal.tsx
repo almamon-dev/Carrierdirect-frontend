@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, FileText, Download, CheckCircle2, ExternalLink, ShieldCheck } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, FileText, Download, CheckCircle2, ShieldCheck } from 'lucide-react';
 import Button from '@/components/ui/button';
 
 interface Props {
@@ -23,9 +24,9 @@ export const DocumentPreviewModal: React.FC<Props> = ({
 
     const fileName = fileUrl.split('/').pop() || 'document.pdf';
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200" onClick={onClose}>
+            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl w-full max-w-lg overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-[#161a22]">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -109,6 +110,7 @@ export const DocumentPreviewModal: React.FC<Props> = ({
                     </a>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

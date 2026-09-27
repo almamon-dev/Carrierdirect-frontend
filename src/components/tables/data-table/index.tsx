@@ -372,7 +372,7 @@ export default function DataTable<T extends Record<string, any>>({
                 {/* Control Toolbar Card (Single-Row Unified Header) */}
                 <div
     className="bg-white dark:bg-[#12161c] rounded-[3px] border border-slate-200 dark:border-slate-800 shadow-none animate-in fade-in duration-200">
-                    <div className="relative z-30">
+                    <div className="relative z-10">
                         {/* Bulk Action Overlay when items are selected */}
                         {selectedIds.length > 0 && (
                             <div
@@ -607,7 +607,7 @@ export default function DataTable<T extends Record<string, any>>({
         <div
     className="bg-white dark:bg-[#12161c] rounded-[3px] border border-slate-200 dark:border-slate-800 shadow-none">
             <div className="animate-in fade-in duration-300">
-                {/* Header Tabs (Inside container) */}
+                {/* Header Tabs (Inside container, matching Supplier Negotiation) */}
                 {headerTabs && (
                     <div className="px-3.5 pt-2 border-b border-[#ebebeb] dark:border-slate-800">
                         {headerTabs}
@@ -643,11 +643,14 @@ export default function DataTable<T extends Record<string, any>>({
 
                             {!hideViewToggle && (
                                 <>
-                                    <div
-    className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none h-[32px]">
+                                    <div className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none h-[32px]">
                                         <button 
                                             onClick={() => handleSwitchView('table')}
-                                            className="h-[30px] px-2.5 flex items-center justify-center transition-colors bg-white dark:bg-slate-800 text-[#202223] dark:text-slate-200 shadow-2xs cursor-pointer"
+                                            className={`h-[30px] px-2.5 flex items-center justify-center transition-colors cursor-pointer ${
+                                                !isGridMode 
+                                                    ? 'bg-white dark:bg-slate-800 text-[#202223] dark:text-slate-200 shadow-2xs font-bold' 
+                                                    : 'text-[#8c9196] dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-[#202223] dark:hover:text-slate-200'
+                                            }`}
                                             title="Table View"
                                         >
                                             <List size={14} />
@@ -655,7 +658,11 @@ export default function DataTable<T extends Record<string, any>>({
                                         <div className="w-[1px] h-[30px] bg-slate-200/80 dark:bg-slate-700/60"></div>
                                         <button 
                                             onClick={() => handleSwitchView('grid')}
-                                            className="h-[30px] px-2.5 flex items-center justify-center transition-colors text-[#8c9196] dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-[#202223] dark:hover:text-slate-200 cursor-pointer"
+                                            className={`h-[30px] px-2.5 flex items-center justify-center transition-colors cursor-pointer ${
+                                                isGridMode 
+                                                    ? 'bg-white dark:bg-slate-800 text-[#202223] dark:text-slate-200 shadow-2xs font-bold' 
+                                                    : 'text-[#8c9196] dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-[#202223] dark:hover:text-slate-200'
+                                            }`}
                                             title="Grid View"
                                         >
                                             <LayoutGrid size={14} />

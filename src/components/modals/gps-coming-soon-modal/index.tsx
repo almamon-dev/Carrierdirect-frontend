@@ -15,6 +15,8 @@ export const GPSComingSoonModal: React.FC<GPSComingSoonModalProps> = ({
     onClose,
     destination,
 }) => {
+    const validDestination = typeof destination === 'string' && destination.trim() ? destination.trim() : null;
+
     return (
         <Modal
             isOpen={isOpen}
@@ -42,15 +44,15 @@ export const GPSComingSoonModal: React.FC<GPSComingSoonModalProps> = ({
                     Integrated in-app truck navigation, real-time corridor telematics, and automated geo-fencing are currently under active development.
                 </p>
 
-                {/* Target Destination Preview if provided */}
-                {destination && (
+                {/* Target Destination Preview if provided and valid string */}
+                {validDestination && (
                     <div className="mt-3.5 w-full bg-slate-50 dark:bg-slate-900/50 rounded-lg p-2.5 border border-slate-200/80 dark:border-slate-800 flex items-center gap-2 text-left">
                         <div className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-950/60 text-[#FF4A1F] flex items-center justify-center shrink-0">
                             <MapPin size={12} />
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Target Waypoint</div>
-                            <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{destination}</div>
+                            <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{validDestination}</div>
                         </div>
                     </div>
                 )}

@@ -53,6 +53,7 @@ export interface SupplierOrderItem {
     driver?: string;
     driver_name?: string;
     driver_phone?: string;
+    driver_email?: string;
     vehicle?: string;
     vehicle_type?: string;
     truck_type?: string;

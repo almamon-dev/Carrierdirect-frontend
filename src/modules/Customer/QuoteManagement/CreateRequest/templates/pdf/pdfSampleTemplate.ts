@@ -33,7 +33,6 @@ const renderSampleOrder1 = () => `
     <div class="field-row"><span class="field-label"><span>City<span class="req-star">*</span></span><span>:</span></span><span class="field-val">Gazipur</span></div>
     <div class="field-row"><span class="field-label"><span>ZIP Code</span><span>:</span></span><span class="field-val">1700</span></div>
     <div class="field-row"><span class="field-label"><span>Full Address<span class="req-star">*</span></span><span>:</span></span><span class="field-val">Plot 42, Sector 4, Gazipur Industrial Area, Gazipur, Bangladesh (ZIP: 1700)</span></div>
-    <div class="field-row"><span class="field-label"><span>Google Map URL</span><span>:</span></span><span class="field-val">https://maps.google.com/?q=Gazipur</span></div>
     <div class="field-row"><span class="field-label"><span>Instructions</span><span>:</span></span><span class="field-val">Report to Gate 3 loading dock upon arrival with gate pass.</span></div>
     <br />
 
@@ -47,7 +46,6 @@ const renderSampleOrder1 = () => `
     <div class="field-row"><span class="field-label"><span>City<span class="req-star">*</span></span><span>:</span></span><span class="field-val">Chittagong</span></div>
     <div class="field-row"><span class="field-label"><span>ZIP Code</span><span>:</span></span><span class="field-val">4000</span></div>
     <div class="field-row"><span class="field-label"><span>Full Address<span class="req-star">*</span></span><span>:</span></span><span class="field-val">Terminal 2, Berth 5, Port Authority Zone, Chittagong, Bangladesh (ZIP: 4000)</span></div>
-    <div class="field-row"><span class="field-label"><span>Google Map URL</span><span>:</span></span><span class="field-val">https://maps.google.com/?q=ChittagongPort</span></div>
     <div class="field-row"><span class="field-label"><span>Instructions</span><span>:</span></span><span class="field-val">Delivery permitted strictly between 08:00 AM and 06:00 PM.</span></div>
     <hr />
 
@@ -120,7 +118,6 @@ const renderSampleOrder2 = () => `
     <div class="field-row"><span class="field-label"><span>City<span class="req-star">*</span></span><span>:</span></span><span class="field-val">Savar EPZ</span></div>
     <div class="field-row"><span class="field-label"><span>ZIP Code</span><span>:</span></span><span class="field-val">1340</span></div>
     <div class="field-row"><span class="field-label"><span>Full Address<span class="req-star">*</span></span><span>:</span></span><span class="field-val">Savar EPZ Industrial Zone, Sector 2, Dhaka 1340</span></div>
-    <div class="field-row"><span class="field-label"><span>Google Map URL</span><span>:</span></span><span class="field-val">https://maps.google.com/?q=Savar+EPZ</span></div>
     <div class="field-row"><span class="field-label"><span>Instructions</span><span>:</span></span><span class="field-val">Contact Savar supervisor before departure. Keep fabric rolls dry.</span></div>
     <br />
 
@@ -134,7 +131,6 @@ const renderSampleOrder2 = () => `
     <div class="field-row"><span class="field-label"><span>City<span class="req-star">*</span></span><span>:</span></span><span class="field-val">Comilla</span></div>
     <div class="field-row"><span class="field-label"><span>ZIP Code</span><span>:</span></span><span class="field-val">3500</span></div>
     <div class="field-row"><span class="field-label"><span>Full Address<span class="req-star">*</span></span><span>:</span></span><span class="field-val">Comilla Highway Hub, Industrial Zone, Comilla 3500</span></div>
-    <div class="field-row"><span class="field-label"><span>Google Map URL</span><span>:</span></span><span class="field-val">https://maps.google.com/?q=Comilla+Hub</span></div>
     <div class="field-row"><span class="field-label"><span>Instructions</span><span>:</span></span><span class="field-val">Handle with care. Driver must wear safety vest inside EPZ.</span></div>
     <hr />
 

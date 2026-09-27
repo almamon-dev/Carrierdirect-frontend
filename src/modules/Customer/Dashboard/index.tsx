@@ -10,6 +10,8 @@ import {
 import { useNavigate, Link } from 'react-router-dom';
 import Select from '@/components/ui/select';
 import apiClient from '@/lib/axios';
+import { GPSComingSoonModal } from '@/components/modals';
+import { encryptId } from '@/lib/encryption';
 
 import MetricCard from '@/components/cards/metric-card';
 
@@ -172,6 +174,7 @@ function getNotificationConfig(notif: any) {
 export default function Dashboard() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [gpsModalData, setGpsModalData] = useState<{ isOpen: boolean; destination: string }>({ isOpen: false, destination: '' });
 
     // Remote Data States
     const [profile, setProfile] = useState<any>(null);
@@ -610,7 +613,7 @@ export default function Dashboard() {
                                         return (
                                             <tr key={order.id || idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                                                 <td className="py-2.5 px-3.5 font-bold text-[#ff4a1f] text-[12px]">
-                                                    <Link to={`/customer/orders/${order.id}`} className="hover:underline">
+                                                    <Link to={`/customer/orders/${encryptId(order.id)}`} className="hover:underline">
                                                         {orderIdDisplay}
                                                     </Link>
                                                 </td>
@@ -636,7 +639,10 @@ export default function Dashboard() {
                                                 </td>
                                                 <td className="py-2.5 px-3.5 text-right">
                                                     <button
-                                                        onClick={() => navigate(`/customer/quotes/processing/track/${order.id}`)}
+                                                        onClick={() => setGpsModalData({
+                                                            isOpen: true,
+                                                            destination: order.route || `${order.pickup_city || order.pickup_address || 'Origin'} → ${order.delivery_city || order.delivery_address || 'Destination'}`
+                                                        })}
                                                         className="text-[11px] font-bold text-brand hover:text-brand-dark px-2.5 py-1 rounded-md bg-brand-light/60 dark:bg-[#ff4a1f]/20 hover:bg-brand-light dark:hover:bg-[#ff4a1f]/30 transition-colors whitespace-nowrap cursor-pointer"
                                                     >
                                                         Track
@@ -664,11 +670,16 @@ export default function Dashboard() {
                                     <div key={order.id || idx} className="p-3.5 space-y-2.5 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold text-[#ff4a1f] text-[13px]">{orderIdDisplay}</span>
+                                                <Link to={`/customer/orders/${encryptId(order.id)}`} className="font-bold text-[#ff4a1f] text-[13px] hover:underline">
+                                                    {orderIdDisplay}
+                                                </Link>
                                                 <span className={`${statusCfg.color} px-2 py-0.5 rounded-full border text-[10px] font-bold`}>{statusCfg.label}</span>
                                             </div>
                                             <button
-                                                onClick={() => navigate(`/customer/quotes/processing/track/${order.id}`)}
+                                                onClick={() => setGpsModalData({
+                                                    isOpen: true,
+                                                    destination: routeDisplay
+                                                })}
                                                 className="text-[11px] font-bold text-brand hover:text-brand-dark px-2.5 py-1 rounded-md bg-brand-light/60 dark:bg-[#ff4a1f]/20 hover:bg-brand-light transition-colors cursor-pointer"
                                             >
                                                 Track
@@ -801,6 +812,12 @@ export default function Dashboard() {
 
             </div>
 
+            {/* Live GPS Tracking Coming Soon Modal */}
+            <GPSComingSoonModal
+                isOpen={gpsModalData.isOpen}
+                onClose={() => setGpsModalData(prev => ({ ...prev, isOpen: false }))}
+                destination={gpsModalData.destination}
+            />
         </div>
     );
 }

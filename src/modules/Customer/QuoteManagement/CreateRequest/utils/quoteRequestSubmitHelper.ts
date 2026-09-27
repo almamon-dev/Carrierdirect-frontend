@@ -25,6 +25,8 @@ export const buildQuoteRequestFormData = (
     if (formData.pickupState) submitData.append('pickup_state', formData.pickupState);
     if (formData.pickupCountry) submitData.append('pickup_country', formData.pickupCountry);
     if (formData.pickupZip) submitData.append('pickup_zip', formData.pickupZip);
+    if (formData.pickupLat !== undefined && formData.pickupLat !== null && formData.pickupLat !== '') submitData.append('pickup_lat', String(formData.pickupLat));
+    if (formData.pickupLng !== undefined && formData.pickupLng !== null && formData.pickupLng !== '') submitData.append('pickup_lng', String(formData.pickupLng));
 
     if (formData.deliveryDate) submitData.append('delivery_date', formData.deliveryDate);
     if (formData.deliveryTime) submitData.append('delivery_time_from', formData.deliveryTime);
@@ -37,6 +39,8 @@ export const buildQuoteRequestFormData = (
     if (formData.deliveryState) submitData.append('delivery_state', formData.deliveryState);
     if (formData.deliveryCountry) submitData.append('delivery_country', formData.deliveryCountry);
     if (formData.deliveryZip) submitData.append('delivery_zip', formData.deliveryZip);
+    if (formData.deliveryLat !== undefined && formData.deliveryLat !== null && formData.deliveryLat !== '') submitData.append('delivery_lat', String(formData.deliveryLat));
+    if (formData.deliveryLng !== undefined && formData.deliveryLng !== null && formData.deliveryLng !== '') submitData.append('delivery_lng', String(formData.deliveryLng));
 
     if (formData.vehicleType) submitData.append('vehicle_type', formData.vehicleType);
     if (formData.loadType) submitData.append('load_type', formData.loadType);

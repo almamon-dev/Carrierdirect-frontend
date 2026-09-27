@@ -23,10 +23,10 @@ export default function TableToolbar({
     borderBottom = true,
 }: TableToolbarProps) {
     return (
-        <div className={`relative z-30 ${className}`}>
+        <div className={`relative z-10 ${className}`}>
             {/* Bulk Action Bar Overlay */}
             {selectedCount > 0 && (
-                <div className={`absolute inset-0 bg-slate-100/95 dark:bg-[#1e2329]/95 backdrop-blur-xs z-20 flex items-center justify-center px-4 ${borderBottom ? 'border-b border-slate-200 dark:border-slate-800' : ''} animate-in fade-in duration-200`}>
+                <div className={`absolute inset-0 bg-slate-100/95 dark:bg-[#1e2329]/95 backdrop-blur-xs z-20 flex items-center justify-between px-4 ${borderBottom ? 'border-b border-slate-200 dark:border-slate-800' : ''} animate-in fade-in duration-200`}>
                     <div className="flex items-center gap-1.5 text-[13px]">
                         <span className="text-slate-800 dark:text-slate-200">
                             <strong>{selectedCount}</strong> {selectedCount === 1 ? 'item' : 'items'} selected.
@@ -40,7 +40,7 @@ export default function TableToolbar({
                             </button>
                         )}
                     </div>
-                    <div className="absolute right-3 flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                         {onDeleteSelected && (
                             <button 
                                 onClick={onDeleteSelected}
@@ -63,7 +63,7 @@ export default function TableToolbar({
                 </div>
             )}
 
-            <div className={`p-3 ${borderBottom ? 'border-b border-slate-200 dark:border-slate-800' : ''} flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-opacity ${selectedCount > 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <div className={`px-3.5 py-2 ${borderBottom ? 'border-b border-slate-200 dark:border-slate-800' : ''} flex flex-col md:flex-row md:items-center justify-between gap-2.5 transition-opacity ${selectedCount > 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                 {children}
             </div>
         </div>

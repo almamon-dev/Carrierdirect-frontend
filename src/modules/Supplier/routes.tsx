@@ -37,6 +37,7 @@ const Withdrawal = lazy(() => import('./Finance/Withdrawal'));
 const Payments = lazy(() => import('./Finance/Payments'));
 const Invoices = lazy(() => import('./Finance/Invoices'));
 const Subscription = lazy(() => import('./Subscription'));
+const SubscriptionCheckout = lazy(() => import('./Subscription/Checkout'));
 import Notifications from './Notifications';
 import Messages from './Messages';
 const Settings = lazy(() => import('./Settings'));
@@ -498,6 +499,22 @@ export const supplierRoutes: RouteObject[] = [
         element: (
             <PermissionGuard ownerOnly={true}>
                 <Subscription />
+            </PermissionGuard>
+        ) 
+    },
+    { 
+        path: 'subscription/checkout', 
+        element: (
+            <PermissionGuard ownerOnly={true}>
+                <SubscriptionCheckout />
+            </PermissionGuard>
+        ) 
+    },
+    { 
+        path: 'subscription/checkout/:planId', 
+        element: (
+            <PermissionGuard ownerOnly={true}>
+                <SubscriptionCheckout />
             </PermissionGuard>
         ) 
     },

@@ -1,4 +1,5 @@
 import PaymentRowActions from './components/PaymentRowActions';
+import { encryptId } from '@/lib/encryption';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   MapPin,
@@ -191,7 +192,7 @@ export default function Payments() {
             {row.order_id ? (
               <button
                 type="button"
-                onClick={() => navigate(`/customer/orders/${row.order_id}`)}
+                onClick={() => navigate(`/customer/orders/${encryptId(row.order_id)}`)}
                 className="font-semibold text-slate-700 dark:text-slate-300 hover:text-[#ff4a1f] hover:underline cursor-pointer text-xs whitespace-nowrap"
               >
                 {ordNumber}

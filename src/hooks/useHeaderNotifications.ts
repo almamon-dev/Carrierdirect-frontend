@@ -72,93 +72,12 @@ const formatTimeAgo = (dateStr: string | number | Date): string => {
     }
 };
 
-const DEFAULT_DRIVER_NOTIFS_SEED: HeaderNotification[] = [
-    {
-        id: 'drv-notif-1',
-        title: 'New Freight Load Assigned (ORD-99415)',
-        desc: 'Assigned route: Philadelphia, PA → Baltimore, MD. Pickup scheduled today at 14:00 EST.',
-        time: '15m ago',
-        timestamp: Date.now() - 15 * 60 * 1000,
-        amount: '$850.00',
-        type: 'order',
-        unread: true,
-        link: '/driver/shipments',
-    },
-    {
-        id: 'drv-notif-2',
-        title: 'Live Route Traffic Alert (I-95 South)',
-        desc: 'Heavy traffic delay near Exit 26. Dispatcher suggests MD-295 detour.',
-        time: '45m ago',
-        timestamp: Date.now() - 45 * 60 * 1000,
-        type: 'system',
-        unread: true,
-        link: '/driver/chat',
-    },
-    {
-        id: 'drv-notif-3',
-        title: 'POD Approved & Payout Credited',
-        desc: 'Proof of Delivery for Order ORD-99380 verified. $820.00 credited to your driver balance.',
-        time: '2h ago',
-        timestamp: Date.now() - 2 * 3600 * 1000,
-        amount: '$820.00',
-        type: 'finance',
-        unread: false,
-        link: '/driver/profile',
-    },
-    {
-        id: 'drv-notif-4',
-        title: 'Direct Dispatch Message',
-        desc: 'Dispatcher uploaded revised Digital BOL and gate access code #4491.',
-        time: '3h ago',
-        timestamp: Date.now() - 3 * 3600 * 1000,
-        type: 'message',
-        unread: true,
-        link: '/driver/chat',
-    },
-    {
-        id: 'drv-notif-5',
-        title: 'Daily Pre-Trip Inspection Verified',
-        desc: 'Vehicle inspection checklist for Freightliner Cascadia #ABC-987 logged successfully.',
-        time: '5h ago',
-        timestamp: Date.now() - 5 * 3600 * 1000,
-        type: 'system',
-        unread: false,
-        link: '/driver/profile',
-    },
-    {
-        id: 'drv-notif-6',
-        title: 'Milestone Confirmation: Loaded',
-        desc: 'Pickup facility confirmed 24 pallets of Industrial Automotive Parts loaded on trailer.',
-        time: 'Yesterday',
-        timestamp: Date.now() - 24 * 3600 * 1000,
-        type: 'order',
-        unread: false,
-        link: '/driver/shipments',
-    }
-];
-
-function getStoredDriverNotifications(): HeaderNotification[] {
-    try {
-        const raw = localStorage.getItem('carrierdirect_driver_notifications');
-        if (!raw) return DEFAULT_DRIVER_NOTIFS_SEED;
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_DRIVER_NOTIFS_SEED;
-    } catch {
-        return DEFAULT_DRIVER_NOTIFS_SEED;
-    }
-}
-
 export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' = 'supplier') => {
     // Real-time local notifications added this session (from addNotification)
     const [localNotifs, setLocalNotifs] = useState<HeaderNotification[]>([]);
     // API-fetched notifications (always fresh from database)
-    const [apiNotifs, setApiNotifs] = useState<HeaderNotification[]>(() => {
-        if (role === 'driver') {
-            return getStoredDriverNotifications();
-        }
-        return [];
-    });
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [apiNotifs, setApiNotifs] = useState<HeaderNotification[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // Combined: local real-time first, then API
     const notifications = [
@@ -311,14 +230,12 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
                 });
                 
                 setApiNotifs(mapped);
-            } else if (role === 'driver') {
-                setApiNotifs(getStoredDriverNotifications());
+            } else {
+                setApiNotifs([]);
             }
         } catch (err) {
             console.error(`Failed to fetch ${role} notifications from API:`, err);
-            if (role === 'driver') {
-                setApiNotifs(getStoredDriverNotifications());
-            }
+            setApiNotifs([]);
         } finally {
             if (!silent) setIsLoading(false);
         }
@@ -369,7 +286,6 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
         setLocalNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
         setApiNotifs(prev => {
             const next = prev.map(n => n.id === id ? { ...n, unread: false } : n);
-            if (role === 'driver') localStorage.setItem('carrierdirect_driver_notifications', JSON.stringify(next));
             return next;
         });
         try {
@@ -381,7 +297,6 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
         setLocalNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: true } : n));
         setApiNotifs(prev => {
             const next = prev.map(n => n.id === id ? { ...n, unread: true } : n);
-            if (role === 'driver') localStorage.setItem('carrierdirect_driver_notifications', JSON.stringify(next));
             return next;
         });
         try {
@@ -393,7 +308,6 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
         setLocalNotifs(prev => prev.map(n => ({ ...n, unread: false })));
         setApiNotifs(prev => {
             const next = prev.map(n => ({ ...n, unread: false }));
-            if (role === 'driver') localStorage.setItem('carrierdirect_driver_notifications', JSON.stringify(next));
             return next;
         });
         try {
@@ -405,7 +319,6 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
         setLocalNotifs(prev => prev.filter(n => n.id !== id));
         setApiNotifs(prev => {
             const next = prev.filter(n => n.id !== id);
-            if (role === 'driver') localStorage.setItem('carrierdirect_driver_notifications', JSON.stringify(next));
             return next;
         });
         try {
@@ -416,9 +329,6 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
     const clearAll = useCallback(async () => {
         setLocalNotifs([]);
         setApiNotifs([]);
-        if (role === 'driver') {
-            localStorage.setItem('carrierdirect_driver_notifications', JSON.stringify([]));
-        }
         try {
             await apiClient.post(`/${role}/notifications/clear-all`).catch(() => {});
         } catch {}

@@ -24,8 +24,15 @@ export const QuoteReceivedRowActions: React.FC<QuoteReceivedRowActionsProps> = (
     const triggerRef = useRef<HTMLButtonElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const isPending = (row.status_raw || row.status || '').toLowerCase() === 'pending';
-    const isNegotiating = row.revision_status === 'pending' || (row.status || '').toLowerCase() === 'negotiating';
+    const isExpired = Boolean(
+        row.is_expired ||
+        (row.status || '').toLowerCase() === 'expired' ||
+        (row.status_raw || '').toLowerCase() === 'expired' ||
+        (row.status || '').toLowerCase() === 'rejected' ||
+        (row.status || '').toLowerCase() === 'cancelled'
+    );
+    const isPending = !isExpired && (row.status_raw || row.status || '').toLowerCase() === 'pending';
+    const isNegotiating = !isExpired && (row.revision_status === 'pending' || (row.status || '').toLowerCase() === 'negotiating');
 
     const handleClose = useCallback(() => setIsOpen(false), []);
 
