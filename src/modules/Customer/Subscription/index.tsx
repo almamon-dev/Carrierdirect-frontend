@@ -8,6 +8,7 @@ import {
   Package, ChevronRight, ChevronDown, MoreVertical, Trash2
 } from "lucide-react";
 import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
 import Badge from "@/components/ui/badge";
 import Select from "@/components/ui/select";
 import Skeleton from "@/components/ui/skeleton";
@@ -160,9 +161,7 @@ export default function CustomerSubscription() {
           }));
           setPaymentCards(mappedCards);
         } else {
-          setPaymentCards([
-            { id: "1", cardType: "Credit Card", last4: "4242", brand: "VISA", isDefault: true }
-          ]);
+          setPaymentCards([]);
         }
       }
       if (invRes.status === "fulfilled") {
@@ -1258,13 +1257,18 @@ export default function CustomerSubscription() {
 
 
             <div>
-              <input
-                type="text"
+              <Input
+                label='To confirm, please type "CANCEL" *'
                 autoFocus
                 value={cancelConfirmationText}
                 onChange={(e) => setCancelConfirmationText(e.target.value)}
                 placeholder='Type "CANCEL" to confirm'
-                className="w-full h-9 px-3 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-[4px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-hidden "
+                className="font-semibold uppercase tracking-wider"
+                rightIcon={
+                  cancelConfirmationText.trim().toUpperCase() === "CANCEL" ? (
+                    <CheckCircle2 size={15} className="text-emerald-500" />
+                  ) : undefined
+                }
               />
             </div>
 

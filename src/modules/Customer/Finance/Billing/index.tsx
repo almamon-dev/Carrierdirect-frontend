@@ -1,6 +1,7 @@
 import RatingModal from "@/components/modals/rating-modal";
 import DataTable, { Column } from "@/components/tables/data-table";
 import EmptyState from "@/components/tables/empty-state";
+import MetricCard from "@/components/cards/metric-card";
 import Badge from "@/components/ui/badge";
 import Button from "@/components/ui/button";
 import apiClient from "@/lib/axios";
@@ -10,11 +11,11 @@ import {
     AlertCircle,
     Check,
     CheckCircle2,
-    ChevronRight,
-    Clock,
     Copy,
+    FileText,
     Receipt,
-    ShieldCheck
+    RefreshCw,
+    Wallet
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +26,6 @@ export default function Billing() {
     const navigate = useNavigate();
     const [invoices, setInvoices] = useState<any[]>([]);
     const [stats, setStats] = useState<any>(null);
-    const [subscription, setSubscription] = useState<any>(null);
     const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
     const [statusFilter, setStatusFilter] = useState<"All" | "Paid" | "Due" | "Overdue">("All");
     const [ratingTarget, setRatingTarget] = useState<{ id: string; supplier: string } | null>(null);
@@ -35,24 +35,11 @@ export default function Billing() {
     const fetchBillingData = async () => {
         setIsLoading(true);
         try {
-            const [invoiceRes, subRes] = await Promise.allSettled([
-                apiClient.get("/customer/invoices"),
-                apiClient.get("/subscription/status"),
-            ]);
-
-            if (invoiceRes.status === "fulfilled" && invoiceRes.value) {
-                const resData = invoiceRes.value.data || invoiceRes.value;
-                const list = resData?.data?.items || resData?.items || (Array.isArray(resData?.data) ? resData?.data : null) || resData?.invoices?.data || resData?.invoices || (Array.isArray(resData) ? resData : []);
-                setInvoices(Array.isArray(list) ? list : []);
-                setStats(resData?.data?.stats || resData?.stats || resData?.meta?.stats || null);
-            } else {
-                setInvoices([]);
-            }
-
-            if (subRes.status === "fulfilled" && subRes.value) {
-                const subData = subRes.value.data || subRes.value;
-                setSubscription(subData?.data || subData || null);
-            }
+            const invoiceRes = await apiClient.get("/customer/invoices");
+            const resData = invoiceRes?.data || invoiceRes;
+            const list = resData?.data?.items || resData?.items || (Array.isArray(resData?.data) ? resData?.data : null) || resData?.invoices?.data || resData?.invoices || (Array.isArray(resData) ? resData : []);
+            setInvoices(Array.isArray(list) ? list : []);
+            setStats(resData?.data?.stats || resData?.stats || resData?.meta?.stats || null);
         } catch (error) {
             console.error("Failed to load billing data:", error);
             setInvoices([]);
@@ -86,14 +73,14 @@ export default function Billing() {
         let dueCount = 0;
 
         invoices.forEach(inv => {
-            const rawAmount = typeof inv.total_amount === 'number'
+            const rawAmount = typeof inv.total_amount === "number"
                 ? inv.total_amount
-                : typeof inv.amount === 'number'
+                : typeof inv.amount === "number"
                     ? inv.amount
-                    : parseFloat(String(inv.total_amount || inv.amount || '0').replace(/[^0-9.-]+/g, '')) || 0;
+                    : parseFloat(String(inv.total_amount || inv.amount || "0").replace(/[^0-9.-]+/g, "")) || 0;
 
-            const st = (inv.raw_status || inv.status || '').toLowerCase().trim();
-            if (st === 'paid' || st === 'settled') {
+            const st = (inv.raw_status || inv.status || "").toLowerCase().trim();
+            if (st === "paid" || st === "settled") {
                 totalSpent += rawAmount;
                 paidCount += 1;
             } else {
@@ -348,129 +335,89 @@ export default function Billing() {
     );
 
     return (
-        <div className="p-3 sm:p-4 md:p-6 w-full mx-auto min-h-screen space-y-4 font-sans text-slate-800 dark:text-slate-200 antialiased">
+        <div className="p-3.5 md:p-5 w-full mx-auto min-h-screen space-y-3.5 font-sans bg-[#f8fafc] dark:bg-[#12161c] text-slate-800 dark:text-slate-200 antialiased">
             {/* Header section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Billing & Invoicing Overview</h1>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Billing Overview</h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        Manage your subscription, invoices, outstanding balances, and payment preferences.
+                        Overview of your freight orders, cargo billing, payments, and outstanding invoices.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
-                        onClick={() => navigate("/customer/finance/invoices")}
-                        className="h-8 text-xs font-bold bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 cursor-pointer flex items-center gap-1.5"
+                        size="sm"
+                        onClick={() => fetchBillingData()}
+                        disabled={isLoading}
+                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                     >
+                        <RefreshCw size={13} className={isLoading ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
+                        <span>Refresh</span>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate("/customer/finance/invoices")}
+                        className="h-8 text-xs font-semibold bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-300 dark:border-slate-700 cursor-pointer flex items-center gap-1.5"
+                    >
+                        <FileText size={13} />
                         <span>All Invoices</span>
-                        <ChevronRight size={13} />
                     </Button>
                     <Button
                         variant="primary"
-                        onClick={() => navigate("/customer/subscription")}
-                        className="h-8 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer"
+                        size="sm"
+                        onClick={() => navigate("/customer/finance/pay-later")}
+                        className="h-8 px-3.5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs"
                     >
-                        Subscription Plans
+                        <Wallet size={13} />
+                        <span>Pay Later Facility</span>
                     </Button>
                 </div>
             </div>
 
-            {/* Content grid */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-
-                {/* Active Subscription Summary */}
-                <div className="xl:col-span-2 bg-white dark:bg-[#1a1f26] p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-                    <div>
-                        <div className="flex justify-between items-start mb-3 border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
-                            <div>
-                                <span className="text-[10px] font-extrabold tracking-wider text-[#ff4a1f]">Current Active Plan</span>
-                                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-0.5">
-                                    {subscription?.plan_name || subscription?.name || "Shipper Basic"}
-                                </h2>
-                            </div>
-                            <Badge variant={subscription?.status === "active" ? "success" : "warning"} className="px-2.5 py-0.5 text-xs font-bold">
-                                {subscription?.status ? ucfirst(subscription.status) : "Active"}
-                            </Badge>
-                        </div>
-
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-                            Full access to spot quote requests, cargo tracking, supplier negotiations, and digital invoices.
-                        </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800/60 flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                            <Clock size={14} className="text-slate-400" />
-                            <span>Billing Cycle: Monthly</span>
-                        </div>
-                        <Button
-                            variant="primary"
-                            onClick={() => navigate("/customer/subscription")}
-                            className="h-8 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer"
-                        >
-                            Upgrade / Change Plan
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Outstanding & Stats Card */}
-                <div className="bg-white dark:bg-[#1a1f26] p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2 mb-3">
-                        <h2 className="text-[13px] font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                            <Receipt size={14} className="text-[#ff4a1f]" /> Billing & Invoice Summary
-                        </h2>
-                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                            {calculatedStats.totalInvoices} {calculatedStats.totalInvoices === 1 ? 'Invoice' : 'Invoices'}
-                        </span>
-                    </div>
-
-                    <div className="space-y-2.5">
-                        <div className="flex justify-between items-center p-2 rounded-md bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-800/30">
-                            <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                                    <CheckCircle2 size={13} />
-                                </div>
-                                <div>
-                                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block leading-tight">Total Paid</span>
-                                    <span className="text-[10px] text-slate-400 dark:text-slate-500">{calculatedStats.paidCount} paid invoices</span>
-                                </div>
-                            </div>
-                            <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                                {calculatedStats.totalSpentFormatted}
-                            </span>
-                        </div>
-
-                        <div className="flex justify-between items-center p-2 rounded-md bg-rose-50/60 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-800/30">
-                            <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                                    <AlertCircle size={13} />
-                                </div>
-                                <div>
-                                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block leading-tight">Outstanding Due</span>
-                                    <span className="text-[10px] text-slate-400 dark:text-slate-500">{calculatedStats.dueCount} pending invoices</span>
-                                </div>
-                            </div>
-                            <span className={`font-bold text-xs ${calculatedStats.hasOutstanding ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
-                                {calculatedStats.totalOutstandingFormatted}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/60 text-center">
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium flex items-center justify-center gap-1.5">
-                            <ShieldCheck size={13} className="text-emerald-500" />
-                            All payments secured with 256-bit SSL encryption
-                        </p>
-                    </div>
-                </div>
+            {/* Summary Stat Cards using standard MetricCard component */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                <MetricCard
+                    title="Total Spent & Paid"
+                    description={`${calculatedStats.paidCount} fully paid invoices`}
+                    value={calculatedStats.totalSpentFormatted}
+                    icon={CheckCircle2}
+                    colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
+                    badge={<Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">Paid</Badge>}
+                    valueClassName="text-base sm:text-lg"
+                    className="p-2.5 sm:p-3"
+                    isLoading={isLoading}
+                />
+                <MetricCard
+                    title="Outstanding & Due"
+                    description={`${calculatedStats.dueCount} due awaiting payment`}
+                    value={calculatedStats.totalOutstandingFormatted}
+                    icon={AlertCircle}
+                    colorClass="bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
+                    badge={<Badge variant="secondary" className="bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">Due</Badge>}
+                    valueClassName="text-base sm:text-lg"
+                    className="p-2.5 sm:p-3"
+                    isLoading={isLoading}
+                />
+                <MetricCard
+                    title="Total Invoices"
+                    description="All freight billing & invoice records"
+                    value={calculatedStats.totalInvoices}
+                    icon={Receipt}
+                    colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
+                    badge={<Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200">Total</Badge>}
+                    valueClassName="text-base sm:text-lg"
+                    className="p-2.5 sm:p-3"
+                    isLoading={isLoading}
+                />
             </div>
 
-            {/* Invoices History Table with Negotiation-style columns & design */}
+            {/* Invoices History Table */}
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                        <Receipt size={16} className="text-[#ff4a1f]" /> Recent Billing History
+                        <Receipt size={16} className="text-[#ff4a1f]" /> Recent Freight Invoices
                     </h2>
                 </div>
 
@@ -486,8 +433,8 @@ export default function Billing() {
                     emptyState={
                         <EmptyState
                             icon={Receipt}
-                            title="No Billing History Found"
-                            description="There are no billing transactions or invoices associated with your account yet."
+                            title="No Freight Invoices Found"
+                            description="There are no shipping invoices or billing records associated with your account yet."
                         />
                     }
                 />
@@ -514,9 +461,4 @@ export default function Billing() {
             )}
         </div>
     );
-}
-
-function ucfirst(str: string) {
-    if (!str) return "";
-    return str.charAt(0).toUpperCase() + str.slice(1);
 }

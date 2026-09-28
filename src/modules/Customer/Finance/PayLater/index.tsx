@@ -637,7 +637,7 @@ export default function PayLaterFacilityPage() {
             key={tab.id}
             type="button"
             onClick={() => handleTabChange(tab.id)}
-            className={`flex items-center gap-1.5 sm:gap-2 pb-2.5 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${isActive
+            className={`flex items-center gap-1.5 sm:gap-2 pb-2.5 border-b transition-colors whitespace-nowrap cursor-pointer ${isActive
                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}

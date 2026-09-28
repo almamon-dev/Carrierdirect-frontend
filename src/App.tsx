@@ -128,6 +128,31 @@ const router = createBrowserRouter([
     path: '/auth/register',
     element: <RedirectWithQuery to="/web/register" />,
   },
+  /* Dashboard Legacy & Alias Redirects */
+  {
+    path: '/client-dashboard/*',
+    element: <RedirectWithQuery to="/customer/dashboard" />,
+  },
+  {
+    path: '/client-dashboard',
+    element: <RedirectWithQuery to="/customer/dashboard" />,
+  },
+  {
+    path: '/customer-dashboard/*',
+    element: <RedirectWithQuery to="/customer/dashboard" />,
+  },
+  {
+    path: '/customer-dashboard',
+    element: <RedirectWithQuery to="/customer/dashboard" />,
+  },
+  {
+    path: '/supplier-dashboard/*',
+    element: <RedirectWithQuery to="/supplier/dashboard" />,
+  },
+  {
+    path: '/supplier-dashboard',
+    element: <RedirectWithQuery to="/supplier/dashboard" />,
+  },
   ...authRoutes,
   ...supportRoutes,
   {

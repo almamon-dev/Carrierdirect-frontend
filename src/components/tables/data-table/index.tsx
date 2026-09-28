@@ -691,8 +691,7 @@ export default function DataTable<T extends Record<string, any>>({
 
                 {/* Empty State or Table View */}
                 {paginatedData.length === 0 && !isLoading ? (
-                    <div
-    className="bg-white dark:bg-[#12161c] border-t border-slate-200/90 dark:border-slate-800">
+                    <div className="bg-white dark:bg-[#12161c]">
                         {emptyState ?? <EmptyState />}
                     </div>
                 ) : (

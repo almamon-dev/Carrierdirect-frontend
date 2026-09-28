@@ -32,7 +32,7 @@ export const ProcessingFilterTabs: React.FC<ProcessingFilterTabsProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveFilterTab(tab.id)}
-                        className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${
+                        className={`flex items-center gap-2 pb-3 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${
                             isActive
                                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
