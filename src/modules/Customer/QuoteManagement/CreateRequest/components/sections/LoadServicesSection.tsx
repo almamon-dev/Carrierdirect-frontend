@@ -17,6 +17,8 @@ interface SectionProps {
     addDimensionRow: () => void;
     updateDimension: (id: number, field: string, value: string) => void;
     removeDimension: (id: number) => void;
+    getFieldError?: (field: string) => string | undefined;
+    markTouched?: (field: string) => void;
 }
 
 export const LoadServicesSection: React.FC<SectionProps> = ({
@@ -27,6 +29,8 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
     addDimensionRow,
     updateDimension,
     removeDimension,
+    getFieldError = () => undefined,
+    markTouched = () => {},
 }) => {
     const { getOptions } = useDropdownOptions();
     const VEHICLE_OPTIONS = getOptions('vehicle_type');
@@ -37,7 +41,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-2">
                 <TabHeader title="Load & Vehicle Information" icon={Truck} />
                 
-                <FormRow label="Vehicle Type" required>
+                <FormRow label="Vehicle Type" required error={getFieldError('vehicleType')}>
                     <Select 
                         name="vehicleType" 
                         value={formData.vehicleType} 
@@ -48,7 +52,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                     />
                 </FormRow>
                 
-                <FormRow label="Load Type" required>
+                <FormRow label="Load Type" required error={getFieldError('loadType')}>
                     <Select 
                         name="loadType" 
                         value={formData.loadType} 
@@ -67,8 +71,17 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                     <Input type="text" inputMode="numeric" name="palletsCount" value={formData.palletsCount} onChange={handleChange} placeholder="e.g. 5" />
                 </FormRow>
                 
-                <FormRow label="Total Weight (kg)" required>
-                    <Input type="text" inputMode="numeric" name="weight" value={formData.weight} onChange={handleChange} placeholder="e.g. 4500" />
+                <FormRow label="Total Weight (kg)" required error={getFieldError('weight')}>
+                    <Input
+                        type="text"
+                        inputMode="numeric"
+                        name="weight"
+                        value={formData.weight}
+                        onChange={handleChange}
+                        onBlur={() => markTouched('weight')}
+                        error={getFieldError('weight')}
+                        placeholder="e.g. 4500"
+                    />
                 </FormRow>
                 
                 <FormRow label="Total Volume (m³)">
@@ -80,6 +93,7 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
                     addDimensionRow={addDimensionRow}
                     updateDimension={updateDimension}
                     removeDimension={removeDimension}
+                    error={getFieldError('dimensions')}
                 />
 
                 <CargoServicesChecklist
@@ -90,3 +104,5 @@ export const LoadServicesSection: React.FC<SectionProps> = ({
         </div>
     );
 };
+
+export default LoadServicesSection;

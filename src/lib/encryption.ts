@@ -51,7 +51,7 @@ export function encryptId(id: string | number | undefined | null): string {
         sub: cleanId,
         iss: 'carrierdirect-gateway',
         iat: 1787843546,
-        scope: 'supplier:quotes:negotiation:view',
+        scope: 'carrierdirect:secure:resource',
         checksum: '8a4f9e1d2c7b5a03e6f9d1c2b4a8e0f3',
         entropy: '7c2b5f8e1a4d9c0e3b6f8a1d5c2e0b7f'
     });
@@ -64,9 +64,24 @@ export function encryptId(id: string | number | undefined | null): string {
  * Decrypt a URL token back into the raw original ID.
  * Accurately parses long multi-segment tokens, legacy tokens, and plain raw IDs.
  */
-export function decryptId(token?: string | null): string {
-    if (!token) return '';
+export function decryptId(token?: string | number | null): string {
+    if (token === undefined || token === null) return '';
     const cleanToken = String(token).trim();
+    if (!cleanToken) return '';
+
+    // If it starts with q_ (quote security utility token format from urlSecurity.ts)
+    if (cleanToken.startsWith('q_')) {
+        const parts = cleanToken.slice(2).split('_');
+        if (parts.length >= 1) {
+            try {
+                const jsonStr = fromUrlSafeBase64(parts[0]);
+                const data = JSON.parse(jsonStr);
+                if (data && (data.id || data.sub)) {
+                    return String(data.id || data.sub);
+                }
+            } catch {}
+        }
+    }
 
     // If it's not prefixed with enc_ or sec_, treat it as already a plain ID
     if (!cleanToken.startsWith('enc_') && !cleanToken.startsWith('sec_')) {
@@ -80,7 +95,7 @@ export function decryptId(token?: string | null): string {
         const jsonStr = fromUrlSafeBase64(base64Part);
 
         // 1. Try regex extraction for sub or id
-        const subMatch = jsonStr.match(/"sub"\s*:\s*"?([^"\\,}]+)"?/);
+        const subMatch = jsonStr.match(/"(?:sub|id)"\s*:\s*"?([^"\\,}]+)"?/);
         if (subMatch && subMatch[1]) {
             return subMatch[1];
         }
@@ -88,7 +103,7 @@ export function decryptId(token?: string | null): string {
         // 2. Try JSON.parse
         try {
             const parsed = JSON.parse(jsonStr);
-            return String(parsed.sub ?? parsed.i ?? cleanToken);
+            return String(parsed.sub ?? parsed.id ?? parsed.i ?? cleanToken);
         } catch {}
     } catch {}
 

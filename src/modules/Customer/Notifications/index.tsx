@@ -27,6 +27,7 @@ export default function CustomerNotifications() {
         markAsRead, 
         markAllAsRead, 
         deleteNotification, 
+        deleteBulkNotifications,
         clearAll 
     } = useHeaderNotifications('customer');
 
@@ -66,6 +67,13 @@ export default function CustomerNotifications() {
     const handleDelete = (id: string | number) => {
         deleteNotification(id);
         showToast("Notification deleted");
+    };
+
+    const handleBulkDelete = (selectedIds: (number | string)[]) => {
+        if (window.confirm(`Are you sure you want to delete ${selectedIds.length} notification${selectedIds.length === 1 ? '' : 's'}?`)) {
+            deleteBulkNotifications(selectedIds);
+            showToast(`${selectedIds.length} notification${selectedIds.length === 1 ? '' : 's'} deleted`);
+        }
     };
 
     const handleClearAll = () => {
@@ -153,6 +161,7 @@ export default function CustomerNotifications() {
             <DataTable
                 data={filteredNotifications}
                 columns={columns}
+                onDeleteSelected={handleBulkDelete}
                 actions={(row) => (
                     <NotificationRowActions 
                         row={row} 

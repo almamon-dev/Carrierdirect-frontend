@@ -10,6 +10,8 @@ import {
 import { useNavigate, Link } from 'react-router-dom';
 import Select from '@/components/ui/select';
 import apiClient from '@/lib/axios';
+import { GPSComingSoonModal } from '@/components/modals';
+import { encryptId } from '@/lib/encryption';
 
 import MetricCard from '@/components/cards/metric-card';
 
@@ -172,6 +174,7 @@ function getNotificationConfig(notif: any) {
 export default function Dashboard() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [gpsModalData, setGpsModalData] = useState<{ isOpen: boolean; destination: string }>({ isOpen: false, destination: '' });
 
     // Remote Data States
     const [profile, setProfile] = useState<any>(null);
@@ -179,6 +182,7 @@ export default function Dashboard() {
     const [quoteRequests, setQuoteRequests] = useState<any[]>([]);
     const [invoices, setInvoices] = useState<any[]>([]);
     const [notifications, setNotifications] = useState<any[]>([]);
+    const [overviewStats, setOverviewStats] = useState<any>(null);
 
     // Filter States
     const [spendFilter, setSpendFilter] = useState<'30_days' | '3_months' | 'this_year'>('30_days');
@@ -187,12 +191,13 @@ export default function Dashboard() {
     const fetchDashboardData = useCallback(async () => {
         setLoading(true);
         try {
-            const [profileRes, ordersRes, quotesRes, invoicesRes, notifsRes] = await Promise.allSettled([
+            const [profileRes, ordersRes, quotesRes, invoicesRes, notifsRes, overviewRes] = await Promise.allSettled([
                 apiClient.get('/customer/profile'),
                 apiClient.get('/customer/orders'),
                 apiClient.get('/customer/quote-requests'),
                 apiClient.get('/customer/invoices'),
                 apiClient.get('/customer/notifications'),
+                apiClient.get('/customer/dashboard-overview'),
             ]);
 
             if (profileRes.status === 'fulfilled') {
@@ -213,6 +218,10 @@ export default function Dashboard() {
             if (notifsRes.status === 'fulfilled') {
                 const list = notifsRes.value.data?.notifications || notifsRes.value.data?.data || notifsRes.value.data || [];
                 setNotifications(Array.isArray(list) ? list : []);
+            }
+            if (overviewRes.status === 'fulfilled') {
+                const ovData = overviewRes.value.data?.data || overviewRes.value.data;
+                setOverviewStats(ovData?.stats || ovData || null);
             }
         } catch (err) {
             console.error('Error loading dashboard data:', err);
@@ -238,34 +247,70 @@ export default function Dashboard() {
         if (totalSpend === 0 && orders.length > 0) {
             totalSpend = orders.reduce((acc, curr) => {
                 const st = (curr.status || curr.status_raw || '').toLowerCase();
-                if (st === 'completed' || st === 'delivered') {
+                if (['completed', 'delivered', 'confirmed', 'booked', 'in_progress', 'assigned'].includes(st)) {
                     return acc + (Number(curr.total_amount) || Number(curr.amount) || 0);
                 }
                 return acc;
             }, 0);
         }
 
-        const activeOrdersCount = orders.filter(o => {
+        if (totalSpend === 0 && overviewStats?.total_spending) {
+            totalSpend = Number(overviewStats.total_spending) || 0;
+        } else if (totalSpend === 0 && profile?.total_spending) {
+            totalSpend = Number(profile.total_spending) || 0;
+        }
+
+        const activeOrdersCount = overviewStats?.active_orders ?? orders.filter(o => {
             const s = (o.status || o.status_raw || '').toLowerCase();
             return !['delivered', 'completed', 'cancelled'].includes(s);
         }).length;
 
-        const activeRequestsCount = quoteRequests.filter(q => {
+        const totalRequestsCount = overviewStats?.total_requests ?? quoteRequests.length;
+        const activeRequestsCount = overviewStats?.active_quotes ?? overviewStats?.active_requests ?? quoteRequests.filter(q => {
             const s = (q.status || '').toLowerCase();
             return !['completed', 'cancelled', 'booked'].includes(s);
         }).length;
 
-        const walletBal = profile?.wallet_balance ?? profile?.available_balance ?? profile?.balance ?? 0;
-        const avgRating = profile?.rating ?? profile?.avg_rating ?? (orders.length > 0 ? '4.9' : '5.0');
+        const walletBal = profile?.wallet_balance ?? profile?.available_balance ?? profile?.pay_later_available ?? profile?.balance ?? 0;
+
+        // Dynamic Rating Calculation from API or submitted order reviews
+        let avgRatingVal: string | number = '0.0';
+        if (overviewStats?.avg_rating !== undefined && overviewStats?.avg_rating !== null && Number(overviewStats.avg_rating) > 0) {
+            avgRatingVal = Number(overviewStats.avg_rating).toFixed(1);
+        } else if (profile?.avg_rating !== undefined && profile?.avg_rating !== null && Number(profile.avg_rating) > 0) {
+            avgRatingVal = Number(profile.avg_rating).toFixed(1);
+        } else if (profile?.rating !== undefined && profile?.rating !== null && Number(profile.rating) > 0) {
+            avgRatingVal = Number(profile.rating).toFixed(1);
+        } else {
+            // Find reviews inside orders
+            const ratedOrders = orders.filter(o => {
+                const r = o.review?.rating || o.rating || o.carrier_rating || o.supplier?.rating;
+                return r && Number(r) > 0;
+            });
+            if (ratedOrders.length > 0) {
+                const sum = ratedOrders.reduce((acc, curr) => {
+                    const r = curr.review?.rating || curr.rating || curr.carrier_rating || curr.supplier?.rating || 0;
+                    return acc + Number(r);
+                }, 0);
+                avgRatingVal = (sum / ratedOrders.length).toFixed(1);
+            } else if (overviewStats?.avg_rating !== undefined && overviewStats?.avg_rating !== null) {
+                avgRatingVal = Number(overviewStats.avg_rating).toFixed(1);
+            } else if (profile?.rating !== undefined && profile?.rating !== null) {
+                avgRatingVal = Number(profile.rating).toFixed(1);
+            } else {
+                avgRatingVal = '0.0';
+            }
+        }
 
         return {
             totalSpending: totalSpend,
             activeOrders: activeOrdersCount,
+            totalRequests: totalRequestsCount,
             activeRequests: activeRequestsCount,
             walletBalance: walletBal,
-            avgRating: avgRating
+            avgRating: avgRatingVal
         };
-    }, [invoices, orders, quoteRequests, profile]);
+    }, [invoices, orders, quoteRequests, profile, overviewStats]);
 
     // Dynamic Spending Chart Data
     const spendChartData = useMemo(() => {
@@ -400,9 +445,9 @@ export default function Dashboard() {
                     isLoading={loading}
                 />
                 <MetricCard
-                    title="Active Requests"
-                    description="Quote requests awaiting responses."
-                    value={metrics.activeRequests}
+                    title="Total Requests"
+                    description="Total quote requests submitted."
+                    value={metrics.totalRequests}
                     icon={FileText}
                     colorClass="bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400"
                     isLoading={loading}
@@ -610,7 +655,7 @@ export default function Dashboard() {
                                         return (
                                             <tr key={order.id || idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                                                 <td className="py-2.5 px-3.5 font-bold text-[#ff4a1f] text-[12px]">
-                                                    <Link to={`/customer/orders/${order.id}`} className="hover:underline">
+                                                    <Link to={`/customer/orders/${encryptId(order.id)}`} className="hover:underline">
                                                         {orderIdDisplay}
                                                     </Link>
                                                 </td>
@@ -636,7 +681,10 @@ export default function Dashboard() {
                                                 </td>
                                                 <td className="py-2.5 px-3.5 text-right">
                                                     <button
-                                                        onClick={() => navigate(`/customer/quotes/processing/track/${order.id}`)}
+                                                        onClick={() => setGpsModalData({
+                                                            isOpen: true,
+                                                            destination: order.route || `${order.pickup_city || order.pickup_address || 'Origin'} → ${order.delivery_city || order.delivery_address || 'Destination'}`
+                                                        })}
                                                         className="text-[11px] font-bold text-brand hover:text-brand-dark px-2.5 py-1 rounded-md bg-brand-light/60 dark:bg-[#ff4a1f]/20 hover:bg-brand-light dark:hover:bg-[#ff4a1f]/30 transition-colors whitespace-nowrap cursor-pointer"
                                                     >
                                                         Track
@@ -664,11 +712,16 @@ export default function Dashboard() {
                                     <div key={order.id || idx} className="p-3.5 space-y-2.5 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold text-[#ff4a1f] text-[13px]">{orderIdDisplay}</span>
+                                                <Link to={`/customer/orders/${encryptId(order.id)}`} className="font-bold text-[#ff4a1f] text-[13px] hover:underline">
+                                                    {orderIdDisplay}
+                                                </Link>
                                                 <span className={`${statusCfg.color} px-2 py-0.5 rounded-full border text-[10px] font-bold`}>{statusCfg.label}</span>
                                             </div>
                                             <button
-                                                onClick={() => navigate(`/customer/quotes/processing/track/${order.id}`)}
+                                                onClick={() => setGpsModalData({
+                                                    isOpen: true,
+                                                    destination: routeDisplay
+                                                })}
                                                 className="text-[11px] font-bold text-brand hover:text-brand-dark px-2.5 py-1 rounded-md bg-brand-light/60 dark:bg-[#ff4a1f]/20 hover:bg-brand-light transition-colors cursor-pointer"
                                             >
                                                 Track
@@ -801,6 +854,12 @@ export default function Dashboard() {
 
             </div>
 
+            {/* Live GPS Tracking Coming Soon Modal */}
+            <GPSComingSoonModal
+                isOpen={gpsModalData.isOpen}
+                onClose={() => setGpsModalData(prev => ({ ...prev, isOpen: false }))}
+                destination={gpsModalData.destination}
+            />
         </div>
     );
 }

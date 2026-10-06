@@ -146,7 +146,7 @@ export const mapPdfBlockToRequest = (block: string, idx: number) => {
         pickupCountry: extractPdfField(pickupBlock, /Country\s*\*?\s*[:\t]\s*([^:\n\r]+?)(?=\s*State|\s*City|\n|$)/i, 'Bangladesh'),
         pickupState: extractPdfField(pickupBlock, /State(?:\s*\/\s*Division)?\s*\*?\s*[:\t]\s*([^:\n\r]+?)(?=\s*City|\s*\bZIP\b|\n|$)/i, 'Dhaka Division'),
         pickupCity, pickupZip: extractPdfField(pickupBlock, /ZIP(?:\s*Code)?\s*\*?\s*[:\t]\s*([^:\n\r]+?)(?=\s*Full Address|\s*Google|\n|$)/i, '1200'),
-        pickupAddress, pickupMapUrl: extractPdfField(pickupBlock, /Google Map URL\s*\*?\s*[:\t]\s*([^\n\r]+?)(?=\s*Instructions|\n|$)/i),
+        pickupAddress,
         pickupInstructions: extractPdfField(pickupBlock, /Instructions\s*\*?\s*[:\t]\s*([^\n\r]+?)(?=\s*Delivery Details|\s*Load|\n|$)/i, 'Handle with care'),
         
         deliveryDate, deliveryTime, delivery_time_from: '14:00:00', delivery_time_till: deliveryTime,
@@ -155,7 +155,7 @@ export const mapPdfBlockToRequest = (block: string, idx: number) => {
         deliveryCountry: extractPdfField(deliveryBlock, /Country\s*\*?\s*[:\t]\s*([^:\n\r]+?)(?=\s*State|\s*City|\n|$)/i, 'Bangladesh'),
         deliveryState: extractPdfField(deliveryBlock, /State(?:\s*\/\s*Division)?\s*\*?\s*[:\t]\s*([^:\n\r]+?)(?=\s*City|\s*\bZIP\b|\n|$)/i, 'Chittagong Division'),
         deliveryCity, deliveryZip: extractPdfField(deliveryBlock, /ZIP(?:\s*Code)?\s*\*?\s*[:\t]\s*([^:\n\r]+?)(?=\s*Full Address|\s*Google|\n|$)/i, '4000'),
-        deliveryAddress, deliveryMapUrl: extractPdfField(deliveryBlock, /Google Map URL\s*\*?\s*[:\t]\s*([^\n\r]+?)(?=\s*Instructions|\n|$)/i),
+        deliveryAddress,
         deliveryInstructions: extractPdfField(deliveryBlock, /Instructions\s*\*?\s*[:\t]\s*([^\n\r]+?)(?=\s*Load|\s*Cargo|\s*Budget|\n|$)/i, 'Deliver during business hours'),
         
         vehicle, vehicleType: vehicle, vehicle_type: vehicle,

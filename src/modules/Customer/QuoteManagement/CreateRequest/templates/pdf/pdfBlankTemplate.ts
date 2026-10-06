@@ -50,7 +50,6 @@ export const downloadBlankPDFTemplate = () => {
     <div class="field-row"><span class="field-label"><span>City<span class="req-star">*</span></span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 200px;"></span></span></div>
     <div class="field-row"><span class="field-label"><span>ZIP Code</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 150px;"></span></span></div>
     <div class="field-row"><span class="field-label"><span>Full Address<span class="req-star">*</span></span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
-    <div class="field-row"><span class="field-label"><span>Google Map URL</span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
     <div class="field-row"><span class="field-label"><span>Instructions</span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
     <br />
 
@@ -64,7 +63,6 @@ export const downloadBlankPDFTemplate = () => {
     <div class="field-row"><span class="field-label"><span>City<span class="req-star">*</span></span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 200px;"></span></span></div>
     <div class="field-row"><span class="field-label"><span>ZIP Code</span><span>:</span></span><span class="field-val"><span class="blank-line" style="min-width: 150px;"></span></span></div>
     <div class="field-row"><span class="field-label"><span>Full Address<span class="req-star">*</span></span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
-    <div class="field-row"><span class="field-label"><span>Google Map URL</span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
     <div class="field-row"><span class="field-label"><span>Instructions</span><span>:</span></span><span class="field-val"><span class="blank-line-full"></span></span></div>
     <hr />
 

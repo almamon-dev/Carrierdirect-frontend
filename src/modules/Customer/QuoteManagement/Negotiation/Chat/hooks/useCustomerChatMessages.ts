@@ -15,13 +15,10 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
     const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     const activeChatId = activeChat?.id || '';
 
-    const [chatMessages, setChatMessages] = useState<Record<string | number, CustomerChatMessage[]>>(() => {
-        const initialMap: Record<string | number, CustomerChatMessage[]> = {};
-        allNegotiations.forEach(n => {
-            initialMap[n.rawId] = generateCustomerInitialMessages(n);
-        });
-        return initialMap;
-    });
+    const [isMessagesLoading, setIsMessagesLoading] = useState<boolean>(true);
+    const hasLoadedFromApiRef = useRef<Set<string | number>>(new Set());
+
+    const [chatMessages, setChatMessages] = useState<Record<string | number, CustomerChatMessage[]>>({});
 
     const updateMessagesForActiveChat = (updater: (prev: CustomerChatMessage[]) => CustomerChatMessage[]) => {
         if (!activeChatId) return;
@@ -75,12 +72,10 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
         setIsSupplierTyping(false);
         if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
 
-        setChatMessages(prev => {
-            if (!prev[activeChatId] || prev[activeChatId].length === 0) {
-                return { ...prev, [activeChatId]: generateCustomerInitialMessages(activeChat) };
-            }
-            return prev;
-        });
+        const alreadyLoaded = hasLoadedFromApiRef.current.has(activeChatId) || hasLoadedFromApiRef.current.has(String(activeChatId));
+        if (!alreadyLoaded) {
+            setIsMessagesLoading(true);
+        }
 
         const fetchMessagesFromApi = async () => {
             try {
@@ -140,7 +135,16 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
                     const finalMessages = generateCustomerInitialMessages(activeChat);
                     setChatMessages(prev => ({ ...prev, [activeChatId]: finalMessages, [String(activeChatId)]: finalMessages }));
                 }
-            } catch {}
+                hasLoadedFromApiRef.current.add(activeChatId);
+                hasLoadedFromApiRef.current.add(String(activeChatId));
+            } catch {
+                if (activeChat) {
+                    const finalMessages = generateCustomerInitialMessages(activeChat);
+                    setChatMessages(prev => ({ ...prev, [activeChatId]: finalMessages, [String(activeChatId)]: finalMessages }));
+                }
+            } finally {
+                setIsMessagesLoading(false);
+            }
         };
 
         const pollTypingStatus = async () => {
@@ -183,9 +187,9 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
         scrollToBottom,
     });
 
-    const handleSendCounterOffer = async (amount: number, note: string) => {
+    const handleSendCounterOffer = async (amount: number, note: string, extraCharges?: any[], baseFreight?: number) => {
         notifyTyping(false);
-        return baseSendCounterOffer(amount, note);
+        return baseSendCounterOffer(amount, note, extraCharges, baseFreight);
     };
 
     const handleSendMessage = async (text: string, files?: File[]) => {
@@ -272,6 +276,8 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
 
     return {
         messagesEndRef, inputValue, setInputValue, editingMsgId, isSupplierTyping, notifyTyping, currentMessages,
+        chatMessages,
+        isMessagesLoading,
         scrollToBottom, handleSendMessage, handleSendCounterOffer, handleAcceptOffer, handleRejectOffer,
         handleTogglePinMessage,
         handleDeleteMessage,

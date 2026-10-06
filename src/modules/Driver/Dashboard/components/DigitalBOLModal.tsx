@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, FileText, Download, CheckCircle2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, FileText, Sparkles, Clock, ShieldCheck, QrCode, CheckCircle2 } from 'lucide-react';
 import Button from '@/components/ui/button';
 
 interface Props {
@@ -11,90 +12,93 @@ interface Props {
 export const DigitalBOLModal: React.FC<Props> = ({ isOpen, onClose, bolData }) => {
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200 dark:border-slate-800 w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                {/* Header */}
+    const orderNumber = bolData?.orderNumber || bolData?.order_number || '#ORD-AENG-10001';
+
+    return createPortal(
+        <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200" 
+            onClick={onClose}
+        >
+            <div 
+                className="bg-white dark:bg-[#181d24] rounded-lg border border-slate-200 dark:border-slate-800 w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 text-center" 
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header with close button */}
                 <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-[4px] bg-orange-100 dark:bg-orange-950/40 text-[#FF4A1F] flex items-center justify-center">
-                            <FileText size={17} />
-                        </div>
-                        <div>
-                            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Digital Bill of Lading (BOL)</h2>
-                            <p className="text-[11px] text-slate-500">BOL Document #{bolData?.orderNumber || '#SHP-987654'}</p>
-                        </div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                        <FileText size={14} className="text-[#FF4A1F]" />
+                        <span>Shipment {orderNumber}</span>
                     </div>
-                    <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-[4px] transition-colors cursor-pointer">
+                    <button 
+                        type="button"
+                        onClick={onClose} 
+                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
                         <X size={18} />
                     </button>
                 </div>
 
-                {/* BOL Document Body */}
-                <div className="p-5 space-y-3.5 max-h-[75vh] overflow-y-auto font-sans text-xs">
-                    {/* Header info */}
-                    <div className="p-3.5 bg-slate-50 dark:bg-[#161a22] rounded-[4px] border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                        <div>
-                            <div className="text-xs font-black text-slate-900 dark:text-white">CARRIER DIRECT FREIGHT</div>
-                            <div className="text-slate-500 text-[10.5px] mt-0.5">Standard Truckload Uniform BOL • e-Signed</div>
+                {/* Content */}
+                <div className="p-6 space-y-4 font-sans">
+                    {/* Icon with animated glow */}
+                    <div className="relative w-14 h-14 mx-auto">
+                        <div className="w-14 h-14 rounded-2xl bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] flex items-center justify-center border border-orange-200/80 dark:border-orange-900/50 shadow-sm">
+                            <FileText size={26} />
                         </div>
-                        <div className="text-right">
-                            <span className="px-2 py-0.5 font-mono font-bold bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 rounded-[4px] border border-blue-200">
-                                {bolData?.cargoTag || 'Reefer -18°C'}
-                            </span>
+                        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#FF4A1F] text-white flex items-center justify-center shadow-sm">
+                            <Sparkles size={11} />
                         </div>
                     </div>
 
-                    {/* Shipper & Consignee */}
-                    <div className="grid grid-cols-2 gap-2.5">
-                        <div className="p-3 bg-white dark:bg-[#12161c] rounded-[4px] border border-slate-200 dark:border-slate-800 space-y-1">
-                            <div className="text-[10px] font-bold text-slate-400 uppercase">Shipper (Origin)</div>
-                            <div className="font-bold text-slate-900 dark:text-white">{bolData?.origin?.name || 'ABC Warehouse Logistics'}</div>
-                            <div className="text-slate-500 text-[11px]">{bolData?.origin?.address || 'Port Logistics Park, Seattle WA'}</div>
-                        </div>
-                        <div className="p-3 bg-white dark:bg-[#12161c] rounded-[4px] border border-slate-200 dark:border-slate-800 space-y-1">
-                            <div className="text-[10px] font-bold text-slate-400 uppercase">Consignee (Delivery)</div>
-                            <div className="font-bold text-slate-900 dark:text-white">{bolData?.destination?.name || 'Starlight Supermarket Central'}</div>
-                            <div className="text-slate-500 text-[11px]">{bolData?.destination?.address || '742 Evergreen Terrace, Seattle WA'}</div>
-                        </div>
+                    <div className="space-y-1.5">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-50 text-[#FF4A1F] dark:bg-orange-950/50 dark:text-orange-400 border border-orange-200/80 dark:border-orange-900/60">
+                            <Clock size={12} />
+                            <span>Coming Soon</span>
+                        </span>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white pt-1">
+                            Digital Bill of Lading (eBOL)
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+                            Paperless electronic BOL, digital chain of custody signatures, and dock QR gate check-in are under development.
+                        </p>
                     </div>
 
-                    {/* Cargo Specs */}
-                    <div className="p-3.5 bg-white dark:bg-[#12161c] rounded-[4px] border border-slate-200 dark:border-slate-800 space-y-1.5">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase">Commodity Description</div>
-                        <div className="flex items-center justify-between font-semibold text-slate-800 dark:text-slate-200">
-                            <span>Refrigerated Commercial Food Supplies</span>
-                            <span>16,500 kg (20 Pallets)</span>
+                    {/* Feature Roadmap Teasers */}
+                    <div className="bg-slate-50 dark:bg-[#13171d] rounded-lg border border-slate-200/80 dark:border-slate-800 p-3.5 text-left space-y-2 text-xs">
+                        <div className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
+                            Upcoming eBOL Capabilities
                         </div>
-                        <div className="text-emerald-600 dark:text-emerald-400 text-[11px] flex items-center gap-1 font-bold">
-                            <CheckCircle2 size={13} />
-                            <span>Temperature Controlled Setpoint: -18°C verified intact</span>
-                        </div>
-                    </div>
 
-                    {/* Barcode representation */}
-                    <div className="p-3 bg-slate-50 dark:bg-[#161a22] rounded-[4px] border border-slate-200 dark:border-slate-800 text-center space-y-0.5">
-                        <div className="font-mono text-base tracking-widest font-black text-slate-800 dark:text-slate-200">
-                            ||| | |||| || | ||| |||| | ||||| ||
+                        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-[11.5px]">
+                            <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                            <span>3-Way Digital Signatures (Shipper, Driver, Receiver)</span>
                         </div>
-                        <div className="text-[10.5px] font-mono text-slate-400">TRK-SEATTLE-987654-BOL</div>
+
+                        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-[11.5px]">
+                            <QrCode size={14} className="text-blue-500 shrink-0" />
+                            <span>Fast-Pass QR Code for warehouse gate check-in</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-[11.5px]">
+                            <ShieldCheck size={14} className="text-purple-500 shrink-0" />
+                            <span>Tamper-proof certified PDF export & audit trail</span>
+                        </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-[#161a22]">
-                    <span className="text-[11px] text-slate-400">CarrierDirect Verified Digital BOL</span>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={onClose} className="text-xs rounded-[4px]">
-                            Close
-                        </Button>
-                        <Button size="sm" className="bg-[#FF4A1F] hover:bg-[#E03E15] text-white text-xs flex items-center gap-1.5 shadow-2xs rounded-[4px]">
-                            <Download size={13} />
-                            <span>Download PDF</span>
-                        </Button>
-                    </div>
+                <div className="px-6 py-3.5 bg-slate-50/50 dark:bg-[#14181f] border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                    <Button 
+                        onClick={onClose} 
+                        className="w-full bg-[#FF4A1F] hover:bg-[#E03E15] text-white text-xs font-bold py-2 rounded-md shadow-sm transition-all cursor-pointer"
+                    >
+                        Got It
+                    </Button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
+
+export default DigitalBOLModal;

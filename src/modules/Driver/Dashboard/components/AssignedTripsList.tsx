@@ -18,7 +18,7 @@ export const AssignedTripsList: React.FC<Props> = ({ shipments }) => {
                 </h2>
                 <Link to="/driver/shipments" className="text-xs text-[#FF4A1F] hover:underline font-bold flex items-center gap-1">
                     <span>View All Shipments</span>
-                    <ArrowUpRight size={14} />
+
                 </Link>
             </div>
 
@@ -44,13 +44,12 @@ export const AssignedTripsList: React.FC<Props> = ({ shipments }) => {
                                             {shipment.orderNumber}
                                         </span>
                                         <span
-                                            className={`px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${
-                                                isDelivered
+                                            className={`px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${isDelivered
                                                     ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400'
                                                     : isInTransit
-                                                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400'
-                                                    : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
-                                            }`}
+                                                        ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400'
+                                                        : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
+                                                }`}
                                         >
                                             {shipment.status.replace('_', ' ')}
                                         </span>

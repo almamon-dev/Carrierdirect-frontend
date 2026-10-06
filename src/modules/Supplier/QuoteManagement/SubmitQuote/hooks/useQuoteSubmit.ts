@@ -14,6 +14,8 @@ export interface SubmissionMeta {
     basePrice?: string;
 }
 
+import { TOKEN_CONFIG } from '@/config/auth';
+
 interface UseQuoteSubmitProps {
     slug?: string;
     requestDetails: QuoteRequest;
@@ -27,6 +29,7 @@ interface UseQuoteSubmitProps {
     isExpired: boolean;
     isStripeConnected: boolean | null;
     setShowConnectModal: (show: boolean) => void;
+    setShowComplianceModal?: (show: boolean) => void;
     onSubmittedSuccess: (total: string, meta?: SubmissionMeta) => void;
 }
 
@@ -43,6 +46,7 @@ export const useQuoteSubmit = ({
     isExpired,
     isStripeConnected,
     setShowConnectModal,
+    setShowComplianceModal,
     onSubmittedSuccess,
 }: UseQuoteSubmitProps) => {
     const { addNotification } = useHeaderNotifications('supplier');
@@ -58,6 +62,20 @@ export const useQuoteSubmit = ({
             setErrorMessage('This quote request has expired and is no longer accepting submissions.');
             return;
         }
+
+        try {
+            const rawUser = localStorage.getItem(TOKEN_CONFIG.userKey);
+            if (rawUser) {
+                const u = JSON.parse(rawUser);
+                if (u && (u.user_type === 'supplier' || !u.user_type) && u.is_compliance_verified === false) {
+                    if (setShowComplianceModal) {
+                        setShowComplianceModal(true);
+                        return;
+                    }
+                }
+            }
+        } catch {}
+
         if (isStripeConnected === false) {
             setShowConnectModal(true);
             return;
@@ -109,6 +127,10 @@ export const useQuoteSubmit = ({
             onSubmittedSuccess(finalTotal, submissionPayloadMeta);
         } catch (err: any) {
             console.error('Failed to submit quote via API', err);
+            const errCode = err?.response?.data?.code;
+            if (errCode === 'COMPLIANCE_PENDING_VERIFICATION' && setShowComplianceModal) {
+                setShowComplianceModal(true);
+            }
             const msg = err?.response?.data?.message || err?.message || 'Failed to submit quote.';
             setErrorMessage(msg);
             setIsSubmitting(false);

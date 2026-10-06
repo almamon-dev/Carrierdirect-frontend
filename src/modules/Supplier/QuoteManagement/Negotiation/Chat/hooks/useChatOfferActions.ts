@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/axios';
+import { useToastStore } from '@/stores/useToastStore';
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
 
@@ -17,48 +18,69 @@ export const useChatOfferActions = ({
     updateMessagesForChat,
     scrollToBottom,
 }: UseChatOfferActionsProps) => {
+    const showToast = useToastStore((state) => state.showToast);
+
     const handleSendCounterOffer = async (amount: number, note: string, extraCharges?: any[], baseFreight?: number) => {
+        const cleanId = String(activeRawId).replace(/[^0-9]/g, '') || (activeNegotiation as any)?.raw?.id || activeNegotiation?.id || activeRawId;
         const newOfferMsg: ChatMessage = {
             id: `offer-${Date.now()}`,
             type: 'offer',
             title: 'Counter Offer Submitted',
-            text: note || `You submitted a counter rate of € ${amount.toLocaleString()}`,
+            text: note || `You submitted a revised offer rate of € ${amount.toLocaleString()}`,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             newTotal: amount,
+            proposed_amount: amount,
             previousTotal: currentPrice,
+            previous_amount: currentPrice,
             status: 'pending',
             is_me: true,
             is_my_offer: true,
             extra_charges: extraCharges || [],
+            extraCharges: extraCharges || [],
             base_amount: baseFreight,
+            baseFreight: baseFreight,
+            currency: '€'
         } as any;
         updateMessagesForChat(activeRawId, prev => [...prev, newOfferMsg]);
         setTimeout(scrollToBottom, 100);
 
         try {
-            await apiClient.post(`/supplier/negotiations/${activeRawId}/counter-offer`, {
+            await apiClient.post(`/supplier/negotiations/${cleanId}/counter-offer`, {
                 amount,
                 proposed_amount: amount,
                 note,
                 extra_charges: extraCharges,
                 base_amount: baseFreight,
-                negotiation_id: activeRawId
+                base_price: baseFreight,
+                quote_id: cleanId,
+                negotiation_id: cleanId
             });
             window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+            window.dispatchEvent(new CustomEvent("carrierdirect_negotiation_refresh"));
+            showToast("Revised offer submitted successfully!", "success");
         } catch {
-            await apiClient.post(`/negotiations/${activeRawId}/counter-offer`, {
-                amount,
-                proposed_amount: amount,
-                note,
-                extra_charges: extraCharges,
-                base_amount: baseFreight,
-                negotiation_id: activeRawId
-            }).catch(() => {});
-            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+            try {
+                await apiClient.post(`/negotiations/${cleanId}/counter-offer`, {
+                    amount,
+                    proposed_amount: amount,
+                    note,
+                    extra_charges: extraCharges,
+                    base_amount: baseFreight,
+                    base_price: baseFreight,
+                    quote_id: cleanId,
+                    negotiation_id: cleanId
+                });
+                window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+                window.dispatchEvent(new CustomEvent("carrierdirect_negotiation_refresh"));
+                showToast("Revised offer submitted successfully!", "success");
+            } catch (err: any) {
+                showToast(err?.response?.data?.message || "Failed to submit revised offer.", "error");
+            }
         }
     };
 
     const handleAcceptOffer = async (offerMsg: any) => {
+        const cleanId = String(activeRawId).replace(/[^0-9]/g, '') || (activeNegotiation as any)?.raw?.id || activeNegotiation?.id || activeRawId;
         const acceptedTotal = Number(offerMsg?.newTotal || offerMsg?.proposed_amount || currentPrice);
         const supplierName = (activeNegotiation?.raw as any)?.user?.name || "Supplier";
         const rawQuoteNum = (activeNegotiation as any)?.quoteNo || activeNegotiation?.quoteId || activeNegotiation?.id || "0003";
@@ -91,23 +113,34 @@ export const useChatOfferActions = ({
         setTimeout(scrollToBottom, 100);
 
         try {
-            await apiClient.post(`/supplier/negotiations/${activeRawId}/accept`, {
+            await apiClient.post(`/supplier/negotiations/${cleanId}/accept`, {
                 offer_id: offerMsg?.id,
                 amount: acceptedTotal,
-                proposed_amount: acceptedTotal
+                proposed_amount: acceptedTotal,
+                quote_id: cleanId
             });
             window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+            window.dispatchEvent(new CustomEvent("carrierdirect_negotiation_refresh"));
+            showToast("Counter offer accepted successfully!", "success");
         } catch {
-            await apiClient.post(`/negotiations/${activeRawId}/accept`, {
-                offer_id: offerMsg?.id,
-                amount: acceptedTotal,
-                proposed_amount: acceptedTotal
-            }).catch(() => {});
-            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+            try {
+                await apiClient.post(`/negotiations/${cleanId}/accept`, {
+                    offer_id: offerMsg?.id,
+                    amount: acceptedTotal,
+                    proposed_amount: acceptedTotal,
+                    quote_id: cleanId
+                });
+                window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+                window.dispatchEvent(new CustomEvent("carrierdirect_negotiation_refresh"));
+                showToast("Counter offer accepted successfully!", "success");
+            } catch (err: any) {
+                showToast(err?.response?.data?.message || "Failed to accept offer.", "error");
+            }
         }
     };
 
     const handleRejectOffer = async (offerMsg: any, reason?: string) => {
+        const cleanId = String(activeRawId).replace(/[^0-9]/g, '') || (activeNegotiation as any)?.raw?.id || activeNegotiation?.id || activeRawId;
         const reasonText = reason ? ` (Reason: "${reason}")` : '';
         const declineMsg: ChatMessage = {
             id: `system-${Date.now()}`,
@@ -121,9 +154,23 @@ export const useChatOfferActions = ({
         setTimeout(scrollToBottom, 100);
 
         try {
-            await apiClient.post(`/supplier/negotiations/${activeRawId}/reject`, { offer_id: offerMsg?.id, reason: reason || '', decline_reason: reason || '' });
+            await apiClient.post(`/supplier/negotiations/${cleanId}/reject`, {
+                offer_id: offerMsg?.id,
+                reason: reason || '',
+                decline_reason: reason || '',
+                quote_id: cleanId
+            });
+            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+            window.dispatchEvent(new CustomEvent("carrierdirect_negotiation_refresh"));
         } catch {
-            await apiClient.post(`/negotiations/${activeRawId}/reject`, { offer_id: offerMsg?.id, reason: reason || '', decline_reason: reason || '' }).catch(() => {});
+            await apiClient.post(`/negotiations/${cleanId}/reject`, {
+                offer_id: offerMsg?.id,
+                reason: reason || '',
+                decline_reason: reason || '',
+                quote_id: cleanId
+            }).catch(() => {});
+            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+            window.dispatchEvent(new CustomEvent("carrierdirect_negotiation_refresh"));
         }
     };
 

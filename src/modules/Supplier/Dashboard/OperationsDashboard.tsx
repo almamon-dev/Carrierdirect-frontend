@@ -124,9 +124,9 @@ export default function OperationsDashboard() {
                             Configure vehicle availability schedules, blackout holidays, and operational time slots.
                         </p>
                     </div>
-                    <Link to="/supplier/availability/schedule">
+                    <Link to="/supplier/availability/dashboard">
                         <Button size="sm" variant="outline" className="w-full text-xs">
-                            <span>Open Availability Schedules</span>
+                            <span>Open Availability Dashboard</span>
                         </Button>
                     </Link>
                 </div>

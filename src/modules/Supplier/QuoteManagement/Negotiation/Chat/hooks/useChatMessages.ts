@@ -14,19 +14,14 @@ export function useChatMessages(activeNegotiation: NegotiationItem, allNegotiati
     const [highlightedMsgId, setHighlightedMsgId] = useState<number | string | null>(null);
     const [activePinnedIndex, setActivePinnedIndex] = useState(0);
     const [isCustomerTyping, setIsCustomerTyping] = useState(false);
+    const [isMessagesLoading, setIsMessagesLoading] = useState(true);
     const [negotiationStatusMap] = useState<Record<string | number, string>>({});
     const [liveOffers] = useState<Record<string | number, number>>({});
 
     const activeRawId = activeNegotiation?.rawId || '';
     const currentPrice = Number(activeNegotiation?.currentOffer || activeNegotiation?.originalAmount || 0);
 
-    const [chatMessages, setChatMessages] = useState<Record<string | number, ChatMessage[]>>(() => {
-        const initialMap: Record<string | number, ChatMessage[]> = {};
-        allNegotiations.forEach(item => {
-            initialMap[item.rawId] = generateInitialMessages(item);
-        });
-        return initialMap;
-    });
+    const [chatMessages, setChatMessages] = useState<Record<string | number, ChatMessage[]>>({});
 
     const updateMessagesForChat = (chatId: number | string, updater: (prev: ChatMessage[]) => ChatMessage[]) => {
         setChatMessages(prev => {
@@ -81,12 +76,10 @@ export function useChatMessages(activeNegotiation: NegotiationItem, allNegotiati
         setIsCustomerTyping(false);
         if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
 
-        setChatMessages(prev => {
-            if (!prev[activeRawId] || prev[activeRawId].length === 0) {
-                return { ...prev, [activeRawId]: generateInitialMessages(activeNegotiation) };
-            }
-            return prev;
-        });
+        // Keep skeleton active until this specific chat's messages are loaded
+        if (!chatMessages[activeRawId] && !chatMessages[String(activeRawId)]) {
+            setIsMessagesLoading(true);
+        }
 
         const fetchMessages = async () => {
             try {
@@ -175,7 +168,14 @@ export function useChatMessages(activeNegotiation: NegotiationItem, allNegotiati
                     const finalMessages = generateInitialMessages(activeNegotiation);
                     setChatMessages(prev => ({ ...prev, [activeRawId]: finalMessages, [String(activeRawId)]: finalMessages }));
                 }
-            } catch {}
+            } catch {
+                if (activeNegotiation) {
+                    const finalMessages = generateInitialMessages(activeNegotiation);
+                    setChatMessages(prev => ({ ...prev, [activeRawId]: finalMessages, [String(activeRawId)]: finalMessages }));
+                }
+            } finally {
+                setIsMessagesLoading(false);
+            }
         };
 
         const pollTypingStatus = async () => {
@@ -307,6 +307,7 @@ export function useChatMessages(activeNegotiation: NegotiationItem, allNegotiati
     };
 
     return {
+        isMessagesLoading,
         messagesEndRef, inputValue, setInputValue, editingMsgId, setEditingMsgId, editingText, setEditingText,
         highlightedMsgId, setHighlightedMsgId, activePinnedIndex, setActivePinnedIndex, isCustomerTyping, notifyTyping,
         negotiationStatusMap, liveOffers, chatMessages, setChatMessages, currentPrice, scrollToBottom,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paperclip, Image as ImageIcon, Smile } from 'lucide-react';
+import { Paperclip, Smile } from 'lucide-react';
 
 const EMOJIS = ['😀', '😂', '🥰', '😎', '🤔', '👍', '🙏', '🔥', '✨', '💯', '🎉', '💡', '✅', '❌', '🚚', '📦'];
 
@@ -23,45 +23,35 @@ export const ChatInputMediaActions: React.FC<ChatInputMediaActionsProps> = ({
     onAddEmoji,
 }) => {
     return (
-        <div className="flex items-center gap-0.5 text-slate-400 dark:text-slate-500 shrink-0 pb-0.5">
-            <input type="file" ref={imageInputRef} onChange={onFileSelect} accept="image/*" multiple className="hidden" />
-            <button
-                type="button"
-                onClick={() => imageInputRef.current?.click()}
-                className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
-                title="Attach Photo"
-            >
-                <ImageIcon size={18} />
-            </button>
-
+        <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 shrink-0">
             <input type="file" ref={fileInputRef} onChange={onFileSelect} multiple className="hidden" />
             <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
-                title="Attach Document"
+                className="h-9 w-9 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                title="Attach Document or Image"
             >
-                <Paperclip size={18} />
+                <Paperclip size={19} strokeWidth={2} />
             </button>
 
             <div className="relative" ref={emojiPickerRef}>
                 <button
                     type="button"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                    className="h-9 w-9 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
                     title="Insert Emoji"
                 >
-                    <Smile size={18} />
+                    <Smile size={19} strokeWidth={2} />
                 </button>
                 {showEmojiPicker && (
                     <div
-    className="absolute bottom-11 left-0 z-50 bg-white dark:bg-slate-800 shadow-xl rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 grid grid-cols-4 gap-1.5 w-52 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                        className="absolute bottom-11 left-0 z-50 bg-white dark:bg-slate-800 shadow-xl rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 grid grid-cols-4 gap-1.5 w-52 animate-in fade-in slide-in-from-bottom-2 duration-150">
                         {EMOJIS.map(e => (
                             <button
                                 key={e}
                                 type="button"
                                 onClick={() => onAddEmoji(e)}
-                                className="text-xl p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer text-center"
+                                className="text-xl p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer text-center"
                             >
                                 {e}
                             </button>

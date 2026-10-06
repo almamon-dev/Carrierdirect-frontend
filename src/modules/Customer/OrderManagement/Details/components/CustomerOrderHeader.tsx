@@ -8,7 +8,7 @@ import {
     MoreVertical,
     Printer,
     RotateCcw,
-    Star
+    Star,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -109,20 +109,29 @@ export const CustomerOrderHeader: React.FC<CustomerOrderHeaderProps> = ({
                             {order.status}
                         </Badge>
 
-                        <Badge
-                            className={`px-2 py-0.25 text-[11px] font-semibold rounded-full border flex items-center gap-1 ${order.isPaid
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
-                                    : order.isEscrow
-                                        ? 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                                        : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
-                                }`}
-                        >
-                            <span className={`w-1.5 h-1.5 rounded-full ${order.isPaid ? 'bg-emerald-500' : order.isEscrow ? 'bg-blue-500' : 'bg-amber-500'}`} />
-                            <span>{order.paymentStatus}</span>
-                        </Badge>
+                        {order.isPayLater ? (
+                            <Badge
+                                className="px-2 py-0.25 text-[11px] font-semibold rounded-full border flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800"
+                            >
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                <span>Pay Later (Net-30)</span>
+                            </Badge>
+                        ) : (
+                            <Badge
+                                className={`px-2 py-0.25 text-[11px] font-semibold rounded-full border flex items-center gap-1 ${order.isPaid
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
+                                        : order.isEscrow
+                                            ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800'
+                                            : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
+                                    }`}
+                            >
+                                <span className={`w-1.5 h-1.5 rounded-full ${order.isPaid ? 'bg-emerald-500' : order.isEscrow ? 'bg-blue-500' : 'bg-amber-500'}`} />
+                                <span>{order.paymentStatus}</span>
+                            </Badge>
+                        )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                    <div className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 flex-wrap">
                         <span>Route:</span>
                         <span className="text-slate-800 dark:text-slate-200 font-semibold">{shortFrom}</span>
                         <span className="text-slate-400">➔</span>

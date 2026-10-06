@@ -1,6 +1,6 @@
 import RatingModal from '@/components/modals/rating-modal';
 import apiClient from '@/lib/axios';
-import { encryptId } from '@/lib/encryption';
+import { encryptId, decryptId } from '@/lib/encryption';
 import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -26,31 +26,55 @@ export default function CustomerOrderDetailPage() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [apiOrder, setApiOrder] = useState<any | null>(location.state?.orderData || null);
-    const [isLoading, setIsLoading] = useState<boolean>(!location.state?.orderData);
+    const [apiOrder, setApiOrder] = useState<any | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isPodAccepted, setIsPodAccepted] = useState<boolean>(false);
     const [actionMessage, setActionMessage] = useState<string | null>(null);
     const [isRatingOpen, setIsRatingOpen] = useState<boolean>(false);
 
-    const cleanId = id ? String(id).replace(/^ORD-0*/i, '') : '1';
+    // Decrypt incoming token if encrypted, otherwise normalize raw ID
+    const decryptedRawId = decryptId(id);
+    const cleanId = decryptedRawId ? String(decryptedRawId).replace(/^ORD-0*/i, '') : '1';
 
-    // Fetch live order data from API
+    // Obfuscate URL: If accessed via unencrypted plain ID (e.g. /customer/orders/2), silently replace with encrypted URL
+    useEffect(() => {
+        if (id && !id.startsWith('enc_') && !id.startsWith('sec_') && !id.startsWith('q_')) {
+            const encrypted = encryptId(cleanId || id);
+            navigate(`/customer/orders/${encrypted}`, { replace: true, state: location.state });
+        }
+    }, [id, cleanId, navigate, location.state]);
+
+    // Fetch live order data from API using decrypted ID
     useEffect(() => {
         let isMounted = true;
-        if (id) {
-            setIsLoading(!apiOrder);
+        if (cleanId) {
+            setIsLoading(true);
             apiClient
-                .get(`/customer/orders/${cleanId || id}`)
+                .get(`/customer/orders/${cleanId}`)
                 .then((res) => {
                     const data = res.data?.data || res.data;
                     if (!isMounted || !data) return;
                     setApiOrder(data);
-                    if (data.status === 'completed' || data.status === 'POD Accepted' || data.status === 'delivered') {
+                    // Detect pod_accepted / completed states from real API
+                    const statusRaw = (data.status_raw || data.status || '').toLowerCase();
+                    const podStatusRaw = (data.pod_status || data.pod?.status || data.pod?.pod_status || '').toLowerCase();
+                    if (
+                        statusRaw === 'completed' ||
+                        statusRaw === 'pod_accepted' ||
+                        statusRaw === 'pod accepted' ||
+                        podStatusRaw === 'confirmed' ||
+                        podStatusRaw === 'accepted' ||
+                        podStatusRaw === 'approved'
+                    ) {
                         setIsPodAccepted(true);
                     }
                 })
                 .catch((err) => {
-                    console.warn('Could not fetch remote order details, using local fallback:', err);
+                    console.warn('Could not fetch remote order details:', err);
+                    // Fallback to location state if API fails
+                    if (isMounted && location.state?.orderData) {
+                        setApiOrder(location.state.orderData);
+                    }
                 })
                 .finally(() => {
                     if (isMounted) setIsLoading(false);
@@ -59,12 +83,12 @@ export default function CustomerOrderDetailPage() {
         return () => {
             isMounted = false;
         };
-    }, [id, cleanId]);
+    }, [cleanId]);
 
     // Build normalized order & timeline structures
     const order: NormalizedCustomerOrder = buildNormalizedCustomerOrder(
-        id,
-        apiOrder || location.state?.orderData,
+        cleanId,
+        apiOrder,
         isPodAccepted
     );
 

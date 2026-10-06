@@ -3,16 +3,34 @@ import { CustomerOrderItem, OrderFilterTab } from '../types';
 
 interface OrderFilterTabsProps {
     orders: CustomerOrderItem[];
+    stats?: {
+        total?: number;
+        in_transit?: number;
+        pod_review?: number;
+        completed?: number;
+        cancelled?: number;
+    } | null;
     activeTab: OrderFilterTab;
     onSelectTab: (tab: OrderFilterTab) => void;
 }
 
 export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
     orders,
+    stats,
     activeTab,
     onSelectTab,
 }) => {
     const counts = useMemo(() => {
+        if (stats && typeof stats.total === 'number') {
+            return {
+                all: stats.total ?? orders.length,
+                in_transit: stats.in_transit ?? 0,
+                pod_review: stats.pod_review ?? 0,
+                completed: stats.completed ?? 0,
+                cancelled: stats.cancelled ?? 0,
+            };
+        }
+
         let inTransit = 0;
         let podReview = 0;
         let completed = 0;
@@ -23,7 +41,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
             const isCompleted = st === 'completed' || st === 'pod accepted';
             const isPodReview = st.includes('review') || st.includes('pod_uploaded') || st === 'delivered';
             const isCancelled = st.includes('cancel');
-            const isInTransit = st === 'in_transit' || st === 'on_the_way' || st === 'picked_up' || st === 'in_progress' || st === 'driver_assigned';
+            const isInTransit = st === 'in_transit' || st === 'on_the_way' || st === 'picked_up' || st === 'in_progress' || st === 'driver_assigned' || st === 'confirmed' || st === 'scheduled';
 
             if (isCancelled) {
                 cancelled++;
@@ -43,7 +61,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
             completed: completed,
             cancelled: cancelled,
         };
-    }, [orders]);
+    }, [orders, stats]);
 
     const tabs: { id: OrderFilterTab; label: string; count: number }[] = [
         { id: 'all', label: 'All Orders', count: counts.all },
@@ -62,7 +80,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => onSelectTab(tab.id)}
-                        className={`flex items-center gap-1.5 pb-2.5 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${
+                        className={`flex items-center gap-1.5 pb-2.5 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${
                             isActive
                                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'

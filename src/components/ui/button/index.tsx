@@ -65,7 +65,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <BinanceEqualizer />
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+            <span>Processing...</span>
+          </div>
         ) : (
           <>
             {icon && <span className="mr-2 inline-flex shrink-0">{icon}</span>}

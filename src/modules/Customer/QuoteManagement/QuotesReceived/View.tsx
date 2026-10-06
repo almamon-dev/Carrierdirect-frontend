@@ -65,8 +65,10 @@ export default function QuoteView() {
     }
 
     const req = requestDetail || quote.quote_request || {};
-    const isPending = (quote.status_raw || quote.status || '').toLowerCase() === 'pending';
-    const isNegotiating = quote.revision_status === 'pending' || (quote.status || '').toLowerCase() === 'negotiating';
+    const statusInfo = getQuoteStatusInfo(quote);
+    const isExpired = Boolean(statusInfo.isExpired || (quote as any).is_expired || (quote.status || '').toLowerCase() === 'expired' || (req.status || '').toLowerCase() === 'expired');
+    const isPending = !isExpired && ((quote.status_raw || quote.status || '').toLowerCase() === 'pending');
+    const isNegotiating = !isExpired && (quote.revision_status === 'pending' || (quote.status || '').toLowerCase() === 'negotiating');
     const cleanQuoteId = String(quote.id || '');
     const cleanReqId = String(quote.quote_request_id || req.id || '');
 
@@ -79,8 +81,6 @@ export default function QuoteView() {
         { id: 'pricing', label: 'Quote & Payment Breakdown', icon: Euro },
         { id: 'specs', label: 'Route & Cargo Specifications', icon: Package },
     ];
-
-    const statusInfo = getQuoteStatusInfo(quote);
 
     return (
         <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 font-sans antialiased">

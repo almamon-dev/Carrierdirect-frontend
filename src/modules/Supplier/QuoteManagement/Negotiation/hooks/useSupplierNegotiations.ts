@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/axios";
 import { formatDisplayDate } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 import { NegotiationItem } from "../types";
+import { resolveQuoteDistance } from "@/utils/geoDistance";
 
 export const SAMPLE_NEGOTIATIONS: NegotiationItem[] = [];
 
@@ -57,7 +58,7 @@ export const useSupplierNegotiations = () => {
 
                     const pickupLoc = n.origin || n.pickup_address || n.pickup || "Pickup Location";
                     const deliveryLoc = n.destination || n.delivery_address || n.delivery || "Delivery Destination";
-                    const distStr = n.distance || `${n.distance_km || 450} km`;
+                    const distStr = resolveQuoteDistance({ ...n, ...(n.quote_request || {}), ...(n.quoteRequest || {}), origin: pickupLoc, destination: deliveryLoc }).distanceStr;
                     const dateFormatted = formatDisplayDate(n.created_at || n.request_date || n.date);
 
                     let statusLabel = n.status || "Active";
@@ -81,7 +82,7 @@ export const useSupplierNegotiations = () => {
                         customerAvatar: avatarUrl,
                         pickup: pickupLoc,
                         delivery: deliveryLoc,
-                        distance: distStr,
+                        distance: distStr && distStr !== '—' ? distStr : (n.distance || n.est_distance || '—'),
                         budget: `€ ${Number(origPrice || currentPrice).toLocaleString()}`,
                         originalAmount: origPrice,
                         currentOffer: currentPrice,

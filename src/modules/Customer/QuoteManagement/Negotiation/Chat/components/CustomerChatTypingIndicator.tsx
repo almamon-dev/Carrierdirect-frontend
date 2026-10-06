@@ -26,7 +26,7 @@ export const CustomerChatTypingIndicator: React.FC<CustomerChatTypingIndicatorPr
                     <span>{(activeChat.name || 'S').charAt(0).toUpperCase()}</span>
                 )}
             </div>
-            <div className="bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-lg rounded-tl-xs flex items-center gap-1.5 shadow-2xs border border-slate-200/80 dark:border-slate-700">
+            <div className="bg-slate-100 dark:bg-slate-800 px-3.5 py-2 rounded-[4px] flex items-center gap-1.5 shadow-2xs border border-slate-200/80 dark:border-slate-700">
                 <span className="w-2 h-2 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-2 h-2 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-2 h-2 bg-[#00a884] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />

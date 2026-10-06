@@ -53,7 +53,11 @@ export const CustomerQuoteRequestCardActions: React.FC<CustomerQuoteRequestCardA
         msg?.id ||
         1;
 
+    const cleanQuoteId = String(targetQuoteId || "").replace(/[^0-9]/g, "");
+
     const isPayLater = Boolean(
+        (cleanQuoteId && localStorage.getItem(`cd_quote_paid_type_${cleanQuoteId}`) === "pay_later") ||
+        (targetQuoteId && localStorage.getItem(`cd_quote_paid_type_${targetQuoteId}`) === "pay_later") ||
         activeChat?.raw?.invoice?.invoice_type === "pay_later" ||
         activeChat?.raw?.order?.invoice_type === "pay_later" ||
         activeChat?.raw?.payment_option === "pay_later" ||
@@ -64,11 +68,22 @@ export const CustomerQuoteRequestCardActions: React.FC<CustomerQuoteRequestCardA
     );
 
     const isOrderPaid = Boolean(
+        (cleanQuoteId && localStorage.getItem(`cd_quote_paid_${cleanQuoteId}`) === "true") ||
+        (targetQuoteId && localStorage.getItem(`cd_quote_paid_${targetQuoteId}`) === "true") ||
         activeChat?.raw?.is_paid ||
         activeChat?.raw?.has_order ||
         activeChat?.raw?.order_id ||
         activeChat?.raw?.order ||
         activeChat?.raw?.invoice ||
+        activeChat?.raw?.status_raw === "booked" ||
+        activeChat?.raw?.status === "Booked" ||
+        (activeChat as any)?.status === "Booked" ||
+        (activeChat as any)?.statusRaw === "booked" ||
+        activeChat?.raw?.payment_status === "succeeded" ||
+        activeChat?.raw?.payment_status === "paid" ||
+        activeChat?.raw?.payment_status === "completed" ||
+        activeChat?.raw?.payment_option === "pay_later" ||
+        activeChat?.raw?.payment_option === "pay_now" ||
         activeChat?.raw?.order?.status === "in_progress" ||
         activeChat?.raw?.order?.status === "completed" ||
         activeChat?.raw?.order?.status === "confirmed" ||
@@ -78,7 +93,10 @@ export const CustomerQuoteRequestCardActions: React.FC<CustomerQuoteRequestCardA
         (activeChat as any)?.isPaid ||
         (activeChat as any)?.hasOrder ||
         (msg as any)?.is_paid ||
-        (msg as any)?.has_order
+        (msg as any)?.has_order ||
+        (msg as any)?.status === "booked" ||
+        String(msg?.text || (msg as any)?.message || "").toLowerCase().includes("payment completed") ||
+        String(msg?.text || (msg as any)?.message || "").toLowerCase().includes("pay later booking confirmed")
     );
 
     const orderId = activeChat?.raw?.order_id || activeChat?.raw?.order?.id || (activeChat as any)?.orderId;
@@ -221,7 +239,23 @@ export const CustomerQuoteRequestCardActions: React.FC<CustomerQuoteRequestCardA
                         quoteId={targetQuoteId}
                         quoteAmount={msg.newTotal || (msg as any).amount || 45000}
                         supplierName={activeChat?.carrier || activeChat?.name || "Carrier Partner"}
-                        quoteData={activeChat?.raw || activeChat}
+                        quoteData={{
+                    ...(activeChat?.raw || {}),
+                    ...(activeChat || {}),
+                    id: targetQuoteId,
+                    quote_id: targetQuoteId,
+                    amount: activeChat?.currentPrice || activeChat?.raw?.amount,
+                    amount_raw: activeChat?.currentPrice || activeChat?.raw?.amount_raw || activeChat?.raw?.amount,
+                    total_amount: activeChat?.currentPrice || activeChat?.raw?.total_amount || activeChat?.raw?.amount,
+                    total_price: activeChat?.currentPrice || activeChat?.raw?.total_price || activeChat?.raw?.amount,
+                    totalAmount: activeChat?.currentPrice || activeChat?.raw?.totalAmount || activeChat?.raw?.amount,
+                    base_amount: activeChat?.baseFreightAmount || activeChat?.raw?.base_amount_raw || activeChat?.raw?.base_amount,
+                    base_amount_raw: activeChat?.baseFreightAmount || activeChat?.raw?.base_amount_raw,
+                    baseFreightAmount: activeChat?.baseFreightAmount || activeChat?.raw?.base_amount_raw,
+                    baseFreight: activeChat?.baseFreightAmount || activeChat?.raw?.base_amount_raw,
+                    extra_charges: activeChat?.extraCharges || activeChat?.raw?.extra_charges,
+                    extraCharges: activeChat?.extraCharges || activeChat?.raw?.extra_charges,
+                }}
                     />
                 )}
             </div>

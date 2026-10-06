@@ -67,24 +67,24 @@ export function useProcessingRequests() {
                         const formattedId = r.request_id || r.formatted_id || (r.id ? (String(r.id).startsWith('REQ-') ? r.id : `REQ-${String(r.id).padStart(4, '0')}`) : 'REQ-0000');
                         const title = r.request_title || r.title || r.requestTitle || `${fromCity} to ${toCity}`;
 
-                        const rawStatusLower = String(r.status_raw || r.status || 'active').toLowerCase();
-                        let statusLabel = 'Active';
-                        let effectiveRawStatus = 'active';
+                        const rawStatusLower = String(r.raw_status || r.status_raw || r.status || 'in_progress').toLowerCase();
+                        let statusLabel = 'In Progress';
+                        let effectiveRawStatus = 'in_progress';
 
-                        if (hasAcceptedQuote || rawStatusLower === 'accepted' || rawStatusLower === 'completed' || rawStatusLower === 'awarded' || rawStatusLower === 'won') {
-                            statusLabel = 'Accepted';
-                            effectiveRawStatus = 'accepted';
-                        } else if (rawStatusLower === 'expired') {
-                            statusLabel = 'Expired';
-                            effectiveRawStatus = 'expired';
-                        } else if (rawStatusLower === 'draft' || rawStatusLower === 'pending') {
-                            statusLabel = 'Draft';
-                            effectiveRawStatus = 'draft';
-                        } else if (rawStatusLower === 'bidding' || rawStatusLower === 'active') {
-                            statusLabel = 'Active';
-                            effectiveRawStatus = 'active';
+                        if (hasAcceptedQuote || rawStatusLower === 'completed' || rawStatusLower === 'accepted' || rawStatusLower === 'awarded' || rawStatusLower === 'won') {
+                            statusLabel = 'Completed';
+                            effectiveRawStatus = 'completed';
+                        } else if (rawStatusLower === 'cancelled' || rawStatusLower === 'expired' || rawStatusLower === 'closed' || rawStatusLower === 'rejected') {
+                            statusLabel = 'Cancelled';
+                            effectiveRawStatus = 'cancelled';
+                        } else if (rawStatusLower === 'pending' || rawStatusLower === 'processing' || rawStatusLower === 'draft') {
+                            statusLabel = 'Processing';
+                            effectiveRawStatus = 'pending';
+                        } else if (rawStatusLower === 'in_progress' || rawStatusLower === 'in progress' || rawStatusLower === 'active' || rawStatusLower === 'bidding') {
+                            statusLabel = 'In Progress';
+                            effectiveRawStatus = 'in_progress';
                         } else if (r.status) {
-                            statusLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1);
+                            statusLabel = String(r.status);
                             effectiveRawStatus = rawStatusLower;
                         }
 

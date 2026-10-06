@@ -7,6 +7,7 @@ import LogoWhite from '../../../../assets/Images/Logo.png';
 import apiClient from '../../../../lib/axios';
 import { ENDPOINTS } from '../../../../config/api';
 import { TOKEN_CONFIG } from '../../../../config/auth';
+import { getRoleDashboardUrl } from '../../../../utils/roleDashboard';
 
 export default function VerifyEmailPage() {
     const navigate = useNavigate();
@@ -64,7 +65,7 @@ export default function VerifyEmailPage() {
                         setNextRedirect('/admin/dashboard');
                     } else {
                         setVerifiedUser(userData);
-                        setNextRedirect('/customer/dashboard');
+                        setNextRedirect(getRoleDashboardUrl(userData));
                     }
                 }
                 setStatus('success');
@@ -111,7 +112,7 @@ export default function VerifyEmailPage() {
             } else if (user?.user_type === 'admin') {
                 window.location.href = '/admin/dashboard';
             } else {
-                navigate('/customer/dashboard');
+                navigate(getRoleDashboardUrl(user));
             }
         } catch {
             navigate(nextRedirect || '/web/login');
@@ -123,8 +124,8 @@ export default function VerifyEmailPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50/50 relative p-4 sm:p-6 font-sans antialiased">
             {/* Top-Left Screen Corner Link */}
-            <Link 
-                to="/web/login" 
+            <Link
+                to="/web/login"
                 className="absolute top-5 left-5 sm:top-8 sm:left-8 z-30 inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#ff4a1f] hover:underline transition-colors"
             >
                 <ArrowLeft className="w-4 h-4 text-[#ff4a1f]" />
@@ -158,11 +159,11 @@ export default function VerifyEmailPage() {
                             <div className="w-16 h-16 bg-orange-50 text-[#ff4a1f] rounded-full flex items-center justify-center mx-auto mb-5 border border-orange-100 animate-pulse">
                                 <RefreshCw className="w-8 h-8 animate-spin" />
                             </div>
-                            
+
                             <h2 className="text-2xl font-bold text-slate-800 mb-2 tracking-tight">
                                 Verifying Your Email...
                             </h2>
-                            
+
                             <p className="text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
                                 Please wait a moment while we validate your verification token and activate your account.
                             </p>
@@ -175,11 +176,11 @@ export default function VerifyEmailPage() {
                             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-5 border border-emerald-100">
                                 <CheckCircle2 className="w-8 h-8" />
                             </div>
-                            
+
                             <h2 className="text-2xl font-bold text-slate-800 mb-2 tracking-tight">
                                 Email Verified Successfully!
                             </h2>
-                            
+
                             <p className="text-sm text-slate-600 mb-8 leading-relaxed max-w-md mx-auto">
                                 Thank you for verifying your email address. Your account is now fully active and ready to use.
                             </p>
@@ -190,15 +191,15 @@ export default function VerifyEmailPage() {
                                     isLoading={isNavigating}
                                     disabled={isNavigating}
                                     variant="primary"
-                                    className="w-full h-11 text-xs font-bold text-white bg-[#ff4a1f] hover:bg-[#e03e15] rounded-lg shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full h-11 text-xs font-bold text-white bg-[#ff4a1f] hover:bg-[#e03e15] rounded-[4px] shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <span>{nextRedirect.includes('complete-profile') ? 'Complete Your Profile' : 'Continue to Dashboard'}</span>
-                                    {!isNavigating && <ArrowRight className="w-4 h-4" />}
+
                                 </Button>
 
                                 <Link
                                     to="/"
-                                    className="w-full h-11 flex items-center justify-center gap-2 px-4 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+                                    className="w-full h-11 flex items-center justify-center gap-2 px-4 border border-slate-200 rounded-[4px] text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
                                 >
                                     <span>Return to Home Page</span>
                                 </Link>
@@ -212,11 +213,11 @@ export default function VerifyEmailPage() {
                             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 border border-red-100">
                                 <AlertCircle className="w-8 h-8" />
                             </div>
-                            
+
                             <h2 className="text-2xl font-bold text-slate-800 mb-2 tracking-tight">
                                 Link Expired or Invalid
                             </h2>
-                            
+
                             <p className="text-sm text-slate-600 mb-8 leading-relaxed max-w-md mx-auto">
                                 The verification link is invalid or has expired. Please request a new verification link.
                             </p>

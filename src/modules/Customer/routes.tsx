@@ -7,7 +7,6 @@ const CreateRequest = lazy(() => import('./QuoteManagement/CreateRequest'));
 const EditRequest = lazy(() => import('./QuoteManagement/EditRequest'));
 const ViewRequest = lazy(() => import('./QuoteManagement/ViewRequest'));
 const Processing = lazy(() => import('./QuoteManagement/Processing'));
-const ProcessingTrack = lazy(() => import('./QuoteManagement/Processing/Track'));
 const QuotesReceived = lazy(() => import('./QuoteManagement/QuotesReceived'));
 const TrackBids = lazy(() => import('./QuoteManagement/QuotesReceived/Track'));
 const QuoteView = lazy(() => import('./QuoteManagement/QuotesReceived/View'));
@@ -38,7 +37,6 @@ export const customerRoutes: RouteObject[] = [
     { path: 'quotes/create/edit/:id', element: <EditRequest /> },
     { path: 'quotes/create/view/:id', element: <ViewRequest /> },
     { path: 'quotes/processing', element: <Processing /> },
-    { path: 'quotes/processing/track/:id', element: <ProcessingTrack /> },
     { path: 'quotes/received', element: <QuotesReceived /> },
     { path: 'quotes/received/track/:id', element: <TrackBids /> },
     { path: 'quotes/received/bids/:id', element: <TrackBids /> },
@@ -54,8 +52,8 @@ export const customerRoutes: RouteObject[] = [
     { path: 'quotes/negotiation/view/:id/:sessionKey', element: <QuoteNegotiationChat /> },
     { path: 'quotes/negotiation/supplier/:slug', element: <SupplierQuotations /> },
     { path: 'orders', element: <Orders /> },
-
     { path: 'orders/:id', element: <OrderDetails /> },
+    { path: 'orders/details/:id', element: <OrderDetails /> },
     { path: 'finance', element: <Navigate to="/customer/finance/invoices" replace /> },
     { path: 'finance/billing', element: <Billing /> },
     { path: 'finance/invoices', element: <Invoices /> },
@@ -63,6 +61,7 @@ export const customerRoutes: RouteObject[] = [
     { path: 'finance/pay-later', element: <PayLater /> },
     { path: 'subscription', element: <Subscription /> },
     { path: 'subscription/checkout', element: <SubscriptionCheckout /> },
+    { path: 'subscription/checkout/:planId', element: <SubscriptionCheckout /> },
     { path: 'notifications', element: <Notifications /> },
     { path: 'messages', element: <Messages /> },
     { path: 'messages/:partnerId', element: <Messages /> },

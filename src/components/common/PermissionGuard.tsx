@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { TOKEN_CONFIG } from '../../config/auth';
+import { getRoleDashboardUrl } from '../../utils/roleDashboard';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import Button from '../ui/button';
 
@@ -82,7 +83,7 @@ export default function PermissionGuard({
 
     if (!allowed) {
         if (fallback === 'redirect') {
-            return <Navigate to="/supplier/dashboard" state={{ from: location }} replace />;
+            return <Navigate to={getRoleDashboardUrl(user)} state={{ from: location }} replace />;
         }
 
         return (
@@ -111,7 +112,7 @@ export default function PermissionGuard({
                         <Button
                             size="sm"
                             className="text-xs bg-[#FF4A1F] hover:bg-[#e03e16] text-white"
-                            onClick={() => window.location.href = '/supplier/dashboard'}
+                            onClick={() => window.location.href = getRoleDashboardUrl(user)}
                         >
                             <span>Dashboard Home</span>
                         </Button>

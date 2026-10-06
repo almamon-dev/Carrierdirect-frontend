@@ -30,12 +30,7 @@ export const SidebarHeaderProfile: React.FC<SidebarHeaderProfileProps> = ({
     };
 
     return (
-        <div className="flex flex-col items-center pt-6 pb-4 px-4 border-b border-slate-100 relative">
-            {showMobileDetails && (
-                <button type="button" onClick={() => setShowMobileDetails(false)} className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-700 rounded-full">
-                    <X size={18} />
-                </button>
-            )}
+        <div className="flex flex-col items-center pt-5 pb-4 px-4 border-b border-slate-100 dark:border-slate-800 relative">
             <div className="relative mb-2">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-orange-50 text-[#FF4A1F] border border-orange-200 flex items-center justify-center font-bold text-2xl shadow-2xs">
                     {activeNegotiation.customerAvatar && (activeNegotiation.customerAvatar.startsWith('http') || activeNegotiation.customerAvatar.startsWith('/storage') || activeNegotiation.customerAvatar.startsWith('data:') || activeNegotiation.customerAvatar.includes('.')) ? (

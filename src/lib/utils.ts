@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { getAttachmentUrl } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/utils/customerChatUtils';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -21,8 +22,108 @@ export function formatDisplayDate(dateVal: any, fallback = 'Today'): string {
   }
 }
 
-import { getAttachmentUrl } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/utils/customerChatUtils';
-
 export function getMediaUrl(url?: string | null): string {
   return getAttachmentUrl(url || '');
+}
+
+/**
+ * Return direct currency symbol instead of text code (e.g. 'EUR' -> '€', 'USD' -> '$', 'BDT' -> '৳')
+ */
+export function getCurrencySymbol(currency?: string): string {
+  if (!currency) return '€';
+  const c = currency.trim().toUpperCase();
+  switch (c) {
+    case 'EUR':
+    case '€':
+      return '€';
+    case 'USD':
+    case '$':
+      return '$';
+    case 'GBP':
+    case '£':
+      return '£';
+    case 'BDT':
+    case 'TK':
+    case '৳':
+      return '৳';
+    case 'CAD':
+      return 'CA$';
+    case 'AUD':
+      return 'AU$';
+    case 'JPY':
+    case '¥':
+      return '¥';
+    case 'INR':
+    case '₹':
+      return '₹';
+    default:
+      return currency;
+  }
+}
+
+/**
+ * Return clean display string for currency (e.g. 'EUR (€)', 'USD ($)', 'BDT (৳)')
+ */
+export function getCurrencyDisplay(currency?: string): string {
+  if (!currency || currency === '-') return 'EUR (€)';
+  const c = currency.trim().toUpperCase();
+  switch (c) {
+    case 'EUR':
+    case '€':
+      return 'EUR (€)';
+    case 'USD':
+    case '$':
+      return 'USD ($)';
+    case 'GBP':
+    case '£':
+      return 'GBP (£)';
+    case 'BDT':
+    case 'TK':
+    case '৳':
+      return 'BDT (৳)';
+    case 'CAD':
+      return 'CAD (CA$)';
+    case 'AUD':
+      return 'AUD (AU$)';
+    case 'JPY':
+    case '¥':
+      return 'JPY (¥)';
+    case 'INR':
+    case '₹':
+      return 'INR (₹)';
+    default:
+      return currency;
+  }
+}
+
+/**
+ * Format currency amount with symbol (e.g., formatCurrency(1650, 'EUR') -> '€1,650')
+ */
+export function formatCurrency(amount: number | string | undefined | null, currency: string = 'EUR'): string {
+  if (amount === undefined || amount === null || amount === '-' || amount === '' || amount === 'Negotiable') {
+    return typeof amount === 'string' && amount === 'Negotiable' ? 'Negotiable' : '—';
+  }
+
+  const str = String(amount).trim();
+  if (str === '0' || str === '0.00' || str === '€0.00' || str === '€0' || str === '$0.00' || str === '$0') {
+    return 'Negotiable';
+  }
+
+  if (str.startsWith('€') || str.startsWith('$') || str.startsWith('£') || str.startsWith('৳') || str.startsWith('₹')) {
+    const numericPart = parseFloat(str.replace(/[^0-9.-]/g, ''));
+    if (numericPart === 0) return 'Negotiable';
+    return str;
+  }
+
+  const num = typeof amount === 'number' ? amount : parseFloat(str.replace(/[^0-9.-]/g, ''));
+  if (isNaN(num)) return str;
+  if (num === 0) return 'Negotiable';
+
+  const symbol = getCurrencySymbol(currency);
+  const formattedNum = num.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+
+  return `${symbol}${formattedNum}`;
 }

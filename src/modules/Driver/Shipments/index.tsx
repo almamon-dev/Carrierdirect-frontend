@@ -73,14 +73,14 @@ export default function DriverShipmentsPage() {
     const columns = useMemo(() => getShipmentColumns(navigate), [navigate]);
 
     return (
-        <div className="p-3 sm:p-4 md:p-5 w-full mx-auto space-y-3.5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             {/* Header: Title & Quick Refresh */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-                <div>
-                    <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Assigned Loads
                     </h1>
-                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Live route tracking, delivery schedule, and milestone status management.
                     </p>
                 </div>
@@ -91,9 +91,9 @@ export default function DriverShipmentsPage() {
                         size="sm"
                         onClick={handleRefresh}
                         disabled={isRefreshing || isLoading}
-                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:border-[#ff4a1f] dark:hover:border-[#ff4a1f] hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-slate-700 dark:text-slate-200 rounded-[3px] shadow-2xs transition-colors"
+                        className="h-8 px-2.5 sm:px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                     >
-                        <RefreshCw size={13} className={isRefreshing ? "animate-spin text-[#ff4a1f] shrink-0" : "text-slate-500 shrink-0"} />
+                        <RefreshCw size={13} className={isRefreshing ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
                         <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
                     </Button>
                 </div>
@@ -124,7 +124,7 @@ export default function DriverShipmentsPage() {
                     />
                 }
                 keyExtractor={(item) => item.id}
-                searchPlaceholder="Search by load #, tracking, shipper, consignee, city..."
+                searchPlaceholder="Search assigned loads by ID, tracking, shipper, route..."
                 compact={true}
                 hideViewToggle={false}
                 renderGridView={(gridProps) => (
@@ -135,8 +135,9 @@ export default function DriverShipmentsPage() {
                     />
                 )}
                 isLoading={isLoading || isRefreshing}
-                tableLayout="auto"
-                tableClassName="w-full min-w-[980px]"
+                tableLayout="fixed"
+                tableClassName="min-w-[1240px]"
+                actionsColumnClassName="w-[130px] min-w-[130px]"
                 emptyState={
                     <EmptyState
                         icon={Truck}

@@ -76,10 +76,10 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
             const rect = e.currentTarget.getBoundingClientRect();
             const menuWidth = 140;
             const menuHeight = 115;
-            
+
             // Align right edge of menu with right edge of button
             const left = Math.max(10, Math.min(window.innerWidth - menuWidth - 10, rect.right - menuWidth));
-            
+
             // Flip upwards if overflowing below screen
             const top = (rect.bottom + menuHeight > window.innerHeight - 10)
                 ? Math.max(10, rect.top - menuHeight - 4)
@@ -184,10 +184,10 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
             {/* Notification Popover Dropdown (Ultra-Compact, rounded-[3px]) */}
             {isOpen && (
                 <div
-    className="absolute right-0 mt-1.5 w-80 sm:w-96 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200/90 dark:border-slate-700/80 z-50 overflow-hidden text-xs animate-in fade-in zoom-in-95 duration-150 flex flex-col font-sans">
+                    className="absolute right-0 mt-1.5 w-80 sm:w-96 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200/90 dark:border-slate-700/80 z-50 overflow-hidden text-xs animate-in fade-in zoom-in-95 duration-150 flex flex-col font-sans">
                     {/* Compact Header */}
                     <div
-    className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-[#181a20]/60">
+                        className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-[#181a20]/60">
                         <div className="flex items-center gap-1.5">
                             <h3 className="text-[12.5px] font-bold text-slate-900 dark:text-slate-100">Notifications</h3>
                             {unreadCount > 0 ? (
@@ -216,26 +216,24 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
 
                     {/* Filter Tabs (Compact) */}
                     <div
-    className="px-2.5 pt-1.5 pb-1 flex items-center gap-1 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#1e2329]">
+                        className="px-2.5 pt-1.5 pb-1 flex items-center gap-1 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#1e2329]">
                         <button
                             type="button"
                             onClick={() => setActiveTab('all')}
-                            className={`px-2 py-0.5 rounded-[3px] text-[11px] font-semibold transition-colors cursor-pointer ${
-                                activeTab === 'all'
+                            className={`px-2 py-0.5 rounded-[3px] text-[11px] font-semibold transition-colors cursor-pointer ${activeTab === 'all'
                                     ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
                                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                            }`}
+                                }`}
                         >
                             All ({notifications.length})
                         </button>
                         <button
                             type="button"
                             onClick={() => setActiveTab('unread')}
-                            className={`px-2 py-0.5 rounded-[3px] text-[11px] font-semibold transition-colors cursor-pointer ${
-                                activeTab === 'unread'
+                            className={`px-2 py-0.5 rounded-[3px] text-[11px] font-semibold transition-colors cursor-pointer ${activeTab === 'unread'
                                     ? 'bg-orange-50 dark:bg-orange-950/50 text-[#ff4a1f]'
                                     : 'text-slate-500 hover:text-[#ff4a1f]'
-                            }`}
+                                }`}
                         >
                             Unread ({unreadCount})
                         </button>
@@ -251,11 +249,10 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                                     <div
                                         key={notif.id}
                                         onClick={() => handleItemClick(notif)}
-                                        className={`px-3 py-2 transition-colors flex items-start gap-2.5 cursor-pointer group relative ${
-                                            notif.unread
+                                        className={`px-3 py-2 transition-colors flex items-start gap-2.5 cursor-pointer group relative ${notif.unread
                                                 ? 'bg-orange-50/20 dark:bg-orange-950/15 hover:bg-orange-50/40 dark:hover:bg-orange-950/30'
                                                 : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'
-                                        }`}
+                                            }`}
                                     >
                                         {/* Icon */}
                                         <div className={`w-7 h-7 rounded-full ${bg} ${color} flex items-center justify-center shrink-0 mt-0.5 shadow-2xs`}>
@@ -265,22 +262,20 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                                         {/* Content: Title & Full Details */}
                                         <div className="flex-1 min-w-0 pr-6">
                                             <div className="flex items-center gap-1.5">
-                                                <p className={`text-[12px] leading-snug font-bold ${
-                                                    notif.unread
+                                                <p className={`text-[12px] leading-snug font-bold ${notif.unread
                                                         ? 'text-slate-900 dark:text-slate-100'
                                                         : 'text-slate-700 dark:text-slate-300'
-                                                }`}>
+                                                    }`}>
                                                     {notif.title}
                                                 </p>
                                                 {notif.unread && (
                                                     <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f] shrink-0" />
                                                 )}
                                             </div>
-                                            <p className={`text-[11.5px] line-clamp-2 mt-0.5 leading-snug ${
-                                                notif.unread
+                                            <p className={`text-[11.5px] line-clamp-2 mt-0.5 leading-snug ${notif.unread
                                                     ? 'text-slate-700 dark:text-slate-300 font-medium'
                                                     : 'text-slate-500 dark:text-slate-400'
-                                            }`}>
+                                                }`}>
                                                 {notif.desc}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -304,11 +299,10 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                                             <button
                                                 type="button"
                                                 onClick={(e) => handleToggleMenu(e, notif.id)}
-                                                className={`p-1 rounded-[3px] transition-all cursor-pointer ${
-                                                    activeMenuId === notif.id
+                                                className={`p-1 rounded-[3px] transition-all cursor-pointer ${activeMenuId === notif.id
                                                         ? 'opacity-100 bg-slate-200/80 dark:bg-slate-700 text-slate-800 dark:text-slate-100'
                                                         : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-                                                }`}
+                                                    }`}
                                                 title="More options"
                                             >
                                                 <MoreVertical size={13.5} />
@@ -334,7 +328,7 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
 
                     {/* Compact Footer */}
                     <div
-    className="py-1.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-[#181a20]/60 flex items-center justify-between px-3">
+                        className="py-1.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-[#181a20]/60 flex items-center justify-between px-3">
                         {notifications.length > 0 && (
                             <button
                                 type="button"
@@ -353,7 +347,7 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                             className="text-[10.5px] font-bold text-[#ff4a1f] hover:underline flex items-center gap-1 ml-auto cursor-pointer"
                         >
                             <span>View all</span>
-                            <ExternalLink size={10} />
+
                         </button>
                     </div>
                 </div>
@@ -374,7 +368,7 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
                             }}
                         />
                         <div
-    className="fixed w-[140px] bg-white dark:bg-[#1e2329] rounded-[4px] shadow-lg border border-slate-200/90 dark:border-slate-700/80 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans text-xs"
+                            className="fixed w-[140px] bg-white dark:bg-[#1e2329] rounded-[4px] shadow-lg border border-slate-200/90 dark:border-slate-700/80 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans text-xs"
                             style={{ top: menuPos.top, left: menuPos.left }}
                             onClick={(e) => e.stopPropagation()}
                             onMouseDown={(e) => e.stopPropagation()}

@@ -43,7 +43,7 @@ const isSubItemActive = (subPath: string, currentPath: string, currentHash?: str
 };
 
 const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: any; isOpen: boolean; onClose?: () => void }) => {
-    const isActiveGroup = Array.isArray(item.items) && item.items.some((subItem: any) => 
+    const isActiveGroup = Array.isArray(item.items) && item.items.some((subItem: any) =>
         isSubItemActive(subItem.path, location.pathname, location.hash)
     );
 
@@ -64,31 +64,30 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
                 title={!isOpen ? String(item.group || '') : undefined}
-                className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group cursor-pointer ${
-                    isActiveGroup 
-                        ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80' 
+                className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group cursor-pointer ${isActiveGroup
+                        ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
-                }`}
+                    }`}
             >
                 <div className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'}`}>
                     {item.icon && (
-                        <item.icon 
-                            size={20} 
+                        <item.icon
+                            size={20}
                             strokeWidth={1.5}
-                            className={isActiveGroup ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'} 
+                            className={isActiveGroup ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}
                         />
                     )}
                     {isOpen && <span className="whitespace-nowrap">{String(item.group || '')}</span>}
                 </div>
                 {isOpen && (
-                    <ChevronRight 
-                        size={16} 
+                    <ChevronRight
+                        size={16}
                         strokeWidth={1.5}
-                        className={`text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-90' : ''}`} 
+                        className={`text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
                     />
                 )}
             </button>
-            
+
             {isExpanded && (
                 <div className={`${isOpen ? 'relative ml-[22px] pr-2' : 'px-1'} mb-1 mt-0.5`}>
                     {(() => {
@@ -113,42 +112,38 @@ const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: an
                                             onClose?.();
                                         }
                                     }}
-                                    className={`relative flex items-center ${isOpen ? 'justify-between py-1.5 pl-[18px] pr-1.5' : 'justify-center py-2'} rounded-md text-[13.5px] transition-colors group ${
-                                        isActive 
-                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-bold' 
+                                    className={`relative flex items-center ${isOpen ? 'justify-between py-1.5 pl-[18px] pr-1.5' : 'justify-center py-2'} rounded-md text-[13.5px] transition-colors group ${isActive
+                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-bold'
                                             : 'text-slate-600 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-slate-200'
-                                    }`}
+                                        }`}
                                     title={!isOpen ? String(subItem.name || '') : undefined}
                                 >
                                     {isOpen && (
                                         <>
                                             {/* Top vertical connector (top-0 to 50%) */}
-                                            <div 
-                                                className={`absolute left-0 top-0 h-1/2 w-[1.5px] transition-colors ${
-                                                    isBeforeActive || isCurrentActive 
-                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                            <div
+                                                className={`absolute left-0 top-0 h-1/2 w-[1.5px] transition-colors ${isBeforeActive || isCurrentActive
+                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500'
                                                         : 'bg-slate-300 dark:bg-slate-700'
-                                                }`} 
+                                                    }`}
                                             />
-                                            
+
                                             {/* Bottom vertical connector (50% to bottom-0, only if not last item) */}
                                             {!isLast && (
-                                                <div 
-                                                    className={`absolute left-0 top-1/2 h-1/2 w-[1.5px] transition-colors ${
-                                                        isBeforeActive 
-                                                            ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                                <div
+                                                    className={`absolute left-0 top-1/2 h-1/2 w-[1.5px] transition-colors ${isBeforeActive
+                                                            ? 'bg-[#ff4a1f] dark:bg-orange-500'
                                                             : 'bg-slate-300 dark:bg-slate-700'
-                                                    }`} 
+                                                        }`}
                                                 />
                                             )}
-                                            
+
                                             {/* Horizontal connector branch (X-axis) */}
-                                            <div 
-                                                className={`absolute left-0 top-1/2 w-[13px] h-[1.5px] transition-colors ${
-                                                    isCurrentActive 
-                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                            <div
+                                                className={`absolute left-0 top-1/2 w-[13px] h-[1.5px] transition-colors ${isCurrentActive
+                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500'
                                                         : 'bg-slate-300 dark:bg-slate-700'
-                                                }`} 
+                                                    }`}
                                             />
                                         </>
                                     )}
@@ -185,7 +180,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const currentModule = location.pathname.split('/')[1] || 'dashboard';
-    
+
     const rawNavItems = navigationMap[currentModule] || [
         { name: 'Dashboard', path: `/${currentModule}/dashboard`, icon: LayoutDashboard },
         { name: 'Settings', path: `/${currentModule}/settings`, icon: Settings },
@@ -282,11 +277,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Link>
                 {isOpen && (
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        className="lg:hidden p-1.5 rounded-full border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer shadow-2xs flex items-center justify-center"
                         title="Close menu"
+                        aria-label="Close menu"
                     >
-                        <X size={20} />
+                        <X size={17} strokeWidth={2} />
                     </button>
                 )}
             </div>
@@ -307,7 +304,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     <div className="mb-2 mt-4 border-t border-slate-100 dark:border-slate-800 mx-2" />
                                 )
                             )}
-                            
+
                             {item.group ? (
                                 <NavGroup item={item} location={location} isOpen={isOpen} onClose={onClose} />
                             ) : (
@@ -319,17 +316,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                         }
                                     }}
                                     title={!isOpen ? item.name : undefined}
-                                    className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${
-                                        (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
-                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80' 
+                                    className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
+                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80'
                                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
-                                    }`}
+                                        }`}
                                 >
                                     <div className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'}`}>
-                                        <item.icon 
-                                            size={20} 
+                                        <item.icon
+                                            size={20}
                                             strokeWidth={1.5}
-                                            className={(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'} 
+                                            className={(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}
                                         />
                                         {isOpen && <span className="whitespace-nowrap">{item.name}</span>}
                                     </div>
@@ -341,7 +337,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
 
             <div className="p-4 border-t border-gray-100 dark:border-slate-800 shrink-0 space-y-2">
-                <button 
+                <button
                     onClick={handleLogout}
                     title={!isOpen ? "Logout" : undefined}
                     className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center'} py-2 w-full rounded-lg text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer`}

@@ -53,6 +53,7 @@ export interface SupplierOrderItem {
     driver?: string;
     driver_name?: string;
     driver_phone?: string;
+    driver_email?: string;
     vehicle?: string;
     vehicle_type?: string;
     truck_type?: string;
@@ -62,6 +63,8 @@ export interface SupplierOrderItem {
     cargo_weight?: string | number;
     total_weight?: string | number;
     type_of_pallets?: string;
+    items_summary?: string;
+    pallet_type?: string;
     pallets?: string;
     load_type?: string;
     cargo_items_count?: number;

@@ -4,6 +4,7 @@ import { CustomerOrderItem } from '../types';
 
 export const useCustomerOrders = () => {
     const [orders, setOrders] = useState<CustomerOrderItem[]>([]);
+    const [stats, setStats] = useState<any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     const [ratingTarget, setRatingTarget] = useState<{ id: string; supplier: string; route: string } | null>(null);
@@ -15,6 +16,10 @@ export const useCustomerOrders = () => {
         try {
             const res = await apiClient.get('/customer/orders');
             const list = res.data?.data?.data || res.data?.data || res.data?.orders || res.data || [];
+            const serverStats = res.data?.data?.stats || res.data?.stats || null;
+            if (serverStats) {
+                setStats(serverStats);
+            }
             if (Array.isArray(list) && list.length > 0) {
                 setOrders(list);
             } else {
@@ -48,6 +53,7 @@ export const useCustomerOrders = () => {
 
     return {
         orders,
+        stats,
         isLoading,
         isRefreshing,
         ratingTarget,
@@ -58,4 +64,3 @@ export const useCustomerOrders = () => {
 };
 
 export default useCustomerOrders;
-

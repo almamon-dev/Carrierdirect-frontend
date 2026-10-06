@@ -1,30 +1,63 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Navigation, MoreVertical, Star } from 'lucide-react';
+import { 
+    Eye, 
+    MoreVertical, 
+    Navigation, 
+    Star, 
+    FileCheck 
+} from 'lucide-react';
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
 import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
+import { GPSComingSoonModal } from '@/components/modals';
 import { OrderActionsMenu } from './OrderActionsMenu';
 import { CustomerOrderItem } from '../types';
 
 interface OrderRowActionsProps {
     row: CustomerOrderItem;
     onOpenRating: (target: { id: string; supplier: string; route: string }) => void;
+    onOpenPodReview?: (row: CustomerOrderItem) => void;
 }
 
 export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
     row,
     onOpenRating,
+    onOpenPodReview,
 }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
+    const [isGpsModalOpen, setIsGpsModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const triggerRef = useRef<HTMLButtonElement>(null);
 
-    const rawStatus = (row?.status_raw || row?.status || '').toLowerCase();
-    const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted';
-    const isTransit = rawStatus.includes('transit') || rawStatus.includes('progress') || rawStatus.includes('confirmed') || rawStatus.includes('picked');
+    const rawStatus = String(row?.status_raw || row?.status || '').toLowerCase().trim();
+    const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'pod_accepted';
+    const isTransit = !isCompleted && (rawStatus.includes('transit') || rawStatus.includes('progress') || rawStatus.includes('confirmed') || rawStatus.includes('picked') || rawStatus.includes('driver_assigned'));
+    const rawPod = String(row?.pod_status || (row as any)?.pod?.status || '').toLowerCase().trim();
+    const hasPodDoc = Boolean(
+        row?.proof_of_delivery || 
+        (row as any)?.proof || 
+        (row as any)?.pod_url || 
+        (row as any)?.pod_file || 
+        (row as any)?.pod_document_url || 
+        (row as any)?.signature || 
+        (row as any)?.pod?.file_url || 
+        (row as any)?.pod?.is_uploaded
+    );
+
+    const isPodPending = !isCompleted && (
+        rawStatus === 'delivered' || 
+        rawStatus === 'pod_uploaded' || 
+        rawStatus === 'pod_review' || 
+        rawStatus === 'pod_received' || 
+        rawPod === 'pending' || 
+        rawPod === 'uploaded' || 
+        rawPod === 'pod_uploaded' ||
+        (hasPodDoc && rawStatus !== 'cancelled')
+    );
+
     const displayId = row.order_id || row.order_number || (row.id ? `ORD-${String(row.id).padStart(4, '0')}` : 'ORD-0001');
     const supplierName = row.supplier_name || row.supplier?.company_name || row.supplier?.name || 'Carrier Partner';
     const routeDisplay = row.route || `${row.pickup_city || 'Origin'} → ${row.delivery_city || 'Destination'}`;
@@ -37,20 +70,31 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
             setIsOpen(false);
         } else {
             const rect = e.currentTarget.getBoundingClientRect();
+            const menuWidth = 235;
+            const menuHeight = 280;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            const left = Math.max(8, Math.min(rect.right - menuWidth, viewportWidth - menuWidth - 8));
+            const spaceBelow = viewportHeight - rect.bottom;
+            const top = spaceBelow < menuHeight && rect.top > menuHeight
+                ? rect.top - menuHeight - 4
+                : rect.bottom + 4;
+
             setDropdownPos({
-                top: rect.bottom + 4,
-                left: Math.max(10, rect.right - 208)
+                top: Math.max(8, top),
+                left: Math.max(8, left)
             });
             setIsOpen(true);
         }
     };
 
     const handleViewDetails = () => {
-        navigate(`/customer/orders/${row.id}`, { state: { orderData: row } });
+        navigate(`/customer/orders/${encryptId(row.id)}`, { state: { orderData: row } });
     };
 
     const handleTrackOrder = () => {
-        navigate(`/customer/quotes/processing/track/${row.id}`, { state: { order: row } });
+        setIsGpsModalOpen(true);
     };
 
     const handleOpenChat = () => {
@@ -76,6 +120,14 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
         exportInvoicePdf(row);
     };
 
+    const handleTriggerPodReview = () => {
+        if (onOpenPodReview) {
+            onOpenPodReview(row);
+        } else {
+            handleViewDetails();
+        }
+    };
+
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
@@ -90,8 +142,22 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
 
     return (
         <div className="relative flex items-center justify-end gap-1 w-full min-h-[22px]">
-            {/* Quick Primary Button */}
-            {isTransit ? (
+            {/* Quick Primary Button based on Order Status */}
+            {isPodPending ? (
+                <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleTriggerPodReview();
+                    }}
+                    className="h-[25px] px-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-[3px] cursor-pointer shadow-2xs flex items-center gap-1 shrink-0 animate-pulse"
+                    title="Review & Accept Proof of Delivery (Release Escrow)"
+                >
+                    <FileCheck size={12} className="shrink-0" />
+                    <span>Accept POD</span>
+                </Button>
+            ) : isTransit ? (
                 <Button
                     variant="primary"
                     size="sm"
@@ -161,6 +227,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 onViewDetails={handleViewDetails}
                 onTrackOrder={handleTrackOrder}
                 onOpenChat={handleOpenChat}
+                onOpenPodReview={handleTriggerPodReview}
                 onOpenRating={() => onOpenRating({
                     id: String(row.id),
                     supplier: supplierName,
@@ -169,6 +236,13 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 onDownloadInvoice={handleDownloadInvoice}
                 onRepeatOrder={handleRepeatOrder}
                 onCopyId={handleCopyId}
+            />
+
+            {/* Live GPS Tracking Coming Soon Modal */}
+            <GPSComingSoonModal
+                isOpen={isGpsModalOpen}
+                onClose={() => setIsGpsModalOpen(false)}
+                destination={routeDisplay}
             />
         </div>
     );

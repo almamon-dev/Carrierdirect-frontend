@@ -36,7 +36,36 @@ export const mapRawCustomerChatMessages = (
             m.isCounterOffer === true ||
             (Boolean(m.proposed_amount) && rawType !== 'quote_request' && rawType !== 'system') ||
             textContent.toLowerCase().includes('submitted a counter offer') ||
-            textContent.toLowerCase().includes('counter offer of');
+            textContent.toLowerCase().includes('counter offer of') ||
+            textContent.toLowerCase().includes('submitted a revised offer') ||
+            textContent.toLowerCase().includes('revised offer of');
+
+        const isSupplierOffer = Boolean(
+            m.sender_type === 'supplier' ||
+            (m.sender_id && activeChat?.raw?.user_id && m.sender_id === activeChat.raw.user_id) ||
+            (!isSent && activeChat?.raw?.quote_request?.user_id && m.sender_id !== activeChat.raw.quote_request.user_id)
+        );
+
+        const rawQuote = activeChat?.raw || {};
+        const isExplicitlyNotRevised = rawQuote.revision_status === 'none';
+        const isRevisedOffer = !isExplicitlyNotRevised && Boolean(
+            rawQuote.revision_status === 'revised' ||
+            rawQuote.revision_status === 'pending' ||
+            (rawQuote.revised_amount !== undefined && rawQuote.revised_amount !== null && Number(rawQuote.revised_amount) > 0) ||
+            rawType === 'revised_offer' ||
+            m.type === 'revised_offer' ||
+            m.message_type === 'revised_offer' ||
+            (m.revision_status && m.revision_status !== 'none') ||
+            textContent.toLowerCase().includes('submitted a revised offer') ||
+            textContent.toLowerCase().includes('revised offer of')
+        );
+
+        const offerTitle = isRevisedOffer
+            ? (isSent ? 'Revised Offer Submitted' : 'Revised Offer Received')
+            : (isSupplierOffer
+                ? (isSent ? 'Quotation Offer Submitted' : 'Quotation Offer Received')
+                : (isSent ? 'Counter Offer Submitted' : 'Counter Offer Received')
+            );
 
         const isSystem = rawType === 'system' || textContent.startsWith('✅') || textContent.startsWith('❌') || textContent.startsWith('Offer Accepted') || textContent.startsWith('Payment completed!') || textContent.startsWith('Booking confirmed!');
         const isQuoteRequest = rawType === 'quote_request';
@@ -65,7 +94,7 @@ export const mapRawCustomerChatMessages = (
             base_amount: m.base_amount !== undefined && m.base_amount !== null ? Number(m.base_amount) : undefined,
             extra_charges: m.extra_charges || m.extraCharges || undefined,
             extraCharges: m.extra_charges || m.extraCharges || undefined,
-            title: m.title || (isOffer ? (isSent ? 'Counter Offer Submitted' : 'Counter Offer Received') : undefined),
+            title: m.title || (isOffer ? offerTitle : undefined),
             notes: m.notes || (textContent.toLowerCase().includes('submitted a counter offer') ? '' : textContent),
             is_me: isSent,
             is_my_offer: m.is_my_offer !== undefined ? Boolean(m.is_my_offer) : isSent,
@@ -77,5 +106,74 @@ export const mapRawCustomerChatMessages = (
 
     const quoteRequestCard = initialItems.find(item => item.type === 'quote_request');
     const filteredMapped = mapped.filter(m => m.type !== 'quote_request');
-    return quoteRequestCard ? [quoteRequestCard, ...filteredMapped] : filteredMapped;
+
+    // Synthesize payment completed message if paid and not yet present in raw chat
+    const rawQuoteId = activeChat?.raw?.quote_id || activeChat?.raw?.id || activeChat?.id;
+    const cleanId = String(rawQuoteId || "").replace(/[^0-9]/g, "");
+
+    const isPayLater = Boolean(
+        (cleanId && localStorage.getItem(`cd_quote_paid_type_${cleanId}`) === "pay_later") ||
+        (rawQuoteId && localStorage.getItem(`cd_quote_paid_type_${rawQuoteId}`) === "pay_later") ||
+        activeChat?.raw?.invoice?.invoice_type === "pay_later" ||
+        activeChat?.raw?.order?.invoice_type === "pay_later" ||
+        activeChat?.raw?.payment_option === "pay_later"
+    );
+
+    const isPaid = Boolean(
+        (cleanId && localStorage.getItem(`cd_quote_paid_${cleanId}`) === "true") ||
+        (rawQuoteId && localStorage.getItem(`cd_quote_paid_${rawQuoteId}`) === "true") ||
+        activeChat?.raw?.is_paid ||
+        activeChat?.raw?.has_order ||
+        activeChat?.raw?.order_id ||
+        activeChat?.raw?.status_raw === "booked" ||
+        activeChat?.raw?.status === "Booked" ||
+        (activeChat as any)?.status === "Booked" ||
+        (activeChat as any)?.statusRaw === "booked" ||
+        (activeChat as any)?.isPaid ||
+        (activeChat as any)?.hasOrder ||
+        activeChat?.raw?.payment_status === "succeeded" ||
+        activeChat?.raw?.payment_status === "paid" ||
+        activeChat?.raw?.payment_status === "completed" ||
+        activeChat?.raw?.payment_option === "pay_later" ||
+        activeChat?.raw?.payment_option === "pay_now" ||
+        activeChat?.raw?.order?.status === "in_progress" ||
+        activeChat?.raw?.order?.status === "completed" ||
+        activeChat?.raw?.order?.status === "confirmed" ||
+        activeChat?.raw?.order?.status === "delivered" ||
+        activeChat?.raw?.invoice?.status === "paid" ||
+        activeChat?.raw?.invoice?.invoice_type === "pay_later"
+    );
+
+    const hasPaymentMsg = filteredMapped.some((m) => {
+        const t = (m.text || "").toLowerCase();
+        return t.includes("payment completed") || t.includes("pay later booking confirmed") || t.includes("funds held securely") || t.includes("escrow payment of");
+    });
+
+    const paymentSyntheticMsgs: CustomerChatMessage[] = [];
+    if (isPaid && !hasPaymentMsg) {
+        const orderNum = activeChat?.raw?.order?.order_number || activeChat?.raw?.order_number || (cleanId ? `ORD-${cleanId.padStart(4, "0")}` : "ORD-0001");
+        const formattedAmt = activeChat?.currentPrice ? `€${Number(activeChat.currentPrice).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "";
+
+        if (isPayLater) {
+            paymentSyntheticMsgs.push({
+                id: `synthetic-paylater-${cleanId || 1}`,
+                type: "system",
+                text: `Pay Later booking confirmed! 📋\nBooking${formattedAmt ? ` of ${formattedAmt}` : ""} is confirmed under Corporate Net-30 terms. Transport Order #${orderNum} is now active.`,
+                time: "Today",
+                status: "accepted",
+            });
+        } else {
+            paymentSyntheticMsgs.push({
+                id: `synthetic-payment-${cleanId || 1}`,
+                type: "system",
+                text: `Payment completed! 🎉\nEscrow payment${formattedAmt ? ` of ${formattedAmt}` : ""} has been secured via Stripe. Transport Order #${orderNum} is now active.`,
+                time: "Today",
+                status: "accepted",
+            });
+        }
+    }
+
+    const finalMessages = [...filteredMapped, ...paymentSyntheticMsgs];
+    const hasOfferInChat = filteredMapped.some(m => m.type === 'offer');
+    return (!hasOfferInChat && quoteRequestCard) ? [quoteRequestCard, ...finalMessages] : finalMessages;
 };

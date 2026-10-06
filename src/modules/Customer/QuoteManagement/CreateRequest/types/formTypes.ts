@@ -14,8 +14,10 @@ export interface QuoteFormData {
     serviceType: string;
     pickupDate: string;
     pickupTime: string;
+    pickupTimeTill?: string;
     deliveryDate: string;
     deliveryTime: string;
+    deliveryTimeTill?: string;
     expectedTransitTime: string;
 
     pickupCompany: string;
@@ -27,8 +29,9 @@ export interface QuoteFormData {
     pickupCity: string;
     pickupZip: string;
     pickupAddress: string;
-    pickupMapUrl: string;
     pickupInstructions: string;
+    pickupLat?: number | string | null;
+    pickupLng?: number | string | null;
 
     deliveryCompany: string;
     deliveryContactName: string;
@@ -39,8 +42,11 @@ export interface QuoteFormData {
     deliveryCity: string;
     deliveryZip: string;
     deliveryAddress: string;
-    deliveryMapUrl: string;
     deliveryInstructions: string;
+    deliveryLat?: number | string | null;
+    deliveryLng?: number | string | null;
+    distanceKm?: number | string | null;
+    estimatedDurationMinutes?: number | string | null;
 
     vehicleType: string;
     loadType: string;

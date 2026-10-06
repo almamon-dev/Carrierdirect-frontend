@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import Badge from '@/components/ui/badge';
 import DataTable from '@/components/tables/data-table';
+import EmptyState from '@/components/tables/empty-state';
 import Skeleton from '@/components/ui/skeleton';
 import Button from '@/components/ui/button';
 import MetricCard from '@/components/cards/metric-card';
@@ -29,7 +30,15 @@ export interface WithdrawalItem {
     status: 'Completed' | 'Processing' | 'Failed';
 }
 
-type StripeRedirectTarget = 'banner' | 'card_stat' | null;
+const parseMoneyNumber = (val: any): number => {
+    if (typeof val === "number") return isNaN(val) ? 0 : val;
+    if (!val) return 0;
+    const cleaned = String(val).replace(/[^0-9.-]/g, "");
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+};
+
+type StripeRedirectTarget = "banner" | "card_stat" | null;
 
 export default function Withdrawal() {
     const location = useLocation();
@@ -101,44 +110,48 @@ export default function Withdrawal() {
                 const s = data.stats || {};
                 
                 setStats({
-                    totalEarnings: Number(s.total_earnings || 0),
-                    escrowBalance: Number(s.escrow_balance || 0),
-                    availableBalance: Number(s.available_balance || 0),
-                    totalWithdrawn: Number(s.total_withdrawn || 0),
-                    isStripeConnected: Boolean(s.is_stripe_connected),
+                    totalEarnings: parseMoneyNumber(data.total_earnings ?? s.total_earnings),
+                    escrowBalance: parseMoneyNumber(data.escrow_balance ?? s.escrow_balance ?? s.pending_clearance),
+                    availableBalance: parseMoneyNumber(data.available_balance ?? s.available_balance),
+                    totalWithdrawn: parseMoneyNumber(data.total_withdrawn ?? s.total_withdrawn),
+                    isStripeConnected: Boolean(s.is_stripe_connected ?? data.is_stripe_connected),
                 });
 
-                if (Array.isArray(data.withdraw_requests) && data.withdraw_requests.length > 0) {
-                    const mapped: WithdrawalItem[] = data.withdraw_requests.map((w: any) => {
-                        const amountNum = parseFloat(w.amount || 0);
-                        const feeNum = amountNum * 0.05;
-                        const netNum = Math.max(0, amountNum - feeNum);
+                const rawWithdrawals = Array.isArray(data.withdraw_requests) 
+                    ? data.withdraw_requests 
+                    : (Array.isArray(data.withdrawals) ? data.withdrawals : []);
+
+                if (rawWithdrawals.length > 0) {
+                    const mapped: WithdrawalItem[] = rawWithdrawals.map((w: any) => {
+                        const amountNum = parseMoneyNumber(w.amount);
+                        const feeNum = parseMoneyNumber(w.fee ?? (amountNum * 0.05));
+                        const netNum = parseMoneyNumber(w.net_amount ?? Math.max(0, amountNum - feeNum));
                         const statusMap: Record<string, 'Completed' | 'Processing' | 'Failed'> = {
                             completed: 'Completed',
+                            approved: 'Completed',
+                            paid: 'Completed',
                             pending: 'Processing',
+                            processing: 'Processing',
                             rejected: 'Failed',
+                            failed: 'Failed',
+                            cancelled: 'Failed',
                         };
+                        const rawStatus = String(w.status || 'pending').toLowerCase();
 
                         return {
-                            id: `WD-${String(w.id).padStart(5, '0')}`,
-                            date: w.created_at ? new Date(w.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently',
-                            reference: w.payment_method || w.reference || 'Automatic Payout',
+                            id: w.request_number || `WD-${String(w.id).padStart(5, '0')}`,
+                            date: w.created_at ? new Date(w.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : (w.date || '—'),
+                            reference: w.reference || w.payment_method || 'Automatic Payout',
                             amount: `€${amountNum.toFixed(2)}`,
                             fee: `€${feeNum.toFixed(2)} (5%)`,
                             netAmount: `€${netNum.toFixed(2)}`,
-                            method: w.payment_details ? `Stripe (${w.payment_details.substring(0, 18)})` : 'Stripe Payout',
-                            status: statusMap[w.status] || 'Processing',
+                            method: w.account_details || (w.payment_details ? `Stripe (${w.payment_details.substring(0, 18)})` : (w.payment_method || 'Stripe Payout')),
+                            status: statusMap[rawStatus] || 'Processing',
                         };
                     });
                     setWithdrawals(mapped);
                 } else {
-                    // Sample realistic data for seamless display
-                    setWithdrawals([
-                        { id: 'WD-00104', date: '12 Sep 2026', reference: 'STR-PO-9841', amount: '€2,450.00', fee: '€122.50 (5%)', netAmount: '€2,327.50', method: 'Stripe (EUR Bank Account)', status: 'Completed' },
-                        { id: 'WD-00103', date: '05 Sep 2026', reference: 'STR-PO-9720', amount: '€3,100.00', fee: '€155.00 (5%)', netAmount: '€2,945.00', method: 'Stripe (EUR Bank Account)', status: 'Completed' },
-                        { id: 'WD-00102', date: '28 Aug 2026', reference: 'STR-PO-9580', amount: '€1,850.00', fee: '€92.50 (5%)', netAmount: '€1,757.50', method: 'Stripe (EUR Bank Account)', status: 'Completed' },
-                        { id: 'WD-00101', date: 'Today', reference: 'Automatic Payout', amount: '€1,200.00', fee: '€60.00 (5%)', netAmount: '€1,140.00', method: 'Stripe (EUR Bank Account)', status: 'Processing' },
-                    ]);
+                    setWithdrawals([]);
                 }
             }
 
@@ -393,7 +406,7 @@ export default function Withdrawal() {
                 <MetricCard
                     title="Available Balance"
                     description="Cleared funds ready for auto payout"
-                    value={`€${stats.availableBalance.toFixed(2)}`}
+                    value={`€${(stats.availableBalance || 0).toFixed(2)}`}
                     icon={Euro}
                     colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
                     badge={<span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-[3px]">Auto Transfer</span>}
@@ -402,7 +415,7 @@ export default function Withdrawal() {
                 <MetricCard
                     title="Pending Clearance"
                     description="Funds in escrow awaiting delivery"
-                    value={`€${stats.escrowBalance.toFixed(2)}`}
+                    value={`€${(stats.escrowBalance || 0).toFixed(2)}`}
                     icon={Clock}
                     colorClass="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"
                     isLoading={loading}
@@ -410,7 +423,7 @@ export default function Withdrawal() {
                 <MetricCard
                     title="Lifetime Settled"
                     description="Total cumulative settled payout sum"
-                    value={`€${stats.totalWithdrawn.toFixed(2)}`}
+                    value={`€${(stats.totalWithdrawn || 0).toFixed(2)}`}
                     icon={TrendingUp}
                     colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
                     isLoading={loading}
@@ -465,6 +478,17 @@ export default function Withdrawal() {
                 searchPlaceholder="Search payouts by ID, method, reference..."
                 isLoading={loading}
                 keyExtractor={(item) => item.id}
+                emptyState={
+                    <EmptyState
+                        icon={Building2}
+                        title="No Payouts or Settlements Found"
+                        description={
+                            activeTab === 'all'
+                                ? "You don't have any payout transactions or settlement records yet."
+                                : `No payout records matching '${activeTab}'.`
+                        }
+                    />
+                }
             />
 
             {/* Settlement Details Modal */}

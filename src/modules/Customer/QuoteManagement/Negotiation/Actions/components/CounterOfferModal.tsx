@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
-    ArrowRight,
+    X,
+    ArrowRightLeft,
+    ReceiptText,
     Plus,
     Trash2,
-    ReceiptText,
     Fuel,
     FileText,
     PackageCheck,
@@ -23,11 +25,8 @@ import {
     Boxes,
     LucideIcon
 } from 'lucide-react';
-import Modal from '@/components/modals/modal';
-import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Select from '@/components/ui/select';
-import Textarea from '@/components/ui/textarea';
 import { useCargoServices } from '@/hooks/useCargoServices';
 
 export interface ExtraChargeItem {
@@ -40,7 +39,7 @@ export interface ExtraChargeItem {
 export interface CounterOfferModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (amount: number, note: string, extraCharges?: ExtraChargeItem[]) => void;
+    onSubmit: (amount: number, note: string, extraCharges?: ExtraChargeItem[], baseFreight?: number) => void;
     initialAmount?: number | string;
     initialBaseFreight?: number | string;
     originalOfferAmount?: number | string;
@@ -74,7 +73,7 @@ export const getServiceIcon = (keyOrLabel: string): LucideIcon => {
     return Boxes;
 };
 
-const DEFAULT_FALLBACK_CHARGES = [
+export const DEFAULT_FALLBACK_CHARGES = [
     { type: 'Toll', label: 'Toll Charges', defaultAmount: 60, icon: ReceiptText, aliases: ['toll', 'toll fee', 'toll charges', 'tolls'] },
     { type: 'Fuel Surcharge', label: 'Fuel Surcharge', defaultAmount: 50, icon: Fuel, aliases: ['fuel', 'fuel surcharge', 'diesel'] },
     { type: 'Loading Required', label: 'Loading / Unloading', defaultAmount: 80, icon: PackageCheck, aliases: ['loading/unloading', 'loading', 'loading & unloading', 'unloading', 'loading required', 'unloading required'] },
@@ -103,7 +102,17 @@ export function CounterOfferModal({
 }: CounterOfferModalProps) {
     const { allServices } = useCargoServices();
 
-    // Dynamically build available charges from Database with Lucide React Icons
+    // Close on Escape key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isOpen) {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
     const availableCharges = useMemo(() => {
         if (!allServices || allServices.length === 0) {
             return DEFAULT_FALLBACK_CHARGES;
@@ -152,32 +161,42 @@ export function CounterOfferModal({
         return typeof raw === 'number' ? raw : parseFloat(String(raw).replace(/[^0-9.]/g, '')) || 0;
     }, [originalOfferAmount, initialAmount]);
 
+    const initialExtrasSum = useMemo(() => {
+        return (propExtraCharges && propExtraCharges.length > 0)
+            ? propExtraCharges.reduce((sum, c) => sum + (Number(c.amount) || 0), 0)
+            : 0;
+    }, [propExtraCharges]);
+
     const origBaseNum = useMemo(() => {
-        if (initialBaseFreight) {
-            return typeof initialBaseFreight === 'number' ? initialBaseFreight : parseFloat(String(initialBaseFreight).replace(/[^0-9.]/g, '')) || 0;
+        if (initialBaseFreight !== undefined && initialBaseFreight !== null) {
+            const parsed = typeof initialBaseFreight === 'number' ? initialBaseFreight : parseFloat(String(initialBaseFreight).replace(/[^0-9.]/g, '')) || 0;
+            if (parsed > 0 && initialExtrasSum > 0 && parsed < origTotalNum) {
+                return parsed;
+            }
+            if (parsed > 0 && initialExtrasSum === 0) {
+                return parsed;
+            }
+        }
+        if (initialExtrasSum > 0 && origTotalNum > initialExtrasSum) {
+            return origTotalNum - initialExtrasSum;
         }
         return origTotalNum;
-    }, [initialBaseFreight, origTotalNum]);
+    }, [initialBaseFreight, origTotalNum, initialExtrasSum]);
 
-    const budgetNum = useMemo(() => {
-        if (!targetBudget) return 0;
-        return typeof targetBudget === 'number' ? targetBudget : parseFloat(String(targetBudget).replace(/[^0-9.]/g, '')) || 0;
-    }, [targetBudget]);
-
-    // Customer mode: 'lump_sum' vs 'itemized'
-    const [customerMode, setCustomerMode] = useState<'lump_sum' | 'itemized'>('lump_sum');
-    const [baseFreightInput, setBaseFreightInput] = useState<string>('');
-    const [lumpSumInput, setLumpSumInput] = useState<string>('');
+    const [proposedPrice, setProposedPrice] = useState<string>('');
     const [notes, setNotes] = useState<string>('');
 
     // Supplier mode: Extra charges state
     const [supplierExtras, setSupplierExtras] = useState<ExtraChargeItem[]>([]);
+    const [showAddCustom, setShowAddCustom] = useState(false);
     const [customChargeName, setCustomChargeName] = useState('');
     const [customChargeAmount, setCustomChargeAmount] = useState('');
-    const [showAddCustom, setShowAddCustom] = useState(false);
+
+    const prevIsOpenRef = useRef(false);
 
     useEffect(() => {
-        if (isOpen) {
+        // Only initialize form values when modal transitions from closed to open
+        if (isOpen && !prevIsOpenRef.current) {
             const initialExtras: ExtraChargeItem[] = (propExtraCharges && propExtraCharges.length > 0)
                 ? propExtraCharges.map(c => ({
                     id: c.id,
@@ -188,40 +207,23 @@ export function CounterOfferModal({
                 : [];
 
             setSupplierExtras(initialExtras);
-            const totalExistingExtras = initialExtras.reduce((acc, c) => acc + Number(c.amount || 0), 0);
-
-            if (isSupplier) {
-                const baseVal = origBaseNum > 0 && origBaseNum !== origTotalNum
-                    ? origBaseNum
-                    : (origTotalNum > totalExistingExtras && totalExistingExtras > 0 ? origTotalNum - totalExistingExtras : origTotalNum);
-                setBaseFreightInput(baseVal > 0 ? String(baseVal) : '');
-            } else {
-                setLumpSumInput(origTotalNum > 0 ? String(origTotalNum) : '');
-                setBaseFreightInput(origBaseNum > 0 ? String(origBaseNum) : '');
-            }
+            const initialPrice = isSupplier ? origBaseNum : origTotalNum;
+            setProposedPrice(initialPrice > 0 ? String(initialPrice) : '');
             setNotes('');
             setShowAddCustom(false);
             setCustomChargeName('');
             setCustomChargeAmount('');
         }
+        prevIsOpenRef.current = isOpen;
     }, [isOpen, propExtraCharges, origTotalNum, origBaseNum, isSupplier]);
 
     const totalExtrasAmount = useMemo(() => {
         return supplierExtras.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     }, [supplierExtras]);
 
-    const supplierBaseNum = Number(baseFreightInput) || 0;
-    const supplierTotalQuotation = supplierBaseNum + totalExtrasAmount;
-
-    const customerProposedTotal = useMemo(() => {
-        if (customerMode === 'lump_sum') {
-            return Number(lumpSumInput) || 0;
-        } else {
-            return (Number(baseFreightInput) || 0) + totalExtrasAmount;
-        }
-    }, [customerMode, lumpSumInput, baseFreightInput, totalExtrasAmount]);
-
-    const finalProposedAmount = isSupplier ? supplierTotalQuotation : customerProposedTotal;
+    const finalAmountNum = isSupplier
+        ? (Number(proposedPrice) || 0) + totalExtrasAmount
+        : (Number(proposedPrice) || 0);
 
     const isChargeActive = (chargeDef: typeof availableCharges[0]) => {
         return supplierExtras.some(e => {
@@ -239,14 +241,12 @@ export function CounterOfferModal({
         });
     };
 
-    // Active types list for Dropdown highlighting
     const activeTypesForSelect = useMemo(() => {
         return availableCharges
             .filter(c => isChargeActive(c))
             .map(c => c.type);
     }, [availableCharges, supplierExtras]);
 
-    // Select options prepared with icons
     const selectOptions = useMemo(() => {
         return availableCharges.map(item => ({
             id: item.type,
@@ -363,7 +363,7 @@ export function CounterOfferModal({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (finalProposedAmount <= 0) return;
+        if (finalAmountNum <= 0) return;
 
         let formattedNote = notes.trim();
         if (isSupplier && supplierExtras.length > 0) {
@@ -372,259 +372,173 @@ export function CounterOfferModal({
                 .join(', ');
             formattedNote = formattedNote
                 ? `${formattedNote} [Extras: ${breakdownStr}]`
-                : `Base: ${currency} ${supplierBaseNum.toLocaleString()} + Extras: ${breakdownStr}`;
-        } else if (!isSupplier && customerMode === 'lump_sum') {
-            formattedNote = formattedNote
-                ? `${formattedNote} (All-Inclusive Rate)`
-                : `All-inclusive rate of ${currency} ${customerProposedTotal.toLocaleString()}`;
+                : `Base: ${currency} ${Number(proposedPrice).toLocaleString()} + Extras: ${breakdownStr}`;
         }
 
-        onSubmit(finalProposedAmount, formattedNote, isSupplier ? supplierExtras : undefined);
+        const proposedBase = isSupplier
+            ? (Number(proposedPrice) || 0)
+            : (totalExtrasAmount > 0 && finalAmountNum > totalExtrasAmount ? finalAmountNum - totalExtrasAmount : finalAmountNum);
+        onSubmit(finalAmountNum, formattedNote, supplierExtras, proposedBase);
         onClose();
     };
 
-    return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={isSupplier ? 'Revise Offer Rate' : 'Submit Counter Offer'}
-            description={
-                isSupplier
-                    ? 'Propose updated freight rate and additional services'
-                    : 'Propose a revised rate to negotiate'
-            }
-            size="xl"
-            className="max-w-[620px] md:max-w-[650px]"
-        >
-            <form onSubmit={handleSubmit} className="space-y-3 font-sans pt-0.5">
-                {/* Overview Strip */}
-                <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 rounded-lg p-2 text-xs">
-                    <div>
-                        <span className="text-slate-400 block text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">Base Rate</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
-                            {currency} {origBaseNum > 0 ? origBaseNum.toLocaleString() : origTotalNum.toLocaleString()}
-                        </span>
+    if (!isOpen) return null;
+
+    const displayCarrier = carrierName || 'Partner Carrier';
+
+    return createPortal(
+        <div className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-[410px] z-[999999] font-sans antialiased animate-in slide-in-from-top-5 fade-in duration-200">
+            {/* Sleek & Compact Modal Card with rounded-md & subtle border shadow */}
+            <div className="relative w-full bg-white dark:bg-[#12161c] rounded-md border border-slate-200/90 dark:border-slate-700/80 shadow-xl p-3 sm:p-3.5 text-left space-y-2.5">
+                
+                {/* Top Section: Icon + Description + Close Button */}
+                <div className="flex items-start gap-2.5">
+                    {/* Outline Circular Icon */}
+                    <div className="w-8 h-8 min-w-[32px] min-h-[32px] aspect-square rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center shrink-0 mt-0.5 bg-slate-50 dark:bg-slate-800">
+                        <ArrowRightLeft size={14} strokeWidth={2.2} className="text-[#ff4a1f] shrink-0" />
                     </div>
 
-                    <div className="text-center border-x border-slate-200/80 dark:border-slate-700/80 px-1">
-                        <span className="text-slate-400 block text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">Current Total</span>
-                        <span className="font-black text-[#FF4A1F] text-xs sm:text-sm">
-                            {currency} {origTotalNum > 0 ? origTotalNum.toLocaleString() : '0.00'}
-                        </span>
+                    {/* Main Description Text */}
+                    <div className="flex-1 min-w-0 pr-1">
+                        <p className="text-[11.5px] sm:text-[12px] text-slate-700 dark:text-slate-300 leading-snug font-normal">
+                            {isSupplier ? (
+                                <>
+                                    Propose a revised offer to <strong className="font-bold text-slate-900 dark:text-white">{displayCarrier}</strong> (Current: <strong className="font-semibold text-slate-900 dark:text-white">{currency} {origTotalNum.toLocaleString()}</strong>).
+                                </>
+                            ) : (
+                                <>
+                                    Submit a counter offer to <strong className="font-bold text-slate-900 dark:text-white">{displayCarrier}</strong> for quote <strong className="font-semibold text-slate-900 dark:text-white">{currency} {origTotalNum.toLocaleString()}</strong>.
+                                </>
+                            )}
+                        </p>
                     </div>
 
-                    <div className="text-right">
-                        <span className="text-slate-400 block text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
-                            {budgetNum > 0 ? 'Customer Budget' : 'Pricing Model'}
-                        </span>
-                        <span className="font-bold text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
-                            {budgetNum > 0 ? `${currency} ${budgetNum.toLocaleString()}` : 'Fixed Rate'}
-                        </span>
-                    </div>
+                    {/* Top Right Close Button */}
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded p-0.5 transition-colors shrink-0 -mr-1 -mt-1 cursor-pointer"
+                        aria-label="Close"
+                    >
+                        <X size={14} strokeWidth={2} />
+                    </button>
                 </div>
 
-                {/* CUSTOMER MODE */}
-                {!isSupplier && (
-                    <div className="space-y-2.5">
-                        <div className="flex bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg text-xs font-semibold">
-                            <button
-                                type="button"
-                                onClick={() => setCustomerMode('lump_sum')}
-                                className={`flex-1 py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                                    customerMode === 'lump_sum'
-                                        ? 'bg-white dark:bg-[#12161c] text-[#FF4A1F] shadow-xs font-bold'
-                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                                }`}
-                            >
-                                <span>All-Inclusive Total</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setCustomerMode('itemized')}
-                                className={`flex-1 py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                                    customerMode === 'itemized'
-                                        ? 'bg-white dark:bg-[#12161c] text-[#FF4A1F] shadow-xs font-bold'
-                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                                }`}
-                            >
-                                <ReceiptText size={12} />
-                                <span>Itemized Base</span>
-                            </button>
-                        </div>
-
-                        {customerMode === 'lump_sum' ? (
-                            <Input
-                                label={`Proposed Total Rate (${currency}) *`}
-                                type="number"
-                                min="1"
-                                step="any"
-                                required
-                                value={lumpSumInput}
-                                onChange={e => setLumpSumInput(e.target.value)}
-                                placeholder="0.00"
-                                icon={<span className="text-slate-400 font-bold text-xs">€</span>}
-                                className="font-bold text-sm"
-                                autoFocus
-                            />
-                        ) : (
-                            <div className="space-y-2">
-                                <Input
-                                    label={`Proposed Base Freight (${currency}) *`}
-                                    type="number"
-                                    min="1"
-                                    step="any"
-                                    required
-                                    value={baseFreightInput}
-                                    onChange={e => setBaseFreightInput(e.target.value)}
-                                    placeholder="0.00"
-                                    icon={<span className="text-slate-400 font-bold text-xs">€</span>}
-                                    className="font-bold text-sm"
-                                    autoFocus
-                                />
-                                {totalExtrasAmount > 0 && (
-                                    <div className="flex items-center justify-between text-xs text-slate-500 px-1">
-                                        <span>Retained Extra Fees:</span>
-                                        <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                            +{currency} {totalExtrasAmount.toLocaleString()}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* SUPPLIER MODE: Base Rate + Extra Charges & Services */}
-                {isSupplier && (
-                    <div className="space-y-2.5">
-                        {/* Standard Base Price using UI Input */}
+                {/* Form Content */}
+                <form onSubmit={handleSubmit} className="space-y-2">
+                    {/* Proposed Amount Input */}
+                    <div>
                         <Input
-                            label={`Base Freight Price (${currency}) *`}
+                            label={isSupplier ? `Base Freight Rate (${currency}) *` : `Proposed Counter Rate (${currency}) *`}
                             type="number"
                             min="1"
                             step="any"
                             required
-                            value={baseFreightInput}
-                            onChange={e => setBaseFreightInput(e.target.value)}
+                            value={proposedPrice}
+                            onChange={e => setProposedPrice(e.target.value)}
                             placeholder="0.00"
-                            icon={<span className="text-slate-400 font-bold text-xs">€</span>}
-                            className="font-bold text-sm"
+                            icon={<span className="text-slate-400 font-bold text-xs">{currency}</span>}
+                            className="!h-[32px] text-xs font-bold"
                             autoFocus
                         />
+                    </div>
 
-                        {/* Extra Fees Section */}
-                        <div className="space-y-2 pt-0.5 border-t border-slate-100 dark:border-slate-800">
+                    {/* Supplier Mode: Extra Charges */}
+                    {isSupplier && (
+                        <div className="space-y-1.5 pt-1 border-t border-slate-100 dark:border-slate-800">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                                    Additional Services & Fees
+                                <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                                    Additional Services
                                 </span>
-                                <span className="text-[10px] text-slate-400">
-                                    Select from dropdown to add/toggle
-                                </span>
-                            </div>
-
-                            {/* Dropdown Selector using UI Select with React Icons */}
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 min-w-0">
-                                    <Select
-                                        value={activeTypesForSelect}
-                                        multiple={true}
-                                        onChange={handleSelectDropdownService}
-                                        placeholder="Select / Add Additional Services..."
-                                        options={selectOptions}
-                                        showSearch={false}
-                                        size="sm"
-                                        className="text-xs !h-[34px] rounded-md"
-                                    />
-                                </div>
-
                                 {!showAddCustom && (
                                     <button
                                         type="button"
                                         onClick={() => setShowAddCustom(true)}
-                                        className="h-[34px] px-2.5 rounded-md text-[11.5px] font-semibold flex items-center gap-1 border border-dashed border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:border-slate-400 bg-slate-50 dark:bg-slate-800 cursor-pointer shrink-0"
+                                        className="text-[10.5px] font-semibold text-[#ff4a1f] hover:underline cursor-pointer flex items-center gap-0.5"
                                     >
                                         <Plus size={11} />
-                                        <span>Custom Fee</span>
+                                        <span>Add Custom</span>
                                     </button>
                                 )}
                             </div>
 
-                            {/* Custom Fee Adder Row */}
+                            <Select
+                                value={activeTypesForSelect}
+                                multiple={true}
+                                onChange={handleSelectDropdownService}
+                                placeholder="Select additional services..."
+                                options={selectOptions}
+                                showSearch={false}
+                                size="sm"
+                                className="text-[11px] !h-[30px] rounded"
+                            />
+
                             {showAddCustom && (
-                                <div className="flex items-center gap-1.5 p-2 bg-slate-50 dark:bg-slate-800/80 rounded-md border border-slate-200 dark:border-slate-700 animate-in fade-in-0 duration-150">
-                                    <div className="flex-1 min-w-0">
-                                        <Input
-                                            placeholder="Service Name (e.g. Weekend Delivery)"
-                                            value={customChargeName}
-                                            onChange={e => setCustomChargeName(e.target.value)}
-                                            className="!h-[32px] text-xs"
-                                            autoFocus
-                                        />
-                                    </div>
-                                    <div className="w-24 shrink-0">
-                                        <Input
-                                            type="number"
-                                            placeholder="0.00"
-                                            value={customChargeAmount}
-                                            onChange={e => setCustomChargeAmount(e.target.value)}
-                                            icon={<span className="text-slate-400 font-bold text-[11px]">€</span>}
-                                            className="!h-[32px] text-right font-bold text-xs"
-                                        />
-                                    </div>
+                                <div className="flex items-center gap-1 p-1.5 bg-slate-50 dark:bg-slate-800/80 rounded border border-slate-200 dark:border-slate-700">
+                                    <input
+                                        type="text"
+                                        placeholder="Service Name"
+                                        value={customChargeName}
+                                        onChange={e => setCustomChargeName(e.target.value)}
+                                        className="flex-1 min-w-0 h-[26px] px-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px]"
+                                        autoFocus
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={customChargeAmount}
+                                        onChange={e => setCustomChargeAmount(e.target.value)}
+                                        className="w-16 h-[26px] px-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-bold text-right"
+                                    />
                                     <button
                                         type="button"
                                         onClick={handleAddCustomCharge}
-                                        className="h-[32px] px-3 rounded-md bg-[#FF4A1F] text-white text-xs font-bold hover:bg-[#E03E15] cursor-pointer shrink-0"
+                                        className="h-[26px] px-2 rounded bg-[#ff4a1f] text-white text-[10.5px] font-bold hover:bg-[#e03e15] cursor-pointer shrink-0"
                                     >
                                         Add
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setShowAddCustom(false)}
-                                        className="h-[32px] px-1.5 text-slate-400 hover:text-slate-600 cursor-pointer text-xs"
+                                        className="h-[26px] px-1 text-slate-400 hover:text-slate-600 cursor-pointer text-xs"
                                     >
                                         ✕
                                     </button>
                                 </div>
                             )}
 
-                            {/* Active Extra Charges: Compact 2-Column Grid with Lucide React Icons */}
                             {supplierExtras.length > 0 && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-0.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-0.5">
+                                <div className="space-y-1 pt-0.5 max-h-[100px] overflow-y-auto custom-scrollbar">
                                     {supplierExtras.map((extra, idx) => {
                                         const meta = getChargeMeta(extra);
                                         const ChargeIcon = meta.icon || getServiceIcon(extra.customName || extra.type);
                                         return (
                                             <div
                                                 key={extra.id ? `extra-${extra.id}` : `extra-${extra.type}-${idx}`}
-                                                className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/90 text-xs shadow-2xs"
+                                                className="flex items-center justify-between gap-1.5 px-2 py-1 rounded bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-[11px]"
                                             >
                                                 <div className="flex items-center gap-1.5 truncate flex-1 min-w-0" title={meta.label}>
-                                                    <ChargeIcon size={13} className="text-[#FF4A1F] shrink-0" />
-                                                    <span className="font-semibold text-slate-800 dark:text-slate-200 text-[11.5px] truncate">
+                                                    <ChargeIcon size={12} className="text-[#ff4a1f] shrink-0" />
+                                                    <span className="font-medium text-slate-700 dark:text-slate-300 truncate">
                                                         {meta.label}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-1 shrink-0">
-                                                    <div className="w-24">
-                                                        <Input
-                                                            type="number"
-                                                            min="0"
-                                                            step="any"
-                                                            value={extra.amount || ''}
-                                                            onChange={e => handleUpdateExtraAmount(idx, e.target.value)}
-                                                            icon={<span className="text-slate-400 font-bold text-[10.5px]">€</span>}
-                                                            className="!h-[30px] text-right font-bold text-xs"
-                                                        />
-                                                    </div>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="any"
+                                                        value={extra.amount || ''}
+                                                        onChange={e => handleUpdateExtraAmount(idx, e.target.value)}
+                                                        className="w-16 h-[22px] px-1 text-right font-bold text-[11px] rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900"
+                                                    />
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveExtra(idx)}
-                                                        className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md transition-colors cursor-pointer shrink-0"
-                                                        title="Remove charge"
+                                                        className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-rose-500 rounded cursor-pointer shrink-0"
+                                                        title="Remove"
                                                     >
-                                                        <Trash2 size={12} />
+                                                        <Trash2 size={11} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -633,96 +547,43 @@ export function CounterOfferModal({
                                 </div>
                             )}
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Ultra-Compact & Clean Payment Breakdown */}
-                <div className="rounded-lg bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 p-2 text-xs">
-                    <div className="flex items-center justify-between text-[11px] pb-1 border-b border-slate-200/60 dark:border-slate-700/60">
-                        <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                            <ReceiptText size={11} className="text-[#FF4A1F]" /> Payment Breakdown
-                        </span>
-                        <span className="text-[10px] text-slate-400">Currency: {currency}</span>
-                    </div>
-
-                    <div className="py-1 space-y-0.5 text-[11px]">
-                        <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                            <span>Base Freight Rate</span>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">
-                                {currency} {isSupplier 
-                                    ? supplierBaseNum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                                    : (customerMode === 'lump_sum' 
-                                        ? customerProposedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                                        : (Number(baseFreightInput) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                                    )
-                                }
-                            </span>
-                        </div>
-
-                        {((isSupplier && supplierExtras.length > 0) || (!isSupplier && customerMode === 'itemized' && totalExtrasAmount > 0)) && (
-                            <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                                <span>Additional Services ({isSupplier ? supplierExtras.length : 'retained'} items)</span>
-                                <span className="font-semibold text-[#FF4A1F]">
-                                    +{currency} {totalExtrasAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </span>
-                            </div>
-                        )}
+                    {/* Optional Note Input */}
+                    <div>
+                        <Input
+                            placeholder="Add a reason or condition (optional)..."
+                            value={notes}
+                            onChange={e => setNotes(e.target.value)}
+                            className="!h-[32px] text-xs"
+                        />
                     </div>
 
-                    {/* Compact Total Row */}
-                    <div className="pt-1.5 border-t border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between bg-orange-50/70 dark:bg-orange-950/35 -mx-2 -mb-2 px-2.5 py-1.5 rounded-b-lg">
-                        <span className="font-bold text-slate-900 dark:text-white text-xs">
-                            {isSupplier ? 'Total Offer Amount' : 'Total Proposed Rate'}
-                        </span>
-                        <span className="text-sm sm:text-base font-black text-[#FF4A1F]">
-                            {currency} {finalProposedAmount > 0 ? finalProposedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                        </span>
+                    {/* Bottom Action Buttons: Compact Equal Height Grid matching Payment Modal */}
+                    <div className="grid grid-cols-2 gap-2 pt-1 w-full">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="w-full h-[26px] px-2 rounded-[4px] border border-slate-300 dark:border-slate-700 hover:border-slate-400 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10.5px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                        >
+                            <span>Cancel</span>
+                        </button>
+
+                        <button
+                            type="submit"
+                            disabled={finalAmountNum <= 0}
+                            className="w-full h-[26px] px-2 rounded-[4px] border border-[#ff4a1f] bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer shadow-2xs whitespace-nowrap shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span>{isSupplier ? 'Submit Offer' : 'Send Counter'}</span>
+                            {finalAmountNum > 0 && (
+                                <span>({currency} {finalAmountNum.toLocaleString()})</span>
+                            )}
+                        </button>
                     </div>
-                </div>
-
-                {/* Notes & Terms Section using UI Textarea */}
-                <Textarea
-                    label="Notes or Conditions (Optional)"
-                    rows={2}
-                    placeholder={
-                        isSupplier
-                            ? 'e.g. Valid for 48 hours, includes priority delivery...'
-                            : 'e.g. Ready to confirm load immediately at this rate...'
-                    }
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    className="min-h-[55px] text-xs resize-none"
-                />
-
-                {/* Modal Footer Actions */}
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={onClose}
-                        className="!h-8 px-4 rounded-md text-xs font-semibold border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        size="sm"
-                        disabled={finalProposedAmount <= 0}
-                        className="!h-8 px-4 rounded-md text-xs font-bold disabled:opacity-50 flex items-center gap-1.5 bg-[#FF4A1F] hover:bg-[#E03E15] text-white shadow-2xs transition-all cursor-pointer"
-                    >
-                        <span>{isSupplier ? 'Submit Offer' : 'Send Counter'}</span>
-                        {finalProposedAmount > 0 && (
-                            <span className="font-semibold opacity-95">
-                                ({currency} {finalProposedAmount.toLocaleString()})
-                            </span>
-                        )}
-                        <ArrowRight size={13} />
-                    </Button>
-                </div>
-            </form>
-        </Modal>
+                </form>
+            </div>
+        </div>,
+        document.body
     );
 }
 

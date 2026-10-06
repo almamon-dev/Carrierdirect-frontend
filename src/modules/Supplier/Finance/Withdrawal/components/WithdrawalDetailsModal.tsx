@@ -85,10 +85,12 @@ export const WithdrawalDetailsModal: React.FC<WithdrawalDetailsModalProps> = ({
                         <span className="font-bold text-slate-900 dark:text-slate-100">{item.amount}</span>
                     </div>
 
-                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">Carrier Direct Platform Fee</span>
-                        <span className="font-semibold text-rose-600 dark:text-rose-400">-{item.fee}</span>
-                    </div>
+                    {item.fee && item.fee !== "€ 0.00" && item.fee !== "€0.00" && item.fee !== "€0" && item.fee !== "0" && (
+                        <div className="flex items-center justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">Carrier Direct Platform Fee</span>
+                            <span className="font-semibold text-rose-600 dark:text-rose-400">-{item.fee}</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Stripe Trust Note */}

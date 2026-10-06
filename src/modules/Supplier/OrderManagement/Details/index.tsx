@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import apiClient from '@/lib/axios';
 import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
+import { encryptId, decryptId } from '@/lib/encryption';
 
 import SupplierOrderHeader from './components/SupplierOrderHeader';
 import SupplierMapSection from './components/SupplierMapSection';
@@ -36,7 +37,19 @@ export default function OrderDetails() {
     const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
     const [actionMessage, setActionMessage] = useState<string | null>(null);
 
-    const cleanId = paramId ? String(paramId).replace(/^ORD-0*/i, '') : '1';
+    // Decrypt incoming token if encrypted, otherwise normalize raw ID
+    const decryptedRawId = decryptId(paramId);
+    const cleanId = decryptedRawId 
+        ? String(decryptedRawId).replace(/^ORD-0*/i, '') 
+        : (paramId ? String(paramId).replace(/^ORD-0*/i, '') : '1');
+
+    // Obfuscate URL: If accessed via unencrypted plain ID (e.g. /supplier/orders/details/1), replace with encrypted URL
+    useEffect(() => {
+        if (paramId && !paramId.startsWith('enc_') && !paramId.startsWith('sec_') && !paramId.startsWith('q_')) {
+            const encrypted = encryptId(cleanId || paramId);
+            navigate(`/supplier/orders/details/${encrypted}`, { replace: true, state: location.state });
+        }
+    }, [paramId, cleanId, navigate, location.state]);
 
     useEffect(() => {
         let isMounted = true;
@@ -47,7 +60,7 @@ export default function OrderDetails() {
                     const data = res.data?.data || res.data;
                     if (!isMounted || !data) return;
                     setApiOrder(data);
-                    if (data.status === 'completed' || data.status === 'delivered') {
+                    if (data.status === 'completed' || data.status === 'pod_accepted' || data.pod_status === 'confirmed') {
                         setIsPodUploaded(true);
                     }
                 })

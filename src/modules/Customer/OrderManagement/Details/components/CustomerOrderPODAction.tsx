@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Check, ShieldCheck, X, CheckCircle2, UserCheck, MapPin, Truck, ExternalLink } from 'lucide-react';
+import { FileText, Check, ShieldCheck, X, CheckCircle2, UserCheck, ExternalLink, Clock, MapPin, Truck } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
 
@@ -40,9 +40,26 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
                         <p className="text-[11px] text-emerald-700 dark:text-emerald-400 leading-snug">
                             Delivery verified and signed. Escrow funds released to the carrier.
                         </p>
-                        <div className="pt-1 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
-                            <span>Receipt ID: <strong className="font-mono">{order.id}-POD</strong></span>
-                        </div>
+                        {order.pod.uploadedAt && (
+                            <div className="pt-1 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400">
+                                <Clock size={11} className="shrink-0" />
+                                <span>Submitted: {order.pod.uploadedAt}</span>
+                            </div>
+                        )}
+                        {order.pod.fileUrl && (
+                            <div className="pt-1">
+                                <a
+                                    href={order.pod.fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                                >
+                                    <FileText size={11} />
+                                    <span>View POD Document</span>
+                                    <ExternalLink size={10} />
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -51,11 +68,16 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
 
     // State 2: POD Uploaded & Ready for Customer Review/Approval
     if (order.pod.isAvailable) {
-        const receiverName = order.pod.receiverName || order.delivery?.contactName || 'Receiving Logistics Dept.';
-        const carrierDriver = order.driver?.name 
-            ? `${order.driver.name} (${order.vehicle?.number || 'Fleet Vehicle'})`
-            : order.supplier?.name || 'Carrier Direct Partner';
-        const deliveryAddress = order.delivery?.address || `${order.delivery?.city || 'Destination'}`;
+        const receiverName = order.pod.receiverName || (order.delivery as any)?.contactName || '';
+        const carrierDriver = order.driver?.name
+            ? `${order.driver.name}${order.vehicle?.number ? ' (' + order.vehicle.number + ')' : ''}`
+            : order.supplier?.name || '';
+        const deliveryAddress = order.delivery?.address || order.delivery?.city || '';
+        const uploadedAt = order.pod.uploadedAt || '';
+        const fileUrl = order.pod.fileUrl || '';
+        const isPdf = fileUrl.toLowerCase().includes('.pdf');
+        const isImage = /\.(jpg|jpeg|png|webp|gif)/i.test(fileUrl);
+        const fileName = order.pod.fileName || (fileUrl ? fileUrl.split('/').pop() : '') || '';
 
         return (
             <>
@@ -71,6 +93,12 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
                             <p className="text-[11px] text-amber-800/90 dark:text-amber-400 leading-snug">
                                 Driver submitted delivery confirmation & signature. Please review to release escrow.
                             </p>
+                            {uploadedAt && (
+                                <div className="flex items-center gap-1 text-[10.5px] text-amber-700/80 dark:text-amber-500">
+                                    <Clock size={10} className="shrink-0" />
+                                    <span>Submitted: {uploadedAt}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -96,7 +124,7 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
                     </div>
                 </div>
 
-                {/* Minimal & Compact POD Review Modal with Full In-Depth Details */}
+                {/* POD Review Modal */}
                 {isOpenModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150 font-sans">
                         <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
@@ -123,9 +151,53 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
                                 </button>
                             </div>
 
-                            {/* Modal Content - In-Depth & Compact */}
+                            {/* Modal Content */}
                             <div className="p-3.5 sm:p-4 space-y-3 overflow-y-auto font-sans text-xs">
-                                {/* Digital Signature / Document Preview Card */}
+
+                                {/* POD File Preview */}
+                                {fileUrl && (
+                                    <div className="border border-slate-200 dark:border-slate-700/80 rounded-lg overflow-hidden">
+                                        <div className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                <FileText size={12} className="text-[#ff4a1f] shrink-0" />
+                                                <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 truncate">
+                                                    {fileName || 'POD Document'}
+                                                </span>
+                                            </div>
+                                            <a
+                                                href={fileUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="ml-2 shrink-0 text-[11px] font-semibold text-[#ff4a1f] hover:underline flex items-center gap-0.5"
+                                            >
+                                                <ExternalLink size={10} />
+                                                <span>Open</span>
+                                            </a>
+                                        </div>
+                                        {isImage ? (
+                                            <img
+                                                src={fileUrl}
+                                                alt="Proof of Delivery"
+                                                className="w-full h-auto max-h-[280px] object-contain bg-slate-50 dark:bg-slate-900/50"
+                                            />
+                                        ) : isPdf ? (
+                                            <iframe
+                                                src={fileUrl}
+                                                title="POD Document"
+                                                className="w-full h-[280px] bg-slate-50 dark:bg-slate-900/50"
+                                            />
+                                        ) : (
+                                            <div className="p-6 flex flex-col items-center justify-center gap-2 bg-slate-50 dark:bg-slate-900/50">
+                                                <FileText size={32} className="text-[#ff4a1f]" />
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center">
+                                                    {fileName || 'POD Document attached'}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Signature section */}
                                 <div className="border border-slate-200 dark:border-slate-700/80 rounded-lg p-3 bg-slate-50/70 dark:bg-slate-900/40 space-y-2">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
@@ -144,77 +216,68 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
                                                 alt="Receiver Signature"
                                                 className="max-h-20 object-contain"
                                             />
-                                            <p className="text-[10px] text-slate-400 mt-1">
-                                                Signed by: <strong className="text-slate-700 dark:text-slate-300">{receiverName}</strong>
-                                            </p>
+                                            {receiverName && (
+                                                <p className="text-[10px] text-slate-400 mt-1">
+                                                    Signed by: <strong className="text-slate-700 dark:text-slate-300">{receiverName}</strong>
+                                                </p>
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="border border-dashed border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-[#12161c] p-2.5 flex items-center justify-center gap-2">
                                             <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                                             <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                                                Electronic Delivery Confirmed by {receiverName}
+                                                {receiverName ? `Electronic Delivery Confirmed by ${receiverName}` : 'Electronic Delivery Confirmed'}
                                             </span>
-                                        </div>
-                                    )}
-
-                                    {/* Document link if physical file attached */}
-                                    {order.pod.fileUrl && (
-                                        <div className="pt-1.5 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px]">
-                                            <div className="flex items-center gap-1.5 truncate">
-                                                <FileText size={12} className="text-[#ff4a1f] shrink-0" />
-                                                <span className="text-slate-700 dark:text-slate-300 font-medium truncate">
-                                                    {order.pod.fileName || 'Signed_Delivery_Note.pdf'}
-                                                </span>
-                                            </div>
-                                            <a
-                                                href={order.pod.fileUrl}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="text-[#ff4a1f] hover:underline font-semibold text-[11px] shrink-0 flex items-center gap-0.5 ml-2"
-                                            >
-                                                <span>View</span>
-                                                <ExternalLink size={10} />
-                                            </a>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Detailed Order & Delivery Specs Grid */}
+                                {/* Delivery Details */}
                                 <div className="bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700/80 space-y-1.5 text-[11.5px]">
-                                    <div className="flex justify-between items-start gap-2">
-                                        <span className="text-slate-500 shrink-0">Delivery Point:</span>
-                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right leading-tight">
-                                            {deliveryAddress}
-                                        </span>
+                                    {deliveryAddress && (
+                                        <div className="flex items-start gap-2">
+                                            <MapPin size={12} className="text-slate-400 shrink-0 mt-0.5" />
+                                            <div className="min-w-0">
+                                                <span className="text-slate-500">Delivery Point: </span>
+                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{deliveryAddress}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {receiverName && (
+                                        <div className="flex items-start gap-2">
+                                            <UserCheck size={12} className="text-slate-400 shrink-0 mt-0.5" />
+                                            <div>
+                                                <span className="text-slate-500">Recipient: </span>
+                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{receiverName}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {carrierDriver && (
+                                        <div className="flex items-start gap-2">
+                                            <Truck size={12} className="text-slate-400 shrink-0 mt-0.5" />
+                                            <div>
+                                                <span className="text-slate-500">Carrier / Driver: </span>
+                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{carrierDriver}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {uploadedAt && (
+                                        <div className="flex items-start gap-2">
+                                            <Clock size={12} className="text-slate-400 shrink-0 mt-0.5" />
+                                            <div>
+                                                <span className="text-slate-500">Submitted: </span>
+                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{uploadedAt}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/60 mt-1">
+                                        <span className="text-slate-500">Escrow Payout:</span>
+                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{order.pricing?.totalFormatted || '€ 0.00'}</span>
                                     </div>
-
-                                    <div className="flex justify-between items-center gap-2">
-                                        <span className="text-slate-500 shrink-0">Recipient Signer:</span>
-                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right">
-                                            {receiverName}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex justify-between items-center gap-2">
-                                        <span className="text-slate-500 shrink-0">Carrier / Driver:</span>
-                                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right">
-                                            {carrierDriver}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex justify-between items-center gap-2">
-                                        <span className="text-slate-500 shrink-0">Escrow Payout:</span>
-                                        <span className="font-bold text-emerald-600 dark:text-emerald-400 text-right">
-                                            {order.pricing?.totalFormatted || '€ 0.00'}
-                                        </span>
-                                    </div>
-
                                     {order.pod.note && (
-                                        <div className="flex justify-between items-start gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/60">
-                                            <span className="text-slate-500 shrink-0">Remarks:</span>
-                                            <span className="font-medium text-slate-700 dark:text-slate-300 text-right italic">
-                                                "{order.pod.note}"
-                                            </span>
+                                        <div className="flex items-start gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/60">
+                                            <span className="text-slate-500">Remarks: </span>
+                                            <span className="font-medium text-slate-700 dark:text-slate-300 italic">"{order.pod.note}"</span>
                                         </div>
                                     )}
                                 </div>
@@ -244,7 +307,7 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
                                     className="h-8 px-4 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white flex items-center gap-1.5 cursor-pointer shadow-2xs"
                                 >
                                     <Check size={13} />
-                                    <span>{isSubmitting ? 'Releasing Escrow...' : 'Accept & Release Escrow'}</span>
+                                    <span>{isSubmitting ? 'Accepting...' : 'Accept'}</span>
                                 </Button>
                             </div>
                         </div>

@@ -149,7 +149,7 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                     <input
                         type="text"
-                        placeholder="Search conversations..."
+                        placeholder="Search conversations"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full h-[36px] pl-9 pr-4 text-[12.5px] bg-slate-100 dark:bg-[#181d24] border-none outline-none focus:outline-none focus:ring-0 rounded-full text-slate-800 dark:text-slate-200 placeholder-slate-400"
@@ -167,7 +167,7 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
                         : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
                         }`}
                 >
-                    All ({conversations.length})
+                    All {!isLoading && `(${conversations.length})`}
                 </button>
 
                 <button
@@ -178,13 +178,15 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
                         : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
                         }`}
                 >
-                    Unread {unreadTotal > 0 && `(${unreadTotal})`}
+                    Unread {!isLoading && unreadTotal > 0 && `(${unreadTotal})`}
                 </button>
             </div>
 
             {/* List Body with hidden scrollbar */}
             <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {filteredConversations.length === 0 ? (
+                {isLoading && conversations.length === 0 ? (
+                    <GeneralChatSidebarSkeleton />
+                ) : filteredConversations.length === 0 ? (
                     <div className="p-6 text-center text-xs text-slate-400 flex flex-col items-center">
                         <MessageSquare size={26} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
                         <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No chats found</p>

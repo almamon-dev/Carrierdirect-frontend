@@ -6,6 +6,7 @@
 import React from 'react';
 import { Column } from '@/components/tables/data-table';
 import { HeaderNotification } from '@/hooks/useHeaderNotifications';
+import Skeleton from '@/components/ui/skeleton';
 import { 
     Truck, MessageSquare, Euro, AlertTriangle, Clock, ShieldCheck
 } from 'lucide-react';
@@ -32,6 +33,7 @@ export const getNotificationColumns = (): Column<HeaderNotification>[] => [
         id: 'type',
         label: 'Category',
         className: 'w-[125px]',
+        skeleton: () => <Skeleton className="h-6 w-20 rounded-[3px]" />,
         render: (row) => {
             const config = getCategoryConfig(row.type);
             const Icon = config.icon;
@@ -49,6 +51,12 @@ export const getNotificationColumns = (): Column<HeaderNotification>[] => [
         id: 'title',
         label: 'Notification Detail',
         className: 'min-w-[320px]',
+        skeleton: () => (
+            <div className="py-1 space-y-1.5">
+                <Skeleton className="h-3.5 w-44 rounded-[2px]" />
+                <Skeleton className="h-3 w-72 rounded-[2px]" />
+            </div>
+        ),
         render: (row) => (
             <div className="py-0.5 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5 flex-nowrap min-w-0">
@@ -76,6 +84,7 @@ export const getNotificationColumns = (): Column<HeaderNotification>[] => [
         id: 'time',
         label: 'Time',
         className: 'w-[105px]',
+        skeleton: () => <Skeleton className="h-3 w-14 rounded-[2px]" />,
         render: (row) => (
             <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
                 <Clock size={11} className="text-slate-400 shrink-0" />
@@ -87,6 +96,7 @@ export const getNotificationColumns = (): Column<HeaderNotification>[] => [
         id: 'status',
         label: 'Status',
         className: 'w-[95px]',
+        skeleton: () => <Skeleton className="h-5 w-14 rounded-[2px]" />,
         render: (row) => (
             row.unread ? (
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#ff4a1f] bg-orange-50 dark:bg-[#ff4a1f]/15 px-2 py-0.5 rounded-[2px] border border-orange-200/60 dark:border-orange-500/20 whitespace-nowrap">

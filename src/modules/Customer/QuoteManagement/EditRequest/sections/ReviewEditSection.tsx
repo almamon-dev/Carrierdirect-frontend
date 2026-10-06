@@ -1,14 +1,15 @@
 /**
  * Review & Save Edit Section Component
- * Displays a complete summary of the edited quote request before submitting updates.
+ * Clean, flat specification review without nested cards inside cards.
  */
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Save, MapPin, Truck, Euro, Paperclip, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, Save, MapPin, Truck, X } from 'lucide-react';
 import Button from '@/components/ui/button';
 import TabHeader from '@/components/ui/tab-header';
 import { QuoteFormData } from '../../CreateRequest/types/formTypes';
+import { formatCurrency } from '@/lib/utils';
 
 interface ReviewEditSectionProps {
     formData: QuoteFormData;
@@ -29,100 +30,158 @@ export const ReviewEditSection: React.FC<ReviewEditSectionProps> = ({
 
     return (
         <div className="space-y-4 animate-in fade-in duration-300">
-            <TabHeader title="Review & Update Request" icon={CheckCircle2} />
+            <TabHeader title="Summary & Specification Review" icon={CheckCircle2} />
 
-            <div
-    className="bg-slate-50/80 dark:bg-[#181d24] border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3.5 text-xs">
-                {/* Header Info */}
-                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs">
+                {/* Header Title & Status */}
+                <div className="col-span-1 md:col-span-2 pb-2.5 mb-1 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <div>
                         <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm tracking-tight">
                             {formData.requestTitle || '-'}
                         </h4>
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium text-[11px] mt-1">
-                            <span>Priority: <strong className="text-red-600 dark:text-red-400 font-bold">{formData.priority || '-'}</strong></span>
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium text-[11.5px] mt-0.5">
+                            <span>Priority: <strong className="text-red-600 dark:text-red-400 font-semibold">{formData.priority || 'Normal'}</strong></span>
                             <span>•</span>
-                            <span>Type: <strong className="text-slate-700 dark:text-slate-300">{formData.shipmentType || '-'}</strong> ({formData.serviceType || '-'})</span>
+                            <span>Type: <strong className="text-slate-700 dark:text-slate-300">{formData.shipmentType || 'One Way'}</strong> ({formData.serviceType || 'Standard'})</span>
                         </div>
+                    </div>
+                    <span className="text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60 text-xs">
+                        Ready to Update
+                    </span>
+                </div>
+
+                {/* Pickup Section */}
+                <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-purple-700 dark:text-purple-400 mb-1">
+                        <MapPin size={14} /> Pickup Details
+                    </div>
+                    <div className="grid grid-cols-[110px_10px_1fr] items-start text-[12.5px]">
+                        <span className="text-slate-500 font-medium">Location</span>
+                        <span className="text-slate-400">:</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">{pickupLocation}</span>
+                    </div>
+                    {formData.pickupAddress && (
+                        <div className="grid grid-cols-[110px_10px_1fr] items-start text-[12.5px]">
+                            <span className="text-slate-500 font-medium">Address</span>
+                            <span className="text-slate-400">:</span>
+                            <span className="text-slate-700 dark:text-slate-300">{formData.pickupAddress}</span>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-[110px_10px_1fr] items-start text-[12.5px]">
+                        <span className="text-slate-500 font-medium">Schedule</span>
+                        <span className="text-slate-400">:</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            {formData.pickupDate || '-'} {formData.pickupTime && `at ${formData.pickupTime}`}
+                        </span>
                     </div>
                 </div>
 
-                {/* Route */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 py-1">
-                    <div
-    className="flex items-start gap-2 bg-white dark:bg-[#1e2329] p-2.5 rounded border border-slate-200/80 dark:border-slate-800">
-                        <MapPin size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                        <div>
-                            <span className="text-[11px] font-bold text-slate-400  tracking-wider block">Pickup</span>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200 block">{pickupLocation}</span>
-                            <span className="text-[11px] text-slate-500">{formData.pickupDate} {formData.pickupTime && `at ${formData.pickupTime}`}</span>
-                        </div>
+                {/* Delivery Section */}
+                <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                        <MapPin size={14} /> Delivery Details
                     </div>
-
-                    <div
-    className="flex items-start gap-2 bg-white dark:bg-[#1e2329] p-2.5 rounded border border-slate-200/80 dark:border-slate-800">
-                        <MapPin size={15} className="text-red-500 shrink-0 mt-0.5" />
-                        <div>
-                            <span className="text-[11px] font-bold text-slate-400  tracking-wider block">Delivery</span>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200 block">{deliveryLocation}</span>
-                            <span className="text-[11px] text-slate-500">{formData.deliveryDate || 'Flexible'} {formData.deliveryTime && `at ${formData.deliveryTime}`}</span>
+                    <div className="grid grid-cols-[110px_10px_1fr] items-start text-[12.5px]">
+                        <span className="text-slate-500 font-medium">Location</span>
+                        <span className="text-slate-400">:</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">{deliveryLocation}</span>
+                    </div>
+                    {formData.deliveryAddress && (
+                        <div className="grid grid-cols-[110px_10px_1fr] items-start text-[12.5px]">
+                            <span className="text-slate-500 font-medium">Address</span>
+                            <span className="text-slate-400">:</span>
+                            <span className="text-slate-700 dark:text-slate-300">{formData.deliveryAddress}</span>
                         </div>
+                    )}
+                    <div className="grid grid-cols-[110px_10px_1fr] items-start text-[12.5px]">
+                        <span className="text-slate-500 font-medium">Schedule</span>
+                        <span className="text-slate-400">:</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            {formData.deliveryDate || 'Flexible'} {formData.deliveryTime && `at ${formData.deliveryTime}`}
+                        </span>
                     </div>
                 </div>
 
-                {/* Cargo & Budget */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-1 border-t border-slate-200 dark:border-slate-800 pt-2.5">
-                    <div
-    className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
-                        <span className="text-[10px] text-slate-400 font-bold  block">Vehicle</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate block">{formData.vehicleType || '-'}</span>
+                {/* Cargo & Pricing Specifications */}
+                <div className="col-span-1 md:col-span-2 pt-3 mt-1 border-t border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
+                        <Truck size={14} className="text-[#ff4a1f]" /> Cargo & Pricing Specifications
                     </div>
-                    <div
-    className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
-                        <span className="text-[10px] text-slate-400 font-bold  block">Weight / Pallets</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs block">{formData.weight ? `${formData.weight} kg` : '-'} / {formData.palletsCount || '-'}</span>
-                    </div>
-                    <div
-    className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
-                        <span className="text-[10px] text-slate-400 font-bold  block">Target Budget</span>
-                        <span className="font-bold text-[#ff4a1f] text-xs block">{formData.budget ? `${formData.currency}${formData.budget}` : 'Negotiable'}</span>
-                    </div>
-                    <div
-    className="bg-white dark:bg-[#1e2329] p-2 rounded border border-slate-200/80 dark:border-slate-800">
-                        <span className="text-[10px] text-slate-400 font-bold  block">Services Active</span>
-                        <span className="font-semibold text-emerald-600 text-xs block">{servicesCount} selected</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1.5 text-[12.5px]">
+                        <div className="grid grid-cols-[140px_10px_1fr] items-start">
+                            <span className="text-slate-500 font-medium">Vehicle Type</span>
+                            <span className="text-slate-400">:</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{formData.vehicleType || '-'}</span>
+                        </div>
+                        <div className="grid grid-cols-[140px_10px_1fr] items-start">
+                            <span className="text-slate-500 font-medium">Load & Pallets</span>
+                            <span className="text-slate-400">:</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                {formData.loadType || '-'} {formData.palletsCount ? `(${formData.palletsCount} Pallets)` : ''}
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-[140px_10px_1fr] items-start">
+                            <span className="text-slate-500 font-medium">Total Weight</span>
+                            <span className="text-slate-400">:</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{formData.weight ? `${formData.weight} KG` : '-'}</span>
+                        </div>
+                        <div className="grid grid-cols-[140px_10px_1fr] items-start">
+                            <span className="text-slate-500 font-medium">Target Budget</span>
+                            <span className="text-slate-400">:</span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                {formatCurrency(formData.budget, formData.currency)}
+                            </span>
+                        </div>
+                        {servicesCount > 0 && (
+                            <div className="grid grid-cols-[140px_10px_1fr] items-start">
+                                <span className="text-slate-500 font-medium">Active Services</span>
+                                <span className="text-slate-400">:</span>
+                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{servicesCount} Options Selected</span>
+                            </div>
+                        )}
+                        {formData.internalReference && (
+                            <div className="grid grid-cols-[140px_10px_1fr] items-start">
+                                <span className="text-slate-500 font-medium">Internal Ref ID</span>
+                                <span className="text-slate-400">:</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">{formData.internalReference}</span>
+                            </div>
+                        )}
+                        {formData.customerNotes && (
+                            <div className="col-span-1 md:col-span-2 grid grid-cols-[140px_10px_1fr] items-start pt-1">
+                                <span className="text-slate-500 font-medium">Customer Notes</span>
+                                <span className="text-slate-400">:</span>
+                                <span className="text-slate-700 dark:text-slate-300">{formData.customerNotes}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Action Bar */}
-            <div
-    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3">
-                <div className="flex flex-col sm:flex-row gap-2.5">
-                    <Button
-                        variant="primary"
-                        className="flex-1 h-[40px] text-[14px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-60"
-                        onClick={onSaveUpdate}
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        <span>{isSubmitting ? 'Updating Request...' : 'Save & Update Changes'}</span>
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="h-[40px] px-5 text-[14px] cursor-pointer"
-                        onClick={() => navigate('/customer/quotes/create')}
-                    >
-                        Cancel
-                    </Button>
-                </div>
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-4 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] font-semibold text-xs flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
+                    onClick={() => navigate('/customer/quotes/create')}
+                    disabled={isSubmitting}
+                >
+                    <X size={14} className="text-slate-500 dark:text-slate-400" />
+                    <span>Cancel</span>
+                </Button>
 
-                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded p-2.5 flex gap-2">
-                    <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-amber-800 dark:text-amber-300 font-medium leading-tight">
-                        Please ensure all required fields are filled out. Modifying this request will automatically notify bidding carriers.
-                    </p>
-                </div>
+                <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    className="h-9 px-5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    onClick={onSaveUpdate}
+                    isLoading={isSubmitting}
+                    disabled={isSubmitting}
+                >
+                    <Save size={14} />
+                    <span>Save & Update Changes</span>
+                </Button>
             </div>
         </div>
     );

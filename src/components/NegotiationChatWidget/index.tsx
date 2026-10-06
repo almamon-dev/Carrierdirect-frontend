@@ -1209,7 +1209,7 @@ export default function NegotiationChatWidget() {
                         {isMe ? 'U' : activeConv.avatar}
                       </div>
 
-                      <div className={`space-y-1 max-w-[85%] font-sans ${isMe ? 'items-end' : 'items-start'}`}>
+                      <div className={`space-y-1 w-fit max-w-[85%] sm:max-w-[75%] md:max-w-[62%] min-w-0 font-sans ${isMe ? 'items-end' : 'items-start'}`}>
                         <div className={`flex items-center gap-1.5 text-[10px] text-slate-400 font-sans ${isMe ? 'justify-end' : 'justify-start'}`}>
                           <span className="font-semibold text-slate-700 font-sans">{msg.senderName}</span>
                           <span>•</span>
@@ -1218,7 +1218,7 @@ export default function NegotiationChatWidget() {
 
                         {/* Counter Offer Card Bubble */}
                         {msg.isCounterOffer && (
-                          <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl space-y-2 font-sans shadow-2xs">
+                          <div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-[4px] space-y-2 font-sans shadow-2xs">
                             <div className="flex items-center justify-between gap-2 border-b border-emerald-200/60 pb-1.5 font-sans">
                               <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider font-sans">
                                 🏷️ Counter Offer
@@ -1239,7 +1239,7 @@ export default function NegotiationChatWidget() {
                             {msg.extraFeeItems && msg.extraFeeItems.length > 0 && (
                               <div className="pt-1.5 border-t border-emerald-200/60 space-y-1.5 text-[10px] text-emerald-900 font-sans">
                                 {msg.extraFeeItems.map((item, idx) => (
-                                  <div key={idx} className="bg-white/80 p-1.5 rounded-lg border border-emerald-200/40 font-sans">
+                                  <div key={idx} className="bg-white/80 p-1.5 rounded-[4px] border border-emerald-200/40 font-sans">
                                     <div className="flex items-center justify-between font-semibold font-sans">
                                       <span className="flex items-center gap-1 text-emerald-800 font-sans">
                                         <PlusCircle className="w-3 h-3 text-emerald-600 shrink-0" />
@@ -1267,7 +1267,7 @@ export default function NegotiationChatWidget() {
                         {msg.attachment && (
                           <div className="mt-1 font-sans">
                             {msg.attachment.type === 'image' && msg.attachment.url && (
-                              <div className="rounded-lg overflow-hidden border border-slate-200 max-w-xs shadow-2xs bg-white">
+                              <div className="rounded-[4px] overflow-hidden border border-slate-200 max-w-xs shadow-2xs bg-white">
                                 <img src={msg.attachment.url} alt={msg.attachment.name} className="max-h-44 w-full object-cover" />
                                 <p className="p-1.5 text-[10px] text-slate-500 font-normal bg-slate-50 border-t border-slate-100 truncate">
                                   {msg.attachment.name}
@@ -1275,8 +1275,8 @@ export default function NegotiationChatWidget() {
                               </div>
                             )}
                             {msg.attachment.type === 'file' && (
-                              <div className="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 shadow-2xs max-w-xs text-left">
-                                <div className="w-7 h-7 rounded-lg bg-orange-50 text-[#ff4a1f] flex items-center justify-center shrink-0">
+                              <div className="flex items-center gap-2 p-2 bg-white rounded-[4px] border border-slate-200 shadow-2xs max-w-xs text-left">
+                                <div className="w-7 h-7 rounded-[4px] bg-orange-50 text-[#ff4a1f] flex items-center justify-center shrink-0">
                                   <FileText className="w-3.5 h-3.5" />
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -1292,10 +1292,10 @@ export default function NegotiationChatWidget() {
                         {/* Standard Message Bubble */}
                         {!msg.isCounterOffer && (
                           <div
-                            className={`p-3 rounded-2xl text-xs leading-relaxed text-left shadow-2xs font-sans ${
+                            className={`p-3 rounded-[4px] text-xs leading-relaxed text-left shadow-2xs font-sans ${
                               isMe
-                                ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30 rounded-tr-xs'
-                                : 'bg-white border border-slate-200/90 text-slate-800 rounded-tl-xs'
+                                ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30'
+                                : 'bg-white border border-slate-200/90 text-slate-800'
                             }`}
                           >
                             <ExpandableText text={msg.text} limit={120} />

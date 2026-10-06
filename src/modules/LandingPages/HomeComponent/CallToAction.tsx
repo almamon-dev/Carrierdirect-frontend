@@ -3,11 +3,13 @@ import CallToActionImg from "@/assets/Images/CallToActionImg.png";
 import { Link } from "react-router-dom";
 import useScrollReveal from "@/Hooks/useScrollReveal";
 import { TOKEN_CONFIG } from "@/config/auth";
+import { getRoleDashboardUrl, getUserEffectiveRole } from "@/utils/roleDashboard";
 
 export default function CallToAction() {
-  const [authState, setAuthState] = useState<{ isLoggedIn: boolean; userType: string | null }>({
+  const [authState, setAuthState] = useState<{ isLoggedIn: boolean; userType: string | null; user: any | null }>({
     isLoggedIn: false,
     userType: null,
+    user: null,
   });
 
   useEffect(() => {
@@ -18,9 +20,10 @@ export default function CallToAction() {
       setAuthState({
         isLoggedIn: !!token,
         userType: user?.user_type || user?.role || null,
+        user,
       });
     } catch {
-      setAuthState({ isLoggedIn: false, userType: null });
+      setAuthState({ isLoggedIn: false, userType: null, user: null });
     }
   }, []);
 
@@ -60,9 +63,15 @@ export default function CallToAction() {
 
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
             {isLoggedIn ? (
-              <Link to={userType === "supplier" ? "/supplier/dashboard" : "/customer/dashboard"}>
+              <Link to={getRoleDashboardUrl(authState.user)}>
                 <button className="w-full sm:w-auto h-10 px-6 rounded-md bg-[#ff4a1f] text-white font-bold text-xs hover:bg-[#e63d15] hover:shadow-md transition-all duration-200">
-                  {userType === "supplier" ? "See Quote Requests" : "My Quotes"}
+                  {getUserEffectiveRole(authState.user) === "driver"
+                    ? "Driver Dashboard"
+                    : getUserEffectiveRole(authState.user) === "supplier"
+                    ? "See Quote Requests"
+                    : getUserEffectiveRole(authState.user) === "admin"
+                    ? "Admin Dashboard"
+                    : "My Quotes"}
                 </button>
               </Link>
             ) : (

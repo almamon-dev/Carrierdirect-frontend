@@ -1,0 +1,78 @@
+export type BillingFilterTab = "all" | "paid" | "due" | "overdue" | "in_escrow";
+
+export interface SupplierBillingItem {
+    id: string | number;
+    raw_id?: string | number;
+    rawId?: string | number;
+    invoice_number?: string;
+    order_id?: string | number;
+    order_number?: string;
+    orderId?: string;
+    quote_id?: string | number;
+    quote_request_id?: string | number;
+    description?: string;
+    amount?: string | number;
+    amount_raw?: number;
+    total_amount?: number;
+    total_amount_formatted?: string;
+    gross_amount?: number;
+    gross_amount_formatted?: string;
+    supplier_amount?: number;
+    net_amount?: number;
+    net_amount_formatted?: string;
+    platform_fee?: number;
+    currency?: string;
+    status?: string;
+    raw_status?: string;
+    status_raw?: string;
+    payment_stage?: string;
+    payment_stage_label?: string;
+    payment_method?: string;
+    payment_method_label?: string;
+    method?: string;
+    card_brand?: string;
+    brand?: string;
+    card_last4?: string;
+    last4?: string;
+    payment_terms?: string;
+    terms?: string;
+    is_pay_later?: boolean;
+    customer_name?: string;
+    customer_company?: string;
+    customer?: string | any;
+    carrier?: string;
+    customer_email?: string;
+    route?: string;
+    from?: string;
+    to?: string;
+    pickup?: string;
+    delivery?: string;
+    pickup_name?: string;
+    delivery_name?: string;
+    pickup_city?: string;
+    delivery_city?: string;
+    pickup_address?: string;
+    delivery_address?: string;
+    due_date?: string;
+    dueDate?: string;
+    issue_date?: string;
+    issueDate?: string;
+    paid_at?: string;
+    date?: string;
+    invoice_date?: string;
+    invoice_type?: string;
+    created_at?: string;
+    created_at_time?: string;
+    created_at_formatted?: string;
+    is_cleared?: boolean;
+    is_in_escrow?: boolean;
+}
+
+export interface BillingStats {
+    totalRevenueFormatted: string;
+    totalOutstandingFormatted: string;
+    totalInvoices: number;
+    paidCount: number;
+    dueCount: number;
+    overdueCount: number;
+}

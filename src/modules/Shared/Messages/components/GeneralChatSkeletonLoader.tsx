@@ -23,9 +23,9 @@ export const GeneralChatSkeletonLoader: React.FC = () => {
             {/* My bubble skeleton */}
             <div className="flex gap-2.5 justify-end items-end">
                 <div className="space-y-1.5 max-w-[65%] flex flex-col items-end">
-                    <div className="px-3.5 py-2.5 rounded-sm bg-[#d9fdd3]/70 dark:bg-[#005c4b]/50 border border-emerald-200/50 dark:border-emerald-700/30 shadow-2xs space-y-2 w-72 sm:w-96 max-w-full">
-                        <Skeleton className="h-3.5 w-full rounded-[2px]" />
-                        <Skeleton className="h-3.5 w-3/5 rounded-[2px]" />
+                    <div className="px-3.5 py-2.5 rounded-lg bg-slate-100/90 dark:bg-[#202c33] border border-slate-200/80 dark:border-slate-700/60 shadow-2xs space-y-2 w-72 sm:w-96 max-w-full">
+                        <Skeleton className="h-3.5 w-full rounded-md" />
+                        <Skeleton className="h-3.5 w-3/5 rounded-md" />
                     </div>
                     <div className="flex items-center justify-end px-1">
                         <Skeleton className="h-2.5 w-16 rounded-[2px]" />

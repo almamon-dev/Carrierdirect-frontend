@@ -49,6 +49,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
 
     const isSupplierView = role === 'supplier';
     const isCustomerView = role === 'customer';
+    const isDriverView = role === 'driver';
 
     // Auto-focus input when opened
     useEffect(() => {
@@ -95,6 +96,9 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                 const ut = (u.user_type || '').toLowerCase();
                 return ut.includes('customer') || ut.includes('shipper') || (!ut.includes('supplier') && !ut.includes('carrier') && !ut.includes('admin'));
             });
+        } else if (isDriverView) {
+            // Driver can chat with customers & suppliers from assigned orders
+            list = directoryUsers;
         }
 
         const q = searchQuery.trim().toLowerCase();
@@ -104,20 +108,26 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
             const name = (u.name || '').toLowerCase();
             const company = (u.company_name || '').toLowerCase();
             const email = (u.email || '').toLowerCase();
-            return name.includes(q) || company.includes(q) || email.includes(q);
+            const orderNumbers = Array.isArray((u as any).order_numbers)
+                ? (u as any).order_numbers.join(' ').toLowerCase()
+                : '';
+            const roleName = ((u as any).role || '').toLowerCase();
+            return name.includes(q) || company.includes(q) || email.includes(q) || orderNumbers.includes(q) || roleName.includes(q);
         });
     }, [directoryUsers, searchQuery, isCustomerView, isSupplierView]);
 
     if (!isOpen) return null;
 
     const placeholderText = isSupplierView
-        ? 'Search customer by name, company, email...'
+        ? 'Search customer by name, company, email'
         : isCustomerView
-            ? 'Search carrier/supplier by name, company...'
-            : 'Search contacts...';
+            ? 'Search carrier/supplier by name, company'
+            : isDriverView
+                ? 'Search customer by name or order'
+                : 'Search contacts';
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150" onClick={onClose}>
             {/* Modal Card - Compact */}
             <div
                 className="w-full max-w-md bg-white dark:bg-[#12161c] rounded-md shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-150"
@@ -131,7 +141,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                         </div>
                         <div>
                             <h3 className="text-[13px] font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                                {isSupplierView ? 'Direct Message to Customer' : isCustomerView ? 'Direct Message to Carrier' : 'New Direct Message'}
+                                {isSupplierView ? 'Direct Message to Customer' : isCustomerView ? 'Direct Message to Carrier' : isDriverView ? 'Message Customer' : 'New Direct Message'}
                             </h3>
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
                                 Select a verified partner to open or start a message thread
@@ -151,7 +161,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                 {/* Counter Badge Subheader */}
                 <div className="px-4 py-1.5 bg-slate-50/60 dark:bg-[#161b22] border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
                     <span className="font-medium text-slate-600 dark:text-slate-300">
-                        {isSupplierView ? 'Verified Customers' : isCustomerView ? 'Verified Suppliers & Carriers' : 'Available Contacts'}
+                        {isSupplierView ? 'Verified Customers' : isCustomerView ? 'Verified Suppliers & Carriers' : isDriverView ? 'Contacts from Assigned Orders' : 'Available Contacts'}
                     </span>
                     <span className="font-semibold text-[#FF4A1F] bg-orange-50 dark:bg-[#ff4a1f]/10 px-2 py-0.5 rounded text-[10.5px]">
                         {filteredUsers.length} available
@@ -191,10 +201,10 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                         ) : filteredUsers.length === 0 ? (
                             <div className="p-5 text-center text-xs text-slate-400 bg-slate-50/50 dark:bg-[#161b22] rounded-lg">
                                 <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                                    {isSupplierView ? 'No customers found' : isCustomerView ? 'No suppliers found' : 'No contacts found'}
+                                    {isSupplierView ? 'No customers found' : isCustomerView ? 'No suppliers found' : isDriverView ? 'No assigned customer orders yet' : 'No contacts found'}
                                 </p>
                                 <p className="text-[11px] text-slate-400 mt-0.5">
-                                    {searchQuery ? 'Try searching with another keyword or company name.' : 'No available contacts matching this criteria.'}
+                                    {searchQuery ? 'Try searching with another keyword or company name.' : isDriverView ? 'When a supplier assigns a shipment to you, the customer of that order will appear here to chat.' : 'No available contacts matching this criteria.'}
                                 </p>
                             </div>
                         ) : (
@@ -222,11 +232,10 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                                                         className="w-8 h-8 rounded-full object-cover"
                                                     />
                                                 ) : (
-                                                    <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ${
-                                                        (user.user_type || '').toLowerCase().includes('supplier')
-                                                            ? 'bg-orange-100/80 dark:bg-orange-950/60 text-[#FF4A1F]'
-                                                            : 'bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
-                                                    }`}>
+                                                    <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ${(user.user_type || '').toLowerCase().includes('supplier')
+                                                        ? 'bg-orange-100/80 dark:bg-orange-950/60 text-[#FF4A1F]'
+                                                        : 'bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
+                                                        }`}>
                                                         {displayName.charAt(0).toUpperCase()}
                                                     </div>
                                                 )}
@@ -234,21 +243,42 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                                             </div>
 
                                             {/* Info */}
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-1 min-w-0">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                                                     <span className="font-semibold text-[12.5px] text-slate-900 dark:text-slate-100 truncate">
                                                         {displayName}
                                                     </span>
                                                     {isVerified && <VerifiedBadge size={13} />}
+                                                    {(user as any).role && (
+                                                        <span className={`text-[9.5px] font-semibold px-1.5 py-0.2 rounded ${String((user as any).role).includes('Carrier') || String((user as any).role).includes('Supplier')
+                                                            ? 'bg-orange-50 dark:bg-orange-950/60 text-[#ff4a1f] border border-orange-200/60'
+                                                            : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60'
+                                                            }`}>
+                                                            {(user as any).role}
+                                                        </span>
+                                                    )}
                                                 </div>
 
-                                                <div className="text-[10.5px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-1.5">
-                                                    <span className="font-mono text-[10px]">#CD-{String(user.id).padStart(4, '0')}</span>
-                                                    <span>•</span>
-                                                    <span>Verified</span>
-                                                    <span>•</span>
-                                                    <span className="text-amber-500 font-semibold flex items-center gap-0.5 text-[10px]">★ 4.9</span>
-                                                </div>
+                                                {/* Assigned Order Numbers if any */}
+                                                {(user as any).order_numbers && (user as any).order_numbers.length > 0 ? (
+                                                    <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                                        <span className="text-[10px] text-slate-400 font-medium">Order:</span>
+                                                        {(user as any).order_numbers.map((on: string) => (
+                                                            <span
+                                                                key={on}
+                                                                className="font-mono font-bold text-[10px] text-[#ff4a1f] bg-orange-50/80 dark:bg-orange-950/40 px-1.5 py-0.2 rounded border border-orange-200/50 dark:border-orange-900/40"
+                                                            >
+                                                                #{on}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-[10.5px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-1.5">
+                                                        <span className="font-mono text-[10px]">#CD-{String(user.id).padStart(4, '0')}</span>
+                                                        <span>•</span>
+                                                        <span>Verified Partner</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 

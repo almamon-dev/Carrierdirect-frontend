@@ -114,11 +114,11 @@ export default function Calendar() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm" onClick={() => navigate('/supplier/availability/settings')}>
+                    <Button variant="outline" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm" onClick={() => navigate('/supplier/availability/dashboard')}>
                         <CalendarIcon size={14} />
                         Working Hours
                     </Button>
-                    <Button variant="primary" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm" onClick={() => navigate('/supplier/availability/schedule/create')}>
+                    <Button variant="primary" className="h-8 text-[12px] px-3 gap-1.5 shadow-sm" onClick={() => navigate('/supplier/availability/dashboard')}>
                         <Plus size={14} />
                         Add Exception
                     </Button>

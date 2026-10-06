@@ -1,10 +1,10 @@
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { RefreshCw, Inbox } from "lucide-react";
 import DataTable from "@/components/tables/data-table";
 import EmptyState from "@/components/tables/empty-state";
 import Button from "@/components/ui/button";
 import { encryptId } from "@/lib/encryption";
-import { Inbox, RefreshCw } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { QuoteRequest } from "../data/quoteRequestsData";
 import { getSupplierColumns } from "./components/columns";
 import { QuoteRequestsFilterTabs } from "./components/QuoteRequestsFilterTabs";
@@ -46,10 +46,9 @@ export default function QuoteRequests() {
     const columns = useMemo(() => getSupplierColumns(navigate), [navigate]);
 
     return (
-        <div
-    className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
-            <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Quote Requests
                     </h1>
@@ -75,6 +74,7 @@ export default function QuoteRequests() {
                 data={filteredRequests}
                 columns={columns}
                 actions={(row) => <SupplierRowActions row={row} onQuoteAction={handleQuoteAction} />}
+                actionsColumnClassName="w-[52px] min-w-[52px] max-w-[52px] text-center px-1"
                 onRowClick={(row) => handleQuoteAction(row)}
                 headerTabs={
                     <QuoteRequestsFilterTabs
@@ -105,16 +105,18 @@ export default function QuoteRequests() {
                 hideViewToggle={false}
                 isLoading={isLoading || isRefreshing}
                 tableLayout="fixed"
-                tableClassName="min-w-[1050px]"
+                tableClassName="w-full min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={Inbox}
                         title={
                             startDate || endDate ? "No Requests Found in Selected Date Range" :
-                                activeTab === "today" ? "No Requests Scheduled Today" :
-                                    activeTab === "upcoming" ? "No Upcoming Requests" :
-                                        activeTab === "urgent" ? "No Urgent Requests Found" :
-                                            "No Quote Requests Available"
+                                activeTab === "new" ? "No New Unquoted Requests Found" :
+                                    activeTab === "quoted" ? "No Quoted Requests Found" :
+                                        activeTab === "today" ? "No Requests Scheduled Today" :
+                                            activeTab === "upcoming" ? "No Upcoming Requests" :
+                                                activeTab === "urgent" ? "No Urgent Requests Found" :
+                                                    "No Quote Requests Available"
                         }
                         description={
                             startDate || endDate

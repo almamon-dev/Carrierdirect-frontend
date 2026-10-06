@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-    LayoutDashboard, 
-    Truck, 
-    MessageSquare, 
-    Bell, 
-    UserCircle, 
-    LogOut, 
-    X, 
+import {
+    LayoutDashboard,
+    Truck,
+    MessageSquare,
+    Bell,
+    UserCircle,
+    LogOut,
+    X,
     ChevronRight,
     Lock
 } from 'lucide-react';
@@ -65,7 +65,7 @@ const isItemProtected = (path?: string) => {
 };
 
 const NavGroup = ({ item, location, isOpen, onClose, isVerified }: { item: any; location: any; isOpen: boolean; onClose?: () => void; isVerified: boolean }) => {
-    const isActiveGroup = item.items?.some((subItem: any) => 
+    const isActiveGroup = item.items?.some((subItem: any) =>
         isSubItemActive(subItem.path, location.pathname, location.hash)
     );
     const [isExpanded, setIsExpanded] = useState(isActiveGroup);
@@ -86,31 +86,30 @@ const NavGroup = ({ item, location, isOpen, onClose, isVerified }: { item: any; 
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
                 title={!isOpen ? String(item.group || '') : undefined}
-                className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group cursor-pointer ${
-                    isActiveGroup 
-                        ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80' 
+                className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group cursor-pointer ${isActiveGroup
+                        ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
-                }`}
+                    }`}
             >
                 <div className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'}`}>
                     {IconComp && (
-                        <IconComp 
-                            size={20} 
+                        <IconComp
+                            size={20}
                             strokeWidth={1.5}
-                            className={isActiveGroup ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'} 
+                            className={isActiveGroup ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}
                         />
                     )}
                     {isOpen && <span className="whitespace-nowrap">{String(item.group || '')}</span>}
                 </div>
                 {isOpen && (
-                    <ChevronRight 
-                        size={16} 
+                    <ChevronRight
+                        size={16}
                         strokeWidth={1.5}
-                        className={`text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-90' : ''}`} 
+                        className={`text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
                     />
                 )}
             </button>
-            
+
             {isExpanded && (
                 <div className={`${isOpen ? 'relative ml-[22px] pr-2' : 'px-1'} mb-1 mt-0.5`}>
                     {(() => {
@@ -144,37 +143,33 @@ const NavGroup = ({ item, location, isOpen, onClose, isVerified }: { item: any; 
                                             onClose?.();
                                         }
                                     }}
-                                    className={`relative flex items-center ${isOpen ? 'justify-between py-1.5 pl-[18px] pr-1.5' : 'justify-center py-2'} rounded-md text-[13.5px] transition-colors group ${
-                                        isActive 
-                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-bold' 
+                                    className={`relative flex items-center ${isOpen ? 'justify-between py-1.5 pl-[18px] pr-1.5' : 'justify-center py-2'} rounded-md text-[13.5px] transition-colors group ${isActive
+                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-bold'
                                             : 'text-slate-600 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-slate-200'
-                                    }`}
+                                        }`}
                                     title={!isOpen ? String(subItem.name || '') : undefined}
                                 >
                                     {isOpen && (
                                         <>
-                                            <div 
-                                                className={`absolute left-0 top-0 h-1/2 w-[1.5px] transition-colors ${
-                                                    isBeforeActive || isCurrentActive 
-                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                            <div
+                                                className={`absolute left-0 top-0 h-1/2 w-[1.5px] transition-colors ${isBeforeActive || isCurrentActive
+                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500'
                                                         : 'bg-slate-300 dark:bg-slate-700'
-                                                }`} 
+                                                    }`}
                                             />
                                             {!isLast && (
-                                                <div 
-                                                    className={`absolute left-0 top-1/2 h-1/2 w-[1.5px] transition-colors ${
-                                                        isBeforeActive 
-                                                            ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                                <div
+                                                    className={`absolute left-0 top-1/2 h-1/2 w-[1.5px] transition-colors ${isBeforeActive
+                                                            ? 'bg-[#ff4a1f] dark:bg-orange-500'
                                                             : 'bg-slate-300 dark:bg-slate-700'
-                                                    }`} 
+                                                        }`}
                                                 />
                                             )}
-                                            <div 
-                                                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[12px] h-[1.5px] transition-colors ${
-                                                    isCurrentActive 
-                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500' 
+                                            <div
+                                                className={`absolute left-0 top-1/2 -translate-y-1/2 w-[12px] h-[1.5px] transition-colors ${isCurrentActive
+                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500'
                                                         : 'bg-slate-300 dark:bg-slate-700'
-                                                }`} 
+                                                    }`}
                                             />
                                         </>
                                     )}
@@ -206,7 +201,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const currentModule = 'driver';
-    
+
     const navItems = navigationMap[currentModule] || [
         { category: 'Main Menu', name: 'Dashboard', path: '/driver/dashboard', icon: LayoutDashboard },
         { category: 'Main Menu', name: 'Shipments', path: '/driver/shipments', icon: Truck },
@@ -245,10 +240,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        className="lg:hidden p-1.5 rounded-full border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer shadow-2xs flex items-center justify-center"
                         title="Close menu"
+                        aria-label="Close menu"
                     >
-                        <X size={20} />
+                        <X size={17} strokeWidth={2} />
                     </button>
                 )}
             </div>
@@ -271,7 +267,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     <div className="mb-2 mt-4 border-t border-slate-100 dark:border-slate-800 mx-2" />
                                 )
                             )}
-                            
+
                             {item?.group ? (
                                 <NavGroup item={item} location={location} isOpen={isOpen} onClose={onClose} isVerified={isVerified} />
                             ) : (
@@ -292,18 +288,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                         }
                                     }}
                                     title={!isOpen ? String(item?.name || '') : undefined}
-                                    className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${
-                                        (location.pathname === item?.path || (item?.path && item.path !== '/' && location.pathname.startsWith(item.path)))
-                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80' 
+                                    className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${(location.pathname === item?.path || (item?.path && item.path !== '/' && location.pathname.startsWith(item.path)))
+                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80'
                                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
-                                    }`}
+                                        }`}
                                 >
                                     <div className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'}`}>
                                         {IconComp && (
-                                            <IconComp 
-                                                size={20} 
+                                            <IconComp
+                                                size={20}
                                                 strokeWidth={1.5}
-                                                className={(location.pathname === item?.path || (item?.path && item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'} 
+                                                className={(location.pathname === item?.path || (item?.path && item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}
                                             />
                                         )}
                                         {isOpen && <span className="whitespace-nowrap">{String(item?.name || '')}</span>}
@@ -319,7 +314,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
 
             <div className="p-4 border-t border-gray-100 dark:border-slate-800 shrink-0 space-y-2">
-                <button 
+                <button
                     type="button"
                     onClick={handleLogout}
                     title={!isOpen ? "Logout" : undefined}

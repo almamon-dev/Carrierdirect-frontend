@@ -33,6 +33,7 @@ interface SupplierChatMiddlePanelProps {
     notifyTyping: (isTyping?: boolean) => void;
     handleCancelEdit: () => void;
     currentPrice: number;
+    isLoading?: boolean;
 }
 
 export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = ({
@@ -63,18 +64,19 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
     notifyTyping,
     handleCancelEdit,
     currentPrice,
+    isLoading = false
 }) => {
-    if (!activeNegotiation) {
+    if (!activeNegotiation && !isLoading) {
         return (
             <div
-    className="flex-1 min-w-0 flex flex-col items-center justify-center p-8 text-center text-slate-400 bg-white">
+                className="flex-1 min-w-0 flex flex-col items-center justify-center p-8 text-center text-slate-400 bg-white dark:bg-[#12161c]">
                 <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Select a negotiation to view messages</p>
             </div>
         );
     }
 
     return (
-        <div className="flex-1 min-w-0 flex flex-col min-h-0 h-full bg-white relative">
+        <div className="flex-1 min-w-0 flex flex-col min-h-0 h-full bg-[#F8FAFC] dark:bg-[#0f1318] relative">
             <ChatHeader
                 activeNegotiation={activeNegotiation}
                 sessionKey={sessionKey}
@@ -82,6 +84,7 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
                 setShowMobileDetails={setShowMobileDetails}
                 onCallClick={onCallClick}
                 onOpenMobileSidebar={onOpenMobileSidebar}
+                isLoading={isLoading}
             />
 
             <ChatMessageList
@@ -91,6 +94,7 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
                 highlightedMsgId={highlightedMsgId}
                 activePinnedIndex={activePinnedIndex}
                 setActivePinnedIndex={setActivePinnedIndex}
+                isLoading={isLoading}
                 isCustomerTyping={isCustomerTyping}
                 messagesEndRef={messagesEndRef}
                 handleTogglePinMessage={handleTogglePinMessage}

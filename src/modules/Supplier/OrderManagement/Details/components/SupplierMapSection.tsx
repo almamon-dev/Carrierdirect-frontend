@@ -1,17 +1,209 @@
-import React from 'react';
-import { Truck, MapPin, Navigation, CheckCircle2, ArrowRight } from 'lucide-react';
-import { NormalizedSupplierOrder } from '../utils/supplierOrderTrackUtils';
+import React, { useEffect, useRef, useState } from 'react';
+import { Navigation, ArrowRight, Truck, CheckCircle2, ExternalLink } from 'lucide-react';
+import apiClient from '@/lib/axios';
 
 interface SupplierMapSectionProps {
-    order: NormalizedSupplierOrder;
-    timeline: any[];
+    order: {
+        from: string;
+        to: string;
+        pickup_address?: string;
+        delivery_address?: string;
+        pickup_lat?: number | null;
+        pickup_lng?: number | null;
+        delivery_lat?: number | null;
+        delivery_lng?: number | null;
+        distance?: string;
+        distance_km?: number | null;
+        [key: string]: any;
+    };
+    timeline?: any[];
 }
 
-export const SupplierMapSection: React.FC<SupplierMapSectionProps> = ({ order, timeline }) => {
-    const fromCity = encodeURIComponent(order.from || 'London');
-    const toCity = encodeURIComponent(order.to || 'Manchester');
+let cachedApiKey: string | null = null;
+let apiKeyPromise: Promise<string | null> | null = null;
 
-    // Map the 5 primary tracking milestones directly from the authoritative timeline
+const fetchGoogleMapsApiKey = async (): Promise<string | null> => {
+    if (cachedApiKey) return cachedApiKey;
+    if (apiKeyPromise) return apiKeyPromise;
+
+    apiKeyPromise = (async () => {
+        try {
+            const res = await apiClient.get('/maps-config', { silent: true });
+            const key = res?.google_maps_key || res?.data?.google_maps_key;
+            if (key) {
+                cachedApiKey = key;
+                return key;
+            }
+        } catch {
+            // fallback
+        }
+        return null;
+    })();
+
+    return apiKeyPromise;
+};
+
+export const SupplierMapSection: React.FC<SupplierMapSectionProps> = ({ order, timeline }) => {
+    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const [mapLoaded, setMapLoaded] = useState(false);
+    const [mapError, setMapError] = useState(false);
+
+    const fromCity = order.from || 'Origin';
+    const toCity = order.to || 'Destination';
+    const pickupLat = order.pickup_lat ?? (order as any).pickupLat;
+    const pickupLng = order.pickup_lng ?? (order as any).pickupLng;
+    const deliveryLat = order.delivery_lat ?? (order as any).deliveryLat;
+    const deliveryLng = order.delivery_lng ?? (order as any).deliveryLng;
+    const distanceFormatted = order.distance || (order.distance_km ? `${order.distance_km} km` : '—');
+
+    const hasExactCoordinates = Boolean(
+        pickupLat !== null && pickupLat !== undefined && !isNaN(Number(pickupLat)) &&
+        pickupLng !== null && pickupLng !== undefined && !isNaN(Number(pickupLng)) &&
+        deliveryLat !== null && deliveryLat !== undefined && !isNaN(Number(deliveryLat)) &&
+        deliveryLng !== null && deliveryLng !== undefined && !isNaN(Number(deliveryLng))
+    );
+
+    // Google Maps External Directions Navigation URL
+    const googleMapsUrl = hasExactCoordinates
+        ? `https://www.google.com/maps/dir/?api=1&origin=${pickupLat},${pickupLng}&destination=${deliveryLat},${deliveryLng}&travelmode=driving`
+        : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(order.pickup_address || fromCity)}&destination=${encodeURIComponent(order.delivery_address || toCity)}&travelmode=driving`;
+
+    // Embed Fallback URL
+    const embedMapSrc = hasExactCoordinates
+        ? `https://maps.google.com/maps?saddr=${pickupLat},${pickupLng}&daddr=${deliveryLat},${deliveryLng}&t=m&z=10&output=embed`
+        : `https://maps.google.com/maps?q=${encodeURIComponent(order.pickup_address || fromCity)}+to+${encodeURIComponent(order.delivery_address || toCity)}&t=m&z=8&ie=UTF8&iwloc=&output=embed`;
+
+    // Initialize Interactive Google Map
+    useEffect(() => {
+        let isCancelled = false;
+
+        const initMap = async () => {
+            if (!hasExactCoordinates || !mapContainerRef.current) return;
+
+            try {
+                const apiKey = await fetchGoogleMapsApiKey();
+                if (!apiKey || isCancelled) return;
+
+                if (!(window as any).google?.maps) {
+                    await new Promise<void>((resolve, reject) => {
+                        const existingScript = document.getElementById('google-maps-js-sdk');
+                        if (existingScript) {
+                            existingScript.addEventListener('load', () => resolve());
+                            existingScript.addEventListener('error', () => reject());
+                            if ((window as any).google?.maps) resolve();
+                            return;
+                        }
+                        const script = document.createElement('script');
+                        script.id = 'google-maps-js-sdk';
+                        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry`;
+                        script.async = true;
+                        script.defer = true;
+                        script.onload = () => resolve();
+                        script.onerror = () => reject();
+                        document.head.appendChild(script);
+                    });
+                }
+
+                if (isCancelled || !mapContainerRef.current || !(window as any).google?.maps) return;
+
+                const google = (window as any).google;
+                const pPos = { lat: Number(pickupLat), lng: Number(pickupLng) };
+                const dPos = { lat: Number(deliveryLat), lng: Number(deliveryLng) };
+
+                const map = new google.maps.Map(mapContainerRef.current, {
+                    center: pPos,
+                    zoom: 10,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: true,
+                    zoomControl: true,
+                    styles: [
+                        { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+                        { featureType: 'transit', stylers: [{ visibility: 'simplified' }] }
+                    ]
+                });
+
+                new google.maps.Marker({
+                    position: pPos,
+                    map: map,
+                    title: `Origin: ${fromCity}`,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 8,
+                        fillColor: '#10b981',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2.5,
+                    },
+                    label: { text: 'A', color: '#ffffff', fontSize: '10px', fontWeight: 'bold' }
+                });
+
+                new google.maps.Marker({
+                    position: dPos,
+                    map: map,
+                    title: `Destination: ${toCity}`,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 8,
+                        fillColor: '#ff4a1f',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2.5,
+                    },
+                    label: { text: 'B', color: '#ffffff', fontSize: '10px', fontWeight: 'bold' }
+                });
+
+                const directionsService = new google.maps.DirectionsService();
+                const directionsRenderer = new google.maps.DirectionsRenderer({
+                    map: map,
+                    suppressMarkers: true,
+                    polylineOptions: {
+                        strokeColor: '#ff4a1f',
+                        strokeWeight: 4.5,
+                        strokeOpacity: 0.85
+                    }
+                });
+
+                directionsService.route(
+                    {
+                        origin: pPos,
+                        destination: dPos,
+                        travelMode: google.maps.TravelMode.DRIVING
+                    },
+                    (result: any, status: any) => {
+                        if (status === google.maps.DirectionsStatus.OK && result) {
+                            directionsRenderer.setDirections(result);
+                        } else {
+                            new google.maps.Polyline({
+                                path: [pPos, dPos],
+                                map: map,
+                                strokeColor: '#ff4a1f',
+                                strokeOpacity: 0.75,
+                                strokeWeight: 3.5,
+                                geodesic: true
+                            });
+                            const bounds = new google.maps.LatLngBounds();
+                            bounds.extend(pPos);
+                            bounds.extend(dPos);
+                            map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+                        }
+                    }
+                );
+
+                setMapLoaded(true);
+            } catch (err) {
+                console.warn('Google Maps JS load error, using high-res embed fallback:', err);
+                setMapError(true);
+            }
+        };
+
+        initMap();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [pickupLat, pickupLng, deliveryLat, deliveryLng, hasExactCoordinates, fromCity, toCity, order.pickup_address, order.delivery_address]);
+
     const milestoneSteps = [
         { 
             id: 1, 
@@ -59,36 +251,55 @@ export const SupplierMapSection: React.FC<SupplierMapSectionProps> = ({ order, t
                     <span className="text-slate-500 dark:text-slate-400 font-medium">GPS Telematics Active</span>
                 </div>
 
-                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium text-xs">
-                    <span className="flex items-center gap-1 bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 shadow-2xs">
-                        <Navigation size={11} className="text-[#ff4a1f]" />
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{order.from}</span>
-                        <ArrowRight size={10} className="text-slate-400" />
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{order.to}</span>
+                <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2.5 py-1 rounded border border-slate-200 dark:border-slate-700 shadow-2xs text-xs">
+                        <Navigation size={11} className="text-[#ff4a1f] shrink-0" />
+                        <span className="font-bold text-slate-900 dark:text-slate-100">{fromCity}</span>
+                        <ArrowRight size={10} className="text-slate-400 shrink-0" />
+                        <span className="font-bold text-slate-900 dark:text-slate-100">{toCity}</span>
                     </span>
+
+                    <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800 text-[#ff4a1f] px-2.5 py-1 rounded border border-[#ff4a1f]/30 hover:border-[#ff4a1f] shadow-2xs text-[11.5px] font-bold transition-all"
+                        title="Open Live Route in Google Maps"
+                    >
+                        <span>Open in Google Maps</span>
+                        <ExternalLink size={11} />
+                    </a>
                 </div>
             </div>
 
             {/* Map Frame */}
-            <div className="w-full h-[155px] sm:h-[175px] relative overflow-hidden bg-slate-100 dark:bg-[#15191e]">
-                <iframe
-                    title="Shipment Route Corridor"
-                    src={`https://maps.google.com/maps?q=${fromCity}+to+${toCity}&t=&z=7&ie=UTF8&iwloc=&output=embed`}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0, filter: 'opacity(0.85) grayscale(0.15)' }}
-                    loading="lazy"
+            <div className="w-full h-[220px] sm:h-[260px] relative overflow-hidden bg-slate-100 dark:bg-[#15191e]">
+                <div
+                    ref={mapContainerRef}
+                    className={`w-full h-full ${mapLoaded && !mapError ? 'block' : 'hidden'}`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 via-transparent to-transparent pointer-events-none" />
-                
-                {/* Floating Corridor badge */}
-                <div className="absolute bottom-2.5 left-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-2 text-[11px]">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="text-slate-600 dark:text-slate-300 font-medium">Direct Road Freight Route</span>
+
+                {(!mapLoaded || mapError) && (
+                    <iframe
+                        title="Shipment Route Corridor"
+                        src={embedMapSrc}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        loading="lazy"
+                    />
+                )}
+
+                {/* Floating Real-Time Details Badge */}
+                <div className="absolute bottom-2.5 left-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs px-3 py-1.5 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-md flex items-center gap-2 text-[11.5px] pointer-events-auto">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                        Direct Freight Route ({distanceFormatted})
+                    </span>
                 </div>
             </div>
 
-            {/* Dedicated Clean Progress Stepper Bar (100% Synchronized with Timeline) */}
+            {/* Dedicated Clean Progress Stepper Bar */}
             <div className="p-3 sm:p-4 bg-white dark:bg-[#1e2329] border-t border-slate-100 dark:border-slate-800/80">
                 <div className="grid grid-cols-5 gap-1 items-start relative">
                     {milestoneSteps.map((step, idx) => {

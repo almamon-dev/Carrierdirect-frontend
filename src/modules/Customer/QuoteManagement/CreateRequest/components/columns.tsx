@@ -12,11 +12,11 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'id', 
         label: 'Request ID', 
-        className: 'w-[90px] min-w-[85px]',
+        className: 'w-[95px] min-w-[90px]',
         sortable: true,
         render: (row) => <RequestIdCell row={row} onNavigate={navigate} />,
         skeleton: () => (
-            <div className="flex items-center min-h-[26px]">
+            <div className="flex items-center min-h-[22px]">
                 <Skeleton className="h-4 w-16 rounded-[3px] !bg-orange-100/70 dark:!bg-orange-950/40" />
             </div>
         )
@@ -24,11 +24,11 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     {
         id: 'title',
         label: 'Title',
-        className: 'w-[15%] min-w-[110px] max-w-[150px]',
+        className: 'w-[15%] min-w-[120px] max-w-[170px]',
         sortable: true,
         render: (row) => <TitleCell row={row} />,
         skeleton: () => (
-            <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
+            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
                 <Skeleton className="h-3.5 w-28 max-w-full rounded-[3px]" />
             </div>
         )
@@ -36,10 +36,10 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'pickup', 
         label: 'Pickup Address', 
-        className: 'w-[18%] min-w-[120px] max-w-[180px]',
+        className: 'w-[18%] min-w-[130px] max-w-[190px]',
         render: (row) => <AddressCell address={row.pickup} />,
         skeleton: () => (
-            <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
+            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
                 <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
             </div>
         )
@@ -47,10 +47,10 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'delivery', 
         label: 'Delivery Address', 
-        className: 'w-[18%] min-w-[120px] max-w-[180px]',
+        className: 'w-[18%] min-w-[130px] max-w-[190px]',
         render: (row) => <AddressCell address={row.delivery} />,
         skeleton: () => (
-            <div className="flex items-center min-w-0 pr-1 min-h-[26px]">
+            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
                 <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
             </div>
         )
@@ -58,47 +58,47 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'distance', 
         label: 'Distance', 
-        className: 'w-[68px] min-w-[65px] text-center',
+        className: 'w-[90px] min-w-[85px] text-center',
         sortable: true,
         render: (row) => <DistanceCell distance={row.distance} />,
         skeleton: () => (
-            <div className="flex items-center justify-center min-h-[26px]">
-                <Skeleton className="h-3.5 w-12 rounded-[3px]" />
+            <div className="flex items-center justify-center min-h-[22px]">
+                <Skeleton className="h-3.5 w-14 rounded-[3px]" />
             </div>
         )
     },
     { 
         id: 'budget', 
         label: 'Budget', 
-        className: 'w-[85px] min-w-[80px]',
+        className: 'w-[115px] min-w-[105px]',
         sortable: true,
         render: (row) => <BudgetCell budget={row.budget} />,
         skeleton: () => (
-            <div className="flex items-center min-h-[26px]">
-                <Skeleton className="h-4 w-16 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/40" />
+            <div className="flex items-center min-h-[22px]">
+                <Skeleton className="h-4 w-20 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/40" />
             </div>
         )
     },
     { 
         id: 'quotesReceived', 
         label: 'Quotes', 
-        className: 'w-[68px] min-w-[65px] text-center',
+        className: 'w-[75px] min-w-[70px] text-center',
         sortable: true,
         render: (row) => <QuotesCountCell count={row.quotesReceived} />,
         skeleton: () => (
-            <div className="flex items-center justify-center min-h-[26px]">
-                <Skeleton className="h-4 w-14 rounded-[3px]" />
+            <div className="flex items-center justify-center min-h-[22px]">
+                <Skeleton className="h-4 w-12 rounded-[3px]" />
             </div>
         )
     },
     { 
         id: 'priority', 
         label: 'Priority', 
-        className: 'w-[75px] min-w-[70px] text-center',
+        className: 'w-[85px] min-w-[80px] text-center',
         sortable: true,
         render: (row) => <PriorityBadgeCell priority={row.priority} />,
         skeleton: () => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center justify-center min-h-[22px]">
                 <Skeleton className="h-5 w-14 rounded-[3px] !bg-amber-100/70 dark:!bg-amber-950/50" />
             </div>
         )
@@ -106,11 +106,11 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'status', 
         label: 'Status', 
-        className: 'w-[82px] min-w-[80px] text-center',
+        className: 'w-[95px] min-w-[90px] text-center',
         sortable: true,
         render: (row) => <StatusBadgeCell status={row.status} />,
         skeleton: () => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center justify-center min-h-[22px]">
                 <Skeleton className="h-5 w-18 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/50" />
             </div>
         )
@@ -118,11 +118,11 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'date', 
         label: 'Date', 
-        className: 'w-[95px] min-w-[90px] text-center',
+        className: 'w-[105px] min-w-[100px] text-center',
         sortable: true,
         render: (row) => <DateCell row={row} />,
         skeleton: () => (
-            <div className="flex items-center justify-center min-h-[26px]">
+            <div className="flex items-center justify-center min-h-[22px]">
                 <Skeleton className="h-3.5 w-16 rounded-[3px]" />
             </div>
         )

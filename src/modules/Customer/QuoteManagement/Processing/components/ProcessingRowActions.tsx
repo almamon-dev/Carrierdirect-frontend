@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MoreVertical } from 'lucide-react';
 import Button from '@/components/ui/button';
+import { GPSComingSoonModal } from '@/components/modals';
 import { ProcessingRowActionsMenu } from './ProcessingRowActionsMenu';
 
 export const ProcessingRowActions: React.FC<{ row: any; onDelete?: (row: any) => void }> = ({ row, onDelete }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isGpsModalOpen, setIsGpsModalOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const triggerRef = useRef<HTMLButtonElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -17,8 +19,8 @@ export const ProcessingRowActions: React.FC<{ row: any; onDelete?: (row: any) =>
             setIsOpen(false);
         } else {
             const rect = e.currentTarget.getBoundingClientRect();
-            const menuWidth = 192;
-            const menuHeight = 210;
+            const menuWidth = 205;
+            const menuHeight = 220;
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
@@ -84,7 +86,14 @@ export const ProcessingRowActions: React.FC<{ row: any; onDelete?: (row: any) =>
                 dropdownPos={dropdownPos}
                 row={row}
                 onClose={handleClose}
+                onTrack={() => setIsGpsModalOpen(true)}
                 onDelete={onDelete}
+            />
+
+            <GPSComingSoonModal
+                isOpen={isGpsModalOpen}
+                onClose={() => setIsGpsModalOpen(false)}
+                destination={row.route || `${row.pickup_city || row.pickupCity || 'Origin'} → ${row.delivery_city || row.deliveryCity || 'Destination'}`}
             />
         </div>
     );

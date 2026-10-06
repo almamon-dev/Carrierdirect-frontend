@@ -1,119 +1,179 @@
 import React from 'react';
 import { Column } from '@/components/tables/data-table';
-import { MapPin, Clock, Truck, Weight, Layers } from 'lucide-react';
+import Badge from '@/components/ui/badge';
 import { ShipmentItem } from '../../types';
-import { ShipmentStatusBadge } from './ShipmentStatusBadge';
+
+const getPriorityClass = (p: string) => {
+    if (p === 'Urgent') return 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300';
+    if (p === 'High') return 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300';
+    return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300';
+};
+
+const getStatusBadgeClass = (status?: string): string => {
+    const s = (status || '').toLowerCase().trim();
+    if (s === 'delivered' || s === 'completed') {
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60';
+    }
+    if (s === 'in_transit' || s === 'in transit') {
+        return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60';
+    }
+    if (s === 'at_pickup' || s === 'picked_up' || s === 'at_delivery') {
+        return 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/60';
+    }
+    if (s === 'assigned' || s === 'driver_assigned' || s === 'accepted') {
+        return 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60';
+    }
+    if (s === 'cancelled') {
+        return 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60';
+    }
+    return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300';
+};
 
 export const getShipmentColumns = (navigate: (path: string) => void): Column<ShipmentItem>[] => [
     {
         id: 'orderNumber',
-        label: 'Load / Tracking #',
-        className: 'w-[150px] min-w-[140px]',
-        render: (item) => (
-            <div className="flex items-start gap-2 py-0.5 min-w-0">
-                <div className="w-6 h-6 rounded-[3px] bg-orange-50 dark:bg-[#FF4A1F]/15 text-[#FF4A1F] flex items-center justify-center shrink-0 mt-0.5">
-                    <Truck size={13} />
-                </div>
-                <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-nowrap">
-                        <span className="font-mono font-bold text-xs text-slate-900 dark:text-slate-100 hover:text-[#FF4A1F] transition-colors truncate">
-                            {item.orderNumber}
-                        </span>
-                        {item.priority === 'Urgent' && (
-                            <span className="px-1.5 py-0.2 text-[9px] font-bold bg-red-50 dark:bg-red-950/60 text-red-600 rounded-[2px] border border-red-200/60 dark:border-red-900/40 shrink-0">
-                                Urgent
-                            </span>
-                        )}
-                    </div>
-                    <div className="text-[10.5px] text-slate-400 font-mono mt-0.5 truncate">
-                        {item.trackingNumber}
-                    </div>
-                </div>
+        label: 'Load ID',
+        sortable: true,
+        className: 'w-[145px] min-w-[140px]',
+        render: (row) => (
+            <div className="flex items-center h-5 min-w-0 overflow-hidden">
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/driver/shipments/${row.id}`);
+                    }}
+                    className="font-bold text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer text-xs leading-none truncate block max-w-full"
+                    title={row.orderNumber}
+                >
+                    {row.orderNumber}
+                </button>
             </div>
-        ),
+        )
     },
     {
-        id: 'shipper',
-        label: 'Origin (Pickup)',
-        className: 'w-[190px] min-w-[170px]',
-        render: (item) => (
-            <div className="space-y-0.5 min-w-0 py-0.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    <span className="truncate">{item.shipper.company}</span>
-                </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate pl-3">
-                    {item.shipper.city}, {item.shipper.state}
-                </div>
-                <div className="text-[10.5px] text-[#FF4A1F] font-medium flex items-center gap-1 pl-3 whitespace-nowrap">
-                    <Clock size={10} className="shrink-0" />
-                    <span>{item.shipper.pickupTimeWindow}</span>
-                </div>
+        id: 'trackingNumber',
+        label: 'Tracking #',
+        sortable: true,
+        className: 'w-[115px] min-w-[110px]',
+        render: (row) => (
+            <div className="flex items-center h-5 min-w-0 overflow-hidden">
+                <span className="font-mono text-xs text-slate-600 dark:text-slate-400 leading-none whitespace-nowrap truncate block max-w-full" title={row.trackingNumber}>
+                    {row.trackingNumber}
+                </span>
             </div>
-        ),
+        )
     },
     {
-        id: 'consignee',
-        label: 'Destination (Delivery)',
-        className: 'w-[190px] min-w-[170px]',
-        render: (item) => (
-            <div className="space-y-0.5 min-w-0 py-0.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
-                    <MapPin size={11} className="text-[#FF4A1F] shrink-0" />
-                    <span className="truncate">{item.consignee.company}</span>
+        id: 'customer',
+        label: 'Customer',
+        sortable: true,
+        className: 'w-[130px] min-w-[125px]',
+        render: (row) => (
+            <div className="flex items-center gap-2 min-w-0 h-5">
+                <div className="w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 text-[#ff4a1f] flex items-center justify-center text-[10px] font-bold shrink-0 aspect-square">
+                    {row.shipper.company ? row.shipper.company.charAt(0).toUpperCase() : 'C'}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate pl-4">
-                    {item.consignee.city}, {item.consignee.state}
-                </div>
-                <div className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 pl-4 whitespace-nowrap">
-                    <Clock size={10} className="shrink-0" />
-                    <span>ETA: {item.consignee.deliveryTimeWindow}</span>
-                </div>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[100px] leading-tight" title={row.shipper.company}>
+                    {row.shipper.company}
+                </span>
             </div>
-        ),
+        )
+    },
+    {
+        id: 'pickup',
+        label: 'Pickup Address',
+        className: 'w-[18%] min-w-[130px] max-w-[180px]',
+        render: (row) => (
+            <div className="flex items-center min-w-0 pr-1 h-5" title={row.shipper.address ? `${row.shipper.address}, ${row.shipper.city}` : row.shipper.city}>
+                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+                    {row.shipper.address ? `${row.shipper.address}, ${row.shipper.city}` : row.shipper.city}
+                </span>
+            </div>
+        )
+    },
+    {
+        id: 'delivery',
+        label: 'Delivery Address',
+        className: 'w-[18%] min-w-[130px] max-w-[180px]',
+        render: (row) => (
+            <div className="flex items-center min-w-0 pr-1 h-5" title={row.consignee.address ? `${row.consignee.address}, ${row.consignee.city}` : row.consignee.city}>
+                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+                    {row.consignee.address ? `${row.consignee.address}, ${row.consignee.city}` : row.consignee.city}
+                </span>
+            </div>
+        )
+    },
+    {
+        id: 'distance',
+        label: 'Distance',
+        sortable: true,
+        className: 'w-[75px] min-w-[70px] text-center',
+        render: (row) => (
+            <div className="flex items-center justify-center h-5">
+                <span className="whitespace-nowrap text-slate-600 dark:text-slate-400 text-xs font-semibold leading-none">
+                    {row.route.distanceKm} km
+                </span>
+            </div>
+        )
     },
     {
         id: 'cargo',
-        label: 'Cargo Specs & Route',
-        className: 'w-[170px] min-w-[150px]',
-        render: (item) => (
-            <div className="space-y-0.5 min-w-0 py-0.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
-                    <span className="truncate">{item.cargo.freightType}</span>
-                    <span className="text-[10.5px] text-slate-400 font-normal shrink-0">({item.route.distanceKm} km)</span>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                    <span className="flex items-center gap-0.5">
-                        <Weight size={10.5} className="text-slate-400 shrink-0" />
-                        <span>{item.cargo.weightKg.toLocaleString()} kg</span>
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-0.5">
-                        <Layers size={10.5} className="text-slate-400 shrink-0" />
-                        <span>{item.cargo.pallets} Plts</span>
-                    </span>
-                </div>
+        label: 'Cargo Specs',
+        sortable: true,
+        className: 'w-[115px] min-w-[105px]',
+        render: (row) => (
+            <div className="flex items-center h-5 min-w-0" title={`${row.cargo.freightType} (${row.cargo.weightKg} kg, ${row.cargo.pallets} Plts)`}>
+                <span className="whitespace-nowrap font-semibold text-slate-900 dark:text-slate-100 text-xs leading-none truncate">
+                    {row.cargo.freightType}
+                </span>
             </div>
-        ),
+        )
+    },
+    {
+        id: 'priority',
+        label: 'Priority',
+        sortable: true,
+        className: 'w-[85px] min-w-[80px] text-center',
+        render: (row) => (
+            <div className="flex items-center justify-center h-5">
+                <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${getPriorityClass(row.priority)}`}>
+                    {row.priority}
+                </Badge>
+            </div>
+        )
     },
     {
         id: 'status',
         label: 'Status',
-        className: 'w-[115px] min-w-[105px] text-center',
-        render: (item) => (
-            <div className="flex items-center justify-center">
-                <ShipmentStatusBadge status={item.status} />
-            </div>
-        ),
+        sortable: true,
+        className: 'w-[125px] min-w-[120px] text-center',
+        render: (row) => {
+            const displayLabel = row.status === 'in_transit' ? 'In Transit' :
+                row.status === 'at_pickup' ? 'At Pickup' :
+                row.status === 'at_delivery' ? 'At Delivery' :
+                row.status === 'delivered' ? 'Delivered' : 'Assigned';
+
+            return (
+                <div className="flex items-center justify-center h-5">
+                    <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${getStatusBadgeClass(row.status)}`}>
+                        {displayLabel}
+                    </Badge>
+                </div>
+            );
+        }
     },
     {
         id: 'pickupDate',
-        label: 'Scheduled Date',
-        className: 'w-[110px] min-w-[100px] text-center',
-        render: (item) => (
-            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap text-center">
-                {item.shipper.pickupDate}
+        label: 'Date',
+        sortable: true,
+        className: 'w-[105px] min-w-[100px] text-center',
+        render: (row) => (
+            <div className="flex items-center justify-center h-5">
+                <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">
+                    {row.shipper.pickupDate}
+                </span>
             </div>
-        ),
+        )
     },
 ];

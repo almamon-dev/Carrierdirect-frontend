@@ -1,17 +1,11 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { TOKEN_CONFIG } from '../../config/auth';
+import { getRoleDashboardUrl, getUserEffectiveRole } from '../../utils/roleDashboard';
 
 interface ProtectedRouteProps {
     allowedRole?: 'customer' | 'supplier' | 'admin' | 'driver';
     children?: React.ReactNode;
-}
-
-function getDashboardByRole(role: string): string {
-    if (role === 'driver') return '/driver/dashboard';
-    if (role === 'supplier' || role === 'supplier_employee') return '/supplier/dashboard';
-    if (role === 'admin')    return '/admin/dashboard';
-    return '/customer/dashboard';
 }
 
 export default function ProtectedRoute({ allowedRole, children }: ProtectedRouteProps) {
@@ -29,26 +23,27 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
         return <Navigate to="/web/login" state={{ from: location }} replace />;
     }
 
-    // ── 2. Read user role ─────────────────────────────────────────────────────
+    // ── 2. Read and parse user ────────────────────────────────────────────────
     const userStr =
         localStorage.getItem(TOKEN_CONFIG.userKey) ||
         localStorage.getItem('carrierdirect_user_data') ||
         localStorage.getItem('user');
 
-    let userRole: string | null = null;
+    let user: any = null;
+    let effectiveRole: 'driver' | 'supplier' | 'customer' | 'admin' | null = null;
 
     if (userStr) {
         try {
-            const user = JSON.parse(userStr);
-            userRole = user?.user_type || user?.role || null;
+            user = JSON.parse(userStr);
+            effectiveRole = getUserEffectiveRole(user);
 
             // ── 2a. Check Email Verification ──────────────────────────
             if (user && !user.email_verified_at && !location.pathname.startsWith('/web/verify-email')) {
                 return <Navigate to={`/web/verify-email-notice?email=${encodeURIComponent(user.email || "")}`} replace />;
             }
 
-            // ── 2b. Check Supplier Profile Completion ─────────────────
-            if (userRole === 'supplier') {
+            // ── 2b. Check Supplier Profile Completion (Supplier Owners Only) ──
+            if (effectiveRole === 'supplier' && user.user_type === 'supplier') {
                 const isProfileCompleted = Boolean(
                     user.is_profile_completed ||
                     user.is_profile_complete ||
@@ -64,10 +59,9 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
                 if (isProfileCompleted && location.pathname === '/supplier/complete-profile') {
                     return <Navigate to="/supplier/dashboard" replace />;
                 }
-            } else if (userRole === 'supplier_employee') {
-                if (location.pathname === '/supplier/complete-profile') {
-                    return <Navigate to="/supplier/dashboard" replace />;
-                }
+            } else if (location.pathname === '/supplier/complete-profile') {
+                // Non-supplier owners should never be on complete-profile page
+                return <Navigate to={getRoleDashboardUrl(user)} replace />;
             }
         } catch {
             // Corrupt data — clear and redirect to login
@@ -81,21 +75,16 @@ export default function ProtectedRoute({ allowedRole, children }: ProtectedRoute
         }
     }
 
-    // ── 3. Role check ─────────────────────────────────────────────────────────
+    // ── 3. Strict Role Isolation Check ────────────────────────────────────────
     const isRoleAllowed = (requiredRole?: string, actualRole?: string | null) => {
         if (!requiredRole) return true;
         if (!actualRole) return false;
-        if (requiredRole === 'supplier') {
-            return actualRole === 'supplier' || actualRole === 'supplier_employee';
-        }
-        if (requiredRole === 'driver') {
-            return actualRole === 'driver' || actualRole === 'supplier' || actualRole === 'supplier_employee' || actualRole === 'customer';
-        }
+        if (actualRole === 'admin') return true; // Super admins can view portals
         return actualRole === requiredRole;
     };
 
-    if (allowedRole && userRole && !isRoleAllowed(allowedRole, userRole)) {
-        return <Navigate to={getDashboardByRole(userRole)} replace />;
+    if (allowedRole && (!effectiveRole || !isRoleAllowed(allowedRole, effectiveRole))) {
+        return <Navigate to={getRoleDashboardUrl(user)} replace />;
     }
 
     // ── 4. All checks passed — render the route ───────────────────────────────

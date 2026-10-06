@@ -17,7 +17,7 @@ export default function SupplierNegotiationChat() {
         allNegotiations, activeNegotiation, pinnedChatIds, readChatIds, chatMessages, currentPrice,
         filteredChats, scrollToBottom, handleSelectChat, togglePinChat, handleTogglePinMessage,
         handleDeleteMessage, handleSendMessage, handleSendCounterOffer, handleAcceptOffer,
-        handleRejectOffer, isLoading
+        handleRejectOffer, isLoading, isMessagesLoading
     } = useChatNegotiation();
 
     const {
@@ -33,9 +33,8 @@ export default function SupplierNegotiationChat() {
         handleResizeStart
     } = useChatLayout();
 
-    if (isLoading && allNegotiations.length === 0) {
-        return <ChatSkeletonLoader />;
-    }
+    const isInitialLoading = isLoading && allNegotiations.length === 0;
+    const isChatLoading = isInitialLoading || isMessagesLoading || !activeNegotiation?.rawId || (!chatMessages[activeNegotiation.rawId] && !chatMessages[String(activeNegotiation.rawId)]);
 
     const currentMessages = activeNegotiation?.rawId
         ? (chatMessages[activeNegotiation.rawId] || chatMessages[String(activeNegotiation.rawId)] || generateInitialMessages(activeNegotiation))
@@ -53,7 +52,7 @@ export default function SupplierNegotiationChat() {
     return (
         <div className={`p-0 sm:p-2 md:p-3 w-full mx-auto h-full flex flex-col font-sans min-h-0 overflow-hidden box-border ${isResizing ? 'select-none cursor-col-resize' : ''}`}>
             <div
-                className="flex flex-1 min-h-0 min-w-0 bg-white border-0 sm:border border-slate-200 rounded-none sm:rounded-lg overflow-hidden shadow-none sm:shadow-xs relative">
+                className="flex flex-1 min-h-0 min-w-0 bg-white dark:bg-[#12161c] border-0 sm:border border-slate-200 dark:border-slate-800 rounded-none sm:rounded-lg overflow-hidden shadow-none sm:shadow-xs relative">
                 <ChatSidebar
                     allNegotiations={allNegotiations}
                     filteredChats={filteredChats}
@@ -75,6 +74,7 @@ export default function SupplierNegotiationChat() {
                     isResizing={isResizing}
                     isMobileOpen={isMobileSidebarOpen}
                     onCloseMobile={() => setIsMobileSidebarOpen(false)}
+                    isLoading={isInitialLoading}
                 />
 
                 <SupplierChatMiddlePanel
@@ -105,6 +105,7 @@ export default function SupplierNegotiationChat() {
                     notifyTyping={notifyTyping}
                     handleCancelEdit={() => { setEditingMsgId(null); setEditingText(''); setInputValue(''); }}
                     currentPrice={currentPrice}
+                    isLoading={isChatLoading}
                 />
 
                 {activeNegotiation && (

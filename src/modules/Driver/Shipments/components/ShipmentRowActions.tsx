@@ -24,14 +24,9 @@ export const ShipmentRowActions: React.FC<Props> = ({ row }) => {
             setIsOpen(false);
         } else {
             const rect = e.currentTarget.getBoundingClientRect();
-            const menuWidth = 175;
-            const left = Math.min(
-                window.innerWidth - menuWidth - 10,
-                Math.max(10, rect.right - menuWidth)
-            );
             setDropdownPos({
                 top: rect.bottom + 4,
-                left,
+                left: Math.max(10, rect.right - 192),
             });
             setIsOpen(true);
         }
@@ -39,33 +34,18 @@ export const ShipmentRowActions: React.FC<Props> = ({ row }) => {
 
     const handleClose = () => setIsOpen(false);
 
-    useEffect(() => {
-        if (!isOpen) return;
+    const handleView = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        navigate(`/driver/shipments/${row.id}`);
+    };
 
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') handleClose();
-        };
-
-        const handleScroll = () => handleClose();
-        const handleResize = () => handleClose();
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('scroll', handleScroll, true);
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('scroll', handleScroll, true);
-            window.removeEventListener('resize', handleResize);
-        };
-    }, [isOpen]);
-
-    const handleCopy = () => {
+    const handleCopyId = () => {
         navigator.clipboard.writeText(row.orderNumber);
         setCopied(true);
         setTimeout(() => {
             setCopied(false);
             handleClose();
-        }, 600);
+        }, 1200);
     };
 
     const handleGPS = () => {
@@ -75,74 +55,81 @@ export const ShipmentRowActions: React.FC<Props> = ({ row }) => {
         }, 'Live GPS Navigation');
     };
 
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
+        const handleScroll = () => handleClose();
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('scroll', handleScroll, true);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('scroll', handleScroll, true);
+        };
+    }, [isOpen]);
+
     return (
-        <div className="relative flex items-center justify-end w-full shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="relative flex items-center justify-end gap-1.5 w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+                type="button"
+                onClick={handleView}
+                title="View Shipment Details"
+                className="h-7 px-2.5 rounded-[3px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group shrink-0"
+            >
+                <Eye size={12.5} className="shrink-0" />
+                <span className="leading-none">Details</span>
+            </button>
+
             <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 rounded-[3px] text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto flex items-center justify-center shrink-0"
+                title="More Options"
+                className="h-7 w-7 p-0 rounded-[2px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center shrink-0"
                 onClick={handleToggle}
-                title="Actions"
             >
-                <MoreVertical size={13.5} />
+                <MoreVertical size={15} />
             </Button>
 
             {isOpen && createPortal(
                 <>
+                    <div className="fixed inset-0 z-[9998] cursor-default bg-transparent" onClick={(e) => { e.stopPropagation(); handleClose(); }} />
                     <div
-                        className="fixed inset-0 z-[9998] cursor-default bg-transparent"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleClose();
-                        }}
-                    />
-
-                    <div
-                        className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-[4px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans text-xs"
+                        className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* View Details */}
                         <button
                             type="button"
-                            className="w-full text-left px-3 py-1.5 text-[11.5px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2 transition-colors font-medium cursor-pointer"
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
                             onClick={() => {
                                 handleClose();
                                 navigate(`/driver/shipments/${row.id}`);
                             }}
                         >
-                            <Eye size={12.5} className="text-[#FF4A1F] shrink-0" />
+                            <Eye size={14} className="text-[#ff4a1f] shrink-0" />
                             <span>View Load Details</span>
                         </button>
 
-                        {/* GPS Navigation */}
                         <button
                             type="button"
-                            className="w-full text-left px-3 py-1.5 text-[11.5px] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2 transition-colors font-medium cursor-pointer"
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
                             onClick={handleGPS}
                         >
-                            <Navigation size={12.5} className="text-blue-500 shrink-0" />
+                            <Navigation size={14} className="text-blue-500 shrink-0" />
                             <span>GPS Directions</span>
                         </button>
 
-                        <div className="border-t border-slate-100 dark:border-slate-800 my-0.5" />
+                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
 
-                        {/* Copy Load # */}
                         <button
                             type="button"
-                            className="w-full text-left px-3 py-1.5 text-[11.5px] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2 transition-colors font-medium cursor-pointer"
-                            onClick={handleCopy}
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                            onClick={handleCopyId}
                         >
                             {copied ? (
-                                <>
-                                    <Check size={12.5} className="text-emerald-500 shrink-0" />
-                                    <span className="text-emerald-600">Copied!</span>
-                                </>
+                                <><Check size={14} className="text-emerald-500 shrink-0" /><span className="text-emerald-600 font-semibold">Copied!</span></>
                             ) : (
-                                <>
-                                    <Copy size={12.5} className="text-slate-400 shrink-0" />
-                                    <span>Copy Order #</span>
-                                </>
+                                <><Copy size={14} className="text-slate-400 shrink-0" /><span>Copy Order #</span></>
                             )}
                         </button>
                     </div>

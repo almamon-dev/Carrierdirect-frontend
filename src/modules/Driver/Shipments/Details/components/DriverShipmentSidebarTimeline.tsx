@@ -1,159 +1,210 @@
 import React from 'react';
-import { Clock, Phone, Check, MapPin, Headphones } from 'lucide-react';
-import { ShipmentItem, ShipmentStatus } from '../../../types';
+import { Check, MapPin, Clock } from 'lucide-react';
+import { ShipmentItem } from '../../../types';
 
 interface Props {
     shipment: ShipmentItem;
 }
 
 export const DriverShipmentSidebarTimeline: React.FC<Props> = ({ shipment }) => {
-    const orderMap: Record<ShipmentStatus, number> = {
-        assigned: 1,
-        accepted: 1,
-        at_pickup: 2,
-        in_transit: 3,
-        at_delivery: 4,
-        delivered: 5,
-        cancelled: 0,
+    const rawStatus = (shipment.status || 'assigned').toLowerCase().trim();
+    const isPodUploaded = Boolean(shipment.podData?.signatureUrl || shipment.podData?.uploadedAt);
+    const isCompleted = rawStatus === 'delivered' || rawStatus === 'completed';
+
+    const formatStepDate = (isoOrDate?: string): string | null => {
+        if (!isoOrDate) return null;
+        try {
+            const d = new Date(isoOrDate);
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            }
+        } catch {
+            // fallback
+        }
+        return isoOrDate;
     };
 
-    const currentLevel = orderMap[shipment.status] || 1;
+    const findHistoryTime = (statuses: string[]): string | null => {
+        if (!shipment.history || !Array.isArray(shipment.history)) return null;
+        const matched = shipment.history.find((h) => statuses.includes(h.status));
+        if (!matched) return null;
+        return formatStepDate(matched.time || matched.date || matched.raw_date);
+    };
 
-    const timelineItems = [
+    const fromCity = shipment.shipper.city || 'Origin';
+    const toCity = shipment.consignee.city || 'Destination';
+
+    let currentStep = 2;
+    if (rawStatus === 'pending') {
+        currentStep = 1;
+    } else if (rawStatus === 'confirmed' || rawStatus === 'scheduled') {
+        currentStep = 2;
+    } else if (rawStatus === 'assigned' || rawStatus === 'accepted' || rawStatus === 'driver_assigned') {
+        currentStep = 3;
+    } else if (rawStatus === 'at_pickup' || rawStatus === 'picked_up' || rawStatus === 'in_progress') {
+        currentStep = 4;
+    } else if (rawStatus === 'in_transit') {
+        currentStep = 4;
+    } else if (rawStatus === 'at_delivery' || rawStatus === 'arrived') {
+        currentStep = 5;
+    } else if (rawStatus === 'delivered' || rawStatus === 'pod_uploaded') {
+        currentStep = 6;
+    } else if (rawStatus === 'completed') {
+        currentStep = 8;
+    }
+
+    const isAllCompleted = currentStep >= 8;
+
+    const timeline = [
         {
             id: 1,
-            title: 'Load Assigned to Driver',
-            time: `${shipment.shipper.pickupDate} 08:00 AM`,
-            description: `Load #${shipment.orderNumber} dispatched.`,
-            completed: currentLevel >= 1,
-            active: currentLevel === 1,
-            location: `${shipment.shipper.city}, ${shipment.shipper.state}`,
+            status: 'Order Confirmed',
+            time: findHistoryTime(['confirmed']) || formatStepDate(shipment.createdAt) || 'Completed',
+            completed: currentStep > 1 || isAllCompleted,
+            active: currentStep === 1,
+            location: 'Order confirmed & customer booking secured'
         },
         {
             id: 2,
-            title: 'Arrived at Shipper Dock',
-            time: `${shipment.shipper.pickupDate} ${shipment.shipper.pickupTimeWindow?.split('-')[0] || '10:00 AM'}`,
-            description: `Dock check-in at ${shipment.shipper.company}.`,
-            completed: currentLevel >= 2,
-            active: currentLevel === 2,
-            location: shipment.shipper.address,
+            status: 'Driver Assigned',
+            time: findHistoryTime(['driver_assigned', 'assigned']) || formatStepDate(shipment.createdAt) || 'Completed',
+            completed: currentStep > 2 || isAllCompleted,
+            active: currentStep === 2,
+            location: `${shipment.driver?.name || 'Driver'} assigned (${shipment.driver?.vehiclePlate || 'GB-24-TRK'})`
         },
         {
             id: 3,
-            title: 'Loaded & Rolling In Transit',
-            time: `${shipment.shipper.pickupDate} 12:30 PM`,
-            description: `Loaded ${shipment.cargo.weightKg.toLocaleString()} kg. Rolling on highway.`,
-            completed: currentLevel >= 3,
-            active: currentLevel === 3,
-            location: `Highway Route (${shipment.route.distanceKm} km)`,
+            status: 'Goods Picked Up',
+            time: (currentStep > 3 || isAllCompleted) ? (findHistoryTime(['picked_up', 'in_progress']) || 'Completed') : (currentStep === 3 ? 'In Progress' : 'Scheduled'),
+            completed: currentStep > 3 || isAllCompleted,
+            active: currentStep === 3,
+            location: `Pickup facility: ${fromCity}`
         },
         {
             id: 4,
-            title: 'Arrived at Consignee Dock',
-            time: `${shipment.consignee.deliveryDate} ${shipment.consignee.deliveryTimeWindow?.split('-')[0] || '03:00 PM'}`,
-            description: `Arrival check-in at ${shipment.consignee.company}.`,
-            completed: currentLevel >= 4,
-            active: currentLevel === 4,
-            location: shipment.consignee.address,
+            status: 'In Transit',
+            time: (currentStep > 4 || isAllCompleted) ? (findHistoryTime(['in_transit']) || 'Completed') : (currentStep === 4 ? 'Live Transit' : 'Upcoming'),
+            completed: currentStep > 4 || isAllCompleted,
+            active: currentStep === 4,
+            location: `Corridor: ${fromCity} ➔ ${toCity}`
         },
         {
             id: 5,
-            title: 'Delivered & Verified POD',
-            time: shipment.podData ? new Date(shipment.podData.uploadedAt).toLocaleTimeString() : 'Pending',
-            description: shipment.podData
-                ? `Signed off by ${shipment.podData.receiverName}.`
-                : 'Receiver sign-off and POD upload.',
-            completed: currentLevel >= 5,
+            status: 'Destination Delivery',
+            time: (currentStep > 5 || isAllCompleted) ? (findHistoryTime(['arrived', 'at_delivery']) || 'Completed') : (currentStep === 5 ? 'Arrived' : 'Upcoming'),
+            completed: currentStep > 5 || isAllCompleted,
+            active: currentStep === 5,
+            location: `${toCity} Receiving Dock`
+        },
+        {
+            id: 6,
+            status: isAllCompleted ? 'POD Verified & Approved' : 'POD Upload & Review',
+            time: isAllCompleted ? (findHistoryTime(['completed']) || 'Approved') : (currentStep === 6 ? 'Under Customer Review' : 'Pending Delivery'),
+            completed: isAllCompleted,
+            active: currentStep === 6,
+            location: isAllCompleted ? 'POD verified and Escrow funds disbursed' : 'Signed delivery note uploaded, customer review in progress'
+        },
+        {
+            id: 7,
+            status: 'Order Completed',
+            time: isAllCompleted ? 'Payout Released' : 'Pending Escrow Release',
+            completed: isAllCompleted,
             active: false,
-            location: `${shipment.consignee.city}, ${shipment.consignee.state}`,
+            location: isAllCompleted ? 'Platform payment released to carrier account' : 'Awaiting customer POD acceptance to disburse payout'
         },
     ];
 
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs font-sans overflow-hidden">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs flex flex-col font-sans h-auto overflow-hidden">
             {/* Header */}
-            <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-[#15191e]/50">
-                <div className="flex items-center gap-1.5">
-                    <Clock size={14} className="text-[#FF4A1F]" />
-                    <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100">
-                        Activity Log & Direct Dispatch
-                    </h3>
-                </div>
-                <span className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400">
-                    Live Milestones
+            <div className="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/60 dark:bg-[#15191e]/50 shrink-0">
+                <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100">
+                    Shipment Milestones & Logs
+                </h3>
+                <span className="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                    <Clock size={11} className="text-[#ff4a1f]" />
+                    <span>Live Tracking</span>
                 </span>
             </div>
-            {/* Vertical Milestone Activity Timeline */}
-            <div className="p-4">
-                <div className="relative">
-                    {/* Connecting Line */}
-                    <div className="absolute left-[9px] top-2.5 bottom-4 w-[2px] bg-slate-100 dark:bg-slate-800" />
 
-                    <div className="space-y-3.5 relative">
-                        {timelineItems.map((item, index) => (
-                            <div key={item.id} className="flex gap-2.5 relative">
-                                {/* Dot Icon */}
+            {/* Timeline Body */}
+            <div className="p-3.5">
+                <div className="relative">
+                    {/* Vertical Connecting Guide Line */}
+                    <div className="absolute left-[11px] top-3 bottom-5 w-[2px] bg-slate-100 dark:bg-slate-800" />
+
+                    <div className="space-y-3 relative">
+                        {timeline.map((step, index) => (
+                            <div key={step.id || index} className="flex gap-3 relative">
+                                {/* Dot / Check / Number Icon */}
                                 <div className="relative z-10 flex flex-col items-center">
                                     <div
-                                        className={`w-5 h-5 min-w-[20px] min-h-[20px] rounded-full flex items-center justify-center font-bold text-[10px] transition-all ${item.completed && !item.active
+                                        className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10.5px] transition-all ${
+                                            step.completed
                                                 ? 'bg-emerald-500 text-white shadow-2xs'
-                                                : item.active
-                                                    ? 'bg-[#FF4A1F] text-white ring-2 ring-orange-200 dark:ring-orange-950/80 shadow-2xs scale-105'
-                                                    : 'bg-white dark:bg-slate-900 border-[1.5px] border-slate-300 dark:border-slate-700 text-slate-400'
-                                            }`}
+                                                : step.active
+                                                ? 'bg-[#ff4a1f] text-white ring-3 ring-orange-100 dark:ring-orange-950/80 shadow-2xs scale-105'
+                                                : 'bg-white dark:bg-slate-900 border-[1.5px] border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+                                        }`}
                                     >
-                                        {item.completed && !item.active ? (
-                                            <Check size={11} strokeWidth={3} className="text-white" />
+                                        {step.completed ? (
+                                            <Check size={12} strokeWidth={3} className="text-white" />
                                         ) : (
                                             <span>{index + 1}</span>
                                         )}
                                     </div>
 
-                                    {/* Line connecting to next */}
-                                    {index !== timelineItems.length - 1 && (
+                                    {/* Connecting Line to next step */}
+                                    {index !== timeline.length - 1 && (
                                         <div
-                                            className={`absolute top-5 w-[2px] h-[calc(100%+14px)] z-0 ${item.completed && timelineItems[index + 1]?.completed
+                                            className={`absolute top-6 w-[2px] h-[calc(100%+12px)] z-0 ${
+                                                step.completed && timeline[index + 1]?.completed
                                                     ? 'bg-emerald-500'
-                                                    : item.completed && timelineItems[index + 1]?.active
-                                                        ? 'bg-orange-400'
-                                                        : 'bg-slate-200 dark:bg-slate-700'
-                                                }`}
+                                                    : step.completed && timeline[index + 1]?.active
+                                                    ? 'bg-orange-400'
+                                                    : 'bg-slate-200 dark:bg-slate-700'
+                                            }`}
                                         />
                                     )}
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex-1 pb-0.5">
+                                <div className="flex-1 pb-0.5 min-w-0">
                                     <div className="flex items-start justify-between gap-1">
                                         <h4
-                                            className={`text-[11.5px] font-bold ${item.active
-                                                    ? 'text-[#FF4A1F]'
-                                                    : item.completed
-                                                        ? 'text-slate-900 dark:text-slate-100'
-                                                        : 'text-slate-400 dark:text-slate-500'
-                                                }`}
+                                            className={`text-xs font-bold leading-tight ${
+                                                step.active
+                                                    ? 'text-[#ff4a1f]'
+                                                    : step.completed
+                                                    ? 'text-slate-900 dark:text-slate-100'
+                                                    : 'text-slate-400 dark:text-slate-500'
+                                            }`}
                                         >
-                                            {item.title}
+                                            {step.status}
                                         </h4>
                                         <span
-                                            className={`text-[10px] font-medium shrink-0 ${item.active || item.completed
+                                            className={`text-[10.5px] font-medium shrink-0 ${
+                                                step.active || step.completed
                                                     ? 'text-slate-500 dark:text-slate-400'
                                                     : 'text-slate-300 dark:text-slate-600'
-                                                }`}
+                                            }`}
                                         >
-                                            {item.time}
+                                            {step.time}
                                         </span>
                                     </div>
 
-                                    <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                                        {item.description}
-                                    </p>
-
-                                    {item.active && item.location && (
-                                        <div className="mt-1 bg-orange-50/70 dark:bg-orange-950/30 rounded p-1 px-1.5 border border-orange-200 dark:border-orange-900/60 flex items-center gap-1.5">
-                                            <MapPin size={10} className="text-[#FF4A1F] shrink-0" />
-                                            <p className="text-[10.5px] font-semibold text-slate-800 dark:text-slate-200 truncate">
-                                                {item.location}
+                                    {/* Active Step Location Highlight */}
+                                    {step.active && step.location && (
+                                        <div className="mt-1.5 bg-orange-50/80 dark:bg-orange-950/40 rounded-md p-1.5 px-2 border border-orange-200 dark:border-orange-900/60 flex items-center gap-1.5">
+                                            <MapPin size={11} className="text-[#ff4a1f] shrink-0" />
+                                            <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 leading-snug">
+                                                {step.location}
                                             </p>
                                         </div>
                                     )}
@@ -163,17 +214,8 @@ export const DriverShipmentSidebarTimeline: React.FC<Props> = ({ shipment }) => 
                     </div>
                 </div>
             </div>
-
-            {/* Helpline Footer */}
-            <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#15191e]/50 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                <span className="flex items-center gap-1">
-                    <Headphones size={12} className="text-[#FF4A1F]" />
-                    <span>Emergency Dispatch:</span>
-                </span>
-                <a href="tel:+18005550199" className="font-mono font-bold text-[#FF4A1F] hover:underline">
-                    1-800-CARRIER
-                </a>
-            </div>
         </div>
     );
 };
+
+export default DriverShipmentSidebarTimeline;

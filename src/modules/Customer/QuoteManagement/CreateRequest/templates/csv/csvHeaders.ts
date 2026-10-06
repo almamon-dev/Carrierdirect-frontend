@@ -21,7 +21,6 @@ export const CSV_HEADERS = [
     "Pickup City *",
     "Pickup Zip Code",
     "Pickup Full Address *",
-    "Pickup Google Map URL",
     "Pickup Special Instructions",
 
     "Delivery Date *",
@@ -35,7 +34,6 @@ export const CSV_HEADERS = [
     "Delivery City *",
     "Delivery Zip Code",
     "Delivery Full Address *",
-    "Delivery Google Map URL",
     "Delivery Special Instructions",
 
     "Vehicle Type Preference *",

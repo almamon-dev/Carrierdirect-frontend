@@ -4,8 +4,18 @@ export interface NormalizedSupplierOrder {
     orderNumber: string;
     from: string;
     to: string;
+    pickupCity: string;
+    deliveryCity: string;
     pickupFullAddress: string;
     deliveryFullAddress: string;
+    pickup_address: string;
+    delivery_address: string;
+    pickup_lat?: number | null;
+    pickup_lng?: number | null;
+    delivery_lat?: number | null;
+    delivery_lng?: number | null;
+    distance_km?: number | null;
+    distance?: string;
     status: string;
     rawStatus: string;
     pickupDate: string;
@@ -243,14 +253,31 @@ export const buildSupplierOrderDetails = (
         foundOrder?.deliveryDate ||
         '19 Sep 2026';
 
+    const pickupLat = foundOrder?.pickup_lat ? Number(foundOrder.pickup_lat) : null;
+    const pickupLng = foundOrder?.pickup_lng ? Number(foundOrder.pickup_lng) : null;
+    const deliveryLat = foundOrder?.delivery_lat ? Number(foundOrder.delivery_lat) : null;
+    const deliveryLng = foundOrder?.delivery_lng ? Number(foundOrder.delivery_lng) : null;
+    const distanceKmVal = foundOrder?.distance_km ? Number(foundOrder.distance_km) : null;
+    const distanceFormatted = foundOrder?.distance || (distanceKmVal ? `${distanceKmVal} km` : '80.81 km');
+
     return {
         id: formattedId,
         rawId: rawId,
         orderNumber: foundOrder?.order_no || foundOrder?.order_number || formattedId,
         from: fromCity,
         to: toCity,
+        pickupCity: fromCity,
+        deliveryCity: toCity,
         pickupFullAddress,
         deliveryFullAddress,
+        pickup_address: pickupFullAddress,
+        delivery_address: deliveryFullAddress,
+        pickup_lat: pickupLat,
+        pickup_lng: pickupLng,
+        delivery_lat: deliveryLat,
+        delivery_lng: deliveryLng,
+        distance_km: distanceKmVal,
+        distance: distanceFormatted,
         status: displayStatus,
         rawStatus: rawStatus,
         pickupDate: pickupDateStr,
@@ -325,8 +352,8 @@ export const buildSupplierOrderTimeline = (
         });
     };
 
-    const fromCity = order?.from || 'London';
-    const toCity = order?.to || 'Manchester';
+    const fromCity = order?.from || 'Origin';
+    const toCity = order?.to || 'Destination';
 
     const hasRealDriver = Boolean(
         order?.driver?.name &&
@@ -335,80 +362,83 @@ export const buildSupplierOrderTimeline = (
         order.driver.name !== 'Assigned Fleet Driver'
     );
 
-    let currentStepIndex = 1;
+    // 1 = Confirmed, 2 = Driver Assign, 3 = Goods Picked Up, 4 = In Transit, 5 = Arrived, 6 = POD Review, 7 = Completed
+    let currentStep = 2; // Default for confirmed orders is Step 2 (Driver Assignment)
 
     if (s === 'pending') {
-        currentStepIndex = 0;
+        currentStep = 1;
     } else if (s === 'confirmed' || s === 'scheduled' || s === 'order confirmed' || s === 'new') {
-        currentStepIndex = hasRealDriver ? 2 : 1;
+        currentStep = hasRealDriver ? 3 : 2;
     } else if (s === 'driver assigned' || s === 'assigned' || s === 'dispatched') {
-        currentStepIndex = 2;
+        currentStep = 3;
     } else if (s === 'picked up' || s === 'cargo loaded' || s === 'goods picked up') {
-        currentStepIndex = 3;
+        currentStep = 4;
     } else if (s === 'in transit' || s === 'on the way' || s === 'in progress') {
-        currentStepIndex = 3;
+        currentStep = 4;
     } else if (s === 'arrived' || s === 'destination reached' || s === 'out for delivery') {
-        currentStepIndex = 4;
+        currentStep = 5;
     } else if (s === 'delivered' || s === 'pod uploaded' || s === 'pod review' || s === 'pod pending') {
-        currentStepIndex = isPodAccepted ? 6 : 5;
+        currentStep = isPodAccepted ? 8 : 6;
     } else if (s === 'completed' || s === 'pod accepted' || isPodAccepted) {
-        currentStepIndex = 6;
+        currentStep = 8;
     }
+
+    const isAllCompleted = currentStep >= 8;
 
     return [
         {
             id: 1,
             status: 'Order Confirmed',
-            time: formatDate(baseDate, -4, 0),
-            completed: currentStepIndex >= 1 || rawStatus !== 'pending',
-            active: currentStepIndex === 0 && rawStatus === 'pending',
-            location: 'Order confirmed & customer booking secured'
+            time: formatDate(baseDate, -12, 0),
+            completed: currentStep > 1 || isAllCompleted,
+            active: currentStep === 1,
+            location: 'Order confirmed & customer booking secured in Escrow'
         },
         {
             id: 2,
             status: hasRealDriver ? 'Driver Assigned' : 'Driver Assignment',
-            time: hasRealDriver ? formatDate(baseDate, -2, 30) : 'Action Required',
-            completed: hasRealDriver && currentStepIndex >= 2,
-            active: !hasRealDriver || currentStepIndex === 1,
+            time: (currentStep > 2 || isAllCompleted) ? formatDate(baseDate, -8, 30) : (currentStep === 2 ? 'Action Required' : 'Pending'),
+            completed: currentStep > 2 || isAllCompleted,
+            active: currentStep === 2,
             location: hasRealDriver ? `${order?.driver?.name} assigned (${order?.vehicle?.number || 'Fleet Vehicle'})` : 'Assign driver and vehicle for dispatch'
         },
         {
             id: 3,
             status: 'Goods Picked Up',
-            time: currentStepIndex > 2 ? formatDate(baseDate, -1, 0) : (currentStepIndex === 2 ? 'Next Step' : 'Scheduled'),
-            completed: currentStepIndex > 2,
-            active: currentStepIndex === 2 && hasRealDriver,
-            location: `Pickup facility: ${fromCity}`
+            time: (currentStep > 3 || isAllCompleted) ? formatDate(baseDate, -4, 0) : (currentStep === 3 ? 'In Progress' : 'Scheduled Date'),
+            completed: currentStep > 3 || isAllCompleted,
+            active: currentStep === 3,
+            location: `Pickup facility: ${order?.pickupFullAddress || fromCity}`
         },
         {
             id: 4,
             status: 'In Transit',
-            time: currentStepIndex > 3 ? formatDate(baseDate, 0, 0) : (currentStepIndex === 3 ? 'Live Transit' : 'Upcoming'),
-            completed: currentStepIndex > 3,
-            active: currentStepIndex === 3,
+            time: (currentStep > 4 || isAllCompleted) ? formatDate(baseDate, -1, 15) : (currentStep === 4 ? 'Live GPS Corridor' : 'Estimated En Route'),
+            completed: currentStep > 4 || isAllCompleted,
+            active: currentStep === 4,
             location: `Corridor: ${fromCity} ➔ ${toCity}`
         },
         {
             id: 5,
-            status: 'Destination Delivery',
-            time: currentStepIndex > 4 ? formatDate(baseDate, 2, 0) : (currentStepIndex === 4 ? 'Arriving' : 'Upcoming'),
-            completed: currentStepIndex > 4,
-            active: currentStepIndex === 4,
-            location: `${toCity} Receiving Dock`
+            status: 'Arrived at Destination',
+            time: (currentStep > 5 || isAllCompleted) ? formatDate(baseDate, 0, 0) : (currentStep === 5 ? 'Arrived' : order?.estArrival || '48h'),
+            completed: currentStep > 5 || isAllCompleted,
+            active: currentStep === 5,
+            location: `${order?.deliveryFullAddress || toCity}`
         },
         {
             id: 6,
-            status: isPodAccepted ? 'POD Accepted' : 'POD Upload & Review',
-            time: isPodAccepted ? formatDate(baseDate, 3, 0) : (currentStepIndex === 5 ? 'Under Review' : 'Pending Delivery'),
-            completed: isPodAccepted || (currentStepIndex === 6),
-            active: currentStepIndex === 5 && !isPodAccepted,
-            location: isPodAccepted ? 'POD verified by customer' : (currentStepIndex === 5 ? 'Delivery note uploaded, verification in progress' : 'Requires delivery completion')
+            status: isPodAccepted || isAllCompleted ? 'POD Approved & Settled' : 'POD Upload & Verification',
+            time: (isPodAccepted || isAllCompleted) ? formatDate(baseDate, 0, 45) : (currentStep === 6 ? 'Under Customer Review' : 'Pending Delivery'),
+            completed: isPodAccepted || isAllCompleted,
+            active: currentStep === 6 && !isPodAccepted,
+            location: isPodAccepted ? 'POD verified and Escrow payment released' : 'Proof of delivery submitted for customer approval'
         },
         {
             id: 7,
             status: 'Order Completed',
-            time: isPodAccepted || currentStepIndex === 6 ? 'Payout Released' : 'Pending Verification',
-            completed: isPodAccepted || currentStepIndex === 6,
+            time: (isPodAccepted || isAllCompleted) ? formatDate(baseDate, 1, 0) : 'Pending Final Release',
+            completed: isPodAccepted || isAllCompleted,
             active: false,
             location: 'Platform payment released to carrier account'
         },

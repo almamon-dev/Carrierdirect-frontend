@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, FileText, Package, Users, Settings, Activity, ArrowUpRight } from 'lucide-react';
+import { Search, X, FileText, Package, Users, Settings, Activity, ArrowUpRight, Bell, MessageSquare } from 'lucide-react';
+import { isDriverUser } from '@/utils/roleDashboard';
 import { useNavigate } from 'react-router-dom';
 
 export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
@@ -24,13 +25,25 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
 
     if (!isOpen) return null;
 
-    const quickLinks = [
+    const isDriver = isDriverUser();
+
+    const driverLinks = [
+        { name: 'Dashboard Overview', path: '/driver/dashboard', icon: Activity },
+        { name: 'Assigned Shipments', path: '/driver/shipments', icon: Package },
+        { name: 'Live Chat', path: '/driver/chat', icon: MessageSquare },
+        { name: 'Notifications', path: '/driver/notifications', icon: Bell },
+        { name: 'Driver Profile & Credentials', path: '/driver/profile', icon: Settings },
+    ];
+
+    const supplierLinks = [
         { name: 'Active Orders', path: '/supplier/orders/active-jobs', icon: Package },
         { name: 'Quote Requests', path: '/supplier/quotes/requests', icon: FileText },
         { name: 'Team Management', path: '/supplier/team', icon: Users },
         { name: 'Dashboard Overview', path: '/supplier/dashboard', icon: Activity },
         { name: 'Settings', path: '/supplier/settings', icon: Settings },
     ];
+
+    const quickLinks = isDriver ? driverLinks : supplierLinks;
 
     const filteredLinks = query.trim() === ''
         ? quickLinks

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Headphones, PhoneCall, AlertOctagon, MessageSquare, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -20,9 +21,9 @@ export const DispatcherSupportModal: React.FC<Props> = ({ isOpen, onClose }) => 
         }, 500);
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-[#12161c] rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200" onClick={onClose}>
+            <div className="bg-white dark:bg-[#12161c] rounded-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center">
@@ -119,6 +120,7 @@ export const DispatcherSupportModal: React.FC<Props> = ({ isOpen, onClose }) => 
                     </Button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

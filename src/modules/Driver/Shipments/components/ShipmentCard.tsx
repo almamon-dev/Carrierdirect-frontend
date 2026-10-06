@@ -148,15 +148,7 @@ export const ShipmentCard: React.FC<Props> = ({ shipment }) => {
             {/* Bottom Actions Footer */}
             <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-2">
-                    {shipment.consignee.phone && (
-                        <a
-                            href={`tel:${shipment.consignee.phone}`}
-                            className="py-1 px-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-[3px] text-[11px] font-semibold flex items-center gap-1.5 transition-colors"
-                        >
-                            <Phone size={11} />
-                            <span>Call</span>
-                        </a>
-                    )}
+
                     <button
                         type="button"
                         onClick={handleGPS}

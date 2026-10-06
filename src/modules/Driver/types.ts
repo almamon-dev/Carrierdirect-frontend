@@ -164,6 +164,7 @@ export interface ShipmentItem {
     };
     route: {
         distanceKm: number;
+        distanceFormatted?: string;
         estimatedDuration: string;
         tollRoads: boolean;
         currentLat?: number;
@@ -176,6 +177,21 @@ export interface ShipmentItem {
         fuelSurcharge: number;
         bonus?: number;
         currency: string;
+    };
+    history?: Array<{
+        status: string;
+        title: string;
+        description: string;
+        time?: string;
+        date: string;
+        raw_date?: string;
+        time_ago?: string;
+    }>;
+    driver?: {
+        name: string;
+        phone: string;
+        vehiclePlate: string;
+        vehicleType: string;
     };
     podData?: {
         uploadedAt: string;

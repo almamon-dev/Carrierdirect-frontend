@@ -7,7 +7,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
     Bell, CheckCheck, RefreshCw, Trash2, CheckCircle2, X
 } from 'lucide-react';
 import DataTable from '@/components/tables/data-table';
@@ -18,18 +18,20 @@ import { getNotificationColumns } from './components/columns';
 import { NotificationRowActions } from './components/NotificationRowActions';
 import { FilterTabs, DriverNotificationFilterTab } from './components/FilterTabs';
 import { TableFilterContent } from './components/TableFilterContent';
+import { NotificationItem } from './components/NotificationItem';
 
 export default function DriverNotificationsPage() {
     const navigate = useNavigate();
-    const { 
-        notifications, 
-        unreadCount, 
+    const {
+        notifications,
+        unreadCount,
+        isLoading,
         refresh,
         markAsRead,
         markAsUnread,
-        markAllAsRead, 
-        deleteNotification, 
-        clearAll 
+        markAllAsRead,
+        deleteNotification,
+        clearAll
     } = useHeaderNotifications('driver');
 
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -107,11 +109,6 @@ export default function DriverNotificationsPage() {
                 <div>
                     <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
                         <span>Driver Notifications</span>
-                        {unreadCount > 0 && (
-                            <span className="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] border border-orange-200/80 dark:border-orange-500/20 text-[10.5px] font-bold px-1.5 py-0.2 rounded-[3px]">
-                                {unreadCount} Unread
-                            </span>
-                        )}
                     </h1>
                     <p className="text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                         Real-time alerts for load assignments, route updates, messages, safety reminders, and payouts.
@@ -160,11 +157,19 @@ export default function DriverNotificationsPage() {
                 data={filteredNotifications}
                 columns={columns}
                 actions={(row) => (
-                    <NotificationRowActions 
-                        row={row} 
+                    <NotificationRowActions
+                        row={row}
                         onMarkAsRead={handleMarkAsRead}
                         onMarkAsUnread={handleMarkAsUnread}
-                        onDelete={handleDelete} 
+                        onDelete={handleDelete}
+                    />
+                )}
+                renderGridCard={(item) => (
+                    <NotificationItem
+                        key={item.id}
+                        notification={item}
+                        onMarkRead={handleMarkAsRead}
+                        onMarkUnread={handleMarkAsUnread}
                     />
                 )}
                 headerTabs={
@@ -186,7 +191,8 @@ export default function DriverNotificationsPage() {
                 searchPlaceholder="Search notifications by title, load, category..."
                 compact={true}
                 hideViewToggle={false}
-                isLoading={isRefreshing}
+                isLoading={isLoading || isRefreshing}
+                skeletonCount={5}
                 tableLayout="fixed"
                 disableHorizontalScroll={true}
                 tableClassName="w-full table-fixed"
@@ -209,8 +215,8 @@ export default function DriverNotificationsPage() {
                 <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-[3px] shadow-xl border border-slate-800 dark:border-slate-700 animate-in fade-in slide-in-from-bottom-3 duration-200">
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
                     <span>{toastMessage}</span>
-                    <button 
-                        onClick={() => setToastMessage(null)} 
+                    <button
+                        onClick={() => setToastMessage(null)}
                         className="ml-2 text-slate-400 hover:text-white transition-colors cursor-pointer"
                     >
                         <X size={12} />

@@ -1,5 +1,7 @@
 import { QuoteFormData } from '../../CreateRequest/types/formTypes';
 import { INITIAL_QUOTE_FORM_DATA } from '../../CreateRequest/utils/editFormHelpers';
+import { formatTo12HourTime } from '../../ViewRequest/utils/mapQuoteToFormData';
+import { resolveQuoteDistance } from '@/utils/geoDistance';
 
 export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData {
     const dynamicFlags: Record<string, boolean> = {};
@@ -18,7 +20,6 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
     const pickupState = q.pickup_state || q.pickup_location?.state || q.pickupState || '';
     const pickupCountry = q.pickup_country || q.pickup_location?.country || q.pickupCountry || 'Bangladesh';
     const pickupZip = q.pickup_zip || q.pickup_location?.zip || q.pickupZip || '';
-    const pickupMapUrl = q.pickup_map_url || q.pickup_location?.map_url || q.pickupMapUrl || '';
     const pickupInstructions = q.pickup_instructions || q.pickup_location?.instructions || q.pickupInstructions || '';
 
     const deliveryCompany = q.delivery_company || q.delivery_company_name || q.delivery_location?.company_name || q.deliveryCompany || '';
@@ -30,8 +31,10 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
     const deliveryState = q.delivery_state || q.delivery_location?.state || q.deliveryState || '';
     const deliveryCountry = q.delivery_country || q.delivery_location?.country || q.deliveryCountry || 'Bangladesh';
     const deliveryZip = q.delivery_zip || q.delivery_location?.zip || q.deliveryZip || '';
-    const deliveryMapUrl = q.delivery_map_url || q.delivery_location?.map_url || q.deliveryMapUrl || '';
     const deliveryInstructions = q.delivery_instructions || q.delivery_location?.instructions || q.deliveryInstructions || '';
+
+    const rawPickup = q.pickup_time || q.pickup_time_from || q.pickupTime || '';
+    const rawDelivery = q.delivery_time || q.delivery_time_from || q.deliveryTime || '';
 
     return {
         ...INITIAL_QUOTE_FORM_DATA,
@@ -41,9 +44,11 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
         shipmentType: q.shipment_type || q.shipmentType || 'One Way',
         serviceType: q.service_type || q.serviceType || 'Standard',
         pickupDate: q.pickup_date ? String(q.pickup_date).split('T')[0] : '',
-        pickupTime: q.pickup_time_from || q.pickup_time || q.pickupTime || '',
+        pickupTime: formatTo12HourTime(rawPickup),
+        pickupTimeTill: '',
         deliveryDate: q.delivery_date ? String(q.delivery_date).split('T')[0] : '',
-        deliveryTime: q.delivery_time_till || q.delivery_time_from || q.delivery_time || q.deliveryTime || '',
+        deliveryTime: formatTo12HourTime(rawDelivery),
+        deliveryTimeTill: '',
         expectedTransitTime: q.expected_transit_time ? String(q.expected_transit_time) : '',
 
         pickupCompany,
@@ -55,8 +60,9 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
         pickupCity,
         pickupZip,
         pickupAddress,
-        pickupMapUrl,
         pickupInstructions,
+        pickupLat: q.pickup_lat ?? q.pickupLat ?? null,
+        pickupLng: q.pickup_lng ?? q.pickupLng ?? null,
 
         deliveryCompany,
         deliveryContactName,
@@ -67,8 +73,11 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
         deliveryCity,
         deliveryZip,
         deliveryAddress,
-        deliveryMapUrl,
         deliveryInstructions,
+        deliveryLat: q.delivery_lat ?? q.deliveryLat ?? null,
+        deliveryLng: q.delivery_lng ?? q.deliveryLng ?? null,
+        distanceKm: resolveQuoteDistance(q).distanceKm,
+        estimatedDurationMinutes: q.estimated_duration_minutes ?? q.estimatedDurationMinutes ?? null,
 
         vehicleType: q.vehicle_type || q.vehicleType || q.vehicle || '',
         loadType: q.load_type || q.loadType || q.load || '',
@@ -79,11 +88,11 @@ export function mapQuoteToEditFormData(q: any, cleanId?: string): QuoteFormData 
         dimensions: Array.isArray(q.items) && q.items.length > 0
             ? q.items.map((it: any, idx: number) => ({
                 id: it.id || idx + 1,
-                length: it.length ? String(it.length) : '',
-                width: it.width ? String(it.width) : '',
-                height: it.height ? String(it.height) : '',
+                length: it.length !== null && it.length !== undefined ? String(it.length) : '',
+                width: it.width !== null && it.width !== undefined ? String(it.width) : '',
+                height: it.height !== null && it.height !== undefined ? String(it.height) : '',
                 qty: it.quantity ? String(it.quantity) : '1',
-                unit: it.unit || 'CM'
+                unit: it.unit || it.item_type || 'CM'
             }))
             : [{ id: 1, length: '', width: '', height: '', qty: '1', unit: 'CM' }],
 

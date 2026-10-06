@@ -101,6 +101,7 @@ export default function EditRequest() {
                     addDimensionRow={editState.addDimension}
                     updateDimension={editState.updateDimension}
                     removeDimension={editState.removeDimension}
+                    handleLocationSelect={editState.handleLocationSelect}
                     handleSaveUpdate={editState.handleSubmit}
                 />
             </div>

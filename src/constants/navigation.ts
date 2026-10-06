@@ -89,15 +89,9 @@ export const navigationMap: Record<string, any[]> = {
             permission: 'fleet.view',
             items: [
                 { name: 'Dashboard', path: '/supplier/availability/dashboard', icon: LayoutDashboard, permission: 'fleet.view' },
-                { name: 'Calendar', path: '/supplier/availability/calendar', icon: Calendar, permission: 'fleet.view' },
-                { name: 'Availability Schedule', path: '/supplier/availability/schedule', icon: Calendar, permission: 'fleet.view' },
-                { name: 'Routes', path: '/supplier/availability/routes', icon: Map, permission: 'fleet.track' },
-                { name: 'Drivers Availability', path: '/supplier/availability/drivers', icon: UserCircle, permission: 'fleet.manage_drivers' },
-                { name: 'Vehicles Availability', path: '/supplier/availability/vehicles', icon: Truck, permission: 'fleet.manage_vehicles' },
-                { name: 'Blackout Dates', path: '/supplier/availability/blackout-dates', icon: Calendar, permission: 'fleet.view' },
-                { name: 'Time Slots', path: '/supplier/availability/time-slots', icon: Clock, permission: 'fleet.view' },
-                { name: 'Capacity Management', path: '/supplier/availability/capacity', icon: PieChart, permission: 'fleet.manage_vehicles' },
-                { name: 'Settings', path: '/supplier/availability/settings', icon: Settings, permission: 'fleet.view' },
+                { name: 'Service Areas', path: '/supplier/availability/routes', icon: Map, permission: 'fleet.track' },
+                { name: 'Drivers', path: '/supplier/availability/drivers', icon: UserCircle, permission: 'fleet.manage_drivers' },
+                { name: 'Vehicles', path: '/supplier/availability/vehicles', icon: Truck, permission: 'fleet.manage_vehicles' },
             ]
         },
         { category: 'Main Menu', name: 'Team Management', path: '/supplier/team', icon: Users, permission: 'team.view' },

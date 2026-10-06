@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, FileCheck, Check, Camera, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { DigitalSignaturePad } from './DigitalSignaturePad';
@@ -47,9 +48,9 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200 dark:border-slate-800 w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200" onClick={onClose}>
+            <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200 dark:border-slate-800 w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 {/* Modal Header */}
                 <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -145,6 +146,7 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

@@ -18,6 +18,19 @@ export function useEditQuoteFormHandlers(
         setFormData(prev => ({ ...prev, [name]: checked }));
     };
 
+    const handleLocationSelect = (prefix: 'pickup' | 'delivery', locData: any) => {
+        setFormData(prev => ({
+            ...prev,
+            [`${prefix}Address`]: locData.address || (prev as any)[`${prefix}Address`],
+            [`${prefix}Lat`]: locData.lat !== undefined ? locData.lat : (prev as any)[`${prefix}Lat`],
+            [`${prefix}Lng`]: locData.lng !== undefined ? locData.lng : (prev as any)[`${prefix}Lng`],
+            [`${prefix}City`]: locData.city || (prev as any)[`${prefix}City`],
+            [`${prefix}State`]: locData.state || (prev as any)[`${prefix}State`],
+            [`${prefix}Country`]: locData.country || (prev as any)[`${prefix}Country`],
+            [`${prefix}Zip`]: locData.zip || (prev as any)[`${prefix}Zip`],
+        }));
+    };
+
     const addDimension = () => {
         setFormData(prev => ({
             ...prev,
@@ -47,6 +60,7 @@ export function useEditQuoteFormHandlers(
         handleChange,
         handleSelectChange,
         handleCheckboxChange,
+        handleLocationSelect,
         addDimension,
         removeDimension,
         updateDimension,

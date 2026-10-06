@@ -8,6 +8,7 @@ import { formatDisplayDate } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { resolveAddress } from "../../QuoteRequests/utils/addressHelpers";
 import { WonFilterTab, WonQuoteItem } from "../types";
+import { resolveQuoteDistance } from "@/utils/geoDistance";
 
 export function useSupplierWonQuotes() {
     const [activeTab, setActiveTab] = useState<WonFilterTab>("All");
@@ -55,7 +56,7 @@ export function useSupplierWonQuotes() {
                         customerRating: reqObj.customer?.rating || q.customer?.rating || 4.9,
                         pickup: pickupFormatted || "—",
                         delivery: deliveryFormatted || "—",
-                        distance: reqObj.distance || (q.distance ? `${q.distance} km` : "—"),
+                        distance: resolveQuoteDistance(reqObj || q).distanceStr,
                         budget: formattedAmount,
                         priority: reqObj.priority || q.priority || "Normal",
                         status: q.order_status === "in_transit" ? "In Transit" : (q.order_status === "delivered" ? "Delivered" : "Won"),

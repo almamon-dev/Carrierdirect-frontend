@@ -6,11 +6,14 @@ import { STATUS_CHANGE_EVENT } from '../../utils/requestStatusTracker';
 import { mapRawQuoteRequest } from '../utils/requestMapper';
 
 export interface SupplierTabStats {
-    total: number;
-    all: number;
-    today: number;
-    upcoming: number;
-    urgent: number;
+    total?: number;
+    all?: number;
+    active?: number;
+    new?: number;
+    quoted?: number;
+    today?: number;
+    upcoming?: number;
+    urgent?: number;
 }
 
 export function useSupplierQuoteRequests() {
@@ -18,6 +21,9 @@ export function useSupplierQuoteRequests() {
     const [stats, setStats] = useState<SupplierTabStats>({
         total: 0,
         all: 0,
+        active: 0,
+        new: 0,
+        quoted: 0,
         today: 0,
         upcoming: 0,
         urgent: 0,
@@ -33,8 +39,11 @@ export function useSupplierQuoteRequests() {
             const backendStats = res.data?.stats || responseData?.stats;
             if (backendStats) {
                 setStats({
-                    total: backendStats.total ?? backendStats.all ?? 0,
-                    all: backendStats.all ?? backendStats.total ?? 0,
+                    total: backendStats.total ?? backendStats.all ?? backendStats.active ?? 0,
+                    all: backendStats.all ?? backendStats.total ?? backendStats.active ?? 0,
+                    active: backendStats.active ?? backendStats.all ?? backendStats.total ?? 0,
+                    new: backendStats.new ?? 0,
+                    quoted: backendStats.quoted ?? 0,
                     today: backendStats.today ?? 0,
                     upcoming: backendStats.upcoming ?? 0,
                     urgent: backendStats.urgent ?? 0,
@@ -58,9 +67,13 @@ export function useSupplierQuoteRequests() {
             setRequests(mapped);
 
             if (!backendStats) {
+                const quotedCount = mapped.filter(item => item.status === 'Quoted' || item.isQuoted || item.hasQuoted).length;
                 setStats({
                     total: mapped.length,
                     all: mapped.length,
+                    active: mapped.length,
+                    new: mapped.length - quotedCount,
+                    quoted: quotedCount,
                     today: mapped.filter(item => item.isToday).length,
                     upcoming: mapped.filter(item => item.isUpcoming).length,
                     urgent: mapped.filter(item => item.isUrgent).length,
