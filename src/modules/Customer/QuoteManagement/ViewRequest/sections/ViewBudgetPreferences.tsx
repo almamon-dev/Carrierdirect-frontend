@@ -2,15 +2,13 @@ import React from 'react';
 import { Euro, Settings } from 'lucide-react';
 import TabHeader from '@/components/ui/tab-header';
 import { ViewField, SectionHeader } from '../components/ViewField';
-import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+import { formatCurrency, getCurrencyDisplay } from '@/lib/utils';
 
 interface ViewBudgetPreferencesProps {
     formData: any;
 }
 
 export const ViewBudgetPreferences: React.FC<ViewBudgetPreferencesProps> = ({ formData }) => {
-    const symbol = getCurrencySymbol(formData.currency);
-
     return (
         <div className="space-y-3 animate-in fade-in duration-300">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
@@ -29,7 +27,7 @@ export const ViewBudgetPreferences: React.FC<ViewBudgetPreferencesProps> = ({ fo
                     label="Currency" 
                     value={
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
-                            {formData.currency} ({symbol})
+                            {getCurrencyDisplay(formData.currency)}
                         </span>
                     } 
                 />
@@ -54,7 +52,7 @@ export const ViewBudgetPreferences: React.FC<ViewBudgetPreferencesProps> = ({ fo
                     }
                 />
 
-                <ViewField label="Auto Expire" value={formData.autoExpire} />
+                <ViewField label="Auto Expire" value={formData.autoExpire || '-'} />
             </div>
         </div>
     );

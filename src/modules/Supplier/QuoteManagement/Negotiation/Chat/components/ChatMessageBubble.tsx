@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Ban, Check } from 'lucide-react';
+import { Ban, Check, CheckCheck } from 'lucide-react';
 import CounterOfferMessage from '@/modules/Customer/QuoteManagement/Negotiation/CounterOffer';
+import { QuoteActivityBubble } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/components/bubble/QuoteActivityBubble';
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
 import { extractFirstUrl, getLinkPreview } from './bubble/chatLinkUtils';
@@ -58,10 +59,11 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
     }
     if (msg.type === 'offer') {
         return (
-            <div className={`flex justify-center ${spacingClass} group relative items-center w-full px-1`}>
+            <div className={`w-full ${spacingClass} my-1`}>
                 <CounterOfferMessage
                     msg={msg}
                     activeNegotiation={activeNegotiation}
+                    isSupplier={true}
                     onAccept={handleAcceptOffer}
                     onReject={handleRejectOffer}
                     onTogglePin={() => handleTogglePinMessage(msg.id)}
@@ -85,9 +87,10 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
             ((msg as any).status === 'accepted' && !lower.includes('payment') && !lower.includes('escrow') && !lower.includes('paid'));
 
         if (isOfferAccepted) {
-            const rawQuoteNum = (activeNegotiation as any).quoteNo || activeNegotiation.quoteId || activeNegotiation.id || '0003';
+            const rawQuoteNum = (activeNegotiation as any).quoteNo || activeNegotiation.quoteId || activeNegotiation.id || '0001';
             const quoteNoStr = String(rawQuoteNum).startsWith('QT-') ? rawQuoteNum : `QT-${String(rawQuoteNum).padStart(4, '0')}`;
             const customerName = activeNegotiation.customer || 'Customer 1';
+            const price = activeNegotiation.currentOffer || activeNegotiation.originalAmount || (activeNegotiation as any).amount || 548;
 
             let cleanSubtext = textStr;
             if (cleanSubtext.includes('\n')) {
@@ -97,34 +100,56 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                 }
             } else if (cleanSubtext.toLowerCase().startsWith('offer accepted:')) {
                 cleanSubtext = cleanSubtext.replace(/^offer accepted:\s*/i, '');
-            } else if (cleanSubtext.toLowerCase() === 'offer accepted' || cleanSubtext.startsWith('✅')) {
-                cleanSubtext = `${customerName} has accepted your quote (${quoteNoStr}).`;
+            } else if (cleanSubtext.toLowerCase() === 'offer accepted' || cleanSubtext.startsWith('✅') || !cleanSubtext) {
+                cleanSubtext = `${customerName} accepted quote #${quoteNoStr.replace(/^#+/, '')} • € ${price}`;
             }
 
             return (
-                <div className={`flex gap-2.5 justify-start ${spacingClass} my-1 font-sans w-full`}>
-                    <div className="w-7 shrink-0" aria-hidden="true" />
-                    <div className="w-full max-w-[360px] flex flex-col items-start">
-                        <div className="w-full bg-[#e8f7ee] dark:bg-emerald-950/40 border border-[#b8eccb] dark:border-emerald-800/60 rounded-[4px] p-2.5 text-left shadow-2xs">
+                <div className={`flex justify-end ${spacingClass} my-1 font-sans w-full`}>
+                    <div className="w-auto max-w-[85%] sm:max-w-[75%] md:max-w-[62%] flex flex-col items-end">
+                        <div className="w-auto bg-[#DCFCE7] dark:bg-emerald-950/40 border border-[#bbf7d0] dark:border-emerald-800/60 rounded-[4px] p-2.5 sm:p-3 text-left shadow-2xs">
                             <div className="flex items-start gap-2.5">
-                                <div className="w-6 h-6 rounded-full bg-[#10b981] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                                <div className="w-6 h-6 min-w-[24px] min-h-[24px] rounded-full bg-[#16A344] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                                     <Check size={13} strokeWidth={3} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-xs font-bold text-[#065f46] dark:text-emerald-300 leading-tight">
-                                        Offer Accepted
+                                    <h4 className="text-[12.5px] font-bold text-[#16A344] dark:text-emerald-300 leading-tight">
+                                        Quote accepted
                                     </h4>
                                     <p className="text-[11.5px] text-slate-700 dark:text-slate-300 leading-snug mt-0.5">
-                                        {cleanSubtext || `${customerName} has accepted your quote (${quoteNoStr}).`}
+                                        {cleanSubtext}
                                     </p>
+                                </div>
+                                <div className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1 shrink-0 ml-3 self-end mb-0.5">
+                                    <span>{msg.time || "5:21 PM"}</span>
+                                    <CheckCheck size={13} className="text-[#16A344]" />
                                 </div>
                             </div>
                         </div>
-                        {msg.time && (
-                            <div className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 px-1">
-                                {msg.time}
-                            </div>
-                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // 1.5. Revised Offer Orange Activity Bubble
+        const isRevisedOffer = lower.includes('revised offer') || lower.includes('has submitted a revised offer');
+        if (isRevisedOffer) {
+            const rawQuoteNum = (activeNegotiation as any).quoteNo || activeNegotiation.quoteId || activeNegotiation.id || '0001';
+            const quoteNoStr = String(rawQuoteNum).startsWith('QT-') ? rawQuoteNum : `QT-${String(rawQuoteNum).padStart(4, '0')}`;
+            const customerName = activeNegotiation.customer || 'Customer Co 1';
+            const price = activeNegotiation.currentOffer || activeNegotiation.originalAmount || (activeNegotiation as any).amount || 548;
+
+            return (
+                <div className={`flex justify-end ${spacingClass} my-1 font-sans w-full`}>
+                    <div className="w-full max-w-[480px]">
+                        <QuoteActivityBubble
+                            type="revised_offer"
+                            actorName={customerName}
+                            quoteNumber={quoteNoStr}
+                            amount={price}
+                            time={msg.time || "2:48 PM"}
+                            isSent={true}
+                        />
                     </div>
                 </div>
             );
@@ -146,8 +171,8 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
             return (
                 <div className={`flex gap-2.5 justify-start ${spacingClass} my-1 font-sans w-full`}>
                     <div className="w-7 shrink-0" aria-hidden="true" />
-                    <div className="w-full max-w-[360px] flex flex-col items-start">
-                        <div className="w-full bg-[#eff6ff] dark:bg-slate-800/90 border border-[#dbeafe] dark:border-slate-700 rounded-[4px] p-2.5 text-left shadow-2xs">
+                    <div className="w-auto max-w-[85%] sm:max-w-[75%] md:max-w-[62%] flex flex-col items-start">
+                        <div className="w-auto bg-[#eff6ff] dark:bg-slate-800/90 border border-[#dbeafe] dark:border-slate-700 rounded-[4px] p-3 sm:p-3.5 text-left shadow-2xs">
                             <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 leading-tight">
                                 {title}
                             </h4>
@@ -226,7 +251,7 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                 )
             )}
 
-            <div className={`max-w-[85%] sm:max-w-[75%] md:max-w-[65%] min-w-0 flex flex-col ${isSent ? 'items-end' : 'items-start'} relative group`}>
+            <div className={`w-fit max-w-[85%] sm:max-w-[75%] md:max-w-[62%] min-w-0 flex flex-col ${isSent ? 'items-end' : 'items-start'} relative group`}>
                 {!isEditing && (
                     <div className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1 z-30 ${isSent ? 'right-full mr-2' : 'left-full ml-2'}`}>
                         <ChatBubbleActions
@@ -240,8 +265,19 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
                 )}
 
                 <ChatAttachmentList attachments={allAttachments} isSent={isSent} onImageClick={(idx) => setLightboxIndex(idx)} />
-                {hasText && <ChatTextBubble text={msg.text || ''} isSent={isSent} linkPreview={linkPreview} />}
-                <ChatBubbleStatusFooter msg={msg} isSent={isSent} />
+                {hasText && (
+                    <ChatTextBubble
+                        text={msg.text || ''}
+                        isSent={isSent}
+                        linkPreview={linkPreview}
+                        time={msg.time}
+                        isPinned={Boolean(msg.isPinned)}
+                        isEdited={Boolean(msg.isEdited)}
+                        isSeen={msg.seen === true || msg.deliveryStatus === 'seen' || msg.isRead === true}
+                        isDelivered={msg.deliveryStatus === 'delivered'}
+                    />
+                )}
+                {!hasText && <ChatBubbleStatusFooter msg={msg} isSent={isSent} />}
             </div>
 
             <ChatImageLightbox

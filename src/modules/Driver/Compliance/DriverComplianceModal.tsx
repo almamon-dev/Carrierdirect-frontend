@@ -176,7 +176,9 @@ export const DriverComplianceModal: React.FC<Props> = ({
             setTrailerNumber(initialData.trailerNumber || "");
             
             // Equipment Type / Other Custom handling
-            const incomingEquip = initialData.equipmentType || "";
+            const incomingEquip = typeof (initialData as any)?.equipmentType === 'object' && (initialData as any)?.equipmentType !== null
+                ? String((initialData as any).equipmentType?.value ?? (initialData as any).equipmentType?.id ?? '')
+                : String((initialData as any)?.equipmentType || '');
             const isStandard = equipmentTypeOptions.some(
                 (opt) => opt.value === incomingEquip && opt.value !== "" && opt.value !== "Other"
             );
@@ -207,35 +209,35 @@ export const DriverComplianceModal: React.FC<Props> = ({
 
     // ─── STRICT FRONTEND STEP VALIDATION ───
     const isStep1Valid = Boolean(
-        cdlNumber.trim() &&
-        stateOfIssue.trim() &&
-        licenseClass.trim() &&
-        cdlExpiry.trim() &&
+        String(cdlNumber || '').trim() &&
+        String(stateOfIssue || '').trim() &&
+        String(licenseClass || '').trim() &&
+        String(cdlExpiry || '').trim() &&
         (cdlFrontPhoto || cdlFrontFile) &&
         (cdlBackPhoto || cdlBackFile)
     );
 
     const isStep2Valid = Boolean(
-        dotRegistryNumber.trim() &&
-        medicalExaminer.trim() &&
-        dotExpiry.trim() &&
+        String(dotRegistryNumber || '').trim() &&
+        String(medicalExaminer || '').trim() &&
+        String(dotExpiry || '').trim() &&
         (dotMedicalPhoto || dotMedicalFile)
     );
 
     const isStep3Valid = Boolean(
-        tractorModel.trim() &&
-        unitNumber.trim() &&
-        equipmentType.trim() &&
-        (equipmentType !== "Other" || customEquipmentType.trim() !== "") &&
-        trailerNumber.trim() &&
-        licensePlate.trim() &&
-        vinNumber.trim()
+        String(tractorModel || '').trim() &&
+        String(unitNumber || '').trim() &&
+        String(equipmentType || '').trim() &&
+        (equipmentType !== "Other" || String(customEquipmentType || '').trim() !== "") &&
+        String(trailerNumber || '').trim() &&
+        String(licensePlate || '').trim() &&
+        String(vinNumber || '').trim()
     );
 
     const isStep4Valid = Boolean(
-        insuranceProvider.trim() &&
-        insurancePolicyNumber.trim() &&
-        insuranceRenewalDate.trim() &&
+        String(insuranceProvider || '').trim() &&
+        String(insurancePolicyNumber || '').trim() &&
+        String(insuranceRenewalDate || '').trim() &&
         (insurancePhoto || insuranceFile)
     );
 
@@ -536,7 +538,10 @@ export const DriverComplianceModal: React.FC<Props> = ({
                                             </label>
                                             <Select
                                                 value={licenseClass}
-                                                onChange={(val) => setLicenseClass(val)}
+                                                onChange={(e: any) => {
+                                                    const val = typeof e === 'object' && e !== null ? (e.target?.value ?? e.value ?? e.id ?? '') : String(e ?? '');
+                                                    setLicenseClass(val);
+                                                }}
                                                 options={licenseClassOptions}
                                                 placeholder="Select CDL Classification"
                                             />
@@ -695,7 +700,8 @@ export const DriverComplianceModal: React.FC<Props> = ({
                                             </label>
                                             <Select
                                                 value={equipmentType}
-                                                onChange={(val) => {
+                                                onChange={(e: any) => {
+                                                    const val = typeof e === 'object' && e !== null ? (e.target?.value ?? e.value ?? e.id ?? '') : String(e ?? '');
                                                     setEquipmentType(val);
                                                     if (val !== "Other") {
                                                         setCustomEquipmentType("");

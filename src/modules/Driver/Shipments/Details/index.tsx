@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { encryptId, decryptId } from '@/lib/encryption';
 import { Loader2, Truck, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { driverApi } from '../../services/driverApi';
 import { ShipmentItem, ShipmentStatus } from '../../types';
@@ -16,6 +17,9 @@ import { GPSComingSoonModal } from '@/components/modals';
 
 export default function DriverShipmentDetailPage() {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const [shipment, setShipment] = useState<ShipmentItem | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isPODOpen, setIsPODOpen] = useState(false);
@@ -23,10 +27,24 @@ export default function DriverShipmentDetailPage() {
     const [gpsDestination, setGpsDestination] = useState<string | undefined>(undefined);
     const [actionMessage, setActionMessage] = useState<string | null>(null);
 
+    const decryptedRawId = decryptId(id);
+    const cleanId = decryptedRawId 
+        ? String(decryptedRawId).replace(/^ORD-0*/i, '') 
+        : (id ? String(id).replace(/^ORD-0*/i, '') : '1');
+
+    // Obfuscate URL: If accessed via unencrypted ID (e.g. /driver/shipments/1), silently encrypt
+    useEffect(() => {
+        if (id && !id.startsWith('enc_') && !id.startsWith('sec_') && !id.startsWith('q_')) {
+            const encrypted = encryptId(cleanId || id);
+            navigate(`/driver/shipments/${encrypted}`, { replace: true, state: location.state });
+        }
+    }, [id, cleanId, navigate, location.state]);
+
     const loadShipment = async () => {
-        if (!id) return;
+        if (!cleanId && !id) return;
         try {
-            const data = await driverApi.getShipmentById(id);
+            const targetId = cleanId || id || '1';
+            const data = await driverApi.getShipmentById(targetId);
             setShipment(data);
         } catch (err) {
             console.error('Failed to load shipment details', err);
@@ -37,7 +55,7 @@ export default function DriverShipmentDetailPage() {
 
     useEffect(() => {
         loadShipment();
-    }, [id]);
+    }, [cleanId, id]);
 
     
     const handleOpenGPS = (dest?: string) => {

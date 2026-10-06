@@ -28,20 +28,42 @@ const MONTH_NAMES = [
 
 const WEEK_DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-function parseDateString(dateStr: string): Date | null {
+function parseDateString(dateStr: string | null | undefined): Date | null {
     if (!dateStr || typeof dateStr !== "string") return null;
-    const parts = dateStr.trim().split(/[-/]/);
-    if (parts.length === 3) {
-        const y = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10) - 1;
-        const d = parseInt(parts[2], 10);
-        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-            const date = new Date(y, m, d);
-            if (date.getFullYear() === y && date.getMonth() === m && date.getDate() === d) {
-                return date;
-            }
+    const trimmed = dateStr.trim();
+    if (!trimmed) return null;
+
+    // 1. Check YYYY-MM-DD
+    const isoMatch = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (isoMatch) {
+        const y = parseInt(isoMatch[1], 10);
+        const m = parseInt(isoMatch[2], 10) - 1;
+        const d = parseInt(isoMatch[3], 10);
+        const date = new Date(y, m, d);
+        if (date.getFullYear() === y && date.getMonth() === m && date.getDate() === d) {
+            return date;
         }
     }
+
+    // 2. Check DD-MM-YYYY or DD/MM/YYYY
+    const dmyMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (dmyMatch) {
+        const d = parseInt(dmyMatch[1], 10);
+        const m = parseInt(dmyMatch[2], 10) - 1;
+        const y = parseInt(dmyMatch[3], 10);
+        const date = new Date(y, m, d);
+        if (date.getFullYear() === y && date.getMonth() === m && date.getDate() === d) {
+            return date;
+        }
+    }
+
+    // 3. Fallback to Date.parse (e.g., '07-Mar-2026', '2026-09-30T00:00:00.000Z')
+    const ts = Date.parse(trimmed);
+    if (!isNaN(ts)) {
+        const dt = new Date(ts);
+        return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    }
+
     return null;
 }
 
@@ -76,21 +98,56 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
     ) => {
         const [isOpen, setIsOpen] = React.useState(false);
         const stringValue = typeof value === "string" ? value : value ? String(value) : (defaultValue || "");
-        const parsedDate = parseDateString(stringValue);
+        const parsedDate = React.useMemo(() => parseDateString(stringValue), [stringValue]);
 
-        const [viewYear, setViewYear] = React.useState<number>(() => parsedDate?.getFullYear() || new Date().getFullYear());
-        const [viewMonth, setViewMonth] = React.useState<number>(() => parsedDate?.getMonth() ?? new Date().getMonth());
+        const minDate = React.useMemo(() => parseDateString(min), [min]);
+        const maxDate = React.useMemo(() => parseDateString(max), [max]);
 
-        // Sync view date when value changes
+        // Get initial view year and month bounded by min/max
+        const getInitialView = () => {
+            if (parsedDate) {
+                return { y: parsedDate.getFullYear(), m: parsedDate.getMonth() };
+            }
+            const today = new Date();
+            if (minDate && today < minDate) {
+                return { y: minDate.getFullYear(), m: minDate.getMonth() };
+            }
+            if (maxDate && today > maxDate) {
+                return { y: maxDate.getFullYear(), m: maxDate.getMonth() };
+            }
+            return { y: today.getFullYear(), m: today.getMonth() };
+        };
+
+        const initialView = getInitialView();
+        const [viewYear, setViewYear] = React.useState<number>(initialView.y);
+        const [viewMonth, setViewMonth] = React.useState<number>(initialView.m);
+
+        // Sync view date when value or min/max changes
         React.useEffect(() => {
             if (parsedDate) {
                 setViewYear(parsedDate.getFullYear());
                 setViewMonth(parsedDate.getMonth());
+            } else if (minDate && (viewYear < minDate.getFullYear() || (viewYear === minDate.getFullYear() && viewMonth < minDate.getMonth()))) {
+                setViewYear(minDate.getFullYear());
+                setViewMonth(minDate.getMonth());
+            } else if (maxDate && (viewYear > maxDate.getFullYear() || (viewYear === maxDate.getFullYear() && viewMonth > maxDate.getMonth()))) {
+                setViewYear(maxDate.getFullYear());
+                setViewMonth(maxDate.getMonth());
             }
-        }, [stringValue]);
+        }, [stringValue, minDate, maxDate]);
 
-        const minDate = min ? parseDateString(min) : null;
-        const maxDate = max ? parseDateString(max) : null;
+        const isDateDisabled = React.useCallback((y: number, m: number, d: number) => {
+            const checkDate = new Date(y, m, d, 0, 0, 0, 0);
+            if (minDate) {
+                const minCheck = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate(), 0, 0, 0, 0);
+                if (checkDate.getTime() < minCheck.getTime()) return true;
+            }
+            if (maxDate) {
+                const maxCheck = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate(), 0, 0, 0, 0);
+                if (checkDate.getTime() > maxCheck.getTime()) return true;
+            }
+            return false;
+        }, [minDate, maxDate]);
 
         const triggerChange = (newVal: string) => {
             if (onChange) {
@@ -107,13 +164,33 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
         const handleSelectDay = (day: number, monthOffset: number = 0) => {
             if (disabled || readOnly) return;
             const targetDate = new Date(viewYear, viewMonth + monthOffset, day);
+            const y = targetDate.getFullYear();
+            const m = targetDate.getMonth();
+            const d = targetDate.getDate();
+            if (isDateDisabled(y, m, d)) return;
+
             const formatted = formatDateString(targetDate);
             triggerChange(formatted);
             setIsOpen(false);
         };
 
+        const isPrevDisabled = React.useMemo(() => {
+            if (!minDate) return false;
+            if (viewYear < minDate.getFullYear()) return true;
+            if (viewYear === minDate.getFullYear() && viewMonth <= minDate.getMonth()) return true;
+            return false;
+        }, [minDate, viewYear, viewMonth]);
+
+        const isNextDisabled = React.useMemo(() => {
+            if (!maxDate) return false;
+            if (viewYear > maxDate.getFullYear()) return true;
+            if (viewYear === maxDate.getFullYear() && viewMonth >= maxDate.getMonth()) return true;
+            return false;
+        }, [maxDate, viewYear, viewMonth]);
+
         const handlePrevMonth = (e: React.MouseEvent) => {
             e.stopPropagation();
+            if (isPrevDisabled) return;
             if (viewMonth === 0) {
                 setViewMonth(11);
                 setViewYear((prev) => prev - 1);
@@ -124,6 +201,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
 
         const handleNextMonth = (e: React.MouseEvent) => {
             e.stopPropagation();
+            if (isNextDisabled) return;
             if (viewMonth === 11) {
                 setViewMonth(0);
                 setViewYear((prev) => prev + 1);
@@ -132,9 +210,12 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
             }
         };
 
+        const today = new Date();
+        const isTodayDisabled = isDateDisabled(today.getFullYear(), today.getMonth(), today.getDate());
+
         const handleToday = (e: React.MouseEvent) => {
             e.stopPropagation();
-            const today = new Date();
+            if (isTodayDisabled) return;
             setViewYear(today.getFullYear());
             setViewMonth(today.getMonth());
             triggerChange(formatDateString(today));
@@ -161,19 +242,11 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
             isDisabled: boolean;
         }> = [];
 
-        const today = new Date();
         const isTodayDate = (y: number, m: number, d: number) =>
             today.getFullYear() === y && today.getMonth() === m && today.getDate() === d;
 
         const isSelectedDate = (y: number, m: number, d: number) =>
             parsedDate ? parsedDate.getFullYear() === y && parsedDate.getMonth() === m && parsedDate.getDate() === d : false;
-
-        const isDateDisabled = (y: number, m: number, d: number) => {
-            const checkDate = new Date(y, m, d);
-            if (minDate && checkDate < new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate())) return true;
-            if (maxDate && checkDate > new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate())) return true;
-            return false;
-        };
 
         // Prev month padding
         for (let i = firstDayOfMonth - 1; i >= 0; i--) {
@@ -219,10 +292,16 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
 
         const inputId = id || (label ? label.replace(/\s+/g, "-").toLowerCase() : name);
 
-        // Year options (1970 to currentYear + 25)
+        // Year options restricted by minDate and maxDate
         const currentYear = new Date().getFullYear();
+        const startYear = minDate ? minDate.getFullYear() : currentYear - 30;
+        const endYear = maxDate ? maxDate.getFullYear() : currentYear + 25;
+
+        const effectiveStart = Math.min(startYear, viewYear);
+        const effectiveEnd = Math.max(endYear, viewYear);
+
         const yearOptions: number[] = [];
-        for (let y = currentYear - 30; y <= currentYear + 25; y++) {
+        for (let y = effectiveStart; y <= effectiveEnd; y++) {
             yearOptions.push(y);
         }
 
@@ -285,7 +364,13 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
                                 <button
                                     type="button"
                                     onClick={handlePrevMonth}
-                                    className="h-7 w-7 rounded-[4px] flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    disabled={isPrevDisabled}
+                                    className={cn(
+                                        "h-7 w-7 rounded-[4px] flex items-center justify-center transition-colors cursor-pointer",
+                                        isPrevDisabled
+                                            ? "text-slate-300 dark:text-slate-600 opacity-30 cursor-not-allowed pointer-events-none"
+                                            : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
                                     title="Previous Month"
                                 >
                                     <ChevronLeft size={16} />
@@ -298,17 +383,41 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
                                         onChange={(e) => setViewMonth(parseInt(e.target.value, 10))}
                                         className="text-xs font-bold text-slate-800 dark:text-slate-100 bg-transparent border-0 py-0.5 px-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer focus:outline-none"
                                     >
-                                        {MONTH_NAMES.map((m, idx) => (
-                                            <option key={m} value={idx} className="bg-white dark:bg-[#1a1f26] text-slate-800 dark:text-slate-200">
-                                                {m}
-                                            </option>
-                                        ))}
+                                        {MONTH_NAMES.map((m, idx) => {
+                                            const isMonthDisabled =
+                                                (minDate && viewYear === minDate.getFullYear() && idx < minDate.getMonth()) ||
+                                                (maxDate && viewYear === maxDate.getFullYear() && idx > maxDate.getMonth()) ||
+                                                (minDate && viewYear < minDate.getFullYear()) ||
+                                                (maxDate && viewYear > maxDate.getFullYear());
+
+                                            return (
+                                                <option
+                                                    key={m}
+                                                    value={idx}
+                                                    disabled={isMonthDisabled}
+                                                    className={cn(
+                                                        "bg-white dark:bg-[#1a1f26]",
+                                                        isMonthDisabled ? "text-slate-300 dark:text-slate-600" : "text-slate-800 dark:text-slate-200"
+                                                    )}
+                                                >
+                                                    {m}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
 
                                     {/* Year Dropdown */}
                                     <select
                                         value={viewYear}
-                                        onChange={(e) => setViewYear(parseInt(e.target.value, 10))}
+                                        onChange={(e) => {
+                                            const newYear = parseInt(e.target.value, 10);
+                                            setViewYear(newYear);
+                                            if (minDate && newYear === minDate.getFullYear() && viewMonth < minDate.getMonth()) {
+                                                setViewMonth(minDate.getMonth());
+                                            } else if (maxDate && newYear === maxDate.getFullYear() && viewMonth > maxDate.getMonth()) {
+                                                setViewMonth(maxDate.getMonth());
+                                            }
+                                        }}
                                         className="text-xs font-bold text-slate-800 dark:text-slate-100 bg-transparent border-0 py-0.5 px-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer focus:outline-none"
                                     >
                                         {yearOptions.map((y) => (
@@ -322,7 +431,13 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
                                 <button
                                     type="button"
                                     onClick={handleNextMonth}
-                                    className="h-7 w-7 rounded-[4px] flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    disabled={isNextDisabled}
+                                    className={cn(
+                                        "h-7 w-7 rounded-[4px] flex items-center justify-center transition-colors cursor-pointer",
+                                        isNextDisabled
+                                            ? "text-slate-300 dark:text-slate-600 opacity-30 cursor-not-allowed pointer-events-none"
+                                            : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
                                     title="Next Month"
                                 >
                                     <ChevronRight size={16} />
@@ -346,14 +461,16 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
                                             key={idx}
                                             type="button"
                                             disabled={c.isDisabled}
-                                            onClick={() => handleSelectDay(c.day, c.monthOffset)}
+                                            onClick={() => !c.isDisabled && handleSelectDay(c.day, c.monthOffset)}
                                             className={cn(
-                                                "h-7 w-full rounded text-xs flex items-center justify-center transition-colors cursor-pointer",
-                                                c.isDisabled && "opacity-30 cursor-not-allowed pointer-events-none",
-                                                !c.isCurrentMonth && "text-slate-300 dark:text-slate-600 font-normal",
-                                                c.isCurrentMonth && !c.isSelected && "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium",
-                                                c.isToday && !c.isSelected && "border border-[#ff4a1f] font-bold text-[#ff4a1f] dark:text-[#ff6b4a]",
-                                                c.isSelected && "bg-[#ff4a1f] text-white font-bold hover:bg-[#e03e15] shadow-sm"
+                                                "h-7 w-full rounded text-xs flex items-center justify-center transition-colors select-none",
+                                                c.isDisabled && c.isCurrentMonth && "text-slate-400 dark:text-slate-500 cursor-not-allowed pointer-events-none opacity-60 bg-transparent font-normal",
+                                                c.isDisabled && !c.isCurrentMonth && "text-slate-300 dark:text-slate-700 cursor-not-allowed pointer-events-none opacity-40 bg-transparent font-normal",
+                                                !c.isDisabled && "cursor-pointer",
+                                                !c.isDisabled && !c.isCurrentMonth && "text-slate-400 dark:text-slate-500 font-normal opacity-50",
+                                                !c.isDisabled && c.isCurrentMonth && !c.isSelected && "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium",
+                                                !c.isDisabled && c.isToday && !c.isSelected && "border border-[#ff4a1f] font-bold text-[#ff4a1f] dark:text-[#ff6b4a]",
+                                                !c.isDisabled && c.isSelected && "bg-[#ff4a1f] text-white font-bold hover:bg-[#e03e15] shadow-sm"
                                             )}
                                         >
                                             {c.day}
@@ -373,8 +490,14 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
                                 </button>
                                 <button
                                     type="button"
+                                    disabled={isTodayDisabled}
                                     onClick={handleToday}
-                                    className="text-[11px] font-bold text-[#ff4a1f] hover:text-[#e03e15] dark:text-[#ff6b4a] px-1.5 py-0.5 rounded hover:bg-orange-50 dark:hover:bg-orange-950/40 transition-colors cursor-pointer"
+                                    className={cn(
+                                        "text-[11px] font-bold px-1.5 py-0.5 rounded transition-colors",
+                                        isTodayDisabled
+                                            ? "text-slate-300 dark:text-slate-600 opacity-30 cursor-not-allowed pointer-events-none"
+                                            : "text-[#ff4a1f] hover:text-[#e03e15] dark:text-[#ff6b4a] hover:bg-orange-50 dark:hover:bg-orange-950/40 cursor-pointer"
+                                    )}
                                 >
                                     Today
                                 </button>

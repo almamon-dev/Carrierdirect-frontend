@@ -18,13 +18,17 @@ import QuotaReminderBanner from "@/components/common/QuotaReminderBanner";
 import { SubscriptionSkeleton } from "@/components/common/SubscriptionSkeleton";
 import apiClient from "@/lib/axios";
 import { useToastStore } from "@/stores/useToastStore";
+import { renderInvoiceStatusBadge } from "@/enums/FinanceStatus";
 
 interface InvoiceItem {
   id: string;
   date: string;
   details: string;
   amount: string;
-  status: "Paid" | "Pending" | "Failed";
+  status: string;
+  raw_status?: string;
+  card_brand?: string;
+  card_last4?: string;
   downloadText: string;
   rawInvoice?: any;
 }
@@ -169,14 +173,23 @@ export default function SupplierSubscription() {
         const items = Array.isArray(rawInv) ? rawInv : (rawInv?.data || []);
         if (Array.isArray(items) && items.length > 0) {
           const mapped: InvoiceItem[] = items.map((inv: any) => {
-            const dateStr = inv.date || (inv.created_at ? new Date(inv.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—");
+            const dateStr = inv.billing_date || inv.payment_date || inv.date || (inv.created_at ? new Date(inv.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—");
             const formattedDateName = inv.created_at ? new Date(inv.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "2-digit" }) : "Invoice";
             return {
               id: inv.invoice_number || `SUB-${String(inv.id).padStart(5, "0")}`,
               date: dateStr,
-              details: inv.description || `${inv.plan_name || "Plan"}, ${inv.billing_period || "monthly"}`,
-              amount: inv.amount || `€${parseFloat(inv.total_amount || inv.raw_amount || 0).toFixed(2)}`,
-              status: (inv.status === "Paid" || inv.status === "paid") ? "Paid" : (inv.status === "Pending" || inv.status === "pending" ? "Pending" : "Paid"),
+              details: inv.plan_name ? `${inv.plan_name} (${inv.billing_cycle || inv.billing_period || "Monthly"})` : (inv.description || "Carrier Direct Subscription"),
+              amount: (() => {
+                if (inv.amount_formatted) return inv.amount_formatted;
+                if (inv.total_amount_formatted) return inv.total_amount_formatted;
+                const raw = String(inv.total_amount ?? inv.amount ?? inv.amount_raw ?? 0).replace(/[^0-9.-]/g, "");
+                const num = parseFloat(raw);
+                return `€${(isNaN(num) ? 0 : num).toFixed(2)} EUR`;
+              })(),
+              status: inv.status || "Paid",
+              raw_status: inv.raw_status || inv.status || "paid",
+              card_brand: inv.card_brand || "VISA",
+              card_last4: inv.card_last4 || "4242",
               downloadText: `Invoice ${formattedDateName}`,
               rawInvoice: inv,
             };
@@ -225,6 +238,32 @@ export default function SupplierSubscription() {
   };
 
   const daysRemaining = calculateDaysRemaining();
+
+  const formattedExpiryDate = useMemo(() => {
+    if (!subscription?.expires_at) return "—";
+    try {
+      return new Date(subscription.expires_at).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return String(subscription.expires_at);
+    }
+  }, [subscription?.expires_at]);
+
+  const formattedStartDate = useMemo(() => {
+    if (!subscription?.started_at && !subscription?.created_at) return null;
+    try {
+      return new Date(subscription.started_at || subscription.created_at).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return null;
+    }
+  }, [subscription?.started_at, subscription?.created_at]);
 
   const tierMap: Record<string, any> = {};
 
@@ -396,14 +435,15 @@ export default function SupplierSubscription() {
       ? `€${parseFloat(subscription.price).toFixed(0)}/${subscription?.billing_period === "annual" || subscription?.billing_period === "yearly" ? "year" : "month"}`
       : (hasActiveSub ? "Active" : "—"));
 
+  const paidPlans = plans.filter((p: any) => !p.isTrial && !(p.name || "").toLowerCase().includes("trial"));
   const activeTierIndex = plans.findIndex((p: any) =>
     p.name.toLowerCase() === (activePlanName || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").toLowerCase()
   );
-  const nextUpgradePlan = (activeTierIndex !== -1 && activeTierIndex < plans.length - 1)
+  const nextUpgradePlan = (activeTierIndex !== -1 && activeTierIndex < plans.length - 1 && !plans[activeTierIndex + 1]?.isTrial)
     ? plans[activeTierIndex + 1]
-    : (plans.find((p: any) => p.popular) || plans[1] || plans[0] || null);
+    : (paidPlans.find((p: any) => p.popular) || paidPlans[0] || plans[1] || null);
 
-  const popularPlan = nextUpgradePlan;
+  const popularPlan = nextUpgradePlan || paidPlans.find((p: any) => p.popular) || paidPlans[0] || plans[1];
   const upgradePlanName = popularPlan?.name || "Professional Carrier";
   const upgradePlanPrice = billingCycle === "yearly"
     ? (popularPlan?.yearlyPrice ? `€${popularPlan.yearlyPrice}/year` : "")
@@ -411,6 +451,10 @@ export default function SupplierSubscription() {
   const upgradePlanPeriodText = billingCycle === "yearly" ? "365 days access" : "30 days access";
 
   const handleSelectPlan = async (plan: any) => {
+    if (plan?.isCurrent && !subscription?.is_trial) {
+      showToast(`You are already actively subscribed to the ${plan.name || "selected"} plan.`, "info");
+      return;
+    }
     const planKey = plan?.planId || plan?.id;
     const planName = plan?.name || upgradePlanName;
     const monthlyPrice = plan?.monthlyPrice || plan?.price || 0;
@@ -573,40 +617,12 @@ export default function SupplierSubscription() {
 
   const invoiceColumns: Column<InvoiceItem>[] = [
     {
-      id: "id",
-      label: "Invoice Reference",
-      render: (item) => (
-        <div className="flex items-center gap-2">
-          <Receipt className="w-3.5 h-3.5 text-[#ff4a1f] shrink-0" />
-          <span className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100">
-            {item.id}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: "date",
-      label: "Billing Date",
-      render: (item) => (
-        <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-          {item.date}
-        </span>
-      ),
-    },
-    {
-      id: "details",
-      label: "Subscription Plan",
-      render: (item) => (
-        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-          {item.details}
-        </span>
-      ),
-    },
-    {
       id: "amount",
-      label: "Amount Paid",
+      label: "Amount",
+      sortable: true,
+      className: "w-[130px] whitespace-nowrap",
       render: (item) => (
-        <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100">
+        <span className="text-xs font-bold text-slate-900 dark:text-white whitespace-nowrap">
           {item.amount}
         </span>
       ),
@@ -614,24 +630,66 @@ export default function SupplierSubscription() {
     {
       id: "status",
       label: "Status",
+      sortable: true,
+      className: "w-[110px] whitespace-nowrap",
+      render: (item) => renderInvoiceStatusBadge(item.raw_status || item.status || "paid"),
+    },
+    {
+      id: "payment_method",
+      label: "Payment Method",
+      sortable: true,
+      className: "w-[140px] whitespace-nowrap",
       render: (item) => {
-        const isPaid = item.status === "Paid";
+        const brand = (item.card_brand || "VISA").toUpperCase();
+        const last4 = item.card_last4 || "4242";
         return (
-          <span
-            className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-[3px] border ${isPaid
-              ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
-              : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
-              }`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${isPaid ? "bg-emerald-500" : "bg-amber-500"}`} />
-            {item.status}
-          </span>
+          <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-[12.5px] font-medium text-slate-700 dark:text-slate-200 min-h-[22px]">
+            <span className={`px-1.5 py-0.5 rounded-[3px] font-bold text-[9px] tracking-wider leading-none shadow-2xs ${brand === "MC" ? "bg-[#eb001b] text-white" : "bg-[#1a1f71] text-white"}`}>
+              {brand === "MC" ? "MC" : "VISA"}
+            </span>
+            <span className="text-slate-400 dark:text-slate-500 font-mono text-[11px]">••••</span>
+            <span className="font-mono text-slate-700 dark:text-slate-300 text-xs">{last4}</span>
+          </div>
         );
       },
     },
     {
+      id: "id",
+      label: "Invoice Reference",
+      sortable: true,
+      className: "w-[150px] whitespace-nowrap",
+      render: (item) => (
+        <span className="font-mono text-xs font-medium text-slate-700 dark:text-slate-300">
+          {item.id}
+        </span>
+      ),
+    },
+    {
+      id: "details",
+      label: "Subscription Plan",
+      sortable: true,
+      className: "min-w-[190px] whitespace-nowrap",
+      render: (item) => (
+        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+          {item.details}
+        </span>
+      ),
+    },
+    {
+      id: "date",
+      label: "Billing Date",
+      sortable: true,
+      className: "w-[125px] whitespace-nowrap",
+      render: (item) => (
+        <span className="text-xs text-slate-600 dark:text-slate-400 font-normal">
+          {item.date}
+        </span>
+      ),
+    },
+    {
       id: "download",
-      label: "Receipt PDF",
+      label: "Receipt",
+      className: "w-[130px] text-right whitespace-nowrap",
       render: (item) => (
         <button
           type="button"
@@ -640,16 +698,11 @@ export default function SupplierSubscription() {
           className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-[#ff4a1f] bg-[#fff5f2] hover:bg-[#ffece6] dark:bg-[#ff4a1f]/10 dark:hover:bg-[#ff4a1f]/20 border border-[#ffdcd2] dark:border-[#ff4a1f]/30 rounded-md transition-colors cursor-pointer disabled:opacity-50"
         >
           {downloadingId === item.id ? (
-            <>
-              <Loader2 size={12} className="animate-spin text-[#ff4a1f]" />
-              <span>Downloading...</span>
-            </>
+            <Loader2 size={12} className="animate-spin" />
           ) : (
-            <>
-              <Download size={12} className="text-[#ff4a1f]" />
-              <span>Download PDF</span>
-            </>
+            <Download size={12} />
           )}
+          <span>Download PDF</span>
         </button>
       ),
     },
@@ -701,8 +754,9 @@ export default function SupplierSubscription() {
       </div>
 
       {/* Quota Reminder Banner */}
-      {(subscription?.is_trial || !hasActiveSub || (subscription?.quote_limit && subscription.quote_limit > 0)) && (
+      {(isLoading || subscription?.is_trial || !hasActiveSub || (subscription?.quote_limit && subscription.quote_limit > 0)) && (
         <QuotaReminderBanner
+          isLoading={isLoading}
           quotaUsed={quotaUsed}
           maxQuota={Number(subscription?.quote_limit || (subscription?.is_trial ? 3 : 3))}
           daysRemaining={daysRemaining}
@@ -778,9 +832,26 @@ export default function SupplierSubscription() {
                           {activePlanPrice}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 dark:text-slate-400 font-medium mt-1">
-                        {hasActiveSub || subscription?.is_trial ? `${daysRemaining} days remaining` : "No active subscription"}
-                      </p>
+                      <div className="mt-2 space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap text-xs text-slate-600 dark:text-slate-300">
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            {subscription?.auto_renew ? "Renews on:" : "Expires on:"}
+                          </span>
+                          <span className="font-bold text-[#ff4a1f] dark:text-orange-400">
+                            {formattedExpiryDate}
+                          </span>
+                          {subscription?.expires_at && (
+                            <span className="text-slate-500 dark:text-slate-400 text-[11px]">
+                              ({daysRemaining} {daysRemaining === 1 ? "day" : "days"} remaining)
+                            </span>
+                          )}
+                        </div>
+                        {formattedStartDate && (
+                          <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                            Started on: {formattedStartDate}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <div className="pt-4">
@@ -1192,6 +1263,51 @@ export default function SupplierSubscription() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     View and download official VAT tax invoices and payment receipts for your records.
                   </p>
+                </div>
+              </div>
+
+              {/* Current Active Plan & Expiry Summary Banner */}
+              <div className="p-3.5 bg-gradient-to-r from-slate-50 via-orange-50/20 to-slate-50 dark:from-slate-800/60 dark:via-orange-950/10 dark:to-slate-800/60 border border-slate-200/90 dark:border-slate-800 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[#ff4a1f] flex items-center justify-center shrink-0">
+                    <Receipt size={18} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Current Plan: {activePlanName}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold border ${
+                        hasActiveSub || subscription?.is_trial
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800"
+                          : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800"
+                      }`}>
+                        {hasActiveSub || subscription?.is_trial ? "Active" : "Inactive"}
+                      </span>
+                      {subscription?.auto_renew && (
+                        <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800 text-[10px] font-bold rounded-[3px]">
+                          Auto-Renew On
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      {subscription?.auto_renew ? "Next Billing / Renewal Date:" : "Plan Expires / Closes On:"}{" "}
+                      <strong className="text-slate-800 dark:text-slate-200 font-semibold">{formattedExpiryDate}</strong>{" "}
+                      {subscription?.expires_at && (
+                        <span className="text-[#ff4a1f] font-medium">({daysRemaining} {daysRemaining === 1 ? "day" : "days"} remaining)</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("packages")}
+                    className="px-3 py-1.5 text-xs font-semibold text-[#ff4a1f] bg-white hover:bg-orange-50 dark:bg-slate-900 dark:hover:bg-slate-800 border border-orange-200/80 dark:border-orange-800/60 rounded-[4px] cursor-pointer transition-colors shadow-2xs"
+                  >
+                    Change / Upgrade Plan
+                  </button>
                 </div>
               </div>
 

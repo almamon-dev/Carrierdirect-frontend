@@ -1,225 +1,506 @@
-import React, { useState } from 'react';
-import { Plus, Download, Truck, ShieldCheck, Wrench, Trash2, Edit2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, Truck } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
-import Badge from '@/components/ui/badge';
 import Select from '@/components/ui/select';
-import FormLabel from '@/components/ui/label';
+import Modal from '@/components/modals/modal';
 import DataTable, { Column } from '@/components/tables/data-table';
+import EmptyState from '@/components/tables/empty-state';
+import { VehicleRowActions } from './components/VehicleRowActions';
+import { useToastStore } from '@/stores/useToastStore';
 
-type FleetVehicle = {
+export type VehicleItem = {
     id: string;
-    plateNumber: string;
     name: string;
     type: string;
-    capacityWeight: string;
-    capacityVolume: string;
-    assignedDriver: string;
-    status: 'Ready' | 'On Assignment' | 'In Maintenance' | 'Inactive';
+    registrationNo: string;
+    capacity: string;
+    status: 'Available' | 'On Job' | 'Unavailable';
+    assignedDriver?: string;
 };
 
+const INITIAL_VEHICLES: VehicleItem[] = [
+    {
+        id: '1',
+        name: 'Mercedes Sprinter',
+        type: 'Van',
+        registrationNo: 'UK-AB12CD',
+        capacity: '1,200 kg',
+        status: 'Available',
+        assignedDriver: 'John Smith'
+    },
+    {
+        id: '2',
+        name: 'Volvo FH16',
+        type: 'Truck',
+        registrationNo: 'FR-XY342T',
+        capacity: '24,000 kg',
+        status: 'On Job',
+        assignedDriver: 'Michael Brown'
+    },
+    {
+        id: '3',
+        name: 'Renault Master',
+        type: 'Van',
+        registrationNo: 'DE-RT56YU',
+        capacity: '1,500 kg',
+        status: 'Available',
+        assignedDriver: 'Robert Wilson'
+    },
+    {
+        id: '4',
+        name: 'Scania R450',
+        type: 'Truck',
+        registrationNo: 'BE-KL78MN',
+        capacity: '20,000 kg',
+        status: 'Available',
+        assignedDriver: 'David Miller'
+    },
+    {
+        id: '5',
+        name: 'Iveco Daily',
+        type: 'Van',
+        registrationNo: 'NL-PQ90RS',
+        capacity: '1,000 kg',
+        status: 'Unavailable',
+        assignedDriver: 'James Taylor'
+    },
+    {
+        id: '6',
+        name: 'MAN TGX',
+        type: 'Truck',
+        registrationNo: 'DE-KL456M',
+        capacity: '18,000 kg',
+        status: 'Available',
+        assignedDriver: 'Lukas Weber'
+    }
+];
+
 export default function VehiclesAvailability() {
-    const [vehicles, setVehicles] = useState<FleetVehicle[]>([
-        { id: '1', plateNumber: 'DH-11-2099', name: 'Covered Truck 10T', type: 'Covered Truck', capacityWeight: '10.0 Tons', capacityVolume: '35 CBM', assignedDriver: 'John Doe', status: 'On Assignment' },
-        { id: '2', plateNumber: 'DH-14-8812', name: 'Refrigerated Van 3T', type: 'Refrigerated Van', capacityWeight: '3.5 Tons', capacityVolume: '14 CBM', assignedDriver: 'Sarah Lee', status: 'Ready' },
-        { id: '3', plateNumber: 'CT-09-5511', name: 'Heavy Trailer 20T', type: 'Heavy Trailer', capacityWeight: '20.0 Tons', capacityVolume: '65 CBM', assignedDriver: 'Mike Ross', status: 'Ready' },
-        { id: '4', plateNumber: 'DH-12-1002', name: 'Covered Van 2T', type: 'Covered Van', capacityWeight: '2.0 Tons', capacityVolume: '10 CBM', assignedDriver: 'Kabir Hossain', status: 'In Maintenance' },
-    ]);
-
+    const showToast = useToastStore((state) => state.showToast);
+    const [vehicles, setVehicles] = useState<VehicleItem[]>(INITIAL_VEHICLES);
+    const [filterStatus, setFilterStatus] = useState<'All' | 'Available' | 'Unavailable'>('All');
     const [showModal, setShowModal] = useState(false);
-    const [plateNumber, setPlateNumber] = useState('');
+    const [editingVehicle, setEditingVehicle] = useState<VehicleItem | null>(null);
+
+    // Form inputs
     const [name, setName] = useState('');
-    const [type, setType] = useState('Covered Truck');
-    const [weight, setWeight] = useState('');
-    const [volume, setVolume] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [type, setType] = useState('Van');
+    const [isCustomType, setIsCustomType] = useState(false);
+    const [customType, setCustomType] = useState('');
+    const [registrationNo, setRegistrationNo] = useState('');
+    const [capacity, setCapacity] = useState('');
+    const [status, setStatus] = useState<'Available' | 'On Job' | 'Unavailable'>('Available');
 
-    const filtered = vehicles.filter(v => {
-        if (statusFilter === 'all') return true;
-        return v.status.toLowerCase() === statusFilter.toLowerCase();
-    });
+    const totalCount = vehicles.length;
+    const availableCount = vehicles.filter(v => v.status === 'Available').length;
+    const unavailableCount = vehicles.filter(v => v.status === 'Unavailable' || v.status === 'On Job').length;
 
-    const handleAddVehicle = (e: React.FormEvent) => {
+    const filteredVehicles = useMemo(() => {
+        return vehicles.filter(v => {
+            if (filterStatus === 'All') return true;
+            if (filterStatus === 'Available') return v.status === 'Available';
+            if (filterStatus === 'Unavailable') return v.status === 'Unavailable' || v.status === 'On Job';
+            return true;
+        });
+    }, [vehicles, filterStatus]);
+
+    const handleSaveVehicle = (e: React.FormEvent) => {
         e.preventDefault();
-        const created: FleetVehicle = {
-            id: String(Date.now()),
-            plateNumber,
-            name,
-            type,
-            capacityWeight: `${weight} Tons`,
-            capacityVolume: `${volume} CBM`,
-            assignedDriver: 'Unassigned',
-            status: 'Ready',
-        };
-        setVehicles([created, ...vehicles]);
+        const trimmedName = name.trim();
+        const trimmedReg = registrationNo.trim();
+        const effectiveType = (isCustomType ? customType : type).trim();
+
+        if (!trimmedName || !trimmedReg) {
+            showToast('Please provide both vehicle name and registration plate.', 'error');
+            return;
+        }
+
+        if (!effectiveType) {
+            showToast('Please specify a vehicle type.', 'error');
+            return;
+        }
+
+        const formattedCapacity = capacity.trim()
+            ? (capacity.toLowerCase().includes('kg') ? capacity.trim() : `${capacity.trim()} kg`)
+            : '1,200 kg';
+
+        if (editingVehicle) {
+            setVehicles(prev => prev.map(v => v.id === editingVehicle.id ? {
+                ...v,
+                name: trimmedName,
+                type: effectiveType,
+                registrationNo: trimmedReg,
+                capacity: formattedCapacity,
+                status
+            } : v));
+            showToast(`Vehicle "${trimmedName}" updated successfully!`, 'success');
+            setEditingVehicle(null);
+        } else {
+            const newVehicle: VehicleItem = {
+                id: String(Date.now()),
+                name: trimmedName,
+                type: effectiveType,
+                registrationNo: trimmedReg,
+                capacity: formattedCapacity,
+                status,
+                assignedDriver: 'Unassigned'
+            };
+            setVehicles([newVehicle, ...vehicles]);
+            showToast(`Vehicle "${trimmedName}" added to fleet successfully!`, 'success');
+        }
         setShowModal(false);
-        setPlateNumber(''); setName(''); setWeight(''); setVolume('');
+        setName('');
+        setRegistrationNo('');
+        setCapacity('');
+        setIsCustomType(false);
+        setCustomType('');
     };
 
-    const columns: Column<FleetVehicle>[] = [
-        { 
-            id: 'plateNumber', 
-            label: 'License Plate', 
-            render: (r) => (
-                <div className="flex items-center gap-2">
-                    <Truck size={16} className="text-[#ff4a1f]" />
-                    <span className="font-bold text-slate-900">{r.plateNumber}</span>
-                </div>
-            ) 
-        },
-        { 
-            id: 'name', 
-            label: 'Vehicle Name & Type', 
-            render: (r) => (
-                <div>
-                    <p className="font-bold text-slate-900">{r.name}</p>
-                    <p className="text-[11px] text-slate-500">{r.type}</p>
+    const handleDelete = (id: string) => {
+        const vehicle = vehicles.find(v => v.id === id);
+        if (window.confirm(`Are you sure you want to remove ${vehicle?.name || 'this vehicle'}?`)) {
+            setVehicles(prev => prev.filter(v => v.id !== id));
+            showToast(`Vehicle "${vehicle?.name || id}" removed successfully.`, 'success');
+        }
+    };
+
+    const openEdit = (vehicle: VehicleItem) => {
+        setEditingVehicle(vehicle);
+        setName(vehicle.name);
+        const standardTypes = ['Van', 'Truck', 'Trailer', 'Box Truck', 'Flatbed Truck', 'Refrigerated Truck'];
+        if (standardTypes.includes(vehicle.type)) {
+            setType(vehicle.type);
+            setIsCustomType(false);
+            setCustomType('');
+        } else {
+            setType(vehicle.type);
+            setIsCustomType(true);
+            setCustomType(vehicle.type);
+        }
+        setRegistrationNo(vehicle.registrationNo);
+        setCapacity(vehicle.capacity);
+        setStatus(vehicle.status);
+        setShowModal(true);
+    };
+
+    const openNew = () => {
+        setEditingVehicle(null);
+        setName('');
+        setType('Van');
+        setIsCustomType(false);
+        setCustomType('');
+        setRegistrationNo('');
+        setCapacity('');
+        setStatus('Available');
+        setShowModal(true);
+    };
+
+    const columns: Column<VehicleItem>[] = useMemo(() => [
+        {
+            id: 'name',
+            label: 'Vehicle',
+            sortable: true,
+            render: (vehicle) => (
+                <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-[4px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 border border-slate-200/80 dark:border-slate-700/80">
+                        <Truck size={16} className="text-[#ff4a1f]" />
+                    </div>
+                    <div>
+                        <div className="text-[13px] font-bold text-slate-900 dark:text-slate-100">
+                            {vehicle.name}
+                        </div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {vehicle.assignedDriver ? `Driver: ${vehicle.assignedDriver}` : 'Unassigned'}
+                        </div>
+                    </div>
                 </div>
             )
         },
-        { 
-            id: 'capacityWeight', 
-            label: 'Max Payload & Volume', 
-            render: (r) => (
-                <div>
-                    <span className="font-bold text-slate-900">{r.capacityWeight}</span>
-                    <span className="text-[11px] text-slate-500 block">{r.capacityVolume}</span>
-                </div>
+        {
+            id: 'type',
+            label: 'Type',
+            render: (vehicle) => (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+                    {vehicle.type}
+                </span>
             )
         },
-        { 
-            id: 'assignedDriver', 
-            label: 'Assigned Driver', 
-            render: (r) => <span className="text-xs font-semibold text-slate-800">{r.assignedDriver}</span> 
-        },
-        { 
-            id: 'status', 
-            label: 'Status', 
-            render: (r) => (
-                <Badge variant="secondary" className={
-                    r.status === 'Ready' ? 'bg-emerald-50 text-emerald-700 font-semibold' :
-                    r.status === 'On Assignment' ? 'bg-blue-50 text-blue-700 font-semibold' :
-                    r.status === 'In Maintenance' ? 'bg-amber-50 text-amber-700 font-semibold' :
-                    'bg-slate-100 text-slate-600 font-semibold'
-                }>
-                    {r.status}
-                </Badge>
+        {
+            id: 'registrationNo',
+            label: 'Registration No.',
+            render: (vehicle) => (
+                <span className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 px-2 py-0.5 rounded border border-slate-200/60 dark:border-slate-700/60">
+                    {vehicle.registrationNo}
+                </span>
             )
         },
+        {
+            id: 'capacity',
+            label: 'Capacity',
+            render: (vehicle) => (
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    {vehicle.capacity}
+                </span>
+            )
+        },
+        {
+            id: 'status',
+            label: 'Status',
+            className: 'text-center',
+            render: (vehicle) => {
+                const isAvail = vehicle.status === 'Available';
+                const isOnJob = vehicle.status === 'On Job';
+                return (
+                    <div className="flex justify-center">
+                        <span className={`px-2.5 py-0.5 rounded-[4px] text-[11px] font-semibold border ${
+                            isAvail
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/60'
+                                : isOnJob
+                                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/60'
+                                : 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/60'
+                        }`}>
+                            {vehicle.status}
+                        </span>
+                    </div>
+                );
+            }
+        }
+    ], []);
+
+    const tabs: { id: 'All' | 'Available' | 'Unavailable'; label: string; count: number }[] = [
+        { id: 'All', label: 'All', count: totalCount },
+        { id: 'Available', label: 'Available', count: availableCount },
+        { id: 'Unavailable', label: 'Unavailable', count: unavailableCount },
     ];
 
-    const renderActions = (row: FleetVehicle) => (
-        <div className="flex items-center justify-end gap-1">
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-7 w-7 text-slate-400 hover:text-slate-800"
-                onClick={() => alert(`Edit vehicle ${row.plateNumber}`)}
-            >
-                <Edit2 size={13} />
-            </Button>
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-7 w-7 text-slate-400 hover:text-red-600"
-                onClick={() => setVehicles(vehicles.filter(v => v.id !== row.id))}
-            >
-                <Trash2 size={13} />
-            </Button>
-        </div>
-    );
-
-    const filterContent = (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
-            <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-600">Vehicle Status</label>
-                <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} showSearch={false}>
-                    <option value="all">All Vehicles</option>
-                    <option value="ready">Ready</option>
-                    <option value="on assignment">On Assignment</option>
-                    <option value="in maintenance">In Maintenance</option>
-                </Select>
-            </div>
-        </div>
-    );
-
     return (
-        <div
-    className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased space-y-5 bg-[#f8fafc] dark:bg-[#12161c]">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Vehicles & Fleet Capacity</h1>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        Manage fleet capacity, vehicle specs, and maintenance schedules.
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                        Vehicles
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                        Manage your fleet vehicles and their availability.
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-9 text-xs font-semibold" onClick={() => alert('Exporting fleet list...')}>
-                        <Download size={13} className="mr-1.5" /> Export
-                    </Button>
-                    <Button variant="primary" size="sm" className="h-9 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03e15] text-white" onClick={() => setShowModal(true)}>
-                        <Plus size={13} className="mr-1.5" /> Add Vehicle
-                    </Button>
-                </div>
+
+                <Button
+                    onClick={openNew}
+                    className="h-8 px-3.5 bg-[#FF4A1F] hover:bg-[#e03e15] text-white font-bold text-xs shadow-2xs flex items-center gap-1.5 cursor-pointer rounded-[4px] self-start sm:self-auto transition-colors"
+                >
+                    <Plus size={15} strokeWidth={2.5} />
+                    <span>Add Vehicle</span>
+                </Button>
             </div>
 
-            <DataTable 
-                columns={columns} 
-                data={filtered} 
+            {/* Standard Project DataTable */}
+            <DataTable
+                data={filteredVehicles}
+                columns={columns}
+                actions={(vehicle: VehicleItem) => (
+                    <VehicleRowActions
+                        row={vehicle}
+                        onEdit={openEdit}
+                        onDelete={handleDelete}
+                    />
+                )}
+                actionsColumnClassName="w-[50px] min-w-[50px] text-right pr-3.5"
+                headerTabs={
+                    <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto hide-scrollbar mb-[-1px]">
+                        {tabs.map((tab) => {
+                            const isActive = filterStatus === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setFilterStatus(tab.id)}
+                                    className={`flex items-center gap-1.5 pb-2.5 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 text-xs ${
+                                        isActive
+                                            ? "border-[#ff4a1f] text-[#ff4a1f] font-bold"
+                                            : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 font-medium"
+                                    }`}
+                                >
+                                    <span>{tab.label}</span>
+                                    <span
+                                        className={`text-[11px] font-medium px-1.5 py-0.2 rounded-full transition-colors ${
+                                            isActive
+                                                ? "bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f]"
+                                                : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                                        }`}
+                                    >
+                                        {tab.count}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                }
+                searchPlaceholder="Search vehicles by model, type, or registration..."
                 compact={true}
-                searchPlaceholder="Search vehicles by plate number, type..."
                 hideViewToggle={true}
-                actions={renderActions}
-                filterContent={filterContent}
+                tableClassName="w-full"
+                emptyState={
+                    <EmptyState
+                        icon={Truck}
+                        title="No Vehicles Found"
+                        description="No vehicles found matching your filter. Click 'Add Vehicle' to register new fleet vehicles."
+                    />
+                }
             />
 
-            {/* Add Vehicle Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-2xs flex items-center justify-center p-4 z-50">
-                    <form onSubmit={handleAddVehicle} className="bg-white rounded-[5px] max-w-md w-full p-6 border border-slate-200 shadow-md space-y-4">
-                        <h3 className="text-sm font-bold text-slate-900">Add New Fleet Vehicle</h3>
-                        
-                        <div className="space-y-3">
-                            <div>
-                                <FormLabel className="text-xs">License Plate Number</FormLabel>
-                                <Input required placeholder="e.g. DH-11-2099" className="text-xs h-8" value={plateNumber} onChange={e => setPlateNumber(e.target.value)} />
+            {/* Add / Edit Vehicle Modal */}
+            <Modal
+                isOpen={showModal}
+                onClose={() => {
+                    setShowModal(false);
+                    setEditingVehicle(null);
+                }}
+                title={editingVehicle ? 'Edit Fleet Vehicle' : 'Add New Vehicle'}
+                description={
+                    editingVehicle
+                        ? 'Update vehicle model, type, registration plate and operational availability status.'
+                        : 'Register a new fleet vehicle to dispatch with drivers across your coverage areas.'
+                }
+                size="md"
+            >
+                <form onSubmit={handleSaveVehicle} className="space-y-4 pt-1">
+                    <Input
+                        label="Vehicle Model / Name *"
+                        type="text"
+                        required
+                        placeholder="e.g. Mercedes Sprinter, Volvo FH16"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        icon={<Truck size={14} />}
+                    />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <div className="flex items-center justify-between mb-1">
+                                <label className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 block">
+                                    Vehicle Type <span className="text-red-500 font-bold ml-0.5">*</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (isCustomType) {
+                                            setIsCustomType(false);
+                                            setType('Van');
+                                        } else {
+                                            setIsCustomType(true);
+                                            setCustomType(type && !['Van', 'Truck', 'Trailer', 'Box Truck', 'Flatbed Truck', 'Refrigerated Truck'].includes(type) ? type : '');
+                                        }
+                                    }}
+                                    className="text-[11px] text-[#ff4a1f] hover:underline font-semibold cursor-pointer"
+                                >
+                                    {isCustomType ? 'From list' : '+ Custom'}
+                                </button>
                             </div>
-                            <div>
-                                <FormLabel className="text-xs">Vehicle Name & Model</FormLabel>
-                                <Input required placeholder="e.g. Covered Truck 10-Ton" className="text-xs h-8" value={name} onChange={e => setName(e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                <div>
-                                    <FormLabel className="text-xs">Category</FormLabel>
-                                    <Select value={type} onChange={e => setType(e.target.value)} showSearch={false} className="text-xs h-8">
-                                        <option value="Covered Truck">Covered Truck</option>
-                                        <option value="Refrigerated Van">Refrigerated Van</option>
-                                        <option value="Heavy Trailer">Heavy Trailer</option>
-                                        <option value="Open Truck">Open Truck</option>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <FormLabel className="text-xs">Payload (Tons)</FormLabel>
-                                    <Input required type="number" step="0.5" placeholder="10.0" className="text-xs h-8" value={weight} onChange={e => setWeight(e.target.value)} />
-                                </div>
-                                <div>
-                                    <FormLabel className="text-xs">Volume (CBM)</FormLabel>
-                                    <Input required type="number" placeholder="35" className="text-xs h-8" value={volume} onChange={e => setVolume(e.target.value)} />
-                                </div>
-                            </div>
+                            {isCustomType ? (
+                                <Input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Tipper, Tanker, Luton Van"
+                                    value={customType}
+                                    onChange={(e) => {
+                                        setCustomType(e.target.value);
+                                        setType(e.target.value);
+                                    }}
+                                    className="text-xs h-9 rounded-[4px]"
+                                    autoFocus
+                                />
+                            ) : (
+                                <Select
+                                    value={type}
+                                    onChange={(val: any) => {
+                                        const v = val?.target?.value !== undefined ? val.target.value : val;
+                                        if (v === '__custom__') {
+                                            setIsCustomType(true);
+                                            setCustomType('');
+                                        } else {
+                                            setType(v);
+                                        }
+                                    }}
+                                    options={[
+                                        { id: 'Van', name: 'Van' },
+                                        { id: 'Truck', name: 'Truck' },
+                                        { id: 'Trailer', name: 'Trailer' },
+                                        { id: 'Box Truck', name: 'Box Truck' },
+                                        { id: 'Flatbed Truck', name: 'Flatbed Truck' },
+                                        { id: 'Refrigerated Truck', name: 'Refrigerated Truck' },
+                                        { id: '__custom__', name: '+ Custom / Other...' },
+                                    ]}
+                                    placeholder="Select vehicle type..."
+                                />
+                            )}
                         </div>
 
-                        <div className="flex gap-2 justify-end pt-2 border-t border-slate-200">
-                            <Button variant="outline" size="sm" type="button" onClick={() => setShowModal(false)}>
-                                Cancel
-                            </Button>
-                            <Button variant="primary" size="sm" type="submit" className="bg-[#ff4a1f] hover:bg-[#e03e15] text-white">
-                                Save Vehicle
-                            </Button>
+                        <div>
+                            <Input
+                                label="Registration / Plate *"
+                                type="text"
+                                required
+                                placeholder="e.g. UK-AB12CD"
+                                value={registrationNo}
+                                onChange={(e) => setRegistrationNo(e.target.value.toUpperCase())}
+                                className="font-mono uppercase tracking-wider"
+                            />
                         </div>
-                    </form>
-                </div>
-            )}
+                    </div>
+
+                    <Input
+                        label="Payload Capacity"
+                        type="text"
+                        placeholder="e.g. 1,200 kg or 24,000 kg"
+                        value={capacity}
+                        onChange={(e) => setCapacity(e.target.value)}
+                    />
+
+                    <div>
+                        <label className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            Availability Status <span className="text-red-500 font-bold ml-0.5">*</span>
+                        </label>
+                        <Select
+                            value={status}
+                            onChange={(val: any) => {
+                                const v = val?.target?.value !== undefined ? val.target.value : val;
+                                setStatus(v);
+                            }}
+                            options={[
+                                { id: 'Available', name: 'Available' },
+                                { id: 'On Job', name: 'On Job' },
+                                { id: 'Unavailable', name: 'Unavailable' },
+                            ]}
+                            placeholder="Select status..."
+                        />
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                                setShowModal(false);
+                                setEditingVehicle(null);
+                            }}
+                            className="text-xs rounded-[4px] cursor-pointer"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            size="sm"
+                            className="text-xs bg-[#FF4A1F] hover:bg-[#e03e15] text-white font-bold rounded-[4px] cursor-pointer shadow-xs"
+                        >
+                            {editingVehicle ? 'Save Changes' : 'Add Vehicle'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }

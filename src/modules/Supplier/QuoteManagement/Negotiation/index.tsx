@@ -1,10 +1,10 @@
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { MessageSquare, RefreshCw } from "lucide-react";
 import DataTable from "@/components/tables/data-table";
 import EmptyState from "@/components/tables/empty-state";
 import Button from "@/components/ui/button";
 import { encryptId } from "@/lib/encryption";
-import { MessageSquare, RefreshCw } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { getNegotiationColumns } from "./components/columns";
 import { NegotiationFilterTabs } from "./components/NegotiationFilterTabs";
 import { NegotiationRowActions } from "./components/NegotiationRowActions";
@@ -49,8 +49,7 @@ export default function SupplierNegotiation() {
     const columns = useMemo(() => getNegotiationColumns(navigate), [navigate]);
 
     return (
-        <div
-    className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+        <div className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
@@ -66,7 +65,7 @@ export default function SupplierNegotiation() {
                         size="sm"
                         onClick={handleRefresh}
                         disabled={isRefreshing}
-                        className="h-8 px-2.5 sm:px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                        className="h-8 px-2.5 sm:px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0"
                     >
                         <RefreshCw size={13} className={isRefreshing ? "animate-spin text-[#ff4a1f]" : "text-slate-500"} />
                         <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
@@ -75,7 +74,7 @@ export default function SupplierNegotiation() {
             </div>
 
             <DataTable
-                data={filteredData}
+                data={filteredData || []}
                 columns={columns}
                 actions={(row) => <NegotiationRowActions row={row} onAction={handleQuoteAction} />}
                 onRowClick={(row) => handleQuoteAction(row)}
@@ -101,11 +100,11 @@ export default function SupplierNegotiation() {
                         onResetFilters={handleResetFilters}
                     />
                 }
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item?.id || Math.random().toString()}
                 searchPlaceholder="Search negotiations by ID, quote, shipper, route..."
                 compact={true}
                 hideViewToggle={false}
-                isLoading={negotiations.length > 0 && (isLoading || isRefreshing)}
+                isLoading={isLoading || isRefreshing}
                 tableLayout="fixed"
                 tableClassName="min-w-[1180px]"
                 actionsColumnClassName="w-[130px] min-w-[130px]"
@@ -114,11 +113,12 @@ export default function SupplierNegotiation() {
                         icon={MessageSquare}
                         title={
                             startDate || endDate ? "No Negotiations Found in Selected Date Range" :
-                                activeTab === "active" ? "No Active Negotiations Found" :
+                                activeTab === "open" ? "No Open Negotiations Found" :
                                     activeTab === "counter" ? "No Counter Offers Pending" :
                                         activeTab === "accepted" ? "No Accepted Offers Yet" :
-                                            activeTab === "history" ? "No Negotiation History Found" :
-                                                "No Negotiations Available"
+                                            activeTab === "booked" ? "No Booked Quotes Found" :
+                                                activeTab === "closed" ? "No Closed Negotiations Found" :
+                                                    "No Negotiations Available"
                         }
                         description={
                             startDate || endDate

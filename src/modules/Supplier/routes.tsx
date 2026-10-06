@@ -22,16 +22,14 @@ const OrderDetails = lazy(() => import('./OrderManagement/Details'));
 const Calendar = lazy(() => import('./Availability/Calendar'));
 const Routes = lazy(() => import('./Availability/Routes'));
 const AvailabilityDashboard = lazy(() => import('./Availability/Dashboard'));
-const AvailabilitySchedule = lazy(() => import('./Availability/AvailabilitySchedule'));
-const CreateAvailabilitySchedule = lazy(() => import('./Availability/AvailabilitySchedule/Create'));
 const DriversAvailability = lazy(() => import('./Availability/DriversAvailability'));
 const VehiclesAvailability = lazy(() => import('./Availability/VehiclesAvailability'));
 const BlackoutDates = lazy(() => import('./Availability/BlackoutDates'));
 const TimeSlots = lazy(() => import('./Availability/TimeSlots'));
 const CapacityManagement = lazy(() => import('./Availability/CapacityManagement'));
-const AvailabilitySettings = lazy(() => import('./Availability/Settings'));
 const TeamManagement = lazy(() => import('./TeamManagement'));
 const TeamMemberProfilePage = lazy(() => import('./TeamManagement/TeamMemberProfilePage'));
+const Billing = lazy(() => import('./Finance/Billing'));
 const Earnings = lazy(() => import('./Finance/Earnings'));
 const Withdrawal = lazy(() => import('./Finance/Withdrawal'));
 const Payments = lazy(() => import('./Finance/Payments'));
@@ -239,7 +237,23 @@ export const supplierRoutes: RouteObject[] = [
         ) 
     },
     { 
+        path: 'orders/details/:id', 
+        element: (
+            <PermissionGuard requiredPermission="orders.view">
+                <OrderDetails />
+            </PermissionGuard>
+        ) 
+    },
+    { 
         path: 'orders/track/:slug', 
+        element: (
+            <PermissionGuard requiredPermission="orders.view">
+                <OrderDetails />
+            </PermissionGuard>
+        ) 
+    },
+    { 
+        path: 'orders/:slug', 
         element: (
             <PermissionGuard requiredPermission="orders.view">
                 <OrderDetails />
@@ -278,22 +292,22 @@ export const supplierRoutes: RouteObject[] = [
     },
     { 
         path: 'availability/schedule', 
-        element: (
-            <PermissionGuard requiredPermission="fleet.view">
-                <AvailabilitySchedule />
-            </PermissionGuard>
-        ) 
+        element: <Navigate to="/supplier/availability/dashboard" replace />
     },
     { 
         path: 'availability/schedule/create', 
+        element: <Navigate to="/supplier/availability/dashboard" replace />
+    },
+    { 
+        path: 'availability/routes', 
         element: (
-            <PermissionGuard requiredPermission="fleet.manage_vehicles">
-                <CreateAvailabilitySchedule />
+            <PermissionGuard requiredPermission="fleet.track">
+                <Routes />
             </PermissionGuard>
         ) 
     },
     { 
-        path: 'availability/routes', 
+        path: 'availability/service-areas', 
         element: (
             <PermissionGuard requiredPermission="fleet.track">
                 <Routes />
@@ -342,11 +356,7 @@ export const supplierRoutes: RouteObject[] = [
     },
     { 
         path: 'availability/settings', 
-        element: (
-            <PermissionGuard requiredPermission="fleet.view">
-                <AvailabilitySettings />
-            </PermissionGuard>
-        ) 
+        element: <Navigate to="/supplier/availability/dashboard" replace />
     },
 
     // Team Management
@@ -454,6 +464,22 @@ export const supplierRoutes: RouteObject[] = [
     },
     { 
         path: 'finance/billing', 
+        element: (
+            <PermissionGuard requiredPermission="finance.view_earnings">
+                <Billing />
+            </PermissionGuard>
+        ) 
+    },
+    { 
+        path: 'finance/withdrawals', 
+        element: (
+            <PermissionGuard requiredPermission="finance.view_earnings">
+                <Withdrawal />
+            </PermissionGuard>
+        ) 
+    },
+    { 
+        path: 'finance/payouts', 
         element: (
             <PermissionGuard requiredPermission="finance.view_earnings">
                 <Withdrawal />

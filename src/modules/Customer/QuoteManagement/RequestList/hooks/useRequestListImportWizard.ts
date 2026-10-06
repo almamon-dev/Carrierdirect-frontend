@@ -50,8 +50,15 @@ export function useRequestListImportWizard(fetchQuoteRequests: (isManualRefresh?
             showToast(`🎉 Successfully created ${count} quote request(s) in database!`, 'success');
             fetchQuoteRequests(true);
         } catch (err: any) {
-            const msg = err.response?.data?.message || err.message || 'Failed to save requests to database.';
-            showToast(`Error saving to database: ${msg}`, 'error');
+            const status = err?.response?.status;
+            const data = err?.response?.data;
+            const msg = data?.message || err?.message || 'Failed to save requests to database.';
+            if (status === 403 || data?.upgrade_required) {
+                showToast(msg, 'error');
+                setIsProcessingModalOpen(false);
+            } else {
+                showToast(`Error saving to database: ${msg}`, 'error');
+            }
             throw err;
         }
     };

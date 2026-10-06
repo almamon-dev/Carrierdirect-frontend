@@ -83,7 +83,7 @@ export default function SupplierSettings() {
       </div>
 
       {/* Tab Content */}
-      <div className="pt-1 w-full max-w-5xl">
+      <div className="pt-1 w-full">
         {activeTab === 'profile' && <CompanyProfileTab />}
         {activeTab === 'payouts' && <PayoutStripeTab />}
         {activeTab === 'notifications' && <NotificationsTab />}

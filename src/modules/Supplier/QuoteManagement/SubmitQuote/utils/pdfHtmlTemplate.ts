@@ -58,13 +58,13 @@ export const generateQuoteRequestPdfHtml = (requestDetails: QuoteRequest, printD
     <div class="field-row"><span class="field-label"><span>Pickup Location</span><span>:</span></span><span class="field-val"><strong>${requestDetails.pickup || '—'}</strong></span></div>
     <div class="field-row"><span class="field-label"><span>Full Address</span><span>:</span></span><span class="field-val">${requestDetails.pickupFullAddress || requestDetails.pickup || '—'}</span></div>
     <div class="field-row"><span class="field-label"><span>Pickup Date</span><span>:</span></span><span class="field-val">${requestDetails.pickupDate || requestDetails.requestDate || '—'}</span></div>
-    <div class="field-row"><span class="field-label"><span>Pickup Time Slot</span><span>:</span></span><span class="field-val">${requestDetails.pickupTimeWindow || '09:00 AM – 05:00 PM'}</span></div>
+    <div class="field-row"><span class="field-label"><span>Pickup Time Slot</span><span>:</span></span><span class="field-val">${requestDetails.pickupTimeWindow || '—'}</span></div>
     <br />
     <h3>Delivery Information</h3>
     <div class="field-row"><span class="field-label"><span>Delivery Location</span><span>:</span></span><span class="field-val"><strong>${requestDetails.delivery || '—'}</strong></span></div>
     <div class="field-row"><span class="field-label"><span>Full Address</span><span>:</span></span><span class="field-val">${requestDetails.deliveryFullAddress || requestDetails.delivery || '—'}</span></div>
     <div class="field-row"><span class="field-label"><span>Delivery Date</span><span>:</span></span><span class="field-val">${requestDetails.deliveryDate || '—'}</span></div>
-    <div class="field-row"><span class="field-label"><span>Delivery Time Slot</span><span>:</span></span><span class="field-val">${requestDetails.deliveryTimeWindow || '09:00 AM – 05:00 PM'}</span></div>
+    <div class="field-row"><span class="field-label"><span>Delivery Time Slot</span><span>:</span></span><span class="field-val">${requestDetails.deliveryTimeWindow || '—'}</span></div>
     <div class="field-row"><span class="field-label"><span>Transit Distance</span><span>:</span></span><span class="field-val">${requestDetails.distance || '—'} (Standard Transit)</span></div>
     <hr />
     <h2>3. Load & Vehicle Information</h2>
@@ -77,10 +77,10 @@ export const generateQuoteRequestPdfHtml = (requestDetails: QuoteRequest, printD
     <table>
         <thead><tr><th style="width: 45px;">#</th><th>Length</th><th>Width</th><th>Height</th><th style="width: 60px; text-align: center;">Qty</th><th style="width: 60px; text-align: center;">Unit</th></tr></thead>
         <tbody>
-            ${dimensions.length > 0 
-                ? dimensions.map((dim, i) => `<tr><td>#${i + 1}</td><td>${dim.length}</td><td>${dim.width}</td><td>${dim.height}</td><td style="text-align: center; font-weight: bold;">${dim.qty}</td><td style="text-align: center;">${(dim.unit || 'cm').toUpperCase()}</td></tr>`).join('')
-                : '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No cargo dimensions specified</td></tr>'
-            }
+            ${dimensions.length > 0
+            ? dimensions.map((dim, i) => `<tr><td>#${i + 1}</td><td>${dim.length}</td><td>${dim.width}</td><td>${dim.height}</td><td style="text-align: center; font-weight: bold;">${dim.qty}</td><td style="text-align: center;">${(dim.unit || 'cm').toUpperCase()}</td></tr>`).join('')
+            : '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No cargo dimensions specified</td></tr>'
+        }
         </tbody>
     </table>
     <hr />

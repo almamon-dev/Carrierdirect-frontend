@@ -56,6 +56,11 @@ let apiKeyFetchPromise: Promise<string | null> | null = null;
 const memorySuggestionCache = new Map<string, SuggestionItem[]>();
 
 const getGoogleMapsApiKey = async (): Promise<string | null> => {
+    const envKey = (import.meta as any).env?.VITE_GOOGLE_MAPS_KEY;
+    if (envKey) {
+        cachedGoogleMapsApiKey = envKey;
+        return envKey;
+    }
     if (cachedGoogleMapsApiKey) return cachedGoogleMapsApiKey;
     if (apiKeyFetchPromise) return apiKeyFetchPromise;
 
@@ -97,6 +102,7 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
     
     const debounceTimerRef = useRef<any>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const justSelectedRef = useRef(false);
 
     // Warm up Google Maps key on mount
     useEffect(() => {
@@ -106,7 +112,7 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
     // Fetch suggestions with Direct Places API (New) + Backend fallback + 0ms Cache
     const fetchSuggestions = useCallback(async (query: string) => {
         const trimmed = (query || "").trim();
-        if (!trimmed) {
+        if (!trimmed || justSelectedRef.current) {
             setSuggestions([]);
             setIsDropdownOpen(false);
             setIsSearching(false);
@@ -116,8 +122,10 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
         const cacheKey = trimmed.toLowerCase();
         if (memorySuggestionCache.has(cacheKey)) {
             const cached = memorySuggestionCache.get(cacheKey) || [];
-            setSuggestions(cached);
-            setIsDropdownOpen(cached.length > 0);
+            if (!justSelectedRef.current) {
+                setSuggestions(cached);
+                setIsDropdownOpen(cached.length > 0);
+            }
             setIsSearching(false);
             return;
         }
@@ -169,8 +177,10 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
                             .filter(Boolean) as SuggestionItem[];
 
                         memorySuggestionCache.set(cacheKey, formattedItems);
-                        setSuggestions(formattedItems);
-                        setIsDropdownOpen(formattedItems.length > 0);
+                        if (!justSelectedRef.current) {
+                            setSuggestions(formattedItems);
+                            setIsDropdownOpen(formattedItems.length > 0);
+                        }
                         setIsSearching(false);
                         return;
                     }
@@ -189,8 +199,10 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
             const data = res.data?.data || res.data || [];
             if (Array.isArray(data) && data.length > 0) {
                 memorySuggestionCache.set(cacheKey, data);
-                setSuggestions(data);
-                setIsDropdownOpen(true);
+                if (!justSelectedRef.current) {
+                    setSuggestions(data);
+                    setIsDropdownOpen(true);
+                }
             } else {
                 memorySuggestionCache.set(cacheKey, []);
                 setSuggestions([]);
@@ -205,14 +217,23 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        justSelectedRef.current = false;
         onChange(e);
         const query = e.target.value;
         if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
         
-        // 50ms debounce for ultra-responsive instant typing
+        if (!query.trim()) {
+            setSuggestions([]);
+            setIsDropdownOpen(false);
+            return;
+        }
+
+        // 120ms debounce for responsive instant typing
         debounceTimerRef.current = setTimeout(() => {
-            fetchSuggestions(query);
-        }, 50);
+            if (!justSelectedRef.current) {
+                fetchSuggestions(query);
+            }
+        }, 120);
     };
 
     useEffect(() => {
@@ -227,7 +248,12 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
 
     // Handle Selection & Place Details Extraction
     const handleSelectSuggestion = async (item: SuggestionItem) => {
+        justSelectedRef.current = true;
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        if (abortControllerRef.current) abortControllerRef.current.abort();
+
         setIsDropdownOpen(false);
+        setSuggestions([]);
 
         // If suggestion already contains full coordinates & address components
         if (item.lat && item.lng && item.country) {
@@ -406,7 +432,7 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
                     value={value || ""}
                     onChange={handleInputChange}
                     onFocus={() => {
-                        if (suggestions.length > 0) {
+                        if (!justSelectedRef.current && suggestions.length > 0) {
                             setIsDropdownOpen(true);
                         }
                     }}
@@ -442,6 +468,7 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
                             <button
                                 key={item.id || idx}
                                 type="button"
+                                onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => handleSelectSuggestion(item)}
                                 className="w-full text-left px-3.5 py-2.5 hover:bg-slate-100/80 dark:hover:bg-[#ff4a1f]/10 transition-colors border-b border-slate-100 dark:border-slate-800/60 last:border-b-0 cursor-pointer flex items-center justify-between gap-3 group"
                             >
@@ -461,25 +488,14 @@ export const GooglePlacesAutocompleteInput: React.FC<Props> = ({
                                     </div>
                                 </div>
 
-                                {item.lat && item.lng ? (
-                                    <div className="shrink-0 text-right">
-                                        <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/40">
-                                            {Number(item.lat).toFixed(2)}, {Number(item.lng).toFixed(2)}
-                                        </span>
-                                    </div>
-                                ) : null}
+
                             </button>
                         ))}
                     </div>
                 </div>
             )}
 
-            {hasCoordinates && (
-                <div className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 pl-1">
-                    <span>GPS Coordinates:</span>
-                    <span className="font-mono font-medium">{Number(lat).toFixed(4)}, {Number(lng).toFixed(4)}</span>
-                </div>
-            )}
+
             {error && <span className="text-[12px] text-[#d82c0d] mt-0.5 font-sans block">{error}</span>}
         </div>
     );

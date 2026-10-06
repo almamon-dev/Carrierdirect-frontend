@@ -71,24 +71,22 @@ export const getOrderColumns = (
     {
         id: 'cargo',
         label: 'Cargo / Load',
-        className: 'min-w-[125px]',
+        className: 'min-w-[120px]',
         render: (row) => {
             const rawWeight = row.weight || row.cargo_weight || row.total_weight;
-            let weightText = '1,500 KG';
-            if (rawWeight && !String(rawWeight).toUpperCase().includes('N/A') && rawWeight !== '0 kg' && rawWeight !== 0) {
+            let weightText = '';
+            if (rawWeight && !String(rawWeight).toUpperCase().includes('N/A') && rawWeight !== '—' && rawWeight !== '0 kg' && rawWeight !== 0) {
                 weightText = String(rawWeight).toUpperCase().includes('KG') ? String(rawWeight).toUpperCase() : `${rawWeight} KG`;
             }
 
-            const rawPallets = row.type_of_pallets || row.pallets || row.load_type;
-            let palletsVal = 'Pallets';
-            if (rawPallets && rawPallets !== '0 Items' && !String(rawPallets).toUpperCase().includes('N/A') && rawPallets !== '0') {
-                palletsVal = rawPallets;
-            }
+            const rawPallets = row.type_of_pallets || row.pallets || row.items_summary || row.load_type || '';
+            const primaryText = weightText || rawPallets || 'Standard Load';
+            const subText = (weightText && rawPallets && rawPallets !== weightText) ? rawPallets : '';
 
             return (
                 <div className="flex flex-col text-xs leading-tight">
-                    <span className="font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{weightText}</span>
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">{palletsVal}</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{primaryText}</span>
+                    {subText ? <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">{subText}</span> : null}
                 </div>
             );
         }

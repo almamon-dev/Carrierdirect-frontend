@@ -104,10 +104,12 @@ export const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
               <span>Gross Freight Fare:</span>
               <span className="font-medium text-slate-800 dark:text-slate-200">{payment.gross_amount_formatted || (payment.gross_amount ? `€ ${Number(payment.gross_amount).toFixed(2)}` : "€ 0.00")}</span>
             </div>
-            <div className="flex justify-between py-1 text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
-              <span>Platform Fee (5%):</span>
-              <span className="font-medium text-rose-600">- {payment.platform_fee_formatted || (payment.platform_fee ? `€ ${Number(payment.platform_fee).toFixed(2)}` : "€ 0.00")}</span>
-            </div>
+            {Number(payment.platform_fee || 0) > 0 && (
+              <div className="flex justify-between py-1 text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                <span>Platform Fee:</span>
+                <span className="font-medium text-rose-600">- {payment.platform_fee_formatted || `€ ${Number(payment.platform_fee).toFixed(2)}`}</span>
+              </div>
+            )}
             <div className="flex justify-between py-1.5 text-slate-900 dark:text-slate-100 font-bold bg-slate-50 dark:bg-slate-900/60 px-2 rounded">
               <span className="text-emerald-600 dark:text-emerald-400">Net Supplier Earnings:</span>
               <span className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">{payment.supplier_amount_formatted || payment.net_amount_formatted || (payment.supplier_amount ? `€ ${Number(payment.supplier_amount).toFixed(2)}` : "€ 0.00")}</span>

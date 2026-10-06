@@ -15,8 +15,8 @@ const getInitialEmptyDetails = (id: string): QuoteRequest => ({
     delivery: '',
     distance: '',
     budget: '—',
-    status: 'New',
-    priority: 'Normal',
+    status: '',
+    priority: '',
     dimensions: [],
     cargoItems: [],
     documents: []
@@ -31,10 +31,10 @@ export function useSubmitQuoteDetails(slug?: string) {
     useEffect(() => {
         let isMounted = true;
         const cleanId = slug ? decryptId(slug).replace('REQ-', '').trim() : '';
-        
-        if (!cleanId) { 
-            setLoading(false); 
-            return; 
+
+        if (!cleanId) {
+            setLoading(false);
+            return;
         }
 
         markRequestAsViewed(cleanId);
@@ -51,7 +51,7 @@ export function useSubmitQuoteDetails(slug?: string) {
             .catch(err => {
                 console.error('Failed to load supplier request detail', err);
             })
-            .finally(() => { 
+            .finally(() => {
                 if (isMounted) setLoading(false);
             });
 

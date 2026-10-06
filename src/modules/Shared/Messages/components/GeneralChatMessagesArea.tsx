@@ -56,7 +56,9 @@ export const GeneralChatMessagesArea: React.FC<GeneralChatMessagesAreaProps> = (
             ref={containerRef}
             className="flex-1 overflow-y-auto px-4 py-6 space-y-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-            {messages.length > 0 ? (
+            {(isLoadingMessages || (!isChatLoaded && messages.length === 0)) ? (
+                <GeneralChatMessagesAreaSkeleton />
+            ) : messages.length > 0 ? (
                 messages.map((msg, index) => (
                     <GeneralChatMessageBubble
                         key={msg.id || index}

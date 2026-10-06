@@ -14,8 +14,10 @@ export interface QuoteFormData {
     serviceType: string;
     pickupDate: string;
     pickupTime: string;
+    pickupTimeTill?: string;
     deliveryDate: string;
     deliveryTime: string;
+    deliveryTimeTill?: string;
     expectedTransitTime: string;
 
     pickupCompany: string;

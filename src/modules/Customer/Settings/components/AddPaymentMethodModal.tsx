@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { CreditCard, ShieldCheck, Lock, Loader2, CheckCircle2 } from "lucide-react";
 import Drawer from "@/components/modals/drawer";
 import Input from "@/components/ui/input";
@@ -49,6 +49,12 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({ isOpen, onClose, o
   const [cvc, setCvc] = useState("");
   const [isPrimary, setIsPrimary] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const nameRef = useRef<HTMLInputElement>(null);
+  const cardNumberRef = useRef<HTMLInputElement>(null);
+  const expiryRef = useRef<HTMLInputElement>(null);
+  const cvcRef = useRef<HTMLInputElement>(null);
 
   // Track touched/blurred fields for live validation feedback
   const [touched, setTouched] = useState<{
@@ -123,75 +129,109 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({ isOpen, onClose, o
     return monthStr;
   };
 
-  // Live Field Validations
+  // Stripe-Standard Field Errors
   const nameError = useMemo(() => {
-    if (!touched.cardName && !cardName) return null;
-    const trimmed = cardName.trim();
-    if (!trimmed) return "Cardholder name is required.";
-    if (trimmed.length < 3) return "Name must be at least 3 characters.";
-    if (!/^[a-zA-Z\s.'-]+$/.test(trimmed)) return "Name should contain valid letters only.";
+    if (!cardName.trim()) {
+      return (touched.cardName || isSubmitted) ? "Cardholder name is required." : null;
+    }
+    if (cardName.trim().length < 2) {
+      return (touched.cardName || isSubmitted) ? "Cardholder name must be at least 2 characters." : null;
+    }
     return null;
-  }, [cardName, touched.cardName]);
+  }, [cardName, touched.cardName, isSubmitted]);
 
   const cardNumberError = useMemo(() => {
-    if (!touched.cardNumber && !cleanNumber) return null;
-    if (!cleanNumber) return "Card number is required.";
-    const minLength = cardBrand === "amex" ? 15 : 13;
-    if (cleanNumber.length < minLength) return `Please enter a complete ${cardBrand === "amex" ? "15" : "16"}-digit card number.`;
-    if (!validateLuhn(cleanNumber)) return "Invalid card number checksum (Luhn check failed).";
+    const expectedLength = cardBrand === "amex" ? 15 : 16;
+    if (!cleanNumber) {
+      return (touched.cardNumber || isSubmitted) ? "Card number is required." : null;
+    }
+    if (cleanNumber.length === expectedLength) {
+      if (!validateLuhn(cleanNumber)) {
+        return "Your card number is invalid.";
+      }
+      return null;
+    }
+    if (cleanNumber.length < expectedLength) {
+      return (touched.cardNumber || isSubmitted) ? `Your card number is incomplete (${cleanNumber.length}/${expectedLength} digits).` : null;
+    }
     return null;
-  }, [cleanNumber, cardBrand, touched.cardNumber]);
+  }, [cleanNumber, cardBrand, touched.cardNumber, isSubmitted]);
 
   const expiryError = useMemo(() => {
-    if (!touched.expiry && !expiry) return null;
     const cleanExp = expiry.replace(/\D/g, "");
-    if (!cleanExp) return "Expiration date is required (MM/YY).";
-    if (cleanExp.length < 2) return "Enter expiration date (MM/YY).";
-
-    const month = parseInt(cleanExp.slice(0, 2), 10);
-    if (month < 1 || month > 12) {
-      return "Invalid month. Month must be between 01 and 12.";
+    if (!cleanExp) {
+      return (touched.expiry || isSubmitted) ? "Expiry date is required." : null;
     }
-
-    if (cleanExp.length < 4) {
-      return "Enter 2-digit expiration year (MM/YY).";
+    if (cleanExp.length >= 2) {
+      const month = parseInt(cleanExp.slice(0, 2), 10);
+      if (month < 1 || month > 12) {
+        return "Your card's expiration month is invalid.";
+      }
+      if (cleanExp.length === 4) {
+        const year = parseInt(cleanExp.slice(2, 4), 10);
+        const now = new Date();
+        const curYear = now.getFullYear() % 100;
+        const curMonth = now.getMonth() + 1;
+        if (year < curYear || (year === curYear && month < curMonth)) {
+          return "Your card's expiration year is in the past.";
+        }
+        if (year > curYear + 25) {
+          return "Your card's expiration year is invalid.";
+        }
+        return null;
+      }
+      return (touched.expiry || isSubmitted) ? "Your card's expiration date is incomplete." : null;
     }
-
-    const year = parseInt(cleanExp.slice(2, 4), 10);
-    const now = new Date();
-    const curYear = now.getFullYear() % 100;
-    const curMonth = now.getMonth() + 1;
-
-    if (year < curYear || (year === curYear && month < curMonth)) {
-      return `Card has expired (${month < 10 ? '0' + month : month}/${year} is in the past).`;
-    }
-
-    if (year > curYear + 25) {
-      return "Expiration year is unrealistically far in the future.";
-    }
-
-    return null;
-  }, [expiry, touched.expiry]);
+    return (touched.expiry || isSubmitted) ? "Your card's expiration date is incomplete." : null;
+  }, [expiry, touched.expiry, isSubmitted]);
 
   const cvcError = useMemo(() => {
-    if (!touched.cvc && !cvc) return null;
     const cleanCvc = cvc.replace(/\D/g, "");
-    if (!cleanCvc) return "Security code (CVC) is required.";
+    if (!cleanCvc) {
+      return (touched.cvc || isSubmitted) ? "CVC is required." : null;
+    }
     if (cleanCvc.length < expectedCvcLength) {
-      return `${expectedCvcLength}-digit security code required for ${cardBrand === "amex" ? "AMEX" : "cards"}.`;
+      return (touched.cvc || isSubmitted) ? `Your card's security code is incomplete (${cleanCvc.length}/${expectedCvcLength} digits).` : null;
     }
     return null;
-  }, [cvc, expectedCvcLength, cardBrand, touched.cvc]);
+  }, [cvc, expectedCvcLength, touched.cvc, isSubmitted]);
 
-  const isFormValid =
-    cardName.trim().length >= 3 &&
-    !nameError &&
-    cleanNumber.length >= (cardBrand === "amex" ? 15 : 13) &&
-    !cardNumberError &&
-    !expiryError &&
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const digits = raw.replace(/\D/g, "").slice(0, 16);
+    const brand = detectCardBrand(digits);
+    const expectedLen = brand === "amex" ? 15 : 16;
+    const formatted = formatCardNumber(raw);
+    setCardNumber(formatted);
+
+    if (digits.length === expectedLen && validateLuhn(digits)) {
+      expiryRef.current?.focus();
+    }
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatExpiry(e.target.value, expiry);
+    setExpiry(formatted);
+
+    const cleanExp = formatted.replace(/\D/g, "");
+    if (cleanExp.length === 4) {
+      const month = parseInt(cleanExp.slice(0, 2), 10);
+      const year = parseInt(cleanExp.slice(2, 4), 10);
+      const now = new Date();
+      const curYear = now.getFullYear() % 100;
+      const curMonth = now.getMonth() + 1;
+      if (month >= 1 && month <= 12 && (year > curYear || (year === curYear && month >= curMonth))) {
+        cvcRef.current?.focus();
+      }
+    }
+  };
+
+  const isFormValid = !nameError && !cardNumberError && !expiryError && !cvcError &&
+    cardName.trim().length >= 2 &&
+    cleanNumber.length >= (cardBrand === "amex" ? 15 : 16) &&
+    validateLuhn(cleanNumber) &&
     expiry.replace(/\D/g, "").length === 4 &&
-    cvc.replace(/\D/g, "").length === expectedCvcLength &&
-    !cvcError;
+    cvc.replace(/\D/g, "").length === expectedCvcLength;
 
   const renderCardBrandBadge = () => {
     switch (cardBrand) {
@@ -226,31 +266,33 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({ isOpen, onClose, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitted(true);
+    setTouched({ cardName: true, cardNumber: true, expiry: true, cvc: true });
 
-    setTouched({
-      cardName: true,
-      cardNumber: true,
-      expiry: true,
-      cvc: true,
-    });
-
-    if (!isFormValid) {
-      if (expiryError) {
-        showToast(expiryError, "error");
-      } else if (cardNumberError) {
-        showToast(cardNumberError, "error");
-      } else if (nameError) {
-        showToast(nameError, "error");
-      } else if (cvcError) {
-        showToast(cvcError, "error");
-      } else {
-        showToast("Please correct the highlighted card errors before saving.", "error");
-      }
+    if (!cardName.trim() || cardName.trim().length < 2) {
+      showToast(nameError || "Cardholder name is required.", "error");
+      nameRef.current?.focus();
+      return;
+    }
+    const expNumLen = cardBrand === "amex" ? 15 : 16;
+    if (!cleanNumber || cleanNumber.length < expNumLen || !validateLuhn(cleanNumber)) {
+      showToast(cardNumberError || "Please enter a valid card number.", "error");
+      cardNumberRef.current?.focus();
+      return;
+    }
+    if (!expiry || expiry.replace(/\D/g, "").length < 4 || expiryError) {
+      showToast(expiryError || "Please enter a valid expiration date.", "error");
+      expiryRef.current?.focus();
+      return;
+    }
+    if (!cvc || cvc.replace(/\D/g, "").length < expectedCvcLength) {
+      showToast(cvcError || "Please enter a valid CVC code.", "error");
+      cvcRef.current?.focus();
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
       const res = await apiClient.post(endpoint, {
         card_name: cardName.trim(),
         card_number: cleanNumber,
@@ -360,17 +402,15 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({ isOpen, onClose, o
 
         <div>
           <Input
+            ref={nameRef}
             label="Cardholder Name *"
             placeholder="e.g. John Doe"
             value={cardName}
-            onChange={(e) => {
-              setCardName(e.target.value);
-              if (!touched.cardName) markTouched("cardName");
-            }}
+            onChange={(e) => setCardName(e.target.value)}
             onBlur={() => markTouched("cardName")}
             error={nameError || undefined}
             rightIcon={
-              touched.cardName && !nameError && cardName.trim().length >= 3 ? (
+              !nameError && cardName.trim().length >= 2 ? (
                 <CheckCircle2 size={15} className="text-emerald-500" />
               ) : undefined
             }
@@ -380,20 +420,18 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({ isOpen, onClose, o
 
         <div>
           <Input
+            ref={cardNumberRef}
             label="Card Number *"
             placeholder="1234 5678 9012 3456"
             value={cardNumber}
-            onChange={(e) => {
-              setCardNumber(formatCardNumber(e.target.value));
-              if (!touched.cardNumber) markTouched("cardNumber");
-            }}
+            onChange={handleCardNumberChange}
             onBlur={() => markTouched("cardNumber")}
             maxLength={19}
-            className="pl-14"
+            className="pl-14 font-mono"
             icon={renderCardBrandBadge()}
             error={cardNumberError || undefined}
             rightIcon={
-              touched.cardNumber && !cardNumberError && cleanNumber.length >= (cardBrand === "amex" ? 15 : 13) ? (
+              !cardNumberError && cleanNumber.length >= (cardBrand === "amex" ? 15 : 16) && validateLuhn(cleanNumber) ? (
                 <CheckCircle2 size={15} className="text-emerald-500" />
               ) : undefined
             }
@@ -404,18 +442,16 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({ isOpen, onClose, o
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Input
+              ref={expiryRef}
               label="Expires (MM/YY) *"
               placeholder="MM/YY"
               value={expiry}
-              onChange={(e) => {
-                setExpiry((prev) => formatExpiry(e.target.value, prev));
-                if (!touched.expiry) markTouched("expiry");
-              }}
+              onChange={handleExpiryChange}
               onBlur={() => markTouched("expiry")}
               maxLength={5}
               error={expiryError || undefined}
               rightIcon={
-                touched.expiry && !expiryError && expiry.replace(/\D/g, "").length === 4 ? (
+                !expiryError && expiry.replace(/\D/g, "").length === 4 ? (
                   <CheckCircle2 size={15} className="text-emerald-500" />
                 ) : undefined
               }
@@ -425,20 +461,18 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({ isOpen, onClose, o
 
           <div>
             <Input
+              ref={cvcRef}
               label="Security Code (CVC) *"
               placeholder={cardBrand === "amex" ? "1234" : "123"}
               type="password"
               value={cvc}
-              onChange={(e) => {
-                setCvc(e.target.value.replace(/\D/g, "").slice(0, expectedCvcLength));
-                if (!touched.cvc) markTouched("cvc");
-              }}
+              onChange={(e) => setCvc(e.target.value.replace(/\D/g, "").slice(0, expectedCvcLength))}
               onBlur={() => markTouched("cvc")}
               maxLength={expectedCvcLength}
               icon={<Lock size={14} />}
               error={cvcError || undefined}
               rightIcon={
-                touched.cvc && !cvcError && cvc.replace(/\D/g, "").length === expectedCvcLength ? (
+                !cvcError && cvc.replace(/\D/g, "").length === expectedCvcLength ? (
                   <CheckCircle2 size={15} className="text-emerald-500" />
                 ) : undefined
               }

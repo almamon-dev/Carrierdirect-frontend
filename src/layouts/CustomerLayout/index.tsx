@@ -8,6 +8,7 @@ import HeaderMessages from '@/components/HeaderMessages';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
 import { useUserHeartbeat } from '@/hooks/useUserHeartbeat';
 import { TOKEN_CONFIG } from '@/config/auth';
+import { CustomerChatSkeletonLoader } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/components/CustomerChatSkeletonLoader';
 
 // ── Helper: read auth user from localStorage ─────────────────────────────────
 function getAuthUser() {
@@ -116,7 +117,7 @@ export default function CustomerLayout() {
     const currentModuleLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Dashboard';
 
     return (
-        <div className="flex h-screen bg-[#f8fafc] dark:bg-[#12161c] overflow-hidden relative font-sans antialiased">
+        <div className="flex h-screen bg-[#f8fafc] dark:bg-[#12161c] overflow-hidden font-sans antialiased">
             {/* Sidebar Overlay */}
             {isSidebarOpen && (
                 <div
@@ -126,7 +127,7 @@ export default function CustomerLayout() {
             )}
 
             {/* Sidebar Component */}
-            <Sidebar isOpen={isSidebarOpen} />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -244,9 +245,11 @@ export default function CustomerLayout() {
                     const isFullHeightChat = location.pathname.includes('/messages') ||
                                              location.pathname.includes('/negotiation/conversation') ||
                                              location.pathname.includes('/negotiation/view');
+                    const isNegotiationChat = location.pathname.includes('/negotiation/conversation') ||
+                                              location.pathname.includes('/negotiation/view');
                     return (
                         <main ref={mainRef} className={`flex-1 ${isFullHeightChat ? 'overflow-hidden h-[calc(100vh-56px)]' : 'overflow-y-auto overflow-x-hidden'} bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
-                            <React.Suspense fallback={<RouteLoadingFallback />}>
+                            <React.Suspense fallback={isNegotiationChat ? <CustomerChatSkeletonLoader /> : <RouteLoadingFallback />}>
                                 <div className={`w-full ${isFullHeightChat ? 'h-full pb-0' : 'pb-16'}`}>
                                     <Outlet />
                                 </div>

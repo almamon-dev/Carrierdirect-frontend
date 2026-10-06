@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, User, Calendar, ArrowRight, Building } from 'lucide-react';
+import { MapPin, Calendar, Building, Phone, Mail } from 'lucide-react';
 import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
 
 interface CustomerOrderLocationsCardProps {
@@ -43,13 +43,26 @@ export const CustomerOrderLocationsCard: React.FC<CustomerOrderLocationsCardProp
                         <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
                         <span className="font-bold text-slate-900 dark:text-slate-100">{order.pickup.city}</span>
 
+                        {order.pickup.company ? (
+                            <>
+                                <span className="text-slate-500 dark:text-slate-400 font-medium">Facility / Company</span>
+                                <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                                <span className="font-semibold text-slate-900 dark:text-slate-100">{order.pickup.company}</span>
+                            </>
+                        ) : null}
+
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Pickup Address</span>
                         <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
                         <span className="font-medium text-slate-700 dark:text-slate-300 leading-snug">{order.pickup.address}</span>
 
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Contact Person</span>
                         <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{order.pickup.contactName}</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            {order.pickup.contactName}
+                            {order.pickup.contactPhone ? (
+                                <span className="text-slate-500 font-normal ml-1.5">({order.pickup.contactPhone})</span>
+                            ) : null}
+                        </span>
                     </div>
                 </div>
 
@@ -72,13 +85,26 @@ export const CustomerOrderLocationsCard: React.FC<CustomerOrderLocationsCardProp
                         <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
                         <span className="font-bold text-slate-900 dark:text-slate-100">{order.delivery.city}</span>
 
+                        {order.delivery.company ? (
+                            <>
+                                <span className="text-slate-500 dark:text-slate-400 font-medium">Facility / Company</span>
+                                <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
+                                <span className="font-semibold text-slate-900 dark:text-slate-100">{order.delivery.company}</span>
+                            </>
+                        ) : null}
+
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Delivery Address</span>
                         <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
                         <span className="font-medium text-slate-700 dark:text-slate-300 leading-snug">{order.delivery.address}</span>
 
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Contact Person</span>
                         <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{order.delivery.contactName}</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            {order.delivery.contactName}
+                            {order.delivery.contactPhone ? (
+                                <span className="text-slate-500 font-normal ml-1.5">({order.delivery.contactPhone})</span>
+                            ) : null}
+                        </span>
                     </div>
                 </div>
             </div>

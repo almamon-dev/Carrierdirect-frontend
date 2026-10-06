@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, FileText, ChevronDown, CreditCard, ShieldCheck, MapPin } from "lucide-react";
+import { User, FileText, ChevronDown, CreditCard, ShieldCheck, MapPin, X } from "lucide-react";
 import { CustomerChatItem, CustomerChatMessage } from "../types";
 import { CustomerChatOverviewSection } from "./details/CustomerChatOverviewSection";
 import { CustomerChatLogisticsSection } from "./details/CustomerChatLogisticsSection";
@@ -14,6 +14,7 @@ interface CustomerChatDetailsPanelProps {
     showDetailsPanel: boolean;
     contactQuotes?: CustomerChatItem[];
     onSelectQuote?: (id: number | string) => void;
+    onClose?: () => void;
 }
 
 export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> = ({
@@ -22,6 +23,7 @@ export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> =
     showDetailsPanel,
     contactQuotes = [],
     onSelectQuote,
+    onClose,
 }) => {
     const navigate = useNavigate();
     const [openSections, setOpenSections] = useState({
@@ -52,9 +54,38 @@ export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> =
 
     return (
         <>
-            <div className="hidden xl:flex xl:col-span-3 flex-col min-h-0 h-full bg-white dark:bg-[#12161c] border-l border-slate-200 dark:border-slate-800 overflow-y-auto [&::-webkit-scrollbar]:hidden">
+            {/* Mobile Backdrop */}
+            {showDetailsPanel && (
+                <div
+                    className="absolute inset-0 bg-slate-900/40 backdrop-blur-2xs z-30 lg:hidden animate-in fade-in duration-200"
+                    onClick={onClose}
+                    aria-hidden="true"
+                />
+            )}
+
+            <div className={`shrink-0 flex-col min-h-0 h-full bg-white dark:bg-[#12161c] overflow-y-auto border-l border-slate-200 dark:border-slate-800 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
+                showDetailsPanel
+                    ? 'flex absolute lg:static inset-y-0 right-0 z-40 lg:z-auto w-[88vw] max-w-[340px] lg:w-[320px] 2xl:w-[350px] shadow-2xl lg:shadow-none animate-in slide-in-from-right duration-200'
+                    : 'hidden'
+            }`}>
+                {/* Header Bar */}
+                <div className="h-[60px] px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0 box-border bg-white dark:bg-[#12161c] sticky top-0 z-10">
+                    <span className="text-[13px] font-bold text-slate-800 dark:text-slate-100">Quote Details</span>
+                    {onClose && (
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="h-8 w-8 rounded-[4px] flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            title="Close details"
+                            aria-label="Close details"
+                        >
+                            <X size={18} />
+                        </button>
+                    )}
+                </div>
+
                 {/* Profile Header */}
-                <div className="p-5 flex flex-col items-center border-b border-slate-100 dark:border-slate-800 text-center">
+                <div className="p-5 flex flex-col items-center border-b border-slate-100 dark:border-slate-800 text-center relative">
                     <div className="relative mb-3">
                         <div className="w-16 h-16 rounded-full overflow-hidden bg-orange-50 dark:bg-orange-950/40 border-2 border-orange-200/80 dark:border-orange-900/50 flex items-center justify-center text-[#FF4A1F] font-bold text-xl shadow-xs">
                             {activeChat.avatar && (activeChat.avatar.startsWith("http") || activeChat.avatar.startsWith("/storage") || activeChat.avatar.startsWith("data:") || activeChat.avatar.includes(".")) ? (
@@ -119,12 +150,22 @@ export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> =
 
                             {openSections.quotes && (
                                 <div className="px-4 pb-2">
-                                    <div className="divide-y divide-slate-100/90 dark:divide-slate-800/80">
+                                    <div className="space-y-2">
                                         {displayedQuotes.map((q, idx) => {
                                             const isSelected = String(q.id) === String(activeChat.id);
                                             const rawStatusLower = String(q.raw?.status_raw || q.raw?.status || (q as any).status || "Active").toLowerCase();
+                                            const isBooked = Boolean(
+                                                q.raw?.is_paid ||
+                                                q.raw?.has_order ||
+                                                q.raw?.order_id ||
+                                                (q as any).isPaid ||
+                                                (q as any).hasOrder ||
+                                                rawStatusLower === "booked" ||
+                                                rawStatusLower.includes("book")
+                                            );
                                             let statusLabel = q.raw?.status || (q as any).status || "Active";
-                                            if (rawStatusLower.includes("accept")) statusLabel = "Accepted";
+                                            if (isBooked) statusLabel = "Booked";
+                                            else if (rawStatusLower.includes("accept")) statusLabel = "Accepted";
                                             else if (rawStatusLower.includes("reject") || rawStatusLower.includes("decline")) statusLabel = "Rejected";
                                             else if (rawStatusLower.includes("expire")) statusLabel = "Expired";
                                             else if (rawStatusLower.includes("pending")) statusLabel = "Pending";
@@ -133,48 +174,66 @@ export const CustomerChatDetailsPanel: React.FC<CustomerChatDetailsPanelProps> =
                                                 <div
                                                     key={q.id}
                                                     onClick={() => onSelectQuote && onSelectQuote(q.id)}
-                                                    className={`py-2.5 cursor-pointer transition-colors flex items-center justify-between gap-3 ${isSelected
-                                                        ? "font-medium"
-                                                        : "hover:bg-slate-50/50 dark:hover:bg-slate-800/30 text-slate-600 dark:text-slate-400"
+                                                    className={`p-2.5 rounded-lg border transition-all cursor-pointer ${isSelected
+                                                        ? "border-[#ff4a1f] bg-orange-50/40 dark:bg-[#ff4a1f]/10 shadow-2xs"
+                                                        : "border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700"
                                                         }`}
                                                 >
-                                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                                        <span
-                                                            className={`w-5 h-5 rounded-full text-[10.5px] font-bold flex items-center justify-center shrink-0 transition-colors ${isSelected
-                                                                ? "bg-[#FF4A1F] text-white shadow-2xs"
-                                                                : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60"
-                                                                }`}
-                                                        >
-                                                            {idx + 1}
-                                                        </span>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <span className={`text-[12px] truncate ${isSelected ? "font-bold text-slate-900 dark:text-white" : "font-semibold text-slate-700 dark:text-slate-300"
-                                                                    }`}>
-                                                                    {q.quoteNo}
-                                                                </span>
-                                                                <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full font-medium shrink-0 border ${getStatusBadgeClass(statusLabel)}`}>
-                                                                    {statusLabel}
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-1 text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 min-w-0" title={`${q.origin || q.raw?.pickup || 'Pickup Location'} → ${q.destination || q.raw?.delivery || 'Delivery Destination'}`}>
-                                                                <MapPin size={10.5} className="text-[#ff4a1f] shrink-0" />
-                                                                <span className="truncate text-slate-600 dark:text-slate-300 font-medium">
-                                                                    {q.origin || q.raw?.pickup || 'Pickup Location'}
-                                                                </span>
-                                                                <span className="text-slate-400 shrink-0 select-none">→</span>
-                                                                <span className="truncate text-slate-600 dark:text-slate-300 font-medium">
-                                                                    {q.destination || q.raw?.delivery || 'Delivery Destination'}
-                                                                </span>
-                                                            </div>                                                        </div>
-                                                    </div>
-                                                    <div className="text-right shrink-0">
-                                                        <span className={`text-[12px] block ${isSelected ? "font-black text-[#FF4A1F]" : "font-bold text-slate-800 dark:text-slate-200"
-                                                            }`}>
+                                                    {/* Card Header: Badge, Quote ID, and Price */}
+                                                    <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-800/80">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <span
+                                                                className={`w-5 h-5 rounded-full text-[10.5px] font-bold flex items-center justify-center shrink-0 transition-colors ${isSelected
+                                                                    ? "bg-[#FF4A1F] text-white shadow-2xs"
+                                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700/60"
+                                                                    }`}
+                                                            >
+                                                                {idx + 1}
+                                                            </span>
+                                                            <span className={`text-[12.5px] font-bold ${isSelected ? "text-[#FF4A1F]" : "text-slate-800 dark:text-slate-200"}`}>
+                                                                {q.quoteNo}
+                                                            </span>
+                                                        </div>
+                                                        <span className={`text-[13px] font-bold ${isSelected ? "text-[#FF4A1F]" : "text-slate-900 dark:text-slate-100"}`}>
                                                             € {Number(q.currentPrice || 0).toLocaleString()}
                                                         </span>
-                                                        <span className="text-[9.5px] text-slate-400 block">{q.distance}</span>
                                                     </div>
+
+                                                    {/* Key : Value Details Table */}
+                                                    <table className="w-full text-[11px] border-collapse">
+                                                        <tbody>
+                                                            <tr className="border-b border-slate-100/60 dark:border-slate-800/60">
+                                                                <td className="py-1 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[70px]">Status</td>
+                                                                <td className="py-1 text-slate-400 font-bold text-center w-[15px] select-none">:</td>
+                                                                <td className="py-1 pl-1 text-right">
+                                                                    <span className={`text-[9.5px] px-1.5 py-0.5 rounded font-semibold border inline-block ${getStatusBadgeClass(statusLabel)}`}>
+                                                                        {statusLabel}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr className="border-b border-slate-100/60 dark:border-slate-800/60">
+                                                                <td className="py-1 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[70px] align-top">Pickup</td>
+                                                                <td className="py-1 text-slate-400 font-bold text-center w-[15px] select-none align-top">:</td>
+                                                                <td className="py-1 pl-1 text-slate-700 dark:text-slate-300 font-medium text-right leading-snug break-words text-[10.5px]" title={q.origin || q.raw?.pickup || 'Pickup Location'}>
+                                                                    {q.origin || q.raw?.pickup || 'Pickup Location'}
+                                                                </td>
+                                                            </tr>
+                                                            <tr className="border-b border-slate-100/60 dark:border-slate-800/60">
+                                                                <td className="py-1 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[70px] align-top">Delivery</td>
+                                                                <td className="py-1 text-slate-400 font-bold text-center w-[15px] select-none align-top">:</td>
+                                                                <td className="py-1 pl-1 text-slate-700 dark:text-slate-300 font-medium text-right leading-snug break-words text-[10.5px]" title={q.destination || q.raw?.delivery || 'Delivery Destination'}>
+                                                                    {q.destination || q.raw?.delivery || 'Delivery Destination'}
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td className="py-1 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[70px]">Distance</td>
+                                                                <td className="py-1 text-slate-400 font-bold text-center w-[15px] select-none">:</td>
+                                                                <td className="py-1 pl-1 text-slate-700 dark:text-slate-300 font-semibold text-right">
+                                                                    {q.distance || '—'}
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             );
                                         })}

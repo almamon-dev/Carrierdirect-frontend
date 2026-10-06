@@ -12,8 +12,10 @@ export const INITIAL_QUOTE_FORM_DATA: QuoteFormData = {
     serviceType: '',
     pickupDate: '',
     pickupTime: '',
+    pickupTimeTill: '',
     deliveryDate: '',
     deliveryTime: '',
+    deliveryTimeTill: '',
     expectedTransitTime: '',
 
     pickupCompany: '',
@@ -72,10 +74,10 @@ export const buildUpdatePayload = (formData: QuoteFormData, cleanId?: string) =>
     const deliveryLoc = formData.deliveryAddress || [formData.deliveryCity, formData.deliveryCountry].filter(Boolean).join(', ') || '-';
 
     const payload: Record<string, any> = {
-        request_title: formData.requestTitle || `Quote Request REQ-${cleanId}`,
-        priority: formData.priority || '',
-        shipment_type: formData.shipmentType || '',
-        service_type: formData.serviceType || '',
+        request_title: formData.requestTitle || `Quote Request REQ-${cleanId || ''}`,
+        priority: formData.priority || 'Normal',
+        shipment_type: formData.shipmentType || 'One Way',
+        service_type: formData.serviceType || 'Standard',
         expected_transit_time: formData.expectedTransitTime || null,
 
         pickup_address: pickupLoc,
@@ -86,7 +88,7 @@ export const buildUpdatePayload = (formData: QuoteFormData, cleanId?: string) =>
         pickup_phone: formData.pickupPhone || null,
         pickup_email: formData.pickupEmail || null,
         pickup_contact_email: formData.pickupEmail || null,
-        pickup_country: formData.pickupCountry || '',
+        pickup_country: formData.pickupCountry || 'Bangladesh',
         pickup_state: formData.pickupState || null,
         pickup_city: formData.pickupCity || null,
         pickup_zip: formData.pickupZip || null,
@@ -102,7 +104,7 @@ export const buildUpdatePayload = (formData: QuoteFormData, cleanId?: string) =>
         delivery_phone: formData.deliveryPhone || null,
         delivery_email: formData.deliveryEmail || null,
         delivery_contact_email: formData.deliveryEmail || null,
-        delivery_country: formData.deliveryCountry || '',
+        delivery_country: formData.deliveryCountry || 'Bangladesh',
         delivery_state: formData.deliveryState || null,
         delivery_city: formData.deliveryCity || null,
         delivery_zip: formData.deliveryZip || null,
@@ -112,22 +114,42 @@ export const buildUpdatePayload = (formData: QuoteFormData, cleanId?: string) =>
 
         pickup_date: formData.pickupDate || new Date().toISOString().split('T')[0],
         delivery_date: formData.deliveryDate || null,
+        pickup_time: formData.pickupTime || '',
         pickup_time_from: formData.pickupTime || '',
+        pickupTime: formData.pickupTime || '',
         pickup_time_till: formData.pickupTimeTill || null,
+        pickupTimeTill: formData.pickupTimeTill || null,
+        delivery_time: formData.deliveryTime || null,
         delivery_time_from: formData.deliveryTime || null,
+        deliveryTime: formData.deliveryTime || null,
+        delivery_time_till: formData.deliveryTimeTill || null,
+        deliveryTimeTill: formData.deliveryTimeTill || null,
 
         vehicle_type: formData.vehicleType || '',
         load_type: formData.loadType || '',
-        items_count: parseInt(formData.itemsCount || '1', 10),
-        pallets_count: parseInt(formData.palletsCount || '1', 10),
-        weight: parseFloat(formData.weight || '0'),
-        volume: parseFloat(formData.volume || '0'),
+        items_count: formData.itemsCount ? parseInt(formData.itemsCount, 10) : (formData.palletsCount ? parseInt(formData.palletsCount, 10) : 1),
+        pallets_count: formData.palletsCount ? parseInt(formData.palletsCount, 10) : (formData.itemsCount ? parseInt(formData.itemsCount, 10) : 1),
+        weight: formData.weight ? parseFloat(formData.weight) : 0,
+        volume: formData.volume ? parseFloat(formData.volume) : 0,
 
-        budget: parseFloat(formData.budget || '0'),
+        items: Array.isArray(formData.dimensions) && formData.dimensions.length > 0
+            ? formData.dimensions
+                .filter(d => d.length || d.width || d.height || d.qty || d.unit)
+                .map(d => ({
+                    item_type: formData.loadType || 'Package',
+                    unit: d.unit || 'CM',
+                    quantity: parseInt(d.qty || '1', 10),
+                    length: d.length ? parseFloat(d.length) : null,
+                    width: d.width ? parseFloat(d.width) : null,
+                    height: d.height ? parseFloat(d.height) : null,
+                }))
+            : [],
+
+        budget: formData.budget ? parseFloat(formData.budget.toString().replace(/[^0-9.]/g, '')) : 0,
         currency: formData.currency || '€',
-        allow_negotiation: formData.allowNegotiation,
-        receive_multiple: formData.receiveMultiple,
-        auto_expire: formData.autoExpire || '',
+        allow_negotiation: Boolean(formData.allowNegotiation),
+        receive_multiple: Boolean(formData.receiveMultiple),
+        auto_expire: formData.autoExpire || '24 Hours',
 
         additional_notes: [formData.requestTitle, formData.customerNotes, formData.specialInstructions].filter(Boolean).join(' | '),
         customer_notes: formData.customerNotes || null,

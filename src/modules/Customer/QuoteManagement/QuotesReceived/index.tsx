@@ -12,6 +12,7 @@ import { QuoteReceivedRowActions } from './Actions/QuoteReceivedRowActions';
 import { useCustomerQuotesReceived } from './hooks/useCustomerQuotesReceived';
 import { useFilteredQuotesReceived } from './hooks/useFilteredQuotesReceived';
 import { QuotesReceivedFilterTabs } from './components/QuotesReceivedFilterTabs';
+import { CreateRequestDropdown } from '../CreateRequest/components/CreateRequestDropdown';
 import { getQuotesReceivedColumns } from './components/columns';
 import { encryptId } from '@/lib/encryption';
 
@@ -66,23 +67,29 @@ export default function QuotesReceived() {
     const columns = useMemo(() => getQuotesReceivedColumns(navigate), [navigate]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
-            <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+        <div className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+            <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Quotes Received</h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Review, compare, negotiate, and accept competitive shipping quotes from verified suppliers.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => fetchQuotes(true)} disabled={isRefreshing} className="h-9 px-3 text-xs font-semibold flex items-center gap-1.5 bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700">
-                        <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#ff4a1f]' : 'text-slate-500'} />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchQuotes(true)}
+                        disabled={isRefreshing}
+                        className="h-8 px-2.5 sm:px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0"
+                    >
+                        <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-[#ff4a1f]' : 'text-slate-500'} />
                         <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
                     </Button>
-                    <Button variant="primary" size="sm" onClick={() => checkOrLock(() => navigate('/customer/quotes/create/new'))} className="h-9 px-4 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5">
-                        <Plus size={14} />
-                        <span>Create New Request</span>
-                    </Button>
+                    <CreateRequestDropdown
+                        onCreateNew={() => checkOrLock(() => navigate('/customer/quotes/create/new'))}
+                        buttonText="Create Request"
+                    />
                 </div>
             </div>
 
@@ -90,9 +97,9 @@ export default function QuotesReceived() {
                 data={filteredQuotes}
                 columns={columns}
                 actions={(row: any) => (
-                    <QuoteReceivedRowActions row={row} isAccepting={actionLoading === row.id} onAccept={handleAccept} onReject={(r) => setRejectModalQuote(r)} />
+                    <QuoteReceivedRowActions row={row} isAccepting={actionLoading === (row.rawId || row.id)} onAccept={handleAccept} onReject={(r) => setRejectModalQuote(r)} />
                 )}
-                actionsColumnClassName="w-[195px] min-w-[195px] text-right pr-3"
+                actionsColumnClassName="w-[130px] min-w-[130px]"
                 headerTabs={<QuotesReceivedFilterTabs quotes={quotes} activeFilterTab={activeFilterTab} setActiveFilterTab={setActiveFilterTab} />}
                 filterContent={
                     <TableFilterContent
@@ -109,11 +116,14 @@ export default function QuotesReceived() {
                         onResetFilters={handleResetFilters}
                     />
                 }
-                searchPlaceholder="Search quotes by ID, supplier, vehicle, or route..."
+                keyExtractor={(item) => item?.id || item?.rawId || Math.random().toString()}
+                searchPlaceholder="Search by ID, customer, pickup/delivery..."
                 compact={true}
+                hideViewToggle={false}
                 isLoading={loading || isRefreshing}
-                onRowClick={(row) => navigate(`/customer/quotes/received/view/${encryptId(row.id)}`)}
-                tableClassName="w-full min-w-[1050px]"
+                onRowClick={(row) => navigate(`/customer/quotes/received/view/${encryptId(row.rawId || row.id)}`)}
+                tableLayout="fixed"
+                tableClassName="min-w-[1180px]"
                 emptyState={
                     <EmptyState
                         icon={Inbox}

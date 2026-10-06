@@ -9,7 +9,8 @@ import {
     FileCheck, 
     Star, 
     FileText, 
-    RotateCcw 
+    RotateCcw,
+    ShieldCheck
 } from 'lucide-react';
 
 interface OrderActionsMenuProps {
@@ -25,6 +26,7 @@ interface OrderActionsMenuProps {
     onDownloadInvoice: () => void;
     onRepeatOrder: () => void;
     onCopyId: () => void;
+    onOpenPodReview?: () => void;
 }
 
 export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
@@ -40,12 +42,44 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
     onDownloadInvoice,
     onRepeatOrder,
     onCopyId,
+    onOpenPodReview,
 }) => {
     if (!isOpen) return null;
 
-    const rawStatus = (row?.status_raw || row?.status || '').toLowerCase();
-    const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted';
-    const hasPod = Boolean(row?.pod_document_url || row?.pod_status || isCompleted);
+    const rawStatus = String(row?.status_raw || row?.status || '').toLowerCase().trim();
+    const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'pod_accepted';
+    const rawPod = String(row?.pod_status || row?.pod?.status || '').toLowerCase().trim();
+    const hasPodDoc = Boolean(
+        row?.pod_document_url || 
+        row?.proof_of_delivery || 
+        row?.proof || 
+        row?.pod_url || 
+        row?.pod_file || 
+        row?.pod?.file_url || 
+        row?.pod?.proof || 
+        row?.pod?.is_uploaded
+    );
+
+    const isPodPending = !isCompleted && (
+        rawStatus === 'delivered' || 
+        rawStatus === 'pod_uploaded' || 
+        rawStatus === 'pod_review' || 
+        rawStatus === 'pod_received' || 
+        rawPod === 'pending' || 
+        rawPod === 'uploaded' || 
+        rawPod === 'pod_uploaded' ||
+        (hasPodDoc && rawStatus !== 'cancelled')
+    );
+
+    const podDownloadUrl = (
+        row?.pod_document_url || 
+        row?.proof_of_delivery || 
+        row?.pod_url || 
+        row?.pod_file || 
+        row?.pod?.file_url || 
+        row?.pod?.proof || 
+        ''
+    );
 
     return createPortal(
         <>
@@ -61,6 +95,21 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
                 style={{ top: dropdownPos.top, left: dropdownPos.left }}
                 onClick={(e) => e.stopPropagation()}
             >
+                {/* Accept POD Quick Action (When Pending Customer Approval) */}
+                {isPodPending && onOpenPodReview && (
+                    <button
+                        type="button"
+                        className="w-full text-left px-3.5 py-2 text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/60 flex items-center gap-2.5 transition-colors font-bold cursor-pointer whitespace-nowrap border-b border-emerald-100 dark:border-emerald-800/60"
+                        onClick={() => {
+                            onClose();
+                            onOpenPodReview();
+                        }}
+                    >
+                        <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span className="whitespace-nowrap">Review & Accept POD</span>
+                    </button>
+                )}
+
                 <button
                     type="button"
                     className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap"
@@ -111,14 +160,19 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
                     </button>
                 )}
 
-                {hasPod && (
+                {hasPodDoc && (
                     <button
                         type="button"
                         className="w-full text-left px-3.5 py-2 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer whitespace-nowrap"
                         onClick={() => {
                             onClose();
-                            if (row.pod_document_url) window.open(row.pod_document_url, '_blank');
-                            else alert('POD Challan receipt downloaded successfully.');
+                            if (podDownloadUrl) {
+                                window.open(podDownloadUrl, '_blank');
+                            } else if (onOpenPodReview) {
+                                onOpenPodReview();
+                            } else {
+                                onViewDetails();
+                            }
                         }}
                     >
                         <FileCheck size={14} className="text-emerald-500 shrink-0" />

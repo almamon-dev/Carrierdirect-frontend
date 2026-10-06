@@ -86,13 +86,13 @@ export const useGeneralMessages = (
     const [conversations, setConversations] = useState<ConversationPartnerItem[]>([]);
     const [directoryUsers, setDirectoryUsers] = useState<ConversationUser[]>([]);
     const [unreadCount, setUnreadCount] = useState<number>(0);
-    const [isLoadingConversations, setIsLoadingConversations] = useState<boolean>(false);
+    const [isLoadingConversations, setIsLoadingConversations] = useState<boolean>(true);
     const [isLoadingDirectory, setIsLoadingDirectory] = useState<boolean>(false);
 
     const [activePartnerId, setActivePartnerId] = useState<number | null>(initialRawId || null);
     const [activePartner, setActivePartner] = useState<ConversationUser | null>(null);
     const [messages, setMessages] = useState<GeneralMessage[]>([]);
-    const [isLoadingMessages, setIsLoadingMessages] = useState<boolean>(false);
+    const [isLoadingMessages, setIsLoadingMessages] = useState<boolean>(Boolean(initialRawId));
     const [loadedPartnerIds, setLoadedPartnerIds] = useState<Set<number>>(new Set());
     const [isSending, setIsSending] = useState<boolean>(false);
 
@@ -280,8 +280,8 @@ export const useGeneralMessages = (
             fetchMessages(cleanId, true);
         } else {
             setMessages([]);
-            setIsLoadingMessages(false);
-            fetchMessages(cleanId, true);
+            setIsLoadingMessages(true);
+            fetchMessages(cleanId, false);
         }
     }, [fetchMessages]);
 
@@ -565,7 +565,7 @@ export const useGeneralMessages = (
 
     // Initialize data on mount
     useEffect(() => {
-        fetchConversations(true);
+        fetchConversations(false);
         fetchDirectoryUsers();
     }, [fetchConversations, fetchDirectoryUsers]);
 

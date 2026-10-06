@@ -62,6 +62,41 @@ export function getCurrencySymbol(currency?: string): string {
 }
 
 /**
+ * Return clean display string for currency (e.g. 'EUR (€)', 'USD ($)', 'BDT (৳)')
+ */
+export function getCurrencyDisplay(currency?: string): string {
+  if (!currency || currency === '-') return 'EUR (€)';
+  const c = currency.trim().toUpperCase();
+  switch (c) {
+    case 'EUR':
+    case '€':
+      return 'EUR (€)';
+    case 'USD':
+    case '$':
+      return 'USD ($)';
+    case 'GBP':
+    case '£':
+      return 'GBP (£)';
+    case 'BDT':
+    case 'TK':
+    case '৳':
+      return 'BDT (৳)';
+    case 'CAD':
+      return 'CAD (CA$)';
+    case 'AUD':
+      return 'AUD (AU$)';
+    case 'JPY':
+    case '¥':
+      return 'JPY (¥)';
+    case 'INR':
+    case '₹':
+      return 'INR (₹)';
+    default:
+      return currency;
+  }
+}
+
+/**
  * Format currency amount with symbol (e.g., formatCurrency(1650, 'EUR') -> '€1,650')
  */
 export function formatCurrency(amount: number | string | undefined | null, currency: string = 'EUR'): string {
@@ -70,12 +105,19 @@ export function formatCurrency(amount: number | string | undefined | null, curre
   }
 
   const str = String(amount).trim();
+  if (str === '0' || str === '0.00' || str === '€0.00' || str === '€0' || str === '$0.00' || str === '$0') {
+    return 'Negotiable';
+  }
+
   if (str.startsWith('€') || str.startsWith('$') || str.startsWith('£') || str.startsWith('৳') || str.startsWith('₹')) {
+    const numericPart = parseFloat(str.replace(/[^0-9.-]/g, ''));
+    if (numericPart === 0) return 'Negotiable';
     return str;
   }
 
   const num = typeof amount === 'number' ? amount : parseFloat(str.replace(/[^0-9.-]/g, ''));
   if (isNaN(num)) return str;
+  if (num === 0) return 'Negotiable';
 
   const symbol = getCurrencySymbol(currency);
   const formattedNum = num.toLocaleString('en-US', {

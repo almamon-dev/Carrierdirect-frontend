@@ -6,7 +6,8 @@ import { parsePdfInBrowser } from '../utils/pdfClientParser';
 export const extractFileRequests = async (file: File, uploadedZipName?: string) => {
     const fileName = file.name;
     const isPdf = fileName.toLowerCase().endsWith('.pdf');
-    const isCsv = fileName.toLowerCase().endsWith('.csv') || fileName.toLowerCase().endsWith('.xlsx') || fileName.toLowerCase().endsWith('.txt');
+    const isDoc = fileName.toLowerCase().endsWith('.doc') || fileName.toLowerCase().endsWith('.docx');
+    const isCsv = fileName.toLowerCase().endsWith('.csv') || fileName.toLowerCase().endsWith('.xlsx') || fileName.toLowerCase().endsWith('.xls') || fileName.toLowerCase().endsWith('.txt');
 
     if (isCsv) {
         const text = await file.text();

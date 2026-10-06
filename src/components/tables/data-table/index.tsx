@@ -28,7 +28,7 @@ export interface DataTableProps<T = any> {
     data: T[];
     columns: Column<T>[];
     searchPlaceholder?: string;
-    onDeleteSelected?: (selectedIds: number[]) => void;
+    onDeleteSelected?: (selectedIds: (number | string)[]) => void;
     keyExtractor?: (item: T) => number | string;
     actions?: (item: T) => React.ReactNode;
     filterContent?: React.ReactNode;
@@ -50,6 +50,12 @@ export interface DataTableProps<T = any> {
     syncUrlParams?: boolean;
     renderGridCard?: (item: T, isSelected: boolean, toggleSelect: (id: number | string) => void) => React.ReactNode;
     renderGridView?: (props: import('@/components/tables/data-table-grid').DataTableGridProps<T>) => React.ReactNode;
+    wrapCells?: boolean;
+    defaultWrapCells?: boolean;
+    onWrapCellsChange?: (wrap: boolean) => void;
+    hideCheckbox?: boolean;
+    selectable?: boolean;
+    hideFilter?: boolean;
 }
 
 export default function DataTable<T extends Record<string, any>>({ 
@@ -78,8 +84,49 @@ export default function DataTable<T extends Record<string, any>>({
     syncUrlParams = true,
     renderGridCard,
     renderGridView,
+    wrapCells: controlledWrapCells,
+    defaultWrapCells = false,
+    onWrapCellsChange,
+    hideCheckbox = false,
+    selectable = true,
+    hideFilter = false,
 }: DataTableProps<T>) {
+    const showCheckbox = selectable && !hideCheckbox;
     const [searchParams, setSearchParams] = useSearchParams();
+
+    // Initialize wrapCells state with localStorage persistence
+    const [internalWrapCells, setInternalWrapCells] = useState<boolean>(() => {
+        if (tableId) {
+            try {
+                const saved = localStorage.getItem(`cd_table_wrap_${tableId}`);
+                if (saved !== null) return saved === "true";
+            } catch {}
+        } else {
+            try {
+                const saved = localStorage.getItem("cd_table_wrap_global");
+                if (saved !== null) return saved === "true";
+            } catch {}
+        }
+        return defaultWrapCells;
+    });
+
+    const isWrapCells = controlledWrapCells !== undefined ? controlledWrapCells : internalWrapCells;
+
+    const handleToggleWrapCells = (val: boolean) => {
+        setInternalWrapCells(val);
+        if (tableId) {
+            try {
+                localStorage.setItem(`cd_table_wrap_${tableId}`, String(val));
+            } catch {}
+        } else {
+            try {
+                localStorage.setItem("cd_table_wrap_global", String(val));
+            } catch {}
+        }
+        if (onWrapCellsChange) {
+            onWrapCellsChange(val);
+        }
+    };
 
     // Initialize viewMode from URL param or default to 'table'
     const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => {
@@ -321,7 +368,28 @@ export default function DataTable<T extends Record<string, any>>({
     const effectiveSkeletonCount = skeletonCount ?? (paginatedData.length > 0 ? paginatedData.length : 4);
 
     const toggleColumn = (id: string) => {
-        setVisibleColumns(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
+        setVisibleColumns(prev => {
+            if (prev.includes(id)) {
+                // Prevent hiding all columns (keep at least 1)
+                if (prev.length <= 1) return prev;
+                return prev.filter(c => c !== id);
+            }
+            return [...prev, id];
+        });
+    };
+
+    const handleToggleAllColumns = (showAll: boolean) => {
+        if (showAll) {
+            setVisibleColumns(columns.map(c => c.id));
+        } else {
+            // Keep at least the first column visible
+            setVisibleColumns(columns.length > 0 ? [columns[0].id] : []);
+        }
+    };
+
+    const handleResetColumns = () => {
+        setVisibleColumns(columns.filter(c => !c.defaultHidden).map(c => c.id));
+        setOrderedColumnIds(columns.map(c => c.id));
     };
 
     const isIdSelected = useCallback((id: number | string) => {
@@ -393,7 +461,7 @@ export default function DataTable<T extends Record<string, any>>({
                                 <div className="flex items-center gap-2">
                                     {onDeleteSelected && (
                                         <button 
-                                            onClick={() => onDeleteSelected(selectedIds as number[])}
+                                            onClick={() => onDeleteSelected(selectedIds)}
                                             className="h-[28px] px-3 bg-white dark:bg-[#12161c] border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 rounded-md text-[12px] font-bold hover:bg-red-50 dark:hover:bg-red-950/40 transition-all flex items-center gap-1.5 shadow-none cursor-pointer outline-none"
                                         >
                                             <Trash2 size={13} />
@@ -484,17 +552,20 @@ export default function DataTable<T extends Record<string, any>>({
                                     }}
                                 />
 
-                                <TableFilter 
-                                    onFilterClick={() => setShowFilters(!showFilters)} 
-                                    onResetClick={() => {
-                                        setSearch('');
-                                        setShowFilters(false);
-                                    }}
-                                    isFilterOpen={showFilters}
-                                    isFiltered={Boolean(search)}
-                                />
-                                
-                                <div className="w-[1px] h-4 bg-slate-200/60 dark:bg-slate-800 mx-0.5 hidden sm:block"></div>
+                                {!hideFilter && (
+                                    <>
+                                        <TableFilter 
+                                            onFilterClick={() => setShowFilters(!showFilters)} 
+                                            onResetClick={() => {
+                                                setSearch('');
+                                                setShowFilters(false);
+                                            }}
+                                            isFilterOpen={showFilters}
+                                            isFiltered={Boolean(search)}
+                                        />
+                                        {!hideViewToggle && <div className="w-[1px] h-4 bg-slate-200/60 dark:bg-slate-800 mx-0.5 hidden sm:block"></div>}
+                                    </>
+                                )}
 
                                 {!hideViewToggle && (
                                     <>
@@ -524,7 +595,9 @@ export default function DataTable<T extends Record<string, any>>({
                                     columns={currentColumns}
                                     visibleColumns={visibleColumns}
                                     onToggleColumn={toggleColumn}
-                                    onReorderColumns={(newOrder) => setOrderedColumnIds(newOrder)}
+                                                                        onResetColumns={handleResetColumns}
+                                    wrapCells={isWrapCells}
+                                    onToggleWrapCells={handleToggleWrapCells}
                                 />
                             </div>
                         </div>
@@ -620,7 +693,7 @@ export default function DataTable<T extends Record<string, any>>({
                         selectedCount={selectedIds.length}
                         totalCount={totalItems}
                         onClearSelection={() => setSelectedIds([])}
-                        onDeleteSelected={onDeleteSelected ? () => onDeleteSelected(selectedIds as number[]) : undefined}
+                        onDeleteSelected={onDeleteSelected ? () => onDeleteSelected(selectedIds) : undefined}
                         onSelectAll={handleSelectAll}
                     >
                         <TableSearch 
@@ -629,17 +702,20 @@ export default function DataTable<T extends Record<string, any>>({
                             placeholder={searchPlaceholder} 
                         />
                         <div className="flex items-center gap-1.5">
-                            <TableFilter 
-                                onFilterClick={() => setShowFilters(!showFilters)} 
-                                onResetClick={() => {
-                                    setSearch('');
-                                    setShowFilters(false);
-                                }}
-                                isFilterOpen={showFilters}
-                                isFiltered={Boolean(search)}
-                            />
-                            
-                            <div className="w-[1px] h-4 bg-slate-200/60 dark:bg-slate-800 mx-1"></div>
+                            {!hideFilter && (
+                                <>
+                                    <TableFilter 
+                                        onFilterClick={() => setShowFilters(!showFilters)} 
+                                        onResetClick={() => {
+                                            setSearch('');
+                                            setShowFilters(false);
+                                        }}
+                                        isFilterOpen={showFilters}
+                                        isFiltered={Boolean(search)}
+                                    />
+                                    {!hideViewToggle && <div className="w-[1px] h-4 bg-slate-200/60 dark:bg-slate-800 mx-1"></div>}
+                                </>
+                            )}
 
                             {!hideViewToggle && (
                                 <>
@@ -676,7 +752,9 @@ export default function DataTable<T extends Record<string, any>>({
                                 columns={currentColumns}
                                 visibleColumns={visibleColumns}
                                 onToggleColumn={toggleColumn}
-                                onReorderColumns={(newOrder) => setOrderedColumnIds(newOrder)}
+                                                                onResetColumns={handleResetColumns}
+                                wrapCells={isWrapCells}
+                                onToggleWrapCells={handleToggleWrapCells}
                             />
                         </div>
                     </TableToolbar>
@@ -696,19 +774,21 @@ export default function DataTable<T extends Record<string, any>>({
                     </div>
                 ) : (
                     <div className={disableHorizontalScroll ? "overflow-hidden" : "overflow-x-auto custom-scrollbar"}>
-                        <table className={`w-full text-left border-collapse ${tableLayout === 'fixed' ? 'table-fixed' : ''} ${tableClassName || ''}`}>
+                        <table className={`w-full text-left border-collapse ${tableLayout === 'fixed' ? 'table-fixed' : ''} ${isWrapCells ? 'table-wrap-cells' : ''} ${tableClassName || ''}`}>
                             <thead>
-                                <tr className="bg-slate-50/90 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400   whitespace-nowrap">
-                                    <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} w-[36px]`}>
-                                        <div className="flex items-center justify-center">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={isAllPageSelected}
-                                                onChange={toggleSelectAll}
-                                                className="table-checkbox" 
-                                            />
-                                        </div>
-                                    </th>
+                                <tr className="bg-slate-50/80 dark:bg-[#151921] border-b border-slate-200/90 dark:border-slate-800 text-[11.5px] font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap select-none">
+                                    {showCheckbox && (
+                                        <th className={`${compact ? 'px-2 py-2' : 'px-3.5 py-3'} w-[36px]`}>
+                                            <div className="flex items-center justify-center">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={isAllPageSelected}
+                                                    onChange={toggleSelectAll}
+                                                    className="table-checkbox" 
+                                                />
+                                            </div>
+                                        </th>
+                                    )}
                                     {currentColumns.map(col => {
                                         if (!visibleColumns.includes(col.id)) return null;
                                         const isCentered = col.className?.includes('text-center') || col.className?.includes('justify-center');
@@ -739,7 +819,7 @@ export default function DataTable<T extends Record<string, any>>({
                                                         }
                                                     }
                                                 }}
-                                                className={`${compact ? 'px-2 py-1.5' : 'px-3.5 py-3'} font-bold   text-slate-600 dark:text-slate-300 text-[11px] ${col.className || ''} ${col.sortable !== false ? 'cursor-pointer hover:text-slate-900 dark:hover:text-white' : ''}`}
+                                                className={`${compact ? 'px-2 py-1.5' : 'px-3.5 py-3'} font-semibold text-slate-600 dark:text-slate-300 text-xs ${col.className || ''} ${col.sortable !== false ? 'cursor-pointer hover:text-slate-900 dark:hover:text-white' : ''}`}
                                                 onClick={() => col.sortable !== false && handleSort(col.id)}
                                             >
                                                 <div className={`flex items-center gap-1 ${isCentered ? 'justify-center' : isRight ? 'justify-end' : 'justify-start'}`}>
@@ -754,7 +834,7 @@ export default function DataTable<T extends Record<string, any>>({
                                         );
                                     })}
                                     {actions && (
-                                        <th className={`${compact ? 'px-2 py-1.5' : 'px-3.5 py-3'} text-right pr-3.5 sm:pr-4   text-[11px] font-bold text-slate-600 dark:text-slate-300 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
+                                        <th className={`${compact ? 'px-2 py-1.5' : 'px-3.5 py-3'} text-right pr-3.5 sm:pr-4 text-xs font-semibold text-slate-600 dark:text-slate-300 ${actionsColumnClassName || 'w-[65px] min-w-[65px] max-w-[65px]'}`}>
                                             Actions
                                         </th>
                                     )}
@@ -765,11 +845,13 @@ export default function DataTable<T extends Record<string, any>>({
                                     Array.from({ length: effectiveSkeletonCount }).map((_, rIdx) => {
                                         return (
                                             <tr key={rIdx} className={rowHeightClass}>
-                                                <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
-                                                    <div className="flex items-center justify-center">
-                                                        <Skeleton className="h-3.5 w-3.5 rounded-[2px]" />
-                                                    </div>
-                                                </td>
+                                                {showCheckbox && (
+                                                    <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
+                                                        <div className="flex items-center justify-center">
+                                                            <Skeleton className="h-3.5 w-3.5 rounded-[2px]" />
+                                                        </div>
+                                                    </td>
+                                                )}
                                                 {currentColumns.map(col => {
                                                     if (!visibleColumns.includes(col.id)) return null;
 
@@ -920,18 +1002,20 @@ export default function DataTable<T extends Record<string, any>>({
                                                     }}
                                                     className={`transition-colors group ${rowHeightClass} ${isSelected ? 'bg-orange-50/40 dark:bg-[#ff4a1f]/10' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50'} ${expandableContent || onRowClick ? 'cursor-pointer' : ''}`}
                                                 >
-                                                <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
-                                                    <div className="flex items-center justify-center">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={isSelected}
-                                                            onChange={() => toggleSelect(id)}
-                                                            className="table-checkbox" 
-                                                        />
-                                                    </div>
-                                                </td>
+                                                {showCheckbox && (
+                                                    <td className={`${cellPaddingClass} w-[36px] min-w-[36px] max-w-[36px] whitespace-nowrap`}>
+                                                        <div className="flex items-center justify-center">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={isSelected}
+                                                                onChange={() => toggleSelect(id)}
+                                                                className="table-checkbox" 
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                )}
                                                 {currentColumns.map(col => visibleColumns.includes(col.id) && (
-                                                    <td key={col.id} className={`${cellPaddingClass} ${col.className?.includes('whitespace-normal') ? 'whitespace-normal break-words' : 'whitespace-nowrap'} text-[13px] text-slate-800 dark:text-slate-200 ${col.className || ''}`}>
+                                                    <td key={col.id} className={`${cellPaddingClass} ${isWrapCells ? "whitespace-normal break-words align-top" : (col.className?.includes("whitespace-normal") ? "whitespace-normal break-words" : "whitespace-nowrap")} text-[13px] font-medium text-slate-800 dark:text-slate-200 ${col.className || ""}`}>
                                                         {col.render ? col.render(item) : item[col.id]}
                                                     </td>
                                                 ))}
@@ -945,7 +1029,7 @@ export default function DataTable<T extends Record<string, any>>({
                                                 </tr>
                                                 {expandableContent && expandedRows.has(id) && (
                                                     <tr className="bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
-                                                        <td colSpan={columns.length + (actions ? 2 : 1)} className="p-0 border-l-4 border-l-[#FF4A1F]">
+                                                        <td colSpan={columns.length + (actions ? 1 : 0) + (showCheckbox ? 1 : 0)} className="p-0 border-l-4 border-l-[#FF4A1F]">
                                                             <div className="animate-in slide-in-from-top-1 fade-in duration-200">
                                                                 {expandableContent(item)}
                                                             </div>

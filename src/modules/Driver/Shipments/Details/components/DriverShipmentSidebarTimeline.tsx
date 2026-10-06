@@ -40,77 +40,83 @@ export const DriverShipmentSidebarTimeline: React.FC<Props> = ({ shipment }) => 
     const fromCity = shipment.shipper.city || 'Origin';
     const toCity = shipment.consignee.city || 'Destination';
 
-    let currentStepIndex = 1;
-    if (rawStatus === 'assigned' || rawStatus === 'accepted' || rawStatus === 'driver_assigned') {
-        currentStepIndex = 2;
+    let currentStep = 2;
+    if (rawStatus === 'pending') {
+        currentStep = 1;
+    } else if (rawStatus === 'confirmed' || rawStatus === 'scheduled') {
+        currentStep = 2;
+    } else if (rawStatus === 'assigned' || rawStatus === 'accepted' || rawStatus === 'driver_assigned') {
+        currentStep = 3;
     } else if (rawStatus === 'at_pickup' || rawStatus === 'picked_up' || rawStatus === 'in_progress') {
-        currentStepIndex = 3;
+        currentStep = 4;
     } else if (rawStatus === 'in_transit') {
-        currentStepIndex = 4;
+        currentStep = 4;
     } else if (rawStatus === 'at_delivery' || rawStatus === 'arrived') {
-        currentStepIndex = 5;
-    } else if (rawStatus === 'delivered') {
-        currentStepIndex = isPodUploaded ? 6 : 5;
+        currentStep = 5;
+    } else if (rawStatus === 'delivered' || rawStatus === 'pod_uploaded') {
+        currentStep = 6;
     } else if (rawStatus === 'completed') {
-        currentStepIndex = 7;
+        currentStep = 8;
     }
+
+    const isAllCompleted = currentStep >= 8;
 
     const timeline = [
         {
             id: 1,
             status: 'Order Confirmed',
-            time: findHistoryTime(['confirmed']) || formatStepDate(shipment.createdAt) || 'Sep 23, 09:32 AM',
-            completed: currentStepIndex >= 1,
-            active: currentStepIndex === 0,
+            time: findHistoryTime(['confirmed']) || formatStepDate(shipment.createdAt) || 'Completed',
+            completed: currentStep > 1 || isAllCompleted,
+            active: currentStep === 1,
             location: 'Order confirmed & customer booking secured'
         },
         {
             id: 2,
             status: 'Driver Assigned',
-            time: findHistoryTime(['driver_assigned', 'assigned']) || formatStepDate(shipment.createdAt) || 'Sep 23, 12:02 PM',
-            completed: currentStepIndex >= 2,
-            active: currentStepIndex === 1,
+            time: findHistoryTime(['driver_assigned', 'assigned']) || formatStepDate(shipment.createdAt) || 'Completed',
+            completed: currentStep > 2 || isAllCompleted,
+            active: currentStep === 2,
             location: `${shipment.driver?.name || 'Driver'} assigned (${shipment.driver?.vehiclePlate || 'GB-24-TRK'})`
         },
         {
             id: 3,
             status: 'Goods Picked Up',
-            time: currentStepIndex > 3 ? (findHistoryTime(['picked_up', 'in_progress']) || 'Sep 23, 12:32 PM') : (currentStepIndex === 3 ? 'Live Picked Up' : (currentStepIndex === 2 ? 'Next Step' : 'Scheduled')),
-            completed: currentStepIndex >= 3,
-            active: currentStepIndex === 2,
+            time: (currentStep > 3 || isAllCompleted) ? (findHistoryTime(['picked_up', 'in_progress']) || 'Completed') : (currentStep === 3 ? 'In Progress' : 'Scheduled'),
+            completed: currentStep > 3 || isAllCompleted,
+            active: currentStep === 3,
             location: `Pickup facility: ${fromCity}`
         },
         {
             id: 4,
             status: 'In Transit',
-            time: currentStepIndex > 4 ? (findHistoryTime(['in_transit']) || 'Sep 23, 01:21 PM') : (currentStepIndex === 4 ? 'Live Transit' : 'Upcoming'),
-            completed: currentStepIndex >= 4,
-            active: currentStepIndex === 4,
+            time: (currentStep > 4 || isAllCompleted) ? (findHistoryTime(['in_transit']) || 'Completed') : (currentStep === 4 ? 'Live Transit' : 'Upcoming'),
+            completed: currentStep > 4 || isAllCompleted,
+            active: currentStep === 4,
             location: `Corridor: ${fromCity} ➔ ${toCity}`
         },
         {
             id: 5,
             status: 'Destination Delivery',
-            time: currentStepIndex > 5 ? (findHistoryTime(['arrived', 'at_delivery']) || 'Sep 23, 03:00 PM') : (currentStepIndex === 5 ? 'Arriving' : 'Upcoming'),
-            completed: currentStepIndex >= 5,
-            active: currentStepIndex === 5,
+            time: (currentStep > 5 || isAllCompleted) ? (findHistoryTime(['arrived', 'at_delivery']) || 'Completed') : (currentStep === 5 ? 'Arrived' : 'Upcoming'),
+            completed: currentStep > 5 || isAllCompleted,
+            active: currentStep === 5,
             location: `${toCity} Receiving Dock`
         },
         {
             id: 6,
-            status: isPodUploaded ? 'POD Accepted' : 'POD Upload & Review',
-            time: isPodUploaded ? (findHistoryTime(['delivered', 'completed']) || formatStepDate(shipment.podData?.uploadedAt) || 'Sep 23, 03:30 PM') : (currentStepIndex === 6 ? 'Under Review' : 'Pending Delivery'),
-            completed: isPodUploaded || currentStepIndex >= 6,
-            active: currentStepIndex === 5 && !isPodUploaded,
-            location: isPodUploaded ? 'POD verified by customer' : (currentStepIndex === 5 ? 'Delivery note uploaded, verification in progress' : 'Requires delivery completion')
+            status: isAllCompleted ? 'POD Verified & Approved' : 'POD Upload & Review',
+            time: isAllCompleted ? (findHistoryTime(['completed']) || 'Approved') : (currentStep === 6 ? 'Under Customer Review' : 'Pending Delivery'),
+            completed: isAllCompleted,
+            active: currentStep === 6,
+            location: isAllCompleted ? 'POD verified and Escrow funds disbursed' : 'Signed delivery note uploaded, customer review in progress'
         },
         {
             id: 7,
             status: 'Order Completed',
-            time: isCompleted || currentStepIndex === 7 ? 'Payout Released' : 'Pending Verification',
-            completed: isCompleted || currentStepIndex === 7,
+            time: isAllCompleted ? 'Payout Released' : 'Pending Escrow Release',
+            completed: isAllCompleted,
             active: false,
-            location: 'Platform payment released to carrier account'
+            location: isAllCompleted ? 'Platform payment released to carrier account' : 'Awaiting customer POD acceptance to disburse payout'
         },
     ];
 

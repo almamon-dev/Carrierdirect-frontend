@@ -128,10 +128,12 @@ export default function InvoiceView({ onBack, invoice, onDownload }: InvoiceView
                         <span className="font-semibold text-slate-800">{invoiceData.gross_amount_formatted || `€${Number(invoiceData.gross_amount || 0).toLocaleString()}`}</span>
                     </div>
 
-                    <div className="flex justify-between py-1 border-b border-slate-100 text-slate-600">
-                        <span>Platform Fee & Commission:</span>
-                        <span className="font-semibold text-rose-600">- {invoiceData.platform_fee_formatted || `€${Number(invoiceData.platform_fee || 0).toLocaleString()}`}</span>
-                    </div>
+                    {Number(invoiceData.platform_fee || 0) > 0 && (
+                        <div className="flex justify-between py-1 border-b border-slate-100 text-slate-600">
+                            <span>Platform Fee & Commission:</span>
+                            <span className="font-semibold text-rose-600">- {invoiceData.platform_fee_formatted || `€${Number(invoiceData.platform_fee || 0).toLocaleString()}`}</span>
+                        </div>
+                    )}
 
                     <div className="flex justify-between py-2 text-sm font-bold text-slate-900 bg-slate-50 px-3 rounded-md">
                         <span className="text-emerald-700">Net Supplier Payout:</span>

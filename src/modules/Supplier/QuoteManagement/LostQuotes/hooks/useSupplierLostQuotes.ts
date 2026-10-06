@@ -8,6 +8,7 @@ import apiClient from "@/lib/axios";
 import { LostQuoteItem, LostFilterTab } from "../types";
 import { isLostItemToday } from "../components/FilterTabs";
 import { formatDisplayDate } from "@/lib/utils";
+import { resolveQuoteDistance } from "@/utils/geoDistance";
 
 export interface LostQuoteStats {
     total: number;
@@ -62,7 +63,7 @@ export function useSupplierLostQuotes() {
                         customerRating: q.customer?.rating || 4.8,
                         pickup: (q.quote_request?.pickup_address || q.pickup_address || "—").trim(),
                         delivery: (q.quote_request?.delivery_address || q.delivery_address || "—").trim(),
-                        distance: q.quote_request?.distance || (q.distance ? `${q.distance} km` : "—"),
+                        distance: resolveQuoteDistance(q.quote_request || q).distanceStr,
                         budget: q.amount ? `€${Number(q.amount).toLocaleString()}` : (q.budget ? String(q.budget) : "€0"),
                         priority: q.quote_request?.priority || q.priority || "Normal",
                         status: q.status === "expired" ? "Expired" : (q.status === "rejected" || q.status === "declined" ? "Declined" : "Lost"),

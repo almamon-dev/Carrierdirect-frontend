@@ -39,7 +39,7 @@ export const BudgetPreferencesSection: React.FC<SectionProps> = ({
                     <Input type="text" inputMode="numeric" name="budget" value={formData.budget} onChange={handleChange} placeholder="e.g. 1450 (Optional)" />
                 </FormRow>
                 
-                <FormRow label="Auto Expire RFQ">
+                <FormRow label="Auto Expire RFQ" required>
                     <Select 
                         name="autoExpire" 
                         value={formData.autoExpire} 
@@ -70,3 +70,5 @@ export const BudgetPreferencesSection: React.FC<SectionProps> = ({
         </div>
     );
 };
+
+export default BudgetPreferencesSection;

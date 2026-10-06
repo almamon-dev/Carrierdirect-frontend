@@ -22,18 +22,19 @@ export function useFilteredRequestList({
 }: UseFilteredRequestListParams) {
     return useMemo(() => {
         return requestData.filter((r) => {
-            if (activeFilterTab === 'Active') {
-                if (!(r.status === 'Active' || r.status === 'Bidding Active' || r.status === 'active')) return false;
-            } else if (activeFilterTab === 'Waiting') {
-                if (!(((r.quotesReceived || r.bidsCount || r.bids_count || 0) === 0 || r.status === 'Draft' || r.status === 'pending') && r.status !== 'Accepted')) return false;
+            const statusStr = String(r.status || '').toLowerCase();
+            const rawStatusStr = String(r.rawStatus || r.raw_status || '').toLowerCase();
+
+            if (activeFilterTab === 'In Progress' || activeFilterTab === 'Active') {
+                if (!(statusStr === 'in progress' || rawStatusStr === 'in_progress' || statusStr === 'active' || rawStatusStr === 'active' || statusStr === 'bidding active')) return false;
+            } else if (activeFilterTab === 'Processing' || activeFilterTab === 'Pending' || activeFilterTab === 'Waiting') {
+                if (!(statusStr === 'processing' || rawStatusStr === 'pending' || statusStr === 'pending' || statusStr === 'draft' || ((r.quotesReceived || r.bidsCount || 0) === 0 && statusStr !== 'completed' && statusStr !== 'accepted'))) return false;
+            } else if (activeFilterTab === 'Completed' || activeFilterTab === 'Accepted') {
+                if (!(statusStr === 'completed' || rawStatusStr === 'completed' || statusStr === 'accepted' || statusStr === 'awarded' || r.hasAcceptedQuote)) return false;
+            } else if (activeFilterTab === 'Cancelled' || activeFilterTab === 'Expired') {
+                if (!(statusStr === 'cancelled' || rawStatusStr === 'cancelled' || statusStr === 'expired' || statusStr === 'rejected' || statusStr === 'closed')) return false;
             } else if (activeFilterTab === 'Review') {
-                if (!(((r.quotesReceived || r.bidsCount || r.bids_count || 0) > 0 || r.status === 'Negotiating') && r.status !== 'Accepted')) return false;
-            } else if (activeFilterTab === 'Accepted') {
-                if (!(r.status === 'Accepted' || r.status === 'Completed' || r.status === 'Awarded' || r.status === 'completed' || r.hasAcceptedQuote)) return false;
-            } else if (activeFilterTab === 'Completed') {
-                if (!(r.status === 'Completed' || r.status === 'Awarded' || r.status === 'completed' || r.status === 'Accepted' || r.hasAcceptedQuote)) return false;
-            } else if (activeFilterTab === 'Expired') {
-                if (!(r.status === 'Expired' || r.status === 'Cancelled' || r.status === 'rejected')) return false;
+                if (!(((r.quotesReceived || r.bidsCount || 0) > 0 || statusStr === 'negotiating') && statusStr !== 'completed' && statusStr !== 'accepted')) return false;
             }
 
             if (priorityFilter !== 'all' && String(r.priority).toLowerCase() !== priorityFilter.toLowerCase()) {
@@ -41,8 +42,9 @@ export function useFilteredRequestList({
             }
 
             if (statusFilter !== 'all') {
-                const normStatus = String(r.status || '').toLowerCase();
-                if (!normStatus.includes(statusFilter.toLowerCase())) return false;
+                const filterNorm = statusFilter.toLowerCase();
+                const matchesStatus = statusStr.includes(filterNorm) || rawStatusStr.includes(filterNorm.replace(/s+/g, '_'));
+                if (!matchesStatus) return false;
             }
 
             if (quotesFilter !== 'all') {

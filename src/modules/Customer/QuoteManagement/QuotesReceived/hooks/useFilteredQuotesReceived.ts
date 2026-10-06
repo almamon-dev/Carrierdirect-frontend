@@ -1,5 +1,10 @@
 import { useMemo } from 'react';
-import { getQuoteStatusInfo } from '../components/QuotesReceivedCells';
+import {
+    isQuoteActive,
+    isQuoteCounter,
+    isQuoteAccepted,
+    isQuoteHistory,
+} from '../components/QuotesReceivedFilterTabs';
 
 interface UseFilteredQuotesReceivedParams {
     quotes: any[];
@@ -22,24 +27,24 @@ export function useFilteredQuotesReceived({
 }: UseFilteredQuotesReceivedParams) {
     return useMemo(() => {
         return quotes.filter((row) => {
-            const { statusKey } = getQuoteStatusInfo(row);
+            const s = (row.status_raw || row.statusRaw || row.status || '').toLowerCase();
 
-            if (activeFilterTab === 'pending') {
-                if (statusKey !== 'pending') return false;
-            } else if (activeFilterTab === 'negotiating') {
-                if (statusKey !== 'negotiating') return false;
+            if (activeFilterTab === 'active') {
+                if (!isQuoteActive(row)) return false;
+            } else if (activeFilterTab === 'counter') {
+                if (!isQuoteCounter(row)) return false;
             } else if (activeFilterTab === 'accepted') {
-                if (statusKey !== 'accepted') return false;
-            } else if (activeFilterTab === 'rejected') {
-                if (statusKey !== 'rejected' && statusKey !== 'expired' && statusKey !== 'cancelled') return false;
+                if (!isQuoteAccepted(row)) return false;
+            } else if (activeFilterTab === 'history' || activeFilterTab === 'closed') {
+                if (!isQuoteHistory(row)) return false;
             }
 
             if (statusFilter !== 'all') {
-                if (!statusKey.includes(statusFilter.toLowerCase())) return false;
+                if (!s.includes(statusFilter.toLowerCase())) return false;
             }
 
             if (vehicleFilter !== 'all') {
-                const rowVehicle = (row.vehicle || row.vehicle_type || row.truck_type || row.quote_request?.vehicle_type || '').toLowerCase();
+                const rowVehicle = (row.vehicleType || row.vehicle || row.vehicle_type || row.truck_type || row.quote_request?.vehicle_type || '').toLowerCase();
                 if (!rowVehicle.includes(vehicleFilter.toLowerCase())) return false;
             }
 
@@ -50,7 +55,7 @@ export function useFilteredQuotesReceived({
             }
 
             if (startDate || endDate) {
-                const rowDateStr = row.created_at || row.date || row.valid_until || row.pickup_date;
+                const rowDateStr = row.created_at || row.request_date || row.date || row.valid_until || row.pickup_date;
                 if (rowDateStr) {
                     const rowDate = new Date(rowDateStr);
                     if (!isNaN(rowDate.getTime())) {

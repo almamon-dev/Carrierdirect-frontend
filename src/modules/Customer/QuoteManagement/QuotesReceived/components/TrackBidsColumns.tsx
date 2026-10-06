@@ -19,7 +19,7 @@ export const getTrackBidsColumns = (
             <button
                 type="button"
                 onClick={() => navigate(`/customer/quotes/received/view/${encryptId(row.id)}`)}
-                className="text-[#ff4a1f] font-bold hover:underline whitespace-nowrap cursor-pointer text-xs"
+                className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[13px] tracking-tight transition-colors leading-none"
             >
                 {row.quote_id || (row.id ? `QT-${String(row.id).padStart(4, '0')}` : 'QT-0000')}
             </button>
@@ -57,7 +57,7 @@ export const getTrackBidsColumns = (
                     )}
                     <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[145px]" title={name}>
+                            <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px] truncate max-w-[155px]" title={name}>
                                 {name}
                             </span>
                             {(row.supplier?.is_verified ?? true) && (

@@ -121,13 +121,20 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
             valueEstimate: raw.cargo?.valueEstimate || raw.cargo?.value_estimate,
         },
         route: {
-            distanceKm,
-            estimatedDuration,
+            distanceKm: raw.route?.distance_km ?? raw.route?.distanceKm ?? (raw.distance_km ? Number(raw.distance_km) : (distanceKm || 80.81)),
+            distanceFormatted: raw.distance || (raw.distance_km ? `${raw.distance_km} km` : `${distanceKm || 80.81} km`),
+            estimatedDuration: raw.estimated_time || raw.route?.estimatedDuration || estimatedDuration || '2h 19m',
             tollRoads: Boolean(raw.route?.tollRoads),
             currentLat: raw.route?.currentLat,
             currentLng: raw.route?.currentLng,
-            originCoords: raw.route?.originCoords || { lat: 23.8103, lng: 90.4125 },
-            destinationCoords: raw.route?.destinationCoords || { lat: 22.3569, lng: 91.7832 },
+            originCoords: {
+                lat: raw.pickup_lat ?? raw.route?.origin_coords?.lat ?? raw.route?.originCoords?.lat ?? 23.7881199,
+                lng: raw.pickup_lng ?? raw.route?.origin_coords?.lng ?? raw.route?.originCoords?.lng ?? 90.3736584,
+            },
+            destinationCoords: {
+                lat: raw.delivery_lat ?? raw.route?.destination_coords?.lat ?? raw.route?.destinationCoords?.lat ?? 24.2602295,
+                lng: raw.delivery_lng ?? raw.route?.destination_coords?.lng ?? raw.route?.destinationCoords?.lng ?? 90.6422041,
+            },
         },
         payout: {
             driverEarnings,
@@ -142,11 +149,11 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
             vehiclePlate: raw.driver.vehicle_plate || '',
             vehicleType: raw.driver.vehicle_type || '',
         } : undefined,
-        podData: (raw.tracking?.proof_of_delivery || raw.tracking?.signature || raw.podData) ? {
-            uploadedAt: raw.tracking?.pod_uploaded_at || raw.podData?.uploadedAt || raw.updated_at || '',
-            receiverName: raw.tracking?.receiver_name || raw.podData?.receiverName || '',
-            signatureUrl: raw.tracking?.signature || raw.podData?.signatureUrl,
-            documentPhotos: raw.tracking?.proof_of_delivery ? [raw.tracking.proof_of_delivery] : (raw.podData?.documentPhotos || []),
+        podData: (raw.proof_of_delivery || raw.proof || raw.tracking?.proof_of_delivery || raw.tracking?.proof || raw.tracking?.signature || raw.signature || raw.podData) ? {
+            uploadedAt: raw.pod_uploaded_at || raw.tracking?.pod_uploaded_at || raw.podData?.uploadedAt || raw.updated_at || '',
+            receiverName: raw.receiver_name || raw.tracking?.receiver_name || raw.podData?.receiverName || '',
+            signatureUrl: raw.signature || raw.signature_url || raw.tracking?.signature || raw.podData?.signatureUrl,
+            documentPhotos: (raw.proof_of_delivery || raw.proof || raw.tracking?.proof_of_delivery || raw.tracking?.proof) ? [raw.proof_of_delivery || raw.proof || raw.tracking?.proof_of_delivery || raw.tracking?.proof] : (raw.podData?.documentPhotos || []),
             notes: raw.tracking?.note || raw.podData?.notes || '',
         } : undefined,
         createdAt: raw.created_at || raw.createdAt || '',
@@ -497,6 +504,7 @@ export const driverApi = {
                 const deliveredCount = Number(metricsRaw.delivered_shipments ?? 0);
                 const totalAssigned = Number(metricsRaw.total_assigned ?? 0);
                 const distanceVal = Number(metricsRaw.total_distance_km ?? 0);
+                const todayDistVal = Number(metricsRaw.today_distance_km ?? 0);
                 const ratingVal = Number(metricsRaw.driver_rating ?? 5.0);
                 const reviewsCountVal = Number(metricsRaw.reviews_count ?? 0);
 
@@ -513,7 +521,7 @@ export const driverApi = {
                     },
                     distance: {
                         value: `${distanceVal} km`,
-                        subtitle: distanceVal > 0 ? "Total distance" : "0 km logged",
+                        subtitle: todayDistVal > 0 ? `${todayDistVal} km assigned today` : (distanceVal > 0 ? "Total distance" : "0 km logged"),
                         km: distanceVal,
                     },
                     driverRating: {

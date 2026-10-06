@@ -47,79 +47,79 @@ export const AcceptCheckoutSuccessModal: React.FC<AcceptCheckoutSuccessModalProp
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 font-sans animate-fade-in">
-            <div className="bg-white dark:bg-[#1e2329] rounded-[3px] max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 text-center space-y-4 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-[#1e2329] rounded-[4px] max-w-[390px] w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-5 text-center space-y-3.5 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Checkmark Icon */}
-                <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center border-4 border-emerald-50 dark:border-emerald-900/40 shadow-inner">
-                    <CheckCircle2 size={32} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
+                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center border-4 border-emerald-50 dark:border-emerald-900/40 shadow-inner">
+                    <CheckCircle2 size={26} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
                 </div>
 
                 {/* Title & Description */}
                 <div>
-                    <span className="inline-block bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold mb-1.5 px-2.5 py-0.5 rounded-[3px]">
+                    <span className="inline-block bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10.5px] font-bold mb-1 px-2.5 py-0.5 rounded-[3px]">
                         {paymentMethod === "pay_later" ? "Net-30 Invoice Issued" : "Payment Held in Escrow"}
                     </span>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">
                         Booking Confirmed!
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed">
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed">
                         Your shipment with <span className="font-bold text-slate-900 dark:text-slate-100">{quote.supplier}</span> has been confirmed and locked.
                     </p>
                 </div>
 
-                {/* Order Summary Receipt Box */}
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-[3px] border border-slate-200 dark:border-slate-700 text-left text-xs space-y-1.5">
-                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                        <span>Order Reference:</span>
-                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                {/* Order Summary Receipt Box with Key-Value Alignment */}
+                <div className="p-3 bg-slate-50/80 dark:bg-slate-800/40 rounded-[4px] border border-slate-200/80 dark:border-slate-700/60 text-left text-xs space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Order Reference:</span>
+                        <span className="font-mono font-bold text-[11px] text-slate-900 dark:text-slate-100 truncate text-right">
                             {orderData?.order_number || "ORD-2026-1049"}
                         </span>
                     </div>
-                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                        <span>Invoice Number:</span>
-                        <span className="font-bold text-slate-900 dark:text-slate-100">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Invoice Number:</span>
+                        <span className="font-mono font-bold text-[11px] text-slate-900 dark:text-slate-100 truncate text-right">
                             {orderData?.invoice_number || "INV-2026-9871"}
                         </span>
                     </div>
-                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                        <span>Total Escrow Amount:</span>
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Total Escrow Amount:</span>
+                        <span className="font-mono font-bold text-[11.5px] text-emerald-600 dark:text-emerald-400 text-right">
                             €{quote.totalAmount.toLocaleString()}
                         </span>
                     </div>
-                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                        <span>Payment Terms:</span>
-                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Payment Terms:</span>
+                        <span className="font-semibold text-[11px] text-slate-800 dark:text-slate-200 text-right">
                             {paymentMethod === "pay_later" ? "Corporate Net-30 Invoice" : "Credit Card Escrow Hold"}
                         </span>
                     </div>
-                    <div className="flex justify-between text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                        <span>Escrow Status:</span>
-                        <span className="font-semibold text-sky-600 dark:text-sky-400 flex items-center gap-1">
+                    <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Escrow Status:</span>
+                        <span className="font-semibold text-[11px] text-sky-600 dark:text-sky-400 flex items-center gap-1 text-right">
                             <ShieldCheck size={12} /> 100% Protected
                         </span>
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="pt-2 flex flex-col gap-2">
+                {/* Actions in 2-Column Row */}
+                <div className="pt-2 grid grid-cols-2 gap-2.5">
                     <Button
                         type="button"
                         variant="outline"
-                        className="w-full h-9 text-xs font-semibold border-slate-300 dark:border-slate-700 rounded-[3px] hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-200 cursor-pointer"
+                        className="h-9 px-2 text-xs font-semibold border-slate-300 dark:border-slate-700 rounded-[3px] hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-200 cursor-pointer transition-colors truncate"
                         onClick={() => navigate("/customer/finance/invoices")}
                     >
-                        <FileText size={14} />
-                        <span>View Invoices &amp; Receipts</span>
+                        <FileText size={13} className="shrink-0" />
+                        <span className="truncate">View Invoice</span>
                     </Button>
 
                     <Button
                         type="button"
                         variant="primary"
-                        className="w-full h-9 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer shadow-xs flex items-center justify-center gap-1.5 rounded-[3px]"
+                        className="h-9 px-2 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer shadow-xs flex items-center justify-center gap-1.5 rounded-[3px] truncate"
                         onClick={() => navigate("/customer/orders")}
                     >
-                        <span>Track Shipment in Orders</span>
-                        <ArrowRight size={14} />
+                        <span className="truncate">Track Orders</span>
+                        <ArrowRight size={13} className="shrink-0" />
                     </Button>
                 </div>
             </div>

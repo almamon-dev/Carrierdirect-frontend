@@ -1,7 +1,7 @@
-import React from 'react';
-import { MapPin, Navigation, ShieldCheck, Star, Package } from 'lucide-react';
-import { QuoteRequest } from '../../data/quoteRequestsData';
 import { formatCurrency } from '@/lib/utils';
+import { MapPin, Navigation, Package, ShieldCheck, Star } from 'lucide-react';
+import React from 'react';
+import { QuoteRequest } from '../../data/quoteRequestsData';
 
 interface CustomerRouteCardProps {
     requestDetails: QuoteRequest;
@@ -74,7 +74,7 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
                         <div className="grid grid-cols-[64px_10px_1fr] sm:grid-cols-[68px_12px_1fr] items-baseline">
                             <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Location</span>
                             <span className="text-slate-400 dark:text-slate-500 text-center select-none">:</span>
-                            <span className="font-semibold text-slate-800 dark:text-slate-100 text-[11.5px] sm:text-xs">{requestDetails.pickup}</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-100 text-[11.5px] sm:text-xs">{requestDetails.pickup || '—'}</span>
                         </div>
                         {requestDetails.pickupFullAddress && requestDetails.pickupFullAddress.trim() !== requestDetails.pickup?.trim() && (
                             <div className="grid grid-cols-[64px_10px_1fr] sm:grid-cols-[68px_12px_1fr] items-baseline">
@@ -86,12 +86,12 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
                         <div className="grid grid-cols-[64px_10px_1fr] sm:grid-cols-[68px_12px_1fr] items-baseline">
                             <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Date</span>
                             <span className="text-slate-400 dark:text-slate-500 text-center select-none">:</span>
-                            <span className="font-medium text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs">{requestDetails.pickupDate || requestDetails.requestDate || '—'}</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs">{requestDetails.pickupDate || '—'}</span>
                         </div>
                         <div className="grid grid-cols-[64px_10px_1fr] sm:grid-cols-[68px_12px_1fr] items-baseline">
                             <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Time Slot</span>
                             <span className="text-slate-400 dark:text-slate-500 text-center select-none">:</span>
-                            <span className="font-medium text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs">{requestDetails.pickupTimeWindow || '09:00 – 17:00'}</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs">{requestDetails.pickupTimeWindow || '—'}</span>
                         </div>
                     </div>
                 </div>
@@ -127,7 +127,7 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
                         <div className="grid grid-cols-[64px_10px_1fr] sm:grid-cols-[68px_12px_1fr] items-baseline">
                             <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Location</span>
                             <span className="text-slate-400 dark:text-slate-500 text-center select-none">:</span>
-                            <span className="font-semibold text-slate-800 dark:text-slate-100 text-[11.5px] sm:text-xs">{requestDetails.delivery}</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-100 text-[11.5px] sm:text-xs">{requestDetails.delivery || '—'}</span>
                         </div>
                         {requestDetails.deliveryFullAddress && requestDetails.deliveryFullAddress.trim() !== requestDetails.delivery?.trim() && (
                             <div className="grid grid-cols-[64px_10px_1fr] sm:grid-cols-[68px_12px_1fr] items-baseline">
@@ -144,7 +144,7 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
                         <div className="grid grid-cols-[64px_10px_1fr] sm:grid-cols-[68px_12px_1fr] items-baseline">
                             <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Time Slot</span>
                             <span className="text-slate-400 dark:text-slate-500 text-center select-none">:</span>
-                            <span className="font-medium text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs">{requestDetails.deliveryTimeWindow || '09:00 – 17:00'}</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-300 text-[11px] sm:text-xs">{requestDetails.deliveryTimeWindow || '—'}</span>
                         </div>
                     </div>
                 </div>

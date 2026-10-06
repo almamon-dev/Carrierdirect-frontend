@@ -27,6 +27,7 @@ export default function RequestList() {
     const wizard = useRequestListImportWizard(fetchQuoteRequests);
 
     const {
+        isLoading: isQuotaLoading,
         isTrial,
         daysRemaining,
         quotesLimit,
@@ -36,7 +37,11 @@ export default function RequestList() {
         setIsLockModalOpen,
         modalTitle,
         modalDescription,
+        modalFeatureName,
+        modalRequiredPlan,
+        modalBenefits,
         checkOrLock,
+        checkBulkImportOrLock,
         handleUpgradeRedirect,
     } = useSubscriptionQuota();
 
@@ -66,15 +71,16 @@ export default function RequestList() {
                 <HeaderActions
                     isLoading={isLoading}
                     onRefresh={() => fetchQuoteRequests(true)}
-                    onUploadCsv={() => checkOrLock(() => wizard.openImportWizard('csv'))}
-                    onUploadPdfZip={() => checkOrLock(() => wizard.openImportWizard('pdf'))}
+                    onUploadCsv={() => checkBulkImportOrLock(() => wizard.openImportWizard('csv'))}
+                    onUploadPdfZip={() => checkBulkImportOrLock(() => wizard.openImportWizard('pdf'))}
                     onCreateNew={() => checkOrLock(() => navigate('/customer/quotes/create/new'))}
                 />
             </div>
 
             {/* Quota Banner when on trial or limit reached */}
-            {!isPaidUnlimited && (
+            {(isQuotaLoading || !isPaidUnlimited) && (
                 <QuotaReminderBanner
+                    isLoading={isQuotaLoading}
                     title={isTrial ? '7-Day Free Trial Quota Reminder' : 'Free Plan Quota Reminder'}
                     quotaUsed={quotesUsed}
                     maxQuota={quotesLimit}
@@ -139,15 +145,9 @@ export default function RequestList() {
                 userType="customer"
                 title={modalTitle}
                 description={modalDescription}
-                featureName="Quote Request Quota"
-                requiredPlan="Starter Shipper (€29/mo)"
-                benefits={[
-                    "Unlimited Single Quote Requests & RFQs",
-                    "Multi-Carrier Quote Comparison & Price Breakdown",
-                    "Direct Carrier Live Chat & Negotiation",
-                    "Real-time Order Tracking & Digital POD (Challan)",
-                    "Secure Stripe Escrow Payments & Card Checkout"
-                ]}
+                featureName={modalFeatureName}
+                requiredPlan={modalRequiredPlan}
+                benefits={modalBenefits}
             />
         </div>
     );

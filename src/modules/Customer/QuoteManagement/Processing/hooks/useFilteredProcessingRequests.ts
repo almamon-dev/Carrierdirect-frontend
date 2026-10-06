@@ -1,3 +1,7 @@
+/**
+ * Hook for filtering Customer Processing Quote Requests by Tab, Status, Priority, Vehicle, and Date.
+ */
+
 import { useMemo } from 'react';
 
 interface UseFilteredProcessingRequestsParams {
@@ -20,32 +24,61 @@ export function useFilteredProcessingRequests({
     endDate,
 }: UseFilteredProcessingRequestsParams) {
     return useMemo(() => {
-        return requests.filter((r) => {
-            if (activeFilterTab === 'has_bids') {
-                if (Number(r.bidsCount || 0) === 0) return false;
-            } else if (activeFilterTab === 'awaiting') {
-                if (Number(r.bidsCount || 0) > 0) return false;
-            } else if (activeFilterTab === 'high_priority') {
-                if (String(r.priority || '').toLowerCase() !== 'high') return false;
+        return (requests || []).filter((r) => {
+            if (!r) return false;
+            const s = String(r.rawStatus || r.status || '').toLowerCase();
+
+            // Tab filtering
+            if (activeFilterTab === 'in_progress') {
+                const isProg = s === 'in_progress' || s === 'in progress' || s === 'active' || s === 'bidding';
+                const isComp = s === 'completed' || s === 'accepted' || s === 'won' || Boolean(r.hasAcceptedQuote);
+                const isCanc = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected';
+                if (!isProg || isComp || isCanc) return false;
+            } else if (activeFilterTab === 'pending' || activeFilterTab === 'processing') {
+                const isPend = s === 'pending' || s === 'processing' || s === 'draft';
+                const isComp = s === 'completed' || s === 'accepted' || s === 'won' || Boolean(r.hasAcceptedQuote);
+                const isCanc = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected';
+                if (!isPend || isComp || isCanc) return false;
+            } else if (activeFilterTab === 'completed') {
+                const isComp = s === 'completed' || s === 'accepted' || s === 'won' || Boolean(r.hasAcceptedQuote);
+                if (!isComp) return false;
+            } else if (activeFilterTab === 'cancelled') {
+                const isCanc = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected';
+                if (!isCanc) return false;
             }
 
+            // Dropdown Status Filter
             if (statusFilter !== 'all') {
-                const rawStatus = String(r.rawStatus || r.status || '').toLowerCase();
-                if (!rawStatus.includes(statusFilter.toLowerCase())) return false;
+                const filterVal = statusFilter.toLowerCase();
+                if (filterVal === 'in_progress') {
+                    if (s !== 'in_progress' && s !== 'in progress' && s !== 'active') return false;
+                } else if (filterVal === 'pending' || filterVal === 'processing') {
+                    if (s !== 'pending' && s !== 'processing' && s !== 'draft') return false;
+                } else if (filterVal === 'completed') {
+                    if (s !== 'completed' && s !== 'accepted' && !r.hasAcceptedQuote) return false;
+                } else if (filterVal === 'cancelled') {
+                    if (s !== 'cancelled' && s !== 'expired' && s !== 'closed' && s !== 'rejected') return false;
+                } else if (!s.includes(filterVal)) {
+                    return false;
+                }
             }
 
+            // Vehicle filter
             if (vehicleFilter !== 'all') {
-                const vehicle = String(r.vehicleType || r.vehicle || '').toLowerCase();
-                if (!vehicle.includes(vehicleFilter.toLowerCase())) return false;
+                const vehicle = String(r.vehicleType || r.vehicle || '').toLowerCase().replace(/[\s_-]+/g, '');
+                const targetVehicle = vehicleFilter.toLowerCase().replace(/[\s_-]+/g, '');
+                if (!vehicle.includes(targetVehicle)) return false;
             }
 
+            // Priority filter
             if (priorityFilter !== 'all') {
                 const prio = String(r.priority || '').toLowerCase();
                 if (prio !== priorityFilter.toLowerCase()) return false;
             }
 
+            // Date filtering
             if (startDate || endDate) {
-                const rowDateStr = r.createdAt || r.pickupDate;
+                const rowDateStr = r.createdAt || r.pickupDate || (r.rawData && r.rawData.created_at);
                 if (rowDateStr) {
                     const rowDate = new Date(rowDateStr);
                     if (!isNaN(rowDate.getTime())) {
@@ -67,4 +100,3 @@ export function useFilteredProcessingRequests({
         });
     }, [requests, activeFilterTab, statusFilter, vehicleFilter, priorityFilter, startDate, endDate]);
 }
-

@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Skeleton from "@/components/ui/skeleton";
+import { QuotaReminderBannerSkeleton } from "./QuotaReminderBanner";
 
 interface SubscriptionSkeletonProps {
   userType?: "supplier" | "customer";
@@ -59,27 +60,7 @@ export const SubscriptionSkeleton: React.FC<SubscriptionSkeletonProps> = ({
       </div>
 
       {/* Quota Reminder Banner Skeleton */}
-      <div className="p-3 sm:p-3.5 bg-gradient-to-r from-amber-50 via-orange-50/70 to-amber-50 dark:from-amber-950/30 dark:via-orange-950/20 dark:to-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 rounded-[4px] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
-        <div className="space-y-1.5 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-xs font-bold text-amber-950 dark:text-amber-100">
-              Subscription Quota & Usage
-            </h4>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[3px] text-[10.5px] font-bold border bg-orange-100 text-[#ff4a1f] border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800">
-              <Clock size={11} className="shrink-0" />
-              <span>Active</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2 pt-0.5">
-            <Skeleton className="h-3.5 w-72 sm:w-96 max-w-full rounded-[2px]" />
-          </div>
-        </div>
-
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#ff4a1f] shrink-0 py-1 px-1.5 opacity-80">
-          <span>Upgrade Subscription</span>
-          <ArrowRight size={13} className="shrink-0" />
-        </div>
-      </div>
+      <QuotaReminderBannerSkeleton />
 
       {/* Left Sidebar + Right Content Layout */}
       <div className="flex flex-col lg:flex-row gap-6 items-start">

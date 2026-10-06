@@ -7,8 +7,8 @@ import { RotateCcw } from 'lucide-react';
 interface TableFilterContentProps {
     statusFilter: string;
     setStatusFilter: (val: string) => void;
-    vehicleFilter: string;
-    setVehicleFilter: (val: string) => void;
+    vehicleFilter?: string;
+    setVehicleFilter?: (val: string) => void;
     paymentFilter: string;
     setPaymentFilter: (val: string) => void;
     startDate: string;
@@ -21,8 +21,6 @@ interface TableFilterContentProps {
 export const TableFilterContent: React.FC<TableFilterContentProps> = ({
     statusFilter,
     setStatusFilter,
-    vehicleFilter,
-    setVehicleFilter,
     paymentFilter,
     setPaymentFilter,
     startDate,
@@ -32,7 +30,7 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
     onResetFilters,
 }) => {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 pt-2 font-sans">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 font-sans">
             <div>
                 <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                     Order Status
@@ -48,8 +46,7 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     placeholder="All Statuses"
                     options={[
                         { id: 'all', name: 'All Statuses' },
-                        { id: 'confirmed', name: 'Confirmed' },
-                        { id: 'driver_assigned', name: 'Driver Assigned' },
+                        { id: 'confirmed', name: 'Succeeded / Confirmed' },
                         { id: 'in_transit', name: 'In Transit' },
                         { id: 'pod_review', name: 'POD Review' },
                         { id: 'completed', name: 'Completed' },
@@ -60,31 +57,7 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
 
             <div>
                 <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                    Vehicle Type
-                </label>
-                <Select
-                    size="sm"
-                    value={vehicleFilter}
-                    onChange={(val) => {
-                        const v = typeof val === 'object' && val?.target ? val.target.value : (val?.id ?? val?.value ?? val);
-                        setVehicleFilter(v);
-                    }}
-                    showSearch={false}
-                    placeholder="All Vehicles"
-                    options={[
-                        { id: 'all', name: 'All Vehicles' },
-                        { id: 'Covered Van', name: 'Covered Van' },
-                        { id: 'Flatbed', name: 'Flatbed Truck' },
-                        { id: 'Trailer', name: 'Trailer (40ft)' },
-                        { id: 'Container', name: 'Container' },
-                        { id: 'Refrigerated', name: 'Refrigerated' },
-                    ]}
-                />
-            </div>
-
-            <div>
-                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                    Payment Status
+                    Payment Method / Status
                 </label>
                 <Select
                     size="sm"
@@ -97,9 +70,10 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     placeholder="All Payments"
                     options={[
                         { id: 'all', name: 'All Payments' },
-                        { id: 'unpaid', name: 'Unpaid' },
-                        { id: 'paid', name: 'Paid' },
+                        { id: 'paid', name: 'Succeeded / Paid' },
                         { id: 'escrow', name: 'In Escrow' },
+                        { id: 'pay_later', name: 'Corporate Pay Later' },
+                        { id: 'unpaid', name: 'Unpaid / Due' },
                         { id: 'refunded', name: 'Refunded' },
                     ]}
                 />

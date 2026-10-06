@@ -8,6 +8,7 @@ import { useToastStore } from '../../../stores/useToastStore';
 import Input from '../../../components/ui/input';
 import PhoneInput from '../../../components/ui/phone-input';
 import Button from '../../../components/ui/button';
+import { cn } from '../../../lib/utils';
 import LogoBlack from '../../../assets/Images/LogoBlack.png';
 import LogoWhite from '../../../assets/Images/Logo.png';
 import ProfileCompletionModal from './components/ProfileCompletionModal';
@@ -118,7 +119,7 @@ function AutocompleteInput({
             />
             {isOpen && !disabled && hasTypedText && (
                 <div
-    className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto font-sans antialiased">
+                    className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto font-sans antialiased">
                     {filtered.map((item, idx) => (
                         <div
                             key={idx}
@@ -202,8 +203,9 @@ export default function SupplierCompleteProfilePage() {
         }
     };
 
+    // For initial profile completion (Step 2), companyName should always start empty so user enters their actual business/company name
     const [formData, setFormData] = useState({
-        companyName: currentUser.company_name || currentUser.name || '',
+        companyName: '',
         phone: currentUser.phone_number || currentUser.phone || '',
         country: currentUser.country || '',
         state: currentUser.state || '',
@@ -370,14 +372,17 @@ export default function SupplierCompleteProfilePage() {
     };
 
     const handleCountryChange = (val: string) => {
-        setFormData(prev => ({
-            ...prev,
-            country: val,
-            state: '',
-            city: '',
-            zipCode: '',
-            address: '',
-        }));
+        setFormData(prev => {
+            const isDifferentCountry = prev.country && val && prev.country.trim().toLowerCase() !== val.trim().toLowerCase();
+            return {
+                ...prev,
+                country: val,
+                state: isDifferentCountry ? '' : prev.state,
+                city: isDifferentCountry ? '' : prev.city,
+                zipCode: isDifferentCountry ? '' : prev.zipCode,
+                address: isDifferentCountry ? '' : prev.address,
+            };
+        });
         if (errors.country) {
             setErrors(prev => {
                 const newErrors = { ...prev };
@@ -445,8 +450,9 @@ export default function SupplierCompleteProfilePage() {
         }
 
         try {
+            const personalName = currentUser?.name || currentUser?.full_name || '';
             const res = await apiClient.post('/supplier/profile', {
-                name: formData.companyName,
+                ...(personalName ? { name: personalName } : {}),
                 company_name: formData.companyName,
                 phone_number: formData.phone,
                 country: formData.country,
@@ -473,7 +479,7 @@ export default function SupplierCompleteProfilePage() {
             const updatedUser = {
                 ...currentUser,
                 ...apiUser,
-                name: formData.companyName,
+                name: personalName || apiUser.name || currentUser.name,
                 company_name: formData.companyName,
                 phone_number: formData.phone,
                 country: formData.country,
@@ -485,6 +491,7 @@ export default function SupplierCompleteProfilePage() {
             };
 
             localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(updatedUser));
+            window.dispatchEvent(new Event('user-profile-updated'));
 
             // Show Congratulations / Onboarding Success Modal!
             setIsSuccessModalOpen(true);
@@ -503,7 +510,7 @@ export default function SupplierCompleteProfilePage() {
                 <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 bg-white dark:bg-[#181a20] hover:bg-red-50 dark:hover:bg-red-950/40 border border-gray-200 dark:border-[#384150] hover:border-red-200 dark:border-red-800 rounded-lg shadow-2xs transition-all cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 bg-white dark:bg-[#181a20] hover:bg-red-50 dark:hover:bg-red-950/40 border border-gray-200 dark:border-[#384150] hover:border-red-200 dark:border-red-800 rounded-[4px] shadow-2xs transition-all cursor-pointer"
                     title="Log out from your account"
                 >
                     <LogOut className="w-3.5 h-3.5" />
@@ -513,7 +520,7 @@ export default function SupplierCompleteProfilePage() {
 
             {/* Main Centered Card matching SupplierRegisterPage */}
             <div
-    className="main-auth-card flex flex-col md:flex-row w-full max-w-5xl bg-white dark:bg-[#181a20] rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-200 dark:border-[#384150] overflow-hidden min-h-[600px]">
+                className="main-auth-card flex flex-col md:flex-row w-full max-w-5xl bg-white dark:bg-[#181a20] rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-200 dark:border-[#384150] overflow-hidden min-h-[600px]">
 
                 {/* Left Side - Logo & Radial Grid Pattern */}
                 <div className="hidden md:flex md:w-5/12 bg-[#f8fafc] flex-col items-center justify-center p-10 relative border-r border-gray-100">
@@ -584,7 +591,13 @@ export default function SupplierCompleteProfilePage() {
                                 id="phone"
                                 name="phone"
                                 value={formData.phone}
+                                country={formData.country}
                                 onChange={(e) => handleInputChange('phone', e.target.value)}
+                                onCountryChange={(c) => {
+                                    if (c?.name && formData.country !== c.name) {
+                                        handleCountryChange(c.name);
+                                    }
+                                }}
                                 placeholder="1711-234567"
                                 error={errors.phone}
                             />
@@ -681,15 +694,27 @@ export default function SupplierCompleteProfilePage() {
                             </div>
                         </div>
 
-                        <Button
-                            id="submit-btn"
-                            type="submit"
-                            isLoading={isLoading}
-                            fullWidth={true}
-                            className="mt-6"
-                        >
-                            Complete Setup
-                        </Button>
+                        {(() => {
+                            const isFormValid = Boolean(
+                                formData.companyName?.trim() &&
+                                formData.phone?.trim() &&
+                                formData.country?.trim() &&
+                                formData.city?.trim() &&
+                                formData.zipCode?.trim()
+                            );
+                            return (
+                                <Button
+                                    id="submit-btn"
+                                    type="submit"
+                                    isLoading={isLoading}
+                                    disabled={!isFormValid || isLoading}
+                                    fullWidth={true}
+                                    className={cn("mt-6 transition-opacity", !isFormValid && "opacity-50 cursor-not-allowed")}
+                                >
+                                    Complete Setup
+                                </Button>
+                            );
+                        })()}
 
                         <p className="mt-4 text-center text-xs text-gray-500 dark:text-slate-400">
                             Want to sign in with a different account?{' '}

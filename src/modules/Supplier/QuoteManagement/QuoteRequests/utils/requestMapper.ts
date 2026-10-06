@@ -2,8 +2,21 @@ import { QuoteRequest } from '../../data/quoteRequestsData';
 import { resolveSupplierQuoteStatus } from '../../utils/requestStatusTracker';
 import { formatDisplayDate } from '@/lib/utils';
 import { resolveAddress } from './addressHelpers';
+import { resolveQuoteDistance } from '@/utils/geoDistance';
 
 export function mapRawQuoteRequest(q: any): QuoteRequest {
+    const numBudget = q.budget !== null && q.budget !== undefined && q.budget !== '' 
+        ? parseFloat(String(q.budget).replace(/[^0-9.]/g, '')) 
+        : 0;
+
+    let budgetStr = 'Negotiable';
+    if (!isNaN(numBudget) && numBudget > 0) {
+        const rawB = String(q.budget);
+        const hasSymbol = rawB.includes('€') || rawB.includes('$') || rawB.includes('৳') || rawB.includes('£');
+        const currencySymbol = q.currency === '$' ? '$' : (q.currency === '৳' ? '৳' : (q.currency === '£' ? '£' : '€'));
+        budgetStr = hasSymbol ? rawB : `${currencySymbol}${numBudget.toLocaleString()}`;
+    }
+
     return {
         id: q.request_id || q.formatted_id || (q.id ? (String(q.id).startsWith('REQ-') ? q.id : `REQ-${String(q.id).padStart(4, '0')}`) : 'REQ-0000'),
         rawId: q.rawId || q.id,
@@ -19,8 +32,8 @@ export function mapRawQuoteRequest(q: any): QuoteRequest {
         customerRating: q.customerRating ?? q.customer?.rating ?? q.user?.rating ?? 4.8,
         pickup: q.pickup || resolveAddress(q, 'pickup'),
         delivery: q.delivery || resolveAddress(q, 'delivery'),
-        distance: q.distance || (q.est_distance ? `${q.est_distance} km` : '—'),
-        budget: q.budget ? (String(q.budget).includes('€') ? String(q.budget) : `€${String(q.budget).replace(/[^0-9.,]/g, '')}`) : 'Negotiable',
+        distance: resolveQuoteDistance(q).distanceStr,
+        budget: budgetStr,
         priority: q.priority || 'Normal',
         status: resolveSupplierQuoteStatus({
             ...q,

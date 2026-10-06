@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -29,6 +29,7 @@ import { useToastStore } from "@/stores/useToastStore";
 import apiClient from "@/lib/axios";
 import { decryptId } from "@/lib/encryption";
 import { AddPaymentMethodModal } from "@/modules/Customer/Settings/components/AddPaymentMethodModal";
+import SubscriptionCheckoutSkeleton from "@/components/common/SubscriptionCheckoutSkeleton";
 
 type CardBrand = "visa" | "mastercard" | "amex" | "discover" | "unknown";
 
@@ -111,24 +112,26 @@ export default function SupplierSubscriptionCheckout() {
 
   // Selected Plan state
   const [selectedPlan, setSelectedPlan] = useState<any>(
-    planFromState ? {
+    planFromState && !planFromState?.isTrial && !String(planFromState?.name || "").toLowerCase().includes("trial") ? {
       ...planFromState,
       cycle: initialCycle,
     } : {
-      id: queryPlanId ? (isNaN(Number(queryPlanId)) ? queryPlanId : Number(queryPlanId)) : 2,
+      id: queryPlanId && String(queryPlanId) !== "1" ? (isNaN(Number(queryPlanId)) ? queryPlanId : Number(queryPlanId)) : 2,
       name: "Professional Carrier",
       priceMonthly: 49,
       priceYearly: 490,
       cycle: initialCycle,
       features: [
-        "Unlimited Single Quote Requests & RFQs",
-        "Multi-Carrier Quote Comparison & Price Breakdown",
-        "Direct Carrier Live Chat & Real-Time Negotiation",
-        "Real-time Order Tracking & Digital POD (Challan)",
-        "Automated PDF Invoices & Tax Receipts",
-        "Priority Customer Support (24/7 Response)",
-        "Corporate Payment Terms & Net 30 Credit Eligibility",
-        "AI Document & Bulk Shipment Extraction",
+        "Includes all Trial features",
+        "Unlimited Quote Submissions & Active Bidding",
+        "Priority Real-time Lead Alerts & High-Value RFQs",
+        "Team Management — Up to 5 Staff Accounts",
+        "Fleet Management — Up to 10 Vehicles & Capacity Specs",
+        "Verified Carrier & CMR Insurance Trust Badge",
+        "Reduced Platform Commission Fee (5% Booking Fee)",
+        "Automated Stripe Connect Payouts (2 Business Days)",
+        "Bid Performance & Win-Rate Analytics",
+        "Priority Fleet Support",
       ],
     }
   );
@@ -160,12 +163,21 @@ export default function SupplierSubscriptionCheckout() {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Input refs for Stripe-like auto-focus
+  const cardNameRef = useRef<HTMLInputElement>(null);
+  const cardNumberRef = useRef<HTMLInputElement>(null);
+  const cardExpiryRef = useRef<HTMLInputElement>(null);
+  const cardCvcRef = useRef<HTMLInputElement>(null);
+
   // Processing & Modals
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
   const [currentSub, setCurrentSub] = useState<any>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const normalizePlanName = (name: string) =>
     (name || "").toLowerCase().replace(/\s*\((monthly|yearly|annual|trial)\)/gi, "").trim();
@@ -192,21 +204,134 @@ export default function SupplierSubscriptionCheckout() {
     }
   };
 
+  const fetchPlanDetails = async () => {
+    const targetPlanKey = queryPlanId || planFromState?.id;
+
+    try {
+      const res: any = await apiClient.get(`/subscription/plans?user_type=supplier`);
+      const rawPlans = res?.data?.plans || res?.data?.data?.plans || res?.data?.data || res?.data || [];
+      const plansList = Array.isArray(rawPlans) ? rawPlans : (rawPlans?.data || []);
+
+      // Filter out trial plans from checkout (Checkout is only for paid commercial plans)
+      const paidPlans = plansList.filter((p: any) =>
+        p.billing_period !== "trial" &&
+        !(p.name || "").toLowerCase().includes("trial") &&
+        Number(p.price) > 0
+      );
+
+      const activeList = paidPlans.length > 0 ? paidPlans : plansList;
+
+      if (Array.isArray(activeList) && activeList.length > 0) {
+        let matched = targetPlanKey ? activeList.find(
+          (p: any) =>
+            (String(p.id) === String(targetPlanKey) ||
+             String(p.planId) === String(targetPlanKey) ||
+             p.name?.toLowerCase().includes(String(targetPlanKey).toLowerCase())) &&
+            p.billing_period !== "trial" &&
+            !(p.name || "").toLowerCase().includes("trial")
+        ) : null;
+
+        if (!matched) {
+          matched = activeList.find((p: any) => p.is_popular || p.popular) || activeList[0];
+        }
+
+        if (matched) {
+          const baseName = (matched.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim().toLowerCase();
+          const monthlyVariant = activeList.find((p: any) =>
+            (p.billing_period === "monthly" || !p.billing_period) &&
+            (p.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim().toLowerCase() === baseName
+          );
+          const yearlyVariant = activeList.find((p: any) =>
+            (p.billing_period === "annual" || p.billing_period === "yearly") &&
+            (p.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim().toLowerCase() === baseName
+          );
+
+          const monthlyPrice = Number(monthlyVariant?.price ?? matched.price ?? 49);
+          const yearlyPrice = Number(yearlyVariant?.price ?? (monthlyPrice * 10));
+
+          const determinedCycle: "monthly" | "yearly" = (matched.billing_period === "annual" || matched.billing_period === "yearly")
+            ? "yearly"
+            : (queryCycle === "yearly" || queryCycle === "annual" ? "yearly" : (planFromState?.cycle === "yearly" ? "yearly" : "monthly"));
+
+          const activePlanId = determinedCycle === "yearly" ? (yearlyVariant?.id || matched.id) : (monthlyVariant?.id || matched.id);
+
+          const resolvedPlan = {
+            id: activePlanId,
+            name: (matched.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim(),
+            priceMonthly: monthlyPrice,
+            priceYearly: yearlyPrice,
+            cycle: determinedCycle,
+            features: matched.features || planFromState?.features || [
+              "Includes all Trial features",
+              "Unlimited Quote Submissions & Active Bidding",
+              "Priority Real-time Lead Alerts & High-Value RFQs",
+              "Team Management — Up to 5 Staff Accounts",
+              "Fleet Management — Up to 10 Vehicles & Capacity Specs",
+              "Verified Carrier & CMR Insurance Trust Badge",
+              "Reduced Platform Commission Fee (5% Booking Fee)",
+              "Automated Stripe Connect Payouts (2 Business Days)",
+              "Bid Performance & Win-Rate Analytics",
+              "Priority Fleet Support",
+            ],
+          };
+          setSelectedPlan(resolvedPlan);
+          return resolvedPlan;
+        }
+      }
+    } catch (e) {
+      console.log("Plan fetch error:", e);
+    }
+    return null;
+  };
+
   useEffect(() => {
-    loadSavedCards();
-    const fetchStatus = async () => {
+    let isMounted = true;
+    const initializeCheckout = async () => {
+      setIsInitialLoading(true);
       try {
-        const res: any = await apiClient.get("/subscription/status");
-        const data = res?.data?.data || res?.data || {};
-        setCurrentSub(data);
-      } catch (e) {
-        console.error("Failed to load subscription status:", e);
+        const [cardsRes, statusData, planData] = await Promise.all([
+          loadSavedCards().catch(() => null),
+          apiClient.get("/subscription/status").then(r => r?.data?.data || r?.data || {}).catch(() => null),
+          fetchPlanDetails(),
+        ]);
+
+        if (statusData && isMounted) {
+          setCurrentSub(statusData);
+
+          // If user is already subscribed to this exact active commercial plan, redirect back to overview
+          const isPaidActive = Boolean(
+            statusData?.has_subscription &&
+            statusData?.is_active &&
+            !statusData?.is_trial
+          );
+
+          if (isPaidActive) {
+            const currentName = normalizePlanName(statusData?.plan_name || "");
+            const targetName = normalizePlanName(planData?.name || selectedPlan?.name || "");
+            const currentId = String(statusData?.plan_id || "");
+            const targetId = String(queryPlanId || planFromState?.id || planData?.id || "");
+
+            if ((currentId && targetId && currentId === targetId) || (currentName && targetName && currentName === targetName)) {
+              showToast(`You are already actively subscribed to the ${statusData?.plan_name || selectedPlan?.name} plan.`, "info");
+              navigate("/supplier/subscription", { replace: true });
+              return;
+            }
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false);
+        }
       }
     };
-    fetchStatus();
-  }, []);
+    initializeCheckout();
 
-  const isAlreadySubscribed = Boolean(
+    return () => {
+      isMounted = false;
+    };
+  }, [queryPlanId, queryCycle]);
+
+    const isAlreadySubscribed = Boolean(
     currentSub?.has_subscription &&
     currentSub?.is_active &&
     !currentSub?.is_trial &&
@@ -216,71 +341,6 @@ export default function SupplierSubscriptionCheckout() {
       (currentSub?.plan_name && normalizePlanName(currentSub.plan_name) === normalizePlanName(selectedPlan.name))
     )
   );
-
-  // Fetch plan details from API if navigated via URL or page refreshed
-  useEffect(() => {
-    const fetchPlanDetails = async () => {
-      const targetPlanKey = queryPlanId || planFromState?.id;
-      if (!targetPlanKey) return;
-
-      try {
-        const res: any = await apiClient.get(`/subscription/plans?user_type=supplier`);
-        const rawPlans = res?.data?.plans || res?.data?.data?.plans || res?.data?.data || res?.data || [];
-        const plansList = Array.isArray(rawPlans) ? rawPlans : (rawPlans?.data || []);
-
-        if (Array.isArray(plansList) && plansList.length > 0) {
-          const matched = plansList.find(
-            (p: any) =>
-              String(p.id) === String(targetPlanKey) ||
-              String(p.planId) === String(targetPlanKey) ||
-              p.name?.toLowerCase().includes(String(targetPlanKey).toLowerCase())
-          );
-
-          if (matched) {
-            const baseName = (matched.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim().toLowerCase();
-            const monthlyVariant = plansList.find((p: any) =>
-              (p.billing_period === "monthly" || !p.billing_period) &&
-              (p.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim().toLowerCase() === baseName
-            );
-            const yearlyVariant = plansList.find((p: any) =>
-              (p.billing_period === "annual" || p.billing_period === "yearly") &&
-              (p.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim().toLowerCase() === baseName
-            );
-
-            const monthlyPrice = Number(monthlyVariant?.price || matched.monthly_price || matched.price || 49);
-            const yearlyPrice = Number(yearlyVariant?.price || matched.yearly_price || (monthlyPrice * 10));
-
-            const determinedCycle: "monthly" | "yearly" = (matched.billing_period === "annual" || matched.billing_period === "yearly")
-              ? "yearly"
-              : (queryCycle === "yearly" || queryCycle === "annual" ? "yearly" : (planFromState?.cycle === "yearly" ? "yearly" : "monthly"));
-
-            const activePlanId = determinedCycle === "yearly" ? (yearlyVariant?.id || matched.id) : (monthlyVariant?.id || matched.id);
-
-            setSelectedPlan({
-              id: activePlanId,
-              name: (matched.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim(),
-              priceMonthly: monthlyPrice,
-              priceYearly: yearlyPrice,
-              cycle: determinedCycle,
-              features: matched.features || planFromState?.features || [
-                "Unlimited Single Quote Requests & RFQs",
-                "Multi-Carrier Quote Comparison & Price Breakdown",
-                "Direct Carrier Live Chat & Real-Time Negotiation",
-                "Real-time Order Tracking & Digital POD (Challan)",
-                "Automated PDF Invoices & Tax Receipts",
-                "Priority Customer Support (24/7 Response)",
-                "Corporate Payment Terms & Net 30 Credit Eligibility",
-                "AI Document & Bulk Shipment Extraction",
-              ],
-            });
-          }
-        }
-      } catch (e) {
-        console.log("Plan fetch error:", e);
-      }
-    };
-    fetchPlanDetails();
-  }, [queryPlanId, queryCycle]);
 
   const handleCycleChange = (cycle: "monthly" | "yearly") => {
     setSelectedPlan((prev: any) => ({ ...prev, cycle }));
@@ -362,57 +422,187 @@ export default function SupplierSubscriptionCheckout() {
     return digits;
   };
 
-  // Live Inline Error Messages
-  const errors = useMemo(() => {
-    const errs: Record<string, string> = {};
+  // Stripe-Grade Real-Time Field Errors
+  const fieldErrors = useMemo(() => {
+    const errs: {
+      cardName?: string;
+      cardNumber?: string;
+      cardExpiry?: string;
+      cardCvc?: string;
+    } = {};
 
-    if (paymentTab === "new_card") {
-      if (!cardName.trim()) {
+    if (paymentTab !== "new_card") return errs;
+
+    const cleanNum = cardNumber.replace(/\D/g, "");
+    const brand = detectCardBrand(cleanNum);
+    const expectedNumLen = brand === "amex" ? 15 : 16;
+    const expectedCvcLen = brand === "amex" ? 4 : 3;
+    const cleanExp = cardExpiry.replace(/\D/g, "");
+    const cleanCvcVal = cardCvc.replace(/\D/g, "");
+
+    // 1. Cardholder Name
+    if (!cardName.trim()) {
+      if (touched.cardName || isSubmitted) {
         errs.cardName = "Cardholder name is required.";
-      } else if (cardName.trim().length < 3) {
-        errs.cardName = "Name must be at least 3 characters.";
       }
+    } else if (cardName.trim().length < 2) {
+      if (touched.cardName || isSubmitted) {
+        errs.cardName = "Cardholder name must be at least 2 characters.";
+      }
+    }
 
-      if (!cleanCardNum) {
+    // 2. Card Number
+    if (!cleanNum) {
+      if (touched.cardNumber || isSubmitted) {
         errs.cardNumber = "Card number is required.";
-      } else if (cleanCardNum.length < (cardBrand === "amex" ? 15 : 16)) {
-        errs.cardNumber = `Incomplete card number (${cleanCardNum.length}/${cardBrand === "amex" ? 15 : 16} digits).`;
-      } else if (!validateLuhn(cleanCardNum)) {
-        errs.cardNumber = "Invalid card number (checksum failed).";
       }
+    } else if (cleanNum.length === expectedNumLen) {
+      // Immediate real-time checksum check when completed!
+      if (!validateLuhn(cleanNum)) {
+        errs.cardNumber = "Your card number is invalid.";
+      }
+    } else if (cleanNum.length < expectedNumLen) {
+      if (touched.cardNumber || isSubmitted) {
+        errs.cardNumber = `Your card number is incomplete (${cleanNum.length}/${expectedNumLen} digits).`;
+      }
+    }
 
-      const cleanExp = cardExpiry.replace(/\D/g, "");
-      if (!cleanExp) {
+    // 3. Expiry Date (MM/YY)
+    if (!cleanExp) {
+      if (touched.cardExpiry || isSubmitted) {
         errs.cardExpiry = "Expiry date is required.";
-      } else if (cleanExp.length < 4) {
-        errs.cardExpiry = "Enter complete date (MM/YY).";
-      } else {
-        const m = parseInt(cleanExp.slice(0, 2), 10);
+      }
+    } else if (cleanExp.length >= 2) {
+      const m = parseInt(cleanExp.slice(0, 2), 10);
+      if (m < 1 || m > 12) {
+        errs.cardExpiry = "Your card's expiration month is invalid.";
+      } else if (cleanExp.length === 4) {
         const y = parseInt(cleanExp.slice(2, 4), 10);
         const now = new Date();
         const curY = now.getFullYear() % 100;
         const curM = now.getMonth() + 1;
-        if (m < 1 || m > 12) {
-          errs.cardExpiry = "Month must be between 01 and 12.";
-        } else if (y < curY || (y === curY && m < curM)) {
-          errs.cardExpiry = "Card has already expired.";
+        if (y < curY || (y === curY && m < curM)) {
+          errs.cardExpiry = "Your card's expiration year is in the past.";
         } else if (y > curY + 25) {
-          errs.cardExpiry = "Invalid expiration year.";
+          errs.cardExpiry = "Your card's expiration year is invalid.";
         }
+      } else if (touched.cardExpiry || isSubmitted) {
+        errs.cardExpiry = "Your card's expiration date is incomplete.";
       }
+    } else if (touched.cardExpiry || isSubmitted) {
+      errs.cardExpiry = "Your card's expiration date is incomplete.";
+    }
 
-      const cleanCvcVal = cardCvc.replace(/\D/g, "");
-      if (!cleanCvcVal) {
+    // 4. CVC
+    if (!cleanCvcVal) {
+      if (touched.cardCvc || isSubmitted) {
         errs.cardCvc = "CVC is required.";
-      } else if (cleanCvcVal.length !== expectedCvcLength) {
-        errs.cardCvc = `Must be exactly ${expectedCvcLength} digits.`;
+      }
+    } else if (cleanCvcVal.length < expectedCvcLen) {
+      if (touched.cardCvc || isSubmitted) {
+        errs.cardCvc = `Your card's security code is incomplete (${cleanCvcVal.length}/${expectedCvcLen} digits).`;
       }
     }
 
     return errs;
-  }, [paymentTab, cardName, cleanCardNum, cardBrand, cardExpiry, cardCvc, expectedCvcLength]);
+  }, [paymentTab, cardName, cardNumber, cardExpiry, cardCvc, touched, isSubmitted]);
 
-  const isFormValid = Object.keys(errors).length === 0;
+  // Form Validation Validator for Submission
+  const getFormValidationError = (): { field: "cardName" | "cardNumber" | "cardExpiry" | "cardCvc"; message: string } | null => {
+    if (paymentTab !== "new_card") return null;
+
+    const cleanNum = cardNumber.replace(/\D/g, "");
+    const brand = detectCardBrand(cleanNum);
+    const expectedNumLen = brand === "amex" ? 15 : 16;
+    const expectedCvcLen = brand === "amex" ? 4 : 3;
+    const cleanExp = cardExpiry.replace(/\D/g, "");
+    const cleanCvcVal = cardCvc.replace(/\D/g, "");
+
+    if (!cardName.trim()) {
+      return { field: "cardName", message: "Cardholder name is required." };
+    }
+    if (cardName.trim().length < 2) {
+      return { field: "cardName", message: "Cardholder name must be at least 2 characters." };
+    }
+    if (!cleanNum) {
+      return { field: "cardNumber", message: "Card number is required." };
+    }
+    if (cleanNum.length < expectedNumLen) {
+      return { field: "cardNumber", message: "Your card number is incomplete." };
+    }
+    if (!validateLuhn(cleanNum)) {
+      return { field: "cardNumber", message: "Your card number is invalid." };
+    }
+    if (!cleanExp) {
+      return { field: "cardExpiry", message: "Expiry date is required." };
+    }
+    if (cleanExp.length < 4) {
+      return { field: "cardExpiry", message: "Your card's expiration date is incomplete." };
+    }
+    const m = parseInt(cleanExp.slice(0, 2), 10);
+    const y = parseInt(cleanExp.slice(2, 4), 10);
+    const now = new Date();
+    const curY = now.getFullYear() % 100;
+    const curM = now.getMonth() + 1;
+    if (m < 1 || m > 12) {
+      return { field: "cardExpiry", message: "Your card's expiration month is invalid." };
+    }
+    if (y < curY || (y === curY && m < curM)) {
+      return { field: "cardExpiry", message: "Your card's expiration year is in the past." };
+    }
+    if (y > curY + 25) {
+      return { field: "cardExpiry", message: "Your card's expiration year is invalid." };
+    }
+    if (!cleanCvcVal) {
+      return { field: "cardCvc", message: "CVC is required." };
+    }
+    if (cleanCvcVal.length < expectedCvcLen) {
+      return { field: "cardCvc", message: "Your card's security code is incomplete." };
+    }
+    return null;
+  };
+
+  // Real-Time Input Handlers with Stripe-Grade Auto-Advance
+  const handleCardNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardName(e.target.value);
+  };
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const digits = raw.replace(/\D/g, "").slice(0, 16);
+    const brand = detectCardBrand(digits);
+    const expectedLen = brand === "amex" ? 15 : 16;
+    const formatted = formatCardNumber(raw);
+    setCardNumber(formatted);
+
+    // Auto-focus next field (Expiry Date) if valid card number completed!
+    if (digits.length === expectedLen && validateLuhn(digits)) {
+      cardExpiryRef.current?.focus();
+    }
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatExpiry(e.target.value, cardExpiry);
+    setCardExpiry(formatted);
+
+    // Auto-focus CVC if valid MM/YY entered!
+    const cleanExp = formatted.replace(/\D/g, "");
+    if (cleanExp.length === 4) {
+      const m = parseInt(cleanExp.slice(0, 2), 10);
+      const y = parseInt(cleanExp.slice(2, 4), 10);
+      const now = new Date();
+      const curY = now.getFullYear() % 100;
+      const curM = now.getMonth() + 1;
+      if (m >= 1 && m <= 12 && (y > curY || (y === curY && m >= curM))) {
+        cardCvcRef.current?.focus();
+      }
+    }
+  };
+
+  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, expectedCvcLength);
+    setCardCvc(digits);
+  };
 
   // Handle Set Default Card
   const handleSetPrimary = async (cardId: string) => {
@@ -463,10 +653,15 @@ export default function SupplierSubscriptionCheckout() {
     }
 
     if (paymentTab === "new_card") {
+      setIsSubmitted(true);
       setTouched({ cardName: true, cardNumber: true, cardExpiry: true, cardCvc: true });
-      if (!isFormValid) {
-        const firstErr = Object.values(errors)[0];
-        showToast(firstErr || "Please fill in all card details correctly.", "error");
+      const validationError = getFormValidationError();
+      if (validationError) {
+        showToast(validationError.message, "error");
+        if (validationError.field === "cardName") cardNameRef.current?.focus();
+        else if (validationError.field === "cardNumber") cardNumberRef.current?.focus();
+        else if (validationError.field === "cardExpiry") cardExpiryRef.current?.focus();
+        else if (validationError.field === "cardCvc") cardCvcRef.current?.focus();
         return;
       }
     }
@@ -807,12 +1002,13 @@ export default function SupplierSubscriptionCheckout() {
                     Cardholder Name
                   </FormLabel>
                   <Input
+                    ref={cardNameRef}
                     id="checkout-cardholder-name"
                     value={cardName}
                     placeholder="e.g. John Doe"
-                    onChange={(e) => setCardName(e.target.value)}
+                    onChange={handleCardNameChange}
                     onBlur={() => markTouched("cardName")}
-                    error={touched.cardName ? errors.cardName : undefined}
+                    error={fieldErrors.cardName}
                     className="!h-10 text-xs rounded-[3px]"
                   />
                 </div>
@@ -824,13 +1020,14 @@ export default function SupplierSubscriptionCheckout() {
                   </FormLabel>
                   <div className="relative">
                     <Input
+                      ref={cardNumberRef}
                       id="checkout-card-num"
                       value={cardNumber}
                       placeholder="4242 •••• •••• 4242"
                       maxLength={19}
-                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                      onChange={handleCardNumberChange}
                       onBlur={() => markTouched("cardNumber")}
-                      error={touched.cardNumber ? errors.cardNumber : undefined}
+                      error={fieldErrors.cardNumber}
                       className="!h-10 text-xs font-mono tracking-wider rounded-[3px] pr-12"
                     />
                     <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
@@ -847,13 +1044,14 @@ export default function SupplierSubscriptionCheckout() {
                     </FormLabel>
                     <div className="relative">
                       <Input
+                        ref={cardExpiryRef}
                         id="checkout-card-expiry"
                         value={cardExpiry}
                         placeholder="MM/YY"
                         maxLength={5}
-                        onChange={(e) => setCardExpiry((prev) => formatExpiry(e.target.value, prev))}
+                        onChange={handleExpiryChange}
                         onBlur={() => markTouched("cardExpiry")}
-                        error={touched.cardExpiry ? errors.cardExpiry : undefined}
+                        error={fieldErrors.cardExpiry}
                         className="!h-10 text-xs rounded-[3px] pr-8"
                       />
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
@@ -868,13 +1066,14 @@ export default function SupplierSubscriptionCheckout() {
                     </FormLabel>
                     <div className="relative">
                       <Input
+                        ref={cardCvcRef}
                         id="checkout-card-cvc"
                         value={cardCvc}
                         placeholder={cardBrand === "amex" ? "1234" : "888"}
                         maxLength={expectedCvcLength}
-                        onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, "").slice(0, expectedCvcLength))}
+                        onChange={handleCvcChange}
                         onBlur={() => markTouched("cardCvc")}
-                        error={touched.cardCvc ? errors.cardCvc : undefined}
+                        error={fieldErrors.cardCvc}
                         className="!h-10 text-xs font-mono rounded-[3px] pr-8"
                       />
                       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" title="3 or 4-digit security code on the back of your card">
@@ -1109,66 +1308,95 @@ export default function SupplierSubscriptionCheckout() {
       {/* Success Modal */}
       {isSuccessModalOpen && createPortal(
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] animate-fade-in font-sans">
-          <div className="bg-white dark:bg-[#1e2329] rounded-[3px] max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 text-center space-y-4 relative overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center border-4 border-emerald-50 dark:border-emerald-900/40 shadow-inner">
-              <CheckCircle2 size={32} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
+          <div className="bg-white dark:bg-[#1e2329] rounded-[4px] max-w-[390px] w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-5 text-center space-y-3.5 relative overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center border-4 border-emerald-50 dark:border-emerald-900/40 shadow-inner">
+              <CheckCircle2 size={26} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
             </div>
 
             <div>
-              <span className="inline-block bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold mb-1.5 px-2.5 py-0.5 rounded-[3px]">
+              <span className="inline-block bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10.5px] font-bold mb-1 px-2.5 py-0.5 rounded-[3px]">
                 Payment Confirmed
               </span>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">
                 Subscription Activated!
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed">
+              <p className="text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed">
                 Welcome to <span className="font-bold text-slate-900 dark:text-slate-100">{successData?.plan_name || selectedPlan.name}</span>. Your tools and quota are now active.
               </p>
             </div>
 
-            {/* Receipt Summary Box */}
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-[3px] border border-slate-200 dark:border-slate-700 text-left text-xs space-y-1.5">
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Invoice Number:</span>
-                <span className="font-bold text-slate-900 dark:text-slate-100">{successData?.invoice_number || "SUB-2026-9871"}</span>
+            {/* Receipt Summary Box with Crisp Key-Value Alignment */}
+            <div className="p-3 bg-slate-50/80 dark:bg-slate-800/40 rounded-[4px] border border-slate-200/80 dark:border-slate-700/60 text-left text-xs space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Invoice Number:</span>
+                <span className="font-mono font-bold text-[11px] text-slate-900 dark:text-slate-100 truncate text-right">
+                  {successData?.invoice_number || "SUB-2026-9871"}
+                </span>
               </div>
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Amount Paid:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">{successData?.amount_formatted || `€${totalAmount.toFixed(2)}`}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Amount Paid:</span>
+                <span className="font-mono font-bold text-[11.5px] text-emerald-600 dark:text-emerald-400 text-right">
+                  {successData?.amount_formatted || `€${totalAmount.toFixed(2)}`}
+                </span>
               </div>
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Payment Method:</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{successData?.payment_method || "Credit Card"}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Payment Method:</span>
+                <span className="font-semibold text-[11px] text-slate-800 dark:text-slate-200 text-right">
+                  {successData?.payment_method || "Credit Card"}
+                </span>
               </div>
               {successData?.expires_at && (
-                <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Next Renewal:</span>
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">{successData.expires_at}</span>
+                <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium shrink-0">Next Renewal:</span>
+                  <span className="font-semibold text-[11px] text-slate-800 dark:text-slate-200 text-right">
+                    {(() => {
+                      try {
+                        const d = new Date(successData.expires_at);
+                        if (!isNaN(d.getTime())) {
+                          return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                        }
+                      } catch {}
+                      return String(successData.expires_at).split(" ")[0] || successData.expires_at;
+                    })()}
+                  </span>
                 </div>
               )}
             </div>
 
-            <div className="pt-2 flex flex-col gap-2">
-              {successData?.download_url && (
+            <div className="pt-2 grid grid-cols-2 gap-2.5">
+              {successData?.download_url ? (
                 <a
                   href={successData.download_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full h-9 text-xs font-semibold border border-slate-300 dark:border-slate-700 rounded-[3px] hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-200 cursor-pointer"
+                  className="h-9 px-2 text-xs font-semibold border border-slate-300 dark:border-slate-700 rounded-[3px] hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-200 cursor-pointer transition-colors truncate"
                 >
-                  <Download size={14} /> Download Tax Invoice (PDF)
+                  <Download size={13} className="shrink-0" />
+                  <span className="truncate">Tax Invoice</span>
                 </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSuccessModalOpen(false);
+                    navigate("/supplier/settings?tab=billing");
+                  }}
+                  className="h-9 px-2 text-xs font-semibold border border-slate-300 dark:border-slate-700 rounded-[3px] hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-200 cursor-pointer transition-colors truncate"
+                >
+                  <Download size={13} className="shrink-0" />
+                  <span className="truncate">Tax Invoice</span>
+                </button>
               )}
               <Button
                 variant="primary"
-                className="w-full h-9 text-xs font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white cursor-pointer shadow-xs flex items-center justify-center gap-1.5 rounded-[3px]"
+                className="h-9 px-2 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer shadow-xs flex items-center justify-center gap-1.5 rounded-[3px] truncate"
                 onClick={() => {
                   setIsSuccessModalOpen(false);
                   navigate("/supplier/subscription");
                 }}
               >
-                <span>Go to Subscription Dashboard</span>
-                <ArrowRight size={14} />
+                <span className="truncate">Dashboard</span>
+                <ArrowRight size={13} className="shrink-0" />
               </Button>
             </div>
           </div>

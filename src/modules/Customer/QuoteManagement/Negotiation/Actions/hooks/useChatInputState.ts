@@ -39,16 +39,7 @@ export const useChatInputState = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    useEffect(() => {
-        const textarea = textareaRef.current;
-        if (textarea) {
-            textarea.style.height = '20px';
-            const scrollH = textarea.scrollHeight;
-            if (scrollH > 20) {
-                textarea.style.height = `${Math.min(scrollH, 120)}px`;
-            }
-        }
-    }, [inputValue]);
+    const isMultiLine = Boolean(inputValue && (inputValue.includes('\n') || inputValue.length > 55));
 
     const handleSend = () => {
         if (!inputValue.trim() && selectedFiles.length === 0) return;
@@ -58,7 +49,6 @@ export const useChatInputState = ({
         }
         setInputValue('');
         setSelectedFiles([]);
-        if (textareaRef.current) textareaRef.current.style.height = '20px';
         setTimeout(scrollToBottom, 50);
     };
 
@@ -125,5 +115,6 @@ export const useChatInputState = ({
         handleKeyDown,
         handleFileSelect,
         handleAddEmoji,
+        isMultiLine,
     };
 };

@@ -26,8 +26,8 @@ export default function CustomerOrderDetailPage() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const [apiOrder, setApiOrder] = useState<any | null>(location.state?.orderData || null);
-    const [isLoading, setIsLoading] = useState<boolean>(!location.state?.orderData);
+    const [apiOrder, setApiOrder] = useState<any | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isPodAccepted, setIsPodAccepted] = useState<boolean>(false);
     const [actionMessage, setActionMessage] = useState<string | null>(null);
     const [isRatingOpen, setIsRatingOpen] = useState<boolean>(false);
@@ -48,19 +48,33 @@ export default function CustomerOrderDetailPage() {
     useEffect(() => {
         let isMounted = true;
         if (cleanId) {
-            setIsLoading(!apiOrder);
+            setIsLoading(true);
             apiClient
                 .get(`/customer/orders/${cleanId}`)
                 .then((res) => {
                     const data = res.data?.data || res.data;
                     if (!isMounted || !data) return;
                     setApiOrder(data);
-                    if (data.status === 'completed' || data.status === 'POD Accepted' || data.status === 'delivered') {
+                    // Detect pod_accepted / completed states from real API
+                    const statusRaw = (data.status_raw || data.status || '').toLowerCase();
+                    const podStatusRaw = (data.pod_status || data.pod?.status || data.pod?.pod_status || '').toLowerCase();
+                    if (
+                        statusRaw === 'completed' ||
+                        statusRaw === 'pod_accepted' ||
+                        statusRaw === 'pod accepted' ||
+                        podStatusRaw === 'confirmed' ||
+                        podStatusRaw === 'accepted' ||
+                        podStatusRaw === 'approved'
+                    ) {
                         setIsPodAccepted(true);
                     }
                 })
                 .catch((err) => {
-                    console.warn('Could not fetch remote order details, using local fallback:', err);
+                    console.warn('Could not fetch remote order details:', err);
+                    // Fallback to location state if API fails
+                    if (isMounted && location.state?.orderData) {
+                        setApiOrder(location.state.orderData);
+                    }
                 })
                 .finally(() => {
                     if (isMounted) setIsLoading(false);
@@ -74,7 +88,7 @@ export default function CustomerOrderDetailPage() {
     // Build normalized order & timeline structures
     const order: NormalizedCustomerOrder = buildNormalizedCustomerOrder(
         cleanId,
-        apiOrder || location.state?.orderData,
+        apiOrder,
         isPodAccepted
     );
 

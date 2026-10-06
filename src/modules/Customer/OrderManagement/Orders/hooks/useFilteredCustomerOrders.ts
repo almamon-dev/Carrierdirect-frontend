@@ -5,7 +5,7 @@ interface UseFilteredOrdersProps {
     orders: CustomerOrderItem[];
     activeTab: OrderFilterTab;
     statusFilter: string;
-    vehicleFilter: string;
+    vehicleFilter?: string;
     paymentFilter: string;
     startDate: string;
     endDate: string;
@@ -23,9 +23,9 @@ export const useFilteredCustomerOrders = ({
     return useMemo(() => {
         return orders.filter((order) => {
             const rawStatus = String(order.status_raw || order.status || '').toLowerCase().trim();
-            const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted';
+            const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'won';
             const isPodReview = rawStatus.includes('review') || rawStatus.includes('pod_uploaded') || rawStatus === 'delivered';
-            const isCancelled = rawStatus.includes('cancel');
+            const isCancelled = rawStatus.includes('cancel') || rawStatus.includes('reject');
             const isInTransit = rawStatus === 'in_transit' || rawStatus === 'on_the_way' || rawStatus === 'picked_up' || rawStatus === 'in_progress' || rawStatus === 'driver_assigned';
 
             // 1. Tab filter
@@ -40,11 +40,11 @@ export const useFilteredCustomerOrders = ({
                 if (statusFilter === 'pod_review' && !isPodReview) return false;
                 if (statusFilter === 'completed' && !isCompleted) return false;
                 if (statusFilter === 'cancelled' && !isCancelled) return false;
-                if (statusFilter === 'confirmed' && rawStatus !== 'confirmed' && rawStatus !== 'pending' && rawStatus !== 'scheduled') return false;
+                if (statusFilter === 'confirmed' && rawStatus !== 'confirmed' && rawStatus !== 'pending' && rawStatus !== 'scheduled' && rawStatus !== 'booked') return false;
                 if (statusFilter === 'driver_assigned' && rawStatus !== 'driver_assigned' && rawStatus !== 'assigned') return false;
             }
 
-            // 3. Vehicle filter
+            // 3. Vehicle filter (optional)
             if (vehicleFilter && vehicleFilter !== 'all') {
                 const v = String(order.vehicle || order.vehicle_type || order.truck_type || '').toLowerCase();
                 if (!v.includes(vehicleFilter.toLowerCase())) return false;
@@ -53,13 +53,16 @@ export const useFilteredCustomerOrders = ({
             // 4. Payment filter
             if (paymentFilter && paymentFilter !== 'all') {
                 const ps = String(order.payment_status || 'unpaid').toLowerCase().trim();
+                const pm = String((order as any).payment_method || '').toLowerCase().trim();
                 const isPaid = (ps === 'paid' || ps.includes('released')) && !ps.includes('unpaid');
                 const isEscrow = ps.includes('escrow');
+                const isPayLater = ps.includes('pay later') || ps.includes('pay_later') || pm === 'pay_later' || ps.includes('net-30');
                 const isRefunded = ps.includes('refund');
-                const isUnpaid = !isPaid && !isEscrow && !isRefunded;
+                const isUnpaid = !isPaid && !isEscrow && !isRefunded && !isPayLater;
 
                 if (paymentFilter === 'paid' && !isPaid) return false;
                 if (paymentFilter === 'escrow' && !isEscrow) return false;
+                if (paymentFilter === 'pay_later' && !isPayLater) return false;
                 if (paymentFilter === 'refunded' && !isRefunded) return false;
                 if ((paymentFilter === 'unpaid' || paymentFilter === 'pending') && !isUnpaid) return false;
             }

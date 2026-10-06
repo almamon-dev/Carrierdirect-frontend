@@ -2,6 +2,7 @@ import apiClient from '@/lib/axios';
 import { formatDisplayDate } from '@/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
 import { CustomerNegotiationItem } from '../types';
+import { resolveQuoteDistance } from '@/utils/geoDistance';
 
 export const useCustomerNegotiations = () => {
     const [negotiations, setNegotiations] = useState<CustomerNegotiationItem[]>([]);
@@ -56,7 +57,7 @@ export const useCustomerNegotiations = () => {
 
                     const pickupLoc = n.origin || n.pickup_address || n.pickup || 'Pickup Location';
                     const deliveryLoc = n.destination || n.delivery_address || n.delivery || 'Delivery Destination';
-                    const distStr = n.distance || (n.distance_km ? `${n.distance_km} km` : '—');
+                    const distStr = resolveQuoteDistance({ ...n, ...(n.quote_request || {}), ...(n.quoteRequest || {}), origin: pickupLoc, destination: deliveryLoc }).distanceStr;
                     const dateFormatted = formatDisplayDate(n.created_at || n.request_date || n.date);
 
                     let statusLabel = n.status || 'Active';
@@ -66,14 +67,27 @@ export const useCustomerNegotiations = () => {
                     const expiryField = n.valid_until || n.expires_at || n.expiry_date || n.validity_date || n.quote_request?.expires_at;
                     const isDateExpired = expiryField ? (!isNaN(new Date(expiryField).getTime()) && new Date(expiryField).getTime() < Date.now()) : false;
 
-                    if (statusRawLower === 'accepted' || String(statusLabel).toLowerCase().includes('accept')) {
+                    const isBooked = Boolean(
+                        statusRawLower === 'booked' ||
+                        statusRawLower === 'confirmed' ||
+                        statusRawLower === 'in_progress' ||
+                        statusRawLower === 'completed' ||
+                        String(statusLabel).toLowerCase().includes('book') ||
+                        n.is_paid ||
+                        n.has_order ||
+                        n.order_id
+                    );
+
+                    if (isBooked) {
+                        statusLabel = 'Booked';
+                    } else if (statusRawLower === 'accepted' || String(statusLabel).toLowerCase().includes('accept')) {
                         statusLabel = 'Accepted';
-                    } else if (statusRawLower === 'expired' || isDateExpired || String(statusLabel).toLowerCase().includes('expire')) {
-                        statusLabel = 'Expired';
-                    } else if (statusRawLower === 'rejected' || String(statusLabel).toLowerCase().includes('reject') || String(statusLabel).toLowerCase().includes('decline')) {
-                        statusLabel = 'Rejected';
-                    } else if (n.revision_status === 'pending' || n.revised_amount) {
-                        statusLabel = 'Counter Received';
+                    } else if (statusRawLower === 'closed' || statusRawLower === 'rejected' || statusRawLower === 'expired' || statusRawLower === 'declined' || statusRawLower === 'cancelled' || isDateExpired) {
+                        statusLabel = 'Closed';
+                    } else if (n.revision_status === 'pending' || statusRawLower.includes('counter') || String(statusLabel).toLowerCase().includes('counter')) {
+                        statusLabel = 'Counter Offers';
+                    } else {
+                        statusLabel = 'Open';
                     }
 
                     return {
@@ -90,7 +104,7 @@ export const useCustomerNegotiations = () => {
                         supplierAvatar: avatarUrl,
                         pickup: pickupLoc,
                         delivery: deliveryLoc,
-                        distance: distStr,
+                        distance: distStr && distStr !== '—' ? distStr : (n.distance || n.est_distance || '—'),
                         budget: `€ ${Number(origPrice || currentPrice).toLocaleString()}`,
                         originalAmount: origPrice,
                         currentOffer: currentPrice,
@@ -115,6 +129,10 @@ export const useCustomerNegotiations = () => {
                         lastSeenHuman: n.last_seen_human || (n.is_online ? "Active now" : "Offline"),
                         lastSeenAt: n.last_seen_at,
                         baseFreight: baseFreightAmount,
+                        isPaid: isBooked || Boolean(n.is_paid),
+                        hasOrder: isBooked || Boolean(n.has_order || n.order_id),
+                        orderId: n.order_id,
+                        orderNumber: n.order_number,
                         raw: n,
                     };
                 });

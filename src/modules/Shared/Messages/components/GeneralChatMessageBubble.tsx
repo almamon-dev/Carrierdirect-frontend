@@ -108,7 +108,7 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
     const isOnlyImage = rawAttachments.length > 0 && rawAttachments[0] === rawText;
     const hasText = Boolean(rawText.trim()) && !isOnlyImage;
 
-    const borderRadiusClasses = 'rounded-2xl';
+    const borderRadiusClasses = 'rounded-[4px]';
 
     const partnerDisplayName = partner?.company_name || partner?.name || 'User';
     const partnerInitial = partnerDisplayName.charAt(0).toUpperCase();
@@ -455,7 +455,7 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
             id={`msg-${msg.id}`}
             data-msg-id={msg.id}
             data-msg-text={rawText}
-            className={`flex gap-2 my-1 ${isSent ? 'justify-end' : 'justify-start'} group relative font-sans items-end rounded-2xl transition-all duration-300`}
+            className={`flex gap-2 my-1 ${isSent ? 'justify-end' : 'justify-start'} group relative font-sans items-end rounded-[4px] transition-all duration-300`}
             style={{ zIndex: isMenuOpen ? 40 : 1 }}
         >
             {/* Facebook Messenger Action Toolbar for Sent Messages (on left of bubble) */}
@@ -464,24 +464,24 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
             {/* Partner Avatar for incoming messages */}
             {!isSent && renderPartnerAvatar()}
 
-            <div className={`flex flex-col ${isSent ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[75%] md:max-w-[65%] relative`}>
+            <div className={`w-fit max-w-[85%] sm:max-w-[75%] md:max-w-[62%] min-w-0 flex flex-col ${isSent ? 'items-end' : 'items-start'} relative`}>
                 {/* Image Attachments */}
                 {imageAttachments.length > 0 && (
                     <div className={`${hasText || nonImageAttachments.length > 0 ? 'mb-1.5' : ''}`}>
                         {imageAttachments.length === 1 ? (
                             <div
                                 onClick={() => onOpenImageLightbox?.(imageAttachments, 0)}
-                                className="rounded-2xl overflow-hidden inline-block shadow-xs hover:opacity-95 transition-opacity max-w-[240px] sm:max-w-[280px] cursor-pointer"
+                                className="rounded-[4px] overflow-hidden inline-block shadow-xs hover:opacity-95 transition-opacity max-w-[240px] sm:max-w-[280px] cursor-pointer"
                             >
                                 <img
                                     src={imageAttachments[0].url}
                                     alt={imageAttachments[0].name || 'Photo'}
-                                    className="w-auto h-auto max-w-[240px] sm:max-w-[280px] max-h-[280px] object-cover rounded-2xl block"
+                                    className="w-auto h-auto max-w-[240px] sm:max-w-[280px] max-h-[280px] object-cover rounded-[4px] block"
                                     loading="eager"
                                 />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden max-w-[260px] sm:max-w-[300px] shadow-xs bg-slate-100 dark:bg-slate-800 p-1">
+                            <div className="grid grid-cols-2 gap-1 rounded-[4px] overflow-hidden max-w-[260px] sm:max-w-[300px] shadow-xs bg-slate-100 dark:bg-slate-800 p-1">
                                 {imageAttachments.slice(0, 4).map((att, idx) => {
                                     const isFourthAndMore = idx === 3 && imageAttachments.length > 4;
                                     const remainingCount = imageAttachments.length - 3;
@@ -490,7 +490,7 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
                                         <div
                                             key={idx}
                                             onClick={() => onOpenImageLightbox?.(imageAttachments, idx)}
-                                            className="relative aspect-square overflow-hidden bg-slate-200 dark:bg-slate-700 rounded-xl cursor-pointer group"
+                                            className="relative aspect-square overflow-hidden bg-slate-200 dark:bg-slate-700 rounded-[4px] cursor-pointer group"
                                         >
                                             <img
                                                 src={att.url}
@@ -529,12 +529,12 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
                                     href={downloadUrl || '#'}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className={`flex items-center gap-3 p-2 rounded-xl border transition-all hover:scale-[1.01] max-w-[280px] sm:max-w-[320px] ${isSent
+                                    className={`flex items-center gap-3 p-2 rounded-[4px] border transition-all hover:scale-[1.01] max-w-[280px] sm:max-w-[320px] ${isSent
                                         ? 'bg-[#d9fdd3] dark:bg-[#005c4b] border-emerald-200/70 dark:border-emerald-700/40 text-slate-900 dark:text-slate-100'
                                         : 'bg-white dark:bg-[#202c33] border-slate-200/80 dark:border-slate-700/80 text-slate-900 dark:text-slate-100'
                                         }`}
                                 >
-                                    <div className={`w-7 h-7 ${badgeColor} rounded-lg flex items-center justify-center text-white font-semibold text-[10px] shrink-0 shadow-2xs`}>
+                                    <div className={`w-7 h-7 ${badgeColor} rounded-[4px] flex items-center justify-center text-white font-semibold text-[10px] shrink-0 shadow-2xs`}>
                                         {badgeText}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -571,9 +571,9 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
 
                     return (
                         <div
-                            className={`relative px-3.5 py-2.5 text-[13.5px] leading-relaxed break-words [overflow-wrap:anywhere] max-w-full ${borderRadiusClasses} ${isSent
-                                ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30 shadow-2xs font-medium'
-                                : 'bg-white dark:bg-[#202c33] text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/60 shadow-2xs font-medium'
+                            className={`relative px-3.5 py-2 text-[13.5px] leading-relaxed break-words [overflow-wrap:anywhere] w-fit max-w-full ${borderRadiusClasses} shadow-2xs font-normal ${isSent
+                                ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] border border-emerald-200/60 dark:border-emerald-700/30'
+                                : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] border border-slate-200/80 dark:border-slate-700/60'
                                 }`}
                         >
                             {quoteSnippet && (
@@ -594,7 +594,8 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
                                 </div>
                             )}
                             <div className="break-words [overflow-wrap:anywhere]">
-                                <span className="whitespace-pre-wrap">{cleanText}</span>{isLongText && !isExpanded && (
+                                <span className="whitespace-pre-wrap">{cleanText}</span>
+                                {isLongText && !isExpanded && (
                                     <button
                                         type="button"
                                         onClick={() => setIsExpanded(true)}
@@ -607,34 +608,54 @@ export const GeneralChatMessageBubble: React.FC<GeneralChatMessageBubbleProps> =
                                         Read more
                                     </button>
                                 )}
+                                <span className="float-right ml-3.5 mt-1.5 inline-flex items-center gap-1 text-[10px] font-normal text-slate-400 dark:text-slate-400 select-none align-bottom">
+                                    {isPinned && <Pin size={10} className="text-amber-500 fill-amber-500 mr-0.5 shrink-0" />}
+                                    {Boolean(msg.is_edited) && (
+                                        <span className="text-[9px] italic mr-0.5">
+                                            (edited)
+                                        </span>
+                                    )}
+                                    <span>
+                                        {msg.time || msg.created_at_human || 'Just now'}
+                                    </span>
+                                    {isSent && (
+                                        msg.is_read ? (
+                                            <CheckCheck size={13} className="text-[#38bdf8] shrink-0" />
+                                        ) : (
+                                            <Check size={13} className="text-slate-400 shrink-0" />
+                                        )
+                                    )}
+                                </span>
                             </div>
                         </div>
                     );
                 })()}
 
-                {/* Time, Pin & Delivery status */}
-                <div className={`flex items-center gap-1 mt-0.5 px-1 ${isSent ? 'justify-end' : 'justify-start'}`}>
-                    {isPinned && (
-                        <Pin size={10} className="text-amber-500 fill-amber-500 mr-0.5 shrink-0" />
-                    )}
-                    {Boolean(msg.is_edited) && (
-                        <span className="text-[9.5px] text-slate-400 dark:text-slate-400 select-none italic mr-0.5">
-                            (edited)
+                {/* Time, Pin & Delivery status (only when message has NO text, e.g. standalone attachments) */}
+                {!hasText && (
+                    <div className={`flex items-center gap-1 mt-0.5 px-1 ${isSent ? 'justify-end' : 'justify-start'}`}>
+                        {isPinned && (
+                            <Pin size={10} className="text-amber-500 fill-amber-500 mr-0.5 shrink-0" />
+                        )}
+                        {Boolean(msg.is_edited) && (
+                            <span className="text-[9.5px] text-slate-400 dark:text-slate-400 select-none italic mr-0.5">
+                                (edited)
+                            </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 dark:text-slate-400 select-none">
+                            {msg.time || msg.created_at_human || 'Just now'}
                         </span>
-                    )}
-                    <span className="text-[10px] text-slate-400 dark:text-slate-400 select-none">
-                        {msg.time || msg.created_at_human || 'Just now'}
-                    </span>
-                    {isSent && (
-                        <span className="text-slate-400 dark:text-slate-400 shrink-0">
-                            {msg.is_read ? (
-                                <CheckCheck size={13} className="text-[#38bdf8]" />
-                            ) : (
-                                <Check size={13} className="text-slate-400" />
-                            )}
-                        </span>
-                    )}
-                </div>
+                        {isSent && (
+                            <span className="text-slate-400 dark:text-slate-400 shrink-0">
+                                {msg.is_read ? (
+                                    <CheckCheck size={13} className="text-[#38bdf8]" />
+                                ) : (
+                                    <Check size={13} className="text-slate-400" />
+                                )}
+                            </span>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Facebook Messenger Action Toolbar for Received Messages (on right of bubble) */}

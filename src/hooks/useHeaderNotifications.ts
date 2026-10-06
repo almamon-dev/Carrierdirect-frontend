@@ -316,13 +316,22 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
     }, [role]);
 
     const deleteNotification = useCallback(async (id: string | number) => {
-        setLocalNotifs(prev => prev.filter(n => n.id !== id));
+        setLocalNotifs(prev => prev.filter(n => String(n.id) !== String(id)));
         setApiNotifs(prev => {
-            const next = prev.filter(n => n.id !== id);
+            const next = prev.filter(n => String(n.id) !== String(id));
             return next;
         });
         try {
             await apiClient.delete(`/${role}/notifications/${id}`).catch(() => {});
+        } catch {}
+    }, [role]);
+
+    const deleteBulkNotifications = useCallback(async (ids: (string | number)[]) => {
+        const idSet = new Set(ids.map(String));
+        setLocalNotifs(prev => prev.filter(n => !idSet.has(String(n.id))));
+        setApiNotifs(prev => prev.filter(n => !idSet.has(String(n.id))));
+        try {
+            await apiClient.post(`/${role}/notifications/bulk-delete`, { ids }).catch(() => {});
         } catch {}
     }, [role]);
 
@@ -357,6 +366,7 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
         markAsUnread,
         markAllAsRead,
         deleteNotification,
+        deleteBulkNotifications,
         clearAll,
         addNotification,
     };

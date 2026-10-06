@@ -17,21 +17,21 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
     activeTab,
     onSelectTab,
 }) => {
-    // Calculate counts for each status category
+    // Calculate counts for canonical status categories
     const counts = useMemo(() => ({
         all: requestData.length,
-        active: requestData.filter(r => r.status === 'Active' || r.status === 'Bidding Active' || r.status === 'active').length,
-        waiting: requestData.filter(r => (r.quotesReceived === 0 || r.status === 'Draft' || r.status === 'pending') && r.status !== 'Accepted').length,
-        review: requestData.filter(r => r.quotesReceived > 0 && r.status !== 'Accepted').length,
-        accepted: requestData.filter(r => r.status === 'Accepted' || r.status === 'completed' || r.hasAcceptedQuote).length,
+        inProgress: requestData.filter(r => r.status === 'In Progress' || r.rawStatus === 'in_progress' || r.status === 'Active' || r.status === 'active').length,
+        processing: requestData.filter(r => r.status === 'Processing' || r.rawStatus === 'pending' || r.status === 'Draft' || r.status === 'pending' || (r.quotesReceived === 0 && r.status !== 'Completed' && r.status !== 'Accepted')).length,
+        completed: requestData.filter(r => r.status === 'Completed' || r.rawStatus === 'completed' || r.status === 'Accepted' || r.hasAcceptedQuote).length,
+        cancelled: requestData.filter(r => r.status === 'Cancelled' || r.rawStatus === 'cancelled' || r.status === 'Expired' || r.status === 'rejected').length,
     }), [requestData]);
 
     const tabs: { id: FilterTabId; label: string; count: number }[] = [
         { id: 'All', label: 'All', count: counts.all },
-        { id: 'Active', label: 'Active', count: counts.active },
-        { id: 'Waiting', label: 'Waiting Quotes', count: counts.waiting },
-        { id: 'Review', label: 'To Review', count: counts.review },
-        { id: 'Accepted', label: 'Accepted', count: counts.accepted },
+        { id: 'In Progress', label: 'In Progress', count: counts.inProgress },
+        { id: 'Processing', label: 'Processing', count: counts.processing },
+        { id: 'Completed', label: 'Completed', count: counts.completed },
+        { id: 'Cancelled', label: 'Cancelled', count: counts.cancelled },
     ];
 
     return (

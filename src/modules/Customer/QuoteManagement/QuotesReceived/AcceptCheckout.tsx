@@ -13,10 +13,12 @@ import {
     ExternalLink,
     FileText,
 } from "lucide-react";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import Button from "@/components/ui/button";
 import { useToastStore } from "@/stores/useToastStore";
 import apiClient from "@/lib/axios";
 import { decryptId } from "@/lib/encryption";
+import { getStripe } from "@/lib/stripe";
 import { useQuoteViewDetail } from "./hooks/useQuoteViewDetail";
 import { AcceptCheckoutSummaryCard } from "./components/AcceptCheckoutSummaryCard";
 import {
@@ -27,6 +29,7 @@ import {
 } from "./components/AcceptCheckoutPaymentCard";
 import { AcceptCheckoutSuccessModal } from "./components/AcceptCheckoutSuccessModal";
 import { AddPaymentMethodModal } from "@/modules/Customer/Settings/components/AddPaymentMethodModal";
+import { resolveQuoteDistance } from "@/utils/geoDistance";
 
 const formatQuoteId = (idStr?: string | number): string => {
     if (!idStr) return "QT-0001";
@@ -53,11 +56,9 @@ export default function CustomerAcceptCheckout() {
     const stateQuote = location.state?.quote;
 
     // Use hook to fetch quote if not passed via route state
-    const { quote: fetchedQuote, loading: fetchLoading } = useQuoteViewDetail(
-        stateQuote ? undefined : cleanQuoteId
-    );
+    const { quote: fetchedQuote, loading: fetchLoading } = useQuoteViewDetail(cleanQuoteId);
 
-    const rawQuote = stateQuote || fetchedQuote;
+    const rawQuote = fetchedQuote || stateQuote;
     const req = (rawQuote as any)?.quote_request || (rawQuote as any)?.request || (rawQuote as any)?.logistics || {};
 
     // Dynamic credit limit & payment profile state (fetched dynamically from database)
@@ -174,6 +175,14 @@ export default function CustomerAcceptCheckout() {
                 ? `${rawQuote.rating} ★`
                 : "4.9 ★";
 
+    const parseAmount = (val: any): number => {
+        if (val === null || val === undefined) return 0;
+        if (typeof val === "number") return isNaN(val) ? 0 : val;
+        const str = String(val).replace(/[^0-9.-]/g, "").trim();
+        const num = parseFloat(str);
+        return isNaN(num) ? 0 : num;
+    };
+
     // Robust extra charges extractor
     const extractCharges = (): Array<{ type: string; custom_name: string; amount: number }> => {
         let source =
@@ -184,6 +193,8 @@ export default function CustomerAcceptCheckout() {
             rawQuote?.surcharges ??
             rawQuote?.pricing?.extra_charges ??
             rawQuote?.pricing?.extraCharges ??
+            stateQuote?.extra_charges ??
+            stateQuote?.extraCharges ??
             req?.extra_charges ??
             [];
 
@@ -200,22 +211,10 @@ export default function CustomerAcceptCheckout() {
             .map((item: any) => {
                 const type = item?.type || item?.custom_name || item?.customName || item?.name || "Extra Service";
                 const custom_name = item?.custom_name || item?.customName || item?.name || item?.type || "Extra Charge";
-                const amount = Number(item?.amount || item?.price || item?.fee || 0);
+                const amount = parseAmount(item?.amount ?? item?.price ?? item?.fee);
                 return { type, custom_name, amount };
             })
             .filter((item: any) => item.amount > 0);
-
-        if (list.length === 0 && rawQuote?.base_amount && (rawQuote?.amount_raw || rawQuote?.amount)) {
-            const rawTotal = Number(rawQuote.amount_raw || parseFloat(String(rawQuote.amount).replace(/[^0-9.]/g, "")) || 0);
-            const rawBase = Number(rawQuote.base_amount);
-            if (rawTotal > rawBase && rawBase > 0) {
-                list.push({
-                    type: "Extra Surcharges",
-                    custom_name: "Carrier Surcharges & Handling",
-                    amount: rawTotal - rawBase,
-                });
-            }
-        }
 
         return list;
     };
@@ -223,31 +222,72 @@ export default function CustomerAcceptCheckout() {
     const extraCharges = extractCharges();
     const extraTotal = extraCharges.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
 
-    const totalRaw = Number(
+    const totalRaw = parseAmount(
+        rawQuote?.totalAmount ??
+        rawQuote?.total_amount ??
         rawQuote?.amount_raw ??
         rawQuote?.amount ??
-        (rawQuote?.amount ? parseFloat(String(rawQuote.amount).replace(/[^0-9.]/g, "")) : 4000)
+        rawQuote?.revised_amount_raw ??
+        rawQuote?.revised_amount ??
+        rawQuote?.proposed_amount ??
+        rawQuote?.newTotal ??
+        (rawQuote as any)?.currentPrice ??
+        stateQuote?.amount_raw ??
+        stateQuote?.amount
     );
 
-    const baseFreightAmount = Number(
+    const rawBase = parseAmount(
+        rawQuote?.baseFreightAmount ??
+        rawQuote?.base_amount_raw ??
         rawQuote?.base_amount ??
-        rawQuote?.pricing?.baseFreight ??
-        (rawQuote?.freightAmount ? Number(rawQuote.freightAmount) : null) ??
-        (totalRaw > extraTotal && extraTotal > 0 ? totalRaw - extraTotal : totalRaw)
+        rawQuote?.baseFreight ??
+        rawQuote?.basePrice ??
+        rawQuote?.base_price ??
+        stateQuote?.baseFreightAmount ??
+        stateQuote?.base_amount_raw
     );
 
-    const insuranceAmount = Number(rawQuote?.insuranceAmount ?? rawQuote?.insurance_amount ?? rawQuote?.pricing?.insurance ?? 0);
-    const loadingUnloadingAmount = Number(rawQuote?.loadingUnloadingAmount ?? rawQuote?.loading_unloading_amount ?? rawQuote?.pricing?.loadingUnloading ?? 0);
-    const discountAmount = Number(rawQuote?.discount_amount ?? rawQuote?.discount ?? 0);
+    let baseFreightAmount = 0;
+    let totalAmount = 0;
 
-    // 10% System charge split: 5% customer platform fee, 5% supplier fee
-    const systemChargePercent = 5;
-    const subtotalBeforePlatform = baseFreightAmount + extraTotal + insuranceAmount + loadingUnloadingAmount;
-    const systemChargeAmount = Math.round(subtotalBeforePlatform * (systemChargePercent / 100));
+    if (rawBase > 0) {
+        baseFreightAmount = rawBase;
+        totalAmount = totalRaw > rawBase ? totalRaw : (rawBase + extraTotal);
+    } else if (totalRaw > 0) {
+        if (extraTotal > 0 && totalRaw > extraTotal) {
+            baseFreightAmount = totalRaw - extraTotal;
+            totalAmount = totalRaw;
+        } else {
+            baseFreightAmount = totalRaw;
+            totalAmount = totalRaw + extraTotal;
+        }
+    } else {
+        baseFreightAmount = 0;
+        totalAmount = extraTotal;
+    }
 
-    // Subtotal & Total
-    const subtotal = subtotalBeforePlatform + systemChargeAmount;
-    const totalAmount = Math.max(0, subtotal - discountAmount);
+    const insuranceAmount = parseAmount(rawQuote?.insuranceAmount ?? rawQuote?.insurance_amount ?? rawQuote?.pricing?.insurance);
+    const loadingUnloadingAmount = parseAmount(rawQuote?.loadingUnloadingAmount ?? rawQuote?.loading_unloading_amount ?? rawQuote?.pricing?.loadingUnloading);
+    const discountAmount = parseAmount(rawQuote?.discount_amount ?? rawQuote?.discount);
+
+    if (discountAmount > 0) {
+        totalAmount = Math.max(0, totalAmount - discountAmount);
+    }
+
+    const distanceRes = resolveQuoteDistance({
+        ...(req || {}),
+        ...(rawQuote || {}),
+        pickup_address: rawQuote?.pickup_address || req?.pickup_address || rawQuote?.origin_city || req?.pickup_city,
+        delivery_address: rawQuote?.delivery_address || req?.delivery_address || rawQuote?.destination_city || req?.delivery_city,
+        pickup_city: rawQuote?.origin_city || req?.pickup_city,
+        delivery_city: rawQuote?.destination_city || req?.delivery_city,
+        pickup_lat: rawQuote?.pickup_lat || req?.pickup_lat || rawQuote?.pickupLat || req?.pickupLat,
+        pickup_lng: rawQuote?.pickup_lng || req?.pickup_lng || rawQuote?.pickupLng || req?.pickupLng,
+        delivery_lat: rawQuote?.delivery_lat || req?.delivery_lat || rawQuote?.deliveryLat || req?.deliveryLat,
+        delivery_lng: rawQuote?.delivery_lng || req?.delivery_lng || rawQuote?.deliveryLng || req?.deliveryLng,
+        distance_km: rawQuote?.distance_km || req?.distance_km,
+        distance: rawQuote?.distance || req?.distance,
+    });
 
     const quote = {
         id: formatQuoteId(rawQuote?.quote_id || rawQuote?.id || cleanQuoteId),
@@ -263,7 +303,7 @@ export default function CustomerAcceptCheckout() {
         vehicleType: rawQuote?.vehicle || rawQuote?.vehicle_type || req?.vehicle_type || "Covered Van (Standard)",
         palletType: rawQuote?.pallet_type || req?.pallet_type || req?.type_of_pallets || "Standard Euro Pallet",
         weight: rawQuote?.cargo?.weight || rawQuote?.weight || req?.weight || req?.total_weight || "Standard Load (500 KG)",
-        distance: rawQuote?.distance || (rawQuote?.distance_km ? `${rawQuote.distance_km} km` : (req?.distance || (req?.distance_km ? `${req.distance_km} km` : "—"))),
+        distance: distanceRes?.distanceStr && distanceRes.distanceStr !== "—" ? distanceRes.distanceStr : (rawQuote?.distance || (rawQuote?.distance_km ? `${rawQuote.distance_km} km` : (req?.distance || (req?.distance_km ? `${req.distance_km} km` : "—")))),
         transitTime: rawQuote?.transit_time || rawQuote?.estimated_time || req?.transit_time || "1 - 2 Business Days",
         handlingServices: rawQuote?.handling_services || req?.handling_services || ["Tail-lift assistance", "GPS Live Tracking", "Loading Support"],
         notes: rawQuote?.notes || req?.additional_notes || req?.notes || rawQuote?.special_instructions || "Direct dock-to-dock transport with carrier direct escrow verification.",
@@ -273,9 +313,7 @@ export default function CustomerAcceptCheckout() {
         insuranceAmount,
         loadingUnloadingAmount,
         discountAmount,
-        systemChargePercent,
-        systemChargeAmount,
-        totalAmount: totalAmount > 0 ? totalAmount : 4200,
+        totalAmount,
     };
 
     const [paymentOption, setPaymentOption] = useState<"pay_now" | "pay_later">("pay_now");
@@ -329,64 +367,178 @@ export default function CustomerAcceptCheckout() {
         }
 
         if (isProcessing) return;
-
         setIsProcessing(true);
+
         try {
             const targetQuoteId = rawQuote?.id || cleanQuoteId;
-            let acceptRes: any = null;
 
-            const cleanNum = cardData.cardNumber.replace(/\D/g, "");
-            const brand = detectCardBrand(cleanNum);
-
-            if (targetQuoteId) {
-                acceptRes = await apiClient.post(`/customer/quotes/${targetQuoteId}/accept`, {
+            if (paymentOption === "pay_now") {
+                // ── REAL STRIPE PAYMENT FLOW ──────────────────────────────────
+                const paymentPayload: any = {
                     discount_amount: discountAmount,
-                    payment_option: paymentOption,
-                    payment_tab: paymentTab,
-                    saved_card_id: paymentTab === "saved_card" ? selectedCardId : null,
-                    ...(paymentOption === "pay_now" && paymentTab === "new_card" ? {
-                        card_name: cardData.cardName,
-                        card_number: cardData.cardNumber,
-                        card_last_four: cleanNum.slice(-4),
-                        card_brand: brand === "generic" ? "Visa" : brand.toUpperCase(),
-                        card_expiry: cardData.expDate,
-                        save_card: saveCard,
-                    } : {}),
-                });
-            }
+                };
 
-            // Optionally persist new card if requested
-            if (paymentOption === "pay_now" && paymentTab === "new_card" && saveCard && cleanNum) {
-                try {
-                    const expParts = cardData.expDate.split("/");
-                    await apiClient.post("/subscription/payment-methods", {
-                        cardholder_name: cardData.cardName,
-                        card_number: cleanNum,
-                        exp_month: expParts[0],
-                        exp_year: expParts[1],
-                        cvc: cardData.cvc,
-                        is_primary: savedCards.length === 0,
-                    });
-                } catch (cardErr) {
-                    console.log("Card save warning (ignored):", cardErr);
+                if (paymentTab === "saved_card" && selectedCardId) {
+                    const savedCard = savedCards.find((c: any) => String(c.id) === String(selectedCardId));
+                    const pmId = savedCard?.stripe_pm_id || savedCard?.payment_method_id || savedCard?.pm_id;
+                    if (pmId) {
+                        paymentPayload.payment_method_id = pmId;
+                    } else {
+                        throw new Error("Saved card payment method not found. Please use a new card.");
+                    }
+                } else {
+                    const cleanNumber = cardData.cardNumber.replace(/\s/g, "");
+                    const parts = cardData.expDate.split("/");
+                    paymentPayload.card_number = cleanNumber;
+                    paymentPayload.exp_month = parseInt(parts[0], 10);
+                    paymentPayload.exp_year = parseInt("20" + parts[1], 10);
+                    paymentPayload.cvc = cardData.cvc;
+                    paymentPayload.card_name = cardData.cardName || "Customer";
                 }
+
+                // Step 1: Process card tokenization and intent confirmation securely on backend
+                const intentRes: any = await apiClient.post(
+                    `/customer/quotes/${targetQuoteId}/create-payment-intent`,
+                    paymentPayload
+                );
+                const intentData = intentRes?.data?.data || intentRes?.data || {};
+                const paymentIntentId = intentData?.payment_intent_id;
+
+                if (!paymentIntentId && !intentData?.client_secret) {
+                    throw new Error(intentRes?.data?.message || "Payment processing failed. Please check card details.");
+                }
+
+                // If 3DS action is required, handle it via Stripe.js
+                if (intentData?.requires_action && intentData?.client_secret) {
+                    const stripe = await getStripe(intentData.publishable_key);
+                    if (stripe) {
+                        const nextActionRes = await stripe.handleNextAction({
+                            clientSecret: intentData.client_secret,
+                        });
+                        if (nextActionRes.error) {
+                            throw new Error(nextActionRes.error.message || "3D Secure authentication failed.");
+                        }
+                    }
+                }
+
+                // Step 2: Accept quote and link confirmed payment in database
+                let acceptRes: any = null;
+                if (targetQuoteId) {
+                    acceptRes = await apiClient.post(`/customer/quotes/${targetQuoteId}/accept`, {
+                        discount_amount: discountAmount,
+                        payment_option: "pay_now",
+                        payment_intent_id: paymentIntentId,
+                    });
+                }
+
+                const resData = acceptRes?.data?.data || acceptRes?.data || {};
+                const orderNum = resData?.order_number || `ORD-${String(targetQuoteId || 1001).padStart(4, "0")}`;
+                const invNum = resData?.invoice_number || `INV-${String(targetQuoteId || 202545).padStart(4, "0")}`;
+
+                setOrderData({
+                    order_number: orderNum,
+                    invoice_number: invNum,
+                    order_id: resData?.order_id,
+                    invoice_id: resData?.invoice_id,
+                });
+
+                // Sync payment completion to localStorage
+                const cleanId = String(targetQuoteId).replace(/[^0-9]/g, "");
+                if (cleanId) {
+                    localStorage.setItem(`cd_quote_paid_${cleanId}`, "true");
+                    localStorage.setItem(`cd_quote_paid_type_${cleanId}`, "pay_now");
+                }
+                if (targetQuoteId) {
+                    localStorage.setItem(`cd_quote_paid_${targetQuoteId}`, "true");
+                    localStorage.setItem(`cd_quote_paid_type_${targetQuoteId}`, "pay_now");
+                }
+
+                // Send payment complete system message to negotiation chat thread
+                const quoteNumStr = quote.id || `QT-${String(cleanId || 1).padStart(4, "0")}`;
+                const formattedAmt = `€${quote.totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                const paymentChatMsg = `Payment completed! 🎉\nEscrow payment of ${formattedAmt} EUR has been secured via Stripe for quote #${String(quoteNumStr).replace(/^#+/, "")}. Transport Order #${orderNum} is now active.`;
+
+                try {
+                    await apiClient.post(`/customer/negotiations/${cleanId || targetQuoteId}/messages`, {
+                        message: paymentChatMsg,
+                        text: paymentChatMsg,
+                        type: "system",
+                    });
+                } catch {
+                    try {
+                        await apiClient.post(`/negotiations/${cleanId || targetQuoteId}/messages`, {
+                            message: paymentChatMsg,
+                            text: paymentChatMsg,
+                            type: "system",
+                        });
+                    } catch {}
+                }
+
+                window.dispatchEvent(new CustomEvent("carrierdirect_payment_success", { detail: { quoteId: cleanId || targetQuoteId, orderNumber: orderNum, paymentOption: "pay_now" } }));
+                window.dispatchEvent(new CustomEvent("carrierdirect_negotiation_refresh"));
+                window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+                showToast("Payment confirmed! Booking is being processed via secure escrow.", "success");
+                setIsBookingSuccess(true);
+
+            } else {
+                // ── PAY LATER FLOW (unchanged — no real Stripe charge needed) ──
+                let acceptRes: any = null;
+                if (targetQuoteId) {
+                    acceptRes = await apiClient.post(`/customer/quotes/${targetQuoteId}/accept`, {
+                        discount_amount: discountAmount,
+                        payment_option: "pay_later",
+                    });
+                }
+
+                const resData = acceptRes?.data?.data || acceptRes?.data || {};
+                const orderNum = resData?.order_number || `ORD-${String(targetQuoteId || 1001).padStart(4, "0")}`;
+                const invNum = resData?.invoice_number || `INV-${String(targetQuoteId || 202545).padStart(4, "0")}`;
+
+                setOrderData({
+                    order_number: orderNum,
+                    invoice_number: invNum,
+                    order_id: resData?.order_id,
+                    invoice_id: resData?.invoice_id,
+                });
+
+                // Sync payment completion to localStorage
+                const cleanId = String(targetQuoteId).replace(/[^0-9]/g, "");
+                if (cleanId) {
+                    localStorage.setItem(`cd_quote_paid_${cleanId}`, "true");
+                    localStorage.setItem(`cd_quote_paid_type_${cleanId}`, "pay_later");
+                }
+                if (targetQuoteId) {
+                    localStorage.setItem(`cd_quote_paid_${targetQuoteId}`, "true");
+                    localStorage.setItem(`cd_quote_paid_type_${targetQuoteId}`, "pay_later");
+                }
+
+                // Send pay later confirmed system message to negotiation chat thread
+                const quoteNumStr = quote.id || `QT-${String(cleanId || 1).padStart(4, "0")}`;
+                const formattedAmt = `€${quote.totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                const payLaterChatMsg = `Pay Later booking confirmed! 📋\nBooking of ${formattedAmt} EUR is confirmed under Corporate Net-30 terms for quote #${String(quoteNumStr).replace(/^#+/, "")}. Transport Order #${orderNum} is now active.`;
+
+                try {
+                    await apiClient.post(`/customer/negotiations/${cleanId || targetQuoteId}/messages`, {
+                        message: payLaterChatMsg,
+                        text: payLaterChatMsg,
+                        type: "system",
+                    });
+                } catch {
+                    try {
+                        await apiClient.post(`/negotiations/${cleanId || targetQuoteId}/messages`, {
+                            message: payLaterChatMsg,
+                            text: payLaterChatMsg,
+                            type: "system",
+                        });
+                    } catch {}
+                }
+
+                window.dispatchEvent(new CustomEvent("carrierdirect_payment_success", { detail: { quoteId: cleanId || targetQuoteId, orderNumber: orderNum, paymentOption: "pay_later" } }));
+                window.dispatchEvent(new CustomEvent("carrierdirect_negotiation_refresh"));
+                window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
+                showToast("Quote accepted & booking confirmed successfully!", "success");
+                setIsBookingSuccess(true);
             }
-
-            const resData = acceptRes?.data?.data || acceptRes?.data || {};
-            const createdOrderNumber = resData?.order_number || `ORD-${String(targetQuoteId || 1001).padStart(4, "0")}`;
-            const createdInvoiceNumber = resData?.invoice_number || `INV-${String(targetQuoteId || 202545).padStart(4, "0")}`;
-            const invoiceId = resData?.invoice_id;
-
-            setOrderData({
-                order_number: createdOrderNumber,
-                invoice_number: createdInvoiceNumber,
-                order_id: resData?.order_id,
-                invoice_id: invoiceId,
-            });
-
-            window.dispatchEvent(new CustomEvent("carrierdirect_notif_update"));
-            showToast("Quote accepted & booking confirmed successfully!", "success");
-            setIsBookingSuccess(true);
         } catch (error: any) {
             console.error("Booking error:", error);
             const msg = error?.response?.data?.message || error?.message || "Failed to confirm booking.";
@@ -406,35 +558,29 @@ export default function CustomerAcceptCheckout() {
 
     return (
         <div className="pt-4 sm:pt-6 pb-12 px-3.5 sm:px-6 max-w-7xl mx-auto w-full font-sans antialiased text-slate-800 dark:text-slate-100 min-h-[85vh]">
-            {/* Top Navigation & Breadcrumbs */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/80 dark:border-slate-800">
-                <div className="space-y-1">
+            {/* Top Navigation & Clean Header */}
+            <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                        <button
-                            type="button"
-                            onClick={() => navigate(-1)}
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors cursor-pointer mr-2"
-                        >
-                            <ArrowLeft size={14} />
-                            <span>Back to quote</span>
-                        </button>
-                        <span className="text-slate-300 dark:text-slate-700">/</span>
                         <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                            Complete Booking &amp; Escrow Payment
+                            Complete Booking
                         </h1>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-[3px] text-[11px] font-bold bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] border border-orange-200/80 dark:border-orange-900/50">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700/70">
                             {quote.id}
                         </span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                            •
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                            Request: <strong className="text-slate-700 dark:text-slate-300 font-semibold">{quote.requestId}</strong>
+                        </span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        Authorize carrier booking for RFQ <span className="font-bold text-[#ff4a1f]">{quote.requestId}</span> with 100% Escrow Protection Guarantee.
-                    </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs">
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
                         <ShieldCheck size={14} className="text-emerald-500" />
-                        <span>Escrow Protected</span>
+                        <span>100% Escrow Protected</span>
                     </span>
                 </div>
             </div>
@@ -519,12 +665,7 @@ export default function CustomerAcceptCheckout() {
                                 </div>
                             )}
 
-                            <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
-                                <span>Platform Fee ({quote.systemChargePercent}%)</span>
-                                <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                    €{quote.systemChargeAmount.toLocaleString()}
-                                </span>
-                            </div>
+                            
 
                             {quote.discountAmount > 0 && (
                                 <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400 font-medium">

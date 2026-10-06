@@ -10,6 +10,7 @@ interface CargoDimensionsTableProps {
     addDimensionRow: () => void;
     updateDimension: (id: number, field: string, value: string) => void;
     removeDimension: (id: number) => void;
+    error?: string;
 }
 
 export const CargoDimensionsTable: React.FC<CargoDimensionsTableProps> = ({
@@ -17,37 +18,67 @@ export const CargoDimensionsTable: React.FC<CargoDimensionsTableProps> = ({
     addDimensionRow,
     updateDimension,
     removeDimension,
+    error,
 }) => {
     const { getOptions } = useDropdownOptions();
     const UNIT_OPTIONS = getOptions('dimension_unit');
 
     return (
         <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
-            <SectionHeader title="Cargo Dimensions (L × W × H)" icon={Box} />
+            <SectionHeader title="Cargo Dimensions (L × W × H)" icon={Box} required />
             
-            <div className="space-y-1.5 mt-1.5">
-                {dimensions.map((dim) => (
-                    <div key={dim.id} className="flex flex-wrap sm:flex-nowrap items-center gap-1.5">
-                        <div className="flex-1 min-w-[75px]">
-                            <Input placeholder="Length" value={dim.length} onChange={(e) => updateDimension(dim.id, 'length', e.target.value)} className="h-7.5 text-xs" />
+            <div className="space-y-1.5 mt-1">
+                {dimensions.map((dim, idx) => (
+                    <div key={dim.id || idx} className="flex flex-wrap sm:flex-nowrap items-center gap-1.5">
+                        <div className="flex-1 min-w-[70px]">
+                            <Input 
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="Length" 
+                                value={dim.length} 
+                                onChange={(e) => updateDimension(dim.id, 'length', e.target.value)} 
+                                className="h-[28px] !h-[28px] text-[12px] py-0.5 px-2 rounded-[3px]" 
+                            />
                         </div>
                         <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold select-none">×</span>
-                        <div className="flex-1 min-w-[75px]">
-                            <Input placeholder="Width" value={dim.width} onChange={(e) => updateDimension(dim.id, 'width', e.target.value)} className="h-7.5 text-xs" />
+                        <div className="flex-1 min-w-[70px]">
+                            <Input 
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="Width" 
+                                value={dim.width} 
+                                onChange={(e) => updateDimension(dim.id, 'width', e.target.value)} 
+                                className="h-[28px] !h-[28px] text-[12px] py-0.5 px-2 rounded-[3px]" 
+                            />
                         </div>
                         <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold select-none">×</span>
-                        <div className="flex-1 min-w-[75px]">
-                            <Input placeholder="Height" value={dim.height} onChange={(e) => updateDimension(dim.id, 'height', e.target.value)} className="h-7.5 text-xs" />
+                        <div className="flex-1 min-w-[70px]">
+                            <Input 
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="Height" 
+                                value={dim.height} 
+                                onChange={(e) => updateDimension(dim.id, 'height', e.target.value)} 
+                                className="h-[28px] !h-[28px] text-[12px] py-0.5 px-2 rounded-[3px]" 
+                            />
                         </div>
-                        <div className="w-18 shrink-0">
-                            <Input placeholder="Qty" value={dim.qty} onChange={(e) => updateDimension(dim.id, 'qty', e.target.value)} className="h-7.5 text-xs text-center" />
+                        <div className="w-16 shrink-0">
+                            <Input 
+                                type="text"
+                                inputMode="numeric"
+                                placeholder="Qty" 
+                                value={dim.qty} 
+                                onChange={(e) => updateDimension(dim.id, 'qty', e.target.value)} 
+                                className="h-[28px] !h-[28px] text-[12px] py-0.5 px-1.5 text-center rounded-[3px]" 
+                            />
                         </div>
-                        <div className="w-22 shrink-0">
+                        <div className="w-20 shrink-0">
                             <Select 
                                 value={dim.unit} 
                                 onChange={(e) => updateDimension(dim.id, 'unit', e.target.value)} 
                                 options={UNIT_OPTIONS}
-                                className="h-7.5 text-xs" 
+                                size="sm"
+                                className="h-[28px] [&>button]:h-[28px] [&>button]:!h-[28px] [&>button]:py-0 [&>button]:text-[11.5px] [&>button]:px-2 rounded-[3px]" 
                                 showSearch={false} 
                             />
                         </div>
@@ -63,6 +94,12 @@ export const CargoDimensionsTable: React.FC<CargoDimensionsTableProps> = ({
                     </div>
                 ))}
                 
+                {error && (
+                    <p className="text-[11.5px] text-[#d82c0d] font-medium mt-1 animate-in fade-in duration-200">
+                        {error}
+                    </p>
+                )}
+
                 <button 
                     type="button" 
                     onClick={addDimensionRow} 

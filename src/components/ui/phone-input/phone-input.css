@@ -1,0 +1,101 @@
+/* Custom styling for react-phone-number-input matching project standard Input */
+.custom-phone-input-wrapper .PhoneInput {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 36px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.125rem; /* rounded-sm */
+  padding: 0 12px;
+  transition: border-color 0.15s ease-in-out;
+  box-sizing: border-box;
+}
+
+.custom-phone-input-wrapper .PhoneInput:focus-within {
+  border-color: #94a3b8; /* focus:border-slate-400 */
+  outline: none;
+  box-shadow: none;
+}
+
+.custom-phone-input-wrapper.has-error .PhoneInput {
+  border-color: #d82c0d;
+}
+
+.custom-phone-input-wrapper.has-error .PhoneInput:focus-within {
+  border-color: #d82c0d;
+  outline: none;
+  box-shadow: none;
+}
+
+.custom-phone-input-wrapper .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  padding-right: 8px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.custom-phone-input-wrapper .PhoneInputCountryIcon,
+.custom-phone-input-wrapper .PhoneInputCountrySelect,
+.custom-phone-input-wrapper .PhoneInputCountrySelectArrow {
+  display: none !important;
+}
+
+.custom-phone-input-wrapper .PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  border: none !important;
+  outline: none !important;
+  font-size: 13px;
+  font-weight: 400;
+  font-family: inherit;
+  color: #202223;
+  background: transparent;
+  padding: 0;
+  height: 100%;
+  box-shadow: none !important;
+}
+
+.custom-phone-input-wrapper .PhoneInputInput:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.custom-phone-input-wrapper .PhoneInputInput::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.custom-phone-input-wrapper .PhoneInputInput:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  color: #64748b;
+}
+
+/* Dark mode overrides */
+html.dark .custom-phone-input-wrapper .PhoneInput {
+  background-color: #12161c;
+  border-color: rgba(51, 65, 85, 0.8);
+}
+
+html.dark .custom-phone-input-wrapper .PhoneInput:focus-within {
+  border-color: #64748b;
+}
+
+html.dark .custom-phone-input-wrapper .PhoneInputCountry {
+  border-right-color: rgba(51, 65, 85, 0.8);
+}
+
+html.dark .custom-phone-input-wrapper .PhoneInputInput {
+  color: #f1f5f9;
+}
+
+html.dark .custom-phone-input-wrapper .PhoneInputInput::placeholder {
+  color: #64748b;
+}
+
+html.dark .custom-phone-input-wrapper .PhoneInputInput:disabled {
+  color: #64748b;
+}

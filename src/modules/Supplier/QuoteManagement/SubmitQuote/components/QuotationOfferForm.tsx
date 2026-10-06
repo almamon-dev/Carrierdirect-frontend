@@ -8,6 +8,7 @@ import { QuoteRequest } from '../../data/quoteRequestsData';
 import { ExtraChargesSection, ExtraChargeItem } from './ExtraChargesSection';
 import { CommercialRemarksSection } from './CommercialRemarksSection';
 import SupplierAccountConnectModal from '@/components/modals/supplier-connect-modal';
+import CompliancePendingModal from '@/components/common/CompliancePendingModal';
 import { useStripeConnectCheck } from '../hooks/useStripeConnectCheck';
 import { useQuoteSubmit, SubmissionMeta } from '../hooks/useQuoteSubmit';
 import { OfferFormHeader } from './OfferFormHeader';
@@ -37,6 +38,7 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
     const [customPaymentTerm, setCustomPaymentTerm] = useState<string>('');
 
     const { isStripeConnected, isCheckingConnect, showConnectModal, setShowConnectModal } = useStripeConnectCheck();
+    const [showComplianceModal, setShowComplianceModal] = useState<boolean>(false);
 
     const isWon = Boolean(
         (requestDetails as any).is_won ||
@@ -81,6 +83,7 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
         isExpired: isExpired || isWon,
         isStripeConnected,
         setShowConnectModal,
+        setShowComplianceModal,
         onSubmittedSuccess,
     });
 
@@ -180,6 +183,7 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
             </div>
 
             <SupplierAccountConnectModal isOpen={showConnectModal} onClose={() => setShowConnectModal(false)} requestId={requestDetails.id} />
+            <CompliancePendingModal isOpen={showComplianceModal} onClose={() => setShowComplianceModal(false)} />
         </div>
     );
 };

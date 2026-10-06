@@ -28,6 +28,8 @@ export function useQuoteRequestsFilter(requests: QuoteRequest[]) {
         return requests.filter((item) => {
             if (!item) return false;
 
+            if (activeTab === 'new' && (item.status === 'Quoted' || item.isQuoted || item.hasQuoted)) return false;
+            if (activeTab === 'quoted' && !(item.status === 'Quoted' || item.isQuoted || item.hasQuoted)) return false;
             if (activeTab === 'today' && !isRequestToday(item)) return false;
             if (activeTab === 'upcoming' && !isRequestUpcoming(item)) return false;
             if (activeTab === 'urgent' && !isRequestUrgent(item)) return false;

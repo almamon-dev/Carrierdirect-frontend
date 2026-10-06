@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Upload, MapPin, ShieldCheck, FileText, CheckCircle2, Paperclip, Eye, Loader2, Check, Lock, Camera } from 'lucide-react';
+import { Building2, Upload, MapPin, ShieldCheck, FileText, CheckCircle2, Paperclip, Eye, Loader2, Check, Lock, Camera, Trash2 } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -15,6 +15,7 @@ export default function CompanyProfileTab() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const [formData, setFormData] = useState({
+    fullName: '',
     companyName: '',
     email: '',
     phone: '',
@@ -39,7 +40,8 @@ export default function CompanyProfileTab() {
       const data = res?.data?.data || res?.data || res || {};
       
       setFormData({
-        companyName: data.company_name || data.name || '',
+        fullName: data.name || '',
+        companyName: data.company_name || '',
         email: data.email || '',
         phone: data.phone_number || '',
         country: data.country || '',
@@ -61,13 +63,15 @@ export default function CompanyProfileTab() {
       const rawUser = localStorage.getItem(TOKEN_CONFIG.userKey);
       const currentUser = rawUser ? JSON.parse(rawUser) : {};
       localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify({ ...currentUser, ...data }));
+      window.dispatchEvent(new Event('user-profile-updated'));
     } catch (err: any) {
       console.error('Fetch profile error:', err);
       const rawUser = localStorage.getItem(TOKEN_CONFIG.userKey);
       if (rawUser) {
         const u = JSON.parse(rawUser);
         setFormData({
-          companyName: u.company_name || u.name || '',
+          fullName: u.name || '',
+          companyName: u.company_name || '',
           email: u.email || '',
           phone: u.phone_number || '',
           country: u.country || '',
@@ -91,8 +95,11 @@ export default function CompanyProfileTab() {
     e.preventDefault();
     setIsLoading(true);
     try {
+      const rawUser = localStorage.getItem(TOKEN_CONFIG.userKey);
+      const currentUser = rawUser ? JSON.parse(rawUser) : {};
+
       const payload = {
-        name: formData.companyName,
+        name: formData.fullName || currentUser.name,
         company_name: formData.companyName,
         phone_number: formData.phone,
         country: formData.country,
@@ -105,9 +112,14 @@ export default function CompanyProfileTab() {
       const res = await apiClient.post('/supplier/profile', payload);
       const updatedProfile = res?.data?.data || res?.data || payload;
 
-      const rawUser = localStorage.getItem(TOKEN_CONFIG.userKey);
-      const currentUser = rawUser ? JSON.parse(rawUser) : {};
-      localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify({ ...currentUser, ...updatedProfile }));
+      const updatedUser = {
+        ...currentUser,
+        ...updatedProfile,
+        name: formData.fullName || updatedProfile.name || currentUser.name,
+        company_name: formData.companyName,
+      };
+      localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event('user-profile-updated'));
 
       setIsSaved(true);
       useToastStore.getState().showToast('Profile updated successfully!', 'success');
@@ -136,8 +148,16 @@ export default function CompanyProfileTab() {
       try {
         const res = await apiClient.post('/supplier/profile/logo', uploadData);
         useToastStore.getState().showToast('Company logo updated successfully!', 'success');
-        if (res.data?.data?.profile_picture) {
-          setLogoPreview(res.data.data.profile_picture);
+        const updatedUrl = res.data?.data?.profile_picture;
+        if (updatedUrl) {
+          setLogoPreview(updatedUrl);
+          const rawUser = localStorage.getItem(TOKEN_CONFIG.userKey);
+          if (rawUser) {
+            const u = JSON.parse(rawUser);
+            u.profile_picture = updatedUrl;
+            localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(u));
+            window.dispatchEvent(new Event('user-profile-updated'));
+          }
         }
       } catch (err: any) {
         useToastStore.getState().showToast(err.message || 'Failed to upload logo', 'error');
@@ -145,6 +165,54 @@ export default function CompanyProfileTab() {
         setIsUploadingLogo(false);
       }
     }
+  };
+
+  const handleLogoRemove = async () => {
+    setIsUploadingLogo(true);
+    try {
+      await apiClient.post('/supplier/profile/logo-remove');
+      setLogoPreview(null);
+      const rawUser = localStorage.getItem(TOKEN_CONFIG.userKey);
+      if (rawUser) {
+        const u = JSON.parse(rawUser);
+        delete u.profile_picture;
+        localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(u));
+        window.dispatchEvent(new Event('user-profile-updated'));
+      }
+      useToastStore.getState().showToast('Logo removed successfully!', 'success');
+    } catch (err: any) {
+      useToastStore.getState().showToast(err.message || 'Failed to remove logo', 'error');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const renderDocStatusBadge = (status?: string) => {
+    const s = (status || 'pending').toLowerCase();
+    let badgeClass = 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60';
+    let dotClass = 'bg-amber-500';
+    let label = 'Pending Verification';
+
+    if (s === 'verified' || s === 'approved' || s === 'active') {
+      badgeClass = 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60';
+      dotClass = 'bg-emerald-500';
+      label = 'Verified Active';
+    } else if (s === 'rejected' || s === 'declined') {
+      badgeClass = 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/60';
+      dotClass = 'bg-rose-500';
+      label = 'Rejected';
+    } else if (s === 'expired') {
+      badgeClass = 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/60';
+      dotClass = 'bg-rose-500';
+      label = 'Expired';
+    }
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] text-[10.5px] font-bold border ${badgeClass}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+        <span>{label}</span>
+      </span>
+    );
   };
 
   if (isFetching) {
@@ -188,38 +256,36 @@ export default function CompanyProfileTab() {
         <CardContent className="p-3.5 sm:p-4 space-y-4">
           
           {/* Logo Upload Row */}
-          <div className="flex items-center gap-3.5 pb-3 border-b border-slate-100 dark:border-slate-800/60">
-            <div className="relative group shrink-0">
-              <div className="w-13 h-13 rounded-[4px] bg-slate-50 dark:bg-[#12161c] border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center overflow-hidden transition-all group-hover:border-[#ff4a1f]">
-                {logoPreview ? (
-                  <img src={logoPreview} alt="Logo" className="w-full h-full object-contain p-1" />
-                ) : (
-                  <div className="flex flex-col items-center text-slate-400 dark:text-slate-500 group-hover:text-[#ff4a1f]">
-                    <Building2 className="w-5 h-5" />
-                    <span className="text-[8.5px] font-semibold mt-0.5">Logo</span>
-                  </div>
-                )}
-                {isUploadingLogo && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <Loader2 className="w-4 h-4 text-white animate-spin" />
-                  </div>
-                )}
-              </div>
-              <input 
-                type="file" 
-                accept="image/png,image/jpeg,image/jpg,image/webp" 
-                onChange={handleLogoUpload} 
-                className="absolute inset-0 opacity-0 cursor-pointer" 
-                title="Upload company logo"
-              />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-3.5 sm:p-4 bg-slate-50/70 dark:bg-[#14181f] rounded-[6px] border border-slate-200/80 dark:border-slate-800">
+            {/* Logo Preview Box */}
+            <div className={`relative group shrink-0 w-20 h-20 rounded-xl bg-white dark:bg-[#1e2329] ${logoPreview ? 'border border-slate-200 dark:border-slate-700' : 'border-2 border-dashed border-slate-300 dark:border-slate-700'} flex items-center justify-center overflow-hidden shadow-2xs`}>
+              {logoPreview ? (
+                <img src={logoPreview} alt="Company Logo" className="w-full h-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
+                  <Building2 className="w-8 h-8 text-slate-400 dark:text-slate-500 group-hover:text-[#ff4a1f] transition-colors" />
+                </div>
+              )}
+              {isUploadingLogo && (
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-2xs flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                </div>
+              )}
             </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-bold text-slate-800 dark:text-slate-200">Company Logo</label>
-                <label className="text-[11px] font-bold text-[#ff4a1f] hover:underline cursor-pointer flex items-center gap-1">
-                  <Camera size={12} />
-                  <span>Upload New</span>
+            {/* Logo Info & Actions */}
+            <div className="flex-1 min-w-0 space-y-2.5">
+              <div>
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Company Brand Logo</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Shown on your quotes, proposals, dispatched orders, and customer invoices.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <label className="h-8 px-3.5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold rounded-[4px] flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all">
+                  <Camera size={13} />
+                  <span>{logoPreview ? 'Change Logo' : 'Upload Logo'}</span>
                   <input 
                     type="file" 
                     accept="image/png,image/jpeg,image/jpg,image/webp" 
@@ -227,15 +293,36 @@ export default function CompanyProfileTab() {
                     className="hidden" 
                   />
                 </label>
+
+                {logoPreview && (
+                  <button
+                    type="button"
+                    onClick={handleLogoRemove}
+                    disabled={isUploadingLogo}
+                    className="h-8 px-3 bg-white dark:bg-[#1e2329] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-slate-200 dark:border-slate-700 hover:border-rose-300 text-xs font-semibold rounded-[4px] flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
+                  >
+                    <Trash2 size={13} />
+                    <span>Remove</span>
+                  </button>
+                )}
+
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                  PNG, JPG, or WEBP (Max 5MB)
+                </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Shown on quotes, proposals and dispatch invoices (PNG or JPG under 5MB).
-              </p>
             </div>
           </div>
 
           {/* Form Fields Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input
+              label="Contact Person / Full Name *"
+              value={formData.fullName}
+              onChange={(e) => handleChange('fullName', e.target.value)}
+              placeholder="e.g. John Doe"
+              required
+            />
+
             <Input
               label="Legal Company / Business Name *"
               value={formData.companyName}
@@ -331,12 +418,16 @@ export default function CompanyProfileTab() {
           </CardHeader>
           <CardContent className="p-3.5 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {complianceData.insurance && (
-              <div className="p-2.5 bg-slate-50 dark:bg-[#14181f] rounded-[3px] border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <FileText className="w-4 h-4 text-slate-500 shrink-0" />
+              <div className="p-3 bg-slate-50 dark:bg-[#14181f] rounded-[4px] border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-[4px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs text-[#ff4a1f]">
+                    <FileText className="w-4 h-4" />
+                  </div>
                   <div className="min-w-0">
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Insurance Policy</h4>
-                    <p className="text-[10.5px] text-slate-400 capitalize">Status: {complianceData.insurance.status || 'Verified'}</p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      {renderDocStatusBadge(complianceData.insurance.status)}
+                    </div>
                   </div>
                 </div>
                 {complianceData.insurance.document_url && (
@@ -344,20 +435,24 @@ export default function CompanyProfileTab() {
                     href={complianceData.insurance.document_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="h-6.5 px-2.5 bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold rounded-[3px] flex items-center gap-1 hover:bg-slate-50 shrink-0 shadow-2xs"
+                    className="h-7 px-2.5 bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold rounded-[3px] flex items-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0 shadow-2xs transition-colors"
                   >
-                    <Eye className="w-3 h-3" /> View
+                    <Eye className="w-3.5 h-3.5" /> View
                   </a>
                 )}
               </div>
             )}
             {complianceData.license && (
-              <div className="p-2.5 bg-slate-50 dark:bg-[#14181f] rounded-[3px] border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <FileText className="w-4 h-4 text-slate-500 shrink-0" />
+              <div className="p-3 bg-slate-50 dark:bg-[#14181f] rounded-[4px] border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-[4px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs text-[#ff4a1f]">
+                    <FileText className="w-4 h-4" />
+                  </div>
                   <div className="min-w-0">
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Carrier Operating License</h4>
-                    <p className="text-[10.5px] text-slate-400 capitalize">Status: {complianceData.license.status || 'Verified'}</p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      {renderDocStatusBadge(complianceData.license.status)}
+                    </div>
                   </div>
                 </div>
                 {complianceData.license.document_url && (
@@ -365,9 +460,9 @@ export default function CompanyProfileTab() {
                     href={complianceData.license.document_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="h-6.5 px-2.5 bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold rounded-[3px] flex items-center gap-1 hover:bg-slate-50 shrink-0 shadow-2xs"
+                    className="h-7 px-2.5 bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold rounded-[3px] flex items-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0 shadow-2xs transition-colors"
                   >
-                    <Eye className="w-3 h-3" /> View
+                    <Eye className="w-3.5 h-3.5" /> View
                   </a>
                 )}
               </div>

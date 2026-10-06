@@ -3,9 +3,10 @@ import { CustomerNegotiationItem } from '../types';
 import {
     NegotiationFilterTab,
     isNegotiationAccepted,
-    isNegotiationActive,
+    isNegotiationBooked,
+    isNegotiationClosed,
     isNegotiationCounter,
-    isNegotiationHistory,
+    isNegotiationOpen,
 } from '../components/NegotiationFilterTabs';
 
 interface UseFilteredNegotiationsParams {
@@ -32,17 +33,24 @@ export const useFilteredCustomerNegotiations = ({
         return list.filter((item) => {
             if (!item) return false;
 
-            if (activeTab === 'active' && !isNegotiationActive(item)) return false;
+            if (activeTab === 'open' && !isNegotiationOpen(item)) return false;
             if (activeTab === 'counter' && !isNegotiationCounter(item)) return false;
             if (activeTab === 'accepted' && !isNegotiationAccepted(item)) return false;
-            if (activeTab === 'history' && !isNegotiationHistory(item)) return false;
+            if (activeTab === 'booked' && !isNegotiationBooked(item)) return false;
+            if (activeTab === 'closed' && !isNegotiationClosed(item)) return false;
 
             if (priorityFilter !== 'all' && item.priority?.toLowerCase() !== priorityFilter.toLowerCase()) {
                 return false;
             }
             if (statusFilter !== 'all') {
-                const normStatus = (item.status || '').toLowerCase();
-                if (!normStatus.includes(statusFilter.toLowerCase())) return false;
+                const normStatus = (item.status || item.statusRaw || '').toLowerCase();
+                const filterVal = statusFilter.toLowerCase();
+                if (filterVal === 'open' && !isNegotiationOpen(item)) return false;
+                else if (filterVal === 'counter' && !isNegotiationCounter(item)) return false;
+                else if (filterVal === 'accepted' && !isNegotiationAccepted(item)) return false;
+                else if (filterVal === 'booked' && !isNegotiationBooked(item)) return false;
+                else if (filterVal === 'closed' && !isNegotiationClosed(item)) return false;
+                else if (!normStatus.includes(filterVal)) return false;
             }
             if (vehicleFilter !== 'all') {
                 const normVehicle = (item.vehicleType || '').toLowerCase().replace(/[\s_-]+/g, '');

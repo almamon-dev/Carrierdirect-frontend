@@ -37,10 +37,12 @@ Best regards`;
     return [
         {
             id: `req-${item.rawId || item.id || 1}`,
-            type: 'quote_request',
-            title: 'Quote Request Received',
-            sender: customerName,
-            text: `${customerName} has submitted a quote request for this shipment.`,
+            type: 'offer',
+            title: 'Revised Offer Submitted',
+            sender: 'supplier',
+            is_me: true,
+            is_my_offer: true,
+            text: `You have submitted a revised offer to ${customerName}.`,
             time: item.lastUpdated || item.requestDate || 'Today',
             newTotal: origAmount,
             previousTotal: origAmount,

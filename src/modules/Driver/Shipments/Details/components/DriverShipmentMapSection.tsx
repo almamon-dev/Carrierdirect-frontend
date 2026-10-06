@@ -34,6 +34,26 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
 
     const steps = getStepState(shipment.status);
 
+        const pickupLat = shipment.route?.originCoords?.lat;
+    const pickupLng = shipment.route?.originCoords?.lng;
+    const deliveryLat = shipment.route?.destinationCoords?.lat;
+    const deliveryLng = shipment.route?.destinationCoords?.lng;
+
+    const hasExactCoords = Boolean(
+        pickupLat !== undefined && pickupLat !== null && !isNaN(Number(pickupLat)) &&
+        pickupLng !== undefined && pickupLng !== null && !isNaN(Number(pickupLng)) &&
+        deliveryLat !== undefined && deliveryLat !== null && !isNaN(Number(deliveryLat)) &&
+        deliveryLng !== undefined && deliveryLng !== null && !isNaN(Number(deliveryLng))
+    );
+
+    const embedMapSrc = hasExactCoords
+        ? `https://maps.google.com/maps?saddr=${pickupLat},${pickupLng}&daddr=${deliveryLat},${deliveryLng}&t=m&z=10&output=embed`
+        : `https://maps.google.com/maps?q=${fromCity}+to+${toCity}&t=m&z=8&ie=UTF8&iwloc=&output=embed`;
+
+    const googleMapsUrl = hasExactCoords
+        ? `https://www.google.com/maps/dir/?api=1&origin=${pickupLat},${pickupLng}&destination=${deliveryLat},${deliveryLng}&travelmode=driving`
+        : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(shipment.shipper.address || shipment.shipper.city)}&destination=${encodeURIComponent(shipment.consignee.address || shipment.consignee.city)}&travelmode=driving`;
+
     return (
         <div className="w-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs overflow-hidden font-sans">
             {/* Top Subheader with Corridor Info */}
@@ -59,23 +79,35 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
             </div>
 
             {/* Map Frame */}
-            <div className="w-full h-[160px] sm:h-[185px] relative overflow-hidden bg-slate-100 dark:bg-[#15191e]">
+            <div className="w-full h-[180px] sm:h-[210px] relative overflow-hidden bg-slate-100 dark:bg-[#15191e]">
                 <iframe
                     title="Driver Live Route"
-                    src={`https://maps.google.com/maps?q=${fromCity}+to+${toCity}&t=&z=7&ie=UTF8&iwloc=&output=embed`}
+                    src={embedMapSrc}
                     width="100%"
                     height="100%"
-                    style={{ border: 0, filter: 'opacity(0.88) grayscale(0.1)' }}
+                    style={{ border: 0, filter: 'opacity(0.92)' }}
                     loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/25 via-transparent to-transparent pointer-events-none" />
 
-                {/* Floating Corridor Distance badge */}
-                <div className="absolute bottom-2.5 left-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-2 text-[11px]">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <span className="text-slate-700 dark:text-slate-200 font-medium">
-                        Direct Highway Route: <strong className="text-slate-900 dark:text-white font-bold">{shipment.route.distanceKm} km</strong> ({shipment.route.estimatedDuration})
-                    </span>
+                {/* Floating Corridor Distance badge & Google Maps Navigation */}
+                <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between gap-2 flex-wrap pointer-events-none">
+                    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-2 text-[11px] pointer-events-auto">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="text-slate-700 dark:text-slate-200 font-medium">
+                            Direct Transit Corridor: <strong className="text-slate-900 dark:text-white font-bold">{shipment.route.distanceKm} km</strong> ({shipment.route.estimatedDuration})
+                        </span>
+                    </div>
+
+                    <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-[#FF4A1F] hover:bg-[#E03E15] text-white px-2.5 py-1 rounded-md shadow-2xs flex items-center gap-1.5 text-[11px] font-bold pointer-events-auto transition-colors"
+                    >
+                        <Navigation size={11} />
+                        <span>Navigate in Maps</span>
+                    </a>
                 </div>
             </div>
 

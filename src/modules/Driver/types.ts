@@ -164,6 +164,7 @@ export interface ShipmentItem {
     };
     route: {
         distanceKm: number;
+        distanceFormatted?: string;
         estimatedDuration: string;
         tollRoads: boolean;
         currentLat?: number;

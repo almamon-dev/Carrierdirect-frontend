@@ -1,8 +1,10 @@
 import React from 'react';
 import { ArrowRight, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Skeleton from '@/components/ui/skeleton';
 
-interface QuotaReminderBannerProps {
+export interface QuotaReminderBannerProps {
+    isLoading?: boolean;
     quotaUsed?: number;
     maxQuota?: number;
     daysRemaining?: number | null;
@@ -15,7 +17,27 @@ interface QuotaReminderBannerProps {
     onUpgradeClick?: () => void;
 }
 
+export const QuotaReminderBannerSkeleton: React.FC<{ className?: string }> = ({ className = '' }) => {
+    return (
+        <div className={`p-3 sm:p-3.5 bg-gradient-to-r from-amber-50/80 via-orange-50/50 to-amber-50/80 dark:from-amber-950/20 dark:via-orange-950/10 dark:to-amber-950/20 border border-amber-200/70 dark:border-amber-800/40 rounded-[4px] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs font-sans ${className}`}>
+            <div className="space-y-1.5 flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Skeleton className="h-4 w-48 rounded-[3px] !bg-amber-200/60 dark:!bg-amber-900/40" />
+                    <Skeleton className="h-4 w-28 rounded-[3px] !bg-orange-200/60 dark:!bg-orange-900/40" />
+                </div>
+                <div className="pt-0.5">
+                    <Skeleton className="h-3.5 w-72 sm:w-96 max-w-full rounded-[2px] !bg-amber-200/40 dark:!bg-amber-900/30" />
+                </div>
+            </div>
+            <div className="shrink-0 flex items-center gap-1.5">
+                <Skeleton className="h-4 w-32 rounded-[3px] !bg-orange-200/60 dark:!bg-orange-900/40" />
+            </div>
+        </div>
+    );
+};
+
 export const QuotaReminderBanner: React.FC<QuotaReminderBannerProps> = ({
+    isLoading = false,
     quotaUsed = 0,
     maxQuota = 3,
     daysRemaining,
@@ -28,6 +50,10 @@ export const QuotaReminderBanner: React.FC<QuotaReminderBannerProps> = ({
     onUpgradeClick,
 }) => {
     const navigate = useNavigate();
+
+    if (isLoading) {
+        return <QuotaReminderBannerSkeleton className={className} />;
+    }
 
     const handleClick = () => {
         if (onUpgradeClick) {

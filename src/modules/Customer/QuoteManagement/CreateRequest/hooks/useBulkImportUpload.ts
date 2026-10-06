@@ -72,10 +72,11 @@ export const useBulkImportUpload = ({
     const handleProcessMainFile = async (file: File) => {
         const fileName = file.name;
         const isPdf = fileName.toLowerCase().endsWith('.pdf');
-        const isCsv = fileName.toLowerCase().endsWith('.csv') || fileName.toLowerCase().endsWith('.xlsx') || fileName.toLowerCase().endsWith('.txt');
+        const isDoc = fileName.toLowerCase().endsWith('.doc') || fileName.toLowerCase().endsWith('.docx');
+        const isCsv = fileName.toLowerCase().endsWith('.csv') || fileName.toLowerCase().endsWith('.xlsx') || fileName.toLowerCase().endsWith('.xls') || fileName.toLowerCase().endsWith('.txt');
 
-        if (!isPdf && !isCsv && !file.type.startsWith('image/')) {
-            showToast('Please select a PDF, CSV, Excel or Image manifest', 'error');
+        if (!isPdf && !isDoc && !isCsv && !file.type.startsWith('image/')) {
+            showToast('Please select a PDF, DOC, CSV, Excel or Image manifest', 'error');
             return;
         }
 

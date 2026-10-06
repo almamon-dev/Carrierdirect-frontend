@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { RefreshCw, Plus, Inbox } from 'lucide-react';
+import { RefreshCw, Inbox } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DataTable from '@/components/tables/data-table';
 import Button from '@/components/ui/button';
@@ -8,17 +8,19 @@ import { QuotaReminderBanner } from '@/components';
 import { SubscriptionLockModal } from '@/components/modals';
 import { useSubscriptionQuota } from '@/hooks/useSubscriptionQuota';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
-import { TableFilterContent } from '../Negotiation/components/TableFilterContent';
+import { ProcessingTableFilterContent } from './components/ProcessingTableFilterContent';
 import { useProcessingRequests } from './hooks/useProcessingRequests';
 import { useFilteredProcessingRequests } from './hooks/useFilteredProcessingRequests';
 import { ProcessingFilterTabs } from './components/ProcessingFilterTabs';
 import { getProcessingColumns } from './components/columns';
 import { ProcessingRowActions } from './components/ProcessingRowActions';
+import { CreateRequestDropdown } from '../CreateRequest/components/CreateRequestDropdown';
 
 export default function Processing() {
     const navigate = useNavigate();
-    const { requests, isLoading, isRefreshing, stats, fetchProcessingRequests } = useProcessingRequests();
+    const { requests, isLoading, isRefreshing, fetchProcessingRequests } = useProcessingRequests();
     const {
+        isLoading: isQuotaLoading,
         isTrial,
         daysRemaining,
         quotesLimit,
@@ -73,16 +75,17 @@ export default function Processing() {
                         <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#ff4a1f]' : 'text-slate-500'} />
                         <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
                     </Button>
-                    <Button variant="primary" size="sm" onClick={() => checkOrLock(() => navigate('/customer/quotes/create/new'))} className="h-9 px-4 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5">
-                        <Plus size={14} />
-                        <span>Create New Request</span>
-                    </Button>
+                    <CreateRequestDropdown
+                        onCreateNew={() => checkOrLock(() => navigate('/customer/quotes/create/new'))}
+                        buttonText="Create Request"
+                    />
                 </div>
             </div>
 
             {/* Quota Banner when on trial or limit reached */}
-            {!isPaidUnlimited && (
+            {(isQuotaLoading || !isPaidUnlimited) && (
                 <QuotaReminderBanner
+                    isLoading={isQuotaLoading}
                     title={isTrial ? '7-Day Free Trial Quota Reminder' : 'Free Plan Quota Reminder'}
                     quotaUsed={quotesUsed}
                     maxQuota={quotesLimit}
@@ -96,9 +99,9 @@ export default function Processing() {
                 columns={columns}
                 actions={(row: any) => <ProcessingRowActions row={row} />}
                 actionsColumnClassName="w-[48px] min-w-[48px] max-w-[48px] text-right pr-2"
-                headerTabs={<ProcessingFilterTabs stats={stats} activeFilterTab={activeFilterTab} setActiveFilterTab={setActiveFilterTab} />}
+                headerTabs={<ProcessingFilterTabs requests={requests} activeFilterTab={activeFilterTab} setActiveFilterTab={setActiveFilterTab} />}
                 filterContent={
-                    <TableFilterContent
+                    <ProcessingTableFilterContent
                         statusFilter={statusFilter}
                         setStatusFilter={setStatusFilter}
                         vehicleFilter={vehicleFilter}
@@ -116,12 +119,13 @@ export default function Processing() {
                 compact={true}
                 isLoading={isLoading || isRefreshing}
                 onRowClick={(row) => navigate(buildSecureQuoteUrl(row.rawId || row.id, 'view'))}
+                tableLayout="fixed"
                 tableClassName="w-full"
                 emptyState={
                     <EmptyState
                         icon={Inbox}
-                        title="No Active Requests Found"
-                        description={activeFilterTab === 'all' ? 'Create a shipping request to receive competitive carrier quotations.' : `No quote requests match '${activeFilterTab}'.`}
+                        title="No Quote Requests Found"
+                        description={activeFilterTab === 'all' ? 'Create a shipping request to receive competitive carrier quotations.' : `No quote requests match the current filters.`}
                         actionLabel="Create Quote Request"
                         onAction={() => checkOrLock(() => navigate('/customer/quotes/create/new'))}
                     />

@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, PanelLeftClose, X, Table } from 'lucide-react';
 import Button from '@/components/ui/button';
+import Skeleton from '@/components/ui/skeleton';
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
 import { ChatSidebarCollapsed } from './sidebar/ChatSidebarCollapsed';
@@ -10,7 +11,7 @@ import { ChatSidebarItem } from './sidebar/ChatSidebarItem';
 interface ChatSidebarProps {
     allNegotiations: NegotiationItem[];
     filteredChats: NegotiationItem[];
-    activeNegotiation: NegotiationItem;
+    activeNegotiation: NegotiationItem | null;
     pinnedChatIds: Record<string | number, boolean>;
     readChatIds: Record<string | number, boolean>;
     chatMessages: Record<string | number, ChatMessage[]>;
@@ -28,6 +29,7 @@ interface ChatSidebarProps {
     isResizing?: boolean;
     isMobileOpen?: boolean;
     onCloseMobile?: () => void;
+    isLoading?: boolean;
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -50,7 +52,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     onResizeStart,
     isResizing = false,
     isMobileOpen = false,
-    onCloseMobile
+    onCloseMobile,
+    isLoading = false
 }) => {
     const navigate = useNavigate();
     const totalUnread = allNegotiations.filter(n => !readChatIds[n.rawId] && (n.unreadCount || 0) > 0).length;
@@ -76,7 +79,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     <div
     className="fixed inset-y-0 left-0 z-50 w-[86vw] max-w-[340px] bg-white flex flex-col h-full shadow-2xl border-r border-slate-200 lg:hidden animate-in slide-in-from-left duration-200 font-sans">
                         <div
-    className="px-4 py-3 flex items-center justify-between border-b border-slate-100 bg-slate-50/70">
+                            className="h-[60px] px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0 box-border bg-white dark:bg-[#12161c]">
                             <div className="flex items-center gap-2.5 min-w-0">
                                 <Button
                                     variant="ghost"
@@ -116,7 +119,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                                     placeholder="Search negotiations, routes..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full h-[36px] pl-9 pr-4 text-[13px] bg-slate-100 border-none rounded-full focus:outline-none focus:ring-2 focus:ring-[#FF4A1F]/30 text-slate-800 placeholder-slate-400 font-medium"
+                                    className="w-full h-[36px] pl-9 pr-4 text-[13px] bg-slate-100 border-none rounded-full outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-none text-slate-800 placeholder-slate-400 font-medium"
                                 />
                             </div>
                         </div>
@@ -126,7 +129,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             <button
                                 type="button"
                                 onClick={() => setFilterTab('all')}
-                                className={`rounded-full px-3 py-1 text-[11.5px] cursor-pointer transition-colors ${
+                                className={`rounded-full px-3 py-1 text-[11.5px] cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-colors ${
                                     filterTab === 'all'
                                         ? 'bg-orange-50 text-[#FF4A1F] border border-orange-200/80 font-bold shadow-2xs'
                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80 font-semibold'
@@ -137,7 +140,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             <button
                                 type="button"
                                 onClick={() => setFilterTab('unread')}
-                                className={`rounded-full px-3 py-1 text-[11.5px] cursor-pointer whitespace-nowrap transition-colors ${
+                                className={`rounded-full px-3 py-1 text-[11.5px] cursor-pointer whitespace-nowrap outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-colors ${
                                     filterTab === 'unread'
                                         ? 'bg-orange-50 text-[#FF4A1F] border border-orange-200/80 font-bold shadow-2xs'
                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80 font-semibold'
@@ -149,23 +152,49 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
                         {/* Conversation List */}
                         <div className="flex-1 overflow-y-auto px-2 mt-1 hide-scrollbar">
-                            {filteredChats.map((item) => (
-                                <ChatSidebarItem
-                                    key={item.rawId}
-                                    item={item}
-                                    isActive={item.rawId === activeNegotiation.rawId}
-                                    isPinned={Boolean(pinnedChatIds[item.rawId])}
-                                    isUnread={Boolean(!readChatIds[item.rawId] && (item.unreadCount || 0) > 0)}
-                                    threadMsgs={chatMessages[item.rawId] || []}
-                                    priceDisplay={liveOffers[item.rawId] || item.currentOffer || item.originalAmount || 1850}
-                                    onSelect={() => handleSelectMobileChat(item)}
-                                    onTogglePin={(e) => togglePinChat(e, item.rawId)}
-                                />
-                            ))}
-                            {filteredChats.length === 0 && (
-                                <div className="text-center py-10 text-slate-400 text-xs font-medium">
-                                    No negotiations found.
+                            {isLoading ? (
+                                <div className="space-y-1.5 py-1">
+                                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                                        <div
+                                            key={i}
+                                            className="p-2.5 rounded-lg flex gap-3 items-center border border-slate-200/60 dark:border-slate-800/80 bg-white dark:bg-[#12161c]"
+                                        >
+                                            <Skeleton className="w-10 h-10 rounded-full shrink-0 aspect-square" />
+                                            <div className="min-w-0 flex-1 space-y-2">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <Skeleton className="h-3.5 w-24 rounded-md" />
+                                                    <Skeleton className="h-2.5 w-10 rounded-md" />
+                                                </div>
+                                                <Skeleton className="h-3 w-40 rounded-md" />
+                                                <div className="flex items-center justify-between pt-0.5">
+                                                    <Skeleton className="h-3 w-16 rounded-md" />
+                                                    <Skeleton className="h-3.5 w-14 rounded-md" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
+                            ) : (
+                                <>
+                                    {filteredChats.map((item) => (
+                                        <ChatSidebarItem
+                                            key={item.rawId}
+                                            item={item}
+                                            isActive={item.rawId === activeNegotiation?.rawId}
+                                            isPinned={Boolean(pinnedChatIds[item.rawId])}
+                                            isUnread={Boolean(!readChatIds[item.rawId] && (item.unreadCount || 0) > 0)}
+                                            threadMsgs={chatMessages[item.rawId] || []}
+                                            priceDisplay={liveOffers[item.rawId] || item.currentOffer || item.originalAmount || 1850}
+                                            onSelect={() => handleSelectMobileChat(item)}
+                                            onTogglePin={(e) => togglePinChat(e, item.rawId)}
+                                        />
+                                    ))}
+                                    {filteredChats.length === 0 && (
+                                        <div className="text-center py-10 text-slate-400 text-xs font-medium">
+                                            No negotiations found.
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
 
@@ -207,7 +236,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                         isResizing ? 'select-none' : ''
                     }`}
                 >
-                    <div className="px-4 py-3 flex items-center justify-between border-b border-slate-100">
+                    <div className="h-[60px] px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0 box-border bg-white dark:bg-[#12161c]">
                         <div className="flex items-center gap-3 min-w-0">
                             <Button
                                 variant="ghost"
@@ -238,7 +267,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                         </Button>
                     </div>
 
-                    <div className="px-4 pt-3 pb-2">
+                    <div className="px-3.5 pt-3 pb-2">
                         <div className="relative">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                             <input
@@ -246,27 +275,27 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                                 placeholder="Search negotiations, routes..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-[36px] pl-9 pr-4 text-[13px] bg-slate-100 border-none rounded-full focus:outline-none focus:ring-2 focus:ring-orange-200 text-slate-700 placeholder-slate-400 font-medium"
+                                className="w-full h-[36px] pl-9 pr-4 text-[13px] bg-slate-100 dark:bg-slate-800/80 border-none rounded-full outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-none text-slate-800 dark:text-slate-200 placeholder-slate-400 font-medium transition-all"
                             />
                         </div>
                     </div>
 
-                    <div className="px-4 py-2 flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+                    <div className="px-3.5 py-1.5 flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
                         <button
                             type="button"
                             onClick={() => setFilterTab('all')}
-                            className={`rounded-full px-3.5 py-1 text-[11.5px] cursor-pointer transition-colors ${
+                            className={`rounded-full px-3.5 py-1 text-[11.5px] cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-colors ${
                                 filterTab === 'all'
                                     ? 'bg-orange-50 text-[#FF4A1F] border border-orange-200/80 font-bold shadow-2xs'
                                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80 font-semibold'
                             }`}
                         >
-                            All ({allNegotiations.length})
+                            All {isLoading ? '' : `(${allNegotiations.length})`}
                         </button>
                         <button
                             type="button"
                             onClick={() => setFilterTab('unread')}
-                            className={`rounded-full px-3.5 py-1 text-[11.5px] cursor-pointer whitespace-nowrap transition-colors ${
+                            className={`rounded-full px-3.5 py-1 text-[11.5px] cursor-pointer whitespace-nowrap outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-colors ${
                                 filterTab === 'unread'
                                     ? 'bg-orange-50 text-[#FF4A1F] border border-orange-200/80 font-bold shadow-2xs'
                                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80 font-semibold'
@@ -277,21 +306,46 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     </div>
 
                     <div className="flex-1 overflow-y-auto px-2 mt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                        {filteredChats.map((item) => (
-                            <ChatSidebarItem
-                                key={item.rawId}
-                                item={item}
-                                isActive={item.rawId === activeNegotiation.rawId}
-                                isPinned={Boolean(pinnedChatIds[item.rawId])}
-                                isUnread={Boolean(!readChatIds[item.rawId] && (item.unreadCount || 0) > 0)}
-                                threadMsgs={chatMessages[item.rawId] || []}
-                                priceDisplay={liveOffers[item.rawId] || item.currentOffer || item.originalAmount || 1850}
-                                onSelect={() => handleSelectChat(item)}
-                                onTogglePin={(e) => togglePinChat(e, item.rawId)}
-                            />
-                        ))}
-                        {filteredChats.length === 0 && (
-                            <div className="text-center py-8 text-slate-500 text-sm">No negotiations found.</div>
+                        {isLoading ? (
+                            <div className="space-y-1 py-1 animate-in fade-in duration-150">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div
+                                        key={i}
+                                        className="p-2.5 rounded-[4px] flex gap-3 items-center border border-transparent bg-white dark:bg-[#12161c]"
+                                    >
+                                        <Skeleton className="w-10 h-10 rounded-full shrink-0 aspect-square" />
+                                        <div className="min-w-0 flex-1 space-y-1.5">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <Skeleton className="h-3.5 w-28 rounded-md" />
+                                                <Skeleton className="h-2.5 w-12 rounded-md" />
+                                            </div>
+                                            <div className="flex items-center justify-between gap-2 pt-0.5">
+                                                <Skeleton className="h-3 w-36 rounded-md" />
+                                                <Skeleton className="h-4 w-4 rounded-[4px]" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="animate-in fade-in duration-150">
+                                {filteredChats.map((item) => (
+                                    <ChatSidebarItem
+                                        key={item.rawId}
+                                        item={item}
+                                        isActive={item.rawId === activeNegotiation?.rawId}
+                                        isPinned={Boolean(pinnedChatIds[item.rawId])}
+                                        isUnread={Boolean(!readChatIds[item.rawId] && (item.unreadCount || 0) > 0)}
+                                        threadMsgs={chatMessages[item.rawId] || []}
+                                        priceDisplay={liveOffers[item.rawId] || item.currentOffer || item.originalAmount || 1850}
+                                        onSelect={() => handleSelectChat(item)}
+                                        onTogglePin={(e) => togglePinChat(e, item.rawId)}
+                                    />
+                                ))}
+                                {filteredChats.length === 0 && (
+                                    <div className="text-center py-8 text-slate-500 text-sm">No negotiations found.</div>
+                                )}
+                            </div>
                         )}
                     </div>
 

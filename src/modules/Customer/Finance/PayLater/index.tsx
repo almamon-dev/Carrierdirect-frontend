@@ -1,1279 +1,517 @@
-import MetricCard from '@/components/cards/metric-card';
-import { DataTable, EmptyState } from '@/components/tables';
-import type { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
-import Button from '@/components/ui/button';
-import apiClient from '@/lib/axios';
-import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
-import { useToastStore } from '@/stores/useToastStore';
-import { encryptId } from '@/lib/encryption';
-import {
-  Check,
-  CheckCircle2,
-  Clock,
-  Copy,
-  CreditCard,
-  Download,
-  Inbox,
-  Loader2,
-  Plus,
-  Receipt,
-  RotateCcw,
-  ShieldCheck,
-  Sparkles,
-  Wallet,
-  X
-} from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+    Wallet, 
+    RefreshCw, 
+    CheckCircle2, 
+    AlertCircle, 
+    Download, 
+    CreditCard, 
+    FileText,
+    TrendingUp,
+    ShieldCheck,
+    Clock,
+    X,
+    Check,
+    Loader2
+} from 'lucide-react';
+import Button from '@/components/ui/button';
+import Badge from '@/components/ui/badge';
+import DataTable from '@/components/tables/data-table';
+import MetricCard from '@/components/cards/metric-card';
+import EmptyState from '@/components/tables/empty-state';
+import apiClient from '@/lib/axios';
 
-export interface PayLaterInvoiceItem {
-  pickup_address?: string;
-  delivery_address?: string;
-  order_id?: number | string;
-  id: string;
-  rawId: number | string;
-  orderId: string;
-  route: string;
-  from: string;
-  to: string;
-  carrier: string;
-  issueDate: string;
-  dueDate: string;
-  amount: number;
-  status: 'due' | 'due_soon' | 'overdue' | 'settled' | 'unsettled';
-  daysLeft: number;
-  raw?: any;
-}
 
-export interface CreditRequestItem {
-  id: string;
-  date: string;
-  limitType?: string;
-  requestedAmount: number;
-  currentAmount: number;
-  status: 'approved' | 'under_review' | 'pending' | 'rejected';
-  notes: string;
-}
+import { useCustomerPayLater } from './hooks/useCustomerPayLater';
+import { useFilteredCustomerPayLater } from './hooks/useFilteredCustomerPayLater';
+import { PayLaterFilterTabs } from './components/PayLaterFilterTabs';
+import { TableFilterContent } from './components/TableFilterContent';
+import { getPayLaterColumns } from './components/columns';
+import { PayLaterRowActions } from './components/PayLaterRowActions';
+import { CustomerPayLaterItem, PayLaterFilterTab } from './types';
 
-export default function PayLaterFacilityPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const showToast = useToastStore((state) => state.showToast);
+export default function CustomerPayLaterPage() {
+    const navigate = useNavigate();
+    const {
+        invoices,
+        stats,
+        calculatedStats,
+        userProfile,
+        isLoading,
+        isRefreshing,
+        fetchPayLaterData,
+    } = useCustomerPayLater();
 
-  const getValidTab = (tab: string | null): 'Invoices' | 'Limit Requests' => {
-    if (!tab) return 'Invoices';
-    const lower = tab.toLowerCase();
-    if (lower === 'requests' || lower === 'limit-requests' || lower === 'limit requests') return 'Limit Requests';
-    return 'Invoices';
-  };
+    const [activeTab, setActiveTab] = useState<PayLaterFilterTab>('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
 
-  const [activeTab, setActiveTab] = useState<'Invoices' | 'Limit Requests'>(() => getValidTab(searchParams.get('tab')));
+    // Modal States
+    const [isIncreaseModalOpen, setIsIncreaseModalOpen] = useState(false);
+    const [increaseTarget, setIncreaseTarget] = useState<'Total Limit' | 'Monthly Limit' | 'Weekly Limit' | 'Daily Limit'>('Total Limit');
+    const [newRequestedLimit, setNewRequestedLimit] = useState('');
+    const [increaseReason, setIncreaseReason] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const t = searchParams.get('tab');
-    if (t) {
-      setActiveTab(getValidTab(t));
-    }
-  }, [searchParams]);
+    // Pay Modal
+    const [selectedInvoice, setSelectedInvoice] = useState<CustomerPayLaterItem | null>(null);
+    const [isPayModalOpen, setIsPayModalOpen] = useState(false);
 
-  const handleTabChange = (newTab: 'Invoices' | 'Limit Requests') => {
-    setActiveTab(newTab);
-    const newParams = new URLSearchParams(searchParams);
-    if (newTab === 'Invoices') {
-      newParams.delete('tab');
-    } else {
-      newParams.set('tab', 'requests');
-    }
-    setSearchParams(newParams, { replace: true });
-  };
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [isLoading, setIsLoading] = useState(true);
+    const handleResetFilters = () => {
+        setStatusFilter('all');
+        setStartDate('');
+        setEndDate('');
+    };
 
-  // Credit limits & data
-  const [totalCreditLimit, setTotalCreditLimit] = useState(80000);
-  const [creditUsed, setCreditUsed] = useState(0);
-  const [creditAvailable, setCreditAvailable] = useState(80000);
-  const [payLaterStatus, setPayLaterStatus] = useState<string>('approved');
-  const [monthlyLimit, setMonthlyLimit] = useState(40000);
-  const [weeklyLimit, setWeeklyLimit] = useState(15000);
-  const [dailyLimit, setDailyLimit] = useState(8000);
-  const [dailyUsed, setDailyUsed] = useState(0);
-  const [weeklyUsed, setWeeklyUsed] = useState(0);
-  const [monthlyUsed, setMonthlyUsed] = useState(0);
-  // Computed live dynamic remaining caps
-  const dailyAvailable = Math.max(0, dailyLimit - dailyUsed);
-  const weeklyAvailable = Math.max(0, weeklyLimit - weeklyUsed);
-  const monthlyAvailable = Math.max(0, monthlyLimit - monthlyUsed);
-  const [payLaterDays, setPayLaterDays] = useState(30);
-  const [tier, setTier] = useState('Tier 1 Shipper');
-  const [onTimeRate, setOnTimeRate] = useState(100);
-  const [invoices, setInvoices] = useState<PayLaterInvoiceItem[]>([]);
-  const [requests, setRequests] = useState<CreditRequestItem[]>([]);
-
-  // Modals
-  const [isIncreaseModalOpen, setIsIncreaseModalOpen] = useState(false);
-  const [increaseTarget, setIncreaseTarget] = useState<'Max Credit' | 'Monthly Limit' | 'Weekly Limit' | 'Daily Limit'>('Max Credit');
-  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<PayLaterInvoiceItem | null>(null);
-  const [newRequestedLimit, setNewRequestedLimit] = useState('');
-  const [increaseReason, setIncreaseReason] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const getCurrentTargetLimit = () => {
-    switch (increaseTarget) {
-      case 'Monthly Limit':
-        return monthlyLimit;
-      case 'Weekly Limit':
-        return weeklyLimit;
-      case 'Daily Limit':
-        return dailyLimit;
-      default:
-        return totalCreditLimit;
-    }
-  };
-
-  const getPresetIncrements = () => {
-    switch (increaseTarget) {
-      case 'Daily Limit':
-        return [1000, 2000, 5000, 10000];
-      case 'Weekly Limit':
-        return [2000, 5000, 10000, 20000];
-      case 'Monthly Limit':
-        return [5000, 10000, 20000, 50000];
-      default:
-        return [5000, 10000, 20000, 50000];
-    }
-  };
-
-  // Calculate days remaining until due date
-  const calculateDaysLeft = (dueDateStr: string) => {
-    if (!dueDateStr || dueDateStr === 'N/A') return 30;
-    try {
-      const due = new Date(dueDateStr);
-      const today = new Date();
-      const diffTime = due.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays;
-    } catch {
-      return 30;
-    }
-  };
-
-  // Fetch live customer profile, invoices, and credit requests from API
-  const fetchPayLaterData = async (showRefreshToast = false) => {
-    setIsLoading(true);
-    try {
-      // 1. Fetch Profile info (credit limits, approval status)
-      let currentLimit = totalCreditLimit;
-      const profRes: any = await apiClient.get('/customer/profile').catch(() => null);
-      const p = profRes?.data || profRes;
-      if (p && (p.pay_later_limit !== undefined || p.id)) {
-        const limitVal = p.pay_later_limit && Number(p.pay_later_limit) > 0 ? Number(p.pay_later_limit) : 80000;
-        currentLimit = limitVal;
-        setTotalCreditLimit(limitVal);
-        if (p.pay_later_used !== undefined) setCreditUsed(Number(p.pay_later_used));
-        if (p.pay_later_available !== undefined) setCreditAvailable(Number(p.pay_later_available));
-        else setCreditAvailable(Math.max(0, limitVal - (p.pay_later_used ? Number(p.pay_later_used) : 0)));
-        if (p.pay_later_status) setPayLaterStatus(p.pay_later_status);
-        if (p.pay_later_monthly_limit) setMonthlyLimit(Number(p.pay_later_monthly_limit));
-        if (p.pay_later_weekly_limit) setWeeklyLimit(Number(p.pay_later_weekly_limit));
-        if (p.pay_later_daily_limit) setDailyLimit(Number(p.pay_later_daily_limit));
-        if (p.pay_later_daily_used !== undefined) setDailyUsed(Number(p.pay_later_daily_used));
-        if (p.pay_later_weekly_used !== undefined) setWeeklyUsed(Number(p.pay_later_weekly_used));
-        if (p.pay_later_monthly_used !== undefined) setMonthlyUsed(Number(p.pay_later_monthly_used));
-        if (p.pay_later_days) setPayLaterDays(Number(p.pay_later_days));
-        if (p.pay_later_tier) setTier(p.pay_later_tier);
-        if (p.pay_later_ontime_rate !== undefined) setOnTimeRate(Number(p.pay_later_ontime_rate));
-      }
-
-      // 2. Fetch Invoices
-      const invRes: any = await apiClient.get('/customer/invoices?per_page=100&pay_later_only=1').catch(() => null);
-      const rawInvoices = Array.isArray(invRes?.data?.items)
-        ? invRes.data.items
-        : (Array.isArray(invRes?.data?.data)
-          ? invRes.data.data
-          : (Array.isArray(invRes?.data?.invoices?.data)
-            ? invRes.data.invoices.data
-            : (Array.isArray(invRes?.data?.invoices)
-              ? invRes.data.invoices
-              : (Array.isArray(invRes?.data)
-                ? invRes.data
-                : (Array.isArray(invRes?.items)
-                  ? invRes.items
-                  : (Array.isArray(invRes) ? invRes : []))))));
-
-      if (Array.isArray(rawInvoices)) {
-        let calculatedUsed = 0;
-        const payLaterInvoices = rawInvoices.filter((inv: any) => inv.is_pay_later !== false && inv.invoice_type !== 'subscription');
-        const mapped: PayLaterInvoiceItem[] = payLaterInvoices.map((inv: any) => {
-          const rawSt = (inv.raw_status || inv.status || 'due').toLowerCase().trim();
-          const isSettled = rawSt === 'paid' || rawSt === 'settled';
-          const dueDateStr = inv.due_date || '30 Days';
-          const days = calculateDaysLeft(dueDateStr);
-          const isOverdue = !isSettled && (rawSt === 'overdue' || days < 0);
-          const isDueSoon = !isSettled && !isOverdue && (days <= 7 && days >= 0);
-          const amt = Number(inv.total_amount ?? (typeof inv.amount === 'number' ? inv.amount : parseFloat(String(inv.amount || '0').replace(/[^0-9.-]+/g, '')) || 0));
-
-          if (!isSettled) {
-            calculatedUsed += amt;
-          }
-
-          let invoiceStatus: 'due' | 'due_soon' | 'overdue' | 'settled' = 'due';
-          if (isSettled) invoiceStatus = 'settled';
-          else if (isOverdue) invoiceStatus = 'overdue';
-          else if (isDueSoon) invoiceStatus = 'due_soon';
-          else invoiceStatus = 'due';
-
-          return {
-            id: inv.invoice_number || (inv.id ? `INV-${String(inv.id).padStart(4, '0')}` : 'INV-0001'),
-            rawId: inv.id,
-            orderId: inv.order_number || (inv.order_id ? `ORD-${String(inv.order_id).padStart(4, '0')}` : 'ORD-0001'),
-            route: inv.route || (inv.pickup_address && inv.delivery_address ? `${inv.pickup_address.split(',')[0]} ➔ ${inv.delivery_address.split(',')[0]}` : 'London ➔ Manchester'),
-            from: inv.pickup_address ? inv.pickup_address.split(',')[0] : 'Origin',
-            to: inv.delivery_address ? inv.delivery_address.split(',')[0] : 'Destination',
-            carrier: inv.supplier_name || inv.carrier || 'Carrier Direct Fleet',
-            issueDate: inv.invoice_date || inv.created_at || '14 Sep 2026',
-            dueDate: dueDateStr,
-            amount: amt,
-            status: invoiceStatus,
-            daysLeft: isSettled ? 0 : days,
-            pickup_address: inv.pickup_address || inv.pickup || inv.pickup_city || inv.from || 'Pickup Location',
-            delivery_address: inv.delivery_address || inv.delivery || inv.delivery_city || inv.to || 'Delivery Location',
-            order_id: inv.order_id || inv.raw?.order_id,
-            raw: inv
-          };
-        });
-
-        setInvoices(mapped);
-        if (calculatedUsed > 0) {
-          setCreditUsed(calculatedUsed);
-          setCreditAvailable(Math.max(0, currentLimit - calculatedUsed));
-        }
-      }
-
-      // 3. Fetch Credit Requests History from DB
-      const reqRes: any = await apiClient.get('/customer/pay-later/requests').catch(() => null);
-      const rawRequests = reqRes?.data || (Array.isArray(reqRes) ? reqRes : []);
-      if (Array.isArray(rawRequests) && rawRequests.length > 0) {
-        const mappedReqs: CreditRequestItem[] = rawRequests.map((r: any) => ({
-          id: r.request_number || `REQ-CR-${String(r.id).padStart(3, '0')}`,
-          date: r.created_at ? new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'Recent',
-          limitType: r.limit_type || 'max',
-          requestedAmount: Number(r.requested_amount || 0),
-          currentAmount: Number(r.current_amount || 0),
-          status: r.status || 'under_review',
-          notes: r.notes || r.reviewer_notes || 'Credit limit increase request.'
-        }));
-        setRequests(mappedReqs);
-      }
-
-      if (showRefreshToast) {
-        showToast('Pay Later records refreshed successfully.', 'success');
-      }
-    } catch (err) {
-      console.error('Failed to fetch pay later data:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPayLaterData();
-  }, []);
-
-  // Filtered dataset based on table dropdown
-  const filteredData = useMemo(() => {
-    return invoices.filter((item) => {
-      if (statusFilter !== 'All') {
-        if (statusFilter === 'Due (Net-30)' && item.status !== 'due' && item.status !== 'unsettled') return false;
-        if (statusFilter === 'Due Soon' && item.status !== 'due_soon') return false;
-        if (statusFilter === 'Overdue' && item.status !== 'overdue') return false;
-        if (statusFilter === 'Settled' && item.status !== 'settled') return false;
-      }
-      return true;
+    const filteredInvoices = useFilteredCustomerPayLater({
+        invoices,
+        activeTab,
+        statusFilter,
+        startDate,
+        endDate,
     });
-  }, [invoices, statusFilter]);
 
-  const tabs: { id: 'Invoices' | 'Limit Requests'; label: string; count: number }[] = [
-    { id: 'Invoices', label: 'Pay Later Invoices', count: invoices.length },
-    { id: 'Limit Requests', label: 'Limit Requests', count: requests.length },
-  ];
+    const handleViewInvoice = (inv: CustomerPayLaterItem) => {
+        navigate('/customer/finance/invoices');
+    };
 
-  // Download Invoice PDF
-  const handleDownloadInvoice = async (row: PayLaterInvoiceItem) => {
-    try {
-      showToast(`Downloading invoice ${row.id}...`, 'info');
-      const response = await apiClient.get(`/customer/invoices/${row.rawId || row.id}/download`, {
-        responseType: 'blob',
-      });
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Invoice-${row.id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      showToast(`Invoice ${row.id} downloaded successfully.`, 'success');
-    } catch {
-      exportInvoicePdf(row as any);
-    }
-  };
+    const handleOpenPayModal = (inv: CustomerPayLaterItem) => {
+        setSelectedInvoice(inv);
+        setIsPayModalOpen(true);
+    };
 
-  // Compact Single-Line Columns for Invoices
-  const invoiceColumns = useMemo<Column<PayLaterInvoiceItem>[]>(() => [
-    {
-      id: "id",
-      label: "Invoice ID",
-      className: "whitespace-nowrap",
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center gap-1.5 group min-h-[22px]">
-          <span className="font-bold text-[#ff4a1f] text-xs whitespace-nowrap">{row.id}</span>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigator.clipboard.writeText(row.id);
-              showToast(`Copied invoice ${row.id}`, "success");
-            }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
-            title="Copy Invoice ID"
-          >
-            <Copy size={12} />
-          </button>
-        </div>
-      ),
-    },
-    {
-      id: "orderId",
-      label: "Order Ref",
-      className: "whitespace-nowrap",
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center min-h-[22px]">
-          {row.order_id ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/customer/orders/${encryptId(row.order_id)}`);
-              }}
-              className="font-semibold text-slate-700 dark:text-slate-300 hover:text-[#ff4a1f] hover:underline cursor-pointer text-xs whitespace-nowrap"
-            >
-              {row.orderId}
-            </button>
-          ) : (
-            <span className="text-slate-500 dark:text-slate-400 text-xs font-semibold whitespace-nowrap">{row.orderId}</span>
-          )}
-        </div>
-      ),
-    },
-    {
-      id: "carrier",
-      label: "Supplier",
-      className: "whitespace-nowrap",
-      sortable: true,
-      render: (row) => {
-        const supplierName = row.carrier || "Carrier Direct";
-        const initial = supplierName.charAt(0).toUpperCase();
-        return (
-          <div className="flex items-center gap-2 whitespace-nowrap min-h-[22px]">
-            <div className="w-5 h-5 min-w-[20px] min-h-[20px] aspect-square rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 dark:border-orange-500/20 text-[#ff4a1f] flex items-center justify-center text-[10px] font-bold shrink-0">
-              <span>{initial}</span>
-            </div>
-            <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs whitespace-nowrap" title={supplierName}>
-              {supplierName}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: "route",
-      label: "Pickup & Delivery",
-      className: "min-w-[160px]",
-      render: (row) => {
-        const pickup = row.pickup_address || row.from || "Pickup Location";
-        const delivery = row.delivery_address || row.to || "Delivery Location";
-        return (
-          <div className="flex flex-col justify-center gap-0.5 py-0.5 min-w-0">
-            <div className="flex items-center gap-1.5 min-w-0" title={`Pickup: ${pickup}`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate">
-                {pickup}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 min-w-0" title={`Delivery: ${delivery}`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f] shrink-0" />
-              <span className="text-slate-500 dark:text-slate-400 text-xs truncate">
-                {delivery}
-              </span>
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      id: "issueDate",
-      label: "Issue Date",
-      className: "whitespace-nowrap text-center",
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center justify-center min-h-[22px]">
-          <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap text-xs font-medium">{row.issueDate}</span>
-        </div>
-      ),
-    },
-    {
-      id: "dueDate",
-      label: "Due Date",
-      className: "whitespace-nowrap text-center",
-      sortable: true,
-      render: (row) => {
-        const isSettled = row.status === "settled";
-        const isOverdue = row.status === "overdue";
-        const isDueSoon = row.status === "due_soon";
-
-        return (
-          <div className="flex flex-col items-center justify-center min-h-[22px] leading-tight">
-            <span className={`whitespace-nowrap text-xs font-semibold ${
-              isOverdue ? "text-rose-600 dark:text-rose-400" : isDueSoon ? "text-amber-600 dark:text-amber-400" : isSettled ? "text-slate-500 dark:text-slate-400" : "text-slate-700 dark:text-slate-300"
-            }`}>
-              {row.dueDate}
-            </span>
-            {!isSettled && (
-              <span className={`text-[9.5px] whitespace-nowrap font-medium ${
-                isOverdue ? "text-rose-500 font-bold" : isDueSoon ? "text-amber-600 font-semibold" : "text-slate-400"
-              }`}>
-                {isOverdue ? `${Math.abs(row.daysLeft)}d overdue` : `${row.daysLeft}d left`}
-              </span>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      id: "amount",
-      label: "Amount",
-      className: "whitespace-nowrap text-right",
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center justify-end min-h-[22px]">
-          <span className="font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap text-xs">
-            € {row.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: "status",
-      label: "Payment Status",
-      className: "whitespace-nowrap text-center",
-      render: (row) => {
-        if (row.status === "settled") {
-          return (
-            <div className="flex items-center justify-center min-h-[22px]">
-              <Badge variant="secondary" className="whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-semibold border rounded-[3px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60">
-                Settled (Paid)
-              </Badge>
-            </div>
-          );
+    const confirmInvoicePayment = async () => {
+        if (!selectedInvoice) return;
+        setIsSubmitting(true);
+        try {
+            await apiClient.post(`/customer/invoices/${selectedInvoice.id}/pay-later`);
+            // notifySuccess('Invoice successfully settled using Pay Later facility.');
+            setIsPayModalOpen(false);
+            setSelectedInvoice(null);
+            fetchPayLaterData();
+        } catch (err: any) {
+            console.error(err);
+            // notifyError(err?.response?.data?.message || err?.message || 'Failed to settle invoice with Pay Later.');
+        } finally {
+            setIsSubmitting(false);
         }
-        if (row.status === "overdue") {
-          return (
-            <div className="flex items-center justify-center min-h-[22px]">
-              <Badge variant="secondary" className="whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-bold border rounded-[3px] bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60">
-                Overdue
-              </Badge>
-            </div>
-          );
+    };
+
+    const handleSubmitIncrease = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newRequestedLimit || parseFloat(newRequestedLimit) <= 0) {
+            // notifyError('Please enter a valid requested limit amount.');
+            return;
         }
-        if (row.status === "due_soon") {
-          return (
-            <div className="flex items-center justify-center min-h-[22px]">
-              <Badge variant="secondary" className="whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-semibold border rounded-[3px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60">
-                Due Soon ({row.daysLeft}d)
-              </Badge>
-            </div>
-          );
+
+        setIsSubmitting(true);
+        try {
+            let limitTypeKey = 'max';
+            if (increaseTarget === 'Monthly Limit') limitTypeKey = 'monthly';
+            else if (increaseTarget === 'Weekly Limit') limitTypeKey = 'weekly';
+            else if (increaseTarget === 'Daily Limit') limitTypeKey = 'daily';
+
+            await apiClient.post('/customer/pay-later/request', {
+                requested_limit: parseFloat(newRequestedLimit),
+                limit_type: limitTypeKey,
+                reason: increaseReason,
+            });
+
+            // notifySuccess('Credit limit request submitted successfully. Awaiting review.');
+            setIsIncreaseModalOpen(false);
+            setNewRequestedLimit('');
+            setIncreaseReason('');
+            fetchPayLaterData();
+        } catch (err: any) {
+            console.error(err);
+            // notifyError(err?.response?.data?.message || err?.message || 'Failed to submit credit request.');
+        } finally {
+            setIsSubmitting(false);
         }
-        return (
-          <div className="flex items-center justify-center min-h-[22px]">
-            <Badge variant="secondary" className="whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-semibold border rounded-[3px] bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60">
-              Due (Net-30)
-            </Badge>
-          </div>
-        );
-      },
-    },
-  ], [navigate, showToast]);
+    };
 
-  // Compact Single-Line Columns for Limit Requests
-  const requestColumns = useMemo<Column<CreditRequestItem>[]>(() => [
-    {
-      id: 'id',
-      label: 'Request ID',
-      className: 'whitespace-nowrap',
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center min-h-[22px]">
-          <span className="font-bold text-slate-900 dark:text-slate-100 text-xs whitespace-nowrap">{row.id}</span>
-        </div>
-      ),
-    },
-    {
-      id: 'limitType',
-      label: 'Limit Type',
-      className: 'whitespace-nowrap',
-      render: (row) => {
-        const typeStr = (row.limitType || 'max').toLowerCase();
-        const label = typeStr.includes('month')
-          ? 'Monthly Limit'
-          : typeStr.includes('week')
-            ? 'Weekly Limit'
-            : typeStr.includes('day') || typeStr.includes('daily')
-              ? 'Daily Limit'
-              : 'Max Credit';
+    const handleExportCSV = () => {
+        if (!filteredInvoices || filteredInvoices.length === 0) return;
+        const headers = ['Amount', 'Status', 'Payment Method', 'Description', 'Customer', 'Date'];
+        const csvRows = [
+            headers.join(','),
+            ...filteredInvoices.map((inv: any) => [
+                `"${inv.amount || inv.gross_amount_formatted || inv.total_amount_formatted || ''}"`,
+                `"${inv.status || 'Paid'}"`,
+                `"${inv.payment_method_label || 'Net-30 Pay Later'}"`,
+                `"${inv.description || `CarrierDirect Escrow: Order #${inv.order_number || inv.id}`}"`,
+                `"${inv.customer_email || 'customer@carrierdirect.com'}"`,
+                `"${inv.created_at_time || inv.date || inv.issue_date || ''}"`,
+            ].join(','))
+        ];
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `CarrierDirect_PayLater_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
-        const badgeClass = typeStr.includes('month')
-          ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60'
-          : typeStr.includes('week')
-            ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60'
-            : typeStr.includes('day') || typeStr.includes('daily')
-              ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
-              : 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800/60';
+    const columns = useMemo(() => getPayLaterColumns(handleViewInvoice), []);
 
-        return (
-          <div className="flex items-center min-h-[22px]">
-            <span className={`inline-flex items-center px-1.5 py-0.25 rounded-[3px] text-[9.5px] font-semibold border whitespace-nowrap ${badgeClass}`}>
-              {label}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: 'date',
-      label: 'Request Date',
-      className: 'whitespace-nowrap',
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center min-h-[22px]">
-          <span className="text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">{row.date}</span>
-        </div>
-      ),
-    },
-    {
-      id: 'requestedAmount',
-      label: 'Requested Limit',
-      className: 'whitespace-nowrap text-right',
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center justify-end min-h-[22px]">
-          <span className="font-bold text-[#ff4a1f] text-xs whitespace-nowrap">
-            € {row.requestedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: 'currentAmount',
-      label: 'Previous Limit',
-      className: 'whitespace-nowrap text-right',
-      sortable: true,
-      render: (row) => (
-        <div className="flex items-center justify-end min-h-[22px]">
-          <span className="text-slate-500 dark:text-slate-400 text-xs font-semibold whitespace-nowrap">
-            € {row.currentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: 'status',
-      label: 'Request Status',
-      className: 'whitespace-nowrap text-center',
-      render: (row) => {
-        const badgeStyle = row.status === 'approved'
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
-          : row.status === 'under_review' || row.status === 'pending'
-            ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
-            : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60';
-
-        const label = row.status === 'approved' ? 'Approved' : (row.status === 'rejected' ? 'Declined' : 'Under Review');
-
-        return (
-          <div className="flex items-center justify-center min-h-[22px]">
-            <Badge variant="secondary" className={`whitespace-nowrap text-[9.5px] px-1.5 py-0.25 font-semibold border rounded-[3px] ${badgeStyle}`}>
-              {label}
-            </Badge>
-          </div>
-        );
-      },
-    },
-    {
-      id: 'notes',
-      label: 'Reason & Notes',
-      className: 'whitespace-nowrap',
-      render: (row) => (
-        <div className="flex items-center min-h-[22px]" title={row.notes}>
-          <span className="text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">{row.notes}</span>
-        </div>
-      ),
-    },
-  ], []);
-
-  // Shared Header Tabs Bar
-  const renderHeaderTabs = () => (
-    <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto hide-scrollbar mb-[-1px]">
-      {tabs.map((tab) => {
-        const isActive = activeTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => handleTabChange(tab.id)}
-            className={`flex items-center gap-1.5 sm:gap-2 pb-2.5 border-b transition-colors whitespace-nowrap cursor-pointer ${isActive
-                ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-          >
-            <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>
-              {tab.label}
-            </span>
-            <span
-              className={`text-[11px] font-medium px-1.5 py-0.25 rounded-full ${isActive
-                  ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                }`}
-            >
-              {tab.count}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-
-  // Handle Limit Increase Form Submit (Saves into MySQL DB)
-  const handleIncreaseSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const rawVal = parseFloat(newRequestedLimit);
-    if (!rawVal || rawVal <= 0) {
-      showToast('Please enter a valid amount to add to your limit.', 'error');
-      return;
-    }
-
-    const targetCurrent = getCurrentTargetLimit();
-    const finalRequestedAmount = rawVal > targetCurrent ? rawVal : (targetCurrent + rawVal);
-
-    const limitTypeParam = increaseTarget === 'Monthly Limit'
-      ? 'monthly'
-      : increaseTarget === 'Weekly Limit'
-        ? 'weekly'
-        : increaseTarget === 'Daily Limit'
-          ? 'daily'
-          : 'max';
-
-    const noteText = increaseReason || `${increaseTarget} increase request.`;
-
-    setIsSubmitting(true);
-    try {
-      const res: any = await apiClient.post('/customer/pay-later/request', {
-        requested_limit: finalRequestedAmount,
-        limit_type: limitTypeParam,
-        reason: noteText,
-      });
-
-      const savedReq = res?.data?.credit_request || res?.data || res;
-      const newReq: CreditRequestItem = {
-        id: savedReq?.request_number || `REQ-CR-${Math.floor(100 + Math.random() * 900)}`,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-        limitType: limitTypeParam,
-        requestedAmount: finalRequestedAmount,
-        currentAmount: targetCurrent,
-        status: 'under_review',
-        notes: noteText,
-      };
-
-      setRequests((prev) => [newReq, ...prev.filter((r) => r.id !== newReq.id)]);
-      setIsIncreaseModalOpen(false);
-      showToast(`${increaseTarget} increase request for €${finalRequestedAmount.toLocaleString()} submitted successfully!`, 'success');
-      fetchPayLaterData();
-    } catch (err) {
-      console.error('Failed to submit limit request:', err);
-      showToast('Failed to submit limit request. Please try again.', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Confirm Invoice Payment
-  const confirmInvoicePayment = async () => {
-    if (!selectedInvoice) return;
-    setIsSubmitting(true);
-    try {
-      await apiClient.post(`/customer/invoices/${selectedInvoice.rawId || selectedInvoice.id}/pay-later`);
-      showToast(`Invoice ${selectedInvoice.id} settled successfully using Pay Later!`, 'success');
-      setInvoices((prev) =>
-        prev.map((inv) =>
-          inv.id === selectedInvoice.id
-            ? { ...inv, status: 'settled', daysLeft: 0 }
-            : inv
-        )
-      );
-      setIsPayModalOpen(false);
-      setSelectedInvoice(null);
-      fetchPayLaterData();
-    } catch (err: any) {
-      console.error('Pay later error:', err);
-      showToast(`Invoice ${selectedInvoice.id} settled successfully!`, 'success');
-      setInvoices((prev) =>
-        prev.map((inv) =>
-          inv.id === selectedInvoice.id
-            ? { ...inv, status: 'settled', daysLeft: 0 }
-            : inv
-        )
-      );
-      setIsPayModalOpen(false);
-      setSelectedInvoice(null);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const usedPercentage = Math.min(100, Math.round((creditUsed / (totalCreditLimit || 1)) * 100));
-
-  return (
-    <div className="p-3.5 md:p-5 w-full mx-auto space-y-4 font-sans bg-[#f8fafc] dark:bg-[#12161c] min-h-screen">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
-            Pay Later & Credit Facility
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            Manage, track, and settle post-delivery 30-day credit invoices and financing lines.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 px-3 text-xs font-medium border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-1.5 cursor-pointer rounded-[5px]"
-            onClick={() => fetchPayLaterData(true)}
-            disabled={isLoading}
-          >
-            <RotateCcw size={13} className={isLoading ? 'animate-spin' : ''} />
-            Refresh
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 px-3 text-xs font-medium border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-1.5 cursor-pointer rounded-[5px]"
-            onClick={() => {
-              if (invoices.length > 0) {
-                handleDownloadInvoice(invoices[0]);
-              } else {
-                showToast('Consolidated credit statement downloaded.', 'success');
-              }
-            }}
-          >
-            <Download size={13} />
-            Download Statement
-          </Button>
-
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            className="h-8 px-3.5 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03d15] text-white flex items-center gap-1.5 cursor-pointer rounded-[5px] shadow-xs"
-            onClick={() => {
-              setIncreaseTarget('Max Credit');
-              setNewRequestedLimit('');
-              setIncreaseReason('');
-              setIsIncreaseModalOpen(true);
-            }}
-          >
-            <Plus size={13} />
-            Request Limit Increase
-          </Button>
-        </div>
-      </div>
-
-      {/* 7 Standard Metric Cards (Compact & Uniform CSS) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-2.5">
-        {/* 1. Max Credit Limit */}
-        <MetricCard
-          title="Max Credit"
-          description="Total facility cap"
-          value={`€ ${totalCreditLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
-          icon={CreditCard}
-          colorClass="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
-          badge={
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIncreaseTarget('Max Credit');
-                setNewRequestedLimit('');
-                setIncreaseReason('');
-                setIsIncreaseModalOpen(true);
-              }}
-              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-1.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60 cursor-pointer transition-colors"
-            >
-              + Increase
-            </button>
-          }
-          valueClassName="text-xs sm:text-sm xl:text-[14px]"
-          className="p-2 sm:p-2.5"
-          isLoading={isLoading}
-        />
-
-        {/* 2. Monthly Limit */}
-        <MetricCard
-          title="Monthly Limit"
-          description="Per 30-day cycle"
-          value={`€ ${monthlyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
-          icon={Clock}
-          colorClass="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400"
-          badge={
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIncreaseTarget('Monthly Limit');
-                setNewRequestedLimit('');
-                setIncreaseReason('');
-                setIsIncreaseModalOpen(true);
-              }}
-              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-1.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60 cursor-pointer transition-colors"
-            >
-              + Increase
-            </button>
-          }
-          valueClassName="text-xs sm:text-sm xl:text-[14px]"
-          className="p-2 sm:p-2.5"
-          isLoading={isLoading}
-        />
-
-        {/* 3. Weekly Limit */}
-        <MetricCard
-          title="Weekly Limit"
-          description="Per calendar week"
-          value={`€ ${weeklyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
-          icon={Clock}
-          colorClass="bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400"
-          badge={
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIncreaseTarget('Weekly Limit');
-                setNewRequestedLimit('');
-                setIncreaseReason('');
-                setIsIncreaseModalOpen(true);
-              }}
-              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-1.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60 cursor-pointer transition-colors"
-            >
-              + Increase
-            </button>
-          }
-          valueClassName="text-xs sm:text-sm xl:text-[14px]"
-          className="p-2 sm:p-2.5"
-          isLoading={isLoading}
-        />
-
-        {/* 4. Daily Limit */}
-        <MetricCard
-          title="Daily Limit"
-          description="Per 24h window"
-          value={`€ ${dailyLimit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
-          icon={Sparkles}
-          colorClass="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"
-          badge={
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIncreaseTarget('Daily Limit');
-                setNewRequestedLimit('');
-                setIncreaseReason('');
-                setIsIncreaseModalOpen(true);
-              }}
-              className="text-[9.5px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-1.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/60 cursor-pointer transition-colors"
-            >
-              + Increase
-            </button>
-          }
-          valueClassName="text-xs sm:text-sm xl:text-[14px]"
-          className="p-2 sm:p-2.5"
-          isLoading={isLoading}
-        />
-
-        {/* 5. Credit Line Used */}
-        <MetricCard
-          title="Credit Used"
-          description="Total unpaid invoices"
-          value={`€ ${creditUsed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={Receipt}
-          colorClass="bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
-          badge={
-            <Badge variant="secondary" className="bg-orange-50 text-[#ea580c] dark:bg-orange-950/60 dark:text-orange-400 border border-orange-200/60 text-[9.5px] font-semibold px-1.5 py-0.25">
-              {usedPercentage}%
-            </Badge>
-          }
-          valueClassName="text-xs sm:text-sm xl:text-[14px]"
-          className="p-2 sm:p-2.5"
-          isLoading={isLoading}
-        />
-
-        {/* 6. Available Credit */}
-        <MetricCard
-          title="Available"
-          description="Available for orders"
-          value={`€ ${creditAvailable.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={CheckCircle2}
-          colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-          badge={
-            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/60 text-[9.5px] font-semibold px-1.5 py-0.25">
-              Ready
-            </Badge>
-          }
-          valueClassName="text-xs sm:text-sm xl:text-[14px]"
-          className="p-2 sm:p-2.5"
-          isLoading={isLoading}
-        />
-
-        {/* 7. Facility Status */}
-        <MetricCard
-          title="Credit Status"
-          description={`${payLaterDays}d term • ${onTimeRate}% on-time`}
-          value={payLaterStatus === 'approved' ? 'Active Approved' : (payLaterStatus === 'pending' ? 'Pending' : payLaterStatus)}
-          icon={ShieldCheck}
-          colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-          badge={
-            <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border border-indigo-200/60 text-[9.5px] font-semibold px-1.5 py-0.25">
-              {tier.replace(' Shipper', '')}
-            </Badge>
-          }
-          valueClassName="text-xs sm:text-sm xl:text-[13px] capitalize"
-          className="p-2 sm:p-2.5"
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Main DataTable - Compact Layout */}
-      {activeTab !== 'Limit Requests' ? (
-        <DataTable
-          data={filteredData}
-          columns={invoiceColumns}
-          actions={(row) => (
-            <div className="flex items-center justify-end min-h-[22px]">
-              {row.status !== 'settled' ? (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedInvoice(row);
-                    setIsPayModalOpen(true);
-                  }}
-                  className="h-[25px] px-2 text-[11px] font-bold bg-[#ff4a1f] hover:bg-[#e03d15] text-white rounded-[3px] cursor-pointer whitespace-nowrap shadow-2xs"
-                >
-                  Pay Now
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownloadInvoice(row)}
-                  className="h-[25px] px-2 text-[11px] font-medium text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-[3px] cursor-pointer whitespace-nowrap flex items-center gap-1"
-                >
-                  <Download size={11} />
-                  <span>Receipt</span>
-                </Button>
-              )}
-            </div>
-          )}
-          actionsColumnClassName="w-[85px] min-w-[80px] text-right pr-2"
-          headerTabs={renderHeaderTabs()}
-          filterContent={
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-slate-500">Status:</span>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="text-xs border border-slate-200 dark:border-slate-700 rounded px-2 py-0.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200"
-                >
-                  <option value="All">All Invoices ({invoices.length})</option>
-                  <option value="Due (Net-30)">Due (Net-30) ({invoices.filter(i => i.status === 'due' || i.status === 'unsettled').length})</option>
-                  <option value="Due Soon">Due Soon ({invoices.filter(i => i.status === 'due_soon').length})</option>
-                  <option value="Overdue">Overdue ({invoices.filter(i => i.status === 'overdue').length})</option>
-                  <option value="Settled">Settled / Paid ({invoices.filter(i => i.status === 'settled').length})</option>
-                </select>
-              </div>
-
-              {statusFilter !== 'All' && (
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter('All')}
-                  className="text-xs text-[#ff4a1f] hover:underline font-medium ml-1 cursor-pointer"
-                >
-                  Reset
-                </button>
-              )}
-            </div>
-          }
-          searchPlaceholder="Search invoices by ID, order reference, carrier, route..."
-          compact={true}
-          isLoading={isLoading}
-          tableClassName="w-full min-w-[920px]"
-          emptyState={
-            <EmptyState
-              icon={Receipt}
-              title="No Invoices Found"
-              description="You have no Pay Later credit invoices on record."
-              actionLabel="Download Statement"
-              onAction={() => showToast('Consolidated credit statement downloaded.', 'success')}
-            />
-          }
-        />
-      ) : (
-        /* Tab: Limit Requests History rendered in EXACT SAME DataTable */
-        <DataTable
-          data={requests}
-          columns={requestColumns}
-          headerTabs={renderHeaderTabs()}
-          searchPlaceholder="Search limit requests by ID, amount, status..."
-          compact={true}
-          isLoading={isLoading}
-          tableClassName="w-full"
-          emptyState={
-            <EmptyState
-              icon={Inbox}
-              title="No Limit Requests Found"
-              description="You have not submitted any credit limit increase requests yet."
-              actionLabel="Request Limit Increase"
-              onAction={() => {
-                setNewRequestedLimit('');
-                setIncreaseReason('');
-                setIsIncreaseModalOpen(true);
-              }}
-            />
-          }
-        />
-      )}
-
-      {/* Modal: Request Limit Increase */}
-      {isIncreaseModalOpen && createPortal(
-        <div className="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans">
-          <form
-            onSubmit={handleIncreaseSubmit}
-            className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg max-w-sm w-full overflow-hidden shadow-2xl space-y-3"
-          >
-            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
-              <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                <Sparkles size={14} className="text-[#ff4a1f]" /> Request {increaseTarget} Increase
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsIncreaseModalOpen(false)}
-                disabled={isSubmitting}
-                className="text-slate-400 hover:text-slate-600 rounded p-1 cursor-pointer disabled:opacity-50"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className="p-4 space-y-3 text-xs">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-slate-700 dark:text-slate-300 font-medium text-[11px]">
-                    Additional {increaseTarget} to Add (€)
-                  </label>
-                  <span className="text-[10.5px] text-slate-400">
-                    Current {increaseTarget}: <strong className="text-slate-700 dark:text-slate-200">€ {getCurrentTargetLimit().toLocaleString()}</strong>
-                  </span>
-                </div>
-
-                {/* Quick Increment Preset Chips */}
-                <div className="flex items-center gap-1.5 mb-2">
-                  {getPresetIncrements().map((inc) => (
-                    <button
-                      key={inc}
-                      type="button"
-                      onClick={() => setNewRequestedLimit(String(inc))}
-                      className={`px-2 py-0.5 rounded text-[10.5px] font-semibold border transition-all cursor-pointer ${newRequestedLimit === String(inc)
-                          ? 'bg-[#ff4a1f] text-white border-[#ff4a1f]'
-                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                        }`}
-                    >
-                      + €{(inc / 1000).toFixed(0)}k
-                    </button>
-                  ))}
-                </div>
-
-                <input
-                  type="number"
-                  min={500}
-                  step={500}
-                  disabled={isSubmitting}
-                  placeholder={`Enter amount to add (e.g. ${getPresetIncrements()[1]})`}
-                  value={newRequestedLimit}
-                  onChange={(e) => setNewRequestedLimit(e.target.value)}
-                  required
-                  className="w-full px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-[4px] bg-white dark:bg-[#12161c] text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:border-[#ff4a1f] placeholder:text-slate-400 placeholder:font-normal"
-                />
-
-                {/* Live Preview of Resulting Target Limit */}
-                {parseFloat(newRequestedLimit) > 0 && (
-                  <div className="mt-2 p-2 rounded bg-orange-50/70 dark:bg-orange-950/30 border border-orange-200/60 dark:border-orange-900/40 text-[11px] text-orange-900 dark:text-orange-300 flex items-center justify-between">
-                    <span>New {increaseTarget}:</span>
-                    <strong className="text-xs font-bold text-[#ea580c] dark:text-orange-400">
-                      € {(parseFloat(newRequestedLimit) > getCurrentTargetLimit()
-                        ? parseFloat(newRequestedLimit)
-                        : getCurrentTargetLimit() + parseFloat(newRequestedLimit)
-                      ).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </strong>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-[11px]">Reason for Increase</label>
-                <textarea
-                  rows={2}
-                  disabled={isSubmitting}
-                  placeholder={`Provide reason for ${increaseTarget.toLowerCase()} increase...`}
-                  value={increaseReason}
-                  onChange={(e) => setIncreaseReason(e.target.value)}
-                  required
-                  className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded-[4px] bg-white dark:bg-[#12161c] text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-[#ff4a1f] placeholder:text-slate-400"
-                />
-              </div>
-            </div>
-
-            <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 flex items-center justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => setIsIncreaseModalOpen(false)}
-                className="h-8 px-4 text-xs font-semibold border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-[5px] cursor-pointer"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                type="submit"
-                disabled={isSubmitting}
-                className="h-8 px-4 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03d15] text-white rounded-[5px] cursor-pointer flex items-center gap-1.5 shadow-xs"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 size={13} className="animate-spin" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check size={13} />
-                    <span>Submit Request</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>,
-        document.body
-      )}
-
-      {/* Modal: Pay Invoice */}
-      {isPayModalOpen && selectedInvoice && createPortal(
-        <div className="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans">
-          <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg max-w-sm w-full overflow-hidden shadow-2xl space-y-3">
-            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
-              <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                <CreditCard size={14} className="text-[#ff4a1f]" /> Settle Invoice {selectedInvoice.id}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsPayModalOpen(false)}
-                disabled={isSubmitting}
-                className="text-slate-400 hover:text-slate-600 rounded p-1 cursor-pointer disabled:opacity-50"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className="p-4 space-y-2.5 text-xs">
-              <div className="flex justify-between items-center p-2.5 rounded bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700">
+    return (
+        <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c] space-y-3.5">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Amount Due</span>
-                  <span className="text-base font-bold text-slate-900 dark:text-slate-100">€ {selectedInvoice.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Corporate Pay Later Facility
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Flexible Net-{calculatedStats.payLaterDays} corporate credit for freight orders, consolidated monthly billing, and auto-settlements.
+                    </p>
                 </div>
-                <div className="text-right">
-                  <span className="text-slate-400 block text-[10px]">Order Ref</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">{selectedInvoice.orderId}</span>
-                </div>
-              </div>
 
-              <div className="border border-slate-200 dark:border-slate-700 rounded p-2.5 space-y-1.5 bg-white dark:bg-[#12161c]">
-                <span className="font-semibold text-slate-800 dark:text-slate-200 block text-[11px]">Payment Facility</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchPayLaterData(true)}
+                        disabled={isRefreshing}
+                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
+                        <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-[#ff4a1f]' : 'text-slate-500'} />
+                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportCSV}
+                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
+                        <Download size={13} className="text-slate-500" />
+                        <span>Export CSV</span>
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/customer/finance/invoices')}
+                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-300 dark:border-slate-700"
+                    >
+                        <FileText size={13} className="text-slate-500" />
+                        <span>All Invoices</span>
+                    </Button>
+
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => setIsIncreaseModalOpen(true)}
+                        className="h-8 px-3.5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    >
+                        <TrendingUp size={14} />
+                        <span>Request Limit Increase</span>
+                    </Button>
+                </div>
+            </div>
+
+            {/* Metrics Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                <MetricCard
+                    title="Total Credit Limit"
+                    description={`Max facility limit (€${calculatedStats.monthlyLimit.toLocaleString()} monthly cap)`}
+                    value={`€${calculatedStats.totalCreditLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    icon={ShieldCheck}
+                    colorClass="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400"
+                    badge={<Badge variant="secondary" className="bg-indigo-50 text-indigo-700 text-[10px] font-semibold border border-indigo-200">Facility</Badge>}
+                    valueClassName="text-base sm:text-lg"
+                    className="p-2.5 sm:p-3"
+                    isLoading={isLoading}
+                />
+                <MetricCard
+                    title="Available Credit"
+                    description="Ready to use for booking new cargo dispatch"
+                    value={`€${calculatedStats.availableCredit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    icon={CheckCircle2}
+                    colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
+                    badge={<Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">Available</Badge>}
+                    valueClassName="text-base sm:text-lg"
+                    className="p-2.5 sm:p-3"
+                    isLoading={isLoading}
+                />
+                <MetricCard
+                    title="Outstanding Balance"
+                    description={`${calculatedStats.dueCount} invoices currently in payment cycle`}
+                    value={calculatedStats.totalOutstandingFormatted}
+                    icon={AlertCircle}
+                    colorClass="bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400"
+                    badge={<Badge variant="secondary" className="bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">Due</Badge>}
+                    valueClassName="text-base sm:text-lg"
+                    className="p-2.5 sm:p-3"
+                    isLoading={isLoading}
+                />
+                <MetricCard
+                    title="Payment Cycle Terms"
+                    description={`Consolidated Net-${calculatedStats.payLaterDays} settlement cycle`}
+                    value={`Net-${calculatedStats.payLaterDays} Days`}
+                    icon={Clock}
+                    colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
+                    badge={<Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200">Term</Badge>}
+                    valueClassName="text-base sm:text-lg"
+                    className="p-2.5 sm:p-3"
+                    isLoading={isLoading}
+                />
+            </div>
+
+            {/* Pay Later Settlements History Table */}
+            <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 text-xs">
-                    <ShieldCheck size={14} className="text-emerald-600" />
-                    <span>Pay Later ({payLaterDays}-Day Credit)</span>
-                  </div>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">Auto Settle</span>
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <Wallet size={16} className="text-[#ff4a1f]" /> Pay Later Orders & Settlements
+                    </h2>
                 </div>
-              </div>
+
+                <DataTable
+                    data={filteredInvoices}
+                    columns={columns}
+                    actions={(row: CustomerPayLaterItem) => (
+                        <PayLaterRowActions
+                            row={row}
+                            onViewDetails={handleViewInvoice}
+                            onPayInvoice={handleOpenPayModal}
+                        />
+                    )}
+                    actionsColumnClassName="w-[105px] min-w-[105px] text-right pr-3.5"
+                    headerTabs={
+                        <PayLaterFilterTabs
+                            invoices={invoices}
+                            stats={stats}
+                            activeTab={activeTab}
+                            onSelectTab={setActiveTab}
+                        />
+                    }
+                    filterContent={
+                        <TableFilterContent
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            startDate={startDate}
+                            setStartDate={setStartDate}
+                            endDate={endDate}
+                            setEndDate={setEndDate}
+                            onResetFilters={handleResetFilters}
+                        />
+                    }
+                    searchPlaceholder="Search settlements by ID, order, customer email, or amount..."
+                    compact={true}
+                    isLoading={isLoading || isRefreshing}
+                    onRowClick={(row) => handleViewInvoice(row)}
+                    tableClassName="w-full"
+                    emptyState={
+                        <EmptyState
+                            icon={Wallet}
+                            title="No Pay Later Records Found"
+                            description={
+                                activeTab === 'all'
+                                    ? "There are no deferred freight invoices or Pay Later settlements on your account."
+                                    : `No settlements matching '${activeTab}'.`
+                            }
+                        />
+                    }
+                />
             </div>
 
-            <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 flex items-center justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isSubmitting}
-                onClick={() => setIsPayModalOpen(false)}
-                className="h-8 px-4 text-xs font-semibold border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-[5px] cursor-pointer"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={confirmInvoicePayment}
-                disabled={isSubmitting}
-                className="h-8 px-4 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03d15] text-white rounded-[5px] cursor-pointer flex items-center gap-1.5 shadow-xs"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 size={13} className="animate-spin" />
-                    <span>Settling...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check size={13} />
-                    <span>Confirm & Settle €{selectedInvoice.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
-  );
+            {/* Modal: Request Limit Increase */}
+            {isIncreaseModalOpen && createPortal(
+                <div className="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans">
+                    <form
+                        onSubmit={handleSubmitIncrease}
+                        className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg max-w-md w-full overflow-hidden shadow-2xl space-y-4"
+                    >
+                        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
+                            <div>
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                    <TrendingUp size={16} className="text-[#ff4a1f]" /> Request Credit Limit Increase
+                                </h3>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                    Select which limit you want to increase.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsIncreaseModalOpen(false)}
+                                className="text-slate-400 hover:text-slate-600 rounded p-1 cursor-pointer"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        <div className="px-5 py-2 space-y-3 text-xs">
+                            <div className="grid grid-cols-2 gap-2">
+                                {(['Total Limit', 'Monthly Limit', 'Weekly Limit', 'Daily Limit'] as const).map((target) => (
+                                    <button
+                                        key={target}
+                                        type="button"
+                                        onClick={() => setIncreaseTarget(target)}
+                                        className={`p-2.5 rounded border text-left cursor-pointer transition-all ${
+                                            increaseTarget === target
+                                                ? 'border-[#ff4a1f] bg-orange-50/60 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] font-bold'
+                                                : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300'
+                                        }`}
+                                    >
+                                        <div className="text-[10.5px] uppercase font-bold text-slate-400">{target}</div>
+                                        <div className="text-sm font-extrabold mt-0.5">
+                                            € {target === 'Total Limit' ? calculatedStats.totalCreditLimit.toLocaleString() : target === 'Monthly Limit' ? calculatedStats.monthlyLimit.toLocaleString() : target === 'Weekly Limit' ? calculatedStats.weeklyLimit.toLocaleString() : calculatedStats.dailyLimit.toLocaleString()}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div>
+                                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-[11px]">
+                                    Requested Amount (€ EUR)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="100"
+                                    step="100"
+                                    disabled={isSubmitting}
+                                    placeholder="e.g. 25000"
+                                    value={newRequestedLimit}
+                                    onChange={(e) => setNewRequestedLimit(e.target.value)}
+                                    required
+                                    className="w-full px-2.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded bg-white dark:bg-[#12161c] text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:border-[#ff4a1f]"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-slate-700 dark:text-slate-300 font-medium mb-1 text-[11px]">
+                                    Reason for Limit Increase
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    disabled={isSubmitting}
+                                    placeholder={`Provide details for ${increaseTarget.toLowerCase()} expansion...`}
+                                    value={increaseReason}
+                                    onChange={(e) => setIncreaseReason(e.target.value)}
+                                    required
+                                    className="w-full p-2.5 border border-slate-300 dark:border-slate-700 rounded bg-white dark:bg-[#12161c] text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-[#ff4a1f]"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 flex items-center justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                type="button"
+                                disabled={isSubmitting}
+                                onClick={() => setIsIncreaseModalOpen(false)}
+                                className="h-8 px-4 text-xs font-semibold cursor-pointer"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="h-8 px-4 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03d15] text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={13} className="animate-spin" />
+                                        <span>Submitting...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check size={13} />
+                                        <span>Submit Request</span>
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                </div>,
+                document.body
+            )}
+
+            {/* Modal: Settle Invoice with Pay Later */}
+            {isPayModalOpen && selectedInvoice && createPortal(
+                <div className="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans">
+                    <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg max-w-sm w-full overflow-hidden shadow-2xl space-y-3">
+                        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
+                            <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                                <CreditCard size={14} className="text-[#ff4a1f]" /> Settle Invoice {selectedInvoice.invoice_number || selectedInvoice.id}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={() => setIsPayModalOpen(false)}
+                                disabled={isSubmitting}
+                                className="text-slate-400 hover:text-slate-600 rounded p-1 cursor-pointer disabled:opacity-50"
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+
+                        <div className="p-4 space-y-2.5 text-xs">
+                            <div className="flex justify-between items-center p-2.5 rounded bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700">
+                                <div>
+                                    <span className="text-slate-400 block text-[10px]">Amount Due</span>
+                                    <span className="text-base font-bold text-slate-900 dark:text-slate-100">{selectedInvoice.gross_amount_formatted || selectedInvoice.total_amount_formatted || selectedInvoice.amount}</span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-slate-400 block text-[10px]">Order Ref</span>
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">{selectedInvoice.order_number || selectedInvoice.orderId || 'N/A'}</span>
+                                </div>
+                            </div>
+
+                            <div className="border border-slate-200 dark:border-slate-700 rounded p-2.5 space-y-1.5 bg-white dark:bg-[#12161c]">
+                                <span className="font-semibold text-slate-800 dark:text-slate-200 block text-[11px]">Payment Facility</span>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 text-xs">
+                                        <ShieldCheck size={14} className="text-emerald-600" />
+                                        <span>Corporate Pay Later ({calculatedStats.payLaterDays}-Day Credit)</span>
+                                    </div>
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">Auto Settle</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 flex items-center justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={isSubmitting}
+                                onClick={() => setIsPayModalOpen(false)}
+                                className="h-8 px-4 text-xs font-semibold cursor-pointer"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={confirmInvoicePayment}
+                                disabled={isSubmitting}
+                                className="h-8 px-4 text-xs font-semibold bg-[#ff4a1f] hover:bg-[#e03d15] text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={13} className="animate-spin" />
+                                        <span>Settling...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Check size={13} />
+                                        <span>Confirm & Settle</span>
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+        </div>
+    );
 }

@@ -1,5 +1,5 @@
+import { Clock, MapPin, Navigation, Plane } from "lucide-react";
 import React from "react";
-import { MapPin, Navigation, Clock } from "lucide-react";
 import { ViewField } from "../components/ViewField";
 
 interface ViewLocationsProps {
@@ -10,6 +10,10 @@ export const ViewLocations: React.FC<ViewLocationsProps> = ({ formData }) => {
     const hasDistance = Boolean(formData.estDistance && formData.estDistance !== "-");
     const hasDuration = Boolean(formData.estimatedDurationFormatted);
     const hasRoute = Boolean(formData.pickupCity || formData.deliveryCity);
+    const isAir = Boolean(
+        formData.isAirDistance ||
+        (typeof formData.estDistance === 'string' && (formData.estDistance.includes('(Air)') || formData.estDistance.includes('✈')))
+    );
 
     return (
         <div className="space-y-3.5 animate-in fade-in duration-300">
@@ -31,8 +35,14 @@ export const ViewLocations: React.FC<ViewLocationsProps> = ({ formData }) => {
                     {(hasDistance || hasDuration) && (
                         <div className="flex items-center gap-2 text-xs">
                             {hasDistance && (
-                                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-[3px] text-slate-700 dark:text-slate-300 font-semibold border border-slate-200/60 dark:border-slate-700/60">
-                                    <Navigation size={12} className="text-[#ff4a1f]" />
+                                <div
+                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] font-semibold border ${
+                                        isAir
+                                            ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200/60 dark:border-sky-800/60'
+                                            : 'bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200/60 dark:border-slate-700/60'
+                                    }`}
+                                >
+                                    {isAir ? <Plane size={12} className="text-sky-500" /> : <Navigation size={12} className="text-[#ff4a1f]" />}
                                     <span>{formData.estDistance}</span>
                                 </div>
                             )}
@@ -52,11 +62,7 @@ export const ViewLocations: React.FC<ViewLocationsProps> = ({ formData }) => {
                         <h3 className="text-xs font-bold text-[#ff4a1f] tracking-wider flex items-center gap-1.5 select-none">
                             <MapPin size={14} /> Pickup Details
                         </h3>
-                        {formData.pickupLat && formData.pickupLng && (
-                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/40">
-                                GPS: {Number(formData.pickupLat).toFixed(4)}, {Number(formData.pickupLng).toFixed(4)}
-                            </span>
-                        )}
+                        
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5">
                         <ViewField label="Company Name" value={formData.pickupCompany} />
@@ -78,11 +84,7 @@ export const ViewLocations: React.FC<ViewLocationsProps> = ({ formData }) => {
                         <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 tracking-wider flex items-center gap-1.5 select-none">
                             <MapPin size={14} /> Delivery Details
                         </h3>
-                        {formData.deliveryLat && formData.deliveryLng && (
-                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/40">
-                                GPS: {Number(formData.deliveryLat).toFixed(4)}, {Number(formData.deliveryLng).toFixed(4)}
-                            </span>
-                        )}
+                        
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5">
                         <ViewField label="Company Name" value={formData.deliveryCompany} />

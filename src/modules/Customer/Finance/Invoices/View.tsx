@@ -234,10 +234,12 @@ export default function InvoiceView({ onBack, invoice, onDownload }: InvoiceView
                             <span>Subtotal:</span>
                             <span className="font-semibold text-slate-900 dark:text-slate-100">{invoiceData.subtotal_formatted || invoiceData.amount || '€ 2,034.95'}</span>
                         </div>
-                        <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                            <span>Platform Fee (5%):</span>
-                            <span className="font-semibold text-slate-900 dark:text-slate-100">{invoiceData.platform_fee_formatted || '€ 101.75'}</span>
-                        </div>
+                        {Number(invoiceData.platform_fee || 0) > 0 && (
+                            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                                <span>Platform Fee:</span>
+                                <span className="font-semibold text-slate-900 dark:text-slate-100">{invoiceData.platform_fee_formatted || `€ ${Number(invoiceData.platform_fee).toFixed(2)}`}</span>
+                            </div>
+                        )}
                         <div className="flex justify-between text-slate-600 dark:text-slate-400">
                             <span>VAT (15%):</span>
                             <span className="font-semibold text-slate-900 dark:text-slate-100">Included</span>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, User, Settings, LogOut, ChevronDown, Menu } from 'lucide-react';
+import { Search, User, Settings, LogOut, ChevronDown, Menu, ShieldAlert } from 'lucide-react';
 import Sidebar from './Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import HeaderNotifications from '@/components/HeaderNotifications';
@@ -8,13 +8,25 @@ import HeaderMessages from '@/components/HeaderMessages';
 import NegotiationChatWidget from '@/components/NegotiationChatWidget';
 import { useUserHeartbeat } from '@/hooks/useUserHeartbeat';
 import { TOKEN_CONFIG } from '@/config/auth';
+import apiClient from '@/lib/axios';
+import { ChatSkeletonLoader } from '@/modules/Supplier/QuoteManagement/Negotiation/Chat/components/ChatSkeletonLoader';
 
 // ── Helper: read auth user from localStorage ─────────────────────────────────
 function getAuthUser() {
     try {
-        const raw = localStorage.getItem(TOKEN_CONFIG.userKey);
+        const raw = localStorage.getItem(TOKEN_CONFIG.userKey) || localStorage.getItem('carrierdirect_user_data') || localStorage.getItem('user');
         if (!raw) return null;
-        return JSON.parse(raw) as { name?: string; email?: string; user_type?: string; profile_picture?: string };
+        return JSON.parse(raw) as {
+            name?: string;
+            company_name?: string;
+            email?: string;
+            user_type?: string;
+            profile_picture?: string;
+            is_compliance_verified?: boolean;
+            is_verified?: boolean;
+            insurance_status?: string;
+            license_status?: string;
+        };
     } catch {
         return null;
     }
@@ -92,7 +104,7 @@ export default function SupplierLayout() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Re-read auth user if localStorage changes
+    // Re-read auth user if localStorage changes or custom event fired
     useEffect(() => {
         const sync = () => setAuthUser(getAuthUser());
         window.addEventListener('storage', sync);
@@ -102,6 +114,30 @@ export default function SupplierLayout() {
             window.removeEventListener('user-profile-updated', sync);
         };
     }, []);
+
+    // Fetch fresh profile from API on mount & route change to keep header name, avatar & status in sync
+    useEffect(() => {
+        let isMounted = true;
+        const fetchLatestProfile = async () => {
+            try {
+                const res = await apiClient.get('/supplier/profile');
+                const data = res?.data?.data || res?.data;
+                if (data && isMounted) {
+                    const raw = localStorage.getItem(TOKEN_CONFIG.userKey) || localStorage.getItem('user') || '{}';
+                    const current = JSON.parse(raw);
+                    const merged = { ...current, ...data };
+                    localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(merged));
+                    setAuthUser(getAuthUser());
+                }
+            } catch {
+                // Keep local cached user if offline
+            }
+        };
+        fetchLatestProfile();
+        return () => {
+            isMounted = false;
+        };
+    }, [location.pathname]);
 
     const handleLogout = () => {
         localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
@@ -126,7 +162,7 @@ export default function SupplierLayout() {
             )}
 
             {/* Sidebar Component */}
-            <Sidebar isOpen={isSidebarOpen} />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -179,17 +215,19 @@ export default function SupplierLayout() {
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                             >
-                                <div className="w-7 h-7 rounded-full bg-[#ff4a1f] text-white flex items-center justify-center text-[10.5px] font-extrabold shrink-0 shadow-2xs overflow-hidden">
+                                <div className="w-7 h-7 rounded-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 text-[#ff4a1f] flex items-center justify-center text-[10.5px] font-extrabold shrink-0 shadow-2xs overflow-hidden">
                                     {authUser?.profile_picture ? (
                                         <img src={authUser.profile_picture} alt="Avatar" className="w-full h-full object-cover" />
-                                    ) : authUser?.name ? (
-                                        initials(authUser.name)
+                                    ) : (authUser?.name || authUser?.company_name) ? (
+                                        <span className="w-full h-full bg-[#ff4a1f] text-white flex items-center justify-center text-[10.5px] font-extrabold">
+                                            {initials(authUser.name || authUser.company_name)}
+                                        </span>
                                     ) : (
                                         <User size={13} />
                                     )}
                                 </div>
                                 <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 max-w-[100px] sm:max-w-[140px] truncate">
-                                    {authUser?.name || 'Account'}
+                                    {authUser?.name || authUser?.company_name || 'Account'}
                                 </span>
                                 <ChevronDown size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
                             </button>
@@ -242,15 +280,43 @@ export default function SupplierLayout() {
                 {/* Main Scrollable Content */}
                 {(() => {
                     const isFullHeightChat = location.pathname.includes('/messages') ||
-                                             location.pathname.includes('/negotiation/conversation') ||
-                                             location.pathname.includes('/negotiation/view');
+                        location.pathname.includes('/negotiation/conversation') ||
+                        location.pathname.includes('/negotiation/view');
+                    const isNegotiationChat = location.pathname.includes('/negotiation/conversation') ||
+                        location.pathname.includes('/negotiation/view');
                     return (
-                        <main ref={mainRef} className={`flex-1 ${isFullHeightChat ? 'overflow-hidden h-[calc(100vh-56px)]' : 'overflow-y-auto overflow-x-hidden'} bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
-                            <React.Suspense fallback={<RouteLoadingFallback />}>
-                                <div className={`w-full ${isFullHeightChat ? 'h-full pb-0' : 'pb-16'}`}>
-                                    <Outlet />
+                        <main ref={mainRef} className={`flex-1 min-h-0 ${isFullHeightChat ? 'overflow-hidden flex flex-col h-full' : 'overflow-y-auto overflow-x-hidden'} bg-[#f8fafc] dark:bg-[#12161c] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}>
+                            {/* Compliance Verification Pending Banner - Aligned perfectly with dashboard cards */}
+                            {authUser && authUser.is_compliance_verified === false && !isFullHeightChat && (
+                                <div className="px-3 sm:px-4 md:px-5 pt-3 sm:pt-4 md:pt-5 pb-0">
+                                    <div className="bg-[#FFFBEB] dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800/60 rounded-md px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs text-amber-950 dark:text-amber-200 shadow-2xs transition-all">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                                    <ShieldAlert size={14} />
+                                                </div>
+                                                <p className="text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-200">
+                                                    <strong className="font-bold text-slate-900 dark:text-white mr-1.5">Compliance Under Review:</strong>
+                                                    <span>Your insurance and license documents are pending admin verification. Submitting quotes and accepting jobs will be unlocked once approved.</span>
+                                                </p>
+                                            </div>
+                                            <Link
+                                                to="/supplier/settings"
+                                                className="inline-flex items-center gap-1 text-[12px] font-bold text-[#ff4a1f] hover:text-[#d43810] dark:text-[#ff6643] hover:underline shrink-0 whitespace-nowrap pl-8 sm:pl-0"
+                                            >
+                                                <span>View Document Status</span>
+
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </div>
-                            </React.Suspense>
+                            )}
+
+                            <div className={`w-full ${isFullHeightChat ? 'h-full flex-1 min-h-0 flex flex-col' : 'pb-16'}`}>
+                                <React.Suspense fallback={isNegotiationChat ? <ChatSkeletonLoader /> : <RouteLoadingFallback />}>
+                                    <Outlet />
+                                </React.Suspense>
+                            </div>
                         </main>
                     );
                 })()}

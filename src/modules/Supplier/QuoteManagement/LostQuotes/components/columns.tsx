@@ -1,38 +1,54 @@
 import React from 'react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
 import Skeleton from '@/components/ui/skeleton';
+import { encryptId } from '@/lib/encryption';
 import { LostQuoteItem } from '../types';
+import {
+    SupplierAddressCell,
+    SupplierDistanceCell,
+    SupplierPriorityBadgeCell,
+    SupplierStatusBadgeCell,
+    SupplierDateCell,
+} from '../../QuoteRequests/components/SupplierQuoteRequestCells';
 
 export const getLostQuoteColumns = (navigate: (path: string) => void): Column<LostQuoteItem>[] => [
     {
         id: 'id',
-        label: 'ID',
+        label: 'Request ID',
         sortable: true,
-        className: 'w-[70px]',
-        render: (row) => (
-            <div className="flex items-center h-5">
-                <button
-                    type="button"
-                    onClick={() => navigate(`/supplier/quotes/requests/${row.slug}`)}
-                    className="font-bold text-slate-700 dark:text-slate-300 hover:text-[#ff4a1f] hover:underline text-left whitespace-nowrap cursor-pointer text-xs leading-none"
-                >
-                    {row.id}
-                </button>
+        className: 'w-[95px] min-w-[90px]',
+        render: (row) => {
+            const rawId = String(row.rawId || row.slug || row.id).replace('REQ-', '').trim();
+            const reqText = row.id ? (String(row.id).startsWith('REQ-') ? row.id : `REQ-${String(row.id).padStart(4, '0')}`) : 'REQ-0000';
+            return (
+                <div className="flex items-center min-h-[26px]">
+                    <button
+                        type="button"
+                        onClick={() => navigate(`/supplier/quotes/requests/${encryptId(rawId)}`)}
+                        className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[13.5px] tracking-tight transition-colors leading-none"
+                    >
+                        {reqText}
+                    </button>
+                </div>
+            );
+        },
+        skeleton: () => (
+            <div className="flex items-center min-h-[22px]">
+                <Skeleton className="h-4 w-16 rounded-[3px] !bg-orange-100/70 dark:!bg-orange-950/40" />
             </div>
-        ),
-        skeleton: () => <div className="flex items-center h-5"><Skeleton className="h-4 w-14 rounded-[2px] !bg-slate-200/80 dark:!bg-slate-800" /></div>,
+        )
     },
     {
         id: 'customer',
         label: 'Customer',
         sortable: true,
-        className: 'w-[130px]',
+        className: 'w-[140px] min-w-[130px] max-w-[170px]',
         render: (row) => (
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 pr-1 min-h-[26px]" title={row.customer}>
                 {row.customerAvatar ? (
                     <img
-                        src={row.customerAvatar} alt={row.customer}
+                        src={row.customerAvatar}
+                        alt={row.customer}
                         className="w-5 h-5 min-w-[20px] min-h-[20px] rounded-full object-cover shrink-0 aspect-square border border-slate-200 dark:border-slate-700 shadow-2xs grayscale"
                         onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                     />
@@ -41,91 +57,122 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
                         {row.customer ? row.customer.charAt(0).toUpperCase() : 'C'}
                     </div>
                 )}
-                <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate max-w-[100px] leading-tight" title={row.customer}>{row.customer}</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 text-[13px] truncate block max-w-full leading-normal">
+                    {row.customer}
+                </span>
             </div>
         ),
-        skeleton: () => <div className="flex items-center gap-2 whitespace-nowrap min-w-0 h-5"><Skeleton className="w-5 h-5 rounded-full shrink-0" /><Skeleton className="h-3.5 w-24 rounded-[2px]" /></div>,
+        skeleton: () => (
+            <div className="flex items-center gap-2 min-h-[22px]">
+                <Skeleton className="w-5 h-5 rounded-full shrink-0" />
+                <Skeleton className="h-3.5 w-24 rounded-[3px]" />
+            </div>
+        )
     },
     {
         id: 'pickup',
         label: 'Pickup Address',
-        className: 'w-[160px] min-w-[150px]',
-        render: (row) => (
-            <div className="flex items-center min-w-0 pr-1 h-5" title={row.pickup}>
-                <span className="font-medium text-slate-700 dark:text-slate-300 text-xs truncate whitespace-nowrap leading-none">{row.pickup}</span>
+        className: 'w-[18%] min-w-[130px] max-w-[190px]',
+        render: (row) => <SupplierAddressCell address={row.pickup} />,
+        skeleton: () => (
+            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
+                <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
             </div>
-        ),
-        skeleton: () => <div className="flex items-center min-w-0 pr-1 h-5"><Skeleton className="h-3.5 w-32 max-w-full rounded-[2px]" /></div>,
+        )
     },
     {
         id: 'delivery',
         label: 'Delivery Address',
-        className: 'w-[160px] min-w-[150px]',
-        render: (row) => (
-            <div className="flex items-center min-w-0 pr-1 h-5" title={row.delivery}>
-                <span className="font-medium text-slate-700 dark:text-slate-300 text-xs truncate whitespace-nowrap leading-none">{row.delivery}</span>
+        className: 'w-[18%] min-w-[130px] max-w-[190px]',
+        render: (row) => <SupplierAddressCell address={row.delivery} />,
+        skeleton: () => (
+            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
+                <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
             </div>
-        ),
-        skeleton: () => <div className="flex items-center min-w-0 pr-1 h-5"><Skeleton className="h-3.5 w-32 max-w-full rounded-[2px]" /></div>,
+        )
     },
     {
         id: 'distance',
         label: 'Distance',
         sortable: true,
-        className: 'w-[75px] text-center',
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <span className="whitespace-nowrap text-slate-500 dark:text-slate-400 text-xs font-semibold leading-none">{row.distance}</span>
+        className: 'w-[90px] min-w-[85px] text-center',
+        render: (row) => <SupplierDistanceCell distance={row.distance} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[22px]">
+                <Skeleton className="h-3.5 w-14 rounded-[3px]" />
             </div>
-        ),
-        skeleton: () => <div className="flex items-center justify-center h-5"><Skeleton className="h-3.5 w-14 rounded-[2px]" /></div>,
+        )
     },
     {
         id: 'budget',
         label: 'Budget',
         sortable: true,
-        className: 'w-[90px]',
-        render: (row) => (
-            <div className="flex items-center h-5">
-                <span className="whitespace-nowrap font-medium text-slate-500 dark:text-slate-400 text-xs leading-none">{row.budget}</span>
+        className: 'w-[115px] min-w-[105px]',
+        render: (row) => {
+            const rawStr = String(row.budget || '').trim();
+            const num = parseFloat(rawStr.replace(/[^0-9.]/g, ''));
+            const isNegotiable = !row.budget || rawStr === 'Negotiable' || rawStr === '0' || rawStr === '0.00' || rawStr === '€0.00' || rawStr === '€0' || num === 0;
+
+            if (isNegotiable) {
+                return (
+                    <div className="flex items-center min-h-[26px]">
+                        <span className="whitespace-nowrap font-semibold text-[13px] text-slate-500 dark:text-slate-400">
+                            Negotiable
+                        </span>
+                    </div>
+                );
+            }
+
+            const formattedNum = isNaN(num) ? rawStr : `€${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            return (
+                <div className="flex items-center min-h-[26px]">
+                    <span className="font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap text-[13.5px]">
+                        {formattedNum} <span className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">EUR</span>
+                    </span>
+                </div>
+            );
+        },
+        skeleton: () => (
+            <div className="flex items-center min-h-[22px]">
+                <Skeleton className="h-4 w-16 rounded-[3px]" />
             </div>
-        ),
-        skeleton: () => <div className="flex items-center h-5"><Skeleton className="h-4 w-14 rounded-[2px]" /></div>,
+        )
     },
     {
         id: 'priority',
         label: 'Priority',
         sortable: true,
-        className: 'w-[80px] text-center',
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <Badge variant="secondary" className="whitespace-nowrap text-[10.5px] font-semibold border bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400">{row.priority || 'Normal'}</Badge>
+        className: 'w-[85px] min-w-[80px] text-center',
+        render: (row) => <SupplierPriorityBadgeCell priority={row.priority} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[22px]">
+                <Skeleton className="h-5 w-14 rounded-[3px] !bg-amber-100/70 dark:!bg-amber-950/50" />
             </div>
-        ),
-        skeleton: () => <div className="flex items-center justify-center h-5"><Skeleton className="h-4 w-14 rounded-[2px]" /></div>,
+        )
     },
     {
         id: 'status',
         label: 'Status',
         sortable: true,
-        className: 'w-[105px] text-center',
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <Badge variant="secondary" className="whitespace-nowrap text-[10.5px] font-semibold border bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300">{row.status}</Badge>
+        className: 'w-[95px] min-w-[90px] text-center',
+        render: (row) => <SupplierStatusBadgeCell status={row.status || 'Expired'} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[22px]">
+                <Skeleton className="h-5 w-18 rounded-[3px] !bg-rose-100/70 dark:!bg-rose-950/50" />
             </div>
-        ),
-        skeleton: () => <div className="flex items-center justify-center h-5"><Skeleton className="h-5 w-16 rounded-[2px] !bg-rose-100/70 dark:!bg-rose-950/40" /></div>,
+        )
     },
     {
         id: 'requestDate',
         label: 'Date',
         sortable: true,
-        className: 'w-[110px] text-center',
-        render: (row) => (
-            <div className="flex items-center justify-center h-5">
-                <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">{row.requestDate}</span>
+        className: 'w-[105px] min-w-[100px] text-center',
+        render: (row) => <SupplierDateCell row={row as any} />,
+        skeleton: () => (
+            <div className="flex items-center justify-center min-h-[22px]">
+                <Skeleton className="h-3.5 w-16 rounded-[3px]" />
             </div>
-        ),
-        skeleton: () => <div className="flex items-center justify-center h-5"><Skeleton className="h-3.5 w-20 rounded-[2px]" /></div>,
-    },
+        )
+    }
 ];

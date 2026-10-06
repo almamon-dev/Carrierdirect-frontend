@@ -175,6 +175,7 @@ export const SharedMessages: React.FC<SharedMessagesProps> = ({ role }) => {
                                 onBack={() => navigate(basePath)}
                                 showDetailsPanel={showDetailsPanel}
                                 onToggleDetailsPanel={() => setShowDetailsPanel(prev => !prev)}
+                                isLoading={Boolean(activePartnerId && !activePartner && !convPartner && !dirPartner && isLoadingConversations)}
                             />
 
                             {/* Dynamic Pinned Messages Bar (Telegram / WhatsApp Style) */}
