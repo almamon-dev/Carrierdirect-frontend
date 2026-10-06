@@ -40,4 +40,13 @@ export type SupplierOrder = {
     podUploadDate?: string;
     cargoItemsCount: number;
     timeline: OrderTimelineStep[];
+    payment_status?: string;
+    payout_status?: string;
+    payment_method?: string;
+    payment_stage?: string;
+    invoice_type?: string;
+    is_pay_later?: boolean;
+    is_paid?: boolean;
+    is_escrow?: boolean;
+    payment?: any;
 };

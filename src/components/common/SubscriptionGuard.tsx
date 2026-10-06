@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { SubscriptionLockModal } from '@/components/modals';
+import { useSubscriptionQuota } from '@/hooks/useSubscriptionQuota';
 
 interface SubscriptionContextType {
     hasActiveSubscription: boolean;
@@ -13,8 +14,8 @@ interface SubscriptionContextType {
 
 const SubscriptionContext = createContext<SubscriptionContextType>({
     hasActiveSubscription: false,
-    usedFreeQuotes: 2,
-    maxFreeQuotes: 5,
+    usedFreeQuotes: 0,
+    maxFreeQuotes: 3,
     canCreateQuote: true,
     checkAndExecute: () => {},
     openLockModal: () => {},
@@ -25,31 +26,26 @@ export const useSubscriptionMiddleware = () => useContext(SubscriptionContext);
 
 interface SubscriptionGuardProps {
     children: React.ReactNode;
-    hasActiveSubscription?: boolean;
-    initialUsedQuotes?: number;
-    maxFreeQuotes?: number;
 }
 
 export default function SubscriptionGuard({
     children,
-    hasActiveSubscription = false,
-    initialUsedQuotes = 2,
-    maxFreeQuotes = 5,
 }: SubscriptionGuardProps) {
-    const [usedQuotes, setUsedQuotes] = useState(initialUsedQuotes);
-    const [isLockModalOpen, setIsLockModalOpen] = useState(false);
-
-    const canCreateQuote = hasActiveSubscription || usedQuotes < maxFreeQuotes;
+    const {
+        isPaidUnlimited,
+        quotesUsed,
+        quotesLimit,
+        canCreateQuote,
+        isLockModalOpen,
+        setIsLockModalOpen,
+        modalTitle,
+        modalDescription,
+        checkOrLock,
+        handleUpgradeRedirect,
+    } = useSubscriptionQuota();
 
     const checkAndExecute = (action: () => void) => {
-        if (canCreateQuote) {
-            action();
-            if (!hasActiveSubscription) {
-                setUsedQuotes((prev) => prev + 1);
-            }
-        } else {
-            setIsLockModalOpen(true);
-        }
+        checkOrLock(action);
     };
 
     const openLockModal = () => setIsLockModalOpen(true);
@@ -58,9 +54,9 @@ export default function SubscriptionGuard({
     return (
         <SubscriptionContext.Provider
             value={{
-                hasActiveSubscription,
-                usedFreeQuotes: usedQuotes,
-                maxFreeQuotes,
+                hasActiveSubscription: isPaidUnlimited,
+                usedFreeQuotes: quotesUsed,
+                maxFreeQuotes: quotesLimit,
                 canCreateQuote,
                 checkAndExecute,
                 openLockModal,
@@ -71,8 +67,10 @@ export default function SubscriptionGuard({
             <SubscriptionLockModal
                 isOpen={isLockModalOpen}
                 onClose={closeLockModal}
-                title="Free Quote Quota Limit Reached"
-                description={`You have used all ${maxFreeQuotes} of your free quote requests. Upgrade your subscription plan to create unlimited requests.`}
+                onUpgrade={handleUpgradeRedirect}
+                userType="customer"
+                title={modalTitle}
+                description={modalDescription}
             />
         </SubscriptionContext.Provider>
     );

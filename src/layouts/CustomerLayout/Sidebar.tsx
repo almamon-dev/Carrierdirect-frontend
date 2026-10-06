@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Settings, ChevronRight } from 'lucide-react';
+import { LogOut, LayoutDashboard, Settings, ChevronRight, X } from 'lucide-react';
 import LogoBlack from '@/assets/Images/LogoBlack.png';
 import LogoWhite from '@/assets/Images/Logo.png';
 import LogoIcon from '@/assets/Images/LogoIcon.png';
@@ -9,14 +9,33 @@ import { TOKEN_CONFIG } from '@/config/auth';
 
 interface SidebarProps {
     isOpen: boolean;
+    onClose?: () => void;
 }
 
 const getSidebarItemBadge = (_path: string) => null;
 
-const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen: boolean }) => {
-    const isActiveGroup = item.items.some((subItem: any) => 
-        location.pathname === subItem.path || 
-        (subItem.path !== '/' && location.pathname.startsWith(subItem.path))
+const isSubItemActive = (subPath: string, currentPath: string, currentHash?: string) => {
+    const fullPath = currentHash ? `${currentPath}${currentHash}` : currentPath;
+    if (fullPath === subPath || currentPath === subPath) return true;
+    if (subPath !== '/' && (fullPath.startsWith(subPath) || currentPath.startsWith(subPath))) return true;
+
+    // Customer quotes sub-routes
+    if (subPath === '/customer/quotes/create') {
+        if (currentPath.startsWith('/customer/quotes/create/')) return true;
+    }
+    if (subPath === '/customer/quotes/received') {
+        if (currentPath.startsWith('/customer/quotes/received/')) return true;
+    }
+    if (subPath === '/customer/quotes/processing') {
+        if (currentPath.startsWith('/customer/quotes/processing/')) return true;
+    }
+
+    return false;
+};
+
+const NavGroup = ({ item, location, isOpen, onClose }: { item: any; location: any; isOpen: boolean; onClose?: () => void }) => {
+    const isActiveGroup = Array.isArray(item.items) && item.items.some((subItem: any) =>
+        isSubItemActive(subItem.path, location.pathname, location.hash)
     );
 
     // Initially off by default unless current route belongs to this group
@@ -26,84 +45,133 @@ const NavGroup = ({ item, location, isOpen }: { item: any; location: any; isOpen
         if (isActiveGroup) {
             setIsExpanded(true);
         }
-    }, [isActiveGroup, location.pathname]);
+    }, [isActiveGroup, location.pathname, location.hash]);
+
+    if (!item.items || item.items.length === 0) return null;
 
     return (
         <div className="mb-0.5">
             <button
+                type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                title={!isOpen ? item.group : undefined}
-                className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group cursor-pointer ${
-                    isActiveGroup 
-                        ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80' 
+                title={!isOpen ? String(item.group || '') : undefined}
+                className={`w-full flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group cursor-pointer ${isActiveGroup
+                        ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
-                }`}
+                    }`}
             >
                 <div className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'}`}>
                     {item.icon && (
-                        <item.icon 
-                            size={20} 
+                        <item.icon
+                            size={20}
                             strokeWidth={1.5}
-                            className={isActiveGroup ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'} 
+                            className={isActiveGroup ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}
                         />
                     )}
-                    {isOpen && <span className="whitespace-nowrap">{item.group}</span>}
+                    {isOpen && <span className="whitespace-nowrap">{String(item.group || '')}</span>}
                 </div>
                 {isOpen && (
-                    <ChevronRight 
-                        size={16} 
+                    <ChevronRight
+                        size={16}
                         strokeWidth={1.5}
-                        className={`text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-90' : ''}`} 
+                        className={`text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
                     />
                 )}
             </button>
-            
-            {isExpanded && (
-                <div className={`${isOpen ? 'pl-[34px] pr-3' : 'px-1'} space-y-1 mb-1.5 mt-0.5`}>
-                    {item.items.map((subItem: any) => {
-                        const isActive = location.pathname === subItem.path || (subItem.path !== '/' && location.pathname.startsWith(subItem.path));
-                        const badgeCount = subItem.badge || getSidebarItemBadge(subItem.path);
 
-                        return (
-                            <Link
-                                key={subItem.name}
-                                to={subItem.path}
-                                className={`flex items-center ${isOpen ? 'justify-between py-1.5 px-2' : 'justify-center py-2'} rounded-md text-[13px] font-medium transition-colors group ${
-                                    isActive 
-                                        ? 'text-[#ff4a1f] dark:text-orange-400 font-bold bg-orange-50 dark:bg-slate-800/90' 
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/40'
-                                }`}
-                                title={!isOpen ? subItem.name : undefined}
-                            >
-                                <div className={`flex items-center ${isOpen ? 'gap-3' : 'justify-center'} whitespace-nowrap min-w-0`}>
-                                    {isOpen ? (
+            {isExpanded && (
+                <div className={`${isOpen ? 'relative ml-[22px] pr-2' : 'px-1'} mb-1 mt-0.5`}>
+                    {(() => {
+                        const activeIdx = Array.isArray(item.items)
+                            ? item.items.findIndex((subItem: any) => isSubItemActive(subItem.path, location.pathname, location.hash))
+                            : -1;
+
+                        return item.items.map((subItem: any, sIdx: number) => {
+                            const isActive = isSubItemActive(subItem.path, location.pathname, location.hash);
+                            const badgeCount = subItem.badge || getSidebarItemBadge(subItem.path);
+                            const isLast = sIdx === item.items.length - 1;
+
+                            const isBeforeActive = activeIdx !== -1 && sIdx < activeIdx;
+                            const isCurrentActive = activeIdx !== -1 && sIdx === activeIdx;
+
+                            return (
+                                <Link
+                                    key={subItem.path || subItem.name || sIdx}
+                                    to={subItem.path}
+                                    onClick={() => {
+                                        if (window.innerWidth < 1024) {
+                                            onClose?.();
+                                        }
+                                    }}
+                                    className={`relative flex items-center ${isOpen ? 'justify-between py-1.5 pl-[18px] pr-1.5' : 'justify-center py-2'} rounded-md text-[13.5px] transition-colors group ${isActive
+                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-bold'
+                                            : 'text-slate-600 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-slate-200'
+                                        }`}
+                                    title={!isOpen ? String(subItem.name || '') : undefined}
+                                >
+                                    {isOpen && (
                                         <>
-                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600 group-hover:bg-slate-400 dark:group-hover:bg-slate-300'}`} />
-                                            <span className="truncate">{subItem.name}</span>
+                                            {/* Top vertical connector (top-0 to 50%) */}
+                                            <div
+                                                className={`absolute left-0 top-0 h-1/2 w-[1.5px] transition-colors ${isBeforeActive || isCurrentActive
+                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500'
+                                                        : 'bg-slate-300 dark:bg-slate-700'
+                                                    }`}
+                                            />
+
+                                            {/* Bottom vertical connector (50% to bottom-0, only if not last item) */}
+                                            {!isLast && (
+                                                <div
+                                                    className={`absolute left-0 top-1/2 h-1/2 w-[1.5px] transition-colors ${isBeforeActive
+                                                            ? 'bg-[#ff4a1f] dark:bg-orange-500'
+                                                            : 'bg-slate-300 dark:bg-slate-700'
+                                                        }`}
+                                                />
+                                            )}
+
+                                            {/* Horizontal connector branch (X-axis) */}
+                                            <div
+                                                className={`absolute left-0 top-1/2 w-[13px] h-[1.5px] transition-colors ${isCurrentActive
+                                                        ? 'bg-[#ff4a1f] dark:bg-orange-500'
+                                                        : 'bg-slate-300 dark:bg-slate-700'
+                                                    }`}
+                                            />
                                         </>
-                                    ) : (
-                                        <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600'}`} />
                                     )}
-                                </div>
-                                {isOpen && Number(badgeCount) > 0 ? (
-                                    <span className="ml-auto shrink-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold text-white bg-[#ff4a1f] rounded-full leading-none text-center shadow-xs">
-                                        {badgeCount}
-                                    </span>
-                                ) : null}
-                            </Link>
-                        );
-                    })}
+
+                                    <div className={`flex items-center ${isOpen ? 'gap-2 relative' : 'justify-center'} whitespace-nowrap min-w-0`}>
+                                        {isOpen ? (
+                                            <>
+                                                {/* Dot Indicator */}
+                                                <div className={`relative flex items-center justify-center shrink-0 w-3.5 h-3.5 rounded-full ${isActive ? 'bg-orange-100 dark:bg-orange-950/60 ring-2 ring-[#ff4a1f]/25' : 'bg-transparent'}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-500' : 'bg-slate-400 dark:bg-slate-500 group-hover:bg-slate-600 dark:group-hover:bg-slate-300'}`} />
+                                                </div>
+                                                <span className="truncate">{String(subItem.name || '')}</span>
+                                            </>
+                                        ) : (
+                                            <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#ff4a1f] dark:bg-orange-400' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                                        )}
+                                    </div>
+                                    {isOpen && Number(badgeCount) > 0 ? (
+                                        <span className="ml-auto shrink-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold text-white bg-[#ff4a1f] rounded-full leading-none text-center shadow-xs">
+                                            {badgeCount}
+                                        </span>
+                                    ) : null}
+                                </Link>
+                            );
+                        });
+                    })()}
                 </div>
             )}
         </div>
     );
 };
 
-export default function Sidebar({ isOpen }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const currentModule = location.pathname.split('/')[1] || 'dashboard';
-    
+
     const navItems = navigationMap[currentModule] || [
         { name: 'Dashboard', path: `/${currentModule}/dashboard`, icon: LayoutDashboard },
         { name: 'Settings', path: `/${currentModule}/settings`, icon: Settings },
@@ -123,18 +191,29 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     };
 
     return (
-        <aside className={`fixed lg:static inset-y-0 left-0 z-30 lg:z-auto bg-white dark:bg-[#12161c] border-r border-slate-200 dark:border-slate-800 transform transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:w-[72px] lg:translate-x-0'}`}>
-            <div className="h-16 flex items-center justify-center lg:justify-start px-5 border-b border-gray-100 dark:border-slate-800 shrink-0 whitespace-nowrap">
-                <Link to="/">
+        <aside className={`fixed lg:static inset-y-0 left-0 z-50 lg:z-auto bg-white dark:bg-[#12161c] shadow-2xl lg:shadow-none border-r border-slate-200 dark:border-slate-800 transform transition-all duration-300 ease-in-out flex flex-col overflow-hidden ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:w-[72px] lg:translate-x-0'}`}>
+            <div className="h-16 flex items-center justify-between lg:justify-start px-4 sm:px-5 border-b border-gray-100 dark:border-slate-800 shrink-0 whitespace-nowrap">
+                <Link to="/" onClick={() => { if (window.innerWidth < 1024) onClose?.(); }}>
                     {isOpen ? (
                         <>
-                            <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300 cursor-pointer dark:hidden" />
-                            <img src={LogoWhite} alt="Get It Moving" className="h-10 max-w-[180px] object-contain transition-opacity duration-300 cursor-pointer hidden dark:block" />
+                            <img src={LogoBlack} alt="Get It Moving" className="h-10 max-w-[170px] object-contain transition-opacity duration-300 cursor-pointer dark:hidden" />
+                            <img src={LogoWhite} alt="Get It Moving" className="h-10 max-w-[170px] object-contain transition-opacity duration-300 cursor-pointer hidden dark:block" />
                         </>
                     ) : (
                         <img src={LogoIcon} alt="Icon" className="w-10 h-10 object-contain shrink-0 cursor-pointer" />
                     )}
                 </Link>
+                {isOpen && (
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="lg:hidden p-1.5 rounded-full border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer shadow-2xs flex items-center justify-center"
+                        title="Close menu"
+                        aria-label="Close menu"
+                    >
+                        <X size={17} strokeWidth={2} />
+                    </button>
+                )}
             </div>
 
             <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 custom-scrollbar">
@@ -153,24 +232,28 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                                     <div className="mb-2 mt-4 border-t border-slate-100 dark:border-slate-800 mx-2" />
                                 )
                             )}
-                            
+
                             {item.group ? (
-                                <NavGroup item={item} location={location} isOpen={isOpen} />
+                                <NavGroup item={item} location={location} isOpen={isOpen} onClose={onClose} />
                             ) : (
                                 <Link
                                     to={item.path}
+                                    onClick={() => {
+                                        if (window.innerWidth < 1024) {
+                                            onClose?.();
+                                        }
+                                    }}
                                     title={!isOpen ? item.name : undefined}
-                                    className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${
-                                        (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
-                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80' 
+                                    className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
+                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80'
                                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
-                                    }`}
+                                        }`}
                                 >
                                     <div className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'}`}>
-                                        <item.icon 
-                                            size={20} 
+                                        <item.icon
+                                            size={20}
                                             strokeWidth={1.5}
-                                            className={(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'} 
+                                            className={(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))) ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}
                                         />
                                         {isOpen && <span className="whitespace-nowrap">{item.name}</span>}
                                     </div>
@@ -182,7 +265,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
             </div>
 
             <div className="p-4 border-t border-gray-100 dark:border-slate-800 shrink-0 space-y-2">
-                <button 
+                <button
                     onClick={handleLogout}
                     title={!isOpen ? "Logout" : undefined}
                     className={`flex items-center ${isOpen ? 'gap-3 px-3' : 'justify-center'} py-2 w-full rounded-lg text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer`}

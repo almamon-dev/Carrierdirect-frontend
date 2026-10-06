@@ -31,7 +31,8 @@ export const ImportModalFooter: React.FC<ImportModalFooterProps> = ({
     }
 
     return (
-        <div className="px-5 py-3 bg-slate-50/70 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between font-sans">
+        <div
+    className="px-5 py-3 bg-slate-50/70 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between font-sans">
             <div>
                 {processingStep > 1 ? (
                     <button

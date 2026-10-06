@@ -1,7 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Lock, Check, ArrowRight, X } from 'lucide-react';
-import Button from '@/components/ui/button';
+import { Check, ArrowRight, X } from 'lucide-react';
 import Badge from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,6 +13,7 @@ export interface SubscriptionLockModalProps {
   userType?: 'supplier' | 'customer';
   requiredPlan?: string;
   benefits?: string[];
+  onUpgrade?: () => void;
 }
 
 export default function SubscriptionLockModal({
@@ -21,15 +21,17 @@ export default function SubscriptionLockModal({
   onClose,
   title = "Subscription Upgrade Required",
   description = "This feature requires an active subscription plan to post RFQs and access commercial tools.",
-  featureName = "RFQ Posting Quota",
-  userType = 'supplier',
-  requiredPlan = "Business Plan (€39/mo)",
+  featureName = "Quote Request Quota",
+  userType = 'customer',
+  requiredPlan = "Starter Shipper (€29/mo)",
   benefits = [
-    "Unlimited Monthly Freight RFQ Postings",
-    "Corporate Pay Later Credit Line (30-Day Terms)",
-    "Priority Placement for Verified Carriers",
-    "Unlimited Saved Locations & Warehouses"
-  ]
+    "Unlimited Single Quote Requests & RFQs",
+    "Multi-Carrier Quote Comparison & Price Breakdown",
+    "Direct Carrier Live Chat & Negotiation",
+    "Real-time Order Tracking & Digital POD (Challan)",
+    "Secure Stripe Escrow Payments & Card Checkout"
+  ],
+  onUpgrade
 }: SubscriptionLockModalProps) {
   const navigate = useNavigate();
 
@@ -37,86 +39,86 @@ export default function SubscriptionLockModal({
 
   const handleUpgradeClick = () => {
     onClose();
-    const targetPath = userType === 'customer' ? '/customer/subscription' : '/supplier/subscription';
-    navigate(targetPath);
+    if (onUpgrade) {
+      onUpgrade();
+    } else {
+      const targetPath = userType === 'customer' ? '/customer/subscription' : '/supplier/subscription';
+      navigate(targetPath);
+    }
   };
 
   return createPortal(
     <div 
-      className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4 z-[99999] animate-fade-in font-sans"
+      className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-[99999] animate-fade-in font-sans"
       onClick={onClose}
     >
-      <div 
-        className="bg-white dark:bg-[#1e2329] rounded-[5px] max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative"
+      <div
+        className="bg-white dark:bg-[#1e2329] rounded-[4px] max-w-[420px] w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden relative transform transition-all"
         onClick={(e) => e.stopPropagation()}
       >
 
-        {/* Clean Header */}
-        <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
-              <Lock size={18} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">{title}</h3>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">{description}</p>
-            </div>
+        {/* Compact Clean Header */}
+        <div className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800/80 flex items-start justify-between gap-3 bg-gradient-to-r from-orange-50/40 via-amber-50/15 to-transparent dark:from-orange-950/20">
+          <div>
+            <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100 leading-snug">{title}</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-snug">{description}</p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-[3px] transition-colors cursor-pointer shrink-0 mt-0.5"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-5 space-y-4">
+        {/* Compact Modal Body */}
+        <div className="p-3.5 sm:p-4 space-y-3">
 
           {/* Minimal Plan Info Box */}
-          <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-xs">
+          <div className="p-2.5 bg-slate-50/90 dark:bg-[#161a1f] border border-slate-200/70 dark:border-slate-800 rounded-[4px] flex items-center justify-between text-xs">
             <div>
-              <span className="text-slate-500 font-medium block">Locked feature:</span>
-              <span className="font-bold text-slate-900 mt-0.5 block">{featureName}</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block">Locked Feature:</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100 mt-0.5 block text-[11.5px]">{featureName}</span>
             </div>
-            <Badge className="bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold px-2.5 py-1">
+            <Badge className="bg-orange-50 dark:bg-orange-950/60 text-[#ff4a1f] border border-orange-200 dark:border-orange-800 text-[10.5px] font-bold px-2 py-0.5 rounded-[3px]">
               {requiredPlan}
             </Badge>
           </div>
 
           {/* Benefits */}
-          <div className="space-y-2">
-            <span className="text-xs font-semibold text-slate-700 block">Plan benefits include:</span>
-            <div className="space-y-1.5">
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Plan benefits include:</span>
+            <div className="space-y-1">
               {benefits.map((benefit, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-xs text-slate-600">
-                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <Check size={10} strokeWidth={3} />
+                <div key={idx} className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <Check size={9.5} strokeWidth={3} />
                   </div>
-                  <span>{benefit}</span>
+                  <span className="leading-tight">{benefit}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="w-1/3 h-10 text-xs font-semibold text-slate-600 rounded-[5px] cursor-pointer"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
+          {/* Hyperlink Actions */}
+          <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+            <button
+              type="button"
               onClick={handleUpgradeClick}
-              className="w-2/3 h-10 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white rounded-[5px] shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+              className="text-[11.5px] font-semibold text-slate-600 dark:text-slate-400 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] hover:underline inline-flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <span>Learn more & all packages</span>
+              <ArrowRight size={11} />
+            </button>
+            <button
+              type="button"
+              onClick={handleUpgradeClick}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#ff4a1f] hover:text-[#e03e15] hover:underline cursor-pointer transition-colors py-1 px-1.5 rounded-[3px]"
             >
               <span>Upgrade Plan Now</span>
-              <ArrowRight size={14} />
-            </Button>
+              <ArrowRight size={13} className="shrink-0" />
+            </button>
           </div>
 
         </div>

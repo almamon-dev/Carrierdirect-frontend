@@ -23,7 +23,8 @@ export const QuoteViewPriceCard: React.FC<QuoteViewPriceCardProps> = ({
     const isPending = (quote.status_raw || quote.status || '').toLowerCase() === 'pending';
 
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[5px] p-5 sm:p-6 shadow-2xs space-y-5">
+        <div
+    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg p-5 sm:p-6 shadow-2xs space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
                 <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Rate Breakdown</h2>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-[5px] text-xs font-bold bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] border border-orange-200 dark:border-orange-500/30">
@@ -43,7 +44,7 @@ export const QuoteViewPriceCard: React.FC<QuoteViewPriceCardProps> = ({
                         {quote.extra_charges.map((charge, i) => (
                             <div key={i} className="flex justify-between items-center py-1 border-b border-slate-50 dark:border-slate-800/50 last:border-0 text-xs">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-[5px] bg-slate-400 shrink-0" />
+                                    <div className="w-1.5 h-1.5 rounded-lg bg-slate-400 shrink-0" />
                                     <span className="font-medium text-slate-600 dark:text-slate-300">
                                         {charge.custom_name || charge.type}
                                     </span>

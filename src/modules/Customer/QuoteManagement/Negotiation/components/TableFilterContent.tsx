@@ -1,6 +1,6 @@
 /**
  * Customer Negotiation Table Filter Content
- * Matches Quote Management TableFilterContent standards with Priority, Status, Vehicle Type, Date Ranges, and Reset.
+ * Matches Quote Management TableFilterContent standards with Priority, Status (Open, Counter Offers, Accepted, Booked, Closed), Vehicle Type, Date Ranges, and Reset.
  */
 
 import React from 'react';
@@ -65,11 +65,11 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     </label>
                     <Select value={statusFilter} onChange={(val) => setStatusFilter(val)} showSearch={false}>
                         <option value="all">All Statuses</option>
-                        <option value="under review">Under Review</option>
-                        <option value="counter">Counter Received / Sent</option>
-                        <option value="offer submitted">Offer Submitted</option>
+                        <option value="open">Open</option>
+                        <option value="counter">Counter Offers</option>
                         <option value="accepted">Accepted</option>
-                        <option value="rejected">Rejected / Expired</option>
+                        <option value="booked">Booked</option>
+                        <option value="closed">Closed</option>
                     </Select>
                 </div>
 

@@ -29,7 +29,8 @@ export const ViewQuoteTermsNotes: React.FC<ViewQuoteTermsNotesProps> = ({ quote,
                     colSpan
                     value={
                         quote.notes ? (
-                            <div className="p-3 bg-slate-50 dark:bg-[#181d24] border border-slate-200/80 dark:border-slate-800 rounded-[5px] text-xs text-slate-700 dark:text-slate-300 italic leading-relaxed">
+                            <div
+    className="p-3 bg-slate-50 dark:bg-[#181d24] border border-slate-200/80 dark:border-slate-800 rounded-lg text-xs text-slate-700 dark:text-slate-300 italic leading-relaxed">
                                 "{quote.notes}"
                             </div>
                         ) : 'No special carrier notes provided.'
@@ -42,7 +43,7 @@ export const ViewQuoteTermsNotes: React.FC<ViewQuoteTermsNotesProps> = ({ quote,
                     colSpan
                     value={
                         req.additional_notes || req.notes ? (
-                            <div className="p-3 bg-orange-50/50 dark:bg-orange-950/10 border border-orange-200/60 dark:border-orange-800/40 rounded-[5px] text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                            <div className="p-3 bg-orange-50/50 dark:bg-orange-950/10 border border-orange-200/60 dark:border-orange-800/40 rounded-lg text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                                 {req.additional_notes || req.notes}
                             </div>
                         ) : 'Standard transport and handling instructions specified in quote request.'

@@ -14,7 +14,8 @@ export default function Dropdown({ className = '', label = 'Options', items = ['
                 {label} ▼
             </button>
             {open && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-white border rounded-md shadow-lg z-10">
+                <div
+    className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-10">
                     {items.map((item, i) => (
                         <div key={i} className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm" onClick={() => setOpen(false)}>{item}</div>
                     ))}

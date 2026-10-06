@@ -34,13 +34,20 @@ export function useRequestListDelete(
                 setRequestData(prev => prev.filter(item => item.id !== itemToDelete.id));
                 showToast(`Quote request ${itemToDelete.id} has been deleted.`, 'success');
             } else if (selectedIdsToDelete && selectedIdsToDelete.length > 0) {
-                for (const id of selectedIdsToDelete) {
-                    const rawId = String(id).replace('REQ-', '');
-                    try {
-                        await apiClient.delete(`${ENDPOINTS.CUSTOMER.QUOTE_REQUESTS}/${rawId}`);
-                    } catch {}
+                try {
+                    await apiClient.post(`${ENDPOINTS.CUSTOMER.QUOTE_REQUESTS}/bulk-delete`, {
+                        ids: selectedIdsToDelete,
+                    });
+                } catch {
+                    for (const id of selectedIdsToDelete) {
+                        const rawId = String(id).replace('REQ-', '');
+                        try {
+                            await apiClient.delete(`${ENDPOINTS.CUSTOMER.QUOTE_REQUESTS}/${rawId}`);
+                        } catch {}
+                    }
                 }
-                setRequestData(prev => prev.filter(item => !selectedIdsToDelete.includes(item.id)));
+                const idsSet = new Set(selectedIdsToDelete.map(id => String(id)));
+                setRequestData(prev => prev.filter(item => !idsSet.has(String(item.id)) && !idsSet.has(String(item.rawId))));
                 showToast(`${selectedIdsToDelete.length} quote request(s) deleted.`, 'success');
             }
             setIsDeleteModalOpen(false);

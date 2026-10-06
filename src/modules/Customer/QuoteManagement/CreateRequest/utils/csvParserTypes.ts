@@ -23,7 +23,6 @@ export interface ParsedQuoteRequestData {
     pickupCity: string;
     pickupZip: string;
     pickupAddress: string;
-    pickupMapUrl: string;
     pickupInstructions: string;
     deliveryDate: string;
     deliveryTime: string;
@@ -36,7 +35,6 @@ export interface ParsedQuoteRequestData {
     deliveryCity: string;
     deliveryZip: string;
     deliveryAddress: string;
-    deliveryMapUrl: string;
     deliveryInstructions: string;
     vehicleType: string;
     cargoLoadType: string;

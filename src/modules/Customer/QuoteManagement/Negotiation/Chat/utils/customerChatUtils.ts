@@ -62,7 +62,8 @@ export const shortenUrl = (url: string, maxLength: number = 38): string => {
     }
 };
 
-export const getLinkPreview = (rawUrl: string, activeChat?: any): LinkPreviewData => {
+export const getLinkPreview = (rawUrl: string, activeChat?: any): LinkPreviewData | null => {
+    if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim() || !/^https?:\/\//i.test(rawUrl.trim())) return null;
     try {
         const parsed = new URL(rawUrl);
         const host = parsed.host;
@@ -110,13 +111,7 @@ export const getLinkPreview = (rawUrl: string, activeChat?: any): LinkPreviewDat
             image: undefined
         };
     } catch {
-        return {
-            url: rawUrl,
-            domain: 'EXTERNAL LINK',
-            title: 'Web link preview',
-            description: rawUrl,
-            image: undefined
-        };
+        return null;
     }
 };
 

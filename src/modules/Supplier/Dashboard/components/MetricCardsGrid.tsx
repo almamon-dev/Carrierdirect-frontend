@@ -1,48 +1,7 @@
 import React from 'react';
 import { Euro, Package, FileText, CreditCard, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-interface MetricCardProps {
-    title: string;
-    description: string;
-    value: string | number;
-    icon: React.ElementType;
-    colorClass: string;
-    isLoading?: boolean;
-    onClick?: () => void;
-}
-
-const MetricCard: React.FC<MetricCardProps> = ({
-    title,
-    description,
-    value,
-    icon: Icon,
-    colorClass,
-    isLoading = false,
-    onClick,
-}) => (
-    <div
-        onClick={onClick}
-        className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex flex-col items-start cursor-pointer w-full"
-    >
-        <div className="flex justify-between items-start w-full mb-3">
-            <div className={`w-9 h-9 rounded-md shrink-0 flex items-center justify-center ${colorClass}`}>
-                <Icon size={18} strokeWidth={2} />
-            </div>
-            {isLoading ? (
-                <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700/60 rounded animate-pulse" />
-            ) : (
-                <span className="text-[20px] font-bold text-slate-800 dark:text-slate-200">{value}</span>
-            )}
-        </div>
-        <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">
-            {title}
-        </h3>
-        <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium leading-snug">
-            {description}
-        </p>
-    </div>
-);
+import MetricCard from '@/components/cards/metric-card';
 
 interface MetricCardsGridProps {
     totalEarnings: string;
@@ -64,7 +23,7 @@ export const MetricCardsGrid: React.FC<MetricCardsGridProps> = ({
     const navigate = useNavigate();
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 md:gap-4 mt-1 sm:mt-2">
             <MetricCard
                 title="Total Earnings"
                 description="View your recent and lifetime earnings overview."
@@ -93,7 +52,7 @@ export const MetricCardsGrid: React.FC<MetricCardsGridProps> = ({
                 onClick={() => navigate('/supplier/quotes/requests')}
             />
             <MetricCard
-                title="Withdrawable Balance"
+                title="Withdrawable"
                 description="Balance currently available to withdraw."
                 value={withdrawableBalance}
                 icon={CreditCard}
@@ -107,6 +66,7 @@ export const MetricCardsGrid: React.FC<MetricCardsGridProps> = ({
                 value={avgRating}
                 icon={Star}
                 colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
+                isLastOnMobile={true}
                 isLoading={isLoading}
                 onClick={() => navigate('/supplier/settings')}
             />

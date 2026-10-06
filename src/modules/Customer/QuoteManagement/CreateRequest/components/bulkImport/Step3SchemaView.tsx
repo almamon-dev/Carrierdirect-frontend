@@ -62,7 +62,8 @@ export const Step3SchemaView: React.FC<Step3SchemaViewProps> = ({
                 </div>
             </div>
 
-            <div className="border border-slate-200 dark:border-slate-800 rounded-[3px] overflow-hidden bg-white dark:bg-slate-900">
+            <div
+    className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
                 <table className="w-full text-left text-xs border-collapse">
                     <thead>
                         <tr className="bg-slate-50/90 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold text-[10.5px]">

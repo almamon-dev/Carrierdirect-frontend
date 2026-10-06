@@ -1,6 +1,7 @@
 import { getAttachmentUrl } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/utils/customerChatUtils';
 import { ConversationPartnerItem, ConversationUser } from '@/services/messageService';
 import { ArrowLeft, MessageSquare, Plus, Search } from 'lucide-react';
+import { VerifiedBadge } from '@/components/common/VerifiedBadge';
 import React from 'react';
 import { GeneralChatSidebarSkeleton } from './GeneralChatSidebarSkeleton';
 
@@ -145,13 +146,13 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
             {/* Search Box */}
             <div className="px-3 pt-3 pb-2">
                 <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                     <input
                         type="text"
-                        placeholder="Search conversations..."
+                        placeholder="Search conversations"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-[36px] pl-9 pr-4 text-[12.5px] bg-slate-100 dark:bg-[#181d24] border border-transparent rounded-full focus:outline-none focus:border-[#FF4A1F] text-slate-800 dark:text-slate-200 placeholder-slate-400"
+                        className="w-full h-[36px] pl-9 pr-4 text-[12.5px] bg-slate-100 dark:bg-[#181d24] border-none outline-none focus:outline-none focus:ring-0 rounded-full text-slate-800 dark:text-slate-200 placeholder-slate-400"
                     />
                 </div>
             </div>
@@ -166,7 +167,7 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
                         : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
                         }`}
                 >
-                    All ({conversations.length})
+                    All {!isLoading && `(${conversations.length})`}
                 </button>
 
                 <button
@@ -177,13 +178,15 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
                         : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
                         }`}
                 >
-                    Unread {unreadTotal > 0 && `(${unreadTotal})`}
+                    Unread {!isLoading && unreadTotal > 0 && `(${unreadTotal})`}
                 </button>
             </div>
 
             {/* List Body with hidden scrollbar */}
             <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {filteredConversations.length === 0 ? (
+                {isLoading && conversations.length === 0 ? (
+                    <GeneralChatSidebarSkeleton />
+                ) : filteredConversations.length === 0 ? (
                     <div className="p-6 text-center text-xs text-slate-400 flex flex-col items-center">
                         <MessageSquare size={26} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
                         <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm">No chats found</p>
@@ -201,7 +204,9 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
                         const isUnread = item.unread_count > 0;
                         const isMe = item.last_message?.is_me;
                         const formattedTime = formatSidebarTime(item.last_message_at, item.last_message);
-                        const badge = getRoleBadge(userObj?.user_type);
+                        const isVerified = Boolean(userObj?.is_verified ?? (item as any).is_verified ?? userObj?.profile?.is_verified ?? userObj?.email_verified_at);
+                        const isOnline = Boolean(userObj?.is_online ?? (item as any).is_online);
+                        const lastSeenHuman = userObj?.last_seen_human || (isOnline ? 'Active Now' : 'Offline');
 
                         return (
                             <div
@@ -230,22 +235,24 @@ export const GeneralChatSidebar: React.FC<GeneralChatSidebarProps> = ({
                                             {displayName.charAt(0).toUpperCase()}
                                         </div>
                                     )}
-                                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#12161c]" />
+                                    {isOnline ? (
+                                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#12161c]" title="Active Now" />
+                                    ) : (
+                                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-slate-300 dark:bg-slate-600 rounded-full ring-2 ring-white dark:ring-[#12161c]" title={lastSeenHuman} />
+                                    )}
                                 </div>
 
                                 {/* Texts */}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between gap-1">
-                                        <div className="flex items-center gap-1.5 min-w-0">
-                                            <h4 className={`text-[13px] truncate ${isActive || isUnread ? 'font-semibold text-slate-900 dark:text-white' : 'font-medium text-slate-800 dark:text-slate-200'
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                            <h4 className={`text-[13px] truncate leading-tight ${isActive || isUnread ? 'font-semibold text-slate-900 dark:text-white' : 'font-medium text-slate-800 dark:text-slate-200'
                                                 }`}>
                                                 {displayName}
                                             </h4>
-                                            <span className={`text-[10px] font-medium px-1.5 py-0.2 rounded border shrink-0 ${badge.bg}`}>
-                                                {badge.label}
-                                            </span>
+                                            {isVerified && <VerifiedBadge size={13.5} className="shrink-0" />}
                                         </div>
-                                        <span className="text-[10px] text-slate-400 font-normal shrink-0">
+                                        <span className="text-[10px] text-slate-400 font-normal shrink-0 whitespace-nowrap">
                                             {formattedTime}
                                         </span>
                                     </div>

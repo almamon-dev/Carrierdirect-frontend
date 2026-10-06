@@ -5,7 +5,7 @@ import { isRequestToday, isRequestUpcoming, isRequestUrgent } from '../utils/req
 
 export { isRequestToday, isRequestExpired, isRequestUpcoming, isRequestUrgent } from '../utils/requestDateFilters';
 
-export type RequestFilterTab = 'all' | 'today' | 'upcoming' | 'urgent';
+export type RequestFilterTab = 'all' | 'active' | 'new' | 'quoted' | 'today' | 'upcoming' | 'urgent';
 
 interface QuoteRequestsFilterTabsProps {
     requests: QuoteRequest[];
@@ -21,37 +21,38 @@ export const QuoteRequestsFilterTabs: React.FC<QuoteRequestsFilterTabsProps> = (
     stats,
 }) => {
     const tabs = useMemo(() => {
-        if (stats) {
-            return [
-                { id: 'all' as RequestFilterTab, label: 'All', count: stats.all ?? stats.total ?? requests.length },
-                { id: 'today' as RequestFilterTab, label: 'Today', count: stats.today ?? 0 },
-                { id: 'upcoming' as RequestFilterTab, label: 'Upcoming', count: stats.upcoming ?? 0 },
-                { id: 'urgent' as RequestFilterTab, label: 'Urgent', count: stats.urgent ?? 0 },
-            ];
-        }
-
+        let newCount = 0;
+        let quotedCount = 0;
         let todayCount = 0;
         let upcomingCount = 0;
         let urgentCount = 0;
 
         requests.forEach((r) => {
+            const isQ = Boolean(r.status === 'Quoted' || r.isQuoted || r.hasQuoted);
+            if (isQ) {
+                quotedCount++;
+            } else {
+                newCount++;
+            }
             if (isRequestToday(r)) todayCount++;
             if (isRequestUpcoming(r)) upcomingCount++;
             if (isRequestUrgent(r)) urgentCount++;
         });
 
         return [
-            { id: 'all' as RequestFilterTab, label: 'All', count: requests.length },
-            { id: 'today' as RequestFilterTab, label: 'Today', count: todayCount },
-            { id: 'upcoming' as RequestFilterTab, label: 'Upcoming', count: upcomingCount },
-            { id: 'urgent' as RequestFilterTab, label: 'Urgent', count: urgentCount },
+            { id: 'all' as RequestFilterTab, label: 'Active', count: stats?.active ?? stats?.all ?? stats?.total ?? requests.length },
+            { id: 'new' as RequestFilterTab, label: 'New', count: stats?.new ?? newCount },
+            { id: 'quoted' as RequestFilterTab, label: 'Quoted', count: stats?.quoted ?? quotedCount },
+            { id: 'today' as RequestFilterTab, label: 'Today', count: stats?.today ?? todayCount },
+            { id: 'upcoming' as RequestFilterTab, label: 'Upcoming', count: stats?.upcoming ?? upcomingCount },
+            { id: 'urgent' as RequestFilterTab, label: 'Urgent', count: stats?.urgent ?? urgentCount },
         ];
     }, [requests, stats]);
 
     return (
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar mb-[-1px]">
             {tabs.map((tab) => {
-                const isActive = activeTab === tab.id;
+                const isActive = activeTab === tab.id || (tab.id === 'all' && activeTab === 'active');
                 return (
                     <button
                         key={tab.id}

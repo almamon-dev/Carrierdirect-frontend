@@ -7,7 +7,7 @@ export interface SearchBarProps extends React.InputHTMLAttributes<HTMLInputEleme
 export default function SearchBar({ className = '', ...props }: SearchBarProps) {
     return (
         <div className={`relative ${className}`}>
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 z-10">
                 🔍
             </span>
             <input 

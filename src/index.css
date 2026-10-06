@@ -202,6 +202,38 @@ html.dark input[type="file"]::-webkit-file-upload-button {
   border-color: #384150 !important;
 }
 
+/* ── Global Date / Time Inputs: Text Left, Calendar Icon Far Right ── */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  display: block;
+  width: 100%;
+}
+
+input[type="date"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit,
+input[type="datetime-local"]::-webkit-datetime-edit {
+  display: inline-flex;
+  text-align: left;
+  padding: 0;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  margin-left: auto !important;
+  cursor: pointer !important;
+  opacity: 0.65;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  padding: 2px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 html.dark input[type="date"]::-webkit-calendar-picker-indicator,
 html.dark input[type="time"]::-webkit-calendar-picker-indicator,
 html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
@@ -645,7 +677,7 @@ html.dark *,
 }
 
 /* ═══════════════════════════════════════════════════════
-   LIVE SHIMMER SKELETON WITH ACCENT COLOR (REAL-TIME)
+   YOUTUBE-STYLE SKELETON SHIMMER (SMOOTH NEUTRAL)
 ═══════════════════════════════════════════════════════ */
 @keyframes liveShimmer {
   0% {
@@ -657,34 +689,94 @@ html.dark *,
 }
 
 .animate-live-shimmer {
-  border-radius: 2px;
   background: linear-gradient(
     90deg,
-    rgba(226, 232, 240, 0.7) 0%,
-    rgba(254, 215, 170, 0.4) 30%,
-    rgba(255, 140, 107, 0.45) 50%,
-    rgba(254, 215, 170, 0.4) 70%,
-    rgba(226, 232, 240, 0.7) 100%
+    #e2e8f0 0%,
+    #f1f5f9 25%,
+    #ffffff 50%,
+    #f1f5f9 75%,
+    #e2e8f0 100%
   );
-  background-size: 250% 100%;
-  animation: liveShimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-live-shimmer:not(.rounded-full) {
-  border-radius: 2px !important;
+  background-size: 200% 100%;
+  animation: liveShimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: opacity, background-position;
 }
 
 .dark .animate-live-shimmer,
 html.dark .animate-live-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(30, 41, 59, 0.8) 0%,
-    rgba(71, 85, 105, 0.6) 28%,
-    rgba(255, 107, 74, 0.3) 50%,
-    rgba(71, 85, 105, 0.6) 72%,
-    rgba(30, 41, 59, 0.8) 100%
+    #1e293b 0%,
+    #334155 25%,
+    #475569 50%,
+    #334155 75%,
+    #1e293b 100%
   );
-  background-size: 250% 100%;
-  animation: liveShimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-size: 200% 100%;
+  animation: liveShimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: opacity, background-position;
 }
 
+
+
+/* Message Jump Highlight Animation (Telegram / WhatsApp Style) */
+@keyframes highlightPulseMessage {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 168, 132, 0.7);
+    transform: scale(1);
+  }
+  25% {
+    box-shadow: 0 0 0 6px rgba(0, 168, 132, 0.4);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 168, 132, 0.2);
+    transform: scale(1.01);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 168, 132, 0);
+    transform: scale(1);
+  }
+}
+
+.highlight-pulse-message {
+  animation: highlightPulseMessage 1.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
+  z-index: 30 !important;
+}
+
+
+/* Google Places Autocomplete dropdown z-index fix */
+.pac-container {
+    z-index: 99999 !important;
+    border-radius: 6px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbd5e1;
+    font-family: inherit;
+}
+
+/* ==========================================================================
+   DataTable Wrap Cells Mode (Stripe 1:1 Implementation)
+   ========================================================================== */
+.table-wrap-cells td {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    vertical-align: top !important;
+}
+
+.table-wrap-cells td *,
+.table-wrap-cells td .truncate,
+.table-wrap-cells td span.truncate,
+.table-wrap-cells td p.truncate,
+.table-wrap-cells td div.truncate,
+.table-wrap-cells td a.truncate {
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow: visible !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+table:not(.table-wrap-cells) tbody td:not(:first-child):not(:last-child) {
+    white-space: nowrap;
+}

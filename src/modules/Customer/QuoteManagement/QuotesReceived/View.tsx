@@ -51,7 +51,8 @@ export default function QuoteView() {
     if (error || !quote) {
         return (
             <div className="p-6 flex items-center justify-center min-h-[60vh]">
-                <div className="flex flex-col items-center gap-3 text-slate-500 max-w-md text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-[5px] shadow-sm">
+                <div
+    className="flex flex-col items-center gap-3 text-slate-500 max-w-md text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-[5px] shadow-sm">
                     <AlertCircle size={36} className="text-red-500" />
                     <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Quote Not Found</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">{error || 'Unable to display quote information.'}</p>
@@ -64,8 +65,10 @@ export default function QuoteView() {
     }
 
     const req = requestDetail || quote.quote_request || {};
-    const isPending = (quote.status_raw || quote.status || '').toLowerCase() === 'pending';
-    const isNegotiating = quote.revision_status === 'pending' || (quote.status || '').toLowerCase() === 'negotiating';
+    const statusInfo = getQuoteStatusInfo(quote);
+    const isExpired = Boolean(statusInfo.isExpired || (quote as any).is_expired || (quote.status || '').toLowerCase() === 'expired' || (req.status || '').toLowerCase() === 'expired');
+    const isPending = !isExpired && ((quote.status_raw || quote.status || '').toLowerCase() === 'pending');
+    const isNegotiating = !isExpired && (quote.revision_status === 'pending' || (quote.status || '').toLowerCase() === 'negotiating');
     const cleanQuoteId = String(quote.id || '');
     const cleanReqId = String(quote.quote_request_id || req.id || '');
 
@@ -79,17 +82,15 @@ export default function QuoteView() {
         { id: 'specs', label: 'Route & Cargo Specifications', icon: Package },
     ];
 
-    const statusInfo = getQuoteStatusInfo(quote);
-
     return (
         <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 font-sans antialiased">
             {/* Header Toolbar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
                 <div>
                     <div className="flex items-center gap-2">
-                        <h1 className="text-[18px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                            Quote {quote.quote_id || `QT-${cleanQuoteId.padStart(4, '0')}`}
-                        </h1>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Quote {quote.quote_id || `QT-${cleanQuoteId.padStart(4, '0')}`}
+                    </h1>
                         <Badge variant="secondary" className={`text-[11px] font-semibold rounded-[5px] border ${getStatusBadgeClass(statusInfo.statusKey)}`}>
                             {statusInfo.text}
                         </Badge>
@@ -103,12 +104,16 @@ export default function QuoteView() {
                 <div className="flex items-center flex-wrap gap-2">
                     <Button
                         type="button"
-                        variant="outline"
+                        variant={isPending || isNegotiating ? "outline" : "primary"}
                         size="sm"
-                        className="h-[34px] text-[12px] border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer font-medium rounded-[5px]"
+                        className={
+                            isPending || isNegotiating
+                                ? "h-[34px] text-[12px] border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer font-medium rounded-[5px]"
+                                : "h-[34px] text-[12px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white flex items-center gap-1.5 cursor-pointer font-bold shadow-2xs rounded-[5px]"
+                        }
                         onClick={() => navigate(`/customer/quotes/negotiation/conversation/${encryptId(quote.id)}`)}
                     >
-                        <MessageSquare size={14} className="text-[#ff4a1f]" />
+                        <MessageSquare size={14} className={isPending || isNegotiating ? "text-slate-500 dark:text-slate-400" : "text-white"} />
                         <span>Chat & Negotiate</span>
                     </Button>
 
@@ -159,10 +164,12 @@ export default function QuoteView() {
             {/* Main Layout: Sidebar on Left, Content on Right (Identical to create/new) */}
             <div className="flex flex-col lg:flex-row gap-6 items-start">
                 {/* Left Sidebar Navigation */}
-                <div className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[5px] overflow-hidden shadow-2xs">
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+                <div
+    className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[5px] overflow-hidden shadow-2xs">
+                    <div
+    className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
                         <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                            Carrier Quotation Specifications & Comparison
+                            Quote Sections
                         </h3>
                     </div>
                     <div className="flex flex-col">
@@ -199,7 +206,8 @@ export default function QuoteView() {
                 </div>
 
                 {/* Right Content Area */}
-                <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[5px] shadow-2xs w-full p-4 md:p-5 space-y-4">
+                <div
+    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[5px] shadow-2xs w-full p-4 md:p-5 space-y-4">
                     {/* TAB 1: Suppliers Who Quoted / Compare Offers */}
                     {activeTab === 'suppliers' && (
                         <ViewQuoteCompare

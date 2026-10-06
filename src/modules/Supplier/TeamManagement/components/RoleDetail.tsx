@@ -191,7 +191,8 @@ export default function RoleDetail({
     };
 
     return (
-        <div className="bg-white dark:bg-[#12161c] rounded-md border border-[#ebebeb] dark:border-slate-800 shadow-none font-sans h-auto">
+        <div
+    className="bg-white dark:bg-[#12161c] rounded-lg border border-slate-200 dark:border-slate-800 border border-slate-200 dark:border-slate-800-[#ebebeb] dark:border border-slate-200 dark:border-slate-800-slate-800 shadow-none font-sans h-auto">
             {/* Clean Sub-Header */}
             <div className="px-4 py-3 border-b border-[#ebebeb] dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -232,7 +233,8 @@ export default function RoleDetail({
                 {/* Left Column: Role Details & Assigned Users */}
                 <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0 space-y-3.5 h-auto">
                     {/* Role Details Form Card */}
-                    <div className="bg-slate-50/70 dark:bg-[#181d24] rounded-md border border-slate-200/80 dark:border-slate-800 p-3.5 space-y-3">
+                    <div
+    className="bg-slate-50/70 dark:bg-[#181d24] rounded-lg border border-slate-200/80 dark:border-slate-800 p-3.5 space-y-3">
                         <div className="flex items-center gap-1.5 pb-2 border-b border-slate-200/70 dark:border-slate-800">
                             <Shield size={14} className="text-[#ff4a1f]" />
                             <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
@@ -268,7 +270,8 @@ export default function RoleDetail({
                     </div>
 
                     {/* Assigned Members Card */}
-                    <div className="bg-slate-50/70 dark:bg-[#181d24] rounded-md border border-slate-200/80 dark:border-slate-800 p-3.5 space-y-2.5">
+                    <div
+    className="bg-slate-50/70 dark:bg-[#181d24] rounded-lg border border-slate-200/80 dark:border-slate-800 p-3.5 space-y-2.5">
                         <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 dark:border-slate-800">
                             <div className="flex items-center gap-1.5">
                                 <Users size={14} className="text-[#ff4a1f]" />
@@ -312,9 +315,11 @@ export default function RoleDetail({
                 </div>
 
                 {/* Right Column: Module Access & Permissions Matrix */}
-                <div className="flex-1 w-full min-w-0 bg-white dark:bg-[#12161c] rounded-md border border-slate-200/80 dark:border-slate-800 shadow-none overflow-hidden h-auto">
+                <div
+    className="flex-1 w-full min-w-0 bg-white dark:bg-[#12161c] rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-none overflow-hidden h-auto">
                     {/* Header */}
-                    <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex items-center justify-between">
+                    <div
+    className="p-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex items-center justify-between">
                         <div>
                             <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">
                                 Module Access & Permissions Matrix

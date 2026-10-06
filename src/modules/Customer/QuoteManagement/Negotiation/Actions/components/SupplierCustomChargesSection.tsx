@@ -22,9 +22,9 @@ interface SupplierCustomChargesSectionProps {
 }
 
 const COMMON_PRESET_FEES = [
-    { label: 'Tail-lift Assistance', amount: '50' },
-    { label: 'Inside Delivery Helper', amount: '120' },
-    { label: 'Goods Insurance Coverage', amount: '150' },
+    { label: 'Tail-lift', amount: '50' },
+    { label: 'Inside Helper', amount: '120' },
+    { label: 'Insurance', amount: '150' },
     { label: 'Fuel Surcharge', amount: '85' },
 ];
 
@@ -39,11 +39,9 @@ export const SupplierCustomChargesSection: React.FC<SupplierCustomChargesSection
     supplierTotal,
 }) => {
     const handleAddPreset = (label: string, amount: string) => {
-        // Check if already exists
         const exists = customCharges.find(c => c.label.toLowerCase() === label.toLowerCase());
         if (exists) return;
         const newId = Date.now();
-        // Replace empty charge or append
         const emptyIdx = customCharges.findIndex(c => !c.label && !c.amount);
         if (emptyIdx !== -1) {
             updateCustomCharge(customCharges[emptyIdx].id, 'label', label);
@@ -58,49 +56,43 @@ export const SupplierCustomChargesSection: React.FC<SupplierCustomChargesSection
     };
 
     return (
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 font-sans">
             {/* Base Freight Rate */}
             <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 font-sans mb-1">
-                    Base Freight Rate ({currency}) <span className="text-red-500">*</span>
-                </label>
-                <div className="relative flex items-center">
-                    <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 font-medium text-xs">
-                        {currency}
-                    </div>
-                    <Input
-                        type="number"
-                        required
-                        value={baseFreight}
-                        onChange={e => setBaseFreight(e.target.value)}
-                        placeholder="0.00"
-                        className="!pl-6 pr-10 font-medium text-xs !h-8 rounded-[5px] text-slate-800 dark:text-slate-200"
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400 text-[10.5px] font-normal">
-                        EUR
-                    </div>
+                <div className="flex justify-between items-center mb-1">
+                    <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        Base Freight Rate <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-mono">EUR</span>
                 </div>
+                <Input
+                    icon={<span className="text-slate-400 font-bold text-xs">{currency}</span>}
+                    type="number"
+                    required
+                    value={baseFreight}
+                    onChange={e => setBaseFreight(e.target.value)}
+                    placeholder="0.00"
+                    className="pr-3 font-bold text-xs !h-8 rounded-[3px] text-slate-900 dark:text-slate-100 tabular-nums shadow-none border-slate-200 dark:border-slate-800"
+                />
             </div>
 
-            {/* Custom Charges Section */}
+            {/* Surcharges Section */}
             <div>
                 <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                        Itemized Surcharges & Accessorial Fees
+                    <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        Surcharges & Accessorials
                     </span>
-                    <Button
+                    <button
                         type="button"
-                        variant="outline"
-                        size="sm"
                         onClick={addCustomCharge}
-                        className="h-6 text-[10.5px] px-2 rounded-[5px] gap-1 font-normal text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                        className="text-[11px] font-semibold text-[#ff4a1f] hover:underline flex items-center gap-0.5 cursor-pointer"
                     >
-                        <Plus size={11} /> Add Custom Fee
-                    </Button>
+                        <Plus size={11} /> Add Fee
+                    </button>
                 </div>
 
-                {/* Quick Preset Chips */}
-                <div className="flex flex-wrap gap-1 mb-2">
+                {/* Preset Chips */}
+                <div className="flex flex-wrap gap-1 mb-1.5">
                     {COMMON_PRESET_FEES.map((preset) => {
                         const isAdded = customCharges.some(c => c.label.toLowerCase() === preset.label.toLowerCase());
                         return (
@@ -109,10 +101,10 @@ export const SupplierCustomChargesSection: React.FC<SupplierCustomChargesSection
                                 type="button"
                                 disabled={isAdded}
                                 onClick={() => handleAddPreset(preset.label, preset.amount)}
-                                className={`text-[10px] px-1.5 py-0.5 rounded-[5px] font-normal border transition-colors cursor-pointer flex items-center gap-0.5 ${
+                                className={`text-[10px] px-1.5 py-0.5 rounded-[3px] font-medium transition-all cursor-pointer flex items-center gap-0.5 ${
                                     isAdded
-                                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-800 opacity-60 cursor-default'
-                                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200/60 dark:border-slate-800 opacity-50 cursor-default'
+                                        : 'bg-white dark:bg-[#181d24] text-slate-600 dark:text-slate-300 border border-slate-200/90 dark:border-slate-700 hover:border-[#ff4a1f] hover:text-[#ff4a1f]'
                                 }`}
                             >
                                 <span>+ {preset.label}</span>
@@ -123,51 +115,49 @@ export const SupplierCustomChargesSection: React.FC<SupplierCustomChargesSection
                 </div>
 
                 {/* Charges List */}
-                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                    {customCharges.length === 0 ? (
-                        <p className="text-xs text-slate-400 italic py-1">No additional charges added. Flat base freight applies.</p>
-                    ) : (
-                        customCharges.map((charge) => (
-                            <div key={charge.id} className="flex items-center gap-1.5 bg-slate-50/70 dark:bg-slate-800/40 p-1.5 rounded-[5px] border border-slate-200/60 dark:border-slate-800">
+                {customCharges.length > 0 && (
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-0.5">
+                        {customCharges.map((charge) => (
+                            <div key={charge.id} className="flex items-center gap-1.5">
                                 <Input
                                     value={charge.label}
                                     onChange={e => updateCustomCharge(charge.id, 'label', e.target.value)}
-                                    placeholder="Charge description (e.g. Tail-lift)"
-                                    className="text-xs !h-7 flex-1 rounded-[5px] font-normal"
+                                    placeholder="Fee description"
+                                    className="text-xs !h-8 flex-1 rounded-[3px] font-medium shadow-none border-slate-200 dark:border-slate-800 bg-white dark:bg-[#181d24]"
                                 />
-                                <div className="relative w-24 flex items-center">
-                                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-slate-400 text-[11px] font-normal">
-                                        {currency}
-                                    </div>
+                                <div className="w-22 sm:w-24 shrink-0 flex items-center">
                                     <Input
+                                        icon={<span className="text-slate-400 text-[11px] font-bold">{currency}</span>}
                                         type="number"
                                         value={charge.amount}
                                         onChange={e => updateCustomCharge(charge.id, 'amount', e.target.value)}
-                                        placeholder="0.00"
-                                        className="text-xs !h-7 !pl-5 pr-2 text-right font-medium rounded-[5px]"
+                                        placeholder="0"
+                                        className="text-xs !h-8 pr-2 text-right font-bold rounded-[3px] tabular-nums shadow-none border-slate-200 dark:border-slate-800 bg-white dark:bg-[#181d24]"
                                     />
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => removeCustomCharge(charge.id)}
-                                    className="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors"
-                                    title="Remove surcharge"
+                                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-[3px] shrink-0 cursor-pointer transition-colors"
+                                    title="Remove fee"
                                 >
                                     <Trash2 size={13} />
                                 </button>
                             </div>
-                        ))
-                    )}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Total Summary */}
-            <div className="bg-slate-50 dark:bg-slate-800/60 py-2 px-3 rounded-[5px] border border-slate-200/80 dark:border-slate-800 flex justify-between items-center text-xs">
-                <div>
-                    <span className="font-medium text-slate-700 dark:text-slate-300 block">Total Revised Quotation</span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Includes base freight + {customCharges.filter(c => Number(c.amount) > 0).length} surcharges</span>
-                </div>
-                <span className="text-sm font-bold text-[#ff4a1f] font-mono">{currency} {supplierTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            {/* Slim Total Summary */}
+            <div
+    className="flex justify-between items-center px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-200/70 dark:border-slate-800 text-xs">
+                <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                    Total Revised Quote
+                </span>
+                <span className="text-xs font-bold text-[#ff4a1f] tabular-nums font-mono">
+                    {currency} {supplierTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
             </div>
         </div>
     );

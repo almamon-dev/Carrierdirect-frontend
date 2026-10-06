@@ -74,8 +74,16 @@ export default function SupplierDashboard() {
                 setQuoteRequests(Array.isArray(raw) ? raw : (Array.isArray(raw?.requests) ? raw.requests : []));
             }
             if (ordersRes.status === 'fulfilled') {
-                const raw = ordersRes.value.data?.data || ordersRes.value.data || [];
-                setActiveOrders(Array.isArray(raw) ? raw : []);
+                const val = ordersRes.value;
+                const raw = 
+                    (Array.isArray(val?.data?.data?.data) && val.data.data.data) ||
+                    (Array.isArray(val?.data?.data) && val.data.data) ||
+                    (Array.isArray(val?.data?.data?.orders) && val.data.data.orders) ||
+                    (Array.isArray(val?.data?.orders?.data) && val.data.orders.data) ||
+                    (Array.isArray(val?.data?.orders) && val.data.orders) ||
+                    (Array.isArray(val?.data) && val.data) ||
+                    [];
+                setActiveOrders(raw);
             }
             if (financeRes.status === 'fulfilled') {
                 const raw = financeRes.value.data?.data || financeRes.value.data || null;
@@ -329,7 +337,8 @@ export default function SupplierDashboard() {
     }, [notifications]);
 
     return (
-        <div className="p-4 md:p-5 space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
+        <div
+    className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
             {/* Metrics Grid */}
             <MetricCardsGrid
                 totalEarnings={totalEarnings}
@@ -341,7 +350,7 @@ export default function SupplierDashboard() {
             />
 
             {/* Charts Row */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5 sm:gap-4 mb-3.5 sm:mb-4">
                 <EarningsAreaChart
                     filter={earningsFilter}
                     onFilterChange={setEarningsFilter}
@@ -358,7 +367,7 @@ export default function SupplierDashboard() {
             </div>
 
             {/* Footer Lists Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
                 <RecentQuotesList quotes={recentQuotes} isLoading={isLoading} />
                 <ActiveOrdersList orders={displayOrders} isLoading={isLoading} />
                 <DashboardNotificationsList notifications={displayNotifications} isLoading={isLoading} />

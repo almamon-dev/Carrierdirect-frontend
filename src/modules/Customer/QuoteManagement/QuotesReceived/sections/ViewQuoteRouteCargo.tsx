@@ -1,7 +1,8 @@
-import React from 'react';
-import { MapPin, Navigation, Truck, Package, Layers, Shield, FileText } from 'lucide-react';
+import { formatTimeSlotWindow, formatDeliveryTime } from '@/modules/Supplier/QuoteManagement/SubmitQuote/utils/detailMapper';
 import TabHeader from '@/components/ui/tab-header';
-import { ViewField, SectionHeader } from '@/modules/Customer/QuoteManagement/ViewRequest/components/ViewField';
+import { SectionHeader, ViewField } from '@/modules/Customer/QuoteManagement/ViewRequest/components/ViewField';
+import { MapPin, Package, Shield, Truck } from 'lucide-react';
+import React from 'react';
 import { QuoteData } from '../types/quoteViewDetailTypes';
 
 interface ViewQuoteRouteCargoProps {
@@ -26,7 +27,7 @@ export const ViewQuoteRouteCargo: React.FC<ViewQuoteRouteCargoProps> = ({ quote,
                 <ViewField label="Pickup City" value={originCity} />
                 <ViewField label="Postal / ZIP" value={req.pickup_zip || req.pickup_postal_code || '1000'} />
                 <ViewField label="Pickup Date" value={quote.pickup_date || req.pickup_date || 'Standard Pickup Schedule'} />
-                <ViewField label="Pickup Time Slot" value={req.pickup_time || req.pickup_time_slot || '08:00 - 17:00'} />
+                <ViewField label="Pickup Time Slot" value={formatTimeSlotWindow(req.pickup_time_from, req.pickup_time_till, req.pickup_time_window || req.pickup_time_slot, req.pickup_time) || "—"} />
 
                 {/* Delivery Destination Details */}
                 <SectionHeader title="Delivery Destination Details" icon={MapPin} />
@@ -34,7 +35,7 @@ export const ViewQuoteRouteCargo: React.FC<ViewQuoteRouteCargoProps> = ({ quote,
                 <ViewField label="Delivery City" value={destCity} />
                 <ViewField label="Postal / ZIP" value={req.delivery_zip || req.delivery_postal_code || '4000'} />
                 <ViewField label="Est. Delivery Date" value={quote.delivery_date || req.delivery_date || 'Estimated Arrival on Schedule'} />
-                <ViewField label="Delivery Time Slot" value={req.delivery_time || req.delivery_time_slot || '08:00 - 17:00'} />
+                <ViewField label="Delivery Time Slot" value={formatDeliveryTime(req.delivery_time_from, req.delivery_time_till, req.delivery_time_window || req.delivery_time_slot, req.delivery_time) || "—"} />
 
                 {/* Cargo & Equipment Section */}
                 <SectionHeader title="Vehicle & Cargo Specifications" icon={Package} />
@@ -64,13 +65,14 @@ export const ViewQuoteRouteCargo: React.FC<ViewQuoteRouteCargoProps> = ({ quote,
                         ) : 'Tail-lift assistance, Inside delivery'
                     }
                 />
-                
+
                 {(req.additional_notes || req.cargo_description || quote.notes) && (
                     <ViewField
                         label="Special Notes"
                         colSpan
                         value={
-                            <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-[5px] text-xs leading-relaxed text-slate-700 dark:text-slate-300">
+                            <div
+                                className="p-2.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg text-xs leading-relaxed text-slate-700 dark:text-slate-300">
                                 {req.additional_notes || req.cargo_description || quote.notes}
                             </div>
                         }

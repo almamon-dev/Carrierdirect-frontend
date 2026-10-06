@@ -32,9 +32,9 @@ export const FREIGHT_TEMPLATES: Array<{ id: string; label: string; text: string 
 ];
 
 export const POPULAR_CLAUSES: Array<{ label: string; text: string }> = [
-    { label: '2h free waiting', text: 'Includes 2 hours complimentary loading/unloading time.' },
-    { label: 'Live GPS link', text: 'Real-time driver GPS tracking provided upon vehicle dispatch.' },
-    { label: 'Tail-lift equipped', text: 'Vehicle equipped with hydraulic tail-lift and pallet jack.' },
-    { label: 'Inside delivery', text: 'Ground-floor inside delivery and threshold placement included.' },
+    { label: '2h Waiting', text: 'Includes 2 hours complimentary loading/unloading time.' },
+    { label: 'Live GPS', text: 'Real-time driver GPS tracking provided upon vehicle dispatch.' },
+    { label: 'Tail-lift', text: 'Vehicle equipped with hydraulic tail-lift and pallet jack.' },
+    { label: 'Inside Delivery', text: 'Ground-floor inside delivery and threshold placement included.' },
     { label: 'e-CMR POD', text: 'Instant digital Proof of Delivery with signature & photos.' },
 ];

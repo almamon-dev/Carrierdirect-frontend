@@ -23,6 +23,9 @@ export interface CustomerNegotiationItem {
     distance: string;
     budget: string;
     originalAmount?: number;
+    baseFreightAmount?: number;
+    extraCharges?: any[];
+    totalExtras?: number;
     currentOffer?: number;
     currency?: string;
     priority: string;
@@ -37,6 +40,15 @@ export interface CustomerNegotiationItem {
     requestDate: string;
     lastUpdated?: string;
     notes?: string;
+    isOnline?: boolean;
+    lastSeenHuman?: string;
+    lastSeenAt?: string;
+    isPaid?: boolean;
+    hasOrder?: boolean;
+    orderId?: string | number;
+    orderNumber?: string;
+    raw?: any;
+    [key: string]: any;
 }
 
 export type NegotiationTab = 'active' | 'history';

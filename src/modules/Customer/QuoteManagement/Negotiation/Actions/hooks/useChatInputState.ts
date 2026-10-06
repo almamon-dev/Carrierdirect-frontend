@@ -7,7 +7,7 @@ interface UseChatInputStateParams {
     setInputValue: (v: string) => void;
     scrollToBottom: () => void;
     onSendMessage?: (text: string, files?: File[]) => void;
-    onTyping?: () => void;
+    onTyping?: (isTyping?: boolean) => void;
 }
 
 export const useChatInputState = ({
@@ -39,25 +39,16 @@ export const useChatInputState = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    useEffect(() => {
-        const textarea = textareaRef.current;
-        if (textarea) {
-            textarea.style.height = '20px';
-            const scrollH = textarea.scrollHeight;
-            if (scrollH > 20) {
-                textarea.style.height = `${Math.min(scrollH, 120)}px`;
-            }
-        }
-    }, [inputValue]);
+    const isMultiLine = Boolean(inputValue && (inputValue.includes('\n') || inputValue.length > 55));
 
     const handleSend = () => {
         if (!inputValue.trim() && selectedFiles.length === 0) return;
+        if (onTyping) onTyping(false);
         if (onSendMessage) {
             onSendMessage(inputValue, selectedFiles.length > 0 ? selectedFiles : undefined);
         }
         setInputValue('');
         setSelectedFiles([]);
-        if (textareaRef.current) textareaRef.current.style.height = '20px';
         setTimeout(scrollToBottom, 50);
     };
 
@@ -99,7 +90,7 @@ export const useChatInputState = ({
     const handleAddEmoji = (emoji: string) => {
         setInputValue(inputValue + emoji);
         setShowEmojiPicker(false);
-        if (onTyping) onTyping();
+        if (onTyping) onTyping(true);
         if (textareaRef.current) textareaRef.current.focus();
     };
 
@@ -124,5 +115,6 @@ export const useChatInputState = ({
         handleKeyDown,
         handleFileSelect,
         handleAddEmoji,
+        isMultiLine,
     };
 };

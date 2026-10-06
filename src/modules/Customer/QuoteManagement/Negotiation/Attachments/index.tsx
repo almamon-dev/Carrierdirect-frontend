@@ -53,7 +53,8 @@ export default function AttachmentsList({ items = [] }: { items?: AttachmentItem
 
     if (!items || items.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-7 px-4 text-center bg-slate-50/70 rounded-xl border border-dashed border-slate-200 my-1">
+            <div
+    className="flex flex-col items-center justify-center py-7 px-4 text-center bg-slate-50/70 rounded-lg border border-dashed border-slate-200 my-1">
                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
                     <FolderOpen size={20} className="stroke-[1.5]" />
                 </div>
@@ -70,7 +71,7 @@ export default function AttachmentsList({ items = [] }: { items?: AttachmentItem
             {mediaItems.length > 0 && (
                 <div>
                     <div className="flex items-center justify-between mb-1.5 px-0.5">
-                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        <span className="text-[11px] font-bold text-slate-500  tracking-wider">
                             Photos & Media ({mediaItems.length})
                         </span>
                         {mediaItems.length > MAX_MEDIA_THUMBNAILS && (

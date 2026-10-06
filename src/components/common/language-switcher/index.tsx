@@ -16,7 +16,8 @@ export default function LanguageSwitcher({ className = '' }: LanguageSwitcherPro
                 <span className="text-xs">▼</span>
             </button>
             {open && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-50">
+                <div
+    className="absolute right-0 mt-2 w-32 bg-white border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-50">
                     {langs.map(lang => (
                         <div key={lang} onClick={() => { setCurrent(lang); setOpen(false); }} className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer">
                             {lang}

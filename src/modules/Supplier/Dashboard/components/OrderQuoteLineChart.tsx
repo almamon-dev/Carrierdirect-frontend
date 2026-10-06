@@ -20,7 +20,8 @@ export const OrderQuoteLineChart: React.FC<OrderQuoteLineChartProps> = ({
     isLoading = false,
 }) => {
     return (
-        <div className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div
+    className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4 -mx-4 px-4">
                 <div className="flex items-center gap-2">
                     <Activity size={16} className="text-brand" />
@@ -53,7 +54,8 @@ export const OrderQuoteLineChart: React.FC<OrderQuoteLineChartProps> = ({
 
             <div className="h-[220px] w-full">
                 {isLoading ? (
-                    <div className="w-full h-full flex flex-col justify-end gap-2 p-2 bg-slate-50/50 dark:bg-slate-800/20 rounded-lg animate-pulse">
+                    <div
+    className="w-full h-full flex flex-col justify-end gap-2 p-2 bg-slate-50/50 dark:bg-slate-800/20 rounded-lg animate-pulse">
                         <div className="w-full h-36 bg-slate-200/70 dark:bg-slate-700/30 rounded-md" />
                         <div className="flex justify-between w-full px-1">
                             {[1, 2, 3, 4, 5, 6, 7].map((k) => (

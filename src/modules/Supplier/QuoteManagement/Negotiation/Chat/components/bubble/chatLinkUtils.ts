@@ -32,7 +32,8 @@ export const shortenUrl = (url: string, maxLength: number = 42): string => {
     }
 };
 
-export const getLinkPreview = (rawUrl: string, activeNegotiation?: NegotiationItem): LinkPreviewData => {
+export const getLinkPreview = (rawUrl: string, activeNegotiation?: NegotiationItem): LinkPreviewData | null => {
+    if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim() || !/^https?:\/\//i.test(rawUrl.trim())) return null;
     try {
         const parsed = new URL(rawUrl);
         const host = parsed.host;
@@ -105,11 +106,6 @@ export const getLinkPreview = (rawUrl: string, activeNegotiation?: NegotiationIt
             image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&auto=format&fit=crop&q=80'
         };
     } catch {
-        return {
-            url: rawUrl,
-            domain: 'WEB LINK',
-            title: rawUrl,
-            description: 'Click to open this link in a new window.'
-        };
+        return null;
     }
 };

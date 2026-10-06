@@ -48,7 +48,7 @@ export const LostRowActions: React.FC<LostRowActionsProps> = ({ row }) => {
 
             {isOpen && createPortal(
                 <div
-                    className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
+    className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
                     style={{ top: dropdownPos.top, left: dropdownPos.left }}
                     onClick={(e) => e.stopPropagation()}
                 >

@@ -6,9 +6,9 @@ export interface SkeletonProps {
 }
 
 export default function Skeleton({ className = '', style }: SkeletonProps) {
-    const isFull = className.includes('rounded-full');
-    const roundedClass = isFull ? 'rounded-full' : 'rounded-[2px]';
+    const hasRounded = className.split(' ').some(c => c.startsWith('rounded'));
+    const roundedClass = hasRounded ? '' : 'rounded-md';
     return (
-        <div className={`animate-live-shimmer ${roundedClass} ${className}`} style={style}></div>
+        <div className={`animate-live-shimmer ${roundedClass} ${className}`.trim()} style={style} />
     );
 }

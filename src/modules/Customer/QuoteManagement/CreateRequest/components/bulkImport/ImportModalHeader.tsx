@@ -15,7 +15,8 @@ export const ImportModalHeader: React.FC<ImportModalHeaderProps> = ({
     onClose,
 }) => {
     return (
-        <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-white dark:bg-slate-900 font-sans">
+        <div
+    className="px-5 py-3 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-white dark:bg-slate-900 font-sans">
             <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 tracking-tight">
                     {isCsvMode ? 'Spreadsheet Import' : 'Document Import'}
@@ -27,7 +28,7 @@ export const ImportModalHeader: React.FC<ImportModalHeaderProps> = ({
 
             <div className="flex items-center gap-2.5">
                 {processingStep <= 2 && setImportType && (
-                    <div className="flex items-center bg-slate-100/80 dark:bg-slate-800/80 p-0.5 rounded-md text-[11px] font-medium border border-slate-200/60 dark:border-slate-700/60">
+                    <div className="flex items-center bg-slate-100/80 dark:bg-slate-800/80 p-0.5 rounded-lg text-[11px] font-medium border border-slate-200/60 dark:border-slate-700/60">
                         <button
                             type="button"
                             onClick={() => setImportType('csv')}

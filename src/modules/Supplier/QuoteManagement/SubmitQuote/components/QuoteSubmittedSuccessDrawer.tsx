@@ -89,7 +89,8 @@ export const QuoteSubmittedSuccessDrawer: React.FC<SubmittedSuccessDrawerProps> 
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#181d24] border border-slate-200 dark:border-slate-800 rounded-[3px] p-4 space-y-3 shadow-2xs">
+                <div
+    className="bg-white dark:bg-[#181d24] border border-slate-200 dark:border-slate-800 rounded-lg p-4 space-y-3 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
                         <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                             <FileText size={13} className="text-[#ff4a1f]" /> Settlement Breakdown
@@ -113,7 +114,8 @@ export const QuoteSubmittedSuccessDrawer: React.FC<SubmittedSuccessDrawerProps> 
                     </div>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-[#14181f] border border-slate-200 dark:border-slate-800 rounded-[3px] p-3.5 space-y-2 text-xs">
+                <div
+    className="bg-slate-50 dark:bg-[#14181f] border border-slate-200 dark:border-slate-800 rounded-lg p-3.5 space-y-2 text-xs">
                     <div className="flex items-start gap-2 text-slate-800 dark:text-slate-200 font-semibold">
                         <MapPin size={14} className="text-[#ff4a1f] shrink-0 mt-0.5" />
                         <span>{requestDetails.pickup} → {requestDetails.delivery}</span>
@@ -127,7 +129,7 @@ export const QuoteSubmittedSuccessDrawer: React.FC<SubmittedSuccessDrawerProps> 
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-3 bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-[3px] text-xs text-sky-800 dark:text-sky-300">
+                <div className="flex items-center gap-2.5 p-3 bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 rounded-lg text-xs text-sky-800 dark:text-sky-300">
                     <BellRing size={15} className="shrink-0 text-sky-600 dark:text-sky-400" />
                     <span>Real-time notifications dispatched to both your dashboard and the customer's portal.</span>
                 </div>

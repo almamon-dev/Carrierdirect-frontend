@@ -8,7 +8,8 @@ interface OrderTimelineProps {
 
 export const OrderTimeline: React.FC<OrderTimelineProps> = ({ timeline }) => {
     return (
-        <div className="p-6 bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs space-y-4">
+        <div
+    className="p-6 bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center gap-2">
                 <Clock size={16} className="text-slate-600 dark:text-slate-400" /> Shipment Timeline & Progress
             </h3>

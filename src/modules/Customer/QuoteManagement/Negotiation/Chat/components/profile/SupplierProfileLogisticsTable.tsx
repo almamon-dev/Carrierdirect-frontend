@@ -14,7 +14,7 @@ export const SupplierProfileLogisticsTable: React.FC<SupplierProfileLogisticsTab
 }) => (
     <div className="space-y-4 min-w-0">
         <div>
-            <h4 className="text-[12px] font-bold text-slate-700 dark:text-slate-200 mb-2 pb-1 border-b border-slate-100 uppercase tracking-wider text-xs">
+            <h4 className="text-[12px] font-bold text-slate-700 dark:text-slate-200 mb-2 pb-1 border-b border-slate-100  tracking-wider text-xs">
                 Logistics &amp; Freight Profile
             </h4>
             <table className="w-full text-[11.5px] border-collapse">

@@ -26,33 +26,7 @@ import {
     Zap
 } from 'lucide-react';
 
-const MetricCard = ({ title, description, value, trend, icon: Icon, colorClass }: any) => (
-    <div className="bg-white dark:bg-[#181d24] p-3 rounded-md border border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between shadow-2xs group">
-        <div className="flex justify-between items-start w-full mb-2">
-            <div className={`w-7 h-7 rounded flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${colorClass}`}>
-                <Icon size={14} strokeWidth={2} />
-            </div>
-            {trend && (
-                <span className="text-[10.5px] font-normal text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 leading-none">
-                    <ArrowUpRight size={11} />
-                    {trend}
-                </span>
-            )}
-        </div>
-
-        <div>
-            <div className="mb-0.5">
-                <span className="text-lg font-semibold text-slate-800 dark:text-slate-200 tracking-tight leading-none">{value}</span>
-            </div>
-            <h3 className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 leading-tight">
-                {title}
-            </h3>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight truncate mt-0.5">
-                {description}
-            </p>
-        </div>
-    </div>
-);
+import MetricCard from '@/components/cards/metric-card';
 
 interface DashboardTabProps {
     headerTabs?: React.ReactNode;
@@ -247,7 +221,8 @@ export default function DashboardTab({ headerTabs }: DashboardTabProps = {}) {
     return (
         <div className="space-y-3.5 font-sans">
             {headerTabs && (
-                <div className="bg-white dark:bg-[#181d24] rounded-md border border-slate-200/80 dark:border-slate-800 shadow-none px-4 pt-2.5">
+                <div
+    className="bg-white dark:bg-[#181d24] rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-none px-4 pt-2.5">
                     {headerTabs}
                 </div>
             )}
@@ -288,7 +263,8 @@ export default function DashboardTab({ headerTabs }: DashboardTabProps = {}) {
             {/* Charts & Quick Invite Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
                 {/* Area Chart - Team Growth */}
-                <div className="lg:col-span-2 bg-white dark:bg-[#181d24] p-3.5 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
+                <div
+    className="lg:col-span-2 bg-white dark:bg-[#181d24] p-3.5 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
                     <div>
                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-2.5">
                             <div className="flex items-center gap-2">
@@ -357,7 +333,8 @@ export default function DashboardTab({ headerTabs }: DashboardTabProps = {}) {
                 </div>
 
                 {/* Dynamic Department Distribution Side Card */}
-                <div className="bg-white dark:bg-[#181d24] p-3.5 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
+                <div
+    className="bg-white dark:bg-[#181d24] p-3.5 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
                     <div>
                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-2.5">
                             <div className="flex items-center gap-2">
@@ -428,7 +405,8 @@ export default function DashboardTab({ headerTabs }: DashboardTabProps = {}) {
             {/* Bottom Row - Recent Invitations & Audit Logs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {/* Recent Invitations */}
-                <div className="bg-white dark:bg-[#181d24] p-3.5 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col">
+                <div
+    className="bg-white dark:bg-[#181d24] p-3.5 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
                         <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded bg-orange-50 dark:bg-[#ff4a1f]/15 flex items-center justify-center text-[#ff4a1f]">
@@ -463,7 +441,8 @@ export default function DashboardTab({ headerTabs }: DashboardTabProps = {}) {
                 </div>
 
                 {/* Audit Activity */}
-                <div className="bg-white dark:bg-[#181d24] p-3.5 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col">
+                <div
+    className="bg-white dark:bg-[#181d24] p-3.5 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2.5">
                         <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded bg-orange-50 dark:bg-[#ff4a1f]/15 flex items-center justify-center text-[#ff4a1f]">

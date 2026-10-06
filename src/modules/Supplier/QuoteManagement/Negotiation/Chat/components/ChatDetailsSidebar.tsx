@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { NegotiationItem } from '../../types';
 import { ChatMessage } from '../types';
 import AttachmentsList from '@/modules/Customer/QuoteManagement/Negotiation/Attachments';
@@ -52,12 +52,40 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
     const documents = [...(activeNegotiation.documents || []), ...messageAttachments];
 
     return (
-        <div className={`shrink-0 flex-col min-h-0 h-full bg-white overflow-y-auto border-l border-slate-200 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${showMobileDetails ? 'flex fixed xl:static inset-y-0 right-0 z-50 w-80 xl:w-[290px] 2xl:w-[320px] shadow-2xl xl:shadow-none bg-white' : 'hidden'}`}>
-            <SidebarHeaderProfile
-                activeNegotiation={activeNegotiation} statusText={statusText} isAccepted={isAccepted} isRejected={isRejected}
-                showMobileDetails={showMobileDetails} setShowMobileDetails={setShowMobileDetails}
-                onOpenProfile={() => setShowProfileModal(true)} onDocumentsClick={handleDocumentsClick}
-            />
+        <>
+            {/* Mobile Backdrop for Details Sidebar */}
+            {showMobileDetails && (
+                <div
+                    className="absolute inset-0 bg-slate-900/40 backdrop-blur-2xs z-30 lg:hidden animate-in fade-in duration-200"
+                    onClick={() => setShowMobileDetails(false)}
+                    aria-hidden="true"
+                />
+            )}
+
+            <div className={`shrink-0 flex-col min-h-0 h-full bg-white dark:bg-[#12161c] overflow-y-auto border-l border-slate-200 dark:border-slate-800 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${
+                showMobileDetails
+                    ? 'flex absolute lg:static inset-y-0 right-0 z-40 lg:z-auto w-[88vw] max-w-[340px] lg:w-[300px] 2xl:w-[330px] shadow-2xl lg:shadow-none animate-in slide-in-from-right duration-200'
+                    : 'hidden'
+            }`}>
+                {/* Header Bar */}
+                <div className="h-[60px] px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0 box-border bg-white dark:bg-[#12161c] sticky top-0 z-10">
+                    <span className="text-[13px] font-bold text-slate-800 dark:text-slate-100">Quote Details</span>
+                    <button
+                        type="button"
+                        onClick={() => setShowMobileDetails(false)}
+                        className="h-8 w-8 rounded-[4px] flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        title="Close details"
+                        aria-label="Close details"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+
+                <SidebarHeaderProfile
+                    activeNegotiation={activeNegotiation} statusText={statusText} isAccepted={isAccepted} isRejected={isRejected}
+                    showMobileDetails={showMobileDetails} setShowMobileDetails={setShowMobileDetails}
+                    onOpenProfile={() => setShowProfileModal(true)} onDocumentsClick={handleDocumentsClick}
+                />
 
             <div className="flex flex-col divide-y divide-slate-100">
                 <div>
@@ -103,5 +131,6 @@ export const ChatDetailsSidebar: React.FC<ChatDetailsSidebarProps> = ({
 
             <CustomerProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} customer={activeNegotiation} onCallClick={() => onCallClick?.('audio')} />
         </div>
+        </>
     );
 };

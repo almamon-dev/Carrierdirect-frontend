@@ -23,9 +23,11 @@ export const EditSidebar: React.FC<EditSidebarProps> = ({
     servicesCount = 0,
 }) => {
     return (
-        <div className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-2xs">
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
-                <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+        <div
+    className="w-full lg:w-[260px] shrink-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden shadow-2xs">
+            <div
+    className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+                <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200  tracking-wider">
                     Edit Sections
                 </h3>
             </div>

@@ -4,7 +4,7 @@ import { AllImages } from "@/components/AllPhotos/AllImages";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { TOKEN_CONFIG } from "@/config/auth";
 import authService from "@/services/authService";
-import ThemeSwitcher from "@/components/common/theme-switcher";
+import { getRoleDashboardUrl, isDriverUser, getUserEffectiveRole } from "@/utils/roleDashboard";
 
 const NavigationLink = [
   { id: 1, navigationText: "Home", sectionId: "home" },
@@ -14,7 +14,8 @@ const NavigationLink = [
   { id: 5, navigationText: "Carriers", sectionId: "supplier" },
 ];
 
-function getInitials(name: string): string {
+function getInitials(name?: string): string {
+  if (!name) return "U";
   return name
     .split(" ")
     .slice(0, 2)
@@ -30,12 +31,8 @@ export default function Header() {
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ── Live auth state (re-reads localStorage on every render) ───────────────
-  const [currentUser, setCurrentUser] = useState<{
-    name: string;
-    email: string;
-    user_type: string;
-  } | null>(null);
+  // ── Live auth state (re-reads localStorage on render/storage event) ───────
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
 
   useEffect(() => {
     const readAuth = () => {
@@ -44,7 +41,7 @@ export default function Header() {
       if (!token || !userStr) { setCurrentUser(null); return; }
       try {
         const u = JSON.parse(userStr);
-        setCurrentUser({ name: u.name ?? "User", email: u.email ?? "", user_type: u.user_type ?? "customer" });
+        setCurrentUser(u);
       } catch {
         setCurrentUser(null);
       }
@@ -57,12 +54,19 @@ export default function Header() {
     return () => window.removeEventListener("storage", readAuth);
   }, []);
 
-  const dashboardPath =
-    currentUser?.user_type === "supplier"
-      ? "/supplier/dashboard"
-      : currentUser?.user_type === "admin"
-        ? "/admin/dashboard"
-        : "/customer/dashboard";
+  const dashboardPath = getRoleDashboardUrl(currentUser);
+  const isDriver = isDriverUser(currentUser);
+  const profilePath = isDriver
+    ? "/driver/profile"
+    : `${dashboardPath.split("/dashboard")[0]}/settings`;
+
+  const roleBadgeLabel = isDriver
+    ? "Driver"
+    : currentUser?.user_type === "admin"
+      ? "Admin"
+      : currentUser?.user_type === "supplier_employee"
+        ? (currentUser?.role?.name || "Staff Member")
+        : (currentUser?.user_type === "supplier" ? "Supplier" : "Customer");
 
   // ── Scroll handler ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -137,7 +141,7 @@ export default function Header() {
           <span className="h-7 w-7 rounded-full bg-[#ff4a1f] text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow-xs">
             {getInitials(currentUser.name)}
           </span>
-          <span className="max-w-[110px] truncate">{currentUser.name}</span>
+          <span className="max-w-[110px] truncate">{currentUser.name || "User"}</span>
           <ChevronDown
             size={14}
             className={`transition-transform shrink-0 ${dropdownOpen ? "rotate-180" : ""}`}
@@ -151,10 +155,10 @@ export default function Header() {
           >
             {/* User info */}
             <div className="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50">
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{currentUser.name}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{currentUser.email}</p>
+              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{currentUser.name || "User"}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{currentUser.email || ""}</p>
               <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-orange-100/70 text-[#ff4a1f] dark:bg-[#ff4a1f]/15 dark:text-[#ff4a1f] border border-orange-200/50 dark:border-orange-500/20">
-                {currentUser.user_type}
+                {roleBadgeLabel}
               </span>
             </div>
 
@@ -169,7 +173,7 @@ export default function Header() {
                 Dashboard
               </Link>
               <Link
-                to={`${dashboardPath.split("/dashboard")[0]}/settings`}
+                to={profilePath}
                 onClick={() => setDropdownOpen(false)}
                 className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-colors"
               >
@@ -260,7 +264,6 @@ export default function Header() {
 
         {/* Desktop CTA */}
         <div className="hidden sm:flex items-center gap-3">
-          <ThemeSwitcher variant={isScrolled ? 'default' : 'hero'} />
           <AuthWidget />
         </div>
 
@@ -297,9 +300,6 @@ export default function Header() {
           ))}
 
           <div className="pt-4 border-t border-slate-200/40 dark:border-slate-800 space-y-3">
-            <div className="flex justify-start">
-              <ThemeSwitcher showText variant={isScrolled ? 'default' : 'hero'} />
-            </div>
             <AuthWidget mobile />
           </div>
         </div>

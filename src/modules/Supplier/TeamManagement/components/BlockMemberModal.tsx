@@ -80,7 +80,8 @@ export default function BlockMemberModal({ member, onClose, onSuccess }: BlockMe
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-2xs p-4 animate-in fade-in duration-150 font-sans">
-            <div className="bg-white dark:bg-[#1e2329] w-full max-w-lg rounded-[5px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+            <div
+    className="bg-white dark:bg-[#1e2329] w-full max-w-lg rounded-[5px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-2.5 text-red-600 dark:text-red-400">
@@ -107,7 +108,8 @@ export default function BlockMemberModal({ member, onClose, onSuccess }: BlockMe
                 {/* Body */}
                 <div className="p-5 space-y-4 text-xs">
                     {/* Member Summary Banner */}
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center gap-3">
+                    <div
+    className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold flex items-center justify-center text-xs shrink-0">
                             {member.avatar}
                         </div>
@@ -154,7 +156,8 @@ export default function BlockMemberModal({ member, onClose, onSuccess }: BlockMe
                 </div>
 
                 {/* Footer Actions */}
-                <div className="px-5 py-3.5 bg-slate-50/60 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+                <div
+    className="px-5 py-3.5 bg-slate-50/60 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
                     <Button
                         variant="outline"
                         size="sm"

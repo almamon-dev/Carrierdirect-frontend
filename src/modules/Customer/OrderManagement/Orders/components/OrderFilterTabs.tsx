@@ -3,30 +3,53 @@ import { CustomerOrderItem, OrderFilterTab } from '../types';
 
 interface OrderFilterTabsProps {
     orders: CustomerOrderItem[];
+    stats?: {
+        total?: number;
+        in_transit?: number;
+        pod_review?: number;
+        completed?: number;
+        cancelled?: number;
+    } | null;
     activeTab: OrderFilterTab;
     onSelectTab: (tab: OrderFilterTab) => void;
 }
 
 export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
     orders,
+    stats,
     activeTab,
     onSelectTab,
 }) => {
     const counts = useMemo(() => {
+        if (stats && typeof stats.total === 'number') {
+            return {
+                all: stats.total ?? orders.length,
+                in_transit: stats.in_transit ?? 0,
+                pod_review: stats.pod_review ?? 0,
+                completed: stats.completed ?? 0,
+                cancelled: stats.cancelled ?? 0,
+            };
+        }
+
         let inTransit = 0;
         let podReview = 0;
         let completed = 0;
         let cancelled = 0;
 
         orders.forEach((o) => {
-            const st = String(o.status_raw || o.status || '').toLowerCase();
-            if (st === 'completed' || st === 'pod accepted') {
-                completed++;
-            } else if (st.includes('review') || st.includes('pod') || st.includes('delivered')) {
-                podReview++;
-            } else if (st.includes('cancel')) {
+            const st = String(o.status_raw || o.status || '').toLowerCase().trim();
+            const isCompleted = st === 'completed' || st === 'pod accepted';
+            const isPodReview = st.includes('review') || st.includes('pod_uploaded') || st === 'delivered';
+            const isCancelled = st.includes('cancel');
+            const isInTransit = st === 'in_transit' || st === 'on_the_way' || st === 'picked_up' || st === 'in_progress' || st === 'driver_assigned' || st === 'confirmed' || st === 'scheduled';
+
+            if (isCancelled) {
                 cancelled++;
-            } else {
+            } else if (isCompleted) {
+                completed++;
+            } else if (isPodReview) {
+                podReview++;
+            } else if (isInTransit) {
                 inTransit++;
             }
         });
@@ -38,7 +61,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
             completed: completed,
             cancelled: cancelled,
         };
-    }, [orders]);
+    }, [orders, stats]);
 
     const tabs: { id: OrderFilterTab; label: string; count: number }[] = [
         { id: 'all', label: 'All Orders', count: counts.all },
@@ -49,7 +72,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
     ];
 
     return (
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto hide-scrollbar mb-[-1px]">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto hide-scrollbar mb-[-1px]">
             {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -57,17 +80,17 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => onSelectTab(tab.id)}
-                        className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${
+                        className={`flex items-center gap-1.5 pb-2.5 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${
                             isActive
                                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
                     >
-                        <span className={`text-[14px] ${isActive ? 'font-bold' : 'font-medium'}`}>
+                        <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>
                             {tab.label}
                         </span>
                         <span
-                            className={`text-[12px] font-medium px-2 py-0.5 rounded-full transition-colors ${
+                            className={`text-[11px] font-medium px-1.5 py-0.25 rounded-full transition-colors ${
                                 isActive
                                     ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'

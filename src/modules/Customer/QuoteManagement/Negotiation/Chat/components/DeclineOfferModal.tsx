@@ -82,18 +82,14 @@ export function DeclineOfferModal({
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Explanation / Note (Optional)
-                    </label>
-                    <Textarea
-                        rows={3}
-                        value={reason}
-                        onChange={e => setReason(e.target.value)}
-                        placeholder="Provide details or explain why this offer cannot be accepted..."
-                        className="text-xs resize-none"
-                    />
-                </div>
+                <Textarea
+                    label="Explanation / Note (Optional)"
+                    rows={3}
+                    value={reason}
+                    onChange={e => setReason(e.target.value)}
+                    placeholder="Provide details or explain why this offer cannot be accepted..."
+                    className="text-xs resize-none"
+                />
 
                 <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                     <Button type="button" variant="outline" size="sm" onClick={onClose}>

@@ -12,7 +12,7 @@ export const CargoDimensionsTable: React.FC<{ dimensionsList: DimensionsItem[] }
                 {dimensionsList.length} item{dimensionsList.length > 1 ? 's' : ''}
             </span>
         </div>
-        <div className="border border-slate-200/90 dark:border-slate-800 rounded-[3px] overflow-hidden">
+        <div className="border border-slate-200/90 dark:border-slate-800 rounded-lg overflow-x-auto hide-scrollbar no-scrollbar">
             <table className="w-full text-xs">
                 <thead>
                     <tr className="border-b border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-[#181d24] text-slate-500 dark:text-slate-400 font-medium text-[11px]">

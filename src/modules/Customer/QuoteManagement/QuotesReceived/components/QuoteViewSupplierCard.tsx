@@ -8,7 +8,8 @@ interface QuoteViewSupplierCardProps {
 
 export const QuoteViewSupplierCard: React.FC<QuoteViewSupplierCardProps> = ({ quote }) => {
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[5px] p-5 shadow-2xs space-y-4">
+        <div
+    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h2 className="text-xs font-bold text-slate-700 dark:text-slate-300">
                     Carrier & Driver Profile
@@ -19,7 +20,7 @@ export const QuoteViewSupplierCard: React.FC<QuoteViewSupplierCardProps> = ({ qu
             </div>
 
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[5px] bg-gradient-to-br from-[#ff4a1f] to-orange-400 text-white font-black text-lg flex items-center justify-center shadow-md shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#ff4a1f] to-orange-400 text-white font-black text-lg flex items-center justify-center shadow-md shrink-0">
                     {(quote?.supplier_name || 'S').charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -37,7 +38,8 @@ export const QuoteViewSupplierCard: React.FC<QuoteViewSupplierCardProps> = ({ qu
             </div>
 
             {quote?.notes && (
-                <div className="p-3.5 bg-slate-50 dark:bg-[#161a20] rounded-[5px] border border-slate-100 dark:border-slate-800 text-xs">
+                <div
+    className="p-3.5 bg-slate-50 dark:bg-[#161a20] rounded-lg border border-slate-100 dark:border-slate-800 text-xs">
                     <span className="font-bold text-slate-900 dark:text-slate-100 block mb-1">Carrier Note & Conditions:</span>
                     <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic">
                         "{quote.notes}"

@@ -17,12 +17,7 @@ export const PricingBreakdownSection: React.FC<PricingBreakdownSectionProps> = (
     const rawExtraCharges = activeNegotiation.extraCharges;
     const hasCustomCharges = Array.isArray(rawExtraCharges) && rawExtraCharges.length > 0;
 
-    const extraCharges = hasCustomCharges
-        ? rawExtraCharges
-        : [
-            { label: 'Loading & Unloading', amount: Math.round(currentPrice * 0.08) || 30 },
-            { label: 'Transit Insurance', amount: Math.round(currentPrice * 0.04) || 20 }
-        ];
+    const extraCharges = hasCustomCharges ? rawExtraCharges : [];
 
     const totalExtras = extraCharges.reduce((acc, c) => acc + Number(c.amount || 0), 0);
     const baseFreight = activeNegotiation.baseFreight || Math.max(0, currentPrice - totalExtras);

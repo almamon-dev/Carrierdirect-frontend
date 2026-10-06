@@ -77,11 +77,11 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
             <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 rounded-[3px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto flex items-center justify-center"
+                className="h-7 w-7 p-0 rounded-[3px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto flex items-center justify-center shrink-0"
                 onClick={handleToggle}
                 title="More actions"
             >
-                <MoreVertical size={15} />
+                <MoreVertical size={14} />
             </Button>
 
             {/* Dropdown Menu via Portal */}
@@ -97,7 +97,7 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
                     />
 
                     <div
-                        className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
+    className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >

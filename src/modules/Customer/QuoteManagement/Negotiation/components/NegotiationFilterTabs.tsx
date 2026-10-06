@@ -1,13 +1,13 @@
 /**
  * Customer NegotiationFilterTabs Component
  * Dynamic top header tabs with live count indicators for Customer Negotiations:
- * All, Active, Counter Offers, Accepted, and History / Closed.
+ * All, Open, Counter Offers, Accepted, Booked, and Closed.
  */
 
 import React, { useMemo } from 'react';
 import { CustomerNegotiationItem } from '../types';
 
-export type NegotiationFilterTab = 'all' | 'active' | 'counter' | 'accepted' | 'history';
+export type NegotiationFilterTab = 'all' | 'open' | 'counter' | 'accepted' | 'booked' | 'closed';
 
 interface NegotiationFilterTabsProps {
     negotiations: CustomerNegotiationItem[];
@@ -15,30 +15,40 @@ interface NegotiationFilterTabsProps {
     onSelectTab: (tab: NegotiationFilterTab) => void;
 }
 
-export function isNegotiationActive(item: CustomerNegotiationItem): boolean {
-    const s = (item.statusRaw || item.status || '').toLowerCase();
-    const rev = (item.revisionStatus || '').toLowerCase();
-    if (s === 'accepted' || s === 'rejected' || s === 'expired' || s === 'closed' || s === 'declined' || s === 'lost') return false;
-    return true;
-}
-
-export function isNegotiationCounter(item: CustomerNegotiationItem): boolean {
-    const s = (item.statusRaw || item.status || '').toLowerCase();
-    const rev = (item.revisionStatus || '').toLowerCase();
-    return s.includes('counter') || rev === 'pending' || (item.unreadCount !== undefined && item.unreadCount > 0);
+export function isNegotiationBooked(item: CustomerNegotiationItem): boolean {
+    const s = (item.statusRaw || item.status || '').toLowerCase().trim();
+    return s === 'booked' || Boolean((item as any).isPaid) || Boolean((item as any).hasOrder) || Boolean((item as any).orderId) || Boolean((item as any).orderNumber);
 }
 
 export function isNegotiationAccepted(item: CustomerNegotiationItem): boolean {
-    const s = (item.statusRaw || item.status || '').toLowerCase();
-    const rev = (item.revisionStatus || '').toLowerCase();
+    if (isNegotiationBooked(item)) return false;
+    const s = (item.statusRaw || item.status || '').toLowerCase().trim();
+    const rev = (item.revisionStatus || '').toLowerCase().trim();
     return s === 'accepted' || rev === 'accepted';
 }
 
-export function isNegotiationHistory(item: CustomerNegotiationItem): boolean {
-    const s = (item.statusRaw || item.status || '').toLowerCase();
-    const rev = (item.revisionStatus || '').toLowerCase();
-    return s === 'rejected' || s === 'expired' || s === 'closed' || s === 'lost' || s === 'declined';
+export function isNegotiationClosed(item: CustomerNegotiationItem): boolean {
+    if (isNegotiationBooked(item) || isNegotiationAccepted(item)) return false;
+    const s = (item.statusRaw || item.status || '').toLowerCase().trim();
+    const rev = (item.revisionStatus || '').toLowerCase().trim();
+    return s === 'closed' || s === 'rejected' || s === 'expired' || s === 'lost' || s === 'declined' || s === 'cancelled' || Boolean((item as any).isExpired);
 }
+
+export function isNegotiationCounter(item: CustomerNegotiationItem): boolean {
+    if (isNegotiationBooked(item) || isNegotiationAccepted(item) || isNegotiationClosed(item)) return false;
+    const s = (item.statusRaw || item.status || '').toLowerCase().trim();
+    const rev = (item.revisionStatus || '').toLowerCase().trim();
+    return s === 'counter_offers' || s === 'counter' || s.includes('counter') || rev === 'pending';
+}
+
+export function isNegotiationOpen(item: CustomerNegotiationItem): boolean {
+    if (isNegotiationBooked(item) || isNegotiationAccepted(item) || isNegotiationClosed(item) || isNegotiationCounter(item)) return false;
+    return true;
+}
+
+// Backwards-compatibility helpers
+export const isNegotiationActive = isNegotiationOpen;
+export const isNegotiationHistory = isNegotiationClosed;
 
 export const NegotiationFilterTabs: React.FC<NegotiationFilterTabsProps> = ({
     negotiations,
@@ -46,24 +56,27 @@ export const NegotiationFilterTabs: React.FC<NegotiationFilterTabsProps> = ({
     onSelectTab,
 }) => {
     const tabs = useMemo(() => {
-        let activeCount = 0;
+        let openCount = 0;
         let counterCount = 0;
         let acceptedCount = 0;
-        let historyCount = 0;
+        let bookedCount = 0;
+        let closedCount = 0;
 
         negotiations.forEach((n) => {
-            if (isNegotiationActive(n)) activeCount++;
-            if (isNegotiationCounter(n)) counterCount++;
-            if (isNegotiationAccepted(n)) acceptedCount++;
-            if (isNegotiationHistory(n)) historyCount++;
+            if (isNegotiationBooked(n)) bookedCount++;
+            else if (isNegotiationAccepted(n)) acceptedCount++;
+            else if (isNegotiationClosed(n)) closedCount++;
+            else if (isNegotiationCounter(n)) counterCount++;
+            else openCount++;
         });
 
         return [
             { id: 'all' as NegotiationFilterTab, label: 'All', count: negotiations.length },
-            { id: 'active' as NegotiationFilterTab, label: 'Active', count: activeCount },
+            { id: 'open' as NegotiationFilterTab, label: 'Open', count: openCount },
             { id: 'counter' as NegotiationFilterTab, label: 'Counter Offers', count: counterCount },
             { id: 'accepted' as NegotiationFilterTab, label: 'Accepted', count: acceptedCount },
-            { id: 'history' as NegotiationFilterTab, label: 'Closed / History', count: historyCount },
+            { id: 'booked' as NegotiationFilterTab, label: 'Booked', count: bookedCount },
+            { id: 'closed' as NegotiationFilterTab, label: 'Closed', count: closedCount },
         ];
     }, [negotiations]);
 
@@ -76,7 +89,7 @@ export const NegotiationFilterTabs: React.FC<NegotiationFilterTabsProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => onSelectTab(tab.id)}
-                        className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${isActive
+                        className={`flex items-center gap-2 pb-3 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${isActive
                                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                             }`}

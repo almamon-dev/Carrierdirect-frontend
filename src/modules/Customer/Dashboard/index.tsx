@@ -10,41 +10,10 @@ import {
 import { useNavigate, Link } from 'react-router-dom';
 import Select from '@/components/ui/select';
 import apiClient from '@/lib/axios';
+import { GPSComingSoonModal } from '@/components/modals';
+import { encryptId } from '@/lib/encryption';
 
-interface MetricCardProps {
-    title: string;
-    description: string;
-    value: string | number;
-    icon: React.ElementType;
-    colorClass: string;
-    isLastOnMobile?: boolean;
-    loading?: boolean;
-}
-
-const MetricCard: React.FC<MetricCardProps> = ({
-    title, description, value, icon: Icon, colorClass, isLastOnMobile = false, loading = false
-}) => (
-    <div className={`bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs transition-all flex flex-col justify-between w-full ${isLastOnMobile ? 'col-span-2 sm:col-span-1' : ''}`}>
-        <div>
-            <div className="flex justify-between items-start w-full mb-2 sm:mb-3">
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0 flex items-center justify-center ${colorClass}`}>
-                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2} />
-                </div>
-                {loading ? (
-                    <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                ) : (
-                    <span className="text-[18px] sm:text-[20px] font-extrabold text-slate-900 dark:text-slate-200 tracking-tight">{value}</span>
-                )}
-            </div>
-            <h3 className="text-[12.5px] sm:text-[13px] font-bold text-slate-800 dark:text-slate-200 mb-0.5">
-                {title}
-            </h3>
-        </div>
-        <p className="text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400 font-medium leading-snug line-clamp-2 mt-1">
-            {description}
-        </p>
-    </div>
-);
+import MetricCard from '@/components/cards/metric-card';
 
 // Helpers
 function formatCurrency(num: number | string | undefined): string {
@@ -205,6 +174,7 @@ function getNotificationConfig(notif: any) {
 export default function Dashboard() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [gpsModalData, setGpsModalData] = useState<{ isOpen: boolean; destination: string }>({ isOpen: false, destination: '' });
 
     // Remote Data States
     const [profile, setProfile] = useState<any>(null);
@@ -212,6 +182,7 @@ export default function Dashboard() {
     const [quoteRequests, setQuoteRequests] = useState<any[]>([]);
     const [invoices, setInvoices] = useState<any[]>([]);
     const [notifications, setNotifications] = useState<any[]>([]);
+    const [overviewStats, setOverviewStats] = useState<any>(null);
 
     // Filter States
     const [spendFilter, setSpendFilter] = useState<'30_days' | '3_months' | 'this_year'>('30_days');
@@ -220,12 +191,13 @@ export default function Dashboard() {
     const fetchDashboardData = useCallback(async () => {
         setLoading(true);
         try {
-            const [profileRes, ordersRes, quotesRes, invoicesRes, notifsRes] = await Promise.allSettled([
+            const [profileRes, ordersRes, quotesRes, invoicesRes, notifsRes, overviewRes] = await Promise.allSettled([
                 apiClient.get('/customer/profile'),
                 apiClient.get('/customer/orders'),
                 apiClient.get('/customer/quote-requests'),
                 apiClient.get('/customer/invoices'),
                 apiClient.get('/customer/notifications'),
+                apiClient.get('/customer/dashboard-overview'),
             ]);
 
             if (profileRes.status === 'fulfilled') {
@@ -246,6 +218,10 @@ export default function Dashboard() {
             if (notifsRes.status === 'fulfilled') {
                 const list = notifsRes.value.data?.notifications || notifsRes.value.data?.data || notifsRes.value.data || [];
                 setNotifications(Array.isArray(list) ? list : []);
+            }
+            if (overviewRes.status === 'fulfilled') {
+                const ovData = overviewRes.value.data?.data || overviewRes.value.data;
+                setOverviewStats(ovData?.stats || ovData || null);
             }
         } catch (err) {
             console.error('Error loading dashboard data:', err);
@@ -271,34 +247,70 @@ export default function Dashboard() {
         if (totalSpend === 0 && orders.length > 0) {
             totalSpend = orders.reduce((acc, curr) => {
                 const st = (curr.status || curr.status_raw || '').toLowerCase();
-                if (st === 'completed' || st === 'delivered') {
+                if (['completed', 'delivered', 'confirmed', 'booked', 'in_progress', 'assigned'].includes(st)) {
                     return acc + (Number(curr.total_amount) || Number(curr.amount) || 0);
                 }
                 return acc;
             }, 0);
         }
 
-        const activeOrdersCount = orders.filter(o => {
+        if (totalSpend === 0 && overviewStats?.total_spending) {
+            totalSpend = Number(overviewStats.total_spending) || 0;
+        } else if (totalSpend === 0 && profile?.total_spending) {
+            totalSpend = Number(profile.total_spending) || 0;
+        }
+
+        const activeOrdersCount = overviewStats?.active_orders ?? orders.filter(o => {
             const s = (o.status || o.status_raw || '').toLowerCase();
             return !['delivered', 'completed', 'cancelled'].includes(s);
         }).length;
 
-        const activeRequestsCount = quoteRequests.filter(q => {
+        const totalRequestsCount = overviewStats?.total_requests ?? quoteRequests.length;
+        const activeRequestsCount = overviewStats?.active_quotes ?? overviewStats?.active_requests ?? quoteRequests.filter(q => {
             const s = (q.status || '').toLowerCase();
             return !['completed', 'cancelled', 'booked'].includes(s);
         }).length;
 
-        const walletBal = profile?.wallet_balance ?? profile?.available_balance ?? profile?.balance ?? 0;
-        const avgRating = profile?.rating ?? profile?.avg_rating ?? (orders.length > 0 ? '4.9' : '5.0');
+        const walletBal = profile?.wallet_balance ?? profile?.available_balance ?? profile?.pay_later_available ?? profile?.balance ?? 0;
+
+        // Dynamic Rating Calculation from API or submitted order reviews
+        let avgRatingVal: string | number = '0.0';
+        if (overviewStats?.avg_rating !== undefined && overviewStats?.avg_rating !== null && Number(overviewStats.avg_rating) > 0) {
+            avgRatingVal = Number(overviewStats.avg_rating).toFixed(1);
+        } else if (profile?.avg_rating !== undefined && profile?.avg_rating !== null && Number(profile.avg_rating) > 0) {
+            avgRatingVal = Number(profile.avg_rating).toFixed(1);
+        } else if (profile?.rating !== undefined && profile?.rating !== null && Number(profile.rating) > 0) {
+            avgRatingVal = Number(profile.rating).toFixed(1);
+        } else {
+            // Find reviews inside orders
+            const ratedOrders = orders.filter(o => {
+                const r = o.review?.rating || o.rating || o.carrier_rating || o.supplier?.rating;
+                return r && Number(r) > 0;
+            });
+            if (ratedOrders.length > 0) {
+                const sum = ratedOrders.reduce((acc, curr) => {
+                    const r = curr.review?.rating || curr.rating || curr.carrier_rating || curr.supplier?.rating || 0;
+                    return acc + Number(r);
+                }, 0);
+                avgRatingVal = (sum / ratedOrders.length).toFixed(1);
+            } else if (overviewStats?.avg_rating !== undefined && overviewStats?.avg_rating !== null) {
+                avgRatingVal = Number(overviewStats.avg_rating).toFixed(1);
+            } else if (profile?.rating !== undefined && profile?.rating !== null) {
+                avgRatingVal = Number(profile.rating).toFixed(1);
+            } else {
+                avgRatingVal = '0.0';
+            }
+        }
 
         return {
             totalSpending: totalSpend,
             activeOrders: activeOrdersCount,
+            totalRequests: totalRequestsCount,
             activeRequests: activeRequestsCount,
             walletBalance: walletBal,
-            avgRating: avgRating
+            avgRating: avgRatingVal
         };
-    }, [invoices, orders, quoteRequests, profile]);
+    }, [invoices, orders, quoteRequests, profile, overviewStats]);
 
     // Dynamic Spending Chart Data
     const spendChartData = useMemo(() => {
@@ -412,7 +424,8 @@ export default function Dashboard() {
     }, [orders]);
 
     return (
-        <div className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
+        <div
+    className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 md:gap-4 mt-0.5 sm:mt-1">
                 <MetricCard
@@ -421,7 +434,7 @@ export default function Dashboard() {
                     value={formatCurrency(metrics.totalSpending)}
                     icon={Euro}
                     colorClass="bg-brand-light dark:bg-[#ff4a1f]/15 text-brand"
-                    loading={loading}
+                    isLoading={loading}
                 />
                 <MetricCard
                     title="Active Orders"
@@ -429,15 +442,15 @@ export default function Dashboard() {
                     value={metrics.activeOrders}
                     icon={Package}
                     colorClass="bg-brand-light dark:bg-[#ff4a1f]/15 text-brand"
-                    loading={loading}
+                    isLoading={loading}
                 />
                 <MetricCard
-                    title="Active Requests"
-                    description="Quote requests awaiting responses."
-                    value={metrics.activeRequests}
+                    title="Total Requests"
+                    description="Total quote requests submitted."
+                    value={metrics.totalRequests}
                     icon={FileText}
                     colorClass="bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400"
-                    loading={loading}
+                    isLoading={loading}
                 />
                 <MetricCard
                     title="Wallet Balance"
@@ -445,7 +458,7 @@ export default function Dashboard() {
                     value={formatCurrency(metrics.walletBalance)}
                     icon={CreditCard}
                     colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-                    loading={loading}
+                    isLoading={loading}
                 />
                 <MetricCard
                     title="Avg. Rating"
@@ -454,7 +467,7 @@ export default function Dashboard() {
                     icon={Star}
                     colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
                     isLastOnMobile={true}
-                    loading={loading}
+                    isLoading={loading}
                 />
             </div>
 
@@ -462,7 +475,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3.5 sm:gap-4">
 
                 {/* Area Chart - Spending Overview */}
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 sm:mb-4 -mx-3.5 sm:-mx-4 px-3.5 sm:px-4 gap-2 sm:gap-0">
                         <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-orange-50 dark:bg-[#ff4a1f]/15 text-brand flex items-center justify-center shrink-0">
@@ -515,7 +529,8 @@ export default function Dashboard() {
                 </div>
 
                 {/* Line Chart - Request & Order Overview */}
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 sm:mb-4 -mx-3.5 sm:-mx-4 px-3.5 sm:px-4 gap-2 sm:gap-0">
                         <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-orange-50 dark:bg-[#ff4a1f]/15 text-brand flex items-center justify-center shrink-0">
@@ -568,8 +583,10 @@ export default function Dashboard() {
             </div>
 
             {/* Live Tracking - Active Shipments Section */}
-            <div className="bg-white dark:bg-[#1e2329] rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
-                <div className="flex items-center justify-between px-3.5 sm:px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50">
+            <div
+    className="bg-white dark:bg-[#1e2329] rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden">
+                <div
+    className="flex items-center justify-between px-3.5 sm:px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181a20]/50">
                     <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg bg-orange-100/70 dark:bg-[#ff4a1f]/15 text-brand flex items-center justify-center shrink-0">
                             <Truck size={15} strokeWidth={2.5} />
@@ -612,7 +629,7 @@ export default function Dashboard() {
                         {/* Desktop & Tablet Table View */}
                         <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-left text-[12px]">
-                                <thead className="bg-slate-50 dark:bg-[#181a20] text-[10.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                                <thead className="bg-slate-50 dark:bg-[#181a20] text-[10.5px] font-bold text-slate-500 dark:text-slate-400  tracking-wider border-b border-slate-100 dark:border-slate-800">
                                     <tr>
                                         <th className="py-2.5 px-3.5">Order ID</th>
                                         <th className="py-2.5 px-3.5">Route & Checkpoint</th>
@@ -638,7 +655,7 @@ export default function Dashboard() {
                                         return (
                                             <tr key={order.id || idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                                                 <td className="py-2.5 px-3.5 font-bold text-[#ff4a1f] text-[12px]">
-                                                    <Link to={`/customer/orders/${order.id}`} className="hover:underline">
+                                                    <Link to={`/customer/orders/${encryptId(order.id)}`} className="hover:underline">
                                                         {orderIdDisplay}
                                                     </Link>
                                                 </td>
@@ -664,7 +681,10 @@ export default function Dashboard() {
                                                 </td>
                                                 <td className="py-2.5 px-3.5 text-right">
                                                     <button
-                                                        onClick={() => navigate(`/customer/quotes/processing/track/${order.id}`)}
+                                                        onClick={() => setGpsModalData({
+                                                            isOpen: true,
+                                                            destination: order.route || `${order.pickup_city || order.pickup_address || 'Origin'} → ${order.delivery_city || order.delivery_address || 'Destination'}`
+                                                        })}
                                                         className="text-[11px] font-bold text-brand hover:text-brand-dark px-2.5 py-1 rounded-md bg-brand-light/60 dark:bg-[#ff4a1f]/20 hover:bg-brand-light dark:hover:bg-[#ff4a1f]/30 transition-colors whitespace-nowrap cursor-pointer"
                                                     >
                                                         Track
@@ -692,11 +712,16 @@ export default function Dashboard() {
                                     <div key={order.id || idx} className="p-3.5 space-y-2.5 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold text-[#ff4a1f] text-[13px]">{orderIdDisplay}</span>
+                                                <Link to={`/customer/orders/${encryptId(order.id)}`} className="font-bold text-[#ff4a1f] text-[13px] hover:underline">
+                                                    {orderIdDisplay}
+                                                </Link>
                                                 <span className={`${statusCfg.color} px-2 py-0.5 rounded-full border text-[10px] font-bold`}>{statusCfg.label}</span>
                                             </div>
                                             <button
-                                                onClick={() => navigate(`/customer/quotes/processing/track/${order.id}`)}
+                                                onClick={() => setGpsModalData({
+                                                    isOpen: true,
+                                                    destination: routeDisplay
+                                                })}
                                                 className="text-[11px] font-bold text-brand hover:text-brand-dark px-2.5 py-1 rounded-md bg-brand-light/60 dark:bg-[#ff4a1f]/20 hover:bg-brand-light transition-colors cursor-pointer"
                                             >
                                                 Track
@@ -711,13 +736,14 @@ export default function Dashboard() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 dark:bg-[#181a20] p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                                        <div
+    className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 dark:bg-[#181a20] p-2 rounded-lg border border-slate-100 dark:border-slate-800">
                                             <div>
-                                                <span className="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold">Carrier</span>
+                                                <span className="text-slate-400 dark:text-slate-500 block text-[10px]  font-bold">Carrier</span>
                                                 <span className="font-medium text-slate-700 dark:text-slate-300 truncate block">{carrierDisplay}</span>
                                             </div>
                                             <div>
-                                                <span className="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold">ETA</span>
+                                                <span className="text-slate-400 dark:text-slate-500 block text-[10px]  font-bold">ETA</span>
                                                 <span className="font-medium text-slate-700 dark:text-slate-300 block">{etaDisplay}</span>
                                             </div>
                                         </div>
@@ -740,7 +766,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
 
                 {/* Recent Requests */}
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-2.5 -mx-3.5 sm:-mx-4 px-3.5 sm:px-4">
                         <h3 className="text-[13px] sm:text-[14px] font-bold text-slate-800 dark:text-slate-200">
                             Recent Requests ({quoteRequests.length})
@@ -782,7 +809,8 @@ export default function Dashboard() {
                 </div>
 
                 {/* Notifications */}
-                <div className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-md border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col">
+                <div
+    className="bg-white dark:bg-[#1e2329] p-3.5 sm:p-4 rounded-lg border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-2.5 -mx-3.5 sm:-mx-4 px-3.5 sm:px-4">
                         <h3 className="text-[13px] sm:text-[14px] font-bold text-slate-800 dark:text-slate-200">
                             Notifications ({notifications.length})
@@ -826,6 +854,12 @@ export default function Dashboard() {
 
             </div>
 
+            {/* Live GPS Tracking Coming Soon Modal */}
+            <GPSComingSoonModal
+                isOpen={gpsModalData.isOpen}
+                onClose={() => setGpsModalData(prev => ({ ...prev, isOpen: false }))}
+                destination={gpsModalData.destination}
+            />
         </div>
     );
 }

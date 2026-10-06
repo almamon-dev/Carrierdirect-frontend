@@ -40,13 +40,13 @@ export default function CustomerSettings() {
     <div className="p-4 sm:p-6 lg:p-8 w-full space-y-5">
       
       {/* Module Header */}
-      <div className="border-b border-slate-200/80 pb-3">
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-          Account Settings
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Manage profile, address book, notification preferences and security.
-        </p>
+      <div className="">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
+                        Account Settings
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Manage profile, address book, notification preferences and security.
+                    </p>
       </div>
 
       {/* Flush Left Aligned Underline Tab Bar */}

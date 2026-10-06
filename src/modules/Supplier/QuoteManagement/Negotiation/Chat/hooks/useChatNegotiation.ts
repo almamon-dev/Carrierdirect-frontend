@@ -22,27 +22,35 @@ export function useChatNegotiation() {
         if (!id) return allNegotiations[0]?.rawId || '';
         const decrypted = decryptId(id);
         const rawNum = Number(String(decrypted).replace(/[^0-9]/g, ''));
-        const matched = allNegotiations.find(n =>
-            n.rawId === rawNum ||
-            String(n.rawId) === String(decrypted) ||
-            n.sessionKey === id ||
-            n.id === decrypted ||
-            n.id === id
-        );
+        const cleanDecrypted = String(decrypted).replace('REQ-', '').replace('QT-', '').trim();
+        const matched = allNegotiations.find(n => {
+            const nRawNum = Number(String(n.rawId).replace(/[^0-9]/g, ''));
+            const nReqNum = Number(String(n.requestId).replace(/[^0-9]/g, ''));
+            const nQuoteNum = Number(String(n.quoteId || n.id).replace(/[^0-9]/g, ''));
+            return (
+                (rawNum && (nRawNum === rawNum || nReqNum === rawNum || nQuoteNum === rawNum)) ||
+                String(n.rawId) === cleanDecrypted ||
+                String(n.rawId) === String(decrypted) ||
+                n.sessionKey === id ||
+                n.id === decrypted ||
+                n.id === id ||
+                n.requestId === decrypted ||
+                n.quoteId === decrypted
+            );
+        });
         return matched?.rawId || rawNum || allNegotiations[0]?.rawId || '';
     }, [id, allNegotiations]);
 
-    const [activeChatId, setActiveChatId] = useState<number | string>(decryptedRawId);
+    const [selectedChatId, setSelectedChatId] = useState<number | string | null>(null);
 
     useEffect(() => {
-        if (decryptedRawId) {
-            setActiveChatId(decryptedRawId);
-        } else if (allNegotiations.length > 0 && !activeChatId) {
-            setActiveChatId(allNegotiations[0].rawId);
-        }
-    }, [decryptedRawId, allNegotiations]);
+        setSelectedChatId(null);
+    }, [id]);
+
+    const activeChatId = selectedChatId ?? decryptedRawId ?? allNegotiations[0]?.rawId ?? '';
 
     const activeNegotiation = useMemo(() => {
+        if (!allNegotiations.length) return null;
         const found = allNegotiations.find(
             n => String(n.rawId) === String(activeChatId) || n.id === String(activeChatId)
         );
@@ -50,21 +58,31 @@ export function useChatNegotiation() {
     }, [allNegotiations, activeChatId]);
 
     const [pinnedChatIds, setPinnedChatIds] = useState<Record<string | number, boolean>>({ 1048: true, 2: true });
-    const [readChatIds, setReadChatIds] = useState<Record<string | number, boolean>>({ [activeChatId]: true });
+    const [readChatIds, setReadChatIds] = useState<Record<string | number, boolean>>({});
 
     useEffect(() => {
-        if (id && (!id.startsWith('enc_') || id.length < 50)) {
-            const raw = decryptId(id);
-            const encId = encryptId(raw);
-            const sKey = sessionKey || activeNegotiation?.sessionKey || `ses-${raw}`;
-            navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`, { replace: true });
+        if (activeChatId) {
+            setReadChatIds(prev => ({ ...prev, [activeChatId]: true }));
         }
-    }, [id, sessionKey, activeNegotiation, navigate]);
+    }, [activeChatId]);
+
+    useEffect(() => {
+        if (id && !id.startsWith('enc_') && allNegotiations.length > 0) {
+            const raw = decryptId(id) || activeNegotiation?.rawId;
+            if (raw) {
+                const encId = encryptId(raw);
+                const sKey = sessionKey || activeNegotiation?.sessionKey || `ses-${raw}`;
+                if (encId && encId !== id) {
+                    navigate(`/supplier/quotes/negotiation/conversation/${encId}/${sKey}`, { replace: true });
+                }
+            }
+        }
+    }, [id, sessionKey, activeNegotiation, allNegotiations, navigate]);
 
     const messagesHook = useChatMessages(activeNegotiation, allNegotiations);
 
     const handleSelectChat = (item: NegotiationItem) => {
-        setActiveChatId(item.rawId);
+        setSelectedChatId(item.rawId);
         messagesHook.setEditingMsgId(null);
         setReadChatIds(prev => ({ ...prev, [item.rawId]: true }));
         const encId = encryptId(item.rawId);

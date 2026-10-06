@@ -7,8 +7,8 @@ import { RotateCcw } from 'lucide-react';
 interface TableFilterContentProps {
     statusFilter: string;
     setStatusFilter: (val: string) => void;
-    vehicleFilter: string;
-    setVehicleFilter: (val: string) => void;
+    vehicleFilter?: string;
+    setVehicleFilter?: (val: string) => void;
     paymentFilter: string;
     setPaymentFilter: (val: string) => void;
     startDate: string;
@@ -21,8 +21,6 @@ interface TableFilterContentProps {
 export const TableFilterContent: React.FC<TableFilterContentProps> = ({
     statusFilter,
     setStatusFilter,
-    vehicleFilter,
-    setVehicleFilter,
     paymentFilter,
     setPaymentFilter,
     startDate,
@@ -32,7 +30,7 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
     onResetFilters,
 }) => {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 pt-2 font-sans">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 font-sans">
             <div>
                 <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                     Order Status
@@ -41,63 +39,44 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     size="sm"
                     value={statusFilter}
                     onChange={(val) => {
-                        const v = typeof val === 'object' && val?.target ? val.target.value : val;
+                        const v = typeof val === 'object' && val?.target ? val.target.value : (val?.id ?? val?.value ?? val);
                         setStatusFilter(v);
                     }}
                     showSearch={false}
                     placeholder="All Statuses"
-                >
-                    <option value="all">All Statuses</option>
-                    <option value="in_transit">In Transit</option>
-                    <option value="pod_review">POD Review</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </Select>
+                    options={[
+                        { id: 'all', name: 'All Statuses' },
+                        { id: 'confirmed', name: 'Succeeded / Confirmed' },
+                        { id: 'in_transit', name: 'In Transit' },
+                        { id: 'pod_review', name: 'POD Review' },
+                        { id: 'completed', name: 'Completed' },
+                        { id: 'cancelled', name: 'Cancelled' },
+                    ]}
+                />
             </div>
 
             <div>
                 <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                    Vehicle Type
-                </label>
-                <Select
-                    size="sm"
-                    value={vehicleFilter}
-                    onChange={(val) => {
-                        const v = typeof val === 'object' && val?.target ? val.target.value : val;
-                        setVehicleFilter(v);
-                    }}
-                    showSearch={false}
-                    placeholder="All Vehicles"
-                >
-                    <option value="all">All Vehicles</option>
-                    <option value="Covered Van">Covered Van</option>
-                    <option value="Flatbed">Flatbed Truck</option>
-                    <option value="Trailer">Trailer (40ft)</option>
-                    <option value="Container">Container</option>
-                    <option value="Refrigerated">Refrigerated</option>
-                </Select>
-            </div>
-
-            <div>
-                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                    Payment Status
+                    Payment Method / Status
                 </label>
                 <Select
                     size="sm"
                     value={paymentFilter}
                     onChange={(val) => {
-                        const v = typeof val === 'object' && val?.target ? val.target.value : val;
+                        const v = typeof val === 'object' && val?.target ? val.target.value : (val?.id ?? val?.value ?? val);
                         setPaymentFilter(v);
                     }}
                     showSearch={false}
                     placeholder="All Payments"
-                >
-                    <option value="all">All Payments</option>
-                    <option value="paid">Paid</option>
-                    <option value="escrow">In Escrow</option>
-                    <option value="pending">Pending</option>
-                    <option value="refunded">Refunded</option>
-                </Select>
+                    options={[
+                        { id: 'all', name: 'All Payments' },
+                        { id: 'paid', name: 'Succeeded / Paid' },
+                        { id: 'escrow', name: 'In Escrow' },
+                        { id: 'pay_later', name: 'Corporate Pay Later' },
+                        { id: 'unpaid', name: 'Unpaid / Due' },
+                        { id: 'refunded', name: 'Refunded' },
+                    ]}
+                />
             </div>
 
             <div>

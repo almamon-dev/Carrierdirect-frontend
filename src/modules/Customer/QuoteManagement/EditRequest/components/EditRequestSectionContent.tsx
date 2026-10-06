@@ -19,6 +19,7 @@ interface EditRequestSectionContentProps {
     addDimensionRow: () => void;
     updateDimension: (id: number, field: string, value: string) => void;
     removeDimension: (id: number) => void;
+    handleLocationSelect?: (prefix: 'pickup' | 'delivery', data: any) => void;
     handleSaveUpdate: (e?: any) => Promise<void> | void;
 }
 
@@ -35,10 +36,12 @@ export const EditRequestSectionContent: React.FC<EditRequestSectionContentProps>
     addDimensionRow,
     updateDimension,
     removeDimension,
+    handleLocationSelect,
     handleSaveUpdate,
 }) => {
     return (
-        <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs w-full p-5 md:p-6 space-y-6">
+        <div
+    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs w-full p-5 md:p-6 space-y-6">
             {activeTab === 'general' && (
                 <BasicInfoSection
                     formData={formData}
@@ -52,6 +55,7 @@ export const EditRequestSectionContent: React.FC<EditRequestSectionContentProps>
                 <LocationsSection
                     formData={formData}
                     handleChange={handleChange}
+                    onLocationSelect={handleLocationSelect}
                 />
             )}
 
@@ -76,7 +80,7 @@ export const EditRequestSectionContent: React.FC<EditRequestSectionContentProps>
                 />
             )}
 
-            {activeTab === 'attachments' && (
+            {(activeTab === 'attachments' || activeTab === 'files') && (
                 <AttachmentsNotesSection
                     formData={formData}
                     handleChange={handleChange}

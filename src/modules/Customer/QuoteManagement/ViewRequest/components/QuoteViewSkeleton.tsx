@@ -25,8 +25,10 @@ export const QuoteViewSkeleton: React.FC<QuoteViewSkeletonProps> = ({ activeTab 
         <div className="p-6 md:p-8 mx-auto bg-[#f8f9fa] min-h-screen pb-24 animate-in fade-in duration-200">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-[18px] font-bold text-slate-900">View Quote Request</h1>
-                    <p className="text-[14px] font-medium text-brand mt-1">Review the details of your quote request.</p>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">View Quote Request</h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Review the details of your quote request.
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Skeleton className="h-[32px] w-20 rounded-[2px]" />
@@ -35,8 +37,10 @@ export const QuoteViewSkeleton: React.FC<QuoteViewSkeletonProps> = ({ activeTab 
             </div>
 
             <div className="flex flex-col md:flex-row gap-6 items-start">
-                <div className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
-                    <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                <div
+    className="w-full md:w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                    <div
+    className="px-4 py-3 border-b border-slate-200 bg-slate-50">
                         <h3 className="text-[13px] font-bold text-slate-800">Categories</h3>
                     </div>
                     <div className="flex flex-col">
@@ -63,7 +67,8 @@ export const QuoteViewSkeleton: React.FC<QuoteViewSkeletonProps> = ({ activeTab 
                     </div>
                 </div>
 
-                <div className="flex-1 bg-white border border-slate-200 rounded-md shadow-sm w-full">
+                <div
+    className="flex-1 bg-white border border-slate-200 rounded-lg shadow-sm w-full">
                     <div className="p-6 md:p-8">
                         {activeTab === 'general' && <QuoteViewGeneralTabSkeleton />}
                         {activeTab === 'locations' && <QuoteViewLocationsTabSkeleton />}

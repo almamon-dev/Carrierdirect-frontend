@@ -101,7 +101,8 @@ export const NegotiationRowActions: React.FC<NegotiationRowActionsProps> = ({
             {isOpen && createPortal(
                 <>
                     <div className="fixed inset-0 z-[9998] cursor-default bg-transparent" onClick={(e) => { e.stopPropagation(); handleClose(); }} />
-                    <div className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left" style={{ top: dropdownPos.top, left: dropdownPos.left }} onClick={(e) => e.stopPropagation()}>
+                    <div
+    className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left" style={{ top: dropdownPos.top, left: dropdownPos.left }} onClick={(e) => e.stopPropagation()}>
                         <button
                             type="button"
                             className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"

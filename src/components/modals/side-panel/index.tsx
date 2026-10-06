@@ -77,7 +77,8 @@ export default function SidePanel({
         )}
       >
         {/* Header */}
-        <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100 shrink-0 bg-white">
+        <div
+    className="flex items-start justify-between px-6 py-5 border-b border-slate-100 shrink-0 bg-white">
           <div className="pr-4">
             <h3 className="text-[18px] font-bold text-slate-900">{title}</h3>
             {description && <p className="text-[13px] text-slate-500 mt-1">{description}</p>}
@@ -92,13 +93,15 @@ export default function SidePanel({
         </div>
         
         {/* Body */}
-        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar bg-slate-50/50">
+        <div
+    className="p-6 overflow-y-auto flex-1 custom-scrollbar bg-slate-50/50">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 border-t border-slate-100 bg-white shrink-0 flex items-center justify-end gap-3">
+          <div
+    className="px-6 py-4 border-t border-slate-100 bg-white shrink-0 flex items-center justify-end gap-3">
             {footer}
           </div>
         )}

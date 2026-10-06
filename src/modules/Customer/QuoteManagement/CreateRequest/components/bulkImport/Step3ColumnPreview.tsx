@@ -22,7 +22,8 @@ export const Step3ColumnPreview: React.FC<Step3ColumnPreviewProps> = ({
 
     if (!extractedData && !processingFileName) {
         return (
-            <div className="p-8 text-center bg-slate-50/50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-[3px] space-y-2 font-sans">
+            <div
+    className="p-8 text-center bg-slate-50/50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2 font-sans">
                 <FileText size={24} className="text-slate-400 mx-auto" />
                 <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-xs">No File Uploaded</h4>
                 <p className="text-[11px] text-slate-500 max-w-sm mx-auto">

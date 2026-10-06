@@ -38,13 +38,14 @@ export const InstructionsTab: React.FC<InstructionsTabProps> = ({ requestDetails
                     <FileText size={12.5} className="text-slate-400" /> Attached Documents
                 </h4>
                 {requestDetails.documents.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-4 rounded-[3px] border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#181d24] text-slate-400 text-xs font-normal">
+                    <div
+    className="flex flex-col items-center justify-center py-4 rounded-lg border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#181d24] text-slate-400 text-xs font-normal">
                         No documents attached
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-1.5">
                         {requestDetails.documents.map((doc) => (
-                            <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-[3px] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#181d24]">
+                            <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#181d24]">
                                 <div className="flex items-center gap-2.5 min-w-0">
                                     <FileText size={14} className="text-slate-500 shrink-0" />
                                     <span className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">{doc.name}</span>

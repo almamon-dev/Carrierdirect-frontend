@@ -62,23 +62,23 @@ export default function TablePagination({
     const pageNumbers = totalPages > 1 ? getPageNumbers(currentPage, totalPages) : [];
 
     const containerClasses = isGrid
-        ? `flex flex-col sm:flex-row items-center justify-between gap-2 px-3 py-1.5 bg-white dark:bg-[#12161c] rounded-[3px] border border-[#ebebeb] dark:border-slate-800 shadow-none ${className}`
-        : `flex flex-col sm:flex-row items-center justify-between gap-2 px-3 py-1.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24] ${className}`;
+        ? `flex items-center justify-between gap-2 px-3 py-2 bg-white dark:bg-[#12161c] rounded-[3px] border border-[#ebebeb] dark:border-slate-800 shadow-none font-sans ${className}`
+        : `flex items-center justify-between gap-2 px-3 py-2 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24] font-sans ${className}`;
 
     return (
         <div className={containerClasses}>
             {/* Left: Items / Entries Info */}
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap min-w-0">
                 <span>Showing</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200 tabular-nums">
                     {total > 0 ? `${fromIdx}–${toIdx}` : '0'}
                 </span>
                 <span>of</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200 tabular-nums">{total}</span>
-                <span>{resolvedItemLabel}</span>
+                <span className="hidden sm:inline">{resolvedItemLabel}</span>
             </div>
 
-            {/* Center: Page Number Buttons (When multiple pages exist) */}
+            {/* Center: Page Number Buttons (When multiple pages exist on desktop) */}
             {totalPages > 1 && onPageChange && (
                 <div className="hidden md:flex items-center gap-1">
                     {pageNumbers.map((p, idx) => {
@@ -114,7 +114,7 @@ export default function TablePagination({
             )}
 
             {/* Right: Per page selector & Prev/Next buttons */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                 {/* Per Page Selector */}
                 <div className="flex items-center gap-1.5">
                     <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
@@ -124,7 +124,7 @@ export default function TablePagination({
                         <select
                             value={perPage}
                             onChange={(e) => onPerPageChange(Number(e.target.value))}
-                            className="h-7 pl-2 pr-5 text-[11px] font-bold text-slate-700 dark:text-slate-200 bg-slate-50/50 dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] shadow-none focus:border-[#ff4a1f] focus:ring-0 outline-none appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                            className="h-7 pl-2 pr-5 text-[11px] font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] shadow-none focus:border-[#ff4a1f] focus:ring-0 outline-none appearance-none cursor-pointer hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                         >
                             {options.map((opt) => (
                                 <option key={opt} value={opt}>
@@ -142,7 +142,7 @@ export default function TablePagination({
                         onClick={onPrevPage}
                         disabled={!hasPrev}
                         aria-label="Previous page"
-                        className="h-7 px-2 flex items-center justify-center gap-1 text-[11px] font-semibold rounded-[3px] border border-slate-200/80 dark:border-slate-700/60 bg-slate-50/50 dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:border-slate-200/80 dark:disabled:hover:border-slate-700/60 disabled:hover:text-slate-700 dark:disabled:hover:text-slate-200 disabled:hover:bg-slate-50/50 dark:disabled:hover:bg-[#1e2329] disabled:cursor-not-allowed transition-all shadow-none active:scale-95 cursor-pointer"
+                        className="h-7 w-7 sm:w-auto sm:px-2 flex items-center justify-center gap-1 text-[11px] font-semibold rounded-[3px] border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:border-slate-200/80 dark:disabled:hover:border-slate-700/60 disabled:hover:text-slate-700 dark:disabled:hover:text-slate-200 disabled:hover:bg-white dark:disabled:hover:bg-[#1e2329] disabled:cursor-not-allowed transition-all shadow-none active:scale-95 cursor-pointer"
                     >
                         <ChevronLeft size={13} />
                         <span className="hidden sm:inline">Prev</span>
@@ -151,7 +151,7 @@ export default function TablePagination({
                         onClick={onNextPage}
                         disabled={!hasNext}
                         aria-label="Next page"
-                        className="h-7 px-2 flex items-center justify-center gap-1 text-[11px] font-semibold rounded-[3px] border border-slate-200/80 dark:border-slate-700/60 bg-slate-50/50 dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:border-slate-200/80 dark:disabled:hover:border-slate-700/60 disabled:hover:text-slate-700 dark:disabled:hover:text-slate-200 disabled:hover:bg-slate-50/50 dark:disabled:hover:bg-[#1e2329] disabled:cursor-not-allowed transition-all shadow-none active:scale-95 cursor-pointer"
+                        className="h-7 w-7 sm:w-auto sm:px-2 flex items-center justify-center gap-1 text-[11px] font-semibold rounded-[3px] border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-200 hover:border-[#ff4a1f]/40 hover:text-[#ff4a1f] hover:bg-orange-50/50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:border-slate-200/80 dark:disabled:hover:border-slate-700/60 disabled:hover:text-slate-700 dark:disabled:hover:text-slate-200 disabled:hover:bg-white dark:disabled:hover:bg-[#1e2329] disabled:cursor-not-allowed transition-all shadow-none active:scale-95 cursor-pointer"
                     >
                         <span className="hidden sm:inline">Next</span>
                         <ChevronRight size={13} />

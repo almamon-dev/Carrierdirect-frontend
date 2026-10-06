@@ -35,7 +35,7 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({
     return (
         <div>
             {mediaItemsCount > 0 && (
-                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 px-0.5 pt-1">
+                <div className="text-[11px] font-bold text-slate-500  tracking-wider mb-1.5 px-0.5 pt-1">
                     Documents ({docItems.length})
                 </div>
             )}
@@ -48,7 +48,7 @@ export const DocumentsList: React.FC<DocumentsListProps> = ({
                             className="flex items-center justify-between p-2 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors group border border-slate-100"
                         >
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                <div className={`w-7 h-8 ${badge.light} rounded flex items-center justify-center font-black text-[9px] uppercase shrink-0`}>
+                                <div className={`w-7 h-8 ${badge.light} rounded flex items-center justify-center font-black text-[9px]  shrink-0`}>
                                     <FileText size={15} />
                                 </div>
                                 <div className="min-w-0 flex-1">

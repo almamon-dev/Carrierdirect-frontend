@@ -25,15 +25,16 @@ export const PriceBreakdownCard: React.FC<PriceBreakdownCardProps> = ({
 
     return (
         <div className="space-y-2 pt-1">
-            <div className="p-3 bg-slate-50/90 dark:bg-[#181d24]/90 rounded-[3px] border border-slate-200/90 dark:border-slate-800 space-y-1.5 font-sans">
-                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+            <div
+    className="p-3 bg-slate-50/90 dark:bg-[#181d24]/90 rounded-lg border border-slate-200/90 dark:border-slate-800 space-y-1.5 font-sans">
+                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400  tracking-wider mb-1">
                     Payment Breakdown
                 </div>
 
                 <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
                     <span>Base Freight:</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
-                        € {basePrice.toFixed(2)}
+                        € {basePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                 </div>
 
@@ -41,7 +42,7 @@ export const PriceBreakdownCard: React.FC<PriceBreakdownCardProps> = ({
                     <div key={idx} className="flex justify-between items-center text-[11px] text-slate-500 dark:text-slate-400">
                         <span>+ {c.customName || c.type || 'Extra Charge'}:</span>
                         <span className="font-medium text-slate-700 dark:text-slate-300">
-                            € {parseFloat(c.amount).toFixed(2)}
+                            € {parseFloat(c.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                     </div>
                 ))}
@@ -54,13 +55,13 @@ export const PriceBreakdownCard: React.FC<PriceBreakdownCardProps> = ({
                         <span className="text-[10px] text-slate-400">Total customer payable</span>
                     </div>
                     <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                        € {totalAmount.toFixed(2)}
+                        € {totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                 </div>
             </div>
 
             {isStripeConnected === false && !isExpired && (
-                <div className="flex items-start gap-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-[3px] text-xs text-amber-800 dark:text-amber-300">
+                <div className="flex items-start gap-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-lg text-xs text-amber-800 dark:text-amber-300">
                     <CreditCard size={14} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                     <div className="space-y-1">
                         <p className="font-medium leading-tight">Payout account not connected</p>

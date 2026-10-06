@@ -36,7 +36,6 @@ export function buildRepeatData(q: any, row: CustomerQuoteRequestItem) {
         pickupCity: q.pickup_city || row.pickup || '',
         pickupZip: q.pickup_zip || '',
         pickupAddress: q.pickup_address || '',
-        pickupMapUrl: q.pickup_map_url || '',
         pickupInstructions: q.pickup_instructions || '',
 
         deliveryCompany: q.delivery_company || '',
@@ -48,7 +47,6 @@ export function buildRepeatData(q: any, row: CustomerQuoteRequestItem) {
         deliveryCity: q.delivery_city || row.delivery || '',
         deliveryZip: q.delivery_zip || '',
         deliveryAddress: q.delivery_address || '',
-        deliveryMapUrl: q.delivery_map_url || '',
         deliveryInstructions: q.delivery_instructions || '',
 
         vehicleType: q.vehicle_type || row.vehicle || '',

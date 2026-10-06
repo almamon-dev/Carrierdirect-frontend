@@ -25,7 +25,8 @@ export const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
         <div className="space-y-3 font-sans text-xs">
             {/* Minimal Stat Cards Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div className="bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div
+    className="bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
                     <span className="text-slate-400 dark:text-slate-500 block text-[10px] font-mono">FILE</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block text-xs mt-0.5" title={processingFileName}>
                         {processingFileName || 'Manifest'}
@@ -33,7 +34,8 @@ export const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
                     <span className="text-[10px] text-slate-400">{localFileSize || ''}</span>
                 </div>
 
-                <div className="bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div
+    className="bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
                     <span className="text-slate-400 dark:text-slate-500 block text-[10px] font-mono">ATTACHMENTS</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block text-xs mt-0.5" title={uploadedZipName || 'None'}>
                         {uploadedZipName || 'None'}
@@ -41,14 +43,16 @@ export const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
                     <span className="text-[10px] text-slate-400">{localZipSize || ''}</span>
                 </div>
 
-                <div className="bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div
+    className="bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
                     <span className="text-slate-400 dark:text-slate-500 block text-[10px] font-mono">TOTAL REQUESTS</span>
                     <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs mt-0.5">
                         {count} items
                     </span>
                 </div>
 
-                <div className="bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
+                <div
+    className="bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
                     <span className="text-slate-400 dark:text-slate-500 block text-[10px] font-mono">TOTAL BUDGET</span>
                     <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs mt-0.5">
                         {totalBatchBudget > 0 ? `৳${totalBatchBudget.toLocaleString()}` : 'Standard'}
@@ -58,7 +62,8 @@ export const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
 
             {/* Clean Record Review List */}
             {count > 0 && (
-                <div className="border border-slate-200/80 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/40 dark:bg-slate-900/40">
+                <div
+    className="border border-slate-200/80 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/40 dark:bg-slate-900/40">
                     <div className="px-3 py-1.5 border-b border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                         <span>Manifest Shipments Queue ({count})</span>
                         <span>Click confirm below to create & broadcast</span>

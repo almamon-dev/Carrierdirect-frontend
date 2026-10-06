@@ -27,6 +27,7 @@ export type DocumentItem = {
 export type QuoteRequest = {
     id: string;
     rawId?: string | number;
+    quoteId?: string | number;
     slug: string;
     requestDate: string;
     customer: string;

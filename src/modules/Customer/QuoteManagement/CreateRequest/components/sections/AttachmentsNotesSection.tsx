@@ -17,6 +17,23 @@ export const AttachmentsNotesSection: React.FC<SectionProps> = ({
     handleChange,
     handleFileUpload,
 }) => {
+    const getFilePreviewUrl = (fileOrDoc: any): string | null => {
+        if (!fileOrDoc) return null;
+        if (fileOrDoc instanceof File || fileOrDoc instanceof Blob) {
+            try {
+                return URL.createObjectURL(fileOrDoc);
+            } catch {
+                return null;
+            }
+        }
+        if (typeof fileOrDoc === 'string') return fileOrDoc;
+        if (fileOrDoc.url) return fileOrDoc.url;
+        return null;
+    };
+
+    const packingListUrl = getFilePreviewUrl(formData.packingList);
+    const invoiceUrl = getFilePreviewUrl(formData.invoice);
+
     return (
         <div className="space-y-3 animate-in fade-in duration-300">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5">
@@ -45,11 +62,11 @@ export const AttachmentsNotesSection: React.FC<SectionProps> = ({
                         </label>
                         <div className="flex flex-col min-w-0">
                             <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 truncate max-w-[260px]">
-                                {formData.packingList ? formData.packingList.name : 'No file chosen (.pdf, .doc)'}
+                                {formData.packingList ? (formData.packingList.name || 'Packing_List.pdf') : 'No file chosen (.pdf, .doc)'}
                             </span>
-                            {formData.packingList && (
+                            {packingListUrl && (
                                 <a
-                                    href={URL.createObjectURL(formData.packingList)}
+                                    href={packingListUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[10.5px] font-bold text-[#ff4a1f] hover:underline flex items-center gap-1 w-fit mt-0.5"
@@ -67,15 +84,15 @@ export const AttachmentsNotesSection: React.FC<SectionProps> = ({
                         <label className="px-3.5 py-1.5 bg-white dark:bg-[#1e2329] border border-slate-300 dark:border-slate-700 rounded-sm text-xs font-bold cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-2 text-slate-700 dark:text-slate-200 shadow-2xs transition-colors shrink-0">
                             <Upload size={14} className="text-slate-500 dark:text-slate-400" />
                             <span>Choose Invoice File</span>
-                            <input type="file" accept=".pdf,.jpg,.png" className="hidden" onChange={(e) => handleFileUpload('invoice', e.target.files?.[0] || null)} />
+                            <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp" className="hidden" onChange={(e) => handleFileUpload('invoice', e.target.files?.[0] || null)} />
                         </label>
                         <div className="flex flex-col min-w-0">
                             <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 truncate max-w-[260px]">
-                                {formData.invoice ? formData.invoice.name : 'No file chosen (.pdf, .jpg, .png)'}
+                                {formData.invoice ? (formData.invoice.name || 'Commercial_Invoice.pdf') : 'No file chosen (.pdf, .jpg, .png)'}
                             </span>
-                            {formData.invoice && (
+                            {invoiceUrl && (
                                 <a
-                                    href={URL.createObjectURL(formData.invoice)}
+                                    href={invoiceUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[10.5px] font-bold text-[#ff4a1f] hover:underline flex items-center gap-1 w-fit mt-0.5"

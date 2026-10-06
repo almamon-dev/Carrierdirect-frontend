@@ -42,7 +42,7 @@ export const QuoteSubmittedSuccessModal: React.FC<QuoteSubmittedSuccessModalProp
             onClose={onClose}
             title={
                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-[3px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
+                    <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
                         <CheckCircle2 size={14} strokeWidth={2.5} />
                     </div>
                     <div>

@@ -1,22 +1,30 @@
 import React from 'react';
 import { ArrowLeft, Info } from 'lucide-react';
+import { VerifiedBadge } from '@/components/common/VerifiedBadge';
 import { getAttachmentUrl } from '@/modules/Customer/QuoteManagement/Negotiation/Chat/utils/customerChatUtils';
+
+import Skeleton from '@/components/ui/skeleton';
 
 interface GeneralChatStreamHeaderProps {
     partner: any;
     onBack: () => void;
     showDetailsPanel: boolean;
     onToggleDetailsPanel: () => void;
+    isLoading?: boolean;
 }
 
 export const GeneralChatStreamHeader: React.FC<GeneralChatStreamHeaderProps> = ({
     partner,
     onBack,
     showDetailsPanel,
-    onToggleDetailsPanel
+    onToggleDetailsPanel,
+    isLoading = false
 }) => {
     const partnerDisplayName = partner?.company_name || partner?.name || 'Conversation';
     const avatarUrl = getAttachmentUrl(partner?.avatar);
+    const isVerified = Boolean(partner?.is_verified ?? partner?.profile?.is_verified ?? partner?.email_verified_at);
+    const isOnline = Boolean(partner?.is_online);
+    const lastSeenHuman = partner?.last_seen_human || (isOnline ? "Active Now" : "Offline");
 
     return (
         <div className="px-4 py-3 bg-white dark:bg-[#12161c] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between z-10 shrink-0">
@@ -37,7 +45,9 @@ export const GeneralChatStreamHeader: React.FC<GeneralChatStreamHeaderProps> = (
                     title="Click to view partner details & profile"
                 >
                     <div className="relative shrink-0 w-10 h-10">
-                        {avatarUrl ? (
+                        {isLoading ? (
+                            <Skeleton className="w-10 h-10 rounded-full aspect-square" />
+                        ) : avatarUrl ? (
                             <img
                                 src={avatarUrl}
                                 alt={partnerDisplayName}
@@ -52,27 +62,40 @@ export const GeneralChatStreamHeader: React.FC<GeneralChatStreamHeaderProps> = (
                                 {partnerDisplayName.charAt(0).toUpperCase()}
                             </div>
                         )}
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#12161c]" />
+                        {!isLoading && (
+                            isOnline ? (
+                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#12161c]" title="Active Now" />
+                            ) : (
+                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-slate-300 dark:bg-slate-600 rounded-full ring-2 ring-white dark:ring-[#12161c]" title={lastSeenHuman} />
+                            )
+                        )}
                     </div>
 
                     <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-[#FF4A1F] transition-colors">
-                                {partnerDisplayName}
-                            </h3>
-                            {partner?.user_type && (
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                                    (partner?.user_type || '').toLowerCase().includes('supplier')
-                                        ? 'bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border-orange-200/60 dark:border-orange-900/40'
-                                        : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-900/40'
-                                }`}>
-                                    {(partner?.user_type || '').toLowerCase().includes('supplier') ? 'Carrier Partner' : 'Verified Customer'}
-                                </span>
-                            )}
-                        </div>
-                        <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active Now
-                        </p>
+                        {isLoading ? (
+                            <div className="space-y-1.5 py-0.5">
+                                <Skeleton className="h-3.5 w-28 rounded-md" />
+                                <Skeleton className="h-2.5 w-16 rounded-md" />
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-[#FF4A1F] transition-colors">
+                                        {partnerDisplayName}
+                                    </h3>
+                                    {isVerified && <VerifiedBadge size={15} className="shrink-0" />}
+                                </div>
+                                {isOnline ? (
+                                    <p className="text-[11.5px] text-emerald-600 dark:text-emerald-400 font-medium leading-tight mt-0.5">
+                                        Active Now
+                                    </p>
+                                ) : (
+                                    <p className="text-[11.5px] text-slate-400 dark:text-slate-500 font-normal leading-tight mt-0.5">
+                                        {lastSeenHuman}
+                                    </p>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

@@ -18,7 +18,8 @@ export const ActiveOrdersList: React.FC<ActiveOrdersListProps> = ({ orders, isLo
     const navigate = useNavigate();
 
     return (
-        <div className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+        <div
+    className="bg-white dark:bg-[#1e2329] p-4 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 -mx-4 px-4">
                 <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200">
                     Active Orders

@@ -4,6 +4,9 @@ import { Inbox } from 'lucide-react';
 import DataTable from '@/components/tables/data-table';
 import EmptyState from '@/components/tables/empty-state';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
+import { QuotaReminderBanner } from '@/components';
+import { SubscriptionLockModal } from '@/components/modals';
+import { useSubscriptionQuota } from '@/hooks/useSubscriptionQuota';
 import { getCustomerColumns } from '../CreateRequest/components/columns';
 import { FilterTabs } from '../CreateRequest/components/FilterTabs';
 import { TableFilterContent } from '../CreateRequest/components/TableFilterContent';
@@ -23,6 +26,25 @@ export default function RequestList() {
     const deleteState = useRequestListDelete(setRequestData);
     const wizard = useRequestListImportWizard(fetchQuoteRequests);
 
+    const {
+        isLoading: isQuotaLoading,
+        isTrial,
+        daysRemaining,
+        quotesLimit,
+        quotesUsed,
+        isPaidUnlimited,
+        isLockModalOpen,
+        setIsLockModalOpen,
+        modalTitle,
+        modalDescription,
+        modalFeatureName,
+        modalRequiredPlan,
+        modalBenefits,
+        checkOrLock,
+        checkBulkImportOrLock,
+        handleUpgradeRedirect,
+    } = useSubscriptionQuota();
+
     const filteredData = useFilteredRequestList({
         requestData,
         activeFilterTab: filters.activeFilterTab,
@@ -36,24 +58,36 @@ export default function RequestList() {
     const columns = useMemo(() => getCustomerColumns(navigate), [navigate]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-6 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1 tracking-tight">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Quote Requests
                     </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Manage, track, and create freight quote requests for carrier bidding.
                     </p>
                 </div>
                 <HeaderActions
                     isLoading={isLoading}
                     onRefresh={() => fetchQuoteRequests(true)}
-                    onUploadCsv={() => wizard.openImportWizard('csv')}
-                    onUploadPdfZip={() => wizard.openImportWizard('pdf')}
-                    onCreateNew={() => navigate('/customer/quotes/create/new')}
+                    onUploadCsv={() => checkBulkImportOrLock(() => wizard.openImportWizard('csv'))}
+                    onUploadPdfZip={() => checkBulkImportOrLock(() => wizard.openImportWizard('pdf'))}
+                    onCreateNew={() => checkOrLock(() => navigate('/customer/quotes/create/new'))}
                 />
             </div>
+
+            {/* Quota Banner when on trial or limit reached */}
+            {(isQuotaLoading || !isPaidUnlimited) && (
+                <QuotaReminderBanner
+                    isLoading={isQuotaLoading}
+                    title={isTrial ? '7-Day Free Trial Quota Reminder' : 'Free Plan Quota Reminder'}
+                    quotaUsed={quotesUsed}
+                    maxQuota={quotesLimit}
+                    daysRemaining={daysRemaining}
+                    onUpgradeClick={handleUpgradeRedirect}
+                />
+            )}
 
             <DataTable
                 data={filteredData}
@@ -62,11 +96,12 @@ export default function RequestList() {
                     <RowActions
                         row={row}
                         isRepeating={isRepeating === (row.rawId || row.id)}
-                        onRepeatRequest={handleRepeatRequest}
+                        onRepeatRequest={(req) => checkOrLock(() => handleRepeatRequest(req))}
                         onDeleteRequest={deleteState.handleDeleteRequestClick}
                     />
                 )}
-                actionsColumnClassName="w-[140px] min-w-[140px] text-right pr-3"
+                actionsColumnClassName="w-[52px] min-w-[52px] max-w-[52px] text-center px-1"
+                onDeleteSelected={deleteState.handleDeleteSelectedClick}
                 headerTabs={<FilterTabs requestData={requestData} activeTab={filters.activeFilterTab} onSelectTab={filters.setActiveFilterTab} />}
                 filterContent={
                     <TableFilterContent
@@ -87,19 +122,33 @@ export default function RequestList() {
                 compact={true}
                 isLoading={isLoading}
                 onRowClick={(row) => navigate(buildSecureQuoteUrl('view', row.rawId || row.id))}
-                tableClassName="w-full min-w-[1050px]"
+                tableLayout="fixed"
+                tableClassName="w-full"
                 emptyState={
                     <EmptyState
                         icon={Inbox}
                         title="No Requests Found"
                         description={filters.activeFilterTab === 'All' ? 'You haven’t created any quote requests yet.' : `No quote requests match '${filters.activeFilterTab}'.`}
                         actionLabel="Create Quote Request"
-                        onAction={() => navigate('/customer/quotes/create/new')}
+                        onAction={() => checkOrLock(() => navigate('/customer/quotes/create/new'))}
                     />
                 }
             />
 
             <RequestListModals wizard={wizard} deleteState={deleteState} />
+
+            {/* Subscription Upgrade Modal */}
+            <SubscriptionLockModal
+                isOpen={isLockModalOpen}
+                onClose={() => setIsLockModalOpen(false)}
+                onUpgrade={handleUpgradeRedirect}
+                userType="customer"
+                title={modalTitle}
+                description={modalDescription}
+                featureName={modalFeatureName}
+                requiredPlan={modalRequiredPlan}
+                benefits={modalBenefits}
+            />
         </div>
     );
 }

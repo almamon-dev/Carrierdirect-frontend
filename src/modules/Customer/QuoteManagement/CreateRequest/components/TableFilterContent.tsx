@@ -66,11 +66,10 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     </label>
                     <Select value={statusFilter} onChange={(val) => setStatusFilter(val)} showSearch={false}>
                         <option value="all">All Statuses</option>
-                        <option value="Active">🟢 Active / Bidding</option>
-                        <option value="Negotiating">💬 Negotiating</option>
-                        <option value="Accepted">🏆 Accepted</option>
-                        <option value="Expired">⏳ Expired</option>
-                        <option value="Draft">📝 Draft</option>
+                        <option value="In Progress">🔵 In Progress</option>
+                        <option value="Processing">🟡 Processing</option>
+                        <option value="Completed">🟢 Completed</option>
+                        <option value="Cancelled">🔴 Cancelled</option>
                     </Select>
                 </div>
 

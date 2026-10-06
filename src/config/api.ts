@@ -31,6 +31,8 @@ export const ENDPOINTS = {
         LOGOUT: '/auth/logout',
         REFRESH_TOKEN: '/auth/refresh',
         ME: '/auth/me',
+        FORGOT_PASSWORD: '/auth/forgot-password',
+        RESET_PASSWORD: '/auth/reset-password',
     },
     USERS: {
         LIST: '/users',

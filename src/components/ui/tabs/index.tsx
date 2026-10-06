@@ -20,7 +20,8 @@ export default function Tabs({ className = '', tabs = ['Tab 1', 'Tab 2', 'Tab 3'
                     </button>
                 ))}
             </div>
-            <div className="p-4 bg-white">
+            <div
+    className="p-4 bg-white">
                 Content for {tabs[active]}
             </div>
         </div>

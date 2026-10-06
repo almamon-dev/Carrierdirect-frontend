@@ -38,19 +38,19 @@ export default function TableSortDropdown<T>({
 
     return (
         <div className={`relative flex items-center ${className}`} ref={wrapperRef}>
-            <div className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none h-[32px] px-1">
+            <div
+    className="flex items-center border border-slate-200/80 dark:border-slate-700/60 rounded-[3px] overflow-hidden bg-slate-50/50 dark:bg-[#1e2329] shadow-none h-[32px] px-1">
                 {/* Trigger Button */}
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`h-[28px] px-2 flex items-center gap-1.5 text-xs font-semibold rounded-[2px] transition-colors cursor-pointer outline-none select-none ${
-                        isOpen || sortKey
-                            ? 'text-[#ff4a1f] font-bold'
-                            : 'text-slate-700 dark:text-slate-200 hover:text-[#ff4a1f]'
-                    }`}
+                    className={`h-[28px] px-2 flex items-center gap-1.5 text-xs font-semibold rounded-[2px] transition-colors cursor-pointer outline-none select-none ${isOpen || sortKey
+                        ? 'text-[#ff4a1f] font-bold'
+                        : 'text-slate-700 dark:text-slate-200 hover:text-[#ff4a1f]'
+                        }`}
                     title="Sort Items"
                 >
-                    <span className="truncate max-w-[120px]">Sort: {activeLabel}</span>
+                    <span className="truncate max-w-[120px]">{activeLabel}</span>
                     <ChevronDown size={12} className={`text-slate-400 dark:text-slate-500 shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180 text-[#ff4a1f]' : ''}`} />
                 </button>
 
@@ -65,7 +65,7 @@ export default function TableSortDropdown<T>({
                             title={`Order: ${sortDir === 'asc' ? 'Ascending' : 'Descending'}`}
                         >
                             <ArrowUpDown size={12} className="text-slate-500 dark:text-slate-400" />
-                            <span className="uppercase text-[10px]">{sortDir}</span>
+                            <span className=" text-[10px]">{sortDir}</span>
                         </button>
                     </>
                 )}
@@ -73,10 +73,11 @@ export default function TableSortDropdown<T>({
 
             {/* Custom Styled Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-[200px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-[3px] shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 font-sans">
+                <div
+    className="absolute right-0 top-full mt-1.5 w-[200px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-[3px] shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 font-sans">
                     <div className="p-2">
                         <div className="px-2 py-1 mb-1 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500  tracking-wider">
                                 Sort By
                             </span>
                             {sortKey && (
@@ -101,11 +102,10 @@ export default function TableSortDropdown<T>({
                                     onSortChange(null);
                                     setIsOpen(false);
                                 }}
-                                className={`w-full text-left px-2.5 py-1.5 rounded-[2px] text-[12px] flex items-center justify-between transition-colors cursor-pointer ${
-                                    !sortKey
-                                        ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] font-bold'
-                                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                }`}
+                                className={`w-full text-left px-2.5 py-1.5 rounded-[2px] text-[12px] flex items-center justify-between transition-colors cursor-pointer ${!sortKey
+                                    ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] font-bold'
+                                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                    }`}
                             >
                                 <span>Default</span>
                                 {!sortKey && <Check size={13} className="text-[#ff4a1f]" />}
@@ -122,11 +122,10 @@ export default function TableSortDropdown<T>({
                                             onSortChange(col.id);
                                             setIsOpen(false);
                                         }}
-                                        className={`w-full text-left px-2.5 py-1.5 rounded-[2px] text-[12px] flex items-center justify-between transition-colors cursor-pointer ${
-                                            isSelected
-                                                ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] font-bold'
-                                                : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                        }`}
+                                        className={`w-full text-left px-2.5 py-1.5 rounded-[2px] text-[12px] flex items-center justify-between transition-colors cursor-pointer ${isSelected
+                                            ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] font-bold'
+                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                            }`}
                                     >
                                         <span className="truncate">{col.label}</span>
                                         {isSelected && <Check size={13} className="text-[#ff4a1f] shrink-0 ml-1.5" />}

@@ -76,11 +76,12 @@ export default function SupplierAccountConnectModal({
             onClick={onClose}
         >
             <div
-                className="bg-white dark:bg-[#1e2329] rounded-[5px] max-w-[460px] w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 text-left"
+    className="bg-white dark:bg-[#1e2329] rounded-[5px] max-w-[460px] w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 text-left"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3 bg-slate-50/60 dark:bg-[#181d24]">
+                <div
+    className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3 bg-slate-50/60 dark:bg-[#181d24]">
                     <div className="flex items-start gap-2.5">
                         <div className="w-8 h-8 rounded-[4px] bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] border border-orange-200/60 dark:border-orange-500/20 flex items-center justify-center shrink-0 mt-0.5">
                             <CreditCard size={16} strokeWidth={2.2} />

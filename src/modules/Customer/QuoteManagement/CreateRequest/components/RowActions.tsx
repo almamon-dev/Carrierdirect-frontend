@@ -69,12 +69,12 @@ export const RowActions: React.FC<RowActionsProps> = ({
     }, [isOpen, handleClose]);
 
     return (
-        <div className="relative flex items-center justify-end w-full">
+        <div className="relative flex items-center justify-center w-full">
             <Button 
                 ref={triggerRef}
                 variant="ghost" 
                 size="sm" 
-                className="h-7 w-7 p-0 rounded-[2px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-auto flex items-center justify-center"
+                className="h-7 w-7 p-0 rounded-[2px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer mx-auto flex items-center justify-center"
                 onClick={handleToggle}
             >
                 <MoreVertical size={15} />

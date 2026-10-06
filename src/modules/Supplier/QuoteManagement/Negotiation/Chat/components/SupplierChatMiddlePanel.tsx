@@ -11,6 +11,7 @@ interface SupplierChatMiddlePanelProps {
     showMobileDetails: boolean;
     setShowMobileDetails: (v: boolean) => void;
     onCallClick: (type: 'audio' | 'video') => void;
+    onOpenMobileSidebar?: () => void;
     currentMessages: ChatMessage[];
     editingMsgId: number | string | null;
     highlightedMsgId: number | string | null;
@@ -28,10 +29,11 @@ interface SupplierChatMiddlePanelProps {
     setInputValue: (v: string) => void;
     scrollToBottom: () => void;
     handleSendMessage: (text: string, files?: File[]) => void;
-    handleSendCounterOffer: (amount: number, note: string) => void;
-    notifyTyping: () => void;
+    handleSendCounterOffer: (amount: number, note: string, extraCharges?: any[], baseFreight?: number) => void;
+    notifyTyping: (isTyping?: boolean) => void;
     handleCancelEdit: () => void;
     currentPrice: number;
+    isLoading?: boolean;
 }
 
 export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = ({
@@ -40,6 +42,7 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
     showMobileDetails,
     setShowMobileDetails,
     onCallClick,
+    onOpenMobileSidebar,
     currentMessages,
     editingMsgId,
     highlightedMsgId,
@@ -61,23 +64,27 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
     notifyTyping,
     handleCancelEdit,
     currentPrice,
+    isLoading = false
 }) => {
-    if (!activeNegotiation) {
+    if (!activeNegotiation && !isLoading) {
         return (
-            <div className="flex-1 min-w-0 flex flex-col items-center justify-center p-8 text-center text-slate-400 bg-white">
+            <div
+                className="flex-1 min-w-0 flex flex-col items-center justify-center p-8 text-center text-slate-400 bg-white dark:bg-[#12161c]">
                 <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Select a negotiation to view messages</p>
             </div>
         );
     }
 
     return (
-        <div className="flex-1 min-w-0 flex flex-col min-h-0 h-full bg-white relative">
+        <div className="flex-1 min-w-0 flex flex-col min-h-0 h-full bg-[#F8FAFC] dark:bg-[#0f1318] relative">
             <ChatHeader
                 activeNegotiation={activeNegotiation}
                 sessionKey={sessionKey}
                 showMobileDetails={showMobileDetails}
                 setShowMobileDetails={setShowMobileDetails}
                 onCallClick={onCallClick}
+                onOpenMobileSidebar={onOpenMobileSidebar}
+                isLoading={isLoading}
             />
 
             <ChatMessageList
@@ -87,6 +94,7 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
                 highlightedMsgId={highlightedMsgId}
                 activePinnedIndex={activePinnedIndex}
                 setActivePinnedIndex={setActivePinnedIndex}
+                isLoading={isLoading}
                 isCustomerTyping={isCustomerTyping}
                 messagesEndRef={messagesEndRef}
                 handleTogglePinMessage={handleTogglePinMessage}
@@ -107,7 +115,11 @@ export const SupplierChatMiddlePanel: React.FC<SupplierChatMiddlePanelProps> = (
                 isSupplier={true}
                 isEditing={!!editingMsgId}
                 onCancelEdit={handleCancelEdit}
-                initialBaseFreight={currentPrice}
+                initialBaseFreight={activeNegotiation?.baseFreight || currentPrice}
+                originalOfferAmount={currentPrice}
+                targetBudget={activeNegotiation?.budget}
+                carrierName={activeNegotiation?.customer}
+                extraCharges={activeNegotiation?.extraCharges}
                 currency="€"
             />
         </div>

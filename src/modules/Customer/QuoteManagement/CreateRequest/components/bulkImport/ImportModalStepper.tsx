@@ -21,7 +21,8 @@ export const ImportModalStepper: React.FC<ImportModalStepperProps> = ({
     ];
 
     return (
-        <div className="px-5 py-2.5 bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between font-sans overflow-x-auto">
+        <div
+    className="px-5 py-2.5 bg-slate-50/70 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between font-sans overflow-x-auto">
             {steps.map((st, idx, arr) => {
                 const isActive = processingStep === st.num;
                 const isPassed = processingStep > st.num;

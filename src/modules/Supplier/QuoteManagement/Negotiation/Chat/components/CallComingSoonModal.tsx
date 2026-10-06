@@ -44,7 +44,8 @@ export const CallComingSoonModal: React.FC<CallComingSoonModalProps> = ({
                 </p>
 
                 {/* Feature preview bullets */}
-                <div className="mt-4 w-full bg-slate-50 rounded-xl p-3 border border-slate-200/70 text-left space-y-2">
+                <div
+    className="mt-4 w-full bg-slate-50 rounded-lg p-3 border border-slate-200/70 text-left space-y-2">
                     <div className="flex items-center gap-2 text-slate-700 text-xs font-semibold">
                         <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
                         <span>End-to-End Encrypted</span>

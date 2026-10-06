@@ -2,6 +2,7 @@ import apiClient from '@/lib/axios';
 import { formatDisplayDate } from '@/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
 import { CustomerNegotiationItem } from '../types';
+import { resolveQuoteDistance } from '@/utils/geoDistance';
 
 export const useCustomerNegotiations = () => {
     const [negotiations, setNegotiations] = useState<CustomerNegotiationItem[]>([]);
@@ -39,12 +40,24 @@ export const useCustomerNegotiations = () => {
                     const supplierName = n.sender_name || n.supplier_name || n.supplier?.name || n.company_name || 'Carrier Partner';
                     const avatarUrl = n.profile_picture || n.supplier?.profile_picture || '';
 
-                    const origPrice = Number(n.base_amount_raw ?? n.base_amount ?? n.amount_raw ?? n.amount ?? 0);
-                    const currentPrice = Number(n.revised_amount_raw ?? n.revised_amount ?? n.amount_raw ?? n.amount ?? origPrice);
+                    const extraCharges = Array.isArray(n.extra_charges) ? n.extra_charges.map((c: any) => ({
+                        id: c.id,
+                        type: c.type || c.custom_name || "Extra Service",
+                        custom_name: c.custom_name || c.customName || c.type || "Extra Service",
+                        label: c.type === "Custom" ? (c.custom_name || "Extra Service") : (c.type || "Extra Service"),
+                        amount: Number(c.amount || 0)
+                    })).filter((c: any) => c.amount > 0) : [];
+                    const totalExtras = extraCharges.reduce((sum: number, c: any) => sum + (Number(c.amount) || 0), 0);
+                    const origPrice = Number(n.amount_raw ?? n.amount ?? (n.base_amount_raw ? Number(n.base_amount_raw) + totalExtras : 0));
+                    const currentPrice = Number(n.revised_amount_raw ?? n.revised_amount ?? origPrice);
+                    const baseFreightAmount = Number(
+                        n.base_amount_raw ??
+                        (n.base_amount ? parseFloat(String(n.base_amount).replace(/[^0-9.]/g, "")) : (origPrice > totalExtras && totalExtras > 0 ? origPrice - totalExtras : origPrice))
+                    );
 
                     const pickupLoc = n.origin || n.pickup_address || n.pickup || 'Pickup Location';
                     const deliveryLoc = n.destination || n.delivery_address || n.delivery || 'Delivery Destination';
-                    const distStr = n.distance || `${n.distance_km || 450} km`;
+                    const distStr = resolveQuoteDistance({ ...n, ...(n.quote_request || {}), ...(n.quoteRequest || {}), origin: pickupLoc, destination: deliveryLoc }).distanceStr;
                     const dateFormatted = formatDisplayDate(n.created_at || n.request_date || n.date);
 
                     let statusLabel = n.status || 'Active';
@@ -54,14 +67,27 @@ export const useCustomerNegotiations = () => {
                     const expiryField = n.valid_until || n.expires_at || n.expiry_date || n.validity_date || n.quote_request?.expires_at;
                     const isDateExpired = expiryField ? (!isNaN(new Date(expiryField).getTime()) && new Date(expiryField).getTime() < Date.now()) : false;
 
-                    if (statusRawLower === 'accepted' || String(statusLabel).toLowerCase().includes('accept')) {
+                    const isBooked = Boolean(
+                        statusRawLower === 'booked' ||
+                        statusRawLower === 'confirmed' ||
+                        statusRawLower === 'in_progress' ||
+                        statusRawLower === 'completed' ||
+                        String(statusLabel).toLowerCase().includes('book') ||
+                        n.is_paid ||
+                        n.has_order ||
+                        n.order_id
+                    );
+
+                    if (isBooked) {
+                        statusLabel = 'Booked';
+                    } else if (statusRawLower === 'accepted' || String(statusLabel).toLowerCase().includes('accept')) {
                         statusLabel = 'Accepted';
-                    } else if (statusRawLower === 'expired' || isDateExpired || String(statusLabel).toLowerCase().includes('expire')) {
-                        statusLabel = 'Expired';
-                    } else if (statusRawLower === 'rejected' || String(statusLabel).toLowerCase().includes('reject') || String(statusLabel).toLowerCase().includes('decline')) {
-                        statusLabel = 'Rejected';
-                    } else if (n.revision_status === 'pending' || n.revised_amount) {
-                        statusLabel = 'Counter Received';
+                    } else if (statusRawLower === 'closed' || statusRawLower === 'rejected' || statusRawLower === 'expired' || statusRawLower === 'declined' || statusRawLower === 'cancelled' || isDateExpired) {
+                        statusLabel = 'Closed';
+                    } else if (n.revision_status === 'pending' || statusRawLower.includes('counter') || String(statusLabel).toLowerCase().includes('counter')) {
+                        statusLabel = 'Counter Offers';
+                    } else {
+                        statusLabel = 'Open';
                     }
 
                     return {
@@ -78,10 +104,13 @@ export const useCustomerNegotiations = () => {
                         supplierAvatar: avatarUrl,
                         pickup: pickupLoc,
                         delivery: deliveryLoc,
-                        distance: distStr,
+                        distance: distStr && distStr !== '—' ? distStr : (n.distance || n.est_distance || '—'),
                         budget: `€ ${Number(origPrice || currentPrice).toLocaleString()}`,
                         originalAmount: origPrice,
                         currentOffer: currentPrice,
+                        baseFreightAmount: baseFreightAmount,
+                        extraCharges: extraCharges,
+                        totalExtras: totalExtras,
                         currency: '€',
                         priority: n.priority || (statusLabel === 'Counter Received' ? 'Urgent' : 'Normal'),
                         lastUpdated: n.time_ago || 'Recently',
@@ -89,13 +118,22 @@ export const useCustomerNegotiations = () => {
                         status: statusLabel,
                         statusRaw: n.status_raw || 'pending',
                         revisionStatus: n.revision_status || 'none',
-                        unreadCount: Number(n.unread_count ?? (statusLabel.includes('Counter') ? 1 : 0)),
+                        unreadCount: typeof n.unread_count === 'number' ? Number(n.unread_count) : (n.is_read === false ? 1 : 0),
                         palletType: n.pallet_type || 'Standard Euro Pallet',
                         vehicleType: n.vehicle_type || 'Curtainsider (13.6m)',
                         pickupDate: n.pickup_date,
                         deliveryDate: n.delivery_date,
                         notes: n.message_snippet || n.notes,
                         declineReason: n.decline_reason || n.declineReason,
+                        isOnline: Boolean(n.is_online),
+                        lastSeenHuman: n.last_seen_human || (n.is_online ? "Active now" : "Offline"),
+                        lastSeenAt: n.last_seen_at,
+                        baseFreight: baseFreightAmount,
+                        isPaid: isBooked || Boolean(n.is_paid),
+                        hasOrder: isBooked || Boolean(n.has_order || n.order_id),
+                        orderId: n.order_id,
+                        orderNumber: n.order_number,
+                        raw: n,
                     };
                 });
                 setNegotiations(mapped);

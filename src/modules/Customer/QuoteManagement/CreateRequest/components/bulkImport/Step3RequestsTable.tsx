@@ -15,7 +15,8 @@ export const Step3RequestsTable: React.FC<Step3RequestsTableProps> = ({
     onViewSchema,
 }) => {
     return (
-        <div className="border border-slate-200 dark:border-slate-800 rounded-[3px] overflow-hidden bg-white dark:bg-slate-900">
+        <div
+    className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
             <div className="max-h-[300px] overflow-y-auto">
                 <table className="w-full text-left text-xs border-collapse">
                     <thead className="sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-800/80 backdrop-blur-xs border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold text-[10.5px]">
@@ -90,7 +91,8 @@ export const Step3RequestsTable: React.FC<Step3RequestsTableProps> = ({
                     </tbody>
                 </table>
             </div>
-            <div className="px-3 py-1.5 bg-slate-50/60 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 text-slate-400 text-[11px] flex items-center justify-between">
+            <div
+    className="px-3 py-1.5 bg-slate-50/60 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 text-slate-400 text-[11px] flex items-center justify-between">
                 <span>Showing {rows.length} extracted quote request{rows.length !== 1 ? 's' : ''}</span>
                 <span>Click row to view schema</span>
             </div>

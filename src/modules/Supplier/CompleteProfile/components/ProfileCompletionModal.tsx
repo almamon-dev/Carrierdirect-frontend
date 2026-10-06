@@ -40,7 +40,8 @@ export default function ProfileCompletionModal({
             <div className="flex flex-col md:flex-row w-full font-sans antialiased min-h-[460px]">
                 
                 {/* ── Left Side: Brand & Visual (Matching web/register) ── */}
-                <div className="md:w-5/12 bg-[#f8fafc] dark:bg-[#12161c] flex flex-col items-center justify-center p-8 sm:p-10 relative border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#384150]">
+                <div
+    className="md:w-5/12 bg-[#f8fafc] dark:bg-[#12161c] flex flex-col items-center justify-center p-8 sm:p-10 relative border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#384150]">
                     {/* Subtle dot pattern background */}
                     <div 
                         className="absolute inset-0 opacity-[0.4] dark:opacity-[0.1]" 
@@ -74,11 +75,12 @@ export default function ProfileCompletionModal({
                 </div>
 
                 {/* ── Right Side: Compact & Minimal Content ── */}
-                <div className="md:w-7/12 p-6 sm:p-8 flex flex-col justify-between bg-white dark:bg-[#181a20]">
+                <div
+    className="md:w-7/12 p-6 sm:p-8 flex flex-col justify-between bg-white dark:bg-[#181a20]">
                     <div>
                         {/* Header */}
                         <div className="mb-5">
-                            <div className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-[#FF4A1F] bg-orange-50 dark:bg-orange-950/40 px-2.5 py-0.5 rounded-md mb-2">
+                            <div className="inline-flex items-center gap-1 text-[11px] font-bold  tracking-wider text-[#FF4A1F] bg-orange-50 dark:bg-orange-950/40 px-2.5 py-0.5 rounded-md mb-2">
                                 <CheckCircle2 size={13} /> Setup Completed
                             </div>
                             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
@@ -91,7 +93,8 @@ export default function ProfileCompletionModal({
 
                         {/* Minimal Feature List */}
                         <div className="space-y-2 mb-6">
-                            <div className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-[#1e2329] rounded-lg border border-gray-200/80 dark:border-[#2f3642]">
+                            <div
+    className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-[#1e2329] rounded-lg border border-gray-200/80 dark:border-[#2f3642]">
                                 <div className="p-1.5 bg-orange-100/70 dark:bg-orange-950/50 text-[#FF4A1F] rounded-md shrink-0">
                                     <Truck size={15} />
                                 </div>
@@ -105,7 +108,8 @@ export default function ProfileCompletionModal({
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-[#1e2329] rounded-lg border border-gray-200/80 dark:border-[#2f3642]">
+                            <div
+    className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-[#1e2329] rounded-lg border border-gray-200/80 dark:border-[#2f3642]">
                                 <div className="p-1.5 bg-blue-100/70 dark:bg-blue-950/50 text-blue-600 rounded-md shrink-0">
                                     <MessageSquare size={15} />
                                 </div>
@@ -119,7 +123,8 @@ export default function ProfileCompletionModal({
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-[#1e2329] rounded-lg border border-gray-200/80 dark:border-[#2f3642]">
+                            <div
+    className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-[#1e2329] rounded-lg border border-gray-200/80 dark:border-[#2f3642]">
                                 <div className="p-1.5 bg-emerald-100/70 dark:bg-emerald-950/50 text-emerald-600 rounded-md shrink-0">
                                     <DollarSign size={15} />
                                 </div>
@@ -133,7 +138,8 @@ export default function ProfileCompletionModal({
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-[#1e2329] rounded-lg border border-gray-200/80 dark:border-[#2f3642]">
+                            <div
+    className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-[#1e2329] rounded-lg border border-gray-200/80 dark:border-[#2f3642]">
                                 <div className="p-1.5 bg-purple-100/70 dark:bg-purple-950/50 text-purple-600 rounded-md shrink-0">
                                     <Bell size={15} />
                                 </div>

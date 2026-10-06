@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, User, Mail, Lock, Eye, EyeOff, Upload, Calendar, Building2, Hash } from 'lucide-react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import LogoBlack from '../../../../assets/Images/LogoBlack.png';
@@ -29,6 +29,7 @@ export default function SupplierRegisterPage() {
         password: '',
         confirmPassword: '',
         insuranceType: '',
+        customInsuranceType: '',
         insuranceProviderName: '',
         policyNumber: '',
         policyExpiryDate: '',
@@ -132,11 +133,28 @@ export default function SupplierRegisterPage() {
         }
     };
 
+    const isOtherInsurance = formData.insuranceType.toLowerCase() === 'other' || formData.insuranceType.toLowerCase() === 'others';
+    const customInsuranceInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isOtherInsurance) {
+            const timer = setTimeout(() => {
+                customInsuranceInputRef.current?.focus();
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [isOtherInsurance]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
 
-        if (!formData.insuranceType) newErrors.insuranceType = 'Insurance Type is required';
+        if (!formData.insuranceType) {
+            newErrors.insuranceType = 'Insurance Type is required';
+        } else if (isOtherInsurance && !formData.customInsuranceType.trim()) {
+            newErrors.customInsuranceType = 'Please specify your insurance type';
+        }
+
         if (!formData.insuranceProviderName.trim()) newErrors.insuranceProviderName = 'Provider Name is required';
         if (!formData.policyNumber.trim()) newErrors.policyNumber = 'Policy Number is required';
         if (!formData.policyExpiryDate) {
@@ -160,6 +178,10 @@ export default function SupplierRegisterPage() {
         if (Object.keys(newErrors).length === 0) {
             setIsLoading(true);
             try {
+                const finalInsuranceType = isOtherInsurance
+                    ? formData.customInsuranceType.trim()
+                    : formData.insuranceType;
+
                 const registerPayload = new FormData();
                 registerPayload.append('user_type', 'supplier');
                 registerPayload.append('company_name', formData.fullName);
@@ -167,7 +189,7 @@ export default function SupplierRegisterPage() {
                 registerPayload.append('email', formData.email);
                 registerPayload.append('password', formData.password);
                 registerPayload.append('password_confirmation', formData.confirmPassword);
-                registerPayload.append('insurance_type', formData.insuranceType);
+                registerPayload.append('insurance_type', finalInsuranceType);
                 registerPayload.append('insurance_provider_name', formData.insuranceProviderName);
                 registerPayload.append('policy_number', formData.policyNumber);
                 registerPayload.append('policy_expiry_date', formData.policyExpiryDate);
@@ -194,11 +216,25 @@ export default function SupplierRegisterPage() {
         }
     };
 
-    const insuranceOptions = getOptions('insurance_type', [
-        { id: 'liability', name: 'General Liability' },
-        { id: 'cargo', name: 'Cargo Insurance' },
-        { id: 'auto', name: 'Commercial Auto' }
+    const rawInsuranceOptions = getOptions('insurance_type', [
+        { id: 'Basic Goods Coverage', name: 'Basic Goods Coverage' },
+        { id: 'All-Risk Transit Insurance', name: 'All-Risk Transit Insurance' },
+        { id: 'Standard Liability', name: 'Standard Liability' },
+        { id: 'Comprehensive Cargo Insurance', name: 'Comprehensive Cargo Insurance' }
     ]);
+
+    const insuranceOptions = React.useMemo(() => {
+        const hasOther = rawInsuranceOptions.some(opt => 
+            opt.id.toString().toLowerCase() === 'other' || 
+            opt.id.toString().toLowerCase() === 'others' || 
+            opt.name.toLowerCase() === 'other' || 
+            opt.name.toLowerCase() === 'others'
+        );
+        if (!hasOther) {
+            return [...rawInsuranceOptions, { id: 'Other', name: 'Other' }];
+        }
+        return rawInsuranceOptions;
+    }, [rawInsuranceOptions]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0e1117] relative p-4">
@@ -392,6 +428,23 @@ export default function SupplierRegisterPage() {
                                 {errors.insuranceType && <span className="text-[12px] text-[#d82c0d] mt-1 block">{errors.insuranceType}</span>}
                             </div>
 
+                            {isOtherInsurance && (
+                                <div>
+                                    <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1.5">Specify Insurance Type <span className="text-red-500">*</span></label>
+                                    <Input
+                                        ref={customInsuranceInputRef}
+                                        autoFocus
+                                        type="text"
+                                        className="bg-white"
+                                        placeholder="Enter your custom insurance type"
+                                        value={formData.customInsuranceType}
+                                        onChange={(e) => handleInputChange('customInsuranceType', e.target.value)}
+                                        error={errors.customInsuranceType}
+                                    />
+                                    {errors.customInsuranceType && <span className="text-[12px] text-[#d82c0d] mt-1 block">{errors.customInsuranceType}</span>}
+                                </div>
+                            )}
+
                             <div>
                                 <label className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1.5">Insurance Provider Name <span className="text-red-500">*</span></label>
                                 <div className="relative">
@@ -501,6 +554,7 @@ export default function SupplierRegisterPage() {
 
                             {(() => {
                                 const isStep2Disabled = !formData.insuranceType ||
+                                    (isOtherInsurance && !formData.customInsuranceType.trim()) ||
                                     !formData.insuranceProviderName.trim() ||
                                     !formData.policyNumber.trim() ||
                                     !formData.policyExpiryDate ||

@@ -99,7 +99,8 @@ export default function NotificationsTab() {
   };
 
   return (
-    <div className="bg-white p-4 sm:p-5 rounded-md border border-slate-200 shadow-sm space-y-4 font-sans">
+    <div
+    className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-sm space-y-4 font-sans">
       <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-slate-900">Notification Preferences</h3>

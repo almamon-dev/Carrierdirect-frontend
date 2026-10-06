@@ -21,12 +21,16 @@ export interface HeaderNotification {
     link?: string;
 }
 
-export const normalizeNotifLink = (link?: string, role: 'supplier' | 'customer' = 'supplier'): string => {
+export const normalizeNotifLink = (link?: string, role: 'supplier' | 'customer' | 'driver' = 'supplier'): string => {
     if (!link) {
+        if (role === 'driver') return '/driver/notifications';
         return role === 'supplier' ? '/supplier/notifications' : '/customer/notifications';
     }
 
     const trimmed = String(link).trim();
+
+    // Fix legacy driver routes
+    if (trimmed.startsWith('/driver/')) return trimmed;
 
     // Fix legacy customer routes
     if (trimmed === '/customer/quotes' || trimmed === '/customer/quotes/') return '/customer/quotes/received';
@@ -68,12 +72,12 @@ const formatTimeAgo = (dateStr: string | number | Date): string => {
     }
 };
 
-export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier') => {
+export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' = 'supplier') => {
     // Real-time local notifications added this session (from addNotification)
     const [localNotifs, setLocalNotifs] = useState<HeaderNotification[]>([]);
     // API-fetched notifications (always fresh from database)
     const [apiNotifs, setApiNotifs] = useState<HeaderNotification[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // Combined: local real-time first, then API
     const notifications = [
@@ -82,10 +86,11 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
     ];
 
     // Fetch live notifications dynamically from backend API
-    const fetchNotifications = useCallback(async () => {
+    const fetchNotifications = useCallback(async (silent = false) => {
+        if (!silent) setIsLoading(true);
         try {
-            const endpoint = role === 'supplier' ? '/supplier/notifications' : '/customer/notifications';
-            const res: any = await apiClient.get(endpoint);
+            const endpoint = role === 'driver' ? '/driver/notifications' : (role === 'supplier' ? '/supplier/notifications' : '/customer/notifications');
+            const res: any = await apiClient.get(endpoint).catch(() => ({ data: { data: [] } }));
             
             const rawList = 
                 (Array.isArray(res?.data?.data?.notifications?.data) && res.data.data.notifications.data) ||
@@ -99,7 +104,7 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
                 (Array.isArray(res) && res) ||
                 [];
             
-            if (Array.isArray(rawList)) {
+            if (Array.isArray(rawList) && rawList.length > 0) {
                 const mapped: HeaderNotification[] = rawList.map((item: any, idx: number) => {
                     const dataObj = (item.data && typeof item.data === 'object') ? item.data : {};
                     const notifId = item.id || dataObj.id || `api-notif-${idx}`;
@@ -109,7 +114,7 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
                     // Extract price amount / budget
                     const amountRaw = dataObj.amount || item.amount || dataObj.budget || item.budget || dataObj.target_price || item.target_price || dataObj.price || item.price || dataObj.proposed_amount || dataObj.total_amount;
                     const formattedAmount = amountRaw 
-                        ? (typeof amountRaw === 'number' ? `€ ${amountRaw.toLocaleString('de-DE')}` : (String(amountRaw).includes('€') ? amountRaw : `€ ${amountRaw}`))
+                        ? (typeof amountRaw === 'number' ? `€ ${amountRaw.toLocaleString('en-US')}` : (String(amountRaw).includes('€') || String(amountRaw).includes('$') ? amountRaw : `€ ${amountRaw}`))
                         : '';
 
                     // Extract route (origin -> destination)
@@ -163,7 +168,7 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
                         } else if (cargoStr) {
                             desc = `Cargo: ${cargoStr}`;
                         } else {
-                            desc = role === 'supplier' ? 'New update on your quotes and orders.' : 'New freight quote update received.';
+                            desc = role === 'supplier' ? 'New update on your quotes and orders.' : (role === 'driver' ? 'New update on your assigned loads and routes.' : 'New freight quote update received.');
                         }
                     }
 
@@ -182,6 +187,16 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
                                 rawLink = '/supplier/finance/withdrawal';
                             } else {
                                 rawLink = '/supplier/notifications';
+                            }
+                        } else if (role === 'driver') {
+                            if (notifType === 'order') {
+                                rawLink = '/driver/shipments';
+                            } else if (notifType === 'message') {
+                                rawLink = '/driver/chat';
+                            } else if (notifType === 'finance') {
+                                rawLink = '/driver/profile';
+                            } else {
+                                rawLink = '/driver/notifications';
                             }
                         } else {
                             if (typeName.includes('quoteaccepted') || notifType === 'order') {
@@ -215,20 +230,23 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
                 });
                 
                 setApiNotifs(mapped);
+            } else {
+                setApiNotifs([]);
             }
         } catch (err) {
             console.error(`Failed to fetch ${role} notifications from API:`, err);
+            setApiNotifs([]);
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     }, [role]);
 
-    // Initial fetch + Live auto-polling every 8 seconds
+    // Initial fetch + Live auto-polling every 15 seconds silently
     useEffect(() => {
-        fetchNotifications();
+        fetchNotifications(false);
         const pollTimer = setInterval(() => {
-            fetchNotifications();
-        }, 8000);
+            fetchNotifications(true);
+        }, 15000);
         return () => clearInterval(pollTimer);
     }, [fetchNotifications]);
 
@@ -266,25 +284,54 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
 
     const markAsRead = useCallback(async (id: string | number) => {
         setLocalNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
-        setApiNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+        setApiNotifs(prev => {
+            const next = prev.map(n => n.id === id ? { ...n, unread: false } : n);
+            return next;
+        });
         try {
             await apiClient.post(`/${role}/notifications/${id}/read`).catch(() => {});
         } catch {}
     }, [role]);
 
+    const markAsUnread = useCallback(async (id: string | number) => {
+        setLocalNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: true } : n));
+        setApiNotifs(prev => {
+            const next = prev.map(n => n.id === id ? { ...n, unread: true } : n);
+            return next;
+        });
+        try {
+            await apiClient.post(`/${role}/notifications/${id}/unread`).catch(() => {});
+        } catch {}
+    }, [role]);
+
     const markAllAsRead = useCallback(async () => {
         setLocalNotifs(prev => prev.map(n => ({ ...n, unread: false })));
-        setApiNotifs(prev => prev.map(n => ({ ...n, unread: false })));
+        setApiNotifs(prev => {
+            const next = prev.map(n => ({ ...n, unread: false }));
+            return next;
+        });
         try {
             await apiClient.post(`/${role}/notifications/mark-all-read`).catch(() => {});
         } catch {}
     }, [role]);
 
     const deleteNotification = useCallback(async (id: string | number) => {
-        setLocalNotifs(prev => prev.filter(n => n.id !== id));
-        setApiNotifs(prev => prev.filter(n => n.id !== id));
+        setLocalNotifs(prev => prev.filter(n => String(n.id) !== String(id)));
+        setApiNotifs(prev => {
+            const next = prev.filter(n => String(n.id) !== String(id));
+            return next;
+        });
         try {
             await apiClient.delete(`/${role}/notifications/${id}`).catch(() => {});
+        } catch {}
+    }, [role]);
+
+    const deleteBulkNotifications = useCallback(async (ids: (string | number)[]) => {
+        const idSet = new Set(ids.map(String));
+        setLocalNotifs(prev => prev.filter(n => !idSet.has(String(n.id))));
+        setApiNotifs(prev => prev.filter(n => !idSet.has(String(n.id))));
+        try {
+            await apiClient.post(`/${role}/notifications/bulk-delete`, { ids }).catch(() => {});
         } catch {}
     }, [role]);
 
@@ -316,8 +363,10 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' = 'supplier
         isLoading,
         refresh: fetchNotifications,
         markAsRead,
+        markAsUnread,
         markAllAsRead,
         deleteNotification,
+        deleteBulkNotifications,
         clearAll,
         addNotification,
     };

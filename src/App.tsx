@@ -3,9 +3,11 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import ProtectedRoute from './components/common/ProtectedRoute';
 import CustomerLayout from './layouts/CustomerLayout';
 import SupplierLayout from './layouts/SupplierLayout';
+import DriverLayout from './layouts/DriverLayout';
 import { authRoutes } from './modules/Auth';
 import { customerRoutes } from './modules/Customer/routes';
 import { supplierRoutes } from './modules/Supplier/routes';
+import { driverRoutes } from './modules/Driver/routes';
 import { supportRoutes } from './modules/Support/routes';
 
 import ContactUs from './modules/LandingPages/ContactUs';
@@ -52,6 +54,17 @@ const RedirectWithQuery: React.FC<{ to: string }> = ({ to }) => {
   return <Navigate to={`${to}${search}`} replace />;
 };
 
+const PaymentRedirect: React.FC<{ status: 'success' | 'cancel' }> = ({ status }) => {
+  const search = typeof window !== "undefined" ? window.location.search : "";
+  const params = new URLSearchParams(search);
+  const type = params.get('type') || 'subscription';
+
+  if (type === 'quote' || type === 'invoice' || type === 'order') {
+    return <Navigate to={`/customer/finance/invoices?payment=${status}`} replace />;
+  }
+  return <Navigate to={`/customer/subscription?payment=${status}`} replace />;
+};
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -73,7 +86,24 @@ const router = createBrowserRouter([
     path: '/pay-later-facility',
     element: <PayLaterFacility />,
   },
+  /* Stripe Payment Callbacks */
+  {
+    path: '/payment/success',
+    element: <PaymentRedirect status="success" />,
+  },
+  {
+    path: '/payment/cancel',
+    element: <PaymentRedirect status="cancel" />,
+  },
   /* Direct Auth Aliases */
+  {
+    path: '/invite/accept',
+    element: <RedirectWithQuery to="/web/invitation-accepted" />,
+  },
+  {
+    path: '/accept-invitation',
+    element: <RedirectWithQuery to="/web/invitation-accepted" />,
+  },
   {
     path: '/login',
     element: <RedirectWithQuery to="/web/login" />,
@@ -97,6 +127,31 @@ const router = createBrowserRouter([
   {
     path: '/auth/register',
     element: <RedirectWithQuery to="/web/register" />,
+  },
+  /* Dashboard Legacy & Alias Redirects */
+  {
+    path: '/client-dashboard/*',
+    element: <RedirectWithQuery to="/customer/dashboard" />,
+  },
+  {
+    path: '/client-dashboard',
+    element: <RedirectWithQuery to="/customer/dashboard" />,
+  },
+  {
+    path: '/customer-dashboard/*',
+    element: <RedirectWithQuery to="/customer/dashboard" />,
+  },
+  {
+    path: '/customer-dashboard',
+    element: <RedirectWithQuery to="/customer/dashboard" />,
+  },
+  {
+    path: '/supplier-dashboard/*',
+    element: <RedirectWithQuery to="/supplier/dashboard" />,
+  },
+  {
+    path: '/supplier-dashboard',
+    element: <RedirectWithQuery to="/supplier/dashboard" />,
   },
   ...authRoutes,
   ...supportRoutes,
@@ -127,6 +182,15 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: supplierRoutes,
+  },
+  {
+    path: '/driver',
+    element: (
+      <ProtectedRoute allowedRole="driver">
+        <DriverLayout />
+      </ProtectedRoute>
+    ),
+    children: driverRoutes,
   },
   {
     path: '*',

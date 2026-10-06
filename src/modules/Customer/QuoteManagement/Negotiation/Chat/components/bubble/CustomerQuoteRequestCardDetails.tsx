@@ -16,7 +16,8 @@ export const CustomerQuoteRequestCardDetails: React.FC<CustomerQuoteRequestCardD
     notes,
 }) => {
     return (
-        <div className="p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-[5px] border border-slate-100 dark:border-slate-800 space-y-2 text-[11.5px] animate-in fade-in duration-150">
+        <div
+    className="p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-100 dark:border-slate-800 space-y-2 text-[11.5px] animate-in fade-in duration-150">
             <div className="grid grid-cols-2 gap-2">
                 <div>
                     <span className="text-[10px] text-slate-400 block">Pickup Date</span>

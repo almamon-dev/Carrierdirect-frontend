@@ -73,28 +73,32 @@ export const QuoteHistoryDrawer: React.FC<QuoteHistoryDrawerProps> = ({
             <div className="py-2 space-y-5 font-sans">
                 {/* Summary Key Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    <div className="p-2.5 rounded-[5px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-0.5">
+                    <div
+    className="p-2.5 rounded-[5px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-0.5">
                         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Created</span>
                         <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
                             {formatDisplayDate(req?.created_at || quote?.created_at)}
                         </span>
                     </div>
 
-                    <div className="p-2.5 rounded-[5px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-0.5">
+                    <div
+    className="p-2.5 rounded-[5px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-0.5">
                         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Total Bids</span>
                         <span className="text-xs font-bold text-[#ff4a1f] truncate block">
                             {allBids.length > 0 ? `${allBids.length} Offers Received` : '1 Offer Received'}
                         </span>
                     </div>
 
-                    <div className="p-2.5 rounded-[5px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-0.5">
+                    <div
+    className="p-2.5 rounded-[5px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-0.5">
                         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Best Amount</span>
                         <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate block">
                             {quote?.amount || '€ 44.130'}
                         </span>
                     </div>
 
-                    <div className="p-2.5 rounded-[5px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-0.5">
+                    <div
+    className="p-2.5 rounded-[5px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-0.5">
                         <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">Current Stage</span>
                         <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
                             {activeIndex !== -1 ? `Stage ${activeIndex + 1} / 6` : 'Active'}
