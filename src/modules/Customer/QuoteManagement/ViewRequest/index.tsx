@@ -29,6 +29,16 @@ export default function ViewRequestForm() {
         return <QuoteViewSkeleton activeTab={activeTab} />;
     }
 
+    const rawStatus = String((formData as any)?.rawStatus || (formData as any)?.status || '').toLowerCase().trim();
+    const isDraft = rawStatus === 'draft';
+    const isTerminal = ['won', 'booked', 'accepted', 'completed', 'expired', 'cancelled'].includes(rawStatus);
+    const quotesCount = Number((formData as any)?.quotesCount || 0);
+    const hasNegotiation = rawStatus === 'negotiating' || rawStatus === 'negotiation';
+    const apiEditable = (formData as any)?.canEdit ?? (formData as any)?.isEditable;
+    const canEdit = apiEditable !== undefined
+        ? Boolean(apiEditable)
+        : (isDraft || (!isTerminal && quotesCount === 0 && !hasNegotiation));
+
     return (
         <div className="p-4 md:p-6 mx-auto bg-[#f8f9fa] dark:bg-[#12161b] min-h-screen pb-24 font-sans antialiased">
             {/* Header Toolbar */}
@@ -56,16 +66,18 @@ export default function ViewRequestForm() {
                         <Copy size={14} />
                         Repeat Quote
                     </Button>
-                    <Button
-                        type="button"
-                        variant="primary"
-                        size="sm"
-                        className="h-[34px] text-[12px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white flex items-center gap-1.5 cursor-pointer font-medium shadow-2xs"
-                        onClick={() => navigate(`/customer/quotes/create/edit/${cleanId}`)}
-                    >
-                        <Edit size={14} />
-                        Edit Request
-                    </Button>
+                    {canEdit && (
+                        <Button
+                            type="button"
+                            variant="primary"
+                            size="sm"
+                            className="h-[34px] text-[12px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white flex items-center gap-1.5 cursor-pointer font-medium shadow-2xs"
+                            onClick={() => navigate(`/customer/quotes/create/edit/${cleanId}`)}
+                        >
+                            <Edit size={14} />
+                            Edit Request
+                        </Button>
+                    )}
                 </div>
             </div>
 

@@ -76,7 +76,7 @@ export default function SupplierNegotiation() {
             <DataTable
                 data={filteredData || []}
                 columns={columns}
-                actions={(row) => <NegotiationRowActions row={row} onAction={handleQuoteAction} />}
+                actions={(row) => <NegotiationRowActions row={row} onAction={handleQuoteAction} onRefresh={handleRefresh} />}
                 onRowClick={(row) => handleQuoteAction(row)}
                 headerTabs={
                     <NegotiationFilterTabs
@@ -113,19 +113,17 @@ export default function SupplierNegotiation() {
                         icon={MessageSquare}
                         title={
                             startDate || endDate ? "No Negotiations Found in Selected Date Range" :
-                                activeTab === "open" ? "No Open Negotiations Found" :
-                                    activeTab === "counter" ? "No Counter Offers Pending" :
-                                        activeTab === "accepted" ? "No Accepted Offers Yet" :
-                                            activeTab === "booked" ? "No Booked Quotes Found" :
+                                activeTab === "active" ? "No Active Negotiations Found" :
+                                    activeTab === "waiting_you" ? "No Negotiations Waiting for You" :
+                                        activeTab === "waiting_customer" ? "No Negotiations Waiting for Customer" :
+                                            activeTab === "agreed" ? "No Agreed Offers Found" :
                                                 activeTab === "closed" ? "No Closed Negotiations Found" :
                                                     "No Negotiations Available"
                         }
                         description={
                             startDate || endDate
                                 ? `No negotiation threads matched the date range ${startDate || 'the start'} to ${endDate || 'the end'}.`
-                                : activeTab === "all"
-                                    ? "You have not started any price negotiations yet. Submitted quotes awaiting customer counters will appear here."
-                                    : `There are no negotiations matching the '${activeTab.toUpperCase()}' tab criteria.`
+                                : `There are no negotiations matching the "${String(activeTab).replace('_', ' ').toUpperCase()}" tab criteria.`
                         }
                     />
                 }

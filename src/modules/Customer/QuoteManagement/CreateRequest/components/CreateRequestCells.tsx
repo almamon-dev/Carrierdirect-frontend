@@ -122,24 +122,26 @@ export const PriorityBadgeCell: React.FC<{ priority: string }> = ({ priority }) 
 
 export const StatusBadgeCell: React.FC<{ status: string }> = ({ status }) => {
     const s = (status || '').toLowerCase().trim();
-    const isCompleted = s === 'completed' || s === 'accepted' || s === 'awarded' || s === 'won' || s === 'succeeded' || s === 'paid';
-    const isInProgress = s === 'in progress' || s === 'in_progress' || s === 'active' || s === 'bidding active' || s === 'negotiating';
-    const isProcessing = s === 'processing' || s === 'pending' || s === 'draft' || s === 'waiting';
-    const isCancelled = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected' || s === 'failed';
 
-    const badgeStyle = isCompleted
-        ? 'bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60'
-        : isInProgress
-            ? 'bg-[#eff6ff] dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-300 border border-[#bfdbfe] dark:border-blue-800/60'
-            : isProcessing
-                ? 'bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60'
-                : isCancelled
-                    ? 'bg-[#fef2f2] dark:bg-rose-950/40 text-[#dc2626] dark:text-rose-300 border border-[#fecaca] dark:border-rose-800/60'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
+    let badgeStyle = 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+
+    if (s === 'won' || s === 'completed' || s === 'accepted' || s === 'awarded' || s === 'paid') {
+        badgeStyle = 'bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60';
+    } else if (s === 'quotes received' || s === 'quotes_received' || s === 'quoted') {
+        badgeStyle = 'bg-[#eff6ff] dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-300 border border-[#bfdbfe] dark:border-blue-800/60';
+    } else if (s === 'negotiation' || s === 'negotiating' || s.includes('counter')) {
+        badgeStyle = 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60';
+    } else if (s === 'pending' || s === 'processing' || s === 'draft' || s === 'waiting') {
+        badgeStyle = 'bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60';
+    } else if (s === 'expired' || s === 'cancelled' || s === 'closed' || s === 'rejected' || s === 'failed') {
+        badgeStyle = 'bg-[#fef2f2] dark:bg-rose-950/40 text-[#dc2626] dark:text-rose-300 border border-[#fecaca] dark:border-rose-800/60';
+    } else if (s === 'in progress' || s === 'in_progress' || s === 'active') {
+        badgeStyle = 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60';
+    }
 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
-            <span className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap border ${badgeStyle}`}>
+            <span className={`inline-flex items-center justify-center gap-1 text-[11.5px] px-2.5 py-0.5 rounded-[4px] font-semibold whitespace-nowrap shrink-0 border ${badgeStyle}`}>
                 {status}
             </span>
         </div>

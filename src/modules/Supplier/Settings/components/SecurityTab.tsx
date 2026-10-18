@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, KeyRound, Smartphone, CheckCircle2, Monitor, LogOut } from 'lucide-react';
+import { Shield, KeyRound, Smartphone, CheckCircle2, Monitor, LogOut, Check, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Badge from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function SecurityTab() {
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
 
   const activeSessions = [
@@ -16,8 +17,12 @@ export default function SecurityTab() {
 
   const handlePasswordSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000);
+    }, 600);
   };
 
   return (
@@ -56,13 +61,22 @@ export default function SecurityTab() {
               />
             </div>
 
-            {isSaved && (
-              <div className="flex items-center pt-1.5 border-t border-slate-100 dark:border-slate-800">
-                <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+            <div className="flex items-center justify-between pt-1">
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold h-8.5 px-4 rounded-[4px] cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              >
+                {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                <span>{isSaving ? 'Updating...' : 'Update Password'}</span>
+              </Button>
+
+              {isSaved && (
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-in fade-in">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Password updated successfully
                 </span>
-              </div>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
       </form>

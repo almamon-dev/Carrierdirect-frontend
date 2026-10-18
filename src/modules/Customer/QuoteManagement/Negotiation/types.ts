@@ -47,8 +47,15 @@ export interface CustomerNegotiationItem {
     hasOrder?: boolean;
     orderId?: string | number;
     orderNumber?: string;
+    canAccept?: boolean;
+    canCounter?: boolean;
+    canDecline?: boolean;
+    canWithdraw?: boolean;
+    isMyOffer?: boolean;
+    waitingForResponse?: boolean;
     raw?: any;
     [key: string]: any;
 }
 
 export type NegotiationTab = 'active' | 'history';
+export type NegotiationFilterTab = 'all' | 'active' | 'waiting_you' | 'waiting_supplier' | 'agreed' | 'closed';

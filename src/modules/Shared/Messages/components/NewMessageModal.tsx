@@ -1,10 +1,13 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Search, Users, UserCheck } from 'lucide-react';
-import { VerifiedBadge } from '@/components/common/VerifiedBadge';
+import { X, Search, Users } from 'lucide-react';
 import { ConversationUser, ConversationPartnerItem } from '@/services/messageService';
+import { NewMessageUserCard } from './NewMessageUserCard';
+import { useNewMessageFilter, getRoleBadge } from './useNewMessageFilter';
 
-interface NewMessageModalProps {
+export { getRoleBadge };
+
+export interface NewMessageModalProps {
     isOpen: boolean;
     onClose: () => void;
     directoryUsers: ConversationUser[];
@@ -15,26 +18,6 @@ interface NewMessageModalProps {
     role?: 'supplier' | 'customer' | string;
 }
 
-const getRoleBadge = (role?: string) => {
-    const r = (role || 'user').toLowerCase();
-    if (r.includes('supplier') || r.includes('carrier')) {
-        return {
-            label: 'Carrier Partner',
-            bg: 'bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] dark:text-orange-400 border border-orange-200/60 dark:border-orange-900/40'
-        };
-    }
-    if (r.includes('customer') || r.includes('shipper')) {
-        return {
-            label: 'Verified Customer',
-            bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40'
-        };
-    }
-    return {
-        label: role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'Member',
-        bg: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-    };
-};
-
 export const NewMessageModal: React.FC<NewMessageModalProps> = ({
     isOpen,
     onClose,
@@ -42,16 +25,25 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
     conversations,
     onSelectUser,
     isLoading = false,
-    role = 'customer'
+    role = 'customer',
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const isSupplierView = role === 'supplier';
-    const isCustomerView = role === 'customer';
-    const isDriverView = role === 'driver';
+    const {
+        isSupplierView,
+        isCustomerView,
+        isDriverView,
+        existingConversationUserIds,
+        filteredUsers,
+        placeholderText,
+    } = useNewMessageFilter({
+        directoryUsers,
+        conversations,
+        searchQuery,
+        role,
+    });
 
-    // Auto-focus input when opened
     useEffect(() => {
         if (isOpen) {
             setSearchQuery('');
@@ -61,7 +53,6 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
         }
     }, [isOpen]);
 
-    // Close on Escape key
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isOpen) {
@@ -72,63 +63,10 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, onClose]);
 
-    // Existing conversation user IDs set
-    const existingConversationUserIds = useMemo(() => {
-        return new Set(conversations.map(c => String(c.user?.id)));
-    }, [conversations]);
-
-    // Clean, backend-powered filtered list with role-aware separation
-    const filteredUsers = useMemo(() => {
-        if (!directoryUsers || !directoryUsers.length) return [];
-
-        let list = directoryUsers;
-
-        // Ensure proper role separation:
-        // Customer view: only show suppliers / carriers
-        // Supplier view: only show customers / shippers
-        if (isCustomerView) {
-            list = list.filter(u => {
-                const ut = (u.user_type || '').toLowerCase();
-                return ut.includes('supplier') || ut.includes('carrier') || (!ut.includes('customer') && !ut.includes('shipper') && !ut.includes('admin'));
-            });
-        } else if (isSupplierView) {
-            list = list.filter(u => {
-                const ut = (u.user_type || '').toLowerCase();
-                return ut.includes('customer') || ut.includes('shipper') || (!ut.includes('supplier') && !ut.includes('carrier') && !ut.includes('admin'));
-            });
-        } else if (isDriverView) {
-            // Driver can chat with customers & suppliers from assigned orders
-            list = directoryUsers;
-        }
-
-        const q = searchQuery.trim().toLowerCase();
-        if (!q) return list;
-
-        return list.filter(u => {
-            const name = (u.name || '').toLowerCase();
-            const company = (u.company_name || '').toLowerCase();
-            const email = (u.email || '').toLowerCase();
-            const orderNumbers = Array.isArray((u as any).order_numbers)
-                ? (u as any).order_numbers.join(' ').toLowerCase()
-                : '';
-            const roleName = ((u as any).role || '').toLowerCase();
-            return name.includes(q) || company.includes(q) || email.includes(q) || orderNumbers.includes(q) || roleName.includes(q);
-        });
-    }, [directoryUsers, searchQuery, isCustomerView, isSupplierView]);
-
     if (!isOpen) return null;
-
-    const placeholderText = isSupplierView
-        ? 'Search customer by name, company, email'
-        : isCustomerView
-            ? 'Search carrier/supplier by name, company'
-            : isDriverView
-                ? 'Search customer by name or order'
-                : 'Search contacts';
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150" onClick={onClose}>
-            {/* Modal Card - Compact */}
             <div
                 className="w-full max-w-md bg-white dark:bg-[#12161c] rounded-md shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-150"
                 onClick={(e) => e.stopPropagation()}
@@ -158,7 +96,7 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                     </button>
                 </div>
 
-                {/* Counter Badge Subheader */}
+                {/* Subheader */}
                 <div className="px-4 py-1.5 bg-slate-50/60 dark:bg-[#161b22] border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
                     <span className="font-medium text-slate-600 dark:text-slate-300">
                         {isSupplierView ? 'Verified Customers' : isCustomerView ? 'Verified Suppliers & Carriers' : isDriverView ? 'Contacts from Assigned Orders' : 'Available Contacts'}
@@ -170,7 +108,6 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
 
                 {/* Body Content */}
                 <div className="p-3.5 space-y-2.5 max-h-[55vh] overflow-y-auto">
-                    {/* Search Input - Same rounded pill design as Sidebar */}
                     <div className="relative">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                         <input
@@ -192,7 +129,6 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                         )}
                     </div>
 
-                    {/* User Cards List */}
                     <div className="space-y-1">
                         {isLoading && directoryUsers.length === 0 ? (
                             <div className="p-6 text-center text-xs text-slate-400 space-y-1.5">
@@ -208,93 +144,17 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({
                                 </p>
                             </div>
                         ) : (
-                            filteredUsers.map((user) => {
-                                const displayName = user.company_name || user.name || 'User';
-                                const isVerified = Boolean(user.is_verified ?? (user as any).email_verified_at);
-                                const hasExistingChat = existingConversationUserIds.has(String(user.id));
-
-                                return (
-                                    <div
-                                        key={user.id}
-                                        onClick={() => {
-                                            onClose();
-                                            onSelectUser(user);
-                                        }}
-                                        className="p-2 hover:bg-slate-100/80 dark:hover:bg-[#181d24] rounded-lg transition-colors cursor-pointer flex items-center justify-between gap-2.5"
-                                    >
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            {/* Avatar */}
-                                            <div className="relative shrink-0 w-8 h-8">
-                                                {user.avatar ? (
-                                                    <img
-                                                        src={user.avatar}
-                                                        alt={displayName}
-                                                        className="w-8 h-8 rounded-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className={`w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ${(user.user_type || '').toLowerCase().includes('supplier')
-                                                        ? 'bg-orange-100/80 dark:bg-orange-950/60 text-[#FF4A1F]'
-                                                        : 'bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
-                                                        }`}>
-                                                        {displayName.charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
-                                                <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#12161c]" />
-                                            </div>
-
-                                            {/* Info */}
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                                                    <span className="font-semibold text-[12.5px] text-slate-900 dark:text-slate-100 truncate">
-                                                        {displayName}
-                                                    </span>
-                                                    {isVerified && <VerifiedBadge size={13} />}
-                                                    {(user as any).role && (
-                                                        <span className={`text-[9.5px] font-semibold px-1.5 py-0.2 rounded ${String((user as any).role).includes('Carrier') || String((user as any).role).includes('Supplier')
-                                                            ? 'bg-orange-50 dark:bg-orange-950/60 text-[#ff4a1f] border border-orange-200/60'
-                                                            : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60'
-                                                            }`}>
-                                                            {(user as any).role}
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                {/* Assigned Order Numbers if any */}
-                                                {(user as any).order_numbers && (user as any).order_numbers.length > 0 ? (
-                                                    <div className="flex items-center gap-1 mt-1 flex-wrap">
-                                                        <span className="text-[10px] text-slate-400 font-medium">Order:</span>
-                                                        {(user as any).order_numbers.map((on: string) => (
-                                                            <span
-                                                                key={on}
-                                                                className="font-mono font-bold text-[10px] text-[#ff4a1f] bg-orange-50/80 dark:bg-orange-950/40 px-1.5 py-0.2 rounded border border-orange-200/50 dark:border-orange-900/40"
-                                                            >
-                                                                #{on}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="text-[10.5px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-1.5">
-                                                        <span className="font-mono text-[10px]">#CD-{String(user.id).padStart(4, '0')}</span>
-                                                        <span>•</span>
-                                                        <span>Verified Partner</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Status */}
-                                        {hasExistingChat ? (
-                                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full shrink-0">
-                                                Active Chat
-                                            </span>
-                                        ) : (
-                                            <span className="text-[10px] font-semibold text-[#ff4a1f] bg-orange-50 dark:bg-[#ff4a1f]/10 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1">
-                                                <UserCheck size={11} /> Start
-                                            </span>
-                                        )}
-                                    </div>
-                                );
-                            })
+                            filteredUsers.map((user) => (
+                                <NewMessageUserCard
+                                    key={user.id}
+                                    user={user}
+                                    hasExistingChat={existingConversationUserIds.has(String(user.id))}
+                                    onSelect={(selected) => {
+                                        onClose();
+                                        onSelectUser(selected);
+                                    }}
+                                />
+                            ))
                         )}
                     </div>
                 </div>

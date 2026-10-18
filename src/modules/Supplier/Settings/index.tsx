@@ -1,7 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Building2, CreditCard, Bell, Shield, Save } from 'lucide-react';
-import Button from '@/components/ui/button';
+import { Building2, CreditCard, Bell, Shield } from 'lucide-react';
 import CompanyProfileTab from './components/CompanyProfileTab';
 import PayoutStripeTab from './components/PayoutStripeTab';
 import NotificationsTab from './components/NotificationsTab';
@@ -13,13 +12,6 @@ const SUPPLIER_SETTINGS_TABS = [
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'security', label: 'Security & 2FA', icon: Shield },
 ];
-
-const FORM_MAP: Record<string, { formId: string; label: string }> = {
-  profile: { formId: 'supplier-profile-form', label: 'Save Profile' },
-  payouts: { formId: 'supplier-payouts-form', label: 'Save Preferences' },
-  notifications: { formId: 'supplier-notifications-form', label: 'Save Alerts' },
-  security: { formId: 'supplier-security-form', label: 'Update Password' },
-};
 
 export default function SupplierSettings() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -44,18 +36,6 @@ export default function SupplierSettings() {
             Manage your carrier business identity, payouts, notifications, and security.
           </p>
         </div>
-
-        {FORM_MAP[activeTab] && (
-          <Button
-            type="submit"
-            form={FORM_MAP[activeTab].formId}
-            variant="primary"
-            className="h-8 text-xs px-3.5 bg-[#ff4a1f] hover:bg-[#e63d15] font-bold text-white shadow-2xs cursor-pointer rounded-[4px] flex items-center gap-1.5 shrink-0 self-start sm:self-center transition-all"
-          >
-            <Save size={13} />
-            <span>{FORM_MAP[activeTab].label}</span>
-          </Button>
-        )}
       </div>
 
       {/* Navigation Tabs - Flush Underline */}

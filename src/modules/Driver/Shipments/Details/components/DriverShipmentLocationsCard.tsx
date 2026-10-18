@@ -1,10 +1,19 @@
 import React from 'react';
-import { MapPin, Calendar, Building, Info } from 'lucide-react';
+import { MapPin, Calendar } from 'lucide-react';
 import { ShipmentItem } from '../../../types';
 
 interface Props {
     shipment: ShipmentItem;
 }
+
+const formatSingleTime = (timeStr?: string, fallback = '08:00 AM') => {
+    if (!timeStr) return fallback;
+    const clean = timeStr.trim();
+    if (clean.includes('-')) {
+        return clean.split('-')[0].trim();
+    }
+    return clean;
+};
 
 export const DriverShipmentLocationsCard: React.FC<Props> = ({ shipment }) => {
     return (
@@ -29,7 +38,7 @@ export const DriverShipmentLocationsCard: React.FC<Props> = ({ shipment }) => {
                     <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800/80">
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-blue-500 ring-4 ring-blue-50 dark:ring-blue-950/40 shrink-0" />
-                            <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                            <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
                                 Pickup Shipper Facility
                             </span>
                         </div>
@@ -53,9 +62,9 @@ export const DriverShipmentLocationsCard: React.FC<Props> = ({ shipment }) => {
                         </div>
 
                         <div className="grid grid-cols-[130px_14px_1fr] items-start min-w-0">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Pickup Window</span>
+                            <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Pickup Time</span>
                             <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
-                            <span className="font-bold text-slate-900 dark:text-slate-100">{shipment.shipper.pickupTimeWindow}</span>
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{formatSingleTime(shipment.shipper.pickupTimeWindow, '08:00 AM')}</span>
                         </div>
 
                         {shipment.shipper.notes && (
@@ -73,7 +82,7 @@ export const DriverShipmentLocationsCard: React.FC<Props> = ({ shipment }) => {
                     <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800/80">
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#FF4A1F] ring-4 ring-orange-50 dark:ring-orange-950/40 shrink-0" />
-                            <span className="text-[11px] font-bold text-[#FF4A1F] uppercase tracking-wider">
+                            <span className="text-[11px] font-bold text-[#FF4A1F]">
                                 Delivery Consignee (Final)
                             </span>
                         </div>
@@ -97,9 +106,9 @@ export const DriverShipmentLocationsCard: React.FC<Props> = ({ shipment }) => {
                         </div>
 
                         <div className="grid grid-cols-[130px_14px_1fr] items-start min-w-0">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Delivery ETA</span>
+                            <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Delivery Time</span>
                             <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{shipment.consignee.deliveryTimeWindow}</span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatSingleTime(shipment.consignee.deliveryTimeWindow, '12:00 PM')}</span>
                         </div>
 
                         {shipment.consignee.notes && (

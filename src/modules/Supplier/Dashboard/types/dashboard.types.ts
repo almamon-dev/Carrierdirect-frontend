@@ -10,6 +10,7 @@ export interface DashboardProfile {
     business_address?: string;
     rating?: string | number;
     average_rating?: string | number;
+    reviews_count?: number;
     total_earnings?: number | string;
 }
 
@@ -39,9 +40,17 @@ export interface NotificationItem {
 
 export interface FinanceSummary {
     total_earnings?: number | string;
+    lifetime_earnings?: number | string;
     withdrawable_balance?: number | string;
     available_balance?: number | string;
     pending_payouts?: number | string;
+    stats?: {
+        total_earnings?: number | string;
+        available_balance?: number | string;
+        escrow_balance?: number | string;
+        [key: string]: any;
+    };
+    [key: string]: any;
 }
 
 export type TimeFilter = '30_days' | '3_months' | 'this_year';

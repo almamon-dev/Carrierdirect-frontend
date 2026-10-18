@@ -12,7 +12,7 @@ export default function DriverDashboard() {
         const fetchOrders = async () => {
             try {
                 const res = await apiClient.get('/supplier/orders');
-                const list = res.data?.data || res.data || [];
+                const list = (Array.isArray(res?.data?.orders) && res.data.orders) || (Array.isArray(res?.data?.data?.orders) && res.data.data.orders) || (Array.isArray(res?.data?.data) && res.data.data) || (Array.isArray(res?.orders) && res.orders) || (Array.isArray(res?.data) && res.data) || [];
                 setOrders(Array.isArray(list) ? list : []);
             } catch (err) {
                 console.error('Failed to load driver orders:', err);

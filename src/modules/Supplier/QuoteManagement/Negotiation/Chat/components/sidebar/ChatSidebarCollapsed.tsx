@@ -2,18 +2,18 @@ import Button from '@/components/ui/button';
 import { ArrowLeft, PanelLeftOpen, Pin, Search } from 'lucide-react';
 import React from 'react';
 import { NegotiationItem } from '../../../types';
-import { ChatMessage } from '../../types';
+import { ChatMessage, NegotiationFilterTab } from '../../types';
 
 interface ChatSidebarCollapsedProps {
     filteredChats: NegotiationItem[];
-    activeNegotiation: NegotiationItem;
+    activeNegotiation: NegotiationItem | null;
     pinnedChatIds: Record<string | number, boolean>;
     readChatIds: Record<string | number, boolean>;
     chatMessages: Record<string | number, ChatMessage[]>;
     liveOffers: Record<string | number, number>;
     totalUnread: number;
     onToggleCollapse: () => void;
-    setFilterTab: (t: 'all' | 'unread') => void;
+    setFilterTab: (t: NegotiationFilterTab) => void;
     handleSelectChat: (item: NegotiationItem) => void;
     onNavigateBack: () => void;
 }
@@ -27,7 +27,7 @@ export const ChatSidebarCollapsed: React.FC<ChatSidebarCollapsedProps> = ({
     liveOffers,
     totalUnread,
     onToggleCollapse,
-    setFilterTab,
+    setFilterTab: _setFilterTab,
     handleSelectChat,
     onNavigateBack,
 }) => {
@@ -68,9 +68,9 @@ export const ChatSidebarCollapsed: React.FC<ChatSidebarCollapsedProps> = ({
             {/* Avatars List */}
             <div className="flex-1 overflow-y-auto py-2 flex flex-col items-center gap-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {filteredChats.map((item) => {
-                    const isActive = item.rawId === activeNegotiation.rawId;
-                    const isPinned = pinnedChatIds[item.rawId];
-                    const isUnread = !readChatIds[item.rawId] && (item.unreadCount || 0) > 0;
+                    const isActive = (item.customer || '').trim().toLowerCase() === (activeNegotiation?.customer || '').trim().toLowerCase() || String(item.rawId) === String(activeNegotiation?.rawId);
+                    const isPinned = Boolean((item as any).groupIsPinned || pinnedChatIds[item.rawId]);
+                    const isUnread = Boolean(!isActive && ((item as any).groupHasUnread || (!readChatIds[item.rawId] && (item.unreadCount || 0) > 0)));
                     const threadMsgs = chatMessages[item.rawId] || [];
                     const lastMsg = threadMsgs[threadMsgs.length - 1];
                     const previewText = lastMsg ? lastMsg.text : `Quote Offer ${item.budget}`;

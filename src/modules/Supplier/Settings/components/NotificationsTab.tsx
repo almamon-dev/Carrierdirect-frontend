@@ -1,20 +1,43 @@
 import React, { useState, useEffect } from "react";
-import { Bell, Mail, MessageSquare, Smartphone, CheckCircle2, Zap, Loader2, Check, CreditCard } from "lucide-react";
+import {
+  Bell,
+  Mail,
+  MessageSquare,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  Loader2,
+  Check,
+  CreditCard,
+  FileCheck,
+} from "lucide-react";
 import Switch from "@/components/ui/switch";
 import Button from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { RFQAlertsCard } from "./RFQAlertsCard";
 import { useToastStore } from "@/stores/useToastStore";
 import apiClient from "@/lib/axios";
+import {
+  isWebPushSupported,
+  getPushPermissionState,
+  subscribeToWebPush,
+} from "@/lib/webpush";
 
-const defaultSupplierSettings = {
+interface SupplierNotificationSettings {
+  newRfqEmail: boolean;
+  newRfqPush: boolean;
+  counterOfferEmail: boolean;
+  counterOfferPush: boolean;
+  bookingConfirmedEmail: boolean;
+  payoutDisbursedEmail: boolean;
+}
+
+const defaultSupplierSettings: SupplierNotificationSettings = {
   newRfqEmail: true,
-  newRfqSms: false,
   newRfqPush: true,
   counterOfferEmail: true,
   counterOfferPush: true,
-  bookingConfirmedSms: true,
   bookingConfirmedEmail: true,
-  instantAutoQuoteAlerts: false,
   payoutDisbursedEmail: true,
 };
 
@@ -23,10 +46,15 @@ export default function NotificationsTab() {
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPushSupported, setIsPushSupported] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | 'unsupported'>('default');
+  const [isSubscribingPush, setIsSubscribingPush] = useState(false);
 
-  const [settings, setSettings] = useState(defaultSupplierSettings);
+  const [settings, setSettings] = useState<SupplierNotificationSettings>(defaultSupplierSettings);
 
   useEffect(() => {
+    setIsPushSupported(isWebPushSupported());
+    setPushPermission(getPushPermissionState());
     fetchSettings();
   }, []);
 
@@ -35,8 +63,15 @@ export default function NotificationsTab() {
       setIsLoading(true);
       const res = await apiClient.get("/supplier/notification-settings");
       const d = res?.data?.data?.settings || res?.data?.settings || res?.settings;
-      if (d) {
-        setSettings({ ...defaultSupplierSettings, ...d });
+      if (d && typeof d === 'object') {
+        setSettings({
+          newRfqEmail: d.newRfqEmail ?? defaultSupplierSettings.newRfqEmail,
+          newRfqPush: d.newRfqPush ?? defaultSupplierSettings.newRfqPush,
+          counterOfferEmail: d.counterOfferEmail ?? defaultSupplierSettings.counterOfferEmail,
+          counterOfferPush: d.counterOfferPush ?? defaultSupplierSettings.counterOfferPush,
+          bookingConfirmedEmail: d.bookingConfirmedEmail ?? defaultSupplierSettings.bookingConfirmedEmail,
+          payoutDisbursedEmail: d.payoutDisbursedEmail ?? defaultSupplierSettings.payoutDisbursedEmail,
+        });
       }
     } catch {
       setSettings(defaultSupplierSettings);
@@ -45,8 +80,49 @@ export default function NotificationsTab() {
     }
   };
 
-  const toggleSetting = (key: keyof typeof settings) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleSetting = async (key: keyof SupplierNotificationSettings) => {
+    const nextVal = !settings[key];
+
+    // If enabling a push channel, ensure browser notification permission
+    if ((key === 'newRfqPush' || key === 'counterOfferPush') && nextVal) {
+      if (!isPushSupported) {
+        showToast("Web Push is not supported in this browser.", "error");
+        return;
+      }
+
+      if (Notification.permission !== 'granted') {
+        setIsSubscribingPush(true);
+        const res = await subscribeToWebPush();
+        setIsSubscribingPush(false);
+        setPushPermission(getPushPermissionState());
+
+        if (!res.success) {
+          showToast(res.message || "Failed to enable Web Push", "error");
+          return;
+        }
+        showToast("Web Push notifications enabled for your browser!", "success");
+      }
+    }
+
+    setSettings((prev) => ({ ...prev, [key]: nextVal }));
+  };
+
+  const handleEnableGlobalPush = async () => {
+    setIsSubscribingPush(true);
+    const res = await subscribeToWebPush();
+    setIsSubscribingPush(false);
+    setPushPermission(getPushPermissionState());
+
+    if (res.success) {
+      setSettings((prev) => ({
+        ...prev,
+        newRfqPush: true,
+        counterOfferPush: true,
+      }));
+      showToast("Browser notifications enabled!", "success");
+    } else {
+      showToast(res.message || "Failed to enable notifications.", "error");
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -75,77 +151,78 @@ export default function NotificationsTab() {
   }
 
   return (
-    <form id="supplier-notifications-form" onSubmit={handleSave} className="space-y-3 font-sans antialiased w-full">
+    <form id="supplier-notifications-form" onSubmit={handleSave} className="space-y-4 font-sans antialiased w-full">
       
+      {/* Web Push Status Banner */}
+      {isPushSupported && (
+        <div className="p-3.5 rounded-[4px] bg-white dark:bg-[#181a20] border border-slate-200 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <div className="p-1.5 rounded-md bg-[#ff4a1f]/10 text-[#ff4a1f] mt-0.5 sm:mt-0">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                  Dispatcher Desktop Web Push
+                </h4>
+                {pushPermission === "granted" ? (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle2 className="w-3 h-3" /> Active
+                  </span>
+                ) : pushPermission === "denied" ? (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400">
+                    <AlertCircle className="w-3 h-3" /> Blocked in Browser
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
+                    Ready to Enable
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                Receive instant sound & popup alerts on new RFQs and counter offers even when your dispatch browser tab is minimized.
+              </p>
+            </div>
+          </div>
+
+          {pushPermission !== "granted" && (
+            <Button
+              type="button"
+              onClick={handleEnableGlobalPush}
+              isLoading={isSubscribingPush}
+              disabled={isSubscribingPush || pushPermission === "denied"}
+              className="h-8 px-3 text-xs font-bold rounded bg-[#ff4a1f] hover:bg-[#e03e15] text-white shrink-0 cursor-pointer shadow-2xs"
+            >
+              <Bell className="w-3.5 h-3.5 mr-1" />
+              Enable Web Push
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* RFQ & Quote Request Alerts */}
-      <Card className="shadow-2xs border-slate-200 dark:border-slate-800 rounded-[4px] bg-white dark:bg-[#181a20]">
-        <CardHeader className="py-2.5 px-3.5 sm:px-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-[#151921] rounded-t-[4px] flex flex-row items-center justify-between">
-          <CardTitle className="text-xs font-bold flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
-            <Zap className="w-3.5 h-3.5 text-[#ff4a1f]" />
-            New RFQ & Instant Quote Request Alerts
-          </CardTitle>
-          {isSaving && <Loader2 className="w-3.5 h-3.5 text-[#ff4a1f] animate-spin" />}
-        </CardHeader>
-        <CardContent className="p-3.5 sm:p-4 space-y-2">
-          <div className="flex items-center justify-between p-2.5 bg-slate-50/80 dark:bg-[#14181f] rounded-[3px] border border-slate-200/70 dark:border-slate-800">
-            <div className="flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-[#ff4a1f] shrink-0" />
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Email Notifications for New RFQs</h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Immediate email when a shipper requests freight quotes on your matching routes.</p>
-              </div>
-            </div>
-            <Switch 
-              checked={!!settings.newRfqEmail} 
-              onCheckedChange={() => toggleSetting("newRfqEmail")} 
-            />
-          </div>
+      <RFQAlertsCard 
+        settings={settings} 
+        isSaving={isSaving} 
+        toggleSetting={toggleSetting} 
+      />
 
-          <div className="flex items-center justify-between p-2.5 bg-slate-50/80 dark:bg-[#14181f] rounded-[3px] border border-slate-200/70 dark:border-slate-800">
-            <div className="flex items-center gap-2.5">
-              <Smartphone className="w-4 h-4 text-[#ff4a1f] shrink-0" />
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">SMS Dispatch Hotline Alerts</h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">SMS text message for urgent high-priority freight bookings (&gt; €5,000).</p>
-              </div>
-            </div>
-            <Switch 
-              checked={!!settings.newRfqSms} 
-              onCheckedChange={() => toggleSetting("newRfqSms")} 
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-2.5 bg-slate-50/80 dark:bg-[#14181f] rounded-[3px] border border-slate-200/70 dark:border-slate-800">
-            <div className="flex items-center gap-2.5">
-              <Bell className="w-4 h-4 text-[#ff4a1f] shrink-0" />
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Browser Web Push Notifications</h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Real-time desktop alerts when working in your dispatch portal.</p>
-              </div>
-            </div>
-            <Switch 
-              checked={!!settings.newRfqPush} 
-              onCheckedChange={() => toggleSetting("newRfqPush")} 
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Negotiation & Order Alerts */}
+      {/* Negotiation & Live Chat Alerts */}
       <Card className="shadow-2xs border-slate-200 dark:border-slate-800 rounded-[4px] bg-white dark:bg-[#181a20]">
         <CardHeader className="py-2.5 px-3.5 sm:px-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-[#151921] rounded-t-[4px]">
           <CardTitle className="text-xs font-bold flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
             <MessageSquare className="w-3.5 h-3.5 text-[#ff4a1f]" />
-            Negotiation, Booking & Payout Alerts
+            Negotiation & Live Chat Alerts
           </CardTitle>
         </CardHeader>
         <CardContent className="p-3.5 sm:p-4 space-y-2">
+          {/* Counter Offer Email */}
           <div className="flex items-center justify-between p-2.5 bg-slate-50/80 dark:bg-[#14181f] rounded-[3px] border border-slate-200/70 dark:border-slate-800">
             <div className="flex items-center gap-2.5">
-              <MessageSquare className="w-4 h-4 text-[#ff4a1f] shrink-0" />
+              <Mail className="w-4 h-4 text-[#ff4a1f] shrink-0" />
               <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Counter Offer Chat Messages</h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Instant notification when a customer counters your quote in live chat.</p>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Email for Counter Offer Chats</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Receive an email when a customer submits a counter offer on your quote.</p>
               </div>
             </div>
             <Switch 
@@ -154,12 +231,39 @@ export default function NotificationsTab() {
             />
           </div>
 
+          {/* Counter Offer Web Push */}
+          <div className="flex items-center justify-between p-2.5 bg-slate-50/80 dark:bg-[#14181f] rounded-[3px] border border-slate-200/70 dark:border-slate-800">
+            <div className="flex items-center gap-2.5">
+              <Bell className="w-4 h-4 text-[#ff4a1f] shrink-0" />
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Instant Desktop Web Push for Chat</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Instant browser alert when a customer counters or sends a live negotiation message.</p>
+              </div>
+            </div>
+            <Switch 
+              checked={!!settings.counterOfferPush} 
+              onCheckedChange={() => toggleSetting("counterOfferPush")} 
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Booking & Financial Alerts */}
+      <Card className="shadow-2xs border-slate-200 dark:border-slate-800 rounded-[4px] bg-white dark:bg-[#181a20]">
+        <CardHeader className="py-2.5 px-3.5 sm:px-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-[#151921] rounded-t-[4px]">
+          <CardTitle className="text-xs font-bold flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
+            <FileCheck className="w-3.5 h-3.5 text-[#ff4a1f]" />
+            Booking Confirmation & Payout Alerts
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3.5 sm:p-4 space-y-2">
+          {/* Booking Confirmation Email */}
           <div className="flex items-center justify-between p-2.5 bg-slate-50/80 dark:bg-[#14181f] rounded-[3px] border border-slate-200/70 dark:border-slate-800">
             <div className="flex items-center gap-2.5">
               <CheckCircle2 className="w-4 h-4 text-[#ff4a1f] shrink-0" />
               <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Booking Confirmation Alerts</h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Notify primary dispatcher when an order is accepted and driver assignment is ready.</p>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Order Booking Confirmation</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Notify primary dispatcher when an order is officially accepted and driver assignment is ready.</p>
               </div>
             </div>
             <Switch 
@@ -168,12 +272,13 @@ export default function NotificationsTab() {
             />
           </div>
 
+          {/* Payout Email */}
           <div className="flex items-center justify-between p-2.5 bg-slate-50/80 dark:bg-[#14181f] rounded-[3px] border border-slate-200/70 dark:border-slate-800">
             <div className="flex items-center gap-2.5">
               <CreditCard className="w-4 h-4 text-[#ff4a1f] shrink-0" />
               <div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Payout Disbursement Notices</h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Receive email receipts when Stripe transfers earnings to your bank account.</p>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Payout & Wallet Settlement Notices</h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Receive email confirmations when escrow funds or earnings are credited to your balance.</p>
               </div>
             </div>
             <Switch 

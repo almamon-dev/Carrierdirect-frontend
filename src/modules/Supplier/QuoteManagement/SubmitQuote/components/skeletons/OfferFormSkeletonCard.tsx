@@ -1,10 +1,10 @@
-import React from 'react';
 import Skeleton from '@/components/ui/skeleton';
+import React from 'react';
 
 export const OfferFormSkeletonCard: React.FC = () => {
     return (
         <div
-    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg p-3.5 sm:p-4 space-y-3 shadow-2xs">
+            className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3.5 sm:p-4 space-y-3 shadow-2xs">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-1.5">
                     <Skeleton className="h-4 w-4 rounded-[2px]" />
@@ -30,7 +30,7 @@ export const OfferFormSkeletonCard: React.FC = () => {
             </div>
 
             <div
-    className="p-3 bg-slate-50/80 dark:bg-[#181d24]/60 rounded-lg border border-slate-200/80 dark:border-slate-800 space-y-2">
+                className="p-3 bg-slate-50/80 dark:bg-[#181d24]/60 rounded-lg border border-slate-200/80 dark:border-slate-800 space-y-2">
                 <div className="flex justify-between">
                     <Skeleton className="h-3 w-20 rounded-[2px]" />
                     <Skeleton className="h-3 w-12 rounded-[2px]" />

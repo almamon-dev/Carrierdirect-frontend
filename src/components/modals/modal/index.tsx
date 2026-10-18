@@ -29,17 +29,24 @@ export default function Modal({
   closeOnOutsideClick = true,
 }: ModalProps) {
   
-  // Prevent body scroll when modal is open
+  // Handle Escape key and prevent body scroll when modal is open
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
     } else {
       document.body.style.overflow = 'unset';
     }
     return () => {
       document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -59,7 +66,7 @@ export default function Modal({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2.5 xs:p-4 sm:p-6">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
@@ -77,8 +84,7 @@ export default function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div
-    className="flex items-start justify-between px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/60 shrink-0">
+          <div className="flex items-start justify-between px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/60 shrink-0">
             <div className="flex-1">
               {typeof title === 'string' ? (
                 <>
@@ -103,14 +109,13 @@ export default function Modal({
         )}
         
         {/* Body */}
-        <div className="p-5 overflow-y-auto flex-1 custom-scrollbar">
+        <div className="p-3.5 sm:p-5 overflow-y-auto flex-1 custom-scrollbar">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div
-    className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#181d24] shrink-0 flex items-center justify-end gap-3 rounded-b-[5px]">
+          <div className="px-4 sm:px-5 py-2.5 sm:py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#181d24] shrink-0 flex items-center justify-end gap-2.5 sm:gap-3 rounded-b-[5px] flex-wrap sm:flex-nowrap">
             {footer}
           </div>
         )}

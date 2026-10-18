@@ -8,7 +8,7 @@ import { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import { HeaderNotification } from '@/hooks/useHeaderNotifications';
 import { 
-    FileText, Truck, MessageSquare, Euro, AlertTriangle, Clock
+    FileText, Truck, MessageSquare, Landmark, AlertTriangle, Clock
 } from 'lucide-react';
 
 export const getCategoryConfig = (type: string) => {
@@ -23,7 +23,7 @@ export const getCategoryConfig = (type: string) => {
         return { icon: MessageSquare, bg: 'bg-purple-50 dark:bg-purple-950/40', text: 'text-purple-600 dark:text-purple-400', label: 'Message' };
     }
     if (t.includes('finance')) {
-        return { icon: Euro, bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', label: 'Finance' };
+        return { icon: Landmark, bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', label: 'Finance' };
     }
     return { icon: AlertTriangle, bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-600 dark:text-amber-400', label: 'System' };
 };

@@ -62,7 +62,7 @@ export default function CustomerNegotiation() {
 
     return (
         <div
-    className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+            className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
@@ -87,7 +87,7 @@ export default function CustomerNegotiation() {
             <DataTable
                 data={filteredData || []}
                 columns={columns}
-                actions={(row) => <NegotiationRowActions row={row} onQuoteAction={handleQuoteAction} />}
+                actions={(row) => <NegotiationRowActions row={row} onQuoteAction={handleQuoteAction} onRefresh={handleRefresh} />}
                 headerTabs={
                     <NegotiationFilterTabs
                         negotiations={negotiations}

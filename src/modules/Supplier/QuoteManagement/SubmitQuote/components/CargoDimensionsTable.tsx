@@ -1,5 +1,5 @@
-import React from 'react';
 import { Layers } from 'lucide-react';
+import React from 'react';
 import { DimensionsItem } from '../../data/quoteRequestsData';
 
 export const CargoDimensionsTable: React.FC<{ dimensionsList: DimensionsItem[] }> = ({ dimensionsList }) => (
@@ -9,10 +9,10 @@ export const CargoDimensionsTable: React.FC<{ dimensionsList: DimensionsItem[] }
                 <Layers size={12.5} className="text-slate-400" /> Cargo Dimensions
             </h4>
             <span className="text-[11px] text-slate-400 font-normal">
-                {dimensionsList.length} item{dimensionsList.length > 1 ? 's' : ''}
+                {dimensionsList.reduce((acc, dim) => acc + (parseInt(String(dim.qty), 10) || 1), 0)} item{dimensionsList.reduce((acc, dim) => acc + (parseInt(String(dim.qty), 10) || 1), 0) > 1 ? 's' : ''}
             </span>
         </div>
-        <div className="border border-slate-200/90 dark:border-slate-800 rounded-lg overflow-x-auto hide-scrollbar no-scrollbar">
+        <div className="border border-slate-200/90 dark:border-slate-800 rounded-[3px] overflow-x-auto hide-scrollbar no-scrollbar">
             <table className="w-full text-xs">
                 <thead>
                     <tr className="border-b border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-[#181d24] text-slate-500 dark:text-slate-400 font-medium text-[11px]">

@@ -51,8 +51,21 @@ export interface NegotiationItem {
     orderStatus?: string;
     isPaid?: boolean;
     hasOrder?: boolean;
+    isCompleted?: boolean;
+    isBooked?: boolean;
+    order_status?: string;
+    podStatus?: string;
+    pod_status?: string;
     invoice?: any;
     order?: any;
+    can_accept?: boolean;
+    can_counter?: boolean;
+    can_decline?: boolean;
+    can_withdraw?: boolean;
+    is_my_offer?: boolean;
+    waiting_for_response?: boolean;
+    [key: string]: any;
 }
 
 export type NegotiationTab = 'active' | 'history';
+export type NegotiationFilterTab = 'all' | 'active' | 'waiting_you' | 'waiting_customer' | 'agreed' | 'closed';

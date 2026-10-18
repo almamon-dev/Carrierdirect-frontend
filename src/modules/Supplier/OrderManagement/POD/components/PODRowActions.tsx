@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Upload, MoreVertical, RotateCcw } from 'lucide-react';
-import Button from '@/components/ui/button';
+import { MoreVertical } from 'lucide-react';
 import { PODOrderItem } from '../types';
 import PODActionsMenu from './PODActionsMenu';
 
@@ -21,9 +20,6 @@ export const PODRowActions: React.FC<PODRowActionsProps> = ({
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const [copied, setCopied] = useState(false);
     const buttonRef = useRef<HTMLButtonElement | null>(null);
-
-    const hasPod = row.has_pod;
-    const isRejected = row.pod_status === 'Rejected';
 
     const handleOpenMenu = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -68,40 +64,7 @@ export const PODRowActions: React.FC<PODRowActionsProps> = ({
     };
 
     return (
-        <div className="flex items-center justify-end gap-1.5 font-sans" onClick={(e) => e.stopPropagation()}>
-            {/* Inline Quick Action Button */}
-            {hasPod && !isRejected ? (
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onPreviewPOD(row)}
-                    className="h-7 px-2.5 text-xs font-semibold flex items-center gap-1 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
-                >
-                    <Eye size={13} className="text-slate-500" />
-                    <span>Preview</span>
-                </Button>
-            ) : isRejected ? (
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onUploadPOD(row)}
-                    className="h-7 px-2.5 text-xs font-bold flex items-center gap-1 cursor-pointer text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
-                >
-                    <RotateCcw size={13} />
-                    <span>Re-upload</span>
-                </Button>
-            ) : (
-                <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => onUploadPOD(row)}
-                    className="h-7 px-2.5 text-xs font-bold flex items-center gap-1 cursor-pointer bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-2xs"
-                >
-                    <Upload size={13} />
-                    <span>Upload</span>
-                </Button>
-            )}
-
+        <div className="flex items-center justify-end font-sans" onClick={(e) => e.stopPropagation()}>
             {/* 3-Dots More Options Button */}
             <button
                 ref={buttonRef}
@@ -110,7 +73,7 @@ export const PODRowActions: React.FC<PODRowActionsProps> = ({
                 className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                 title="More actions"
             >
-                <MoreVertical size={15} />
+                <MoreVertical size={16} />
             </button>
 
             {/* Popup Menu */}

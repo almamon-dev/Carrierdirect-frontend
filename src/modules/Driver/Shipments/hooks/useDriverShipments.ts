@@ -21,6 +21,18 @@ export function useDriverShipments() {
 
     useEffect(() => {
         loadShipments();
+
+        const handleRealtimeUpdate = () => {
+            loadShipments();
+        };
+
+        window.addEventListener("driver-shipment-updated", handleRealtimeUpdate);
+        window.addEventListener("order-status-updated", handleRealtimeUpdate);
+
+        return () => {
+            window.removeEventListener("driver-shipment-updated", handleRealtimeUpdate);
+            window.removeEventListener("order-status-updated", handleRealtimeUpdate);
+        };
     }, []);
 
     const filteredShipments = useMemo(() => {

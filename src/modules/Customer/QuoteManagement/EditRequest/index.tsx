@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2, Save, Loader2 } from 'lucide-react';
+import { FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2, Save } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Button from '@/components/ui/button';
 import { decryptQuoteId, buildSecureQuoteUrl } from '@/utils/urlSecurity';
@@ -62,20 +62,12 @@ export default function EditRequest() {
                     variant="primary"
                     size="sm"
                     className="h-[34px] text-[12px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white flex items-center gap-1.5 cursor-pointer font-medium shadow-2xs"
+                    isLoading={editState.isSubmitting}
                     disabled={editState.isSubmitting}
                     onClick={editState.handleSubmit}
                 >
-                    {editState.isSubmitting ? (
-                        <>
-                            <Loader2 size={14} className="animate-spin" />
-                            <span>Saving...</span>
-                        </>
-                    ) : (
-                        <>
-                            <Save size={14} />
-                            <span>Save & Update</span>
-                        </>
-                    )}
+                    <Save size={14} />
+                    <span>Save & Update</span>
                 </Button>
             </div>
 

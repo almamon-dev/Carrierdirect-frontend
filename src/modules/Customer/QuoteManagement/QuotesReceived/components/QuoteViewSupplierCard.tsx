@@ -1,5 +1,5 @@
-import React from 'react';
 import { ShieldCheck, Star } from 'lucide-react';
+import React from 'react';
 import { QuoteData } from '../hooks/useQuoteViewDetail';
 
 interface QuoteViewSupplierCardProps {
@@ -9,7 +9,7 @@ interface QuoteViewSupplierCardProps {
 export const QuoteViewSupplierCard: React.FC<QuoteViewSupplierCardProps> = ({ quote }) => {
     return (
         <div
-    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-2xs space-y-4">
+            className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h2 className="text-xs font-bold text-slate-700 dark:text-slate-300">
                     Carrier & Driver Profile
@@ -29,7 +29,7 @@ export const QuoteViewSupplierCard: React.FC<QuoteViewSupplierCardProps> = ({ qu
                     </h3>
                     <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
                         <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                            <Star size={13} className="text-amber-500 fill-amber-500" /> {quote?.rating || '4.8'} ★
+                            <Star size={13} className="text-amber-500 fill-amber-500" /> {quote?.rating !== undefined && quote?.rating !== null ? Number(quote.rating).toFixed(1) : (quote?.supplier?.rating !== undefined && quote?.supplier?.rating !== null ? Number(quote.supplier.rating).toFixed(1) : '5.0')} ★
                         </span>
                         <span>•</span>
                         <span className="font-medium text-emerald-600">{quote?.completed_orders || '150+ completed loads'}</span>
@@ -39,7 +39,7 @@ export const QuoteViewSupplierCard: React.FC<QuoteViewSupplierCardProps> = ({ qu
 
             {quote?.notes && (
                 <div
-    className="p-3.5 bg-slate-50 dark:bg-[#161a20] rounded-lg border border-slate-100 dark:border-slate-800 text-xs">
+                    className="p-3.5 bg-slate-50 dark:bg-[#161a20] rounded-lg border border-slate-100 dark:border-slate-800 text-xs">
                     <span className="font-bold text-slate-900 dark:text-slate-100 block mb-1">Carrier Note & Conditions:</span>
                     <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic">
                         "{quote.notes}"

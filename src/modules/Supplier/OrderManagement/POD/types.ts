@@ -1,4 +1,4 @@
-export type PODFilterTab = 'all' | 'needs_upload' | 'in_review' | 'approved' | 'rejected';
+export type PODFilterTab = 'all' | 'needs_upload' | 'uploaded' | 'in_review' | 'approved' | 'rejected';
 
 export interface PODOrderItem {
     id: string | number;
@@ -14,6 +14,7 @@ export interface PODOrderItem {
     customer_company?: string;
     customer_rating?: number | string;
     customer_verified?: boolean;
+    rating?: number | string;
     customer?: {
         id?: string | number;
         name?: string;
@@ -21,6 +22,7 @@ export interface PODOrderItem {
         profile_picture?: string;
         avatar?: string;
         rating?: number | string;
+        reviews_count?: number;
         is_verified?: boolean;
         completed_orders?: number | string;
         phone?: string;
@@ -29,8 +31,10 @@ export interface PODOrderItem {
     route?: string;
     pickup_city?: string;
     pickup_address?: string;
+    pickup_full_address?: string;
     delivery_city?: string;
     delivery_address?: string;
+    delivery_full_address?: string;
     vehicle?: string;
     vehicle_type?: string;
     vehicle_plate?: string;
@@ -57,4 +61,8 @@ export interface PODOrderItem {
     pod_file_name?: string;
     pod_uploaded_at?: string;
     has_pod: boolean;
+    is_pay_later?: boolean;
+    is_paid?: boolean;
+    payment_status?: string;
+    payment_method?: string;
 }

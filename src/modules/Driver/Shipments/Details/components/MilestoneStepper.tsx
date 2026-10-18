@@ -36,6 +36,7 @@ export const MilestoneStepper: React.FC<Props> = ({ status, onUpdateStatus, onOp
             case 'at_delivery':
                 return 3;
             case 'delivered':
+            case 'completed':
                 return 4;
             default:
                 return 0;
@@ -72,6 +73,7 @@ export const MilestoneStepper: React.FC<Props> = ({ status, onUpdateStatus, onOp
                     color: 'bg-emerald-600 hover:bg-emerald-700',
                 };
             case 'delivered':
+            case 'completed':
                 return null;
             default:
                 return null;

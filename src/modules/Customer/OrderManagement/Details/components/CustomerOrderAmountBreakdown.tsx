@@ -46,7 +46,7 @@ export const CustomerOrderAmountBreakdown: React.FC<CustomerOrderAmountBreakdown
                         </span>
                     </div>
 
-                    {/* Extra Charges with Orange Bullet Dot */}
+                    {/* Extra Charges with Orange Bullet Dot (only if actually added) */}
                     {pricing.extraCharges && pricing.extraCharges.length > 0 ? (
                         pricing.extraCharges.map((charge, idx) => (
                             <div key={charge.id || idx} className="flex items-center justify-between pl-2">
@@ -59,6 +59,19 @@ export const CustomerOrderAmountBreakdown: React.FC<CustomerOrderAmountBreakdown
                                 </span>
                             </div>
                         ))
+                    ) : null}
+
+                    {/* Platform Charge */}
+                    {pricing.platformFee && pricing.platformFee > 0 ? (
+                        <div className="flex items-center justify-between pl-2">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium truncate flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f] shrink-0" />
+                                <span className="truncate">Platform Charge{pricing.platformFeePercent ? ` (${pricing.platformFeePercent}%)` : ''}</span>
+                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                {pricing.platformFeeFormatted || `+€ ${Number(pricing.platformFee).toLocaleString()}`}
+                            </span>
+                        </div>
                     ) : null}
 
                     {/* Pay Later Terms Row if applicable */}

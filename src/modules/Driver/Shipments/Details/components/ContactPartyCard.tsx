@@ -38,7 +38,7 @@ export const ContactPartyCard: React.FC<Props> = ({ title, type, party }) => {
                     >
                         {isShipper ? <Building2 size={13} /> : <MapPin size={13} />}
                     </div>
-                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    <h3 className="text-[11px] font-bold tracking-wider text-slate-700 dark:text-slate-300">
                         {title}
                     </h3>
                 </div>

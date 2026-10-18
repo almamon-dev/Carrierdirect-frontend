@@ -1,8 +1,8 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MessageSquare, CheckCircle, Loader2, XCircle, Receipt } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
+import { CheckCircle, MessageSquare, Receipt, XCircle } from 'lucide-react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QuoteData } from '../hooks/useQuoteViewDetail';
 
 interface QuoteViewPriceCardProps {
@@ -24,7 +24,7 @@ export const QuoteViewPriceCard: React.FC<QuoteViewPriceCardProps> = ({
 
     return (
         <div
-    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg p-5 sm:p-6 shadow-2xs space-y-5">
+            className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-5 sm:p-6 shadow-2xs space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
                 <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Rate Breakdown</h2>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-[5px] text-xs font-bold bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] border border-orange-200 dark:border-orange-500/30">
@@ -75,7 +75,7 @@ export const QuoteViewPriceCard: React.FC<QuoteViewPriceCardProps> = ({
 
             <div className="flex flex-col gap-2 pt-2">
                 <div className="flex gap-2">
-                    <Button 
+                    <Button
                         variant="outline"
                         className="w-1/2 h-10 text-xs font-bold text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center gap-1.5 cursor-pointer rounded-[5px]"
                         onClick={() => navigate(`/customer/quotes/negotiation/conversation/${encryptId(quote.id)}`)}
@@ -84,12 +84,13 @@ export const QuoteViewPriceCard: React.FC<QuoteViewPriceCardProps> = ({
                         <span>Chat / Negotiate</span>
                     </Button>
 
-                    <Button 
+                    <Button
                         className="w-1/2 h-10 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-md flex items-center justify-center gap-1.5 cursor-pointer rounded-[5px]"
                         onClick={onAccept}
+                        isLoading={isAccepting}
                         disabled={isAccepting || !isPending}
                     >
-                        {isAccepting ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={15} />}
+                        <CheckCircle size={15} />
                         <span>Accept & Book</span>
                     </Button>
                 </div>

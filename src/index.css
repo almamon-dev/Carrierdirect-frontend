@@ -676,6 +676,58 @@ html.dark *,
   scrollbar-width: none !important;
 }
 
+/* ── Hover-only Scrollbar (Hidden by default, visible on hover) ── */
+.hover-scrollbar {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  -ms-overflow-style: none;
+}
+
+.hover-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+  background: transparent;
+}
+
+.hover-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.hover-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.hover-scrollbar:hover {
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.hover-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+}
+
+.hover-scrollbar:hover::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+
+.dark .hover-scrollbar {
+  scrollbar-color: transparent transparent !important;
+}
+
+.dark .hover-scrollbar:hover {
+  scrollbar-color: #475569 transparent !important;
+}
+
+.dark .hover-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #475569 !important;
+}
+
+.dark .hover-scrollbar:hover::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important;
+}
+
 /* ═══════════════════════════════════════════════════════
    YOUTUBE-STYLE SKELETON SHIMMER (SMOOTH NEUTRAL)
 ═══════════════════════════════════════════════════════ */

@@ -1,14 +1,9 @@
 import { useMemo, useState } from 'react';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 import { RequestFilterTab } from '../components/QuoteRequestsFilterTabs';
-import {
-    isRequestToday,
-    isRequestUpcoming,
-    isRequestUrgent
-} from '../utils/requestDateFilters';
 
 export function useQuoteRequestsFilter(requests: QuoteRequest[]) {
-    const [activeTab, setActiveTab] = useState<RequestFilterTab>('all');
+    const [activeTab, setActiveTab] = useState<RequestFilterTab>('new');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [vehicleFilter, setVehicleFilter] = useState<string>('all');
@@ -21,18 +16,24 @@ export function useQuoteRequestsFilter(requests: QuoteRequest[]) {
         setVehicleFilter('all');
         setStartDate('');
         setEndDate('');
-        setActiveTab('all');
+        // Preserve activeTab as per specification
     };
 
     const filteredRequests = useMemo(() => {
         return requests.filter((item) => {
             if (!item) return false;
 
-            if (activeTab === 'new' && (item.status === 'Quoted' || item.isQuoted || item.hasQuoted)) return false;
-            if (activeTab === 'quoted' && !(item.status === 'Quoted' || item.isQuoted || item.hasQuoted)) return false;
-            if (activeTab === 'today' && !isRequestToday(item)) return false;
-            if (activeTab === 'upcoming' && !isRequestUpcoming(item)) return false;
-            if (activeTab === 'urgent' && !isRequestUrgent(item)) return false;
+            const isExp = Boolean(item.isExpired || (item as any).is_expired || (item.status || '').toLowerCase() === 'expired');
+            const hasQuoted = Boolean(item.hasQuoted || item.isQuoted || (item.status || "").toLowerCase() === "quoted");
+            const hasViewed = Boolean((item as any).hasViewed || (item as any).isViewed || item.supplierStatus === "Viewed" || (item.status || "").toLowerCase() === "viewed");
+
+            if (activeTab === 'new') {
+                if (isExp || hasQuoted || hasViewed) return false;
+            } else if (activeTab === 'viewed') {
+                if (isExp || hasQuoted || !hasViewed) return false;
+            } else if (activeTab === 'expired') {
+                if (!isExp) return false;
+            }
 
             if (priorityFilter !== 'all') {
                 const normPriority = (item.priority || '').toLowerCase();

@@ -17,6 +17,14 @@ export default {
       fontFamily: {
         sans: ['"Inter"', '"Segoe UI"', 'SegoeUI', '"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
       },
+      screens: {
+        '2xs': '340px',
+        'xs': '375px',
+      },
+      spacing: {
+        '8.5': '2.125rem',
+        '9.5': '2.375rem',
+      },
       colors: {
         brand: {
           DEFAULT: '#FF4A1F',

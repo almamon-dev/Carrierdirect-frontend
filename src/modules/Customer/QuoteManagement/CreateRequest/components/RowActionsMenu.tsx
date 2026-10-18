@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Eye, Edit, Copy, FileDown, XCircle, Trash2 } from 'lucide-react';
+import { Eye, Edit, Copy, FileDown, XCircle, Trash2 } from 'lucide-react';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
 import { CustomerQuoteRequestItem } from '../types';
 
@@ -25,28 +25,28 @@ export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
 }) => {
     const navigate = useNavigate();
 
+    const rawStatus = String(row.status || '').toLowerCase().trim();
+    const isDraft = rawStatus === 'draft';
+    const quotesCount = Number(row.quotesReceived || row.quotesCount || (row as any).bidsCount || (row as any).quotes_count || 0);
+    const isTerminal = ['won', 'booked', 'accepted', 'completed', 'expired', 'cancelled'].includes(rawStatus);
+    const hasNegotiation = rawStatus === 'negotiating' || rawStatus === 'negotiation' || Boolean((row as any).hasNegotiation || (row as any).has_negotiation);
+    const apiEditable = (row as any).is_editable ?? (row as any).can_edit;
+    const isEditable = apiEditable !== undefined
+        ? Boolean(apiEditable)
+        : (isDraft || (!isTerminal && quotesCount === 0 && !hasNegotiation));
+    const canCancel = !isDraft && !['cancelled', 'expired', 'won', 'booked', 'completed'].includes(rawStatus);
+
+    const pdfUrl = (row as any).pdf_url || (row as any).pdf_path || (row as any).attachment_url || (row as any).pdfUrl || (row as any).pdf_document_url || (row as any).packingList?.url || (row as any).commercialInvoice?.url || '';
+    const hasPdf = Boolean(pdfUrl);
+
     return (
         <div 
             ref={dropdownRef}
-            className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
+            className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
             style={{ top: dropdownPos.top, left: dropdownPos.left }}
             onClick={(e) => e.stopPropagation()}
         >
-            {row.status !== 'Draft' && (
-                <button 
-                    type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
-                    onClick={() => {
-                        onClose();
-                        const rawId = String(row.rawId || row.id).replace('REQ-', '');
-                        navigate(`/customer/quotes/received/track/${rawId}`);
-                    }}
-                >
-                    <Activity size={14} className="text-[#ff4a1f] shrink-0" />
-                    <span>Track Bids</span>
-                </button>
-            )}
-
+            {/* 1. View Details */}
             <button 
                 type="button"
                 className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
@@ -58,19 +58,22 @@ export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
                 <Eye size={14} className="text-slate-400 shrink-0" />
                 <span>View Details</span>
             </button>
+            {/* 3. Edit Request — only when the request is editable */}
+            {isEditable && (
+                <button 
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
+                    onClick={() => { 
+                        onClose(); 
+                        navigate(buildSecureQuoteUrl('edit', row.rawId || row.id)); 
+                    }}
+                >
+                    <Edit size={14} className="text-indigo-500 shrink-0" />
+                    <span>Edit Request</span>
+                </button>
+            )}
 
-            <button 
-                type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
-                onClick={() => { 
-                    onClose(); 
-                    navigate(buildSecureQuoteUrl('edit', row.rawId || row.id)); 
-                }}
-            >
-                <Edit size={14} className="text-indigo-500 shrink-0" />
-                <span>Edit</span>
-            </button>
-
+            {/* 4. Duplicate Request */}
             <button 
                 type="button"
                 className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 font-medium disabled:opacity-50 transition-colors cursor-pointer" 
@@ -85,40 +88,56 @@ export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
                 ) : (
                     <Copy size={14} className="text-blue-500 shrink-0" />
                 )}
-                <span>{isRepeating ? 'Loading...' : 'Repeat Request'}</span>
+                <span>{isRepeating ? 'Duplicating...' : 'Duplicate Request'}</span>
             </button>
 
-            <button 
-                type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
-                onClick={onClose}
-            >
-                <FileDown size={14} className="text-slate-400 shrink-0" />
-                <span>Download PDF</span>
-            </button>
+            {/* 5. Download PDF — only when a valid PDF is available */}
+            {hasPdf && (
+                <button 
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
+                    onClick={() => {
+                        onClose();
+                        window.open(pdfUrl, '_blank');
+                    }}
+                >
+                    <FileDown size={14} className="text-slate-400 shrink-0" />
+                    <span>Download PDF</span>
+                </button>
+            )}
 
-            <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
+            {/* Divider if action below */}
+            {(canCancel || isDraft) && <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />}
 
-            <button 
-                type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 flex items-center gap-2.5 cursor-pointer font-medium transition-colors" 
-                onClick={() => {
-                    onClose();
-                    onDeleteRequest(row);
-                }}
-            >
-                {row.status === 'Bidding Active' || row.status === 'active' ? (
-                    <>
-                        <XCircle size={14} className="text-red-500 shrink-0" />
-                        <span>Cancel Request</span>
-                    </>
-                ) : (
-                    <>
-                        <Trash2 size={14} className="text-red-500 shrink-0" />
-                        <span>Delete</span>
-                    </>
-                )}
-            </button>
+            {/* 6. Cancel Request — only when cancellation is permitted */}
+            {canCancel && (
+                <button 
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 flex items-center gap-2.5 cursor-pointer font-medium transition-colors" 
+                    onClick={() => {
+                        onClose();
+                        onDeleteRequest(row);
+                    }}
+                >
+                    <XCircle size={14} className="text-red-500 shrink-0" />
+                    <span>Cancel Request</span>
+                </button>
+            )}
+
+            {/* 7. Delete Draft — only for draft requests */}
+            {isDraft && (
+                <button 
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 flex items-center gap-2.5 cursor-pointer font-medium transition-colors" 
+                    onClick={() => {
+                        onClose();
+                        onDeleteRequest(row);
+                    }}
+                >
+                    <Trash2 size={14} className="text-red-500 shrink-0" />
+                    <span>Delete Draft</span>
+                </button>
+            )}
         </div>
     );
 };

@@ -16,7 +16,10 @@ import { getBillingColumns } from './components/columns';
 import { BillingRowActions } from './components/BillingRowActions';
 import { BillingFilterTabs } from './components/BillingFilterTabs';
 import { TableFilterContent } from './components/TableFilterContent';
+import { BillingMetricCards } from './components/BillingMetricCards';
 import { SupplierBillingItem, BillingFilterTab } from './types';
+import { useExportModalStore } from '@/stores/useExportModalStore';
+
 
 export default function SupplierBilling() {
     const navigate = useNavigate();
@@ -62,48 +65,9 @@ export default function SupplierBilling() {
 
     // CSV Export Handler
     const handleExportCSV = () => {
-        if (!filteredInvoices || filteredInvoices.length === 0) return;
-
-        const headers = [
-            'Invoice #',
-            'Order #',
-            'Customer',
-            'Route',
-            'Gross Amount (€)',
-            'Net Payable (€)',
-            'Status',
-            'Payment Method',
-            'Issue Date',
-            'Due Date',
-        ];
-
-        const csvRows = filteredInvoices.map((inv) => {
-            const rawAmt = Number(inv.net_amount ?? inv.supplier_amount ?? inv.total_amount ?? 0);
-            const grossAmt = Number(inv.gross_amount ?? inv.total_amount ?? 0);
-            return [
-                inv.invoice_number || `INV-${inv.id}`,
-                inv.order_number || inv.orderId || 'N/A',
-                `"${inv.customer_name || inv.customer_company || 'Direct Customer'}"`,
-                `"${(inv.pickup_name || 'Origin') + ' ➔ ' + (inv.delivery_name || 'Destination')}"`,
-                grossAmt.toFixed(2),
-                rawAmt.toFixed(2),
-                inv.status || inv.raw_status || 'Paid',
-                `"${inv.payment_method_label || inv.payment_method || 'Direct Payment'}"`,
-                inv.issue_date || inv.created_at || '—',
-                inv.due_date || '30 Days Net',
-            ].join(',');
-        });
-
-        const csvContent = [headers.join(','), ...csvRows].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `Supplier_Freight_Billing_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        useExportModalStore.getState().openExportModal({ reportName: 'Freight Billing Statements' });
     };
+
 
     // Columns
     const columns = useMemo(() => getBillingColumns(handleViewInvoice), []);
@@ -166,41 +130,7 @@ export default function SupplierBilling() {
             </div>
 
             {/* Metrics Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-                <MetricCard
-                    title="Total Revenue & Settled"
-                    description={`${calculatedStats.paidCount} cleared freight invoices`}
-                    value={calculatedStats.totalRevenueFormatted}
-                    icon={CheckCircle2}
-                    colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-                    badge={<Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">Cleared</Badge>}
-                    valueClassName="text-base sm:text-lg"
-                    className="p-2.5 sm:p-3"
-                    isLoading={isLoading}
-                />
-                <MetricCard
-                    title="In Escrow & Pending"
-                    description={`${calculatedStats.dueCount} invoices in progress / due`}
-                    value={calculatedStats.totalOutstandingFormatted}
-                    icon={AlertCircle}
-                    colorClass="bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"
-                    badge={<Badge variant="secondary" className="bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200">Escrow</Badge>}
-                    valueClassName="text-base sm:text-lg"
-                    className="p-2.5 sm:p-3"
-                    isLoading={isLoading}
-                />
-                <MetricCard
-                    title="Total Freight Invoices"
-                    description="All shipping billing & settlement records"
-                    value={calculatedStats.totalInvoices}
-                    icon={Receipt}
-                    colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
-                    badge={<Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200">Total</Badge>}
-                    valueClassName="text-base sm:text-lg"
-                    className="p-2.5 sm:p-3"
-                    isLoading={isLoading}
-                />
-            </div>
+            <BillingMetricCards calculatedStats={calculatedStats} isLoading={isLoading} />
 
             {/* Invoices Table */}
             <div className="space-y-2">

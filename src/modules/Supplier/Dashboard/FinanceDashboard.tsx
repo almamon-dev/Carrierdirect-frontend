@@ -44,10 +44,10 @@ export default function FinanceDashboard() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2.5 shrink-0">
-                    <Link to="/supplier/finance/withdrawal">
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs flex items-center gap-1.5 shadow-xs">
+                    <Link to="/supplier/wallet">
+                        <Button size="sm" className="bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs flex items-center gap-1.5 shadow-xs">
                             <CreditCard size={15} />
-                            <span>Request Withdrawal</span>
+                            <span>Supplier Wallet & Stripe</span>
                         </Button>
                     </Link>
                     <Link to="/supplier/finance/payments">
@@ -108,9 +108,9 @@ export default function FinanceDashboard() {
                             Review and initiate bank transfer disbursements for fulfilled freight shipment jobs.
                         </p>
                     </div>
-                    <Link to="/supplier/finance/withdrawal">
+                    <Link to="/supplier/wallet">
                         <Button size="sm" className="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-700 text-xs">
-                            <span>Open Withdrawal Terminal</span>
+                            <span>Open Supplier Wallet</span>
                         </Button>
                     </Link>
                 </div>

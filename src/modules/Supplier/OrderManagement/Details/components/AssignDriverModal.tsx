@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Select from '@/components/ui/select';
 import FormLabel from '@/components/ui/label';
 import { UserCheck, Truck, Phone, User, Mail, X, Loader2 } from 'lucide-react';
-import apiClient from '@/lib/axios';
+import { useAssignDriverModal } from '../hooks/useAssignDriverModal';
 
 interface AssignDriverModalProps {
     isOpen: boolean;
@@ -24,80 +24,27 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
     onSave,
     onClose,
 }) => {
-    const [driverName, setDriverName] = useState('');
-    const [driverPhone, setDriverPhone] = useState('');
-    const [driverEmail, setDriverEmail] = useState('');
-    const [vehiclePlate, setVehiclePlate] = useState('');
-    const [teamDrivers, setTeamDrivers] = useState<any[]>([]);
-    const [selectedTeamMember, setSelectedTeamMember] = useState<string>('custom');
-    const [isLoadingTeam, setIsLoadingTeam] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    useEffect(() => {
-        if (isOpen) {
-            setDriverName(currentDriver?.name && currentDriver.name !== 'Assigned Driver' && currentDriver.name !== 'Unassigned' ? currentDriver.name : '');
-            setDriverPhone(currentDriver?.phone || '');
-            setDriverEmail(currentDriver?.email || '');
-            setVehiclePlate(currentVehiclePlate && currentVehiclePlate !== 'Assigning Fleet...' ? currentVehiclePlate : 'DE-TR-8821');
-            setIsSubmitting(false);
-
-            // Fetch only active team members
-            async function fetchTeam() {
-                setIsLoadingTeam(true);
-                try {
-                    const res = await apiClient.get('/supplier/team/members?status=active&per_page=100');
-                    const members = res.data?.data || res.data || [];
-                    if (Array.isArray(members) && members.length > 0) {
-                        const activeOnly = members.filter((m: any) => !m.status || String(m.status).toLowerCase() === 'active');
-                        setTeamDrivers(activeOnly);
-                    }
-                } catch {
-                    // Fallback to manual entry
-                } finally {
-                    setIsLoadingTeam(false);
-                }
-            }
-            fetchTeam();
-        }
-    }, [isOpen, currentDriver, currentVehiclePlate]);
+    const {
+        driverName,
+        setDriverName,
+        driverPhone,
+        setDriverPhone,
+        driverEmail,
+        setDriverEmail,
+        vehiclePlate,
+        setVehiclePlate,
+        teamDrivers,
+        selectedTeamMember,
+        isSubmitting,
+        handleTeamMemberChange,
+        handleSubmit,
+    } = useAssignDriverModal({ isOpen, currentDriver, currentVehiclePlate, onSave });
 
     if (!isOpen) return null;
-
-    const handleTeamMemberChange = (memberId: string) => {
-        setSelectedTeamMember(memberId);
-        if (memberId === 'custom') {
-            setDriverName('');
-            setDriverPhone('');
-            setDriverEmail('');
-        } else {
-            const member = teamDrivers.find((m) => String(m.id) === String(memberId));
-            if (member) {
-                setDriverName(member.name || member.user?.name || '');
-                setDriverPhone(member.phone || member.user?.phone || '');
-                setDriverEmail(member.email || member.user?.email || '');
-            }
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const finalName = driverName.trim() || 'Assigned Driver';
-        const finalPhone = driverPhone.trim();
-        const finalEmail = driverEmail.trim();
-        const finalPlate = vehiclePlate.trim() || 'DE-TR-8821';
-        
-        setIsSubmitting(true);
-        try {
-            await onSave({ name: finalName, phone: finalPhone, email: finalEmail, plate: finalPlate });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150 font-sans">
             <div className="bg-white dark:bg-[#1e2329] rounded-[8px] max-w-md w-full p-5 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
-                {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 flex items-center justify-center text-[#ff4a1f]">
@@ -119,7 +66,6 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-3.5">
-                    {/* Select from Team Members if available */}
                     {teamDrivers.length > 0 && (
                         <div className="space-y-1">
                             <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -134,20 +80,15 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                 disabled={isSubmitting}
                                 options={[
                                     { id: 'custom', name: 'Enter Custom Driver Details' },
-                                    ...teamDrivers.map((m) => {
-                                        const roleStr = m.role?.name || m.role || 'Fleet';
-                                        const emailStr = m.email || m.user?.email;
-                                        return {
-                                            id: String(m.id),
-                                            name: `${m.name || m.user?.name || 'Driver'} (${roleStr}) ${emailStr ? '• ' + emailStr : ''}`
-                                        };
-                                    })
+                                    ...teamDrivers.map((m) => ({
+                                        id: String(m.id),
+                                        name: `${m.name || m.user?.name || 'Driver'} (${m.role?.name || m.role || 'Fleet'}) ${m.email || m.user?.email ? '• ' + (m.email || m.user?.email) : ''}`
+                                    }))
                                 ]}
                             />
                         </div>
                     )}
 
-                    {/* Driver Name */}
                     <div className="space-y-1">
                         <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                             Driver Full Name <span className="text-rose-500">*</span>
@@ -164,11 +105,8 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                         />
                     </div>
 
-                    {/* Driver Email */}
                     <div className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                            Driver Email Address
-                        </FormLabel>
+                        <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">Driver Email Address</FormLabel>
                         <Input
                             icon={<Mail size={13} />}
                             type="email"
@@ -180,11 +118,8 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                         />
                     </div>
 
-                    {/* Driver Phone Number */}
                     <div className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                            Driver Contact Number
-                        </FormLabel>
+                        <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">Driver Contact Number</FormLabel>
                         <Input
                             icon={<Phone size={13} />}
                             type="text"
@@ -196,11 +131,8 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                         />
                     </div>
 
-                    {/* Vehicle License Plate */}
                     <div className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                            Assigned Vehicle License Plate
-                        </FormLabel>
+                        <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">Assigned Vehicle License Plate</FormLabel>
                         <Input
                             icon={<Truck size={13} />}
                             type="text"
@@ -212,35 +144,15 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                         />
                     </div>
 
-                    {/* Actions */}
                     <div className="flex gap-2 justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={isSubmitting}
-                            onClick={onClose}
-                            className="rounded-[4px] text-xs cursor-pointer"
-                        >
+                        <Button type="button" variant="outline" size="sm" disabled={isSubmitting} onClick={onClose} className="rounded-[4px] text-xs cursor-pointer">
                             Cancel
                         </Button>
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            size="sm"
-                            disabled={isSubmitting}
-                            className="bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer rounded-[4px] text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
-                        >
+                        <Button type="submit" variant="primary" size="sm" disabled={isSubmitting} className="bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer rounded-[4px] text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
                             {isSubmitting ? (
-                                <>
-                                    <Loader2 size={13} className="animate-spin" />
-                                    <span>Dispatching Driver...</span>
-                                </>
+                                <><Loader2 size={13} className="animate-spin" /><span>Dispatching Driver...</span></>
                             ) : (
-                                <>
-                                    <UserCheck size={13} />
-                                    <span>Confirm Driver Dispatch</span>
-                                </>
+                                <><UserCheck size={13} /><span>Confirm Driver Dispatch</span></>
                             )}
                         </Button>
                     </div>

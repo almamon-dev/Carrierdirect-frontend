@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { ShipmentItem } from '../../types';
 
-export type DriverShipmentFilterTab = 'all' | 'in_transit' | 'at_pickup' | 'at_delivery' | 'assigned' | 'delivered';
+export type DriverShipmentFilterTab = 'all' | 'new' | 'awaiting_review' | 'completed';
 
 interface Props {
     shipments: ShipmentItem[];
@@ -15,22 +15,18 @@ export const ShipmentFilterTabs: React.FC<Props> = ({
     onSelectTab,
 }) => {
     const tabs = useMemo(() => {
-        const counts: Record<string, number> = {
+        const counts: Record<DriverShipmentFilterTab, number> = {
             all: shipments.length,
-            in_transit: shipments.filter(s => s.status === 'in_transit').length,
-            at_pickup: shipments.filter(s => s.status === 'at_pickup').length,
-            at_delivery: shipments.filter(s => s.status === 'at_delivery').length,
-            assigned: shipments.filter(s => s.status === 'assigned' || s.status === 'accepted').length,
-            delivered: shipments.filter(s => s.status === 'delivered').length,
+            new: shipments.filter(s => ['assigned', 'accepted', 'at_pickup', 'in_transit', 'at_delivery'].includes(s.status)).length,
+            awaiting_review: shipments.filter(s => s.status === 'delivered').length,
+            completed: shipments.filter(s => s.status === 'completed').length,
         };
 
         return [
             { id: 'all' as DriverShipmentFilterTab, label: 'All Loads', count: counts.all },
-            { id: 'in_transit' as DriverShipmentFilterTab, label: 'In Transit', count: counts.in_transit },
-            { id: 'at_pickup' as DriverShipmentFilterTab, label: 'At Pickup', count: counts.at_pickup },
-            { id: 'at_delivery' as DriverShipmentFilterTab, label: 'At Delivery', count: counts.at_delivery },
-            { id: 'assigned' as DriverShipmentFilterTab, label: 'Dispatched / Assigned', count: counts.assigned },
-            { id: 'delivered' as DriverShipmentFilterTab, label: 'Delivered', count: counts.delivered },
+            { id: 'new' as DriverShipmentFilterTab, label: 'New', count: counts.new },
+            { id: 'awaiting_review' as DriverShipmentFilterTab, label: 'Awaiting Review', count: counts.awaiting_review },
+            { id: 'completed' as DriverShipmentFilterTab, label: 'Completed', count: counts.completed },
         ];
     }, [shipments]);
 
@@ -43,21 +39,19 @@ export const ShipmentFilterTabs: React.FC<Props> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => onSelectTab(tab.id)}
-                        className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${
-                            isActive
-                                ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
-                                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                        }`}
+                        className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${isActive
+                            ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
+                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                            }`}
                     >
                         <span className={`text-[14px] ${isActive ? 'font-bold text-[#ff4a1f]' : 'font-medium'}`}>
                             {tab.label}
                         </span>
                         <span
-                            className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
-                                isActive
-                                    ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                            }`}
+                            className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${isActive
+                                ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                }`}
                         >
                             {tab.count}
                         </span>

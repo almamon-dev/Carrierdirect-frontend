@@ -25,6 +25,10 @@ export type DocumentItem = {
 };
 
 export type QuoteRequest = {
+    title?: string;
+    request_title?: string;
+    my_quote?: any;
+    myQuote?: any;
     id: string;
     rawId?: string | number;
     quoteId?: string | number;
@@ -56,6 +60,8 @@ export type QuoteRequest = {
     quotesCount?: number;
     quotesReceived?: number;
     isQuoted?: boolean;
+    hasViewed?: boolean;
+    isViewed?: boolean;
     hasQuoted?: boolean;
     supplierStatus?: string;
     status: string;

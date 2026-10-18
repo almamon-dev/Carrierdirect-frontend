@@ -1,8 +1,4 @@
-/**
- * Hook for filtering Customer Processing Quote Requests by Tab, Status, Priority, Vehicle, and Date.
- */
-
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
 interface UseFilteredProcessingRequestsParams {
     requests: any[];
@@ -26,57 +22,44 @@ export function useFilteredProcessingRequests({
     return useMemo(() => {
         return (requests || []).filter((r) => {
             if (!r) return false;
-            const s = String(r.rawStatus || r.status || '').toLowerCase();
+            const s = String(r.rawStatus || r.status || "").toLowerCase();
+            const quotesCount = Number(r.bidsCount || r.quotesCount || r.quotesReceived || 0);
+            const tab = activeFilterTab.toLowerCase();
 
-            // Tab filtering
-            if (activeFilterTab === 'in_progress') {
-                const isProg = s === 'in_progress' || s === 'in progress' || s === 'active' || s === 'bidding';
-                const isComp = s === 'completed' || s === 'accepted' || s === 'won' || Boolean(r.hasAcceptedQuote);
-                const isCanc = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected';
-                if (!isProg || isComp || isCanc) return false;
-            } else if (activeFilterTab === 'pending' || activeFilterTab === 'processing') {
-                const isPend = s === 'pending' || s === 'processing' || s === 'draft';
-                const isComp = s === 'completed' || s === 'accepted' || s === 'won' || Boolean(r.hasAcceptedQuote);
-                const isCanc = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected';
-                if (!isPend || isComp || isCanc) return false;
-            } else if (activeFilterTab === 'completed') {
-                const isComp = s === 'completed' || s === 'accepted' || s === 'won' || Boolean(r.hasAcceptedQuote);
-                if (!isComp) return false;
-            } else if (activeFilterTab === 'cancelled') {
-                const isCanc = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected';
-                if (!isCanc) return false;
+            if (tab === "all") {
+                // all
+            } else if (tab === "cancelled") {
+                if (s !== "cancelled" && s !== "closed" && s !== "rejected") return false;
+            } else if (tab === "expired") {
+                if (s !== "expired") return false;
+            } else if (tab === "booked") {
+                if (s !== "booked" && s !== "completed") return false;
+            } else if (tab === "booking_in_progress") {
+                if (s !== "booking_in_progress" && s !== "booking in progress" && s !== "payment_pending") return false;
+            } else if (tab === "negotiation") {
+                if (s !== "negotiation" && s !== "negotiating") return false;
+            } else if (tab === "quotes_received") {
+                if (quotesCount === 0 && s !== "quotes_received" && s !== "quotes received") return false;
+            } else if (tab === "pending") {
+                if (quotesCount > 0 || ["booked", "completed", "cancelled", "expired", "negotiation", "negotiating", "booking_in_progress"].includes(s)) return false;
             }
 
-            // Dropdown Status Filter
-            if (statusFilter !== 'all') {
+            if (statusFilter !== "all") {
                 const filterVal = statusFilter.toLowerCase();
-                if (filterVal === 'in_progress') {
-                    if (s !== 'in_progress' && s !== 'in progress' && s !== 'active') return false;
-                } else if (filterVal === 'pending' || filterVal === 'processing') {
-                    if (s !== 'pending' && s !== 'processing' && s !== 'draft') return false;
-                } else if (filterVal === 'completed') {
-                    if (s !== 'completed' && s !== 'accepted' && !r.hasAcceptedQuote) return false;
-                } else if (filterVal === 'cancelled') {
-                    if (s !== 'cancelled' && s !== 'expired' && s !== 'closed' && s !== 'rejected') return false;
-                } else if (!s.includes(filterVal)) {
-                    return false;
-                }
+                if (!s.includes(filterVal)) return false;
             }
 
-            // Vehicle filter
-            if (vehicleFilter !== 'all') {
-                const vehicle = String(r.vehicleType || r.vehicle || '').toLowerCase().replace(/[\s_-]+/g, '');
-                const targetVehicle = vehicleFilter.toLowerCase().replace(/[\s_-]+/g, '');
+            if (vehicleFilter !== "all") {
+                const vehicle = String(r.vehicleType || r.vehicle || "").toLowerCase().replace(/[\s_-]+/g, "");
+                const targetVehicle = vehicleFilter.toLowerCase().replace(/[\s_-]+/g, "");
                 if (!vehicle.includes(targetVehicle)) return false;
             }
 
-            // Priority filter
-            if (priorityFilter !== 'all') {
-                const prio = String(r.priority || '').toLowerCase();
+            if (priorityFilter !== "all") {
+                const prio = String(r.priority || "").toLowerCase();
                 if (prio !== priorityFilter.toLowerCase()) return false;
             }
 
-            // Date filtering
             if (startDate || endDate) {
                 const rowDateStr = r.createdAt || r.pickupDate || (r.rawData && r.rawData.created_at);
                 if (rowDateStr) {

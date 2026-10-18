@@ -1,15 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { 
-  Eye, 
-  Download, 
-  MoreVertical, 
-  Copy, 
-  Check, 
-  ExternalLink,
-  Receipt
-} from "lucide-react";
+import { Eye, Download, MoreVertical, Copy, Check, ExternalLink, Receipt } from "lucide-react";
 import Button from "@/components/ui/button";
 
 interface InvoiceRowActionsProps {
@@ -116,22 +108,16 @@ export const InvoiceRowActions: React.FC<InvoiceRowActionsProps> = ({
             <button
               type="button"
               className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-              onClick={() => {
-                handleClose();
-                onView(row);
-              }}
+              onClick={() => { handleClose(); onView(row); }}
             >
               <Eye size={14} className="text-slate-400 shrink-0" />
-              <span>View Breakdown</span>
+              <span>View Invoice</span>
             </button>
 
             <button
               type="button"
               className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
-              onClick={() => {
-                handleClose();
-                onDownload(row);
-              }}
+              onClick={() => { handleClose(); onDownload(row); }}
             >
               <Download size={14} className="text-[#ff4a1f] shrink-0" />
               <span>Download PDF</span>
@@ -141,10 +127,7 @@ export const InvoiceRowActions: React.FC<InvoiceRowActionsProps> = ({
               <button
                 type="button"
                 className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                onClick={() => {
-                  handleClose();
-                  navigate(`/supplier/orders/${row.order_id || ordId}`);
-                }}
+                onClick={() => { handleClose(); navigate(`/supplier/orders/${ordId}`); }}
               >
                 <ExternalLink size={14} className="text-slate-400 shrink-0" />
                 <span>Go to Order Details</span>
@@ -161,12 +144,12 @@ export const InvoiceRowActions: React.FC<InvoiceRowActionsProps> = ({
               {copiedInv ? (
                 <>
                   <Check size={14} className="text-emerald-500 shrink-0" />
-                  <span className="text-emerald-600 font-semibold">Copied Invoice!</span>
+                  <span className="text-emerald-600 font-semibold">Copied ID!</span>
                 </>
               ) : (
                 <>
                   <Copy size={14} className="text-slate-400 shrink-0" />
-                  <span>Copy Invoice No.</span>
+                  <span>Copy Invoice ID</span>
                 </>
               )}
             </button>

@@ -28,6 +28,22 @@ export function useEditQuoteRequest(cleanId?: string) {
             const q = raw?.quote_request || raw?.quote || raw?.request || raw;
 
             if (q) {
+                const rawStatus = String(q.status || q.status_raw || '').toLowerCase().trim();
+                const isDraft = rawStatus === 'draft';
+                const isTerminal = ['won', 'booked', 'accepted', 'completed', 'expired', 'cancelled'].includes(rawStatus);
+                const quotesCount = Number(q.quotes_count || (Array.isArray(q.quotes) ? q.quotes.length : 0));
+                const hasNegotiation = rawStatus === 'negotiating' || rawStatus === 'negotiation';
+                const apiEditable = q.is_editable ?? q.can_edit;
+                const canEdit = apiEditable !== undefined
+                    ? Boolean(apiEditable)
+                    : (isDraft || (!isTerminal && quotesCount === 0 && !hasNegotiation));
+
+                if (!canEdit) {
+                    showToast('This quote request can no longer be edited as quotes have been received or it has been finalized.', 'error');
+                    navigate(buildSecureQuoteUrl('view', cleanId, 'general'), { replace: true });
+                    return;
+                }
+
                 setFormData(mapQuoteToEditFormData(q, cleanId));
             }
         } catch (err) {

@@ -2,79 +2,7 @@ import React, { useState } from "react";
 import useScrollReveal from "@/Hooks/useScrollReveal";
 import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
-
-interface Plan {
-  id: string | number;
-  name: string;
-  price: string | number;
-  billing_period?: string;
-  description?: string;
-  is_popular?: boolean;
-  features?: string[];
-  buttonText?: string;
-}
-
-const defaultSupplierPlans: Plan[] = [
-  {
-    id: 1,
-    name: "Independent Driver",
-    price: "0",
-    billing_period: "/mo",
-    description: "Ideal for single Luton, Sprinter, or Courier vehicle owners.",
-    features: ["Direct Load Bidding", "Automated POD Upload", "Standard Support", "Mobile App Access"],
-    buttonText: "Register Free",
-  },
-  {
-    id: 2,
-    name: "Fleet Operator Pro",
-    price: "49",
-    billing_period: "/mo",
-    is_popular: true,
-    description: "Designed for transport businesses with multiple HGV/Van fleets.",
-    features: ["Unlimited Carrier Quotes", "Priority Dispatch System", "Multi-Driver Account Management", "Dedicated Account Manager"],
-    buttonText: "Start Fleet Pro",
-  },
-  {
-    id: 3,
-    name: "Enterprise Logistics",
-    price: "149",
-    billing_period: "/mo",
-    description: "Custom SaaS integration for large haulage and logistics providers.",
-    features: ["White-Label Portal", "API & Webhook Integrations", "Custom SLA Guarantees", "24/7 Dedicated Support"],
-    buttonText: "Contact Enterprise",
-  },
-];
-
-const defaultShipperPlans: Plan[] = [
-  {
-    id: 101,
-    name: "Pay As You Move",
-    price: "0",
-    billing_period: "/job",
-    description: "For households & individuals needing one-off removals or delivery.",
-    features: ["Instant Quote Comparison", "Verified Drivers Only", "Escrow Secured Payment", "Real-Time Tracking"],
-    buttonText: "Book Move Now",
-  },
-  {
-    id: 102,
-    name: "Business Starter",
-    price: "29",
-    billing_period: "/mo",
-    is_popular: true,
-    description: "For regular commercial shippers, retailers, and local businesses.",
-    features: ["Monthly Consolidated Invoicing", "Priority Driver Allocation", "Dedicated Support Specialist", "Volume Rate Discounts"],
-    buttonText: "Open Trade Account",
-  },
-  {
-    id: 103,
-    name: "Corporate Freight",
-    price: "99",
-    billing_period: "/mo",
-    description: "Full supply chain management for enterprise distributors.",
-    features: ["Custom Rate Card Setup", "Dedicated Freight Logistics Desk", "Guaranteed Capacity SLA", "ERP & Order API Sync"],
-    buttonText: "Talk to Logistics",
-  },
-];
+import { defaultSupplierPlans, defaultShipperPlans } from "./pricingPlansData";
 
 export default function PricingSection() {
   const heading = useScrollReveal();
@@ -86,12 +14,11 @@ export default function PricingSection() {
   return (
     <section id="pricing" className="w-full bg-transparent pt-12 pb-4 px-4 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        
         <div
           ref={heading.ref}
           className={`text-center max-w-3xl mx-auto mb-12 reveal ${heading.isVisible ? "visible" : ""}`}
         >
-          <span className="text-[#ff4a1f] font-semibold tracking-wider  text-sm mb-3 block">Simple Pricing</span>
+          <span className="text-[#ff4a1f] font-semibold tracking-wider text-sm mb-3 block">Simple Pricing</span>
           <h2 className="text-[#0f0400] dark:text-slate-100 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
             Transparent Pricing for Everyone
           </h2>
@@ -136,7 +63,7 @@ export default function PricingSection() {
               >
                 {plan.is_popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-[#ff4a1f] text-white text-[10px] font-bold  tracking-widest py-1 px-3 rounded-full shadow-md">
+                    <span className="bg-[#ff4a1f] text-white text-[10px] font-bold tracking-widest py-1 px-3 rounded-full shadow-md">
                       Most Popular
                     </span>
                   </div>
@@ -194,7 +121,6 @@ export default function PricingSection() {
             ))}
           </div>
         </div>
-
       </div>
     </section>
   );

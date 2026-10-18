@@ -74,7 +74,7 @@ export default function QuoteRequests() {
                 data={filteredRequests}
                 columns={columns}
                 actions={(row) => <SupplierRowActions row={row} onQuoteAction={handleQuoteAction} />}
-                actionsColumnClassName="w-[52px] min-w-[52px] max-w-[52px] text-center px-1"
+                actionsColumnClassName="w-[76px] min-w-[70px] text-right pr-3.5 sm:pr-4"
                 onRowClick={(row) => handleQuoteAction(row)}
                 headerTabs={
                     <QuoteRequestsFilterTabs
@@ -112,18 +112,14 @@ export default function QuoteRequests() {
                         title={
                             startDate || endDate ? "No Requests Found in Selected Date Range" :
                                 activeTab === "new" ? "No New Unquoted Requests Found" :
-                                    activeTab === "quoted" ? "No Quoted Requests Found" :
-                                        activeTab === "today" ? "No Requests Scheduled Today" :
-                                            activeTab === "upcoming" ? "No Upcoming Requests" :
-                                                activeTab === "urgent" ? "No Urgent Requests Found" :
-                                                    "No Quote Requests Available"
+                                    activeTab === "viewed" ? "No Viewed Requests Found" :
+                                        activeTab === "expired" ? "No Expired Requests Found" :
+                                            "No Quote Requests Available"
                         }
                         description={
                             startDate || endDate
                                 ? `No quote requests were found between ${startDate || 'the start'} and ${endDate || 'the end'}. Try changing the date range.`
-                                : activeTab === "all"
-                                    ? "There are currently no active quote requests waiting for carrier bids. New requests will appear here automatically."
-                                    : `There are no quote requests matching the "${activeTab.toUpperCase()}" filter criteria.`
+                                : `There are no quote requests matching the "${String(activeTab).toUpperCase()}" filter criteria.`
                         }
                     />
                 }

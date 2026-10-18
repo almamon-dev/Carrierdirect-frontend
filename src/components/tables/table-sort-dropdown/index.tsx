@@ -50,7 +50,7 @@ export default function TableSortDropdown<T>({
                         }`}
                     title="Sort Items"
                 >
-                    <span className="truncate max-w-[120px]">{activeLabel}</span>
+                    <span className="truncate max-w-[70px] xs:max-w-[120px]">{activeLabel}</span>
                     <ChevronDown size={12} className={`text-slate-400 dark:text-slate-500 shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180 text-[#ff4a1f]' : ''}`} />
                 </button>
 
@@ -74,7 +74,7 @@ export default function TableSortDropdown<T>({
             {/* Custom Styled Dropdown Menu */}
             {isOpen && (
                 <div
-    className="absolute right-0 top-full mt-1.5 w-[200px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-[3px] shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 font-sans">
+                    className="absolute right-0 top-full mt-1.5 w-[200px] max-w-[calc(100vw-2rem)] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-[3px] shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 font-sans">
                     <div className="p-2">
                         <div className="px-2 py-1 mb-1 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500  tracking-wider">

@@ -14,19 +14,14 @@ import { PODTableFilterContent } from './components/PODTableFilterContent';
 import { PODRowActions } from './components/PODRowActions';
 import { PODPreviewModal } from './components/PODPreviewModal';
 import { PODUploadModal } from './components/PODUploadModal';
+import { useExportModalStore } from '@/stores/useExportModalStore';
+
 
 export default function PODManagement() {
     const navigate = useNavigate();
-    const {
-        orders,
-        isLoading,
-        isRefreshing,
-        isSubmitting,
-        fetchOrders,
-        uploadPOD,
-    } = usePODOrders();
+    const { orders, isLoading, isRefreshing, isSubmitting, fetchOrders, uploadPOD } = usePODOrders();
 
-    const [activeTab, setActiveTab] = useState<PODFilterTab>('all');
+    const [activeTab, setActiveTab] = useState<PODFilterTab>('needs_upload');
     const [statusFilter, setStatusFilter] = useState('all');
     const [vehicleFilter, setVehicleFilter] = useState('all');
     const [startDate, setStartDate] = useState('');
@@ -44,48 +39,14 @@ export default function PODManagement() {
     };
 
     const filteredOrders = useFilteredPODOrders({
-        orders,
-        activeTab,
-        statusFilter,
-        vehicleFilter,
-        startDate,
-        endDate,
+        orders, activeTab, statusFilter, vehicleFilter, startDate, endDate,
     });
 
     const columns = useMemo(() => getPODColumns(navigate, (row) => setPreviewTarget(row)), [navigate]);
-
     const handleExportCSV = () => {
-        if (!filteredOrders || filteredOrders.length === 0) return;
-        const headers = [
-            'Job ID',
-            'Customer / Shipper',
-            'Route',
-            'Driver & Vehicle',
-            'Delivery Date',
-            'POD Document',
-            'POD Status'
-        ];
-        const csvRows = [
-            headers.join(','),
-            ...filteredOrders.map(o => [
-                `"${o.order_id || o.order_no || o.order_number || o.id}"`,
-                `"${o.customer_name || o.customer?.name || 'Shipper'}"`,
-                `"${o.route || `${o.pickup_city || ''} -> ${o.delivery_city || ''}`}"`,
-                `"${o.driver_name || o.driver || ''} (${o.vehicle || o.vehicle_type || ''})"`,
-                `"${o.delivery_date || o.pickup_date || ''}"`,
-                `"${o.has_pod ? o.pod_file_name || 'Attached' : 'Not Attached'}"`,
-                `"${o.pod_status}"`,
-            ].join(','))
-        ];
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `Supplier_POD_Records_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        useExportModalStore.getState().openExportModal({ reportName: 'Carrier POD Records' });
     };
+
 
     return (
         <div
@@ -152,7 +113,7 @@ export default function PODManagement() {
                         }}
                     />
                 )}
-                actionsColumnClassName="w-[125px] min-w-[125px] text-right pr-3"
+                actionsColumnClassName="w-[50px] min-w-[50px] text-right pr-3"
                 headerTabs={
                     <PODFilterTabs
                         orders={orders}
@@ -184,13 +145,13 @@ export default function PODManagement() {
                         setShowUploadModal(true);
                     }
                 }}
-                tableClassName="w-full min-w-[1000px]"
+                tableClassName="w-full min-w-[1260px]"
                 emptyState={
                     <EmptyState
                         icon={FileCheck}
                         title="No POD Documents Found"
                         description={
-                            activeTab === 'all'
+                            (activeTab as any) === 'all'
                                 ? "There are currently no proof of delivery documents submitted for review."
                                 : `No POD records match '${activeTab.replace('_', ' ')}'.`
                         }

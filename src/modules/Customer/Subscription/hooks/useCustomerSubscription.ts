@@ -16,28 +16,32 @@ export const useCustomerSubscription = () => {
     try {
       // 1. Fetch Subscription status & Plans
       const subRes = await apiClient.get("/customer/subscription").catch(() => null);
-      if (subRes?.data?.data) {
-        setSubscription(subRes.data.data.subscription || null);
-        if (Array.isArray(subRes.data.data.plans)) {
-          setPlans(subRes.data.data.plans);
+      const subPayload = subRes?.data || subRes;
+      if (subPayload?.subscription || subPayload?.plans) {
+        setSubscription(subPayload.subscription || null);
+        if (Array.isArray(subPayload.plans)) {
+          setPlans(subPayload.plans);
         }
       } else {
         // Fallback to shared subscription endpoint
         const fallbackRes = await apiClient.get("/subscription/status").catch(() => null);
-        if (fallbackRes?.data?.data) {
-          setSubscription(fallbackRes.data.data.subscription || null);
+        const fbData = fallbackRes?.data || fallbackRes;
+        if (fbData) {
+          setSubscription(fbData.subscription || fbData || null);
         }
-        const plansRes = await apiClient.get("/subscription/plans").catch(() => null);
-        if (Array.isArray(plansRes?.data?.data)) {
-          setPlans(plansRes.data.data);
+        const plansRes = await apiClient.get("/subscription/plans?user_type=customer").catch(() => null);
+        const rawPlans = Array.isArray(plansRes?.data) ? plansRes.data : (Array.isArray(plansRes?.data?.data) ? plansRes.data.data : (Array.isArray(plansRes) ? plansRes : []));
+        if (Array.isArray(rawPlans)) {
+          setPlans(rawPlans);
         }
       }
 
       // 2. Fetch Payment Methods
       const pmRes = await apiClient.get("/subscription/payment-methods").catch(() => null);
-      if (Array.isArray(pmRes?.data?.data?.saved_cards)) {
+      const pmData = pmRes?.data?.saved_cards || pmRes?.data?.data?.saved_cards || pmRes?.saved_cards || [];
+      if (Array.isArray(pmData)) {
         setSavedCards(
-          pmRes.data.data.saved_cards.map((c: any) => ({
+          pmData.map((c: any) => ({
             id: String(c.id),
             cardType: c.type || c.brand || "VISA",
             last4: c.last4 || "4242",

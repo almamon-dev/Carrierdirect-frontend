@@ -7,7 +7,7 @@ export const useChatLayout = () => {
     });
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
-    const [sidebarWidth, setSidebarWidth] = useState<number>(320);
+    const [sidebarWidth, setSidebarWidth] = useState<number>(360);
     const [isResizing, setIsResizing] = useState<boolean>(false);
 
     const toggleSidebarCollapse = () => {
@@ -26,7 +26,7 @@ export const useChatLayout = () => {
 
         const handleMouseMove = (moveEvent: MouseEvent) => {
             const delta = moveEvent.clientX - startX;
-            const newWidth = Math.min(Math.max(startW + delta, 240), 460);
+            const newWidth = Math.min(Math.max(startW + delta, 260), 480);
             setSidebarWidth(newWidth);
         };
 

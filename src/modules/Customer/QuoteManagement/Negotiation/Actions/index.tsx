@@ -141,9 +141,8 @@ export default function ChatInputActions({
                     </div>
 
                     {inputValue.length > 0 && (
-                        <span className={`text-[10px] sm:text-[10.5px] font-mono font-medium select-none shrink-0 self-end pb-0.5 tracking-tight transition-colors ${
-                            inputValue.length > 1900 ? 'text-red-500 font-semibold' : inputValue.length > 1600 ? 'text-amber-500' : 'text-slate-400 dark:text-slate-500'
-                        }`}>
+                        <span className={`text-[10px] sm:text-[10.5px] font-mono font-medium select-none shrink-0 self-end pb-0.5 tracking-tight transition-colors ${inputValue.length > 1900 ? 'text-red-500 font-semibold' : inputValue.length > 1600 ? 'text-amber-500' : 'text-slate-400 dark:text-slate-500'
+                            }`}>
                             {inputValue.length}/2000
                         </span>
                     )}
@@ -154,7 +153,7 @@ export default function ChatInputActions({
                         <button
                             type="button"
                             onClick={() => setShowCounterOfferModal(true)}
-                            className="flex items-center gap-1.5 h-10 px-3.5 sm:px-4 text-[13px] font-semibold rounded-lg border-[1.5px] border-[#FF6A00] bg-white dark:bg-slate-800 text-[#FF6A00] hover:bg-orange-50/60 dark:hover:bg-orange-950/30 transition-all shadow-2xs hover:shadow-xs cursor-pointer active:scale-95 shrink-0"
+                            className="flex items-center gap-1.5 h-10 px-3.5 sm:px-4 text-[13px] font-semibold rounded-full border-[1.5px] border-[#FF6A00] bg-white dark:bg-slate-800 text-[#FF6A00] hover:bg-orange-50/60 dark:hover:bg-orange-950/30 transition-all shadow-2xs hover:shadow-xs cursor-pointer active:scale-95 shrink-0"
                             title={isSupplier ? 'Revise Offer' : 'Propose Counter Rate'}
                         >
                             <FileText size={16} strokeWidth={2} className="shrink-0 text-[#FF6A00]" />

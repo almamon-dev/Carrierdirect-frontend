@@ -32,7 +32,7 @@ export const QuoteSubmittedSuccessModal: React.FC<QuoteSubmittedSuccessModalProp
     submissionMeta,
 }) => {
     const navigate = useNavigate();
-    const customerName = requestDetails.customer || 'Verified Shipper';
+    const customerName = requestDetails.customer || '-';
     const cleanId = String(requestDetails.rawId || requestDetails.id || '').replace('REQ-', '').trim();
     const numericOffer = parseFloat(totalOffer || '0');
 

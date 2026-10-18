@@ -26,6 +26,7 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
     if (!isOpen) return null;
 
     const isDriver = isDriverUser();
+    const isCustomer = typeof window !== 'undefined' && window.location.pathname.startsWith('/customer');
 
     const driverLinks = [
         { name: 'Dashboard Overview', path: '/driver/dashboard', icon: Activity },
@@ -33,6 +34,14 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
         { name: 'Live Chat', path: '/driver/chat', icon: MessageSquare },
         { name: 'Notifications', path: '/driver/notifications', icon: Bell },
         { name: 'Driver Profile & Credentials', path: '/driver/profile', icon: Settings },
+    ];
+
+    const customerLinks = [
+        { name: 'Dashboard Overview', path: '/customer/dashboard', icon: Activity },
+        { name: 'My Orders', path: '/customer/orders', icon: Package },
+        { name: 'Quote Requests', path: '/customer/quotes', icon: FileText },
+        { name: 'Invoices & Finance', path: '/customer/finance/invoices', icon: Users },
+        { name: 'Account Settings', path: '/customer/settings', icon: Settings },
     ];
 
     const supplierLinks = [
@@ -43,7 +52,7 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
         { name: 'Settings', path: '/supplier/settings', icon: Settings },
     ];
 
-    const quickLinks = isDriver ? driverLinks : supplierLinks;
+    const quickLinks = isDriver ? driverLinks : isCustomer ? customerLinks : supplierLinks;
 
     const filteredLinks = query.trim() === ''
         ? quickLinks

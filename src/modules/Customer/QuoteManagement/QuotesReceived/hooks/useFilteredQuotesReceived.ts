@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 import {
-    isQuoteActive,
-    isQuoteCounter,
     isQuoteAccepted,
-    isQuoteHistory,
+    isQuoteRejected,
+    isQuoteExpired,
+    isQuoteNegotiation,
+    isQuoteNew,
+    isQuoteCompleted,
 } from '../components/QuotesReceivedFilterTabs';
 
-interface UseFilteredQuotesReceivedParams {
+interface UseFilteredQuotesReceivedProps {
     quotes: any[];
     activeFilterTab: string;
     statusFilter: string;
@@ -24,51 +26,46 @@ export function useFilteredQuotesReceived({
     ratingFilter,
     startDate,
     endDate,
-}: UseFilteredQuotesReceivedParams) {
+}: UseFilteredQuotesReceivedProps) {
     return useMemo(() => {
-        return quotes.filter((row) => {
-            const s = (row.status_raw || row.statusRaw || row.status || '').toLowerCase();
+        return (quotes || []).filter((item) => {
+            if (!item) return false;
 
-            if (activeFilterTab === 'active') {
-                if (!isQuoteActive(row)) return false;
-            } else if (activeFilterTab === 'counter') {
-                if (!isQuoteCounter(row)) return false;
-            } else if (activeFilterTab === 'accepted') {
-                if (!isQuoteAccepted(row)) return false;
-            } else if (activeFilterTab === 'history' || activeFilterTab === 'closed') {
-                if (!isQuoteHistory(row)) return false;
-            }
+            // Completed quotes belong strictly in Quote History
+            if (isQuoteCompleted(item)) return false;
+
+            const tab = activeFilterTab.toLowerCase();
+            if (tab === 'all') {
+                // Return all non-completed
+            } else if (tab === 'new' && !isQuoteNew(item)) return false;
+            else if (tab === 'negotiation' && !isQuoteNegotiation(item)) return false;
+            else if (tab === 'accepted' && !isQuoteAccepted(item)) return false;
+            else if (tab === 'rejected' && !isQuoteRejected(item)) return false;
+            else if (tab === 'expired' && !isQuoteExpired(item)) return false;
 
             if (statusFilter !== 'all') {
-                if (!s.includes(statusFilter.toLowerCase())) return false;
+                const normStatus = (item.status || item.status_raw || '').toLowerCase();
+                if (!normStatus.includes(statusFilter.toLowerCase())) return false;
             }
 
             if (vehicleFilter !== 'all') {
-                const rowVehicle = (row.vehicleType || row.vehicle || row.vehicle_type || row.truck_type || row.quote_request?.vehicle_type || '').toLowerCase();
-                if (!rowVehicle.includes(vehicleFilter.toLowerCase())) return false;
+                const normVehicle = (item.vehicleType || item.vehicle_type || '').toLowerCase();
+                if (!normVehicle.includes(vehicleFilter.toLowerCase())) return false;
             }
 
             if (ratingFilter !== 'all') {
-                const numRating = Number(row.rating || row.supplier?.rating || 0);
-                const minRating = parseFloat(ratingFilter);
-                if (numRating < minRating) return false;
+                const r = parseFloat(item.supplierRating || item.supplier_rating || item.rating || 0);
+                const minR = parseFloat(ratingFilter);
+                if (!isNaN(minR) && r < minR) return false;
             }
 
             if (startDate || endDate) {
-                const rowDateStr = row.created_at || row.request_date || row.date || row.valid_until || row.pickup_date;
-                if (rowDateStr) {
-                    const rowDate = new Date(rowDateStr);
-                    if (!isNaN(rowDate.getTime())) {
-                        if (startDate) {
-                            const start = new Date(startDate);
-                            start.setHours(0, 0, 0, 0);
-                            if (rowDate < start) return false;
-                        }
-                        if (endDate) {
-                            const end = new Date(endDate);
-                            end.setHours(23, 59, 59, 999);
-                            if (rowDate > end) return false;
-                        }
+                const dateVal = item.created_at || item.createdAt || item.date;
+                if (dateVal) {
+                    const time = new Date(dateVal).getTime();
+                    if (!isNaN(time)) {
+                        if (startDate && time < new Date(startDate).setHours(0, 0, 0, 0)) return false;
+                        if (endDate && time > new Date(endDate).setHours(23, 59, 59, 999)) return false;
                     }
                 }
             }

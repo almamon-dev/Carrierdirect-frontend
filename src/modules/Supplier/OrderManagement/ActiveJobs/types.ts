@@ -1,4 +1,4 @@
-export type OrderFilterTab = 'all' | 'in_transit' | 'pod_review' | 'completed' | 'cancelled';
+export type OrderFilterTab = 'all' | 'new' | 'scheduled' | 'confirmed' | 'driver_assigned' | 'in_transit';
 
 export interface SupplierOrderItem {
     id: string | number;
@@ -50,6 +50,7 @@ export interface SupplierOrderItem {
         avatar?: string;
     };
     rating?: number | string;
+    driver_id?: string | number | null;
     driver?: string;
     driver_name?: string;
     driver_phone?: string;

@@ -23,25 +23,65 @@ export const useFilteredCustomerOrders = ({
     return useMemo(() => {
         return orders.filter((order) => {
             const rawStatus = String(order.status_raw || order.status || '').toLowerCase().trim();
-            const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'won';
-            const isPodReview = rawStatus.includes('review') || rawStatus.includes('pod_uploaded') || rawStatus === 'delivered';
-            const isCancelled = rawStatus.includes('cancel') || rawStatus.includes('reject');
-            const isInTransit = rawStatus === 'in_transit' || rawStatus === 'on_the_way' || rawStatus === 'picked_up' || rawStatus === 'in_progress' || rawStatus === 'driver_assigned';
+            const statusLabel = String(order.status || '').toLowerCase().trim();
+            const podStatus = String(order.pod_status || (order as any).pod?.status || (order as any).pod?.pod_status || '').toLowerCase().trim();
 
-            // 1. Tab filter
+            const hasPodDoc = Boolean(
+                order.proof_of_delivery || 
+                (order as any).proof || 
+                (order as any).pod_url || 
+                (order as any).pod_file || 
+                (order as any).pod_document_url || 
+                (order as any).signature || 
+                (order as any).pod?.file_url || 
+                (order as any).pod?.is_uploaded
+            );
+
+            const isCancelled = rawStatus.includes('cancel') || rawStatus.includes('reject');
+            const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'pod_accepted' || rawStatus === 'won';
+
+            const isInTransit = !isCompleted && !isCancelled && (
+                rawStatus === 'in_transit' || rawStatus === 'picked_up' || rawStatus === 'on_the_way' || rawStatus === 'in_progress'
+            );
+
+            const isDriverAssigned = !isCompleted && !isCancelled && !isInTransit && (
+                rawStatus === 'driver_assigned' || rawStatus === 'assigned'
+            );
+
+            const isConfirmed = !isCompleted && !isCancelled && !isInTransit && !isDriverAssigned && (
+                rawStatus === 'confirmed' || rawStatus === 'booked' || rawStatus === 'pending' || rawStatus === 'scheduled' || rawStatus === 'order_booked'
+            );
+
+            const isDelivered = !isCompleted && !isCancelled && !isInTransit && (
+                rawStatus === 'delivered' || statusLabel === 'delivered'
+            );
+
+            const isPodPending = !isCompleted && !isCancelled && !isInTransit && (
+                rawStatus === 'pod_uploaded' || 
+                rawStatus === 'pod_review' || 
+                (isDelivered && (hasPodDoc || podStatus === 'pending')) ||
+                (podStatus === 'pending' && hasPodDoc) ||
+                statusLabel.includes('review')
+            );
+
+            // 1. Tab filter (Exact 7 status tabs)
+            if (activeTab === 'confirmed' && !isConfirmed) return false;
+            if (activeTab === 'driver_assigned' && !isDriverAssigned) return false;
             if (activeTab === 'in_transit' && !isInTransit) return false;
-            if (activeTab === 'pod_review' && !isPodReview) return false;
+            if (activeTab === 'delivered' && !isDelivered) return false;
+            if (activeTab === 'pod_pending' && !isPodPending) return false;
             if (activeTab === 'completed' && !isCompleted) return false;
             if (activeTab === 'cancelled' && !isCancelled) return false;
 
             // 2. Status filter dropdown
             if (statusFilter && statusFilter !== 'all') {
+                if (statusFilter === 'confirmed' && !isConfirmed) return false;
+                if (statusFilter === 'driver_assigned' && !isDriverAssigned) return false;
                 if (statusFilter === 'in_transit' && !isInTransit) return false;
-                if (statusFilter === 'pod_review' && !isPodReview) return false;
+                if (statusFilter === 'delivered' && !isDelivered) return false;
+                if (statusFilter === 'pod_pending' && !isPodPending) return false;
                 if (statusFilter === 'completed' && !isCompleted) return false;
                 if (statusFilter === 'cancelled' && !isCancelled) return false;
-                if (statusFilter === 'confirmed' && rawStatus !== 'confirmed' && rawStatus !== 'pending' && rawStatus !== 'scheduled' && rawStatus !== 'booked') return false;
-                if (statusFilter === 'driver_assigned' && rawStatus !== 'driver_assigned' && rawStatus !== 'assigned') return false;
             }
 
             // 3. Vehicle filter (optional)

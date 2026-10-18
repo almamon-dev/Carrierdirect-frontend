@@ -7,7 +7,7 @@ const D_INSTRUCTIONS = "1. Contact destination warehouse receiving manager 1 hou
 const sampleRow1 = [
     '"5 Pallets Machinery Parts - Gazipur to Chittagong Port"',
     '"High"', '"One Way"', '"Express"', '"2 Days"',
-    '"2026-07-28"', '"09:00 AM"', '"Prime Logistics EPZ Depot"', '"Kamal Hossain"', '"+8801711234567"',
+    '"2026-07-28"', '"09:00 AM"', '""', '"Kamal Hossain"', '"+8801711234567"',
     '"dispatch@primelogistics.bd"', '"Bangladesh"', '"Dhaka Division"', '"Dhaka (Gazipur)"', '"1700"',
     '"Plot 42, Sector 4, Gazipur Industrial Area, Gazipur"', '"https://maps.google.com/?q=Gazipur+EPZ"',
     `"${P_INSTRUCTIONS}"`,

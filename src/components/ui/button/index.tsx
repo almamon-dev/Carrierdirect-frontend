@@ -1,10 +1,9 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-[3px] text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-60 font-sans antialiased",
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[3px] text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-60 font-sans antialiased",
   {
     variants: {
       variant: {
@@ -38,12 +37,12 @@ const buttonVariants = cva(
   }
 )
 
-const BinanceEqualizer = () => (
+const BinanceEqualizer = ({ className }: { className?: string } = {}) => (
   <div className="flex items-center justify-center gap-[4px] h-5 py-1">
-    <span className="w-[3px] bg-white rounded-full animate-equalizer" style={{ animationDelay: '0ms' }} />
-    <span className="w-[3px] bg-white rounded-full animate-equalizer" style={{ animationDelay: '150ms' }} />
-    <span className="w-[3px] bg-white rounded-full animate-equalizer" style={{ animationDelay: '300ms' }} />
-    <span className="w-[3px] bg-white rounded-full animate-equalizer" style={{ animationDelay: '450ms' }} />
+    <span className={cn("w-[3px] bg-current rounded-full animate-equalizer", className)} style={{ animationDelay: '0ms' }} />
+    <span className={cn("w-[3px] bg-current rounded-full animate-equalizer", className)} style={{ animationDelay: '150ms' }} />
+    <span className={cn("w-[3px] bg-current rounded-full animate-equalizer", className)} style={{ animationDelay: '300ms' }} />
+    <span className={cn("w-[3px] bg-current rounded-full animate-equalizer", className)} style={{ animationDelay: '450ms' }} />
   </div>
 );
 
@@ -65,10 +64,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <div className="flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-            <span>Processing...</span>
-          </div>
+          <BinanceEqualizer />
         ) : (
           <>
             {icon && <span className="mr-2 inline-flex shrink-0">{icon}</span>}
@@ -81,5 +77,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
-export { Button, buttonVariants }
+export { Button, buttonVariants, BinanceEqualizer }
 export default Button

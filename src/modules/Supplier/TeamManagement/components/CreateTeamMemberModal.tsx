@@ -1,526 +1,270 @@
-import { useToastStore } from "@/stores/useToastStore";
-import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
-import { PhoneInput } from '@/components/ui/phone-input';
-import Select from '@/components/ui/select';
-import { apiClient } from '@/lib/axios';
-import {
-    ArrowRight,
-    Briefcase,
-    CheckCircle,
-    Key,
-    Loader2,
-    Mail,
-    Send,
-    Shield,
-    User,
-    X
-} from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
+import {
+    X,
+    Mail,
+    Building2,
+    User,
+    Briefcase,
+    Send,
+    Loader2,
+    Key,
+    Eye,
+    EyeOff,
+    UserPlus,
+} from 'lucide-react';
+import Input from '@/components/ui/input';
+import Select from '@/components/ui/select';
+import { useCreateTeamMember } from '../hooks/useCreateTeamMember';
 
 interface CreateTeamMemberModalProps {
     onClose: () => void;
     onSuccess?: () => void;
 }
 
+const DEPARTMENT_OPTIONS = [
+    { id: 'Operations', name: 'Operations' },
+    { id: 'Logistics', name: 'Logistics' },
+    { id: 'Dispatch', name: 'Dispatch' },
+    { id: 'Fleet', name: 'Fleet' },
+    { id: 'Management', name: 'Management' },
+    { id: 'Customer Support', name: 'Customer Support' },
+    { id: 'Finance', name: 'Finance' },
+];
+
+const JOB_TITLE_OPTIONS = [
+    { id: 'Driver', name: 'Driver' },
+    { id: 'Senior Driver', name: 'Senior Driver' },
+    { id: 'Delivery Specialist', name: 'Delivery Specialist' },
+    { id: 'Dispatcher', name: 'Dispatcher' },
+    { id: 'Fleet Coordinator', name: 'Fleet Coordinator' },
+    { id: 'Operations Associate', name: 'Operations Associate' },
+];
+
 export default function CreateTeamMemberModal({ onClose, onSuccess }: CreateTeamMemberModalProps) {
-    const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        department: '',
-        designation: '',
-        role: '',
-        accessMethod: '',
-        tempPassword: '',
-    });
+    const {
+        formData,
+        isSubmitting,
+        roles,
+        isValid,
+        handleChange,
+        handleSubmit,
+    } = useCreateTeamMember(onClose, onSuccess);
 
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
-    // Standard Fixed Logistics Departments
-    const STANDARD_DEPARTMENTS = [
-        { id: 'Operations & Dispatch', name: 'Operations & Dispatch' },
-        { id: 'Fleet & Drivers', name: 'Fleet & Drivers' },
-        { id: 'Customer Support & Sales', name: 'Customer Support & Sales' },
-        { id: 'Finance & Accounts', name: 'Finance & Accounts' },
-        { id: 'Security & Compliance', name: 'Security & Compliance' },
-    ];
-
-    // Standard Fixed Job Titles / Designations (Simple & Clean)
-    const STANDARD_DESIGNATIONS = [
-        { id: 'Manager', name: 'Manager' },
-        { id: 'Driver / Dispatcher', name: 'Driver / Dispatcher' },
-        { id: 'Fleet Supervisor', name: 'Fleet Supervisor' },
-        { id: 'Operations Executive', name: 'Operations Executive' },
-        { id: 'Coordinator', name: 'Coordinator' },
-        { id: 'Support Executive', name: 'Support Executive' },
-        { id: 'Sales Executive', name: 'Sales Executive' },
-        { id: 'Accountant', name: 'Accountant' },
-        { id: 'Staff Assistant', name: 'Staff Assistant' },
-    ];
-
-    // Dynamic Roles from Database RBAC
-    const [availableRoles, setAvailableRoles] = useState<any[]>([]);
-    const [isLoadingRoles, setIsLoadingRoles] = useState(false);
-
-    // Fetch dynamic roles from backend
-    useEffect(() => {
-        let isMounted = true;
-        async function fetchRoles() {
-            setIsLoadingRoles(true);
-            try {
-                const rolesRes = await apiClient.get('/supplier/team/roles');
-                const rawRoles = rolesRes.data?.data?.roles || rolesRes.data?.data || rolesRes.data || [];
-                if (Array.isArray(rawRoles) && rawRoles.length > 0 && isMounted) {
-                    const mapped = rawRoles.map((r: any) => ({
-                        id: r.name || r.id,
-                        name: r.name,
-                        desc: r.description || `Access privileges configured for ${r.name}.`
-                    }));
-                    setAvailableRoles(mapped);
-                    if (mapped[0]?.id) {
-                        setFormData(prev => ({ ...prev, role: mapped[0].id }));
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to fetch dynamic roles:', err);
-            } finally {
-                if (isMounted) setIsLoadingRoles(false);
-            }
-        }
-        fetchRoles();
-        return () => { isMounted = false; };
-    }, []);
-
-    const STEPS = [
-        { id: 1, name: 'Basic Info', icon: User },
-        { id: 2, name: 'Company & Dept', icon: Briefcase },
-        { id: 3, name: 'Role Assignment', icon: Shield },
-        { id: 4, name: 'System Access', icon: Key },
-        { id: 5, name: 'Review & Send', icon: CheckCircle },
-    ];
-
-    const handleChange = (field: string, val: string) => {
-        setFormData(prev => ({ ...prev, [field]: val }));
-    };
-
-    const isCurrentStepValid = useMemo(() => {
-        if (step === 1) {
-            const hasFirst = formData.firstName.trim().length > 0;
-            const hasLast = formData.lastName.trim().length > 0;
-            const hasEmail = formData.email.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim());
-            return hasFirst && hasLast && hasEmail;
-        }
-        if (step === 2) {
-            const hasDept = formData.department.trim().length > 0;
-            const hasDesignation = formData.designation.trim().length > 0;
-            return hasDept && hasDesignation;
-        }
-        if (step === 3) {
-            return Boolean(formData.role);
-        }
-        if (step === 4) {
-            if (formData.accessMethod === 'email') return true;
-            if (formData.accessMethod === 'temp') return formData.tempPassword.trim().length >= 6;
-            return false;
-        }
-        return true;
-    }, [step, formData]);
-
-    const nextStep = () => {
-        if (!isCurrentStepValid) return;
-        setStep(s => Math.min(5, s + 1));
-    };
-    const prevStep = () => setStep(s => Math.max(1, s - 1));
-
-    const handleSubmit = async () => {
-        if (!isCurrentStepValid || isSubmitting) return;
-        setIsSubmitting(true);
-        try {
-            const payload = {
-                ...formData,
-                name: `${formData.firstName} ${formData.lastName}`.trim(),
-                password: formData.accessMethod === 'temp' ? formData.tempPassword : undefined,
-            };
-            await apiClient.post('/supplier/team/members', payload);
-            setIsSubmitted(true);
-            useToastStore.getState().showToast("Team member added and invitation sent successfully!", "success");
-            onSuccess?.();
-            setTimeout(() => {
-                onClose();
-            }, 1600);
-        } catch (err) {
-            console.error('Failed to create team member:', err);
-            setIsSubmitted(true);
-            onSuccess?.();
-            setTimeout(() => {
-                onClose();
-            }, 1600);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    // Fallback roles if API returns empty
-    const displayRoles = availableRoles.length > 0 ? availableRoles : [
-        { id: 'Admin', name: 'Admin', desc: 'Full system management and configuration access.' },
-        { id: 'Operations Manager', name: 'Operations Manager', desc: 'Manage orders, quotes, dispatch, and tracking.' },
-        { id: 'Fleet Dispatcher', name: 'Fleet Dispatcher', desc: 'Assign drivers, fleet vehicles, and monitor trips.' },
-        { id: 'Sales & Quotes', name: 'Sales & Quotes', desc: 'Submit quote bids and negotiate order pricing.' },
-    ];
+    const roleOptions = roles.length > 0
+        ? roles.map((r) => ({ id: r.name, name: r.name }))
+        : [
+            { id: 'Driver', name: 'Driver' },
+            { id: 'Dispatcher', name: 'Dispatcher' },
+            { id: 'Manager', name: 'Manager' },
+            { id: 'Fleet Operator', name: 'Fleet Operator' },
+            { id: 'Viewer', name: 'Viewer' },
+        ];
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-150 font-sans">
-            <div
-    className="bg-white dark:bg-[#12161c] w-full max-w-2xl lg:max-w-3xl rounded-[5px] shadow-2xl flex flex-col h-auto max-h-[90vh] overflow-hidden border border-slate-200 dark:border-slate-800">
-
+            <div className="bg-white dark:bg-[#12161c] w-full max-w-[540px] rounded-[4px] shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 transition-all">
                 {/* Modal Header */}
-                <div
-    className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-[#12161c] shrink-0">
-                    <div>
-                        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Add New Team Member</h2>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Configure member credentials, department roles, and portal access.</p>
+                <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#12161c]">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-[4px] bg-orange-50 dark:bg-orange-950/40 text-orange-500 border border-orange-100 dark:border-orange-900/40 flex items-center justify-center shrink-0">
+                            <UserPlus className="w-5 h-5 text-orange-500" />
+                        </div>
+                        <div>
+                            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Add New Team Member</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Send an invitation to a new team member.</p>
+                        </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-[4px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                     >
-                        <X size={16} />
+                        <X size={18} />
                     </button>
                 </div>
 
-                <div className="flex overflow-hidden h-auto">
-                    {/* Sidebar Steps Progress Bar */}
-                    <div
-    className="w-48 lg:w-52 bg-slate-50/70 dark:bg-[#181d24] border-r border-slate-100 dark:border-slate-800 p-4 flex flex-col justify-start gap-3 shrink-0 hidden md:flex">
-                        {STEPS.map((s) => {
-                            const Icon = s.icon;
-                            const isActive = step === s.id;
-                            const isCompleted = step > s.id;
-
-                            return (
-                                <div key={s.id} className="flex items-center gap-2.5">
-                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs transition-all ${isActive
-                                        ? 'bg-[#FF4A1F] text-white shadow-xs'
-                                        : isCompleted
-                                            ? 'bg-emerald-500 text-white'
-                                            : 'border border-slate-200 dark:border-slate-700 text-slate-400 bg-white dark:bg-[#12161c]'
-                                        }`}>
-                                        {isCompleted ? <CheckCircle size={13} /> : s.id}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className={`text-xs font-semibold truncate ${isActive ? 'text-[#FF4A1F] font-bold' : isCompleted ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400'
-                                            }`}>
-                                            {s.name}
-                                        </p>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                {/* Modal Form Body */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {/* Email Address */}
+                    <div>
+                        <Input
+                            type="email"
+                            label="Email Address *"
+                            value={formData.email}
+                            onChange={(e) => handleChange('email', e.target.value)}
+                            placeholder="driver123@gmail.com"
+                            required
+                            icon={<Mail className="w-4 h-4 text-slate-400" />}
+                            className="rounded-[4px] h-[38px] text-xs sm:text-sm"
+                        />
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">An invitation email will be sent to this address.</p>
                     </div>
 
-                    {/* Main Form Content */}
-                    <div className="flex-1 flex flex-col justify-between bg-white dark:bg-[#12161c] overflow-y-auto h-auto">
-                        <div className="p-4 sm:p-5 h-auto">
-                            {isSubmitted ? (
-                                <div className="py-10 flex flex-col items-center justify-center text-center space-y-2.5">
-                                    <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center animate-bounce">
-                                        <CheckCircle size={24} />
-                                    </div>
-                                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Team Member Invited!</h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
-                                        An invitation email with access credentials has been dispatched to <strong>{formData.email || 'the user'}</strong>.
-                                    </p>
-                                </div>
-                            ) : (
-                                <>
-                                    {/* Step 1: Basic Info */}
-                                    {step === 1 && (
-                                        <div className="space-y-3.5 max-w-lg">
-                                            <div>
-                                                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Personal Information</h3>
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">Provide staff member full name and contact information.</p>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">First Name *</label>
-                                                    <Input
-                                                        placeholder="e.g. John"
-                                                        className="h-8.5 text-xs"
-                                                        value={formData.firstName}
-                                                        onChange={(e) => handleChange('firstName', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Last Name *</label>
-                                                    <Input
-                                                        placeholder="e.g. Doe"
-                                                        className="h-8.5 text-xs"
-                                                        value={formData.lastName}
-                                                        onChange={(e) => handleChange('lastName', e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address (Login Username) *</label>
-                                                <div className="relative">
-                                                    <Input
-                                                        placeholder="john.doe@carrierdirect.com"
-                                                        type="email"
-                                                        className="h-8.5 text-xs pr-8"
-                                                        value={formData.email}
-                                                        onChange={(e) => handleChange('email', e.target.value)}
-                                                    />
-                                                    <Mail size={13} className="absolute right-2.5 top-2.5 text-slate-400" />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Mobile Phone Number</label>
-                                                <PhoneInput
-                                                    value={formData.phone}
-                                                    onChange={(e: any) => {
-                                                        const val = e?.target?.value !== undefined ? e.target.value : (typeof e === 'string' ? e : '');
-                                                        handleChange('phone', val);
-                                                    }}
-                                                    defaultCountry="BD"
-                                                    className="w-full text-xs"
-                                                    placeholder="Enter phone number"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Step 2: Company Info */}
-                                    {step === 2 && (
-                                        <div className="space-y-3.5 max-w-lg">
-                                            <div>
-                                                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Department & Designation</h3>
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">Assign member to an operational department or create a new one.</p>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Department *</label>
-                                                    <Select
-                                                        value={formData.department}
-                                                        onChange={(e: any) => {
-                                                            const val = e?.target?.value !== undefined ? e.target.value : e;
-                                                            handleChange('department', val);
-                                                        }}
-                                                        options={STANDARD_DEPARTMENTS}
-                                                        showSearch={false}
-                                                        placeholder="Select department..."
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Designation / Job Title *</label>
-                                                    <Select
-                                                        value={formData.designation}
-                                                        onChange={(e: any) => {
-                                                            const val = e?.target?.value !== undefined ? e.target.value : e;
-                                                            handleChange('designation', val);
-                                                        }}
-                                                        options={STANDARD_DESIGNATIONS}
-                                                        showSearch={true}
-                                                        placeholder="Select job title / designation..."
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Step 3: Role */}
-                                    {step === 3 && (
-                                        <div className="space-y-3 max-w-lg">
-                                            <div>
-                                                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Select Access Role</h3>
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">Choose the permission level from database configured roles.</p>
-                                            </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1">
-                                                {displayRoles.map((r) => {
-                                                    const isSelected = formData.role === r.id;
-                                                    return (
-                                                        <div
-                                                            key={r.id}
-                                                            onClick={() => handleChange('role', r.id)}
-                                                            className={`p-2 sm:py-2 sm:px-2.5 rounded-[3px] border cursor-pointer transition-all flex items-start gap-2 ${
-                                                                isSelected
-                                                                    ? 'border-[#FF4A1F] bg-orange-50/50 dark:bg-[#ff4a1f]/10 shadow-2xs'
-                                                                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#181d24]'
-                                                            }`}
-                                                        >
-                                                            <div className={`w-3.5 h-3.5 rounded-full border mt-0.5 shrink-0 flex items-center justify-center transition-colors ${
-                                                                isSelected
-                                                                    ? 'border-[#FF4A1F] bg-[#FF4A1F]'
-                                                                    : 'border-slate-300 dark:border-slate-600'
-                                                            }`}>
-                                                                {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                                                            </div>
-                                                            <div className="min-w-0 flex-1">
-                                                                <div className="flex items-center justify-between gap-1 mb-0.5">
-                                                                    <h4 className={`text-xs font-bold truncate ${isSelected ? 'text-[#FF4A1F] dark:text-[#ff4a1f]' : 'text-slate-900 dark:text-slate-100'}`}>
-                                                                        {r.name}
-                                                                    </h4>
-                                                                </div>
-                                                                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight line-clamp-1">
-                                                                    {r.desc}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Step 4: System Access */}
-                                    {step === 4 && (
-                                        <div className="space-y-3 max-w-lg">
-                                            <div>
-                                                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Security & Access Method</h3>
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">Define how the team member logs into the portal.</p>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <div
-                                                    onClick={() => handleChange('accessMethod', 'email')}
-                                                    className={`p-2.5 rounded-[3px] border cursor-pointer flex items-start gap-2.5 transition-all ${formData.accessMethod === 'email' ? 'border-[#FF4A1F] bg-orange-50/40 dark:bg-[#ff4a1f]/10 shadow-2xs' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#181d24]'
-                                                        }`}
-                                                >
-                                                    <input type="radio" name="accessMethod" checked={formData.accessMethod === 'email'} readOnly className="mt-0.5 accent-[#FF4A1F]" />
-                                                    <div>
-                                                        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs">Send Email Invitation Link (Recommended)</h4>
-                                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">The user will receive an email with a secure token to set their password.</p>
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    onClick={() => handleChange('accessMethod', 'temp')}
-                                                    className={`p-2.5 rounded-[3px] border cursor-pointer transition-all ${formData.accessMethod === 'temp' ? 'border-[#FF4A1F] bg-orange-50/40 dark:bg-[#ff4a1f]/10 shadow-2xs' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#181d24]'
-                                                        }`}
-                                                >
-                                                    <div className="flex items-start gap-2.5">
-                                                        <input type="radio" name="accessMethod" checked={formData.accessMethod === 'temp'} readOnly className="mt-0.5 accent-[#FF4A1F]" />
-                                                        <div>
-                                                            <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs">Set Temporary Initial Password</h4>
-                                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Manually specify a temporary password for immediate first-time access.</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {formData.accessMethod === 'temp' && (
-                                                        <div className="mt-2.5 pt-2 border-t border-orange-200/60 dark:border-orange-500/20 pl-6" onClick={(e) => e.stopPropagation()}>
-                                                            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                                                Temporary Password * (Min. 6 characters)
-                                                            </label>
-                                                            <Input
-                                                                type="text"
-                                                                placeholder="e.g. Carrier#2026"
-                                                                value={formData.tempPassword}
-                                                                onChange={(e) => handleChange('tempPassword', e.target.value)}
-                                                                className="h-8 text-xs bg-white dark:bg-slate-900"
-                                                            />
-                                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-                                                                This password will be sent in the invitation email for login.
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Step 5: Review */}
-                                    {step === 5 && (
-                                        <div className="space-y-3.5 max-w-lg">
-                                            <div>
-                                                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Review & Confirm Account</h3>
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">Please review member details before dispatching access.</p>
-                                            </div>
-                                            <div
-    className="bg-slate-50 dark:bg-[#181d24] rounded-lg p-3.5 border border-slate-200 dark:border-slate-800 space-y-2.5">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-950/40 text-[#FF4A1F] flex items-center justify-center font-bold text-xs">
-                                                        {(formData.firstName.charAt(0) || 'J') + (formData.lastName.charAt(0) || 'D')}
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                                                            {formData.firstName || 'John'} {formData.lastName || 'Doe'}
-                                                        </h4>
-                                                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{formData.email || 'john.doe@carrierdirect.com'}</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/80 grid grid-cols-2 gap-2.5 text-xs">
-                                                    <div>
-                                                        <span className="block text-[10px] font-medium text-slate-400">Role</span>
-                                                        <span className="font-bold text-slate-800 dark:text-slate-200 capitalize text-[11.5px]">{formData.role}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-[10px] font-medium text-slate-400">Department</span>
-                                                        <span className="font-bold text-slate-800 dark:text-slate-200 capitalize text-[11.5px]">{formData.department}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-[10px] font-medium text-slate-400">Title</span>
-                                                        <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">{formData.designation || 'Not specified'}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="block text-[10px] font-medium text-slate-400">Phone</span>
-                                                        <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">{formData.phone || 'Not specified'}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
+                    {/* Department & Access Role */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        {/* Department */}
+                        <div>
+                            <label className="block text-[13px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                Department <span className="text-slate-400 font-normal">(Optional)</span>
+                            </label>
+                            <Select
+                                value={formData.department}
+                                onChange={(val: any) => handleChange('department', typeof val === 'object' ? val?.id || val?.name : String(val))}
+                                options={DEPARTMENT_OPTIONS}
+                                icon={Building2}
+                                placeholder="Select department..."
+                                triggerClassName="rounded-[4px] h-[38px] text-xs sm:text-sm"
+                            />
                         </div>
 
-                        {/* Footer Controls */}
-                        {!isSubmitted && (
-                            <div
-    className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24]/50 flex items-center justify-between shrink-0">
-                                <Button
-                                    variant="outline"
-                                    className="h-8 px-3 text-xs"
-                                    onClick={step === 1 ? onClose : prevStep}
-                                >
-                                    {step === 1 ? 'Cancel' : 'Back'}
-                                </Button>
+                        {/* Access Role */}
+                        <div>
+                            <label className="block text-[13px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                Access Role <span className="text-[#FF4A1F]">*</span>
+                            </label>
+                            <Select
+                                value={formData.accessRole}
+                                onChange={(val: any) => {
+                                    const roleName = typeof val === 'object' ? val?.id || val?.name : String(val);
+                                    handleChange('accessRole', roleName);
+                                    if (roleName === 'Driver') {
+                                        handleChange('jobTitle', 'Driver');
+                                    }
+                                }}
+                                options={roleOptions}
+                                icon={User}
+                                placeholder="Select access role..."
+                                triggerClassName="rounded-[4px] h-[38px] text-xs sm:text-sm"
+                            />
+                        </div>
+                    </div>
 
-                                {step < 5 ? (
-                                    <Button
-                                        variant="primary"
-                                        className={`h-8 px-3.5 text-xs gap-1.5 text-white shadow-xs rounded-[3px] transition-all ${isCurrentStepValid
-                                            ? 'bg-[#FF4A1F] hover:bg-[#E03E15] cursor-pointer'
-                                            : 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed opacity-60'
-                                            }`}
-                                        onClick={nextStep}
-                                        disabled={!isCurrentStepValid}
-                                    >
-                                        <span>Next</span>
-                                        <ArrowRight size={13} />
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        variant="primary"
-                                        className={`h-8 px-4 text-xs gap-1.5 text-white shadow-xs rounded-[3px] transition-all ${isCurrentStepValid && !isSubmitting
-                                            ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
-                                            : 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed opacity-60'
-                                            }`}
-                                        onClick={handleSubmit}
-                                        disabled={!isCurrentStepValid || isSubmitting}
-                                    >
-                                        {isSubmitting ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
-                                        <span>Send Invitation</span>
-                                    </Button>
-                                )}
+                    {/* Job Title */}
+                    <div>
+                        <label className="block text-[13px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                            Job Title <span className="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <Select
+                            value={formData.jobTitle}
+                            onChange={(val: any) => handleChange('jobTitle', typeof val === 'object' ? val?.id || val?.name : String(val))}
+                            options={JOB_TITLE_OPTIONS}
+                            icon={Briefcase}
+                            placeholder="Select job title..."
+                            triggerClassName="rounded-[4px] h-[38px] text-xs sm:text-sm"
+                        />
+                    </div>
+
+                    {/* Account Access Method */}
+                    <div>
+                        <label className="block text-[13px] font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                            Account Access Method
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Option 1: Send Email Invitation */}
+                            <div
+                                onClick={() => handleChange('accessMethod', 'email_invitation')}
+                                className={`relative p-3.5 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-start ${
+                                    formData.accessMethod === 'email_invitation'
+                                        ? 'border-[#FF4A1F] bg-orange-50/20 dark:bg-orange-950/20 ring-1 ring-[#FF4A1F]/30'
+                                        : 'border-slate-200 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#181d24]'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                        formData.accessMethod === 'email_invitation' ? 'border-[#FF4A1F]' : 'border-slate-300 dark:border-slate-600'
+                                    }`}>
+                                        {formData.accessMethod === 'email_invitation' && (
+                                            <div className="w-2 h-2 rounded-full bg-[#FF4A1F]" />
+                                        )}
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Send Email Invitation</span>
+                                </div>
+                                <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 pl-6">
+                                    Driver will receive an email with a secure link to set their password and complete their profile.
+                                </p>
+                            </div>
+
+                            {/* Option 2: Set Temporary Password */}
+                            <div
+                                onClick={() => handleChange('accessMethod', 'temporary_password')}
+                                className={`relative p-3.5 rounded-[4px] border transition-all cursor-pointer flex flex-col justify-start ${
+                                    formData.accessMethod === 'temporary_password'
+                                        ? 'border-[#FF4A1F] bg-orange-50/20 dark:bg-orange-950/20 ring-1 ring-[#FF4A1F]/30'
+                                        : 'border-slate-200 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#181d24]'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                        formData.accessMethod === 'temporary_password' ? 'border-[#FF4A1F]' : 'border-slate-300 dark:border-slate-600'
+                                    }`}>
+                                        {formData.accessMethod === 'temporary_password' && (
+                                            <div className="w-2 h-2 rounded-full bg-[#FF4A1F]" />
+                                        )}
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Set Temporary Password</span>
+                                </div>
+                                <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 pl-6">
+                                    Manually set a password for immediate access.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Temporary Password Field */}
+                        {formData.accessMethod === 'temporary_password' && (
+                            <div className="mt-3 animate-in fade-in duration-150">
+                                <Input
+                                    type={showPassword ? 'text' : 'password'}
+                                    label="Temporary Password *"
+                                    value={formData.password || ''}
+                                    onChange={(e) => handleChange('password', e.target.value)}
+                                    placeholder="Enter password (minimum 6 characters)"
+                                    required
+                                    icon={<Key className="w-4 h-4 text-slate-400" />}
+                                    rightIcon={
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer pointer-events-auto"
+                                        >
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    }
+                                    className="rounded-[4px] h-[38px] text-xs sm:text-sm"
+                                />
                             </div>
                         )}
                     </div>
-                </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-5 py-2.5 rounded-[4px] border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={!isValid || isSubmitting}
+                            className={`px-5 py-2.5 rounded-[4px] text-xs font-semibold text-white flex items-center gap-2 shadow-sm transition-all cursor-pointer ${
+                                isValid && !isSubmitting
+                                    ? 'bg-[#FF4A1F] hover:bg-[#E03E15]'
+                                    : 'bg-slate-300 dark:bg-slate-700 text-slate-400 cursor-not-allowed opacity-60'
+                            }`}
+                        >
+                            {isSubmitting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Send className="w-3.5 h-3.5" />
+                            )}
+                            <span>Send Invitation</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>,
         document.body

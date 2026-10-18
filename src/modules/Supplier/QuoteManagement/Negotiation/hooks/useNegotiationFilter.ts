@@ -1,21 +1,21 @@
-import { useMemo, useState } from 'react';
-import { NegotiationItem } from '../types';
+import { useMemo, useState } from "react";
+import { NegotiationItem } from "../types";
 import {
     NegotiationFilterTab,
-    isNegotiationAccepted,
-    isNegotiationBooked,
+    isNegotiationActive,
+    isNegotiationAgreed,
     isNegotiationClosed,
-    isNegotiationCounter,
-    isNegotiationOpen,
-} from '../components/NegotiationFilterTabs';
+    isWaitingForYou,
+    isWaitingForCustomer,
+} from "../components/NegotiationFilterTabs";
 
 export function useNegotiationFilter(negotiations: NegotiationItem[]) {
     const [activeTab, setActiveTab] = useState<NegotiationFilterTab>("all");
-    const [priorityFilter, setPriorityFilter] = useState("all");
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [vehicleFilter, setVehicleFilter] = useState("all");
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
+    const [priorityFilter, setPriorityFilter] = useState<string>("all");
+    const [statusFilter, setStatusFilter] = useState<string>("all");
+    const [vehicleFilter, setVehicleFilter] = useState<string>("all");
+    const [startDate, setStartDate] = useState<string>("");
+    const [endDate, setEndDate] = useState<string>("");
 
     const handleResetFilters = () => {
         setPriorityFilter("all");
@@ -23,6 +23,7 @@ export function useNegotiationFilter(negotiations: NegotiationItem[]) {
         setVehicleFilter("all");
         setStartDate("");
         setEndDate("");
+        // Preserve activeTab as per specification
     };
 
     const filteredData = useMemo(() => {
@@ -30,10 +31,10 @@ export function useNegotiationFilter(negotiations: NegotiationItem[]) {
         return list.filter(item => {
             if (!item) return false;
 
-            if (activeTab === "open" && !isNegotiationOpen(item)) return false;
-            if (activeTab === "counter" && !isNegotiationCounter(item)) return false;
-            if (activeTab === "accepted" && !isNegotiationAccepted(item)) return false;
-            if (activeTab === "booked" && !isNegotiationBooked(item)) return false;
+            if (activeTab === "active" && !isNegotiationActive(item)) return false;
+            if (activeTab === "waiting_you" && (!isNegotiationActive(item) || !isWaitingForYou(item))) return false;
+            if (activeTab === "waiting_customer" && (!isNegotiationActive(item) || !isWaitingForCustomer(item))) return false;
+            if (activeTab === "agreed" && !isNegotiationAgreed(item)) return false;
             if (activeTab === "closed" && !isNegotiationClosed(item)) return false;
 
             if (priorityFilter !== "all" && item.priority?.toLowerCase() !== priorityFilter.toLowerCase()) {
@@ -42,10 +43,8 @@ export function useNegotiationFilter(negotiations: NegotiationItem[]) {
             if (statusFilter !== "all") {
                 const normStatus = (item.status || item.statusRaw || "").toLowerCase();
                 const filterVal = statusFilter.toLowerCase();
-                if (filterVal === "open" && !isNegotiationOpen(item)) return false;
-                else if (filterVal === "counter" && !isNegotiationCounter(item)) return false;
-                else if (filterVal === "accepted" && !isNegotiationAccepted(item)) return false;
-                else if (filterVal === "booked" && !isNegotiationBooked(item)) return false;
+                if (filterVal === "active" && !isNegotiationActive(item)) return false;
+                else if (filterVal === "agreed" && !isNegotiationAgreed(item)) return false;
                 else if (filterVal === "closed" && !isNegotiationClosed(item)) return false;
                 else if (!normStatus.includes(filterVal)) return false;
             }

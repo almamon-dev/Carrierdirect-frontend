@@ -10,7 +10,7 @@ interface CustomerProfileAccountTableProps {
 export const CustomerProfileAccountTable: React.FC<CustomerProfileAccountTableProps> = ({
     customerName,
     formattedId,
-    customerRating = '4.9',
+    customerRating = '5.0',
 }) => (
     <div className="space-y-4 min-w-0">
         <div>

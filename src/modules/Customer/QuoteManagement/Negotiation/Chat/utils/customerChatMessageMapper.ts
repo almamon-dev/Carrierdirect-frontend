@@ -46,25 +46,35 @@ export const mapRawCustomerChatMessages = (
             (!isSent && activeChat?.raw?.quote_request?.user_id && m.sender_id !== activeChat.raw.quote_request.user_id)
         );
 
-        const rawQuote = activeChat?.raw || {};
-        const isExplicitlyNotRevised = rawQuote.revision_status === 'none';
-        const isRevisedOffer = !isExplicitlyNotRevised && Boolean(
-            rawQuote.revision_status === 'revised' ||
-            rawQuote.revision_status === 'pending' ||
-            (rawQuote.revised_amount !== undefined && rawQuote.revised_amount !== null && Number(rawQuote.revised_amount) > 0) ||
+        const msgHasPrev = Boolean(
+            (m.previous_amount !== undefined && m.previous_amount !== null && Number(m.previous_amount) > 0) ||
+            (m.previousTotal !== undefined && m.previousTotal !== null && Number(m.previousTotal) > 0)
+        );
+        const textIsRevised = textContent.toLowerCase().includes('submitted a revised offer') || textContent.toLowerCase().includes('revised offer of');
+        const isRevisedOffer = Boolean(
             rawType === 'revised_offer' ||
             m.type === 'revised_offer' ||
             m.message_type === 'revised_offer' ||
             (m.revision_status && m.revision_status !== 'none') ||
-            textContent.toLowerCase().includes('submitted a revised offer') ||
-            textContent.toLowerCase().includes('revised offer of')
+            textIsRevised ||
+            (isSupplierOffer && msgHasPrev)
+        );
+
+        const isCounterOffer = Boolean(
+            rawType === 'counter_offer' ||
+            rawType === 'counter-offer' ||
+            m.message_type === 'counter_offer' ||
+            m.type === 'counter_offer' ||
+            textContent.toLowerCase().includes('submitted a counter offer') ||
+            textContent.toLowerCase().includes('counter offer of') ||
+            (!isSupplierOffer && msgHasPrev)
         );
 
         const offerTitle = isRevisedOffer
             ? (isSent ? 'Revised Offer Submitted' : 'Revised Offer Received')
-            : (isSupplierOffer
-                ? (isSent ? 'Quotation Offer Submitted' : 'Quotation Offer Received')
-                : (isSent ? 'Counter Offer Submitted' : 'Counter Offer Received')
+            : (isCounterOffer
+                ? (isSent ? 'Counter Offer Submitted' : 'Counter Offer Received')
+                : (isSent ? 'Quotation Offer Submitted' : 'Quotation Offer Received')
             );
 
         const isSystem = rawType === 'system' || textContent.startsWith('✅') || textContent.startsWith('❌') || textContent.startsWith('Offer Accepted') || textContent.startsWith('Payment completed!') || textContent.startsWith('Booking confirmed!');
@@ -73,7 +83,9 @@ export const mapRawCustomerChatMessages = (
         const msgType = isSystem ? 'system' : (isQuoteRequest ? 'quote_request' : (isOffer ? 'offer' : (isSent ? 'sent' : 'received')));
 
         const proposedAmt = m.proposed_amount ? Number(m.proposed_amount) : (m.newTotal ? Number(m.newTotal) : (m.amount ? Number(m.amount) : undefined));
-        const prevAmt = m.previous_amount ? Number(m.previous_amount) : (m.previousTotal ? Number(m.previousTotal) : (activeChat?.currentPrice || undefined));
+        const prevAmt = (m.previous_amount !== undefined && m.previous_amount !== null && Number(m.previous_amount) > 0)
+            ? Number(m.previous_amount)
+            : ((m.previousTotal !== undefined && m.previousTotal !== null && Number(m.previousTotal) > 0) ? Number(m.previousTotal) : undefined);
 
         return {
             id: m.id || `msg-${Date.now()}-${Math.random()}`,

@@ -1,36 +1,12 @@
-import React, { Fragment, useState, useRef, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { ChevronDown, Check, Search, SearchX, Plus, LucideIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SelectOption, SelectProps } from './selectTypes';
+import { useSelectOptions } from './useSelectOptions';
+import { SelectPortalMenu } from './SelectPortalMenu';
+import { getRawValue, renderSelectedDisplay } from './selectDisplayUtils';
 
-export interface SelectOption {
-    id?: string | number;
-    value?: string | number;
-    name?: string | React.ReactNode;
-    label?: string | React.ReactNode;
-    image?: string;
-    icon?: LucideIcon | React.ElementType | React.ReactNode;
-    [key: string]: any;
-}
-
-export interface SelectProps {
-    value?: any;
-    onChange?: (e: any) => void;
-    options?: SelectOption[];
-    placeholder?: string;
-    className?: string;
-    triggerClassName?: string;
-    size?: "sm" | "md" | "lg";
-    name?: string;
-    multiple?: boolean;
-    disabled?: boolean;
-    showSearch?: boolean;
-    direction?: "up" | "down";
-    onCreate?: (name: string) => void;
-    icon?: LucideIcon | React.ElementType;
-    children?: React.ReactNode;
-    error?: string | boolean;
-}
+export type { SelectOption, SelectProps };
 
 export default function Select({
     value,
@@ -50,136 +26,27 @@ export default function Select({
     error,
     children
 }: SelectProps) {
-    // Extract options from children if they exist (standard native pattern)
-    const childOptions: SelectOption[] = useMemo(() => {
-        return React.Children.toArray(children)
-            .filter(child => React.isValidElement(child))
-            .map((child: any) => {
-                const val = child.props.value !== undefined ? child.props.value : child.key;
-                const label = child.props.children;
-                return {
-                    id: val,
-                    value: val,
-                    name: label,
-                    label: label,
-                    image: child.props['data-image'] || child.props.image,
-                    icon: child.props['data-icon'] || child.props.icon
-                };
-            })
-            .filter(opt => opt.id !== undefined);
-    }, [children]);
-
-    // Normalize final options list supporting both { id, name } and { value, label } formats
-    const finalOptions: SelectOption[] = useMemo(() => {
-        const rawList = options && options.length > 0 ? options : childOptions;
-        return rawList.map((opt: any) => {
-            if (typeof opt === 'string' || typeof opt === 'number') {
-                return {
-                    id: opt,
-                    value: opt,
-                    name: String(opt),
-                    label: String(opt),
-                };
-            }
-            const id = opt.value !== undefined ? opt.value : (opt.id !== undefined ? opt.id : opt.key);
-            const name = opt.label !== undefined ? opt.label : (opt.name !== undefined ? opt.name : (opt.title ?? (id !== undefined ? String(id) : '')));
-            return {
-                ...opt,
-                id,
-                value: id,
-                name,
-                label: name,
-                image: opt.image || opt['data-image'],
-                icon: opt.icon || opt['data-icon'],
-            };
-        });
-    }, [options, childOptions]);
-
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 200 });
+    const [dropdownPos, setDropdownPos] = useState<{
+        top?: number;
+        bottom?: number;
+        left: number;
+        width: number;
+        maxHeight?: number;
+        placement: 'down' | 'up';
+    }>({ left: 0, width: 200, placement: 'down' });
 
     const triggerRef = useRef<HTMLButtonElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
+    const { finalOptions, filteredOptions } = useSelectOptions(options, children, searchQuery);
     const shouldShowSearch = showSearch !== undefined ? showSearch : finalOptions.length > 6;
-
-    // Filter options based on search query
-    const filteredOptions = useMemo(() => {
-        if (!searchQuery.trim()) return finalOptions;
-        const q = searchQuery.toLowerCase();
-        return finalOptions.filter(opt => {
-            const nameStr = typeof opt.name === 'string' ? opt.name : '';
-            const labelStr = typeof opt.label === 'string' ? opt.label : '';
-            const valStr = opt.value !== undefined ? String(opt.value) : '';
-            const idStr = opt.id !== undefined ? String(opt.id) : '';
-            return (
-                nameStr.toLowerCase().includes(q) ||
-                labelStr.toLowerCase().includes(q) ||
-                valStr.toLowerCase().includes(q) ||
-                idStr.toLowerCase().includes(q)
-            );
-        });
-    }, [finalOptions, searchQuery]);
-
-    // Helper to get raw value from potential objects
-    const getRawValue = (val: any) => {
-        if (Array.isArray(val)) return val.map(v => typeof v === 'object' ? (v.id ?? v.value) : v);
-        if (typeof val === 'object' && val !== null) return val.id ?? val.value ?? "";
-        return val ?? "";
-    };
 
     const rawValue = getRawValue(value);
     const normalizedValue = multiple
         ? (Array.isArray(rawValue) ? rawValue : (rawValue ? [rawValue] : []))
         : rawValue;
-
-    // Handle selection display
-    const getSelectedDisplay = () => {
-        if (multiple) {
-            const selectedItems = finalOptions.filter(opt =>
-                Array.isArray(normalizedValue) && normalizedValue.map(v => String(v)).includes(String(opt.id))
-            );
-            if (selectedItems.length === 0) return placeholder;
-            return (
-                <span className="text-slate-800 dark:text-slate-200 font-semibold">
-                    {selectedItems.length} selected
-                </span>
-            );
-        }
-        const selected = finalOptions.find(opt => 
-            String(opt.id) === String(normalizedValue) || 
-            String(opt.value) === String(normalizedValue)
-        );
-        if (!selected) return placeholder;
-
-        return (
-            <div className="flex items-center gap-1.5 truncate">
-                {selected.image && (
-                    <img
-                        src={selected.image.startsWith('http') ? selected.image : `/storage/${selected.image}`}
-                        className="w-3.5 h-3.5 object-contain shrink-0"
-                        alt=""
-                    />
-                )}
-                {selected.icon && !Icon && (
-                    typeof selected.icon === 'function' ? (
-                        React.createElement(selected.icon, {
-                            size: size === "sm" ? 13 : 14,
-                            className: "shrink-0 text-slate-500 dark:text-slate-400"
-                        })
-                    ) : React.isValidElement(selected.icon) ? (
-                        <span className="shrink-0 text-slate-500 dark:text-slate-400">
-                            {selected.icon}
-                        </span>
-                    ) : null
-                )}
-                <span className="truncate">
-                    {typeof (selected.name || selected.label) === 'string' ? (selected.name || selected.label) : (selected.name || selected.label)}
-                </span>
-            </div>
-        );
-    };
 
     const isSelected = (optId: any) => {
         if (multiple) {
@@ -193,45 +60,34 @@ export default function Select({
         if (multiple) {
             const currentArr = Array.isArray(normalizedValue) ? [...normalizedValue] : [];
             const index = currentArr.findIndex(v => String(v) === String(optId));
-            let newArr: any[];
-            if (index > -1) {
-                newArr = currentArr.filter(v => String(v) !== String(optId));
-            } else {
-                newArr = [...currentArr, optId];
-            }
+            const newArr = index > -1
+                ? currentArr.filter(v => String(v) !== String(optId))
+                : [...currentArr, optId];
+
             if (onChange) {
-                const syntheticEvent: any = {
-                    target: {
-                        name: name,
-                        value: newArr
-                    },
+                const eventObj = {
+                    target: { name, value: newArr },
                     id: newArr,
                     value: newArr,
+                    toString: () => JSON.stringify(newArr),
+                    valueOf: () => newArr,
                 };
-                onChange(syntheticEvent);
+                onChange(eventObj as any);
             }
         } else {
             if (onChange) {
-                const syntheticEvent: any = {
-                    target: {
-                        name: name,
-                        value: optId
-                    },
+                const eventObj = {
+                    target: { name, value: optId },
                     id: optId,
                     value: optId,
                     name: option.name || option.label,
                     label: option.name || option.label,
+                    toString: () => String(optId ?? ''),
+                    valueOf: () => optId,
                 };
-                onChange(syntheticEvent);
+                onChange(eventObj as any);
             }
             setIsOpen(false);
-        }
-    };
-
-    const onCreate = (nameToCreate: string) => {
-        if (onCreateProp) {
-            onCreateProp(nameToCreate);
-            setSearchQuery('');
         }
     };
 
@@ -243,11 +99,40 @@ export default function Select({
         if (!isOpen && triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
-            const dropdownHeight = 240;
+            const spaceAbove = rect.top;
 
-            let top = rect.bottom + 4;
-            if ((direction === 'up' || spaceBelow < dropdownHeight) && rect.top > dropdownHeight) {
-                top = rect.top - dropdownHeight - 4;
+            const count = finalOptions.length || 1;
+            const itemHeight = size === 'sm' ? 32 : 36;
+            const searchHeight = shouldShowSearch ? 45 : 0;
+            const estimatedHeight = Math.min(240, count * itemHeight + searchHeight + 10);
+
+            let placement: 'down' | 'up' = 'down';
+            if (direction === 'up') {
+                placement = 'up';
+            } else if (direction === 'down') {
+                if (spaceBelow < 120 && spaceAbove > spaceBelow) {
+                    placement = 'up';
+                } else {
+                    placement = 'down';
+                }
+            } else {
+                if (spaceBelow < estimatedHeight && spaceAbove > spaceBelow) {
+                    placement = 'up';
+                } else {
+                    placement = 'down';
+                }
+            }
+
+            let top: number | undefined;
+            let bottom: number | undefined;
+            let maxHeight: number;
+
+            if (placement === 'up') {
+                bottom = Math.max(8, window.innerHeight - rect.top + 4);
+                maxHeight = Math.min(240, Math.max(100, spaceAbove - 16));
+            } else {
+                top = rect.bottom + 4;
+                maxHeight = Math.min(240, Math.max(100, spaceBelow - 16));
             }
 
             const width = size === "sm" ? Math.max(rect.width, 100) : Math.max(140, rect.width);
@@ -256,11 +141,7 @@ export default function Select({
                 left = Math.max(10, rect.right - width);
             }
 
-            setDropdownPos({
-                top,
-                left,
-                width
-            });
+            setDropdownPos({ top, bottom, left, width, maxHeight, placement });
             setSearchQuery('');
             setIsOpen(true);
         } else {
@@ -268,28 +149,19 @@ export default function Select({
         }
     };
 
-    // Auto-focus search input
     useEffect(() => {
-        if (isOpen && showSearch) {
-            setTimeout(() => {
-                searchInputRef.current?.focus();
-            }, 50);
+        if (isOpen && shouldShowSearch) {
+            setTimeout(() => { searchInputRef.current?.focus(); }, 50);
         }
-    }, [isOpen, showSearch]);
+    }, [isOpen, shouldShowSearch]);
 
-    // Handle outside click & scroll
     useEffect(() => {
         if (!isOpen) return;
 
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setIsOpen(false);
-        };
-
+        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsOpen(false); };
         const handleScroll = (e: Event) => {
             const target = e.target as HTMLElement;
-            if (target && target.closest && target.closest('.custom-select-portal-menu')) {
-                return;
-            }
+            if (target?.closest?.('.custom-select-portal-menu')) return;
             setIsOpen(false);
         };
 
@@ -331,7 +203,7 @@ export default function Select({
                     </span>
                 )}
                 <span className={cn("block truncate", multiple ? "break-words whitespace-normal pb-0.5" : "truncate")}>
-                    {getSelectedDisplay()}
+                    {renderSelectedDisplay(multiple, normalizedValue, finalOptions, placeholder, size, Icon)}
                 </span>
                 <span className={cn(
                     "pointer-events-none absolute inset-y-0 right-0 flex items-center text-slate-400 dark:text-slate-500",
@@ -341,114 +213,20 @@ export default function Select({
                 </span>
             </button>
 
-            {/* Floating Portal Dropdown Menu (Never Clipped by Modals) */}
-            {isOpen && createPortal(
-                <>
-                    {/* Transparent Click-Outside Overlay */}
-                    <div 
-                        className="fixed inset-0 z-[999998] bg-transparent" 
-                        onClick={() => setIsOpen(false)} 
-                    />
-
-                    {/* Floating Dropdown Container */}
-                    <div
-                        style={{
-                            position: 'fixed',
-                            top: `${dropdownPos.top}px`,
-                            left: `${dropdownPos.left}px`,
-                            width: `${dropdownPos.width}px`,
-                        }}
-                        className="custom-select-portal-menu z-[999999] max-h-64 overflow-hidden rounded-md bg-white dark:bg-[#1e2329] text-[12px] shadow-2xl border border-slate-200 dark:border-slate-700 focus:outline-none flex flex-col animate-in fade-in zoom-in-95 duration-100 font-sans"
-                    >
-                        {/* Search Input Container */}
-                        {shouldShowSearch && (
-                            <div className="p-2 bg-slate-50 dark:bg-[#181d24] border-b border-slate-200 dark:border-slate-700 shrink-0">
-                                <div className="relative flex items-center">
-                                    <Search size={13} className="absolute left-2 text-slate-400 pointer-events-none z-10" />
-                                    <input
-                                        ref={searchInputRef}
-                                        type="text"
-                                        placeholder="Search..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full h-7 pl-7 pr-2 text-[12px] bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-700 rounded text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#FF4A1F] placeholder:text-slate-400 font-medium"
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Options List */}
-                        <div className="overflow-y-auto py-1 flex-1 max-h-[220px] hide-scrollbar no-scrollbar">
-                            {filteredOptions.length === 0 && !onCreateProp ? (
-                                <div className="py-6 px-4 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-1.5">
-                                    <SearchX size={24} strokeWidth={1.5} />
-                                    <span className="text-[11px] font-medium">No results found</span>
-                                </div>
-                            ) : (
-                                <>
-                                    {filteredOptions.map((option, idx) => {
-                                        const optId = option.id !== undefined ? option.id : option.value;
-                                        const active = isSelected(optId);
-                                        return (
-                                            <div
-                                                key={idx}
-                                                onClick={() => handleSelectOption(option)}
-                                                className={cn(
-                                                    "cursor-pointer select-none border-b border-slate-100/50 dark:border-slate-800/50 last:border-0 flex items-center justify-between transition-colors",
-                                                    size === "sm" ? "py-1.5 px-2.5 text-xs" : "py-2 px-3 text-[12.5px]",
-                                                    active 
-                                                        ? "bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#FF4A1F] font-semibold" 
-                                                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 font-normal"
-                                                )}
-                                            >
-                                                <div className="flex items-center gap-2 truncate">
-                                                    {option.image && (
-                                                        <img
-                                                            src={option.image.startsWith('http') ? option.image : `/storage/${option.image}`}
-                                                            className="w-3.5 h-3.5 object-contain shrink-0"
-                                                            alt=""
-                                                        />
-                                                    )}
-                                                    {option.icon && (
-                                                        typeof option.icon === 'function' ? (
-                                                            React.createElement(option.icon, {
-                                                                size: size === "sm" ? 13 : 14,
-                                                                className: cn("shrink-0", active ? "text-[#FF4A1F]" : "text-slate-400 dark:text-slate-500")
-                                                            })
-                                                        ) : React.isValidElement(option.icon) ? (
-                                                            <span className={cn("shrink-0", active ? "text-[#FF4A1F]" : "text-slate-400 dark:text-slate-500")}>
-                                                                {option.icon}
-                                                            </span>
-                                                        ) : null
-                                                    )}
-                                                    <span className={cn("truncate", size === "sm" ? "text-xs" : "text-[12.5px]")}>
-                                                        {option.name || option.label}
-                                                    </span>
-                                                </div>
-                                                {active && (
-                                                    <Check size={size === "sm" ? 12 : 14} className="text-[#FF4A1F] shrink-0 ml-1.5" />
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-
-                                    {onCreateProp && searchQuery && !filteredOptions.find(o => String(o.name || o.label || "").toLowerCase() === searchQuery.toLowerCase()) && (
-                                        <button
-                                            type="button"
-                                            onClick={() => onCreate(searchQuery)}
-                                            className="w-full text-left py-2.5 px-3 text-[12px] font-bold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-slate-800/70 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 mt-1 cursor-pointer"
-                                        >
-                                            <Plus size={14} /> Quick Add "{searchQuery}"
-                                        </button>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </>,
-                document.body
-            )}
+            <SelectPortalMenu
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                dropdownPos={dropdownPos}
+                shouldShowSearch={shouldShowSearch}
+                searchInputRef={searchInputRef}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                filteredOptions={filteredOptions}
+                size={size}
+                isSelected={isSelected}
+                onSelectOption={handleSelectOption}
+                onCreate={onCreateProp ? (name) => { onCreateProp(name); setSearchQuery(''); } : undefined}
+            />
         </div>
     );
 }

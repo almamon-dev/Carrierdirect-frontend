@@ -67,6 +67,11 @@ export function resolveSupplierQuoteStatus(rawItem: {
     const rawStatus = (rawItem.status_raw || rawItem.status || '').toLowerCase().trim();
     const supplierStatus = (rawItem.supplier_status || '').toLowerCase().trim();
 
+    // 0. Check if Completed
+    if (rawStatus === 'completed' || supplierStatus === 'completed') {
+        return 'Completed';
+    }
+
     // 1. Check if Booked / Won
     if (
         rawStatus === 'booked' || 
@@ -92,6 +97,16 @@ export function resolveSupplierQuoteStatus(rawItem: {
         return 'Expired';
     }
 
+    // 2.5. Check if Negotiation
+    if (
+        supplierStatus === 'negotiation' || 
+        supplierStatus === 'negotiating' || 
+        rawStatus === 'negotiation' || 
+        rawStatus === 'negotiating'
+    ) {
+        return 'Negotiation';
+    }
+
     // 3. Check if Quoted / Done / Submitted from API response
     if (
         rawItem.quote_submitted || 
@@ -114,8 +129,12 @@ export function resolveSupplierQuoteStatus(rawItem: {
     }
 
     // 5. Default to New
-    if (!rawStatus || rawStatus === 'active' || rawStatus === 'open' || rawStatus === 'new') {
+    if (!rawStatus || rawStatus === 'active' || rawStatus === 'open' || rawStatus === 'pending' || rawStatus === 'quotes_received' || rawStatus === 'new' || supplierStatus === 'new') {
         return 'New';
+    }
+
+    if (supplierStatus) {
+        return supplierStatus.charAt(0).toUpperCase() + supplierStatus.slice(1);
     }
 
     // Capitalize server status cleanly

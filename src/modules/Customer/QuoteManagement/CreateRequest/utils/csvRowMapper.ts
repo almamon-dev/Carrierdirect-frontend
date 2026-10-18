@@ -64,7 +64,7 @@ export const extractServices = (headers: string[], row: string[]): string[] => {
 
 export const mapSingleCsvRow = (headers: string[], row: string[]): ParsedQuoteRequestData => {
     const title = getCsvField(headers, row, ['requesttitle', 'title', 'request_title'], 0) || 'Logistics Freight Shipment Request';
-    const pickupCompany = getCsvField(headers, row, ['pickupcompany', 'pickupcompanyname'], 7) || 'Prime Logistics EPZ Depot';
+    const pickupCompany = getCsvField(headers, row, ['pickupcompany', 'pickupcompanyname'], 7) || '-';
     const pickupCity = getCsvField(headers, row, ['pickupcity'], 13) || 'Dhaka';
     const deliveryCompany = getCsvField(headers, row, ['deliverycompany', 'deliverycompanyname'], 20) || 'Chittagong Maritime Terminal Hub';
     const deliveryCity = getCsvField(headers, row, ['deliverycity'], 26) || 'Chittagong';
@@ -81,12 +81,12 @@ export const mapSingleCsvRow = (headers: string[], row: string[]): ParsedQuoteRe
         requestTitle: title,
         priority: getCsvField(headers, row, ['priority'], 1) || 'Normal',
         shipmentType: getCsvField(headers, row, ['shipmenttype', 'shipment_type'], 2) || 'One Way',
-        serviceType: getCsvField(headers, row, ['servicetype', 'service_type'], 3) || 'Standard Freight',
+        serviceType: getCsvField(headers, row, ['servicetype', 'service_type'], 3) || '-',
         expectedTransit: getCsvField(headers, row, ['expectedtransit', 'transittime', 'transit'], 4) || '2-3 Days',
         pickupDate: getCsvField(headers, row, ['pickupdate', 'pickup_date'], 5) || new Date().toISOString().split('T')[0],
         pickupTime: getCsvField(headers, row, ['pickuptime', 'pickup_time'], 6) || '09:00 AM',
         pickupCompany,
-        pickupContactPerson: getCsvField(headers, row, ['pickupcontactperson', 'pickupcontact'], 8) || 'Kamal Hossain',
+        pickupContactPerson: getCsvField(headers, row, ['pickupcontactperson', 'pickupcontact'], 8) || '-',
         pickupPhone: getCsvField(headers, row, ['pickupphone', 'pickuptel'], 9) || '+8801711234567',
         pickupEmail: getCsvField(headers, row, ['pickupemail'], 10) || 'dispatch@logistics.bd',
         pickupCountry: getCsvField(headers, row, ['pickupcountry'], 11) || 'Bangladesh',
@@ -98,7 +98,7 @@ export const mapSingleCsvRow = (headers: string[], row: string[]): ParsedQuoteRe
         deliveryDate: getCsvField(headers, row, ['deliverydate', 'delivery_date'], 18) || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
         deliveryTime: getCsvField(headers, row, ['deliverytime', 'delivery_time'], 19) || '05:00 PM',
         deliveryCompany,
-        deliveryContactPerson: getCsvField(headers, row, ['deliverycontactperson', 'deliverycontact'], 21) || 'Rahim Uddin',
+        deliveryContactPerson: getCsvField(headers, row, ['deliverycontactperson', 'deliverycontact'], 21) || '-',
         deliveryPhone: getCsvField(headers, row, ['deliveryphone', 'deliverytel'], 22) || '+8801819987654',
         deliveryEmail: getCsvField(headers, row, ['deliveryemail'], 23) || 'cargo@delivery.com',
         deliveryCountry: getCsvField(headers, row, ['deliverycountry'], 24) || 'Bangladesh',

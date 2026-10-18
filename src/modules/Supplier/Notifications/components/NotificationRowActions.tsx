@@ -1,28 +1,21 @@
-/**
- * NotificationRowActions Component
- * Three-dot menu button with portal dropdown for notification actions:
- * - Open / View Details
- * - Mark as Read
- * - Copy Message
- * - Delete Notification
- */
-
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, ExternalLink, Check, Trash2, Copy, Eye } from 'lucide-react';
+import { MoreVertical, ExternalLink, Check, Trash2, Copy, RotateCcw } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { HeaderNotification, normalizeNotifLink } from '@/hooks/useHeaderNotifications';
 
 interface NotificationRowActionsProps {
     row: HeaderNotification;
     onMarkAsRead: (id: string | number) => void;
+    onMarkAsUnread?: (id: string | number) => void;
     onDelete: (id: string | number) => void;
 }
 
 export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
     row,
     onMarkAsRead,
+    onMarkAsUnread,
     onDelete,
 }) => {
     const navigate = useNavigate();
@@ -97,11 +90,11 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
                     />
 
                     <div
-    className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
+                        className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-[3px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Open Destination Link */}
+                        {/* 1. View Related Record */}
                         {row.link && (
                             <button
                                 type="button"
@@ -113,11 +106,11 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
                                 }}
                             >
                                 <ExternalLink size={13} className="text-slate-400 shrink-0" />
-                                <span>Open Link</span>
+                                <span>View Related Record</span>
                             </button>
                         )}
 
-                        {/* Mark as Read */}
+                        {/* 2. Mark as Read — when unread */}
                         {row.unread && (
                             <button
                                 type="button"
@@ -129,6 +122,21 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
                             >
                                 <Check size={13} className="text-emerald-500 shrink-0" />
                                 <span>Mark as Read</span>
+                            </button>
+                        )}
+
+                        {/* 3. Mark as Unread — when read */}
+                        {!row.unread && onMarkAsUnread && (
+                            <button
+                                type="button"
+                                className="w-full text-left px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2 transition-colors font-medium cursor-pointer"
+                                onClick={() => {
+                                    handleClose();
+                                    onMarkAsUnread(row.id);
+                                }}
+                            >
+                                <RotateCcw size={13} className="text-slate-400 shrink-0" />
+                                <span>Mark as Unread</span>
                             </button>
                         )}
 
@@ -144,7 +152,7 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
 
                         <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
 
-                        {/* Delete Action */}
+                        {/* 4. Delete Notification */}
                         <button
                             type="button"
                             className="w-full text-left px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-2 transition-colors font-semibold cursor-pointer"
@@ -154,7 +162,7 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
                             }}
                         >
                             <Trash2 size={13} className="shrink-0" />
-                            <span>Delete</span>
+                            <span>Delete Notification</span>
                         </button>
                     </div>
                 </>,

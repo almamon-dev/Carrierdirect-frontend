@@ -25,3 +25,7 @@ export type { SupplierAccountConnectModalProps } from './supplier-connect-modal'
 
 export { default as GPSComingSoonModal, GPSComingSoonModal as GPSComingSoonModalComponent } from './gps-coming-soon-modal';
 export type { GPSComingSoonModalProps } from './gps-coming-soon-modal';
+
+export { default as ExportComingSoonModal, ExportComingSoonModal as ExportComingSoonModalComponent } from './export-coming-soon-modal';
+export type { ExportComingSoonModalProps } from './export-coming-soon-modal';
+

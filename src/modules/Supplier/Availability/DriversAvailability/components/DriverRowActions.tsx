@@ -1,24 +1,17 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import {
-    MoreVertical,
-    Truck,
-    MapPin,
-    ArrowUpRight,
-    Users,
-    CheckCircle2,
-    Clock,
-    XCircle,
-} from 'lucide-react';
+import { MoreVertical, ArrowUpRight, Truck, MapPin } from 'lucide-react';
 import Button from '@/components/ui/button';
-import { DriverItem } from '../index';
+import { DriverItem } from '../types/driverAvailability.types';
+import { DriverActionsDropdown } from './DriverActionsDropdown';
 
 interface DriverRowActionsProps {
     row: DriverItem;
     onAssignVehicle: (driver: DriverItem) => void;
     onAssignServiceArea: (driver: DriverItem) => void;
     onStatusChange?: (driver: DriverItem, newStatus: 'Available' | 'On Job' | 'Unavailable') => void;
+    onRemoveVehicle?: (driver: DriverItem) => void;
+    onRemoveServiceArea?: (driver: DriverItem) => void;
 }
 
 export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
@@ -26,6 +19,8 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
     onAssignVehicle,
     onAssignServiceArea,
     onStatusChange,
+    onRemoveVehicle,
+    onRemoveServiceArea,
 }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
@@ -40,8 +35,8 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
             setIsOpen(false);
         } else {
             const rect = e.currentTarget.getBoundingClientRect();
-            const menuWidth = 210;
-            const menuHeight = 240;
+            const menuWidth = 224;
+            const menuHeight = 280;
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
@@ -53,7 +48,7 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
 
             setDropdownPos({
                 top: Math.max(8, top),
-                left: Math.max(8, left)
+                left: Math.max(8, left),
             });
             setIsOpen(true);
         }
@@ -71,21 +66,56 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
         };
     }, [isOpen, handleClose]);
 
+    const hasVehicle = Boolean(row.assignedVehicle || row.vehicle?.plate);
+    const hasArea = Boolean(
+        row.assignedServiceArea ||
+        row.service_area_id ||
+        (Array.isArray(row.service_area_ids) && row.service_area_ids.length > 0) ||
+        (Array.isArray(row.service_areas) && row.service_areas.length > 0)
+    );
+
     return (
-        <div className="relative flex items-center justify-end gap-1.5 w-full min-h-[24px]">
-            {row.status === 'On Job' && (
+        <div className="relative flex items-center justify-end gap-1.5 w-full min-h-[26px]">
+            {row.status === 'On Job' ? (
                 <button
                     type="button"
                     onClick={(e) => {
                         e.stopPropagation();
                         navigate('/supplier/orders');
                     }}
-                    className="text-xs font-semibold text-[#f97316] hover:underline cursor-pointer flex items-center gap-0.5 shrink-0 mr-1"
+                    className="text-xs font-semibold text-[#f97316] hover:underline cursor-pointer flex items-center gap-0.5 shrink-0 mr-0.5"
+                    title="View active driver orders"
                 >
-                    <span>View Orders</span>
+                    <span>Orders</span>
                     <ArrowUpRight size={12} />
                 </button>
-            )}
+            ) : !hasVehicle ? (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onAssignVehicle(row);
+                    }}
+                    className="h-6 px-2 text-[11px] font-semibold text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 rounded-[3px] flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+                    title="Quick assign vehicle"
+                >
+                    <Truck size={11} />
+                    <span>Assign</span>
+                </button>
+            ) : !hasArea ? (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onAssignServiceArea(row);
+                    }}
+                    className="h-6 px-2 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-[3px] flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+                    title="Quick assign service area"
+                >
+                    <MapPin size={11} />
+                    <span>Area</span>
+                </button>
+            ) : null}
 
             <Button
                 ref={triggerRef}
@@ -98,126 +128,17 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
                 <MoreVertical size={14} />
             </Button>
 
-            {isOpen && typeof document !== 'undefined' && createPortal(
-                <>
-                    <div
-                        className="fixed inset-0 z-[9998] cursor-default bg-transparent"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleClose();
-                        }}
-                    />
-                    <div
-                        className="fixed w-52 bg-white dark:bg-[#1e2329] rounded-[6px] shadow-2xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
-                        style={{ top: dropdownPos.top, left: dropdownPos.left }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Driver Assignment</p>
-                            <p className="font-bold text-slate-800 dark:text-slate-200 truncate text-xs mt-0.5">
-                                {row.name}
-                            </p>
-                        </div>
-
-                        {/* Assign Vehicle */}
-                        <button
-                            type="button"
-                            className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-orange-50/60 dark:hover:bg-orange-950/20 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                onAssignVehicle(row);
-                            }}
-                        >
-                            <Truck size={14} className="text-[#ff4a1f] shrink-0" />
-                            <span>{row.vehicle?.plate ? 'Change Assigned Vehicle' : 'Assign Vehicle'}</span>
-                        </button>
-
-                        {/* Assign Service Area */}
-                        <button
-                            type="button"
-                            className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-blue-50/60 dark:hover:bg-blue-950/20 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                onAssignServiceArea(row);
-                            }}
-                        >
-                            <MapPin size={14} className="text-blue-500 shrink-0" />
-                            <span>{row.service_area_id ? 'Change Service Area' : 'Assign Service Area'}</span>
-                        </button>
-
-                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
-
-                        {/* Status Toggle Options */}
-                        <div className="px-3 py-1">
-                            <p className="text-[10px] font-semibold text-slate-400 uppercase">Set Status</p>
-                        </div>
-
-                        <button
-                            type="button"
-                            className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors cursor-pointer ${
-                                row.status === 'Available'
-                                    ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50/50 dark:bg-emerald-950/20'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => {
-                                handleClose();
-                                onStatusChange?.(row, 'Available');
-                            }}
-                        >
-                            <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                            <span>Available</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors cursor-pointer ${
-                                row.status === 'On Job'
-                                    ? 'text-amber-600 dark:text-amber-400 font-bold bg-amber-50/50 dark:bg-amber-950/20'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => {
-                                handleClose();
-                                onStatusChange?.(row, 'On Job');
-                            }}
-                        >
-                            <Clock size={13} className="text-amber-500 shrink-0" />
-                            <span>On Job</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors cursor-pointer ${
-                                row.status === 'Unavailable'
-                                    ? 'text-rose-600 dark:text-rose-400 font-bold bg-rose-50/50 dark:bg-rose-950/20'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                            }`}
-                            onClick={() => {
-                                handleClose();
-                                onStatusChange?.(row, 'Unavailable');
-                            }}
-                        >
-                            <XCircle size={13} className="text-rose-500 shrink-0" />
-                            <span>Unavailable</span>
-                        </button>
-
-                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
-
-                        {/* Team Management Link */}
-                        <button
-                            type="button"
-                            className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2 transition-colors cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                navigate('/supplier/team-management');
-                            }}
-                        >
-                            <Users size={13} className="text-slate-400 shrink-0" />
-                            <span>View in Team</span>
-                        </button>
-                    </div>
-                </>,
-                document.body
-            )}
+            <DriverActionsDropdown
+                isOpen={isOpen}
+                row={row}
+                dropdownPos={dropdownPos}
+                onClose={handleClose}
+                onAssignVehicle={onAssignVehicle}
+                onAssignServiceArea={onAssignServiceArea}
+                onStatusChange={onStatusChange}
+                onRemoveVehicle={onRemoveVehicle}
+                onRemoveServiceArea={onRemoveServiceArea}
+            />
         </div>
     );
 };

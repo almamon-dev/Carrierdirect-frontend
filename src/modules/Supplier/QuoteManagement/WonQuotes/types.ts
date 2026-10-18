@@ -7,4 +7,4 @@ import { QuoteRequest } from '../data/quoteRequestsData';
 
 export type WonQuoteItem = QuoteRequest;
 
-export type WonFilterTab = string;
+export type WonFilterTab = 'Confirmed' | 'Driver Assigned' | 'In Transit' | 'Delivered' | 'POD Pending' | 'Completed' | 'All';

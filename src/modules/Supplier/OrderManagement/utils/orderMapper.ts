@@ -1,3 +1,4 @@
+export { checkHasRealDriver } from '../ActiveJobs/utils/orderMapper';
 import { SupplierOrder, OrderStatus } from '../types/order.types';
 
 export function mapApiOrderToSupplierOrder(o: any): SupplierOrder {
@@ -29,8 +30,8 @@ export function mapApiOrderToSupplierOrder(o: any): SupplierOrder {
     const shipmentObj = o?.shipment || {};
     const trackingObj = o?.tracking || {};
 
-    const pickupAddress = shippingObj.from || o?.pickup_address || o?.pickup_full_address || [o?.pickup_city, o?.pickup_country].filter(Boolean).join(', ') || 'Origin Address';
-    const deliveryAddress = shippingObj.to || o?.delivery_address || o?.delivery_full_address || [o?.delivery_city, o?.delivery_country].filter(Boolean).join(', ') || 'Destination Address';
+    const pickupAddress = shippingObj.from || o?.pickup_address || o?.pickup_full_address || [o?.pickup_city, o?.pickup_country].filter(Boolean).join(', ') || '-';
+    const deliveryAddress = shippingObj.to || o?.delivery_address || o?.delivery_full_address || [o?.delivery_city, o?.delivery_country].filter(Boolean).join(', ') || '-';
     const customerName = clientObj.name || o?.customer?.name || o?.client_name || o?.user?.name || o?.customer_name || 'Verified Customer';
 
     const rawTotal = paymentObj.total ?? o?.total_amount ?? o?.total ?? o?.amount ?? o?.agreed_price;
@@ -81,6 +82,9 @@ export function mapApiOrderToSupplierOrder(o: any): SupplierOrder {
         deliveryTimeWindow: o?.delivery_time_window || '02:00 PM – 06:00 PM',
         distance: o?.distance_km ? `${o.distance_km} km` : (o?.est_distance || o?.distance_miles ? `${o.est_distance || o.distance_miles} km` : (shippingObj.route ? `${shippingObj.route}` : '—')),
         estimatedDuration: o?.duration || o?.estimated_duration || 'Scheduled',
+        driver_id: o?.driver_id || o?.driver?.id || null,
+        driver_name: o?.driver?.name || o?.driver_name || '',
+        status_raw: (o?.status_raw || o?.status || '').toLowerCase().trim(),
         driver: o?.driver?.name || o?.driver_name || '',
         driverPhone: o?.driver?.phone || o?.driver_phone || '',
         vehicle: shippingObj.service || o?.pallet_type || o?.vehicle?.name || o?.vehicle_name || 'Pallet Transport',

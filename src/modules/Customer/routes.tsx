@@ -14,6 +14,7 @@ const QuoteAcceptCheckout = lazy(() => import('./QuoteManagement/QuotesReceived/
 const QuoteNegotiation = lazy(() => import('./QuoteManagement/Negotiation'));
 const QuoteNegotiationChat = lazy(() => import('./QuoteManagement/Negotiation/Chat'));
 const SupplierQuotations = lazy(() => import('./QuoteManagement/Negotiation/SupplierQuotations'));
+const CustomerWonQuotes = lazy(() => import('./QuoteManagement/WonQuotes'));
 const Orders = lazy(() => import('./OrderManagement/Orders'));
 
 const OrderDetails = lazy(() => import('./OrderManagement/Details'));
@@ -31,12 +32,15 @@ export const customerRoutes: RouteObject[] = [
     { index: true, element: <Navigate to="/customer/dashboard" replace /> },
     { path: '', element: <Navigate to="/customer/dashboard" replace /> },
     { path: 'dashboard', element: <Dashboard /> },
-    { path: 'quotes', element: <Navigate to="/customer/quotes/received" replace /> },
+    { path: 'quotes', element: <Navigate to="/customer/quotes/create" replace /> },
+    { path: 'quotes/requests', element: <RequestList /> },
     { path: 'quotes/create', element: <RequestList /> },
     { path: 'quotes/create/new', element: <CreateRequest /> },
     { path: 'quotes/create/edit/:id', element: <EditRequest /> },
     { path: 'quotes/create/view/:id', element: <ViewRequest /> },
     { path: 'quotes/processing', element: <Processing /> },
+    { path: 'quotes/history', element: <CustomerWonQuotes /> },
+    { path: 'quotes/won', element: <Navigate to="/customer/quotes/history" replace /> },
     { path: 'quotes/received', element: <QuotesReceived /> },
     { path: 'quotes/received/track/:id', element: <TrackBids /> },
     { path: 'quotes/received/bids/:id', element: <TrackBids /> },

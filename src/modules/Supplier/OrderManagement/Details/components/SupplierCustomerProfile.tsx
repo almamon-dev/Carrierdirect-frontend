@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Star, MessageSquare, Building, CheckCircle2, Clock } from 'lucide-react';
+import { ShieldCheck, Star, MessageSquare, Building, CheckCircle2, Clock, MapPin } from 'lucide-react';
 import Button from '@/components/ui/button';
 
 interface SupplierCustomerProfileProps {
@@ -14,6 +14,9 @@ interface SupplierCustomerProfileProps {
         active: string;
         memberSince: string;
         completedOrders: number;
+        location?: string;
+        paymentRecord?: string;
+        payoutTerms?: string;
     };
     onOpenChat?: () => void;
 }
@@ -22,16 +25,23 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
     customer,
     onOpenChat,
 }) => {
-    const custName = customer?.companyName || customer?.name || 'Premier Logistics Ltd';
-    const rating = customer?.rating || 4.9;
-    const reviews = customer?.reviews || 128;
+    const custName = customer?.companyName || customer?.name || 'Corporate Shipper';
+    const rating = typeof customer?.rating === 'number' && customer.rating > 0 ? customer.rating : 5.0;
+    const reviews = typeof customer?.reviews === 'number' ? customer.reviews : 0;
+    const completedOrders = customer?.completedOrders !== undefined && customer?.completedOrders !== null ? customer.completedOrders : 0;
+    const paymentRecord = customer?.paymentRecord || '100% Reliable';
+    const payoutTerms = customer?.payoutTerms || 'Instant upon POD';
 
     return (
         <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs p-3.5 sm:p-4 space-y-3 font-sans">
             {/* Header / Avatar */}
             <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/60 flex items-center justify-center text-sm font-bold relative shrink-0 shadow-2xs">
-                    <span>{custName.charAt(0)}</span>
+                    {customer?.avatar ? (
+                        <img src={customer.avatar} alt={custName} className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                        <span>{custName.charAt(0)}</span>
+                    )}
                     <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-[#1e2329] rounded-full" />
                 </div>
 
@@ -40,18 +50,29 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
                         <h3 className="text-xs sm:text-[13.5px] font-bold text-slate-900 dark:text-slate-100 truncate">
                             {custName}
                         </h3>
-                        <span title="Verified Business Account" className="inline-flex">
-                            <ShieldCheck size={15} className="text-emerald-600 shrink-0" />
-                        </span>
+                        {customer?.verified !== false && (
+                            <span title="Verified Business Account" className="inline-flex">
+                                <ShieldCheck size={15} className="text-emerald-600 shrink-0" />
+                            </span>
+                        )}
                     </div>
 
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                        Verified Corporate Shipper
-                    </p>
+                    <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                        <span>Verified Corporate Shipper</span>
+                        {customer?.location && (
+                            <>
+                                <span>•</span>
+                                <span className="flex items-center gap-0.5 text-slate-600 dark:text-slate-300 font-semibold truncate" title={customer.location}>
+                                    <MapPin size={10} className="text-blue-500 shrink-0" />
+                                    <span className="truncate">{customer.location}</span>
+                                </span>
+                            </>
+                        )}
+                    </div>
 
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
                         <Star size={12} className="text-amber-500 fill-amber-500" />
-                        <span className="text-[12px]">{typeof rating === 'number' ? rating.toFixed(1) : rating}</span>
+                        <span className="text-[12px]">{rating.toFixed(1)}</span>
                         <span className="font-medium text-slate-400 text-[11px]">({reviews} reviews)</span>
                     </div>
                 </div>
@@ -65,9 +86,21 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
                         <span>Booked Shipments</span>
                     </span>
                     <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        {customer?.completedOrders || '140+'} loads
+                        {completedOrders} {completedOrders === 1 ? 'load' : 'loads'}
                     </span>
                 </div>
+
+                {customer?.location && (
+                    <div className="flex justify-between items-center min-h-[19px]">
+                        <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                            <MapPin size={12} className="text-slate-400" />
+                            <span>Based in</span>
+                        </span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[170px] text-right">
+                            {customer.location}
+                        </span>
+                    </div>
+                )}
 
                 <div className="flex justify-between items-center min-h-[19px]">
                     <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
@@ -75,7 +108,7 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
                         <span>Payment Release Record</span>
                     </span>
                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                        100% Reliable
+                        {paymentRecord}
                     </span>
                 </div>
 
@@ -85,7 +118,7 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
                         <span>Payout Terms</span>
                     </span>
                     <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        Instant upon POD
+                        {payoutTerms}
                     </span>
                 </div>
             </div>

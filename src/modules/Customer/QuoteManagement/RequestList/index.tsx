@@ -100,7 +100,7 @@ export default function RequestList() {
                         onDeleteRequest={deleteState.handleDeleteRequestClick}
                     />
                 )}
-                actionsColumnClassName="w-[52px] min-w-[52px] max-w-[52px] text-center px-1"
+                actionsColumnClassName="w-[76px] min-w-[70px] text-right pr-3.5 sm:pr-4"
                 onDeleteSelected={deleteState.handleDeleteSelectedClick}
                 headerTabs={<FilterTabs requestData={requestData} activeTab={filters.activeFilterTab} onSelectTab={filters.setActiveFilterTab} />}
                 filterContent={
@@ -123,7 +123,7 @@ export default function RequestList() {
                 isLoading={isLoading}
                 onRowClick={(row) => navigate(buildSecureQuoteUrl('view', row.rawId || row.id))}
                 tableLayout="fixed"
-                tableClassName="w-full"
+                tableClassName="w-full min-w-[1150px]"
                 emptyState={
                     <EmptyState
                         icon={Inbox}

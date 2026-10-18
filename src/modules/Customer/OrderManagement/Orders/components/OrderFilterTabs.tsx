@@ -5,8 +5,11 @@ interface OrderFilterTabsProps {
     orders: CustomerOrderItem[];
     stats?: {
         total?: number;
+        confirmed?: number;
+        driver_assigned?: number;
         in_transit?: number;
-        pod_review?: number;
+        delivered?: number;
+        pod_pending?: number;
         completed?: number;
         cancelled?: number;
     } | null;
@@ -21,52 +24,78 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
     onSelectTab,
 }) => {
     const counts = useMemo(() => {
-        if (stats && typeof stats.total === 'number') {
-            return {
-                all: stats.total ?? orders.length,
-                in_transit: stats.in_transit ?? 0,
-                pod_review: stats.pod_review ?? 0,
-                completed: stats.completed ?? 0,
-                cancelled: stats.cancelled ?? 0,
-            };
-        }
-
+        let confirmed = 0;
+        let driverAssigned = 0;
         let inTransit = 0;
-        let podReview = 0;
+        let delivered = 0;
+        let podPending = 0;
         let completed = 0;
         let cancelled = 0;
 
         orders.forEach((o) => {
             const st = String(o.status_raw || o.status || '').toLowerCase().trim();
-            const isCompleted = st === 'completed' || st === 'pod accepted';
-            const isPodReview = st.includes('review') || st.includes('pod_uploaded') || st === 'delivered';
-            const isCancelled = st.includes('cancel');
-            const isInTransit = st === 'in_transit' || st === 'on_the_way' || st === 'picked_up' || st === 'in_progress' || st === 'driver_assigned' || st === 'confirmed' || st === 'scheduled';
+            const statusLabel = String(o.status || '').toLowerCase().trim();
+            const podSt = String(o.pod_status || (o as any).pod?.status || (o as any).pod?.pod_status || '').toLowerCase().trim();
+            const hasPodDoc = Boolean(
+                o.proof_of_delivery || 
+                (o as any).proof || 
+                (o as any).pod_url || 
+                (o as any).pod_file || 
+                (o as any).pod_document_url || 
+                (o as any).signature || 
+                (o as any).pod?.file_url || 
+                (o as any).pod?.is_uploaded
+            );
+
+            const isCancelled = st.includes('cancel') || st.includes('reject');
+            const isCompleted = st === 'completed' || st === 'pod accepted' || st === 'pod_accepted' || st === 'won';
 
             if (isCancelled) {
                 cancelled++;
-            } else if (isCompleted) {
-                completed++;
-            } else if (isPodReview) {
-                podReview++;
-            } else if (isInTransit) {
-                inTransit++;
+                return;
             }
+            if (isCompleted) {
+                completed++;
+                return;
+            }
+
+            const isInTransit = st === 'in_transit' || st === 'picked_up' || st === 'on_the_way' || st === 'in_progress';
+            const isDriverAssigned = !isInTransit && (st === 'driver_assigned' || st === 'assigned');
+            const isConfirmed = !isInTransit && !isDriverAssigned && (st === 'confirmed' || st === 'booked' || st === 'pending' || st === 'scheduled' || st === 'order_booked');
+            const isDelivered = !isInTransit && (st === 'delivered' || statusLabel === 'delivered');
+            const isPodPending = !isInTransit && (
+                st === 'pod_uploaded' || 
+                st === 'pod_review' || 
+                (isDelivered && (hasPodDoc || podSt === 'pending')) ||
+                (podSt === 'pending' && hasPodDoc) ||
+                statusLabel.includes('review')
+            );
+
+            if (isInTransit) inTransit++;
+            if (isDriverAssigned) driverAssigned++;
+            if (isConfirmed) confirmed++;
+            if (isDelivered) delivered++;
+            if (isPodPending) podPending++;
         });
 
         return {
-            all: orders.length,
-            in_transit: inTransit,
-            pod_review: podReview,
-            completed: completed,
-            cancelled: cancelled,
+            confirmed: stats?.confirmed ?? confirmed,
+            driver_assigned: stats?.driver_assigned ?? driverAssigned,
+            in_transit: stats?.in_transit ?? inTransit,
+            delivered: stats?.delivered ?? delivered,
+            pod_pending: stats?.pod_pending ?? podPending,
+            completed: stats?.completed ?? completed,
+            cancelled: stats?.cancelled ?? cancelled,
         };
     }, [orders, stats]);
 
+    // Exact 7 Status Tabs requested: Confirmed | Driver Assigned | In Transit | Delivered | POD Pending | Completed | Cancelled
     const tabs: { id: OrderFilterTab; label: string; count: number }[] = [
-        { id: 'all', label: 'All Orders', count: counts.all },
+        { id: 'confirmed', label: 'Confirmed', count: counts.confirmed },
+        { id: 'driver_assigned', label: 'Driver Assigned', count: counts.driver_assigned },
         { id: 'in_transit', label: 'In Transit', count: counts.in_transit },
-        { id: 'pod_review', label: 'POD Review', count: counts.pod_review },
+        { id: 'delivered', label: 'Delivered', count: counts.delivered },
+        { id: 'pod_pending', label: 'POD Pending', count: counts.pod_pending },
         { id: 'completed', label: 'Completed', count: counts.completed },
         { id: 'cancelled', label: 'Cancelled', count: counts.cancelled },
     ];
@@ -80,7 +109,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => onSelectTab(tab.id)}
-                        className={`flex items-center gap-1.5 pb-2.5 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${
+                        className={`flex items-center gap-1.5 pb-2.5 border-b transition-colors whitespace-nowrap cursor-pointer px-1 rounded-[3px] ${
                             isActive
                                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -90,7 +119,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
                             {tab.label}
                         </span>
                         <span
-                            className={`text-[11px] font-medium px-1.5 py-0.25 rounded-full transition-colors ${
+                            className={`text-[11px] font-medium px-1.5 py-0.25 rounded-[3px] transition-colors ${
                                 isActive
                                     ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'

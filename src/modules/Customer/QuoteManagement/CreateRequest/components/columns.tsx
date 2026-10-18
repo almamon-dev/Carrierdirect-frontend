@@ -106,12 +106,12 @@ export const getCustomerColumns = (navigate: (path: string) => void): Column<Cus
     { 
         id: 'status', 
         label: 'Status', 
-        className: 'w-[95px] min-w-[90px] text-center',
+        className: 'w-[135px] min-w-[130px] text-center whitespace-nowrap',
         sortable: true,
         render: (row) => <StatusBadgeCell status={row.status} />,
         skeleton: () => (
             <div className="flex items-center justify-center min-h-[22px]">
-                <Skeleton className="h-5 w-18 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/50" />
+                <Skeleton className="h-5 w-20 rounded-[3px] !bg-blue-100/70 dark:!bg-blue-950/50" />
             </div>
         )
     },

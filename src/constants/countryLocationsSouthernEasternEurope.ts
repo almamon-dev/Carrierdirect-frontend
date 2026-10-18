@@ -1,0 +1,88 @@
+import { CountryLocationInfo } from './countryLocationsTypes';
+
+export const SOUTHERN_EASTERN_EUROPE_LOCATIONS: Record<string, CountryLocationInfo> = {
+  Spain: {
+    states: [
+      'Community of Madrid',
+      'Catalonia (Catalunya)',
+      'Andalusia (Andalucía)',
+      'Valencian Community',
+      'Galicia',
+      'Basque Country (País Vasco)',
+      'Castile and León',
+      'Canary Islands',
+      'Balearic Islands',
+      'Aragon',
+    ],
+    cities: [
+      { name: 'Madrid', state: 'Community of Madrid', zip: '28001' },
+      { name: 'Barcelona', state: 'Catalonia (Catalunya)', zip: '08001' },
+      { name: 'Valencia', state: 'Valencian Community', zip: '46001' },
+      { name: 'Seville (Sevilla)', state: 'Andalusia (Andalucía)', zip: '41001' },
+      { name: 'Zaragoza', state: 'Aragon', zip: '50001' },
+      { name: 'Málaga', state: 'Andalusia (Andalucía)', zip: '29001' },
+      { name: 'Bilbao', state: 'Basque Country (País Vasco)', zip: '48001' },
+    ],
+  },
+  Italy: {
+    states: [
+      'Lombardy (Lombardia)',
+      'Lazio (Rome)',
+      'Campania (Naples)',
+      'Veneto',
+      'Piedmont (Piemonte)',
+      'Emilia-Romagna',
+      'Tuscany (Toscana)',
+      'Sicily (Sicilia)',
+      'Apulia (Puglia)',
+    ],
+    cities: [
+      { name: 'Rome (Roma)', state: 'Lazio (Rome)', zip: '00118' },
+      { name: 'Milan (Milano)', state: 'Lombardy (Lombardia)', zip: '20121' },
+      { name: 'Naples (Napoli)', state: 'Campania (Naples)', zip: '80121' },
+      { name: 'Turin (Torino)', state: 'Piedmont (Piemonte)', zip: '10121' },
+      { name: 'Bologna', state: 'Emilia-Romagna', zip: '40121' },
+      { name: 'Florence (Firenze)', state: 'Tuscany (Toscana)', zip: '50121' },
+      { name: 'Venice (Venezia)', state: 'Veneto', zip: '30121' },
+      { name: 'Genoa (Genova)', state: 'Liguria', zip: '16121' },
+    ],
+  },
+  Ireland: {
+    states: [
+      'Leinster',
+      'Munster',
+      'Connacht',
+      'Ulster (Republic of Ireland)',
+      'County Dublin',
+      'County Cork',
+      'County Galway',
+      'County Limerick',
+    ],
+    cities: [
+      { name: 'Dublin', state: 'County Dublin', zip: 'D01' },
+      { name: 'Cork', state: 'County Cork', zip: 'T12' },
+      { name: 'Galway', state: 'County Galway', zip: 'H91' },
+      { name: 'Limerick', state: 'County Limerick', zip: 'V94' },
+      { name: 'Waterford', state: 'Munster', zip: 'X91' },
+    ],
+  },
+  Poland: {
+    states: [
+      'Masovian (Mazowieckie)',
+      'Silesian (Śląskie)',
+      'Lesser Poland (Małopolskie)',
+      'Lower Silesian (Dolnośląskie)',
+      'Greater Poland (Wielkopolskie)',
+      'Pomeranian (Pomorskie)',
+      'Łódź (Łódzkie)',
+    ],
+    cities: [
+      { name: 'Warsaw (Warszawa)', state: 'Masovian (Mazowieckie)', zip: '00-001' },
+      { name: 'Kraków', state: 'Lesser Poland (Małopolskie)', zip: '30-001' },
+      { name: 'Wrocław', state: 'Lower Silesian (Dolnośląskie)', zip: '50-001' },
+      { name: 'Gdańsk', state: 'Pomeranian (Pomorskie)', zip: '80-001' },
+      { name: 'Poznań', state: 'Greater Poland (Wielkopolskie)', zip: '60-001' },
+      { name: 'Katowice', state: 'Silesian (Śląskie)', zip: '40-001' },
+    ],
+  },
+};

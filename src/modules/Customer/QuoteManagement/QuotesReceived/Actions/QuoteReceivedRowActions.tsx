@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MessageSquare, MoreVertical } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
+import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
 import { QuoteReceivedActionsMenu } from './QuoteReceivedActionsMenu';
 
 interface QuoteReceivedRowActionsProps {
@@ -22,15 +23,34 @@ export const QuoteReceivedRowActions: React.FC<QuoteReceivedRowActionsProps> = (
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
+    const rawStatus = (row.status || '').toLowerCase().trim();
+    const rawStatusRaw = (row.status_raw || '').toLowerCase().trim();
+
     const isExpired = Boolean(
         row.is_expired ||
-        (row.status || '').toLowerCase() === 'expired' ||
-        (row.status_raw || '').toLowerCase() === 'expired' ||
-        (row.status || '').toLowerCase() === 'rejected' ||
-        (row.status || '').toLowerCase() === 'cancelled'
+        rawStatus === 'expired' ||
+        rawStatusRaw === 'expired' ||
+        rawStatus === 'rejected' ||
+        rawStatus === 'cancelled'
     );
-    const isPending = !isExpired && (row.status_raw || row.status || '').toLowerCase() === 'pending';
-    const isNegotiating = !isExpired && (row.revision_status === 'pending' || (row.status || '').toLowerCase() === 'negotiating');
+    const isBooked = rawStatus === 'booked' || rawStatusRaw === 'booked';
+    const isPending = !isExpired && !isBooked && (rawStatusRaw === 'pending' || rawStatus === 'pending');
+    const isNegotiating = !isExpired && !isBooked && (row.revision_status === 'pending' || rawStatus === 'negotiating' || rawStatus === 'negotiation');
+
+    const validOrderId = row.order_id || row.orderId || row.order?.id;
+    const hasOrder = Boolean(validOrderId && isBooked);
+
+    const canNegotiate = !isExpired && !isBooked;
+    const canCounter = canNegotiate && (isPending || isNegotiating);
+    const canAccept = canNegotiate && (isPending || isNegotiating) && !hasOrder;
+    const canDecline = canNegotiate && (isPending || isNegotiating);
+
+    const rawId = row.rawId || row.id;
+    const reqId = row.quote_request_id || row.quoteRequestId || row.request_id || row.requestId || (row.quote_request && row.quote_request.id);
+    const hasRequest = Boolean(reqId);
+
+    const pdfUrl = row.pdf_url || row.pdf_path || row.quote_pdf || row.attachment_url || row.pdfUrl || '';
+    const hasPdf = Boolean(pdfUrl);
 
     const handleClose = () => setIsOpen(false);
 
@@ -42,17 +62,22 @@ export const QuoteReceivedRowActions: React.FC<QuoteReceivedRowActionsProps> = (
             const rect = e.currentTarget.getBoundingClientRect();
             setDropdownPos({
                 top: rect.bottom + 4,
-                left: Math.max(10, rect.right - 180)
+                left: Math.max(10, rect.right - 192)
             });
             setIsOpen(true);
         }
     };
 
-    const rawId = row.rawId || row.id;
-
     const handleOpenChat = () => {
         handleClose();
         navigate(`/customer/quotes/negotiation/conversation/${encryptId(rawId)}`);
+    };
+
+    const handleViewRequest = () => {
+        handleClose();
+        if (reqId) {
+            navigate(buildSecureQuoteUrl('view', reqId));
+        }
     };
 
     useEffect(() => {
@@ -95,12 +120,26 @@ export const QuoteReceivedRowActions: React.FC<QuoteReceivedRowActionsProps> = (
                 dropdownRef={{ current: null }}
                 isPending={isPending}
                 isNegotiating={isNegotiating}
+                canNegotiate={canNegotiate}
+                canCounter={canCounter}
+                canAccept={canAccept}
+                canDecline={canDecline}
                 isAccepting={isAccepting}
+                hasOrder={hasOrder}
+                hasRequest={hasRequest}
+                hasPdf={hasPdf}
+                pdfUrl={pdfUrl}
                 onClose={handleClose}
-                onViewDetails={() => navigate(`/customer/quotes/received/view/${encryptId(rawId)}`)}
+                onViewQuote={() => navigate(`/customer/quotes/received/view/${encryptId(rawId)}`)}
+                onViewRequest={handleViewRequest}
                 onOpenChat={handleOpenChat}
+                onCounterOffer={() => navigate(`/customer/quotes/negotiation/conversation/${encryptId(rawId)}`, { state: { autoOpenCounter: true } })}
+                onViewOrder={() => navigate(`/customer/orders/${encryptId(validOrderId || rawId)}`)}
                 onAccept={() => onAccept(rawId)}
                 onReject={() => onReject(row)}
+                onDownloadPdf={() => {
+                    if (pdfUrl) window.open(pdfUrl, '_blank');
+                }}
             />
         </div>
     );

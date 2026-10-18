@@ -5,20 +5,33 @@ import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
 import { CustomerNegotiationItem } from '../types';
 import { NegotiationActionsMenu } from './NegotiationActionsMenu';
+import { isNegotiationActive, isNegotiationAgreed, isNegotiationClosed } from './NegotiationFilterTabs';
+import apiClient from '@/lib/axios';
+import { toast } from '@/hooks/use-toast';
 
 interface CustomerNegotiationRowActionsProps {
     row: CustomerNegotiationItem;
     onQuoteAction?: (row: CustomerNegotiationItem) => void;
+    onRefresh?: () => void;
 }
 
 export const NegotiationRowActions: React.FC<CustomerNegotiationRowActionsProps> = ({
     row,
     onQuoteAction,
+    onRefresh,
 }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
+    const isClosed = isNegotiationClosed(row);
+    const isAgreed = isNegotiationAgreed(row);
+    const isActive = isNegotiationActive(row);
+
+    const canAccept = isActive && Boolean(row.canAccept ?? (!row.isMyOffer && row.statusRaw !== 'closed'));
+    const canCounter = isActive && Boolean(row.canCounter ?? (!row.isMyOffer && row.statusRaw !== 'closed'));
+    const canClose = isActive;
 
     const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -28,7 +41,7 @@ export const NegotiationRowActions: React.FC<CustomerNegotiationRowActionsProps>
             const rect = e.currentTarget.getBoundingClientRect();
             setDropdownPos({
                 top: rect.bottom + 4,
-                left: Math.max(10, rect.right - 192)
+                left: Math.max(10, rect.right - 208)
             });
             setIsOpen(true);
         }
@@ -36,12 +49,69 @@ export const NegotiationRowActions: React.FC<CustomerNegotiationRowActionsProps>
 
     const handleClose = () => setIsOpen(false);
 
+    const rawId = row.rawId || row.id;
+
     const handleOpenChat = () => {
         handleClose();
         if (row.priority === 'Urgent' && onQuoteAction) {
             onQuoteAction(row);
         } else {
-            navigate(`/customer/quotes/negotiation/conversation/${encryptId(row.rawId || row.id)}`);
+            navigate(`/customer/quotes/negotiation/conversation/${encryptId(rawId)}`);
+        }
+    };
+
+    const handleViewOfferHistory = () => {
+        handleClose();
+        navigate(`/customer/quotes/negotiation/conversation/${encryptId(rawId)}`, { state: { initialTab: 'history' } });
+    };
+
+    const handleSendCounterOffer = () => {
+        handleClose();
+        navigate(`/customer/quotes/negotiation/conversation/${encryptId(rawId)}`, { state: { autoOpenCounter: true } });
+    };
+
+    const handleAcceptOffer = async () => {
+        handleClose();
+        if (window.confirm('Are you sure you want to accept this offer?')) {
+            try {
+                let res;
+                try {
+                    res = await apiClient.post(`/customer/negotiations/${rawId}/accept`);
+                } catch {
+                    res = await apiClient.post(`/negotiations/${rawId}/accept`);
+                }
+                toast({ title: 'Success', description: 'Offer accepted successfully.' });
+                if (onRefresh) onRefresh();
+                else navigate(`/customer/quotes/negotiation/conversation/${encryptId(rawId)}`);
+            } catch (err: any) {
+                toast({
+                    title: 'Error',
+                    description: err?.response?.data?.message || 'Failed to accept offer. Please try again.',
+                    variant: 'destructive',
+                });
+            }
+        }
+    };
+
+    const handleCloseNegotiation = async () => {
+        handleClose();
+        if (window.confirm('Are you sure you want to close this negotiation?')) {
+            try {
+                let res;
+                try {
+                    res = await apiClient.post(`/customer/negotiations/${rawId}/decline`, { reason: 'Closed by customer' });
+                } catch {
+                    res = await apiClient.post(`/negotiations/${rawId}/decline`, { reason: 'Closed by customer' });
+                }
+                toast({ title: 'Success', description: 'Negotiation closed successfully.' });
+                if (onRefresh) onRefresh();
+            } catch (err: any) {
+                toast({
+                    title: 'Error',
+                    description: err?.response?.data?.message || 'Failed to close negotiation.',
+                    variant: 'destructive',
+                });
+            }
         }
     };
 
@@ -99,12 +169,15 @@ export const NegotiationRowActions: React.FC<CustomerNegotiationRowActionsProps>
                 isOpen={isOpen}
                 dropdownPos={dropdownPos}
                 copied={copied}
+                canAccept={canAccept}
+                canCounter={canCounter}
+                canClose={canClose}
                 onClose={handleClose}
-                onViewDetails={() => {
-                    handleClose();
-                    navigate(`/customer/quotes/negotiation/conversation/${encryptId(row.rawId || row.id)}`);
-                }}
-                onOpenChat={handleOpenChat}
+                onViewNegotiation={handleOpenChat}
+                onViewOfferHistory={handleViewOfferHistory}
+                onAcceptOffer={handleAcceptOffer}
+                onSendCounterOffer={handleSendCounterOffer}
+                onCloseNegotiation={handleCloseNegotiation}
                 onCopyId={handleCopyId}
             />
         </div>

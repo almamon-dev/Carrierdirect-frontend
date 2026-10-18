@@ -21,14 +21,16 @@ export const SubscriptionBillingHistoryTab: React.FC<SubscriptionBillingHistoryT
   const columns = getSubscriptionBillingColumns(onDownloadReceipt, downloadingId);
 
   return (
-    <div className="bg-white dark:bg-[#181d24] border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-2xs space-y-4">
-      <div>
-        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-          Billing History & Downloadable Receipts
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-          View and download official VAT tax invoices and payment receipts for your records.
-        </p>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+        <div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Billing History & Downloadable Receipts
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+            View and download official VAT tax invoices and payment receipts for your records.
+          </p>
+        </div>
       </div>
 
       <DataTable

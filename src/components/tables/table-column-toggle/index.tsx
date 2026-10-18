@@ -55,7 +55,7 @@ export default function TableColumnToggle({
             
             {isOpen && (
                 <div
-                    className="absolute right-0 mt-1.5 w-[210px] sm:w-[220px] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-[6px] shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 font-sans text-left"
+                    className="absolute right-0 mt-1.5 w-[210px] sm:w-[220px] max-w-[calc(100vw-2rem)] bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-[6px] shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 font-sans text-left"
                 >
                     <div className="p-3">
                         {/* Title: Table settings */}

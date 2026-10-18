@@ -95,7 +95,7 @@ export const DriverInfoSection: React.FC<Props> = ({ profile }) => {
                         <div className="min-w-0">
                             <div className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500">Driver License</div>
                             <div className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white">
-                                {profile.driverLicense || 'Not Specified'}
+                                {profile.driverLicense || '-'}
                             </div>
                         </div>
                     </div>

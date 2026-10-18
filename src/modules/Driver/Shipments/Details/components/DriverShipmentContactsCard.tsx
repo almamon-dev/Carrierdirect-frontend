@@ -26,7 +26,7 @@ export const DriverShipmentContactsCard: React.FC<Props> = ({ shipment }) => {
                 {/* Shipper Facility */}
                 <div className="p-2 bg-slate-50 dark:bg-[#161a22] rounded border border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div className="min-w-0">
-                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Shipper Dock</span>
+                        <span className="text-[10px] font-bold text-slate-400 block">Shipper Dock</span>
                         <span className="font-semibold text-slate-900 dark:text-slate-100 truncate block text-[11.5px]">
                             {shipment.shipper.company}
                         </span>
@@ -43,7 +43,7 @@ export const DriverShipmentContactsCard: React.FC<Props> = ({ shipment }) => {
                 {/* Consignee Receiver */}
                 <div className="p-2 bg-slate-50 dark:bg-[#161a22] rounded border border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div className="min-w-0">
-                        <span className="text-[10px] font-bold text-slate-400 block uppercase">Consignee Receiver</span>
+                        <span className="text-[10px] font-bold text-slate-400 block">Consignee Receiver</span>
                         <span className="font-semibold text-slate-900 dark:text-slate-100 truncate block text-[11.5px]">
                             {shipment.consignee.company}
                         </span>

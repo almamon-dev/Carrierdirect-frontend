@@ -1,3 +1,5 @@
+export type NegotiationFilterTab = 'all' | 'new' | 'existing' | 'unread';
+
 export interface ChatAttachment {
     name: string;
     size: string;

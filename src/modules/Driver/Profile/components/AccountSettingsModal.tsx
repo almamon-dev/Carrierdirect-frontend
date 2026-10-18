@@ -93,15 +93,6 @@ export const AccountSettingsModal: React.FC<Props> = ({ isOpen, profile, onClose
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Home Terminal & Regional Hub</label>
-                        <input
-                            type="text"
-                            value={homeTerminal}
-                            onChange={(e) => setHomeTerminal(e.target.value)}
-                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:border-[#FF4A1F]"
-                        />
-                    </div>
 
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                         <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3">Emergency Contact</h3>

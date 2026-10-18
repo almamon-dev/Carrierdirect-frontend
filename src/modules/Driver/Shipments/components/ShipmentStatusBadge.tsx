@@ -35,9 +35,16 @@ export const ShipmentStatusBadge: React.FC<Props> = ({ status }) => {
             );
         case 'delivered':
             return (
+                <span className="inline-flex items-center gap-1.5 h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60 whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Awaiting Review</span>
+                </span>
+            );
+        case 'completed':
+            return (
                 <span className="inline-flex items-center gap-1 h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 whitespace-nowrap">
                     <span>✓</span>
-                    <span>Delivered</span>
+                    <span>Completed</span>
                 </span>
             );
         case 'cancelled':

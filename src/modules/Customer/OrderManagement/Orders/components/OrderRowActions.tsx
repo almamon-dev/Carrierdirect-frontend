@@ -34,32 +34,18 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
 
     const rawStatus = String(row?.status_raw || row?.status || '').toLowerCase().trim();
     const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'pod_accepted';
-    const isTransit = !isCompleted && (rawStatus.includes('transit') || rawStatus.includes('progress') || rawStatus.includes('confirmed') || rawStatus.includes('picked') || rawStatus.includes('driver_assigned'));
+    const isTransit = !isCompleted && (rawStatus.includes('transit') || rawStatus.includes('progress') || rawStatus.includes('confirmed') || rawStatus.includes('picked') || rawStatus.includes('driver'));
     const rawPod = String(row?.pod_status || (row as any)?.pod?.status || '').toLowerCase().trim();
     const hasPodDoc = Boolean(
-        row?.proof_of_delivery || 
-        (row as any)?.proof || 
-        (row as any)?.pod_url || 
-        (row as any)?.pod_file || 
-        (row as any)?.pod_document_url || 
-        (row as any)?.signature || 
-        (row as any)?.pod?.file_url || 
-        (row as any)?.pod?.is_uploaded
+        row?.proof_of_delivery || (row as any)?.proof || (row as any)?.pod_url || (row as any)?.pod_file || (row as any)?.pod_document_url || (row as any)?.signature || (row as any)?.pod?.file_url || (row as any)?.pod?.is_uploaded
     );
 
-    const isPodPending = !isCompleted && (
-        rawStatus === 'delivered' || 
-        rawStatus === 'pod_uploaded' || 
-        rawStatus === 'pod_review' || 
-        rawStatus === 'pod_received' || 
-        rawPod === 'pending' || 
-        rawPod === 'uploaded' || 
-        rawPod === 'pod_uploaded' ||
-        (hasPodDoc && rawStatus !== 'cancelled')
+    const isPodPending = !isCompleted && !isTransit && (
+        rawStatus === 'delivered' || rawStatus === 'pod_uploaded' || rawStatus === 'pod_review' || rawStatus === 'pod_received' || (hasPodDoc && (rawPod === 'pending' || rawPod === 'uploaded' || rawPod === 'review'))
     );
 
     const displayId = row.order_id || row.order_number || (row.id ? `ORD-${String(row.id).padStart(4, '0')}` : 'ORD-0001');
-    const supplierName = row.supplier_name || row.supplier?.company_name || row.supplier?.name || 'Carrier Partner';
+    const supplierName = row.supplier_name || row.supplier?.company_name || row.supplier?.name || '-';
     const routeDisplay = row.route || `${row.pickup_city || 'Origin'} → ${row.delivery_city || 'Destination'}`;
 
     const handleClose = useCallback(() => setIsOpen(false), []);
@@ -72,31 +58,15 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
             const rect = e.currentTarget.getBoundingClientRect();
             const menuWidth = 235;
             const menuHeight = 280;
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-
-            const left = Math.max(8, Math.min(rect.right - menuWidth, viewportWidth - menuWidth - 8));
-            const spaceBelow = viewportHeight - rect.bottom;
-            const top = spaceBelow < menuHeight && rect.top > menuHeight
-                ? rect.top - menuHeight - 4
-                : rect.bottom + 4;
-
-            setDropdownPos({
-                top: Math.max(8, top),
-                left: Math.max(8, left)
-            });
+            const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const top = spaceBelow < menuHeight && rect.top > menuHeight ? rect.top - menuHeight - 4 : rect.bottom + 4;
+            setDropdownPos({ top: Math.max(8, top), left: Math.max(8, left) });
             setIsOpen(true);
         }
     };
 
-    const handleViewDetails = () => {
-        navigate(`/customer/orders/${encryptId(row.id)}`, { state: { orderData: row } });
-    };
-
-    const handleTrackOrder = () => {
-        setIsGpsModalOpen(true);
-    };
-
+    const handleViewDetails = () => navigate(`/customer/orders/${encryptId(row.id)}`, { state: { orderData: row } });
     const handleOpenChat = () => {
         const quoteTargetId = row.quote_id || row.quote_request_id || row.id;
         navigate(`/customer/quotes/negotiation/conversation/${encryptId(quoteTargetId)}`);
@@ -105,27 +75,12 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
     const handleCopyId = () => {
         navigator.clipboard.writeText(displayId);
         setCopied(true);
-        setTimeout(() => {
-            setCopied(false);
-            handleClose();
-        }, 1200);
-    };
-
-    const handleRepeatOrder = () => {
-        navigate('/customer/quotes/create/new', { state: { repeatData: row } });
-    };
-
-    const handleDownloadInvoice = () => {
-        handleClose();
-        exportInvoicePdf(row);
+        setTimeout(() => { setCopied(false); handleClose(); }, 1200);
     };
 
     const handleTriggerPodReview = () => {
-        if (onOpenPodReview) {
-            onOpenPodReview(row);
-        } else {
-            handleViewDetails();
-        }
+        if (onOpenPodReview) onOpenPodReview(row);
+        else handleViewDetails();
     };
 
     useEffect(() => {
@@ -142,17 +97,13 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
 
     return (
         <div className="relative flex items-center justify-end gap-1 w-full min-h-[22px]">
-            {/* Quick Primary Button based on Order Status */}
             {isPodPending ? (
                 <Button
                     variant="primary"
                     size="sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleTriggerPodReview();
-                    }}
+                    onClick={(e) => { e.stopPropagation(); handleTriggerPodReview(); }}
                     className="h-[25px] px-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-[3px] cursor-pointer shadow-2xs flex items-center gap-1 shrink-0 animate-pulse"
-                    title="Review & Accept Proof of Delivery (Release Escrow)"
+                    title="Review & Accept Proof of Delivery"
                 >
                     <FileCheck size={12} className="shrink-0" />
                     <span>Accept POD</span>
@@ -161,10 +112,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 <Button
                     variant="primary"
                     size="sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleTrackOrder();
-                    }}
+                    onClick={(e) => { e.stopPropagation(); setIsGpsModalOpen(true); }}
                     className="h-[25px] px-2 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-[11.5px] font-semibold rounded-[3px] cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
                     title="Live Tracking"
                 >
@@ -177,11 +125,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                     size="sm"
                     onClick={(e) => {
                         e.stopPropagation();
-                        onOpenRating({
-                            id: String(row.id),
-                            supplier: supplierName,
-                            route: routeDisplay
-                        });
+                        onOpenRating({ id: String(row.id), supplier: supplierName, route: routeDisplay });
                     }}
                     className="h-[25px] px-2 text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 font-bold text-[11.5px] rounded-[3px] cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
                     title="Rate Carrier"
@@ -193,10 +137,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 <Button
                     variant="outline"
                     size="sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewDetails();
-                    }}
+                    onClick={(e) => { e.stopPropagation(); handleViewDetails(); }}
                     className="h-[25px] px-2 text-[11.5px] font-semibold text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-[3px] cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
                     title="View Order Details"
                 >
@@ -205,7 +146,6 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 </Button>
             )}
 
-            {/* Three Dots Button */}
             <Button
                 ref={triggerRef}
                 variant="ghost"
@@ -217,7 +157,6 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 <MoreVertical size={14} />
             </Button>
 
-            {/* Dropdown Menu Portal */}
             <OrderActionsMenu
                 isOpen={isOpen}
                 dropdownPos={dropdownPos}
@@ -225,20 +164,16 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 row={row}
                 onClose={handleClose}
                 onViewDetails={handleViewDetails}
-                onTrackOrder={handleTrackOrder}
+                onTrackOrder={() => setIsGpsModalOpen(true)}
                 onOpenChat={handleOpenChat}
                 onOpenPodReview={handleTriggerPodReview}
-                onOpenRating={() => onOpenRating({
-                    id: String(row.id),
-                    supplier: supplierName,
-                    route: routeDisplay
-                })}
-                onDownloadInvoice={handleDownloadInvoice}
-                onRepeatOrder={handleRepeatOrder}
+                onOpenRating={() => onOpenRating({ id: String(row.id), supplier: supplierName, route: routeDisplay })}
+                onDownloadInvoice={() => { handleClose(); exportInvoicePdf(row); }}
+                onRepeatOrder={() => navigate('/customer/quotes/create/new', { state: { repeatData: row } })}
                 onCopyId={handleCopyId}
+                onViewPaymentDetails={handleViewDetails}
             />
 
-            {/* Live GPS Tracking Coming Soon Modal */}
             <GPSComingSoonModal
                 isOpen={isGpsModalOpen}
                 onClose={() => setIsGpsModalOpen(false)}

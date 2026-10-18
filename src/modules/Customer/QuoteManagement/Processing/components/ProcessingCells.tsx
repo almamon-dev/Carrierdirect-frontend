@@ -130,14 +130,17 @@ export const ProcessingBidsCountCell: React.FC<{ row: any; onNavigate: (path: st
 
 export const ProcessingStatusBadgeCell: React.FC<{ status: string }> = ({ status }) => {
     const s = (status || '').toLowerCase().trim();
-    const isCompleted = s === 'completed' || s === 'accepted' || s === 'awarded' || s === 'won' || s === 'succeeded' || s === 'paid';
-    const isInProgress = s === 'in progress' || s === 'in_progress' || s === 'active' || s === 'bidding active' || s === 'negotiating';
+    const isCompleted = s === 'completed';
+    const isBooked = s === 'booked' || s === 'won' || s === 'accepted' || s === 'awarded' || s === 'paid';
+    const isInProgress = s === 'in progress' || s === 'in_progress' || s === 'active' || s === 'bidding active' || s === 'negotiating' || s === 'quotes received' || s === 'quotes_received' || s === 'negotiation';
     const isProcessing = s === 'processing' || s === 'pending' || s === 'draft' || s === 'waiting';
     const isCancelled = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected' || s === 'failed';
 
     const badgeStyle = isCompleted
         ? 'bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60'
-        : isInProgress
+        : isBooked
+            ? 'bg-[#eff6ff] dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-300 border border-[#bfdbfe] dark:border-blue-800/60'
+            : isInProgress
             ? 'bg-[#eff6ff] dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-300 border border-[#bfdbfe] dark:border-blue-800/60'
             : isProcessing
                 ? 'bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60'

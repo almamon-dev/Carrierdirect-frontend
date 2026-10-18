@@ -1,0 +1,117 @@
+export type OrderFilterTab =
+    | 'confirmed'
+    | 'driver_assigned'
+    | 'in_transit'
+    | 'delivered'
+    | 'pod_pending'
+    | 'completed'
+    | 'cancelled';
+
+export interface CustomerSupplierInfo {
+    id?: string | number;
+    name?: string;
+    company_name?: string;
+    profile_picture?: string;
+    avatar?: string;
+    rating?: number | string;
+    is_verified?: boolean;
+    completed_orders?: number | string;
+    completed_orders_count?: number | string;
+    phone?: string;
+    email?: string;
+}
+
+export interface CustomerOrderItem {
+    id: string | number;
+    rawId?: string | number;
+    raw_id?: string | number;
+    slug?: string;
+    order_id?: string;
+    order_number?: string;
+    quote_id?: string | number;
+    quote_request_id?: string | number;
+    created_at?: string;
+    date?: string;
+    order_date?: string;
+    pickup_date?: string;
+    delivery_date?: string;
+    estimated_delivery?: string;
+    estimated_time?: string;
+    eta?: string;
+    route?: string;
+    pickup_city?: string;
+    pickup_address?: string;
+    delivery_city?: string;
+    delivery_address?: string;
+    supplier_name?: string;
+    supplier_avatar?: string;
+    carrier?: string;
+    carrier_name?: string;
+    carrier_avatar?: string;
+    carrier_rating?: number | string;
+    carrier_verified?: boolean;
+    completed_orders?: number | string;
+    completed_orders_count?: number | string;
+    supplier?: CustomerSupplierInfo;
+    rating?: number | string;
+    vehicle?: string;
+    vehicle_type?: string;
+    truck_type?: string;
+    vehicle_plate?: string;
+    vehicle_number?: string;
+    weight?: string | number;
+    cargo_weight?: string | number;
+    total_weight?: string | number;
+    cargo?: string;
+    load_type?: string;
+    pallet_type?: string;
+    items_summary?: string;
+    dimensions?: string;
+    type_of_pallets?: string;
+    pallets?: string;
+    amount?: string | number;
+    total_amount?: string | number;
+    total_amount_formatted?: string;
+    gross_amount?: string | number;
+    gross_amount_formatted?: string;
+    subtotal?: string | number;
+    subtotal_formatted?: string;
+    platform_fee?: string | number;
+    platform_fee_formatted?: string;
+    amount_raw?: number;
+    payment_status?: string;
+    payment_method?: string;
+    status?: string;
+    status_raw?: string;
+    pod_status?: string;
+    proof_of_delivery?: string;
+    pod_url?: string;
+    pod_file?: string;
+    signature?: string;
+    signature_url?: string;
+    receiver_name?: string;
+    pod?: any;
+    pod_document_url?: string;
+    pod_file_name?: string;
+    is_rated?: boolean;
+    customer_review?: any;
+    current_location?: string;
+    checkpoint?: string;
+}
+
+export interface OrderStats {
+    total?: number;
+    confirmed?: number;
+    driver_assigned?: number;
+    in_transit?: number;
+    delivered?: number;
+    pod_pending?: number;
+    completed?: number;
+    cancelled?: number;
+}
+
+export interface RatingTarget {
+    id: string;
+    supplier: string;
+    route: string;
+}

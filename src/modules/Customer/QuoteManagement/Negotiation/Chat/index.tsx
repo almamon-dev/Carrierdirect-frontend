@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useCustomerChatNegotiation } from "./hooks/useCustomerChatNegotiation";
 import { useCustomerChatMessages } from "./hooks/useCustomerChatMessages";
 import { CustomerChatSidebar } from "./components/CustomerChatSidebar";
 import { CustomerChatDetailsPanel } from "./components/CustomerChatDetailsPanel";
-import { CustomerChatSkeletonLoader } from "./components/CustomerChatSkeletonLoader";
 import { CustomerChatCenterPanel } from "./components/CustomerChatCenterPanel";
 import { QuotePaymentInstructionModal } from "./components/QuotePaymentInstructionModal";
+import { checkIsOrderPaid, checkIsQuoteAccepted } from "./utils/customerChatPaymentStatus";
 
 export default function CustomerNegotiationChat() {
     const [showDetailsPanel, setShowDetailsPanel] = useState(false);
@@ -18,6 +18,7 @@ export default function CustomerNegotiationChat() {
         setSearchQuery,
         filterTab,
         setFilterTab,
+        counts,
         allNegotiations,
         activeChatId,
         chats,
@@ -53,57 +54,10 @@ export default function CustomerNegotiationChat() {
         handleCancelEdit
     } = useCustomerChatMessages(activeChat, allNegotiations);
 
-    const rawQuoteId = activeChat?.raw?.quote_id || activeChat?.raw?.id || activeChat?.id || activeChatId;
-    const cleanId = String(rawQuoteId || "").replace(/[^0-9]/g, "");
+    const isOrderPaid = checkIsOrderPaid(activeChat, activeChatId, currentMessages);
+    const isQuoteAccepted = checkIsQuoteAccepted(activeChat, currentMessages, isOrderPaid);
 
-    const isOrderPaid = Boolean(
-        (cleanId && localStorage.getItem(`cd_quote_paid_${cleanId}`) === "true") ||
-        (rawQuoteId && localStorage.getItem(`cd_quote_paid_${rawQuoteId}`) === "true") ||
-        activeChat?.raw?.is_paid ||
-        activeChat?.raw?.has_order ||
-        activeChat?.raw?.order_id ||
-        activeChat?.raw?.order ||
-        activeChat?.raw?.status_raw === "booked" ||
-        activeChat?.raw?.status === "Booked" ||
-        (activeChat as any)?.status === "Booked" ||
-        (activeChat as any)?.statusRaw === "booked" ||
-        activeChat?.raw?.payment_status === "succeeded" ||
-        activeChat?.raw?.payment_status === "paid" ||
-        activeChat?.raw?.payment_status === "completed" ||
-        activeChat?.raw?.payment_option === "pay_later" ||
-        activeChat?.raw?.payment_option === "pay_now" ||
-        activeChat?.raw?.order?.status === "in_progress" ||
-        activeChat?.raw?.order?.status === "completed" ||
-        activeChat?.raw?.order?.status === "confirmed" ||
-        activeChat?.raw?.order?.status === "delivered" ||
-        activeChat?.raw?.invoice?.status === "paid" ||
-        activeChat?.raw?.invoice?.invoice_type === "pay_later" ||
-        (activeChat as any)?.isPaid ||
-        (activeChat as any)?.hasOrder ||
-        currentMessages.some((m) => {
-            const t = (m.text || (m as any).message || "").toLowerCase();
-            return (
-                t.includes("payment completed") ||
-                t.includes("pay later booking confirmed") ||
-                t.includes("pay later confirmed") ||
-                t.includes("funds held securely") ||
-                t.includes("escrow payment of")
-            );
-        })
-    );
-
-    // Check if the current active chat has an accepted quote but payment is pending
-    const isQuoteAccepted = Boolean(
-        !isOrderPaid && (
-            activeChat?.raw?.status_raw === "accepted" ||
-            activeChat?.raw?.status === "accepted" ||
-            activeChat?.raw?.revision_status === "accepted" ||
-            currentMessages.some((m) => m.type === "quote_request" && m.status === "accepted") ||
-            currentMessages.some((m) => m.type === "offer" && m.status === "accepted")
-        )
-    );
-
-    const dismissedChatsRef = React.useRef<Set<string | number>>(new Set());
+    const dismissedChatsRef = useRef<Set<string | number>>(new Set());
 
     useEffect(() => {
         const currentId = activeChat?.id || activeChatId;
@@ -152,6 +106,7 @@ export default function CustomerNegotiationChat() {
                     setSearchQuery={setSearchQuery}
                     filterTab={filterTab}
                     setFilterTab={setFilterTab}
+                    counts={counts}
                     chats={chats}
                     filteredChats={filteredChats}
                     contactGroups={contactGroups}
@@ -200,13 +155,12 @@ export default function CustomerNegotiationChat() {
                 />
             </div>
 
-            {/* Auto-popup Payment Instruction & Checkout Modal */}
             <QuotePaymentInstructionModal
                 isOpen={showPaymentModal}
                 onClose={handleDismissModal}
                 quoteId={targetQuoteId}
                 quoteAmount={targetAmount}
-                supplierName={activeChat?.carrier || activeChat?.name || "Carrier Partner"}
+                supplierName={activeChat?.carrier || activeChat?.name || '-'}
                 quoteData={activeChat?.raw || activeChat}
             />
         </div>

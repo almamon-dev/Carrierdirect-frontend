@@ -106,7 +106,7 @@ export const getSubscriptionBillingColumns = (
             size="sm"
             disabled={isDownloading}
             onClick={() => onDownloadReceipt(row)}
-            className="h-[26px] px-2 text-[11.5px] font-semibold flex items-center gap-1 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+            className="h-[26px] px-2 text-[11.5px] font-semibold flex items-center gap-1 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-[4px]"
           >
             <Download size={11.5} className={isDownloading ? "animate-bounce text-[#ff4a1f]" : "text-slate-500"} />
             <span>{isDownloading ? "Downloading..." : "Download PDF"}</span>

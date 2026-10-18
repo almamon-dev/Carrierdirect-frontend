@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSupplierNegotiations } from '../../hooks/useSupplierNegotiations';
 import { NegotiationItem } from '../../types';
+import { NegotiationFilterTab } from '../types';
 import { useChatMessages } from './useChatMessages';
 
 export function useChatNegotiation() {
@@ -10,7 +11,7 @@ export function useChatNegotiation() {
     const navigate = useNavigate();
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterTab, setFilterTab] = useState<'all' | 'unread'>('all');
+    const [filterTab, setFilterTab] = useState<NegotiationFilterTab>('all');
     const [showMobileDetails, setShowMobileDetails] = useState(false);
 
     const { negotiations = [], isLoading = false } = useSupplierNegotiations() || {};
@@ -96,25 +97,178 @@ export function useChatNegotiation() {
         setPinnedChatIds(prev => ({ ...prev, [chatId]: !prev[chatId] }));
     };
 
+    // Track how many times each customer appears to highlight repeat clients
+    const repeatCustomerMap = useMemo(() => {
+        const countsMap: Record<string, number> = {};
+        allNegotiations.forEach((item) => {
+            const key = (item.customer || '').trim().toLowerCase();
+            if (key) {
+                countsMap[key] = (countsMap[key] || 0) + 1;
+            }
+        });
+        return countsMap;
+    }, [allNegotiations]);
+
+    // Group negotiations by Customer (just like customer side groups by supplier/contact)
+    // to keep the sidebar clean with 1 row per customer contact, with quotes accessible in the details panel.
+    const customerGroups = useMemo(() => {
+        const groupMap = new Map<string, {
+            rep: NegotiationItem;
+            quotes: NegotiationItem[];
+            totalUnreadCount: number;
+            hasUnread: boolean;
+            isPinned: boolean;
+            isExisting: boolean;
+            latestTime: string;
+            latestPreview: string;
+        }>();
+
+        allNegotiations.forEach((item) => {
+            const custId = item.raw?.customer_id || item.raw?.user_id;
+            const custKey = custId ? `cust_${custId}` : (item.customer || 'Customer').trim().toLowerCase();
+
+            const isItemActive = String(item.rawId) === String(activeNegotiation?.rawId) || String(item.id) === String(activeNegotiation?.id);
+            const isRead = Boolean(readChatIds[item.rawId] || readChatIds[String(item.rawId)] || isItemActive);
+            const itemUnread = isRead ? 0 : Number(item.unreadCount || 0);
+
+            const isItemExisting = Boolean(
+                item.isBooked ||
+                item.isCompleted ||
+                item.hasOrder ||
+                item.orderNumber ||
+                item.orderId ||
+                item.status === 'Booked' ||
+                item.status === 'Completed' ||
+                item.statusRaw === 'booked' ||
+                item.statusRaw === 'completed'
+            );
+
+            const isPinned = Boolean(pinnedChatIds[item.rawId] || pinnedChatIds[String(item.rawId)]);
+
+            // Messages for thread
+            const thread = messagesHook.chatMessages?.[item.rawId] || messagesHook.chatMessages?.[String(item.rawId)] || messagesHook.chatMessages?.[item.id] || [];
+            const lastMsg = thread && thread.length > 0 ? thread[thread.length - 1] : null;
+
+            let itemTime = item.lastUpdated || item.requestDate || '';
+            let itemPreview = item.notes || '';
+            if (lastMsg) {
+                const isMe = Boolean(
+                    lastMsg.type === 'sent' ||
+                    lastMsg.sender === 'supplier' ||
+                    (lastMsg as any).sender_type === 'supplier' ||
+                    (lastMsg as any).is_me === true ||
+                    (lastMsg as any).isMe === true
+                );
+                let text = (lastMsg.text || (lastMsg as any).message || '').trim();
+                if (!text && lastMsg.attachments && lastMsg.attachments.length > 0) {
+                    text = '📎 Attachment';
+                } else if (!text && lastMsg.type === 'offer') {
+                    text = `Revised Offer: € ${lastMsg.newTotal || (lastMsg as any).amount || ''}`;
+                }
+                if (text) itemPreview = isMe ? `You: ${text}` : text;
+                if (lastMsg.time) itemTime = lastMsg.time;
+            }
+
+            if (!groupMap.has(custKey)) {
+                groupMap.set(custKey, {
+                    rep: { ...item },
+                    quotes: [item],
+                    totalUnreadCount: itemUnread,
+                    hasUnread: itemUnread > 0,
+                    isPinned: isPinned,
+                    isExisting: isItemExisting,
+                    latestTime: itemTime,
+                    latestPreview: itemPreview,
+                });
+            } else {
+                const g = groupMap.get(custKey)!;
+                g.quotes.push(item);
+                g.totalUnreadCount += itemUnread;
+                g.hasUnread = g.hasUnread || itemUnread > 0;
+                g.isPinned = g.isPinned || isPinned;
+                g.isExisting = g.isExisting || isItemExisting;
+
+                // If this item is currently active, prioritize it as the representative item
+                if (isItemActive) {
+                    g.rep = { ...item };
+                }
+                if (lastMsg) {
+                    g.latestTime = itemTime;
+                    g.latestPreview = itemPreview;
+                }
+            }
+        });
+
+        return Array.from(groupMap.values()).map(g => ({
+            ...g.rep,
+            unreadCount: g.totalUnreadCount,
+            isOnline: g.quotes.some(q => q.isOnline),
+            notes: g.latestPreview || g.rep.notes,
+            lastUpdated: g.latestTime || g.rep.lastUpdated,
+            allCustomerQuotes: g.quotes,
+            groupIsPinned: g.isPinned,
+            groupIsExisting: g.isExisting,
+            groupHasUnread: g.hasUnread,
+        }));
+    }, [allNegotiations, activeNegotiation, messagesHook.chatMessages, readChatIds, pinnedChatIds]);
+
+    // Counts for tabs based on grouped customer contacts
+    const counts = useMemo(() => {
+        let newCount = 0;
+        let existingCount = 0;
+        let unreadCount = 0;
+
+        customerGroups.forEach((group) => {
+            if (group.groupIsExisting) {
+                existingCount++;
+            } else {
+                newCount++;
+            }
+
+            if (group.groupHasUnread) {
+                unreadCount++;
+            }
+        });
+
+        return {
+            all: customerGroups.length,
+            new: newCount,
+            existing: existingCount,
+            unread: unreadCount,
+        };
+    }, [customerGroups]);
+
     const filteredChats = useMemo(() => {
-        return allNegotiations
-            .filter((item) => {
-                const searchLower = searchQuery.toLowerCase();
+        return customerGroups
+            .filter((group) => {
+                const searchLower = searchQuery.toLowerCase().trim();
                 const matches =
-                    item.customer.toLowerCase().includes(searchLower) ||
-                    item.quoteId.toLowerCase().includes(searchLower) ||
-                    item.pickup.toLowerCase().includes(searchLower) ||
-                    item.delivery.toLowerCase().includes(searchLower);
-                const isUnread = !readChatIds[item.rawId] && (item.unreadCount || 0) > 0;
-                return filterTab === 'unread' ? matches && isUnread : matches;
+                    !searchLower ||
+                    group.customer.toLowerCase().includes(searchLower) ||
+                    (group.allCustomerQuotes || []).some(q =>
+                        (q.quoteId && q.quoteId.toLowerCase().includes(searchLower)) ||
+                        (q.orderNumber && String(q.orderNumber).toLowerCase().includes(searchLower)) ||
+                        (q.pickup && q.pickup.toLowerCase().includes(searchLower)) ||
+                        (q.delivery && q.delivery.toLowerCase().includes(searchLower)) ||
+                        (q.notes && q.notes.toLowerCase().includes(searchLower))
+                    );
+
+                if (!matches) return false;
+
+                if (filterTab === 'unread') return group.groupHasUnread;
+                if (filterTab === 'new') return !group.groupIsExisting;
+                if (filterTab === 'existing') return group.groupIsExisting;
+                return true;
             })
-            .sort((a, b) => (pinnedChatIds[b.rawId] ? 1 : 0) - (pinnedChatIds[a.rawId] ? 1 : 0));
-    }, [allNegotiations, searchQuery, filterTab, readChatIds, pinnedChatIds]);
+            .sort((a, b) => (b.groupIsPinned ? 1 : 0) - (a.groupIsPinned ? 1 : 0));
+    }, [customerGroups, searchQuery, filterTab]);
 
     return {
         sessionKey,
         searchQuery, setSearchQuery,
         filterTab, setFilterTab,
+        counts,
+        repeatCustomerMap,
         showMobileDetails, setShowMobileDetails,
         allNegotiations,
         activeNegotiation,

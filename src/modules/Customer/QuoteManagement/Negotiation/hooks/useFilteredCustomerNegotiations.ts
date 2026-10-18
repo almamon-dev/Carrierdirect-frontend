@@ -1,15 +1,14 @@
 import { useMemo } from 'react';
-import { CustomerNegotiationItem } from '../types';
+import { CustomerNegotiationItem, NegotiationFilterTab } from '../types';
 import {
-    NegotiationFilterTab,
-    isNegotiationAccepted,
-    isNegotiationBooked,
+    isNegotiationActive,
+    isNegotiationAgreed,
     isNegotiationClosed,
-    isNegotiationCounter,
-    isNegotiationOpen,
+    isWaitingForYou,
+    isWaitingForSupplier,
 } from '../components/NegotiationFilterTabs';
 
-interface UseFilteredNegotiationsParams {
+interface UseFilteredCustomerNegotiationsProps {
     negotiations: CustomerNegotiationItem[];
     activeTab: NegotiationFilterTab;
     priorityFilter: string;
@@ -19,7 +18,7 @@ interface UseFilteredNegotiationsParams {
     endDate: string;
 }
 
-export const useFilteredCustomerNegotiations = ({
+export function useFilteredCustomerNegotiations({
     negotiations,
     activeTab,
     priorityFilter,
@@ -27,52 +26,39 @@ export const useFilteredCustomerNegotiations = ({
     vehicleFilter,
     startDate,
     endDate,
-}: UseFilteredNegotiationsParams) => {
+}: UseFilteredCustomerNegotiationsProps) {
     return useMemo(() => {
-        const list = Array.isArray(negotiations) ? negotiations : [];
-        return list.filter((item) => {
+        return (negotiations || []).filter((item) => {
             if (!item) return false;
 
-            if (activeTab === 'open' && !isNegotiationOpen(item)) return false;
-            if (activeTab === 'counter' && !isNegotiationCounter(item)) return false;
-            if (activeTab === 'accepted' && !isNegotiationAccepted(item)) return false;
-            if (activeTab === 'booked' && !isNegotiationBooked(item)) return false;
+            if (activeTab === 'active' && !isNegotiationActive(item)) return false;
+            if (activeTab === 'waiting_you' && (!isNegotiationActive(item) || !isWaitingForYou(item))) return false;
+            if (activeTab === 'waiting_supplier' && (!isNegotiationActive(item) || !isWaitingForSupplier(item))) return false;
+            if (activeTab === 'agreed' && !isNegotiationAgreed(item)) return false;
             if (activeTab === 'closed' && !isNegotiationClosed(item)) return false;
 
-            if (priorityFilter !== 'all' && item.priority?.toLowerCase() !== priorityFilter.toLowerCase()) {
-                return false;
+            if (priorityFilter !== 'all') {
+                const normPriority = (item.priority || '').toLowerCase();
+                if (!normPriority.includes(priorityFilter.toLowerCase())) return false;
             }
+
             if (statusFilter !== 'all') {
                 const normStatus = (item.status || item.statusRaw || '').toLowerCase();
-                const filterVal = statusFilter.toLowerCase();
-                if (filterVal === 'open' && !isNegotiationOpen(item)) return false;
-                else if (filterVal === 'counter' && !isNegotiationCounter(item)) return false;
-                else if (filterVal === 'accepted' && !isNegotiationAccepted(item)) return false;
-                else if (filterVal === 'booked' && !isNegotiationBooked(item)) return false;
-                else if (filterVal === 'closed' && !isNegotiationClosed(item)) return false;
-                else if (!normStatus.includes(filterVal)) return false;
+                if (!normStatus.includes(statusFilter.toLowerCase())) return false;
             }
+
             if (vehicleFilter !== 'all') {
-                const normVehicle = (item.vehicleType || '').toLowerCase().replace(/[\s_-]+/g, '');
-                const targetVehicle = vehicleFilter.toLowerCase().replace(/[\s_-]+/g, '');
-                if (!normVehicle.includes(targetVehicle)) return false;
+                const normVehicle = (item.vehicleType || '').toLowerCase();
+                if (!normVehicle.includes(vehicleFilter.toLowerCase())) return false;
             }
 
             if (startDate || endDate) {
-                const rowDateStr = (item as any).created_at || item.requestDate || item.pickupDate || item.lastUpdated;
-                if (rowDateStr) {
-                    const rowDate = new Date(rowDateStr);
-                    if (!isNaN(rowDate.getTime())) {
-                        if (startDate) {
-                            const start = new Date(startDate);
-                            start.setHours(0, 0, 0, 0);
-                            if (rowDate < start) return false;
-                        }
-                        if (endDate) {
-                            const end = new Date(endDate);
-                            end.setHours(23, 59, 59, 999);
-                            if (rowDate > end) return false;
-                        }
+                const dateVal = item.createdAt || item.date || item.pickupDate;
+                if (dateVal) {
+                    const time = new Date(dateVal).getTime();
+                    if (!isNaN(time)) {
+                        if (startDate && time < new Date(startDate).setHours(0, 0, 0, 0)) return false;
+                        if (endDate && time > new Date(endDate).setHours(23, 59, 59, 999)) return false;
                     }
                 }
             }
@@ -80,4 +66,4 @@ export const useFilteredCustomerNegotiations = ({
             return true;
         });
     }, [negotiations, activeTab, priorityFilter, statusFilter, vehicleFilter, startDate, endDate]);
-};
+}

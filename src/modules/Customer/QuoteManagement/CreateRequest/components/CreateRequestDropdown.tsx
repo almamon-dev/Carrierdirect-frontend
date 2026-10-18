@@ -4,18 +4,10 @@ import {
     ChevronDown, 
     FileText, 
     FileSpreadsheet, 
-    Sparkles, 
-    Download, 
-    FileCheck, 
-    Eye 
+    Sparkles 
 } from 'lucide-react';
 import Button from '@/components/ui/button';
-import { 
-    downloadBlankCSVTemplate, 
-    downloadSampleCSVWithValues, 
-    downloadBlankPDFTemplate, 
-    downloadSamplePDFWithValues 
-} from '../utils/templateHelpers';
+import CreateRequestDownloadTemplates from './CreateRequestDownloadTemplates';
 
 interface CreateRequestDropdownProps {
     onCreateNew: () => void;
@@ -72,7 +64,6 @@ export const CreateRequestDropdown: React.FC<CreateRequestDropdownProps> = ({
 
             {isOpen && (
                 <div className="absolute right-0 mt-1.5 w-[310px] sm:w-[330px] bg-white dark:bg-[#1e2329] rounded-[4px] shadow-xl border border-slate-200 dark:border-slate-700 py-1 z-50 animate-in fade-in zoom-in-95 duration-100 font-sans text-left">
-                    {/* Option 1: Single Request */}
                     <button
                         type="button"
                         className="w-full text-left px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors cursor-pointer group flex items-start gap-3"
@@ -92,7 +83,6 @@ export const CreateRequestDropdown: React.FC<CreateRequestDropdownProps> = ({
                         </div>
                     </button>
 
-                    {/* Option 2: Bulk Upload CSV */}
                     {onUploadCsv && (
                         <button
                             type="button"
@@ -114,7 +104,6 @@ export const CreateRequestDropdown: React.FC<CreateRequestDropdownProps> = ({
                         </button>
                     )}
 
-                    {/* Option 3: AI Document / PDF Upload */}
                     {onUploadPdfZip && (
                         <button
                             type="button"
@@ -136,64 +125,8 @@ export const CreateRequestDropdown: React.FC<CreateRequestDropdownProps> = ({
                         </button>
                     )}
 
-                    {/* Download Templates Section */}
                     <div className="my-1.5 border-t border-slate-100 dark:border-slate-800" />
-                    <div className="px-3.5 pt-1 pb-1.5">
-                        <div className="flex items-center justify-between text-[11.5px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
-                            <span>Download Templates</span>
-                            <Download size={12} className="text-slate-400" />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsOpen(false);
-                                    downloadBlankCSVTemplate();
-                                }}
-                                className="px-2 py-1.5 rounded-[4px] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                                <FileSpreadsheet size={13} className="text-slate-500 shrink-0" />
-                                <span>Blank CSV</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsOpen(false);
-                                    downloadSampleCSVWithValues();
-                                }}
-                                className="px-2 py-1.5 rounded-[4px] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                                <FileSpreadsheet size={13} className="text-slate-500 shrink-0" />
-                                <span>Sample CSV</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsOpen(false);
-                                    downloadBlankPDFTemplate();
-                                }}
-                                className="px-2 py-1.5 rounded-[4px] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                                <FileCheck size={13} className="text-slate-500 shrink-0" />
-                                <span>Blank PDF</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsOpen(false);
-                                    downloadSamplePDFWithValues();
-                                }}
-                                className="px-2 py-1.5 rounded-[4px] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-[11px] font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                                <Eye size={13} className="text-slate-500 shrink-0" />
-                                <span>Sample PDF</span>
-                            </button>
-                        </div>
-                    </div>
+                    <CreateRequestDownloadTemplates onClose={() => setIsOpen(false)} />
                 </div>
             )}
         </div>
@@ -201,4 +134,3 @@ export const CreateRequestDropdown: React.FC<CreateRequestDropdownProps> = ({
 };
 
 export default CreateRequestDropdown;
-

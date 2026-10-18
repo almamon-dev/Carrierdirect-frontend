@@ -1,15 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { 
-  Eye, 
-  Download, 
-  MoreVertical, 
-  Copy, 
-  Check, 
-  ExternalLink,
-  Receipt
-} from "lucide-react";
+import { Eye, Download, MoreVertical, Copy, Check, ExternalLink, Receipt, FileText, ShieldCheck, RotateCcw } from "lucide-react";
 import Button from "@/components/ui/button";
 
 interface PaymentRowActionsProps {
@@ -33,6 +25,10 @@ export const PaymentRowActions: React.FC<PaymentRowActionsProps> = ({
   const invNumber = row.invoice_number || (row.id ? `INV-${String(row.id).padStart(4, "0")}` : "INV-0001");
   const ordNumber = row.order_number || row.orderId || (row.order_id ? `ORD-${String(row.order_id).padStart(4, "0")}` : null);
   const ordId = row.order_id || ordNumber;
+
+  const hasInvoice = Boolean(row.invoice_url || row.invoice_id || row.invoice_number);
+  const hasEscrow = Boolean(row.escrow || row.escrow_id || row.has_escrow || row.escrow_status);
+  const hasRefund = Boolean(row.refund || row.refund_id || row.refund_amount || row.refund_status);
 
   const handleClose = useCallback(() => setIsOpen(false), []);
 
@@ -113,38 +109,59 @@ export const PaymentRowActions: React.FC<PaymentRowActionsProps> = ({
               <p className="font-bold text-slate-800 dark:text-slate-200 truncate text-xs">{invNumber}</p>
             </div>
 
+            {/* 1. View Payment / Escrow Details */}
             <button
               type="button"
               className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-              onClick={() => {
-                handleClose();
-                onViewDetails(row);
-              }}
+              onClick={() => { handleClose(); onViewDetails(row); }}
             >
               <Eye size={14} className="text-slate-400 shrink-0" />
-              <span>View Payment Details</span>
+              <span>{hasEscrow ? "View Payment / Escrow Details" : "View Transaction Details"}</span>
             </button>
 
+            {/* 2. Download Receipt — when available */}
             <button
               type="button"
               className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
-              onClick={() => {
-                handleClose();
-                onDownload(row);
-              }}
+              onClick={() => { handleClose(); onDownload(row); }}
             >
               <Download size={14} className="text-[#ff4a1f] shrink-0" />
               <span>Download Receipt</span>
             </button>
 
-            {ordId && (
+            {/* 3. View Invoice — when available */}
+            {hasInvoice && (
               <button
                 type="button"
                 className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
                 onClick={() => {
                   handleClose();
-                  navigate(`/supplier/orders/${ordId}`);
+                  if (row.invoice_url) window.open(row.invoice_url, '_blank');
+                  else onViewDetails(row);
                 }}
+              >
+                <FileText size={14} className="text-slate-400 shrink-0" />
+                <span>View Invoice</span>
+              </button>
+            )}
+
+            {/* 4. View Refund Details — when applicable */}
+            {hasRefund && (
+              <button
+                type="button"
+                className="w-full text-left px-3.5 py-2 text-xs text-amber-600 dark:text-amber-400 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                onClick={() => { handleClose(); onViewDetails(row); }}
+              >
+                <RotateCcw size={14} className="text-amber-500 shrink-0" />
+                <span>View Refund Details</span>
+              </button>
+            )}
+
+            {ordId && (
+              <button
+                type="button"
+                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                onClick={() => { handleClose(); navigate(`/supplier/orders/${ordId}`); }}
               >
                 <ExternalLink size={14} className="text-slate-400 shrink-0" />
                 <span>Go to Order Details</span>

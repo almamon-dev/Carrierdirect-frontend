@@ -46,7 +46,7 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     placeholder="All Statuses"
                     options={[
                         { id: 'all', name: 'All Statuses' },
-                        { id: 'confirmed', name: 'Succeeded / Confirmed' },
+                        { id: 'confirmed', name: 'Confirmed' },
                         { id: 'in_transit', name: 'In Transit' },
                         { id: 'pod_review', name: 'POD Review' },
                         { id: 'completed', name: 'Completed' },
@@ -70,7 +70,7 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     placeholder="All Payments"
                     options={[
                         { id: 'all', name: 'All Payments' },
-                        { id: 'paid', name: 'Succeeded / Paid' },
+                        { id: 'paid', name: 'Paid' },
                         { id: 'escrow', name: 'In Escrow' },
                         { id: 'pay_later', name: 'Corporate Pay Later' },
                         { id: 'unpaid', name: 'Unpaid / Due' },

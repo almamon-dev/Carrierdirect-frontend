@@ -3,77 +3,8 @@ import { QuoteRequest } from "../../data/quoteRequestsData";
 import { resolveSupplierQuoteStatus } from "../../utils/requestStatusTracker";
 
 
-export function formatTime12h(timeStr?: string | null): string {
-    if (!timeStr) return "";
-    const clean = String(timeStr).trim();
-    if (!clean || clean === "—" || clean === "-") return "";
-
-    if (/^\d{1,2}:\d{2}\s*(?:AM|PM)$/i.test(clean)) {
-        return clean.toUpperCase();
-    }
-
-    const match = clean.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-    if (match) {
-        let hour = parseInt(match[1], 10);
-        const minute = match[2];
-        const ampm = hour >= 12 ? "PM" : "AM";
-        hour = hour % 12;
-        if (hour === 0) hour = 12;
-        const hourStr = hour < 10 ? `0${hour}` : `${hour}`;
-        return `${hourStr}:${minute} ${ampm}`;
-    }
-
-    return clean;
-}
-
-
-export function formatDeliveryTime(timeFrom?: string | null, timeTill?: string | null, fallback?: string | null, singleTime?: string | null): string {
-    const from12 = formatTime12h(timeFrom);
-    const till12 = formatTime12h(timeTill);
-    const single12 = formatTime12h(singleTime);
-
-    if (single12) return single12;
-    if (till12) return till12;
-    if (from12) return from12;
-    if (fallback) {
-        const cleanWin = String(fallback).trim();
-        if (cleanWin.includes("–") || cleanWin.includes("-") || cleanWin.toLowerCase().includes(" to ")) {
-            const parts = cleanWin.split(/–|-|\bto\b/i);
-            if (parts.length === 2) {
-                const p2 = formatTime12h(parts[1].trim());
-                if (p2) return p2;
-            }
-        }
-        return formatTime12h(cleanWin);
-    }
-    return "";
-}
-
-export function formatTimeSlotWindow(timeFrom?: string | null, timeTill?: string | null, fallbackWindow?: string | null, singleTime?: string | null): string {
-    const from12 = formatTime12h(timeFrom);
-    const till12 = formatTime12h(timeTill);
-
-    if (from12 && till12 && from12 !== till12) {
-        return `${from12} – ${till12}`;
-    }
-    if (from12) return from12;
-    if (till12) return till12;
-    if (singleTime) return formatTime12h(singleTime);
-    if (fallbackWindow) {
-        const cleanWin = String(fallbackWindow).trim();
-        if (cleanWin.includes("–") || cleanWin.includes("-") || cleanWin.toLowerCase().includes(" to ")) {
-            const parts = cleanWin.split(/–|-|\bto\b/i);
-            if (parts.length === 2) {
-                const p1 = formatTime12h(parts[0].trim());
-                const p2 = formatTime12h(parts[1].trim());
-                if (p1 && p2 && p1 !== p2) return `${p1} – ${p2}`;
-                if (p1) return p1;
-            }
-        }
-        return formatTime12h(cleanWin);
-    }
-    return "";
-}
+import { formatTime12h, formatDeliveryTime, formatTimeSlotWindow } from './timeFormatters';
+export { formatTime12h, formatDeliveryTime, formatTimeSlotWindow };
 
 export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetails: QuoteRequest; apiData: Record<string, any> } {
     const d = raw.quote_details || {};
@@ -138,6 +69,8 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         rawSummary = rawSummary.replace(/\b(cm|mm|m|in|inch|inches|ft|feet)\b/gi, "Items").trim();
     }
     const totalQty = rawItems.length > 0 ? rawItems.reduce((acc: number, item: any) => acc + (Number(item.quantity) || 1), 0) : (raw.items_count || d.items_count || 0);
+    const rawPallets = d.pallets_count ?? raw.pallets_count ?? raw.palletsCount ?? d.palletsCount ?? "";
+    const formattedPallets = rawPallets ? `${rawPallets} Pallets` : "";
     const itemsCountSummary = (rawSummary && !["—", "0 Items", "0 Item", "0"].includes(rawSummary))
         ? rawSummary
         : (totalQty > 0 ? `${totalQty} ${totalQty === 1 ? "Item" : "Items"}` : "—");
@@ -162,10 +95,10 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         is_won: isWon,
         is_expired: isExpired,
         quote_submitted: raw.quote_submitted,
-        customer: d.client_name || d.customer_name || raw.customer?.name || raw.user?.name || raw.customer_name || "Verified Shipper",
+        customer: d.client_name || d.customer_name || raw.customer?.name || raw.user?.name || raw.customer_name || '-',
         customerAvatar: d.client_avatar || d.customer_avatar || raw.customer_avatar || raw.customerAvatar || raw.customer?.avatar || raw.customer?.profile_picture || raw.user?.avatar || raw.user?.avatar_url || "",
         customerPhone: d.client_phone || raw.customer?.phone || raw.user?.phone || "",
-        customerRating: Number(d.client_rating || raw.customer?.rating || raw.user?.rating || 4.9),
+        customerRating: Number(d.client_rating ?? raw.customer?.rating ?? raw.user?.rating ?? 5.0),
         customerOrdersCount: d.client_orders_count ?? raw.customer?.orders_count ?? raw.user?.orders_count ?? 1,
         requestDate: d.request_created_at || d.requested_date || raw.requested_date || raw.created_at || "",
         pickup: d.origin || d.pickup || raw.pickup || "—",
@@ -184,6 +117,7 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         vehicleType: d.vehicle_type || d.vehicleType || raw.vehicle_type || raw.vehicleType || "—",
         loadType: resolvedLoadType,
         itemsCount: itemsCountSummary,
+        palletsCount: formattedPallets || (rawPallets ? String(rawPallets) : itemsCountSummary),
         dimensions: rawItems.map((item: any, i: number) => ({
             id: item.id ?? i + 1,
             length: item.length != null ? String(item.length) : "—",

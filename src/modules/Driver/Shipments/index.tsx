@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Truck, RefreshCw } from 'lucide-react';
 import DataTable from '@/components/tables/data-table';
 import EmptyState from '@/components/tables/empty-state';
@@ -21,7 +21,22 @@ export default function DriverShipmentsPage() {
     } = useDriverShipments();
 
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [activeTab, setActiveTab] = useState<DriverShipmentFilterTab>('all');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const tabFromUrl = searchParams.get('tab') as DriverShipmentFilterTab;
+    const [activeTab, setActiveTab] = useState<DriverShipmentFilterTab>(
+        tabFromUrl && ['all', 'new', 'awaiting_review', 'completed'].includes(tabFromUrl) ? tabFromUrl : 'all'
+    );
+
+    const handleSelectTab = (tab: DriverShipmentFilterTab) => {
+        setActiveTab(tab);
+        const params = new URLSearchParams(searchParams);
+        if (tab === 'all') {
+            params.delete('tab');
+        } else {
+            params.set('tab', tab);
+        }
+        setSearchParams(params, { replace: true });
+    };
     const [statusFilter, setStatusFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [freightTypeFilter, setFreightTypeFilter] = useState('all');
@@ -45,16 +60,17 @@ export default function DriverShipmentsPage() {
     const filteredShipments = useMemo(() => {
         return allShipments.filter((item: ShipmentItem) => {
             // 1. Tab Filter
-            if (activeTab === 'in_transit' && item.status !== 'in_transit') return false;
-            if (activeTab === 'at_pickup' && item.status !== 'at_pickup') return false;
-            if (activeTab === 'at_delivery' && item.status !== 'at_delivery') return false;
-            if (activeTab === 'assigned' && item.status !== 'assigned' && item.status !== 'accepted') return false;
-            if (activeTab === 'delivered' && item.status !== 'delivered') return false;
+            if (activeTab === 'new' && !['assigned', 'accepted', 'at_pickup', 'in_transit', 'at_delivery'].includes(item.status)) return false;
+            if (activeTab === 'awaiting_review' && item.status !== 'delivered') return false;
+            if (activeTab === 'completed' && item.status !== 'completed') return false;
 
             // 2. Dropdown Status Filter
             if (statusFilter !== 'all') {
+                if (statusFilter === 'new' && !['assigned', 'accepted', 'at_pickup', 'in_transit', 'at_delivery'].includes(item.status)) return false;
+                if (statusFilter === 'awaiting_review' && item.status !== 'delivered') return false;
+                if (statusFilter === 'completed' && item.status !== 'completed') return false;
                 if (statusFilter === 'assigned' && (item.status !== 'assigned' && item.status !== 'accepted')) return false;
-                if (statusFilter !== 'assigned' && item.status !== statusFilter) return false;
+                if (!['new', 'awaiting_review', 'completed', 'assigned'].includes(statusFilter) && item.status !== statusFilter) return false;
             }
 
             // 3. Dropdown Priority Filter
@@ -109,7 +125,7 @@ export default function DriverShipmentsPage() {
                     <ShipmentFilterTabs
                         shipments={allShipments}
                         activeTab={activeTab}
-                        onSelectTab={setActiveTab}
+                        onSelectTab={handleSelectTab}
                     />
                 }
                 filterContent={
@@ -146,14 +162,26 @@ export default function DriverShipmentsPage() {
                                 ? "No Shipments Matching Filters"
                                 : activeTab === 'all'
                                 ? "No Assigned Loads Found"
-                                : `No Loads in "${activeTab.replace('_', ' ').toUpperCase()}"`
+                                : activeTab === 'new'
+                                ? "No New Loads"
+                                : activeTab === 'awaiting_review'
+                                ? "No Loads Awaiting Review"
+                                : activeTab === 'completed'
+                                ? "No Completed Loads"
+                                : "No Shipments Found"
                         }
                         description={
                             statusFilter !== 'all' || priorityFilter !== 'all' || freightTypeFilter !== 'all'
                                 ? "Try adjusting or resetting your filter criteria to view assigned shipments."
                                 : activeTab === 'all'
                                 ? "There are currently no active freight loads assigned to your driver profile. New dispatches will appear here automatically."
-                                : `There are no shipments currently matching the "${activeTab.replace('_', ' ')}" status.`
+                                : activeTab === 'new'
+                                ? "Driver assigned load পাবে এবং delivery শুরু করবে।"
+                                : activeTab === 'awaiting_review'
+                                ? "Delivery শেষ করে POD upload করলে load এই tab-এ যাবে।"
+                                : activeTab === 'completed'
+                                ? "Customer POD approve করলে load এখানে চলে যাবে।"
+                                : "There are no shipments currently matching this category."
                         }
                     />
                 }

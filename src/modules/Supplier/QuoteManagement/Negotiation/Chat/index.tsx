@@ -11,7 +11,7 @@ import { generateInitialMessages } from './utils/initialMessages';
 export default function SupplierNegotiationChat() {
     const {
         sessionKey, messagesEndRef, inputValue, setInputValue, searchQuery, setSearchQuery,
-        filterTab, setFilterTab, editingMsgId, setEditingMsgId, setEditingText, highlightedMsgId,
+        filterTab, setFilterTab, counts, repeatCustomerMap, editingMsgId, setEditingMsgId, setEditingText, highlightedMsgId,
         setHighlightedMsgId, activePinnedIndex, setActivePinnedIndex, showMobileDetails,
         setShowMobileDetails, isCustomerTyping, notifyTyping, negotiationStatusMap, liveOffers,
         allNegotiations, activeNegotiation, pinnedChatIds, readChatIds, chatMessages, currentPrice,
@@ -65,6 +65,8 @@ export default function SupplierNegotiationChat() {
                     setSearchQuery={setSearchQuery}
                     filterTab={filterTab}
                     setFilterTab={setFilterTab}
+                    counts={counts}
+                    repeatCustomerMap={repeatCustomerMap}
                     handleSelectChat={handleSelectChat}
                     togglePinChat={togglePinChat}
                     isCollapsed={isSidebarCollapsed}
@@ -111,6 +113,8 @@ export default function SupplierNegotiationChat() {
                 {activeNegotiation && (
                     <ChatDetailsSidebar
                         activeNegotiation={activeNegotiation}
+                        allNegotiations={allNegotiations}
+                        onSelectNegotiation={handleSelectChat}
                         negotiationStatusMap={negotiationStatusMap}
                         currentPrice={currentPrice}
                         liveOffers={liveOffers}

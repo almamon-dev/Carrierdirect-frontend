@@ -1,5 +1,5 @@
+import { Calendar, MapPin } from 'lucide-react';
 import React from 'react';
-import { MapPin, Calendar, Building, Phone, Mail } from 'lucide-react';
 import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
 
 interface CustomerOrderLocationsCardProps {
@@ -8,7 +8,7 @@ interface CustomerOrderLocationsCardProps {
 
 export const CustomerOrderLocationsCard: React.FC<CustomerOrderLocationsCardProps> = ({ order }) => {
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs overflow-hidden font-sans">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs overflow-hidden font-sans">
             {/* Header */}
             <div className="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#15191e]/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -59,9 +59,6 @@ export const CustomerOrderLocationsCard: React.FC<CustomerOrderLocationsCardProp
                         <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {order.pickup.contactName}
-                            {order.pickup.contactPhone ? (
-                                <span className="text-slate-500 font-normal ml-1.5">({order.pickup.contactPhone})</span>
-                            ) : null}
                         </span>
                     </div>
                 </div>
@@ -101,9 +98,6 @@ export const CustomerOrderLocationsCard: React.FC<CustomerOrderLocationsCardProp
                         <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                             {order.delivery.contactName}
-                            {order.delivery.contactPhone ? (
-                                <span className="text-slate-500 font-normal ml-1.5">({order.delivery.contactPhone})</span>
-                            ) : null}
                         </span>
                     </div>
                 </div>

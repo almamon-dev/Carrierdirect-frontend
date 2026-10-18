@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, Eye, Copy, MessageSquare } from 'lucide-react';
+import { MoreVertical, Eye, Copy, Send, CheckCircle2, FileDown, Check } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 import { encryptId } from '@/lib/encryption';
-import { SupplierActionButton } from './SupplierActionMenuItem';
 
 interface SupplierRowActionsProps {
     row: QuoteRequest;
@@ -18,6 +17,7 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
 }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
     const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -51,7 +51,61 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
         };
     }, [isOpen]);
 
-    const isQuoted = Boolean((row as any).has_quoted || (row as any).quote_submitted || (row as any).is_quoted || (row as any).quote_id || (row as any).my_quote || row.isQuoted || row.hasQuoted || (row.status || '').toLowerCase() === 'quoted' || (row.status || '').toLowerCase() === 'done' || (row as any).supplier_status?.toLowerCase() === 'quoted');
+    const isQuoted = Boolean(
+        (row as any).has_quoted ||
+        (row as any).quote_submitted ||
+        (row as any).is_quoted ||
+        (row as any).quote_id ||
+        (row as any).my_quote ||
+        row.isQuoted ||
+        row.hasQuoted ||
+        (row.status || '').toLowerCase() === 'quoted' ||
+        (row.status || '').toLowerCase() === 'done' ||
+        (row as any).supplier_status?.toLowerCase() === 'quoted'
+    );
+    const isBooked = (row.status || '').toLowerCase() === 'booked' || (row.status || '').toLowerCase() === 'won';
+    const isExpired = Boolean(
+        (row as any).is_expired ||
+        (row.status || '').toLowerCase() === 'expired' ||
+        (row.status || '').toLowerCase() === 'cancelled' ||
+        (row.status || '').toLowerCase() === 'completed'
+    );
+
+    const rawId = String(row.rawId || row.slug || row.id).replace('REQ-', '').trim();
+    const quoteId = (row as any).quote_id || (row as any).my_quote?.id || (row as any).myQuote?.id;
+
+    const handleViewRequest = () => {
+        handleClose();
+        navigate(`/supplier/quotes/requests/${encryptId(rawId)}`);
+    };
+
+    const handleSubmitQuote = () => {
+        handleClose();
+        onQuoteAction(row);
+    };
+
+    const handleViewMyQuote = () => {
+        handleClose();
+        if (quoteId) {
+            navigate(`/supplier/quotes/my-quotes/${encryptId(quoteId)}`, { state: { from: 'requests' } });
+        } else {
+            navigate(`/supplier/quotes/my-quotes`);
+        }
+    };
+
+    const handleDownloadPdf = () => {
+        handleClose();
+        window.print();
+    };
+
+    const handleCopyId = () => {
+        navigator.clipboard.writeText(row.id);
+        setCopied(true);
+        setTimeout(() => {
+            setCopied(false);
+            handleClose();
+        }, 1200);
+    };
 
     return (
         <div className="relative flex items-center justify-end w-full">
@@ -72,57 +126,73 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
                     />
 
                     <div
-    className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
+                        className="fixed w-52 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
                         style={{ top: dropdownPos.top, left: dropdownPos.left }}
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* 1. View Request */}
                         <button
                             type="button"
                             className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                const rawId = String(row.rawId || row.slug || row.id).replace('REQ-', '').trim();
-                                navigate(`/supplier/quotes/requests/${encryptId(rawId)}`);
-                            }}
+                            onClick={handleViewRequest}
                         >
                             <Eye size={14} className="text-slate-400 shrink-0" />
-                            <span>View Details</span>
+                            <span>View Request</span>
                         </button>
 
-                        <SupplierActionButton
-                            row={row}
-                            onQuoteAction={onQuoteAction}
-                            onClose={handleClose}
-                        />
+                        {/* 2. Submit Quote — available when eligible and not already quoted */}
+                        {!isQuoted && !isExpired && !isBooked && (
+                            <button
+                                type="button"
+                                className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
+                                onClick={handleSubmitQuote}
+                            >
+                                <Send size={14} className="text-[#ff4a1f] shrink-0" />
+                                <span>Submit Quote</span>
+                            </button>
+                        )}
 
+                        {/* 3. View My Quote — available if supplier already submitted a quote */}
                         {isQuoted && (
                             <button
                                 type="button"
                                 className="w-full text-left px-3.5 py-2 text-xs text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                                onClick={() => {
-                                    handleClose();
-                                    const targetId = (row as any).quote_id || (row as any).chat_id || row.quoteId || row.rawId || row.slug || row.id;
-                                    const rawId = String(targetId).replace('REQ-', '').replace('QT-', '').trim();
-                                    navigate(`/supplier/quotes/negotiation/conversation/${encryptId(rawId)}`);
-                                }}
+                                onClick={handleViewMyQuote}
                             >
-                                <MessageSquare size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-                                <span>Negotiation</span>
+                                <CheckCircle2 size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                <span>View My Quote</span>
                             </button>
                         )}
 
+                        {/* 4. Download Request PDF */}
+                        <button
+                            type="button"
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                            onClick={handleDownloadPdf}
+                        >
+                            <FileDown size={14} className="text-slate-400 shrink-0" />
+                            <span>Download Request PDF</span>
+                        </button>
+
                         <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
 
+                        {/* Copy Request ID */}
                         <button
                             type="button"
                             className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                navigator.clipboard.writeText(row.id);
-                            }}
+                            onClick={handleCopyId}
                         >
-                            <Copy size={14} className="text-slate-400 shrink-0" />
-                            <span>Copy Request ID</span>
+                            {copied ? (
+                                <>
+                                    <Check size={14} className="text-emerald-500 shrink-0" />
+                                    <span className="text-emerald-600 font-semibold">Copied!</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Copy size={14} className="text-slate-400 shrink-0" />
+                                    <span>Copy Request ID</span>
+                                </>
+                            )}
                         </button>
                     </div>
                 </>,

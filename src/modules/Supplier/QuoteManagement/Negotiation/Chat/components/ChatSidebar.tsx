@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, PanelLeftClose, X, Table } from 'lucide-react';
+import { ArrowLeft, Search, PanelLeftClose, MoreHorizontal } from 'lucide-react';
 import Button from '@/components/ui/button';
-import Skeleton from '@/components/ui/skeleton';
 import { NegotiationItem } from '../../types';
-import { ChatMessage } from '../types';
+import { ChatMessage, NegotiationFilterTab } from '../types';
 import { ChatSidebarCollapsed } from './sidebar/ChatSidebarCollapsed';
-import { ChatSidebarItem } from './sidebar/ChatSidebarItem';
+import { ChatSidebarMobileDrawer } from './sidebar/ChatSidebarMobileDrawer';
+import { ChatSidebarConversationList } from './sidebar/ChatSidebarConversationList';
 
 interface ChatSidebarProps {
     allNegotiations: NegotiationItem[];
@@ -18,8 +18,15 @@ interface ChatSidebarProps {
     liveOffers: Record<string | number, number>;
     searchQuery: string;
     setSearchQuery: (q: string) => void;
-    filterTab: 'all' | 'unread';
-    setFilterTab: (t: 'all' | 'unread') => void;
+    filterTab: NegotiationFilterTab;
+    setFilterTab: (t: NegotiationFilterTab) => void;
+    counts?: {
+        all: number;
+        new: number;
+        existing: number;
+        unread: number;
+    };
+    repeatCustomerMap?: Record<string, number>;
     handleSelectChat: (item: NegotiationItem) => void;
     togglePinChat: (e: React.MouseEvent, chatId: number | string) => void;
     isCollapsed: boolean;
@@ -44,6 +51,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     setSearchQuery,
     filterTab,
     setFilterTab,
+    counts,
+    repeatCustomerMap,
     handleSelectChat,
     togglePinChat,
     isCollapsed,
@@ -53,166 +62,79 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     isResizing = false,
     isMobileOpen = false,
     onCloseMobile,
-    isLoading = false
+    isLoading = false,
 }) => {
     const navigate = useNavigate();
-    const totalUnread = allNegotiations.filter(n => !readChatIds[n.rawId] && (n.unreadCount || 0) > 0).length;
+    const totalUnread = counts?.unread ?? allNegotiations.filter((n) => !readChatIds[n.rawId] && (n.unreadCount || 0) > 0).length;
 
-    const handleSelectMobileChat = (item: NegotiationItem) => {
-        handleSelectChat(item);
-        if (onCloseMobile) onCloseMobile();
-    };
+    const filterTabs: { id: NegotiationFilterTab; label: string; count: number }[] = [
+        { id: 'all', label: 'All', count: counts?.all ?? allNegotiations.length },
+        { id: 'new', label: 'New', count: counts?.new ?? 0 },
+        { id: 'existing', label: 'Existing', count: counts?.existing ?? 0 },
+        { id: 'unread', label: 'Unread', count: counts?.unread ?? totalUnread },
+    ];
+
+    const [isMoreOpen, setIsMoreOpen] = useState(false);
+    const moreMenuRef = useRef<HTMLDivElement>(null);
+
+    // Close more menu on outside click or escape key
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+                setIsMoreOpen(false);
+            }
+        };
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsMoreOpen(false);
+            }
+        };
+        if (isMoreOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleKeyDown);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isMoreOpen]);
+
+    // Close menu when sidebar resize drag starts
+    useEffect(() => {
+        if (isResizing) {
+            setIsMoreOpen(false);
+        }
+    }, [isResizing]);
+
+
+    const visibleCount = sidebarWidth >= 345 ? 4 : sidebarWidth >= 295 ? 3 : 2;
+    const visibleTabs = filterTabs.slice(0, visibleCount);
+    const hiddenTabs = filterTabs.slice(visibleCount);
+    const isHiddenTabActive = hiddenTabs.some((t) => t.id === filterTab);
+    const activeHiddenTab = hiddenTabs.find((t) => t.id === filterTab);
 
     return (
         <>
-            {/* Mobile Drawer (Google Chat / Telegram style sliding drawer) */}
-            {isMobileOpen && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs z-50 lg:hidden animate-in fade-in duration-200"
-                        onClick={onCloseMobile}
-                        aria-hidden="true"
-                    />
-
-                    {/* Sliding Drawer Panel */}
-                    <div
-    className="fixed inset-y-0 left-0 z-50 w-[86vw] max-w-[340px] bg-white flex flex-col h-full shadow-2xl border-r border-slate-200 lg:hidden animate-in slide-in-from-left duration-200 font-sans">
-                        <div
-                            className="h-[60px] px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0 box-border bg-white dark:bg-[#12161c]">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-slate-500 rounded-full hover:bg-slate-200/70 -ml-1 cursor-pointer shrink-0"
-                                    onClick={() => navigate('/supplier/quotes/negotiation')}
-                                    title="Back to all negotiations table"
-                                >
-                                    <ArrowLeft size={18} />
-                                </Button>
-                                <div className="min-w-0">
-                                    <h2 className="text-[14.5px] font-bold text-slate-900 tracking-tight leading-none truncate">
-                                        Negotiations
-                                    </h2>
-                                    <span className="text-[10.5px] text-slate-500 font-medium truncate block mt-0.5">
-                                        {allNegotiations.length} total active threads
-                                    </span>
-                                </div>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={onCloseMobile}
-                                className="h-8 w-8 text-slate-500 hover:text-slate-800 hover:bg-slate-200/70 rounded-full cursor-pointer shrink-0"
-                                title="Close sidebar"
-                            >
-                                <X size={18} />
-                            </Button>
-                        </div>
-
-                        {/* Search Bar */}
-                        <div className="px-3.5 pt-3 pb-2">
-                            <div className="relative">
-                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
-                                <input
-                                    type="text"
-                                    placeholder="Search negotiations, routes..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full h-[36px] pl-9 pr-4 text-[13px] bg-slate-100 border-none rounded-full outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-none text-slate-800 placeholder-slate-400 font-medium"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Filter Tabs */}
-                        <div className="px-3.5 py-1.5 flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                            <button
-                                type="button"
-                                onClick={() => setFilterTab('all')}
-                                className={`rounded-full px-3 py-1 text-[11.5px] cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-colors ${
-                                    filterTab === 'all'
-                                        ? 'bg-orange-50 text-[#FF4A1F] border border-orange-200/80 font-bold shadow-2xs'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80 font-semibold'
-                                }`}
-                            >
-                                All ({allNegotiations.length})
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFilterTab('unread')}
-                                className={`rounded-full px-3 py-1 text-[11.5px] cursor-pointer whitespace-nowrap outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-colors ${
-                                    filterTab === 'unread'
-                                        ? 'bg-orange-50 text-[#FF4A1F] border border-orange-200/80 font-bold shadow-2xs'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80 font-semibold'
-                                }`}
-                            >
-                                Unread {totalUnread > 0 && `(${totalUnread})`}
-                            </button>
-                        </div>
-
-                        {/* Conversation List */}
-                        <div className="flex-1 overflow-y-auto px-2 mt-1 hide-scrollbar">
-                            {isLoading ? (
-                                <div className="space-y-1.5 py-1">
-                                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                                        <div
-                                            key={i}
-                                            className="p-2.5 rounded-lg flex gap-3 items-center border border-slate-200/60 dark:border-slate-800/80 bg-white dark:bg-[#12161c]"
-                                        >
-                                            <Skeleton className="w-10 h-10 rounded-full shrink-0 aspect-square" />
-                                            <div className="min-w-0 flex-1 space-y-2">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <Skeleton className="h-3.5 w-24 rounded-md" />
-                                                    <Skeleton className="h-2.5 w-10 rounded-md" />
-                                                </div>
-                                                <Skeleton className="h-3 w-40 rounded-md" />
-                                                <div className="flex items-center justify-between pt-0.5">
-                                                    <Skeleton className="h-3 w-16 rounded-md" />
-                                                    <Skeleton className="h-3.5 w-14 rounded-md" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <>
-                                    {filteredChats.map((item) => (
-                                        <ChatSidebarItem
-                                            key={item.rawId}
-                                            item={item}
-                                            isActive={item.rawId === activeNegotiation?.rawId}
-                                            isPinned={Boolean(pinnedChatIds[item.rawId])}
-                                            isUnread={Boolean(!readChatIds[item.rawId] && (item.unreadCount || 0) > 0)}
-                                            threadMsgs={chatMessages[item.rawId] || []}
-                                            priceDisplay={liveOffers[item.rawId] || item.currentOffer || item.originalAmount || 1850}
-                                            onSelect={() => handleSelectMobileChat(item)}
-                                            onTogglePin={(e) => togglePinChat(e, item.rawId)}
-                                        />
-                                    ))}
-                                    {filteredChats.length === 0 && (
-                                        <div className="text-center py-10 text-slate-400 text-xs font-medium">
-                                            No negotiations found.
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-
-                        {/* Bottom link to Negotiations table */}
-                        <div
-    className="p-3 border-t border-slate-100 bg-slate-50/60">
-                            <button
-                                type="button"
-                                onClick={() => navigate('/supplier/quotes/negotiation')}
-                                className="w-full h-8 px-3 rounded-[4px] bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                                <Table size={13} className="text-slate-500" />
-                                <span>View Negotiations Table</span>
-                            </button>
-                        </div>
-                    </div>
-                </>
-            )}
+            <ChatSidebarMobileDrawer
+                isMobileOpen={isMobileOpen}
+                onCloseMobile={onCloseMobile}
+                allNegotiations={allNegotiations}
+                filteredChats={filteredChats}
+                activeNegotiation={activeNegotiation}
+                pinnedChatIds={pinnedChatIds}
+                readChatIds={readChatIds}
+                chatMessages={chatMessages}
+                liveOffers={liveOffers}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                filterTab={filterTab}
+                setFilterTab={setFilterTab}
+                counts={counts}
+                repeatCustomerMap={repeatCustomerMap}
+                handleSelectChat={handleSelectChat}
+                togglePinChat={togglePinChat}
+                isLoading={isLoading}
+            />
 
             {/* Desktop Sidebar (lg+ screens) */}
             {isCollapsed ? (
@@ -232,23 +154,22 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             ) : (
                 <div
                     style={{ width: `${sidebarWidth}px` }}
-                    className={`hidden lg:flex flex-col min-h-0 h-full bg-white border-r border-slate-200 shrink-0 relative transition-[width] duration-150 ${
-                        isResizing ? 'select-none' : ''
-                    }`}
+                    className={`hidden lg:flex flex-col min-h-0 h-full bg-white dark:bg-[#12161c] border-r border-slate-200 dark:border-slate-800 shrink-0 relative transition-[width] duration-150 ${isResizing ? 'select-none' : ''
+                        }`}
                 >
                     <div className="h-[60px] px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0 box-border bg-white dark:bg-[#12161c]">
                         <div className="flex items-center gap-3 min-w-0">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-slate-500 rounded-full hover:bg-slate-100 -ml-2 cursor-pointer shrink-0"
+                                className="h-8 w-8 text-slate-500 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 -ml-2 cursor-pointer shrink-0"
                                 onClick={() => navigate('/supplier/quotes/negotiation')}
                                 title="Back to table"
                             >
                                 <ArrowLeft size={18} />
                             </Button>
                             <div className="min-w-0">
-                                <h2 className="text-[15px] font-bold text-slate-800 tracking-tight leading-none truncate">
+                                <h2 className="text-[15px] font-bold text-slate-800 dark:text-slate-100 tracking-tight leading-none truncate">
                                     Negotiations
                                 </h2>
                                 <span className="text-[11px] text-slate-400 font-medium truncate block">
@@ -260,7 +181,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             variant="ghost"
                             size="icon"
                             onClick={onToggleCollapse}
-                            className="h-8 w-8 text-slate-500 hover:text-[#FF4A1F] hover:bg-orange-50 rounded-md cursor-pointer shrink-0 ml-1 transition-colors"
+                            className="h-8 w-8 text-slate-500 hover:text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-orange-950/40 rounded-md cursor-pointer shrink-0 ml-1 transition-colors"
                             title="Collapse sidebar"
                         >
                             <PanelLeftClose size={18} />
@@ -272,7 +193,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                             <input
                                 type="text"
-                                placeholder="Search negotiations, routes..."
+                                placeholder="Search negotiations, routes, #order..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full h-[36px] pl-9 pr-4 text-[13px] bg-slate-100 dark:bg-slate-800/80 border-none rounded-full outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-none text-slate-800 dark:text-slate-200 placeholder-slate-400 font-medium transition-all"
@@ -280,73 +201,105 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                         </div>
                     </div>
 
-                    <div className="px-3.5 py-1.5 flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                        <button
-                            type="button"
-                            onClick={() => setFilterTab('all')}
-                            className={`rounded-full px-3.5 py-1 text-[11.5px] cursor-pointer outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-colors ${
-                                filterTab === 'all'
-                                    ? 'bg-orange-50 text-[#FF4A1F] border border-orange-200/80 font-bold shadow-2xs'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80 font-semibold'
-                            }`}
-                        >
-                            All {isLoading ? '' : `(${allNegotiations.length})`}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setFilterTab('unread')}
-                            className={`rounded-full px-3.5 py-1 text-[11.5px] cursor-pointer whitespace-nowrap outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-colors ${
-                                filterTab === 'unread'
-                                    ? 'bg-orange-50 text-[#FF4A1F] border border-orange-200/80 font-bold shadow-2xs'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80 font-semibold'
-                            }`}
-                        >
-                            Unread {totalUnread > 0 && `(${totalUnread})`}
-                        </button>
-                    </div>
+                    <div className="px-3.5 py-1.5 flex items-center gap-1.5 relative z-30 shrink-0">
+                        {visibleTabs.map((tab) => {
+                            const isActive = filterTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setFilterTab(tab.id)}
+                                    className={`rounded-full px-3 py-1 text-[11.5px] cursor-pointer whitespace-nowrap outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-all flex items-center gap-1.5 shrink-0 ${isActive
+                                            ? 'bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/80 dark:border-orange-800 font-bold shadow-2xs'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 font-semibold'
+                                        }`}
+                                >
+                                    <span>{tab.label}</span>
+                                    {!isLoading && tab.count > 0 && (
+                                        <span
+                                            className={`min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold inline-flex items-center justify-center leading-none shrink-0 ${isActive
+                                                    ? 'bg-[#FF4A1F] text-white'
+                                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                                }`}
+                                        >
+                                            {tab.count}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
 
-                    <div className="flex-1 overflow-y-auto px-2 mt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                        {isLoading ? (
-                            <div className="space-y-1 py-1 animate-in fade-in duration-150">
-                                {[1, 2, 3, 4, 5, 6].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="p-2.5 rounded-[4px] flex gap-3 items-center border border-transparent bg-white dark:bg-[#12161c]"
-                                    >
-                                        <Skeleton className="w-10 h-10 rounded-full shrink-0 aspect-square" />
-                                        <div className="min-w-0 flex-1 space-y-1.5">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <Skeleton className="h-3.5 w-28 rounded-md" />
-                                                <Skeleton className="h-2.5 w-12 rounded-md" />
-                                            </div>
-                                            <div className="flex items-center justify-between gap-2 pt-0.5">
-                                                <Skeleton className="h-3 w-36 rounded-md" />
-                                                <Skeleton className="h-4 w-4 rounded-[4px]" />
-                                            </div>
+                        {hiddenTabs.length > 0 && (
+                            <div className="relative shrink-0" ref={moreMenuRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMoreOpen((prev) => !prev)}
+                                    title={isHiddenTabActive && activeHiddenTab ? `Active: ${activeHiddenTab.label} (More filters)` : 'More filter tabs'}
+                                    className={`rounded-full px-2.5 py-1 text-[11.5px] cursor-pointer whitespace-nowrap outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-all flex items-center justify-center shrink-0 ${isHiddenTabActive
+                                            ? 'bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/80 dark:border-orange-800 font-bold shadow-2xs'
+                                            : isMoreOpen
+                                                ? 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600 font-semibold'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 font-semibold'
+                                        }`}
+                                >
+                                    <MoreHorizontal size={15} className="shrink-0" />
+                                </button>
+
+                                {isMoreOpen && (
+                                    <div className="absolute right-0 top-full mt-1.5 min-w-[155px] bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 p-1.5 animate-in fade-in zoom-in-95 duration-100">
+                                        <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                            More Filters
+                                        </div>
+                                        <div className="space-y-0.5 mt-0.5">
+                                            {hiddenTabs.map((tab) => {
+                                                const isTabActive = filterTab === tab.id;
+                                                return (
+                                                    <button
+                                                        key={tab.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFilterTab(tab.id);
+                                                            setIsMoreOpen(false);
+                                                        }}
+                                                        className={`w-full px-2.5 py-1.5 rounded-lg text-[12px] cursor-pointer flex items-center justify-between gap-2 transition-colors ${isTabActive
+                                                                ? 'bg-orange-50 dark:bg-orange-950/50 text-[#FF4A1F] font-bold'
+                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 font-medium'
+                                                            }`}
+                                                    >
+                                                        <span className="truncate">{tab.label}</span>
+                                                        {!isLoading && tab.count > 0 && (
+                                                            <span
+                                                                className={`min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold inline-flex items-center justify-center leading-none shrink-0 ${isTabActive
+                                                                        ? 'bg-[#FF4A1F] text-white'
+                                                                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                                                    }`}
+                                                            >
+                                                                {tab.count}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="animate-in fade-in duration-150">
-                                {filteredChats.map((item) => (
-                                    <ChatSidebarItem
-                                        key={item.rawId}
-                                        item={item}
-                                        isActive={item.rawId === activeNegotiation?.rawId}
-                                        isPinned={Boolean(pinnedChatIds[item.rawId])}
-                                        isUnread={Boolean(!readChatIds[item.rawId] && (item.unreadCount || 0) > 0)}
-                                        threadMsgs={chatMessages[item.rawId] || []}
-                                        priceDisplay={liveOffers[item.rawId] || item.currentOffer || item.originalAmount || 1850}
-                                        onSelect={() => handleSelectChat(item)}
-                                        onTogglePin={(e) => togglePinChat(e, item.rawId)}
-                                    />
-                                ))}
-                                {filteredChats.length === 0 && (
-                                    <div className="text-center py-8 text-slate-500 text-sm">No negotiations found.</div>
                                 )}
                             </div>
                         )}
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto px-2 mt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                        <ChatSidebarConversationList
+                            isLoading={isLoading}
+                            filteredChats={filteredChats}
+                            activeNegotiation={activeNegotiation}
+                            pinnedChatIds={pinnedChatIds}
+                            readChatIds={readChatIds}
+                            chatMessages={chatMessages}
+                            liveOffers={liveOffers}
+                            repeatCustomerMap={repeatCustomerMap}
+                            handleSelectChat={handleSelectChat}
+                            togglePinChat={togglePinChat}
+                        />
                     </div>
 
                     <div

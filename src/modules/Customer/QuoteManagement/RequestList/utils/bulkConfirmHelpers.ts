@@ -46,7 +46,7 @@ export function buildBulkQuoteRequestsPayload(extractedData: any) {
             service_type: row.serviceType || row.service_type || 'Standard',
             expected_transit_time: row.expectedTransit || row.expected_transit_time || '2 Days',
             vehicle_type: row.vehicleType || row.vehicle_type || row.vehicle || 'Covered Van (20ft)',
-            load_type: row.cargoLoadType || row.load_type || row.pallet_type || 'Standard Euro Pallet',
+            load_type: row.cargoLoadType || row.load_type || row.pallet_type || '-',
             items_count: totalItemsCount,
             pallets_count: row.palletsCount || totalItemsCount,
             weight: totalWeight,

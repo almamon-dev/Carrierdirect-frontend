@@ -32,8 +32,6 @@ export const CustomerOrderVehicleDetails: React.FC<CustomerOrderVehicleDetailsPr
                     <span className="font-semibold text-slate-900 dark:text-slate-100 truncate">
                         {order.vehicle.type}
                     </span>
-
-                    {/* License Plate */}
                     <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 truncate">
                         <Hash size={12} className="text-slate-400 shrink-0" />
                         <span>License Plate</span>

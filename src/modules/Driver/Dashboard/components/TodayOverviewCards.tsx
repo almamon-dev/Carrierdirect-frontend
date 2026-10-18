@@ -26,22 +26,22 @@ export const TodayOverviewCards: React.FC<Props> = ({ metrics }) => {
                 />
                 <MetricCard
                     title="Trips Today"
-                    description={metrics.tripsCompleted?.subtitle || '2 scheduled today'}
+                    description={metrics.tripsCompleted?.subtitle || 'Scheduled today'}
                     value={metrics.tripsCompleted?.value ?? '0 Orders'}
                     icon={Truck}
                     colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600"
                 />
                 <MetricCard
                     title="Distance Logged"
-                    description={metrics.distance?.subtitle || "Today's total drive"}
+                    description={metrics.distance?.subtitle || "Today's route drive"}
                     value={metrics.distance?.value ?? '0 km'}
                     icon={Compass}
                     colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600"
                 />
                 <MetricCard
                     title="Performance"
-                    description={metrics.driverRating?.subtitle || '52 reviews'}
-                    value={metrics.driverRating?.value ?? '0.00'}
+                    description={metrics.driverRating?.subtitle || 'Top Rated Driver'}
+                    value={metrics.driverRating?.value ?? '5.00'}
                     icon={Star}
                     colorClass="bg-amber-50 dark:bg-amber-950/40 text-amber-600"
                 />

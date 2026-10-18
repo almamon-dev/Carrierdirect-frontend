@@ -73,3 +73,19 @@ export interface SavedCardItem {
   brand: "MC" | "VISA" | "AMEX" | string;
   isDefault: boolean;
 }
+
+export interface InvoiceItem {
+  id: string;
+  date: string;
+  details: string;
+  amount: string;
+  status: string;
+  raw_status?: string;
+  card_brand?: string;
+  card_last4?: string;
+  downloadText: string;
+  rawInvoice?: any;
+}
+
+export type SavedCard = SavedCardItem;
+

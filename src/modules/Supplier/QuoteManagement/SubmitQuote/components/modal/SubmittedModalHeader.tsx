@@ -1,5 +1,5 @@
-import React from 'react';
 import { BadgeCheck, CheckCircle2 } from 'lucide-react';
+import React from 'react';
 import { QuoteRequest } from '../../../data/quoteRequestsData';
 
 interface SubmittedModalHeaderProps {
@@ -25,15 +25,14 @@ export const SubmittedModalHeader: React.FC<SubmittedModalHeaderProps> = ({
             <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                     <h3 className="text-[13px] font-semibold text-slate-800 dark:text-slate-100 truncate">{customerName}</h3>
-                    <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 px-1.5 py-0.2 rounded-[2px] text-[10px] font-medium shrink-0">
+                    <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300 border border-slate-200/80 px-1.5 py-0.2 text-[10px] font-medium shrink-0">
                         <BadgeCheck size={11} className="text-blue-600 dark:text-blue-400" />
-                        Verified Shipper
                     </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-0.2 text-[11px] text-slate-500 dark:text-slate-400">
-                    <span className="font-medium text-slate-600 dark:text-slate-300">{requestDetails.id || `REQ-${cleanId || '0001'}`}</span>
+                    <span className="font-medium text-slate-600 dark:text-slate-300">{requestDetails.id || `REQ-${cleanId || ''}`}</span>
                     <span>•</span>
-                    <span className="font-medium text-amber-600">★ {requestDetails.customerRating || 4.8}</span>
+                    <span className="font-medium text-amber-600">★ {requestDetails.customerRating !== undefined && requestDetails.customerRating !== null && Number(requestDetails.customerRating) > 0 ? Number(requestDetails.customerRating).toFixed(1) : 0.0}</span>
                     {requestDetails.customerOrdersCount ? (
                         <>
                             <span>•</span>

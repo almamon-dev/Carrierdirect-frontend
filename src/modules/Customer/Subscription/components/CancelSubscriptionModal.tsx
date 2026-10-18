@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import Modal from "@/components/modals/modal";
 import Button from "@/components/ui/button";
 
@@ -67,17 +67,11 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
             variant="danger"
             size="sm"
             onClick={handleConfirm}
+            isLoading={isSubmitting}
             disabled={isSubmitting}
             className="h-8 px-3 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 size={13} className="animate-spin mr-1.5" />
-                <span>Cancelling...</span>
-              </>
-            ) : (
-              "Yes, Cancel Subscription"
-            )}
+            Yes, Cancel Subscription
           </Button>
         </div>
       </div>

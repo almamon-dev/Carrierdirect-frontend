@@ -1,5 +1,5 @@
-import React from 'react';
 import { Check, Clock, MapPin } from 'lucide-react';
+import React from 'react';
 import { ShipmentItem, ShipmentStatus } from '../../../types';
 
 interface Props {
@@ -14,6 +14,7 @@ export const DriverShipmentTimelineSection: React.FC<Props> = ({ shipment }) => 
         in_transit: 3,
         at_delivery: 4,
         delivered: 5,
+        completed: 5,
         cancelled: 0,
     };
 
@@ -74,7 +75,7 @@ export const DriverShipmentTimelineSection: React.FC<Props> = ({ shipment }) => 
     }
 
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs flex flex-col font-sans overflow-hidden">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs flex flex-col font-sans overflow-hidden">
             {/* Header */}
             <div className="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-[#15191e]/50">
                 <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100">
@@ -98,13 +99,12 @@ export const DriverShipmentTimelineSection: React.FC<Props> = ({ shipment }) => 
                                 {/* Dot Indicator */}
                                 <div className="relative z-10 flex flex-col items-center">
                                     <div
-                                        className={`w-5 h-5 min-w-[20px] min-h-[20px] rounded-full flex items-center justify-center font-bold text-[10px] transition-all ${
-                                            item.completed && !item.active
+                                        className={`w-5 h-5 min-w-[20px] min-h-[20px] rounded-full flex items-center justify-center font-bold text-[10px] transition-all ${item.completed && !item.active
                                                 ? 'bg-emerald-500 text-white shadow-2xs'
                                                 : item.active
-                                                ? 'bg-[#FF4A1F] text-white ring-2 ring-orange-200 dark:ring-orange-950/80 shadow-2xs scale-105'
-                                                : 'bg-white dark:bg-slate-900 border-[1.5px] border-slate-300 dark:border-slate-700 text-slate-400'
-                                        }`}
+                                                    ? 'bg-[#FF4A1F] text-white ring-2 ring-orange-200 dark:ring-orange-950/80 shadow-2xs scale-105'
+                                                    : 'bg-white dark:bg-slate-900 border-[1.5px] border-slate-300 dark:border-slate-700 text-slate-400'
+                                            }`}
                                     >
                                         {item.completed && !item.active ? (
                                             <Check size={11} strokeWidth={3} className="text-white" />
@@ -116,13 +116,12 @@ export const DriverShipmentTimelineSection: React.FC<Props> = ({ shipment }) => 
                                     {/* Line connecting to next */}
                                     {index !== timelineItems.length - 1 && (
                                         <div
-                                            className={`absolute top-5 w-[2px] h-[calc(100%+12px)] z-0 ${
-                                                item.completed && timelineItems[index + 1]?.completed
+                                            className={`absolute top-5 w-[2px] h-[calc(100%+12px)] z-0 ${item.completed && timelineItems[index + 1]?.completed
                                                     ? 'bg-emerald-500'
                                                     : item.completed && timelineItems[index + 1]?.active
-                                                    ? 'bg-orange-400'
-                                                    : 'bg-slate-200 dark:bg-slate-700'
-                                            }`}
+                                                        ? 'bg-orange-400'
+                                                        : 'bg-slate-200 dark:bg-slate-700'
+                                                }`}
                                         />
                                     )}
                                 </div>
@@ -131,22 +130,20 @@ export const DriverShipmentTimelineSection: React.FC<Props> = ({ shipment }) => 
                                 <div className="flex-1 pb-0.5">
                                     <div className="flex items-start justify-between gap-1">
                                         <h4
-                                            className={`text-[11.5px] font-bold ${
-                                                item.active
+                                            className={`text-[11.5px] font-bold ${item.active
                                                     ? 'text-[#FF4A1F]'
                                                     : item.completed
-                                                    ? 'text-slate-900 dark:text-slate-100'
-                                                    : 'text-slate-400 dark:text-slate-500'
-                                            }`}
+                                                        ? 'text-slate-900 dark:text-slate-100'
+                                                        : 'text-slate-400 dark:text-slate-500'
+                                                }`}
                                         >
                                             {item.title}
                                         </h4>
                                         <span
-                                            className={`text-[10px] font-medium shrink-0 ${
-                                                item.active || item.completed
+                                            className={`text-[10px] font-medium shrink-0 ${item.active || item.completed
                                                     ? 'text-slate-500 dark:text-slate-400'
                                                     : 'text-slate-300 dark:text-slate-600'
-                                            }`}
+                                                }`}
                                         >
                                             {item.time}
                                         </span>

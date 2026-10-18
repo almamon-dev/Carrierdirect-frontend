@@ -10,7 +10,7 @@ interface Props {
 export const CargoSpecsCard: React.FC<Props> = ({ cargo, route }) => {
     return (
         <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200/90 dark:border-slate-800 p-3.5 sm:p-4 shadow-2xs space-y-3 font-sans">
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <h2 className="text-[11px] font-bold tracking-wider text-slate-500 dark:text-slate-400">
                 Cargo Specifications & Equipment Details
             </h2>
 

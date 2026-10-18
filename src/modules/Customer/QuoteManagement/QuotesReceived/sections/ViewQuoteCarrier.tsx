@@ -11,7 +11,7 @@ interface ViewQuoteCarrierProps {
 export const ViewQuoteCarrier: React.FC<ViewQuoteCarrierProps> = ({ quote }) => {
     const supplier = quote.supplier || {};
     const carrierName = quote.supplier_name || supplier.company_name || supplier.name || 'Verified Carrier';
-    const rating = quote.rating || supplier.rating || '4.8';
+    const rating = quote.rating !== undefined && quote.rating !== null ? Number(quote.rating).toFixed(1) : (supplier.rating !== undefined && supplier.rating !== null ? Number(supplier.rating).toFixed(1) : '5.0');
     const completedText = quote.completed_orders || '150+ completed loads';
     const isVerified = supplier.is_verified ?? true;
 

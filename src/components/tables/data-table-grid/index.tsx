@@ -72,7 +72,7 @@ export function DataTableGrid<T extends Record<string, any>>({
     if (data.length === 0) {
         return (
             <div
-    className="bg-white dark:bg-[#12161c] rounded-[3px] border border-slate-200 dark:border-slate-800 border border-slate-200 dark:border-slate-800-[#ebebeb] dark:border border-slate-200 dark:border-slate-800-slate-800 p-4 sm:p-8 text-center my-3 sm:my-4">
+                className="bg-white dark:bg-[#12161c] rounded-[3px] border border-slate-200 dark:border-slate-800 p-4 sm:p-8 text-center my-3 sm:my-4">
                 {emptyState ?? <EmptyState />}
             </div>
         );
@@ -87,7 +87,7 @@ export function DataTableGrid<T extends Record<string, any>>({
         <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${compact ? 'gap-3 md:gap-3.5 pt-3' : 'gap-4 md:gap-4.5 pt-4'}`}>
             {data.map((item) => {
                 const id = keyExtractor(item);
-                const isSelected = selectedIds.includes(id);
+                const isSelected = selectedIds.some((sId) => String(sId) === String(id));
 
                 if (renderCard) {
                     return (

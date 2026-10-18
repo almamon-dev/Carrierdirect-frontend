@@ -32,11 +32,13 @@ export const TableFilterContent: React.FC<Props> = ({
                     </label>
                     <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} showSearch={false}>
                         <option value="all">All Statuses</option>
+                        <option value="new">New (Assigned / In Progress)</option>
+                        <option value="awaiting_review">Awaiting Review</option>
+                        <option value="completed">Completed</option>
                         <option value="in_transit">In Transit</option>
                         <option value="at_pickup">At Pickup</option>
                         <option value="at_delivery">At Delivery</option>
-                        <option value="assigned">Dispatched / Assigned</option>
-                        <option value="delivered">Delivered</option>
+                        <option value="assigned">Assigned</option>
                     </Select>
                 </div>
 

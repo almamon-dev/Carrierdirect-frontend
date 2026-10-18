@@ -11,7 +11,7 @@ import { WonFilterTab, WonQuoteItem } from "../types";
 import { resolveQuoteDistance } from "@/utils/geoDistance";
 
 export function useSupplierWonQuotes() {
-    const [activeTab, setActiveTab] = useState<WonFilterTab>("All");
+    const [activeTab, setActiveTab] = useState<WonFilterTab>("Confirmed");
     const [quotes, setQuotes] = useState<WonQuoteItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -35,6 +35,7 @@ export function useSupplierWonQuotes() {
                 const mapped: WonQuoteItem[] = raw.map((q: any) => {
                     const reqObj = q.quote_request || {};
                     const reqId = q.quote_request_id || reqObj.id || q.id;
+                    const quoteId = q.quote_id || (q.id ? `QT-${String(q.id).padStart(4, '0')}` : 'QT-0000');
                     const pickupFormatted = resolveAddress(reqObj.pickup_address ? reqObj : q, 'pickup');
                     const deliveryFormatted = resolveAddress(reqObj.delivery_address ? reqObj : q, 'delivery');
 
@@ -42,24 +43,42 @@ export function useSupplierWonQuotes() {
                         ? (String(q.amount).includes('€') ? String(q.amount) : `€${Number(q.amount).toLocaleString()}`)
                         : (reqObj.budget ? String(reqObj.budget) : "€0");
 
+                    const ost = String(q.order_status || q.order?.status || q.status || '').toLowerCase();
+                    let canonicalStatus = 'Confirmed';
+                    if (ost === 'completed') canonicalStatus = 'Completed';
+                    else if (ost.includes('pod') || q.order?.pod_status === 'pending') canonicalStatus = 'POD Pending';
+                    else if (ost === 'delivered') canonicalStatus = 'Delivered';
+                    else if (ost === 'in_transit' || ost === 'picked_up') canonicalStatus = 'In Transit';
+                    else if (ost === 'driver_assigned' || q.order?.driver_id || q.driver_id) canonicalStatus = 'Driver Assigned';
+                    else canonicalStatus = 'Confirmed';
+
                     return {
                         id: reqId ? (String(reqId).startsWith("REQ-") ? reqId : `REQ-${reqId}`) : "REQ-000",
                         rawId: reqId,
+                        quoteId: quoteId,
+                        quoteRawId: q.id,
+                        orderId: q.order?.id || q.order_id,
+                        driverId: q.order?.driver_id || q.driver_id,
+                        driverName: q.order?.driver?.name || q.driver?.name,
+                        podUrl: q.order?.pod_url || q.pod_url,
+                        podStatus: q.order?.pod_status || q.pod_status,
+                        deliveryStatus: ost,
+                        isPaid: Boolean(q.is_paid || q.order?.is_paid),
                         slug: String(reqObj.slug || q.slug || reqId),
                         requestDate: formatDisplayDate(q.requested_date || reqObj.requested_date || q.created_at || reqObj.created_at),
                         pickupDate: reqObj.pickup_date || q.pickup_date,
                         pickupDateRaw: reqObj.pickup_date_raw || q.pickup_date_raw,
                         deliveryDate: reqObj.delivery_date || q.delivery_date,
                         deliveryDateRaw: reqObj.delivery_date_raw || q.delivery_date_raw,
-                        customer: reqObj.customer?.name || reqObj.client_name || q.customer?.name || "Verified Shipper",
+                        customer: reqObj.customer?.name || reqObj.client_name || q.customer?.name || '-',
                         customerAvatar: reqObj.customer?.profile_picture || reqObj.customer?.avatar || q.customer?.avatar || "",
-                        customerRating: reqObj.customer?.rating || q.customer?.rating || 4.9,
+                        customerRating: reqObj.customer?.rating ?? q.customer?.rating ?? 5.0,
                         pickup: pickupFormatted || "—",
                         delivery: deliveryFormatted || "—",
                         distance: resolveQuoteDistance(reqObj || q).distanceStr,
                         budget: formattedAmount,
                         priority: reqObj.priority || q.priority || "Normal",
-                        status: q.order_status === "in_transit" ? "In Transit" : (q.order_status === "delivered" ? "Delivered" : "Won"),
+                        status: canonicalStatus,
                         vehicleType: reqObj.vehicle_type || q.vehicle_type || "Covered Van",
                     };
                 });

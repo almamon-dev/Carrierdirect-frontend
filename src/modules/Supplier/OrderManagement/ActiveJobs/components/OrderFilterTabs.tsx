@@ -13,44 +13,43 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
     onSelectTab,
 }) => {
     const counts = useMemo(() => {
+        let all = 0;
+        let newJobs = 0;
+        let driverAssigned = 0;
         let inTransit = 0;
-        let podReview = 0;
-        let completed = 0;
-        let cancelled = 0;
 
         orders.forEach((o) => {
             const rawStatus = String(o.status_raw || o.status || '').toLowerCase().trim();
-            const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted';
-            const isPodReview = rawStatus.includes('review') || rawStatus.includes('pod_uploaded') || rawStatus === 'delivered';
-            const isCancelled = rawStatus.includes('cancel');
-            const isInTransit = rawStatus === 'in_transit' || rawStatus === 'on_the_way' || rawStatus === 'picked_up' || rawStatus === 'in_progress' || rawStatus === 'driver_assigned';
+            const ps = String(o.pod_status || (o as any).tracking?.pod_status || '').toLowerCase().trim();
+            const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'pod_accepted' || ps === 'confirmed' || ps === 'approved';
+            if (isCompleted) return;
 
-            if (isCancelled) {
-                cancelled++;
-            } else if (isCompleted) {
-                completed++;
-            } else if (isPodReview) {
-                podReview++;
-            } else if (isInTransit) {
+            all++;
+            const isInTransit = rawStatus === 'in_transit' || rawStatus === 'picked_up' || rawStatus === 'on_the_way' || rawStatus === 'in_progress' || rawStatus === 'arrived' || rawStatus === 'delivered' || rawStatus === 'pod_uploaded';
+            const isDriverAssigned = rawStatus === 'driver_assigned' || rawStatus === 'assigned' || Boolean(o.driver);
+
+            if (isInTransit) {
                 inTransit++;
+            } else if (isDriverAssigned) {
+                driverAssigned++;
+            } else {
+                newJobs++;
             }
         });
 
         return {
-            all: orders.length,
+            all,
+            new_jobs: newJobs,
+            driver_assigned: driverAssigned,
             in_transit: inTransit,
-            pod_review: podReview,
-            completed: completed,
-            cancelled: cancelled,
         };
     }, [orders]);
 
     const tabs: { id: OrderFilterTab; label: string; count: number }[] = [
-        { id: 'all', label: 'All Jobs', count: counts.all },
+        { id: 'all', label: 'All Active', count: counts.all },
+        { id: 'new', label: 'New Jobs', count: counts.new_jobs },
+        { id: 'driver_assigned', label: 'Assigned', count: counts.driver_assigned },
         { id: 'in_transit', label: 'In Transit', count: counts.in_transit },
-        { id: 'pod_review', label: 'POD Review', count: counts.pod_review },
-        { id: 'completed', label: 'Completed', count: counts.completed },
-        { id: 'cancelled', label: 'Cancelled', count: counts.cancelled },
     ];
 
     return (
@@ -62,7 +61,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => onSelectTab(tab.id)}
-                        className={`flex items-center gap-2 pb-3 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${
+                        className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 rounded-[3px] ${
                             isActive
                                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -72,7 +71,7 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
                             {tab.label}
                         </span>
                         <span
-                            className={`text-[12px] font-medium px-2 py-0.5 rounded-full transition-colors ${
+                            className={`text-[12px] font-medium px-2 py-0.5 rounded-[3px] transition-colors ${
                                 isActive
                                     ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'

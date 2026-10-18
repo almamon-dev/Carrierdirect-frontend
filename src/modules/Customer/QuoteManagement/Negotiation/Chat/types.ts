@@ -101,3 +101,5 @@ export interface LinkPreviewData {
     description: string;
     image?: string;
 }
+
+export type CustomerChatFilterTab = "all" | "new" | "existing" | "unread";

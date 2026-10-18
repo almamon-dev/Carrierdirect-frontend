@@ -56,7 +56,7 @@ export const getQuotesReceivedColumns = (navigate: (path: string) => void): Colu
         label: 'Pickup Address',
         className: 'w-[16%] min-w-[120px] max-w-[180px]',
         render: (row) => {
-            const pickup = row.pickup || row.pickup_address || row.quote_request?.pickup_city || row.origin_city || (row.origin ? row.origin.split(',')[0]?.trim() : '') || 'Pickup Location';
+            const pickup = row.pickup || row.pickup_address || row.quote_request?.pickup_city || row.origin_city || (row.origin ? row.origin.split(',')[0]?.trim() : '') || '-';
             return <QuotesReceivedAddressCell address={pickup} />;
         },
         skeleton: () => (

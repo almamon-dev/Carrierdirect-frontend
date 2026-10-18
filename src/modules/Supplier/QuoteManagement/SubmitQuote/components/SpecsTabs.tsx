@@ -1,9 +1,9 @@
+import { Box, FileText, Settings, Truck } from 'lucide-react';
 import React, { useState } from 'react';
-import { Truck, Settings, FileText, Box } from 'lucide-react';
 import { QuoteRequest } from '../../data/quoteRequestsData';
+import { CargoDimensionsTable } from './CargoDimensionsTable';
 import { HandlingServicesTab } from './HandlingServicesTab';
 import { InstructionsTab } from './InstructionsTab';
-import { CargoDimensionsTable } from './CargoDimensionsTable';
 
 interface SpecsTabsProps {
     requestDetails: QuoteRequest;
@@ -16,14 +16,13 @@ export const SpecsTabs: React.FC<SpecsTabsProps> = ({ requestDetails }) => {
 
     return (
         <div
-    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs overflow-hidden font-sans">
+            className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs overflow-hidden font-sans">
             <div className="border-b border-slate-200 dark:border-slate-800 flex items-center px-1 sm:px-4">
                 <button
                     type="button"
                     onClick={() => setActiveTab('specs')}
-                    className={`flex-1 sm:flex-initial py-2 sm:py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap -mb-px flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer px-2 sm:px-3 ${
-                        activeTab === 'specs' ? 'border-[#ff4a1f] text-[#ff4a1f] font-semibold' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
+                    className={`flex-1 sm:flex-initial py-2 sm:py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap -mb-px flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer px-2 sm:px-3 ${activeTab === 'specs' ? 'border-[#ff4a1f] text-[#ff4a1f] font-semibold' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                        }`}
                 >
                     <Truck size={13} className="shrink-0" />
                     <span>
@@ -34,9 +33,8 @@ export const SpecsTabs: React.FC<SpecsTabsProps> = ({ requestDetails }) => {
                 <button
                     type="button"
                     onClick={() => setActiveTab('services')}
-                    className={`flex-1 sm:flex-initial py-2 sm:py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap -mb-px flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer px-2 sm:px-3 ${
-                        activeTab === 'services' ? 'border-[#ff4a1f] text-[#ff4a1f] font-semibold' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
+                    className={`flex-1 sm:flex-initial py-2 sm:py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap -mb-px flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer px-2 sm:px-3 ${activeTab === 'services' ? 'border-[#ff4a1f] text-[#ff4a1f] font-semibold' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                        }`}
                 >
                     <Settings size={13} className="shrink-0" />
                     <span>
@@ -47,9 +45,8 @@ export const SpecsTabs: React.FC<SpecsTabsProps> = ({ requestDetails }) => {
                 <button
                     type="button"
                     onClick={() => setActiveTab('notes')}
-                    className={`flex-1 sm:flex-initial py-2 sm:py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap -mb-px flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer px-2 sm:px-3 ${
-                        activeTab === 'notes' ? 'border-[#ff4a1f] text-[#ff4a1f] font-semibold' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
+                    className={`flex-1 sm:flex-initial py-2 sm:py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap -mb-px flex items-center justify-center sm:justify-start gap-1 sm:gap-1.5 cursor-pointer px-2 sm:px-3 ${activeTab === 'notes' ? 'border-[#ff4a1f] text-[#ff4a1f] font-semibold' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                        }`}
                 >
                     <FileText size={13} className="shrink-0" />
                     <span>
@@ -86,9 +83,9 @@ export const SpecsTabs: React.FC<SpecsTabsProps> = ({ requestDetails }) => {
                                 <span className="font-medium text-slate-800 dark:text-slate-200 text-[11.5px] sm:text-xs">{requestDetails.loadType && requestDetails.loadType !== '—' ? requestDetails.loadType : '—'}</span>
                             </div>
                             <div className="grid grid-cols-[100px_10px_1fr] sm:grid-cols-[115px_12px_1fr] items-baseline pt-1.5">
-                                <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Items Summary</span>
+                                <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Pallets Count</span>
                                 <span className="text-slate-400 dark:text-slate-500 text-center select-none">:</span>
-                                <span className="font-medium text-slate-800 dark:text-slate-200 text-[11.5px] sm:text-xs">{requestDetails.itemsCount && requestDetails.itemsCount !== '—' ? requestDetails.itemsCount : '—'}</span>
+                                <span className="font-medium text-slate-800 dark:text-slate-200 text-[11.5px] sm:text-xs">{requestDetails.palletsCount && requestDetails.palletsCount !== '—' ? requestDetails.palletsCount : (requestDetails.itemsCount && requestDetails.itemsCount !== '—' ? requestDetails.itemsCount : '—')}</span>
                             </div>
                             <div className="grid grid-cols-[100px_10px_1fr] sm:grid-cols-[115px_12px_1fr] items-baseline pt-1.5">
                                 <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Total Volume</span>

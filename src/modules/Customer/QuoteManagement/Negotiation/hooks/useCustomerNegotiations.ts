@@ -37,7 +37,7 @@ export const useCustomerNegotiations = () => {
                     const idFormatted = n.quote_id_formatted || (n.id ? `QT-${String(n.id).padStart(4, '0')}` : `QT-0000`);
                     const reqId = n.request_id || (n.quote_request_id ? `REQ-${String(n.quote_request_id).padStart(4, '0')}` : 'REQ-0000');
                     const reqTitle = n.request_title || n.quote_request?.request_title || reqId;
-                    const supplierName = n.sender_name || n.supplier_name || n.supplier?.name || n.company_name || 'Carrier Partner';
+                    const supplierName = n.sender_name || n.supplier_name || n.supplier?.name || n.company_name || '-';
                     const avatarUrl = n.profile_picture || n.supplier?.profile_picture || '';
 
                     const extraCharges = Array.isArray(n.extra_charges) ? n.extra_charges.map((c: any) => ({
@@ -48,15 +48,18 @@ export const useCustomerNegotiations = () => {
                         amount: Number(c.amount || 0)
                     })).filter((c: any) => c.amount > 0) : [];
                     const totalExtras = extraCharges.reduce((sum: number, c: any) => sum + (Number(c.amount) || 0), 0);
-                    const origPrice = Number(n.amount_raw ?? n.amount ?? (n.base_amount_raw ? Number(n.base_amount_raw) + totalExtras : 0));
-                    const currentPrice = Number(n.revised_amount_raw ?? n.revised_amount ?? origPrice);
+                    const parsedAmt = typeof n.amount === 'string' ? parseFloat(n.amount.replace(/[^0-9.]/g, '')) : Number(n.amount);
+                    const origPrice = Number(n.amount_raw ?? (!isNaN(parsedAmt) && parsedAmt > 0 ? parsedAmt : (n.base_amount_raw ? Number(n.base_amount_raw) + totalExtras : 0)));
+                    const hasPendingRevision = n.revision_status === 'pending' || Boolean(n.revisionStatus === 'pending');
+                    const rawRev = hasPendingRevision ? (n.revised_amount_raw ?? (n.revised_amount ? parseFloat(String(n.revised_amount).replace(/[^0-9.]/g, '')) : null)) : null;
+                    const currentPrice = (rawRev !== null && !isNaN(Number(rawRev)) && Number(rawRev) > 0) ? Number(rawRev) : origPrice;
                     const baseFreightAmount = Number(
                         n.base_amount_raw ??
                         (n.base_amount ? parseFloat(String(n.base_amount).replace(/[^0-9.]/g, "")) : (origPrice > totalExtras && totalExtras > 0 ? origPrice - totalExtras : origPrice))
                     );
 
-                    const pickupLoc = n.origin || n.pickup_address || n.pickup || 'Pickup Location';
-                    const deliveryLoc = n.destination || n.delivery_address || n.delivery || 'Delivery Destination';
+                    const pickupLoc = n.origin || n.pickup_address || n.pickup || '-';
+                    const deliveryLoc = n.destination || n.delivery_address || n.delivery || '-';
                     const distStr = resolveQuoteDistance({ ...n, ...(n.quote_request || {}), ...(n.quoteRequest || {}), origin: pickupLoc, destination: deliveryLoc }).distanceStr;
                     const dateFormatted = formatDisplayDate(n.created_at || n.request_date || n.date);
 
@@ -67,28 +70,47 @@ export const useCustomerNegotiations = () => {
                     const expiryField = n.valid_until || n.expires_at || n.expiry_date || n.validity_date || n.quote_request?.expires_at;
                     const isDateExpired = expiryField ? (!isNaN(new Date(expiryField).getTime()) && new Date(expiryField).getTime() < Date.now()) : false;
 
-                    const isBooked = Boolean(
-                        statusRawLower === 'booked' ||
-                        statusRawLower === 'confirmed' ||
-                        statusRawLower === 'in_progress' ||
+                    const isCompleted = Boolean(
                         statusRawLower === 'completed' ||
-                        String(statusLabel).toLowerCase().includes('book') ||
-                        n.is_paid ||
-                        n.has_order ||
-                        n.order_id
+                        String(n.status || '').toLowerCase() === 'completed' ||
+                        n.order_status === 'completed' ||
+                        n.is_completed === true ||
+                        (n.order as any)?.status === 'completed' ||
+                        n.pod_status === 'confirmed' ||
+                        (n.order as any)?.pod_status === 'confirmed'
                     );
 
-                    if (isBooked) {
+                    const orderStatusStr = String(n.order_status || (n.order as any)?.status || '').toLowerCase();
+                    const isOrderActive = orderStatusStr && ['booked', 'confirmed', 'in_progress', 'completed', 'delivered', 'pod_accepted'].includes(orderStatusStr) && !['cancelled', 'rejected'].includes(orderStatusStr);
+
+                    const isBooked = !isCompleted && Boolean(
+                        statusRawLower === 'booked' ||
+                        statusRawLower === 'confirmed' ||
+                        (statusRawLower === 'accepted' && (n.is_paid || isOrderActive))
+                    );
+
+                    if (isCompleted) {
+                        statusLabel = 'Completed';
+                    } else if (isBooked) {
                         statusLabel = 'Booked';
                     } else if (statusRawLower === 'accepted' || String(statusLabel).toLowerCase().includes('accept')) {
                         statusLabel = 'Accepted';
                     } else if (statusRawLower === 'closed' || statusRawLower === 'rejected' || statusRawLower === 'expired' || statusRawLower === 'declined' || statusRawLower === 'cancelled' || isDateExpired) {
                         statusLabel = 'Closed';
-                    } else if (n.revision_status === 'pending' || statusRawLower.includes('counter') || String(statusLabel).toLowerCase().includes('counter')) {
-                        statusLabel = 'Counter Offers';
+                    } else if (hasPendingRevision || (statusRawLower.includes('counter') && !statusRawLower.includes('negotiat'))) {
+                        statusLabel = 'Counter Offer';
+                    } else if (statusRawLower === 'negotiating' || statusRawLower === 'negotiation' || n.is_negotiating) {
+                        statusLabel = 'Negotiating';
                     } else {
                         statusLabel = 'Open';
                     }
+
+                    const isMyOffer = Boolean(n.is_my_offer ?? (n.current_offer_sender_id && n.current_offer_sender_id === (n.customer_id || n.raw?.quote_request?.user_id)));
+                    const canAccept = Boolean(n.can_accept ?? (!isMyOffer && (statusRawLower === 'negotiating' || hasPendingRevision || statusRawLower === 'pending')));
+                    const canCounter = Boolean(n.can_counter ?? (!isMyOffer && (statusRawLower === 'negotiating' || hasPendingRevision || statusRawLower === 'pending')));
+                    const canDecline = Boolean(n.can_decline ?? (!isMyOffer && (statusRawLower === 'negotiating' || hasPendingRevision || statusRawLower === 'pending')));
+                    const canWithdraw = Boolean(n.can_withdraw ?? (isMyOffer && hasPendingRevision));
+                    const waitingForResponse = Boolean(n.waiting_for_response ?? (isMyOffer && hasPendingRevision));
 
                     return {
                         id: idFormatted,
@@ -116,10 +138,16 @@ export const useCustomerNegotiations = () => {
                         lastUpdated: n.time_ago || 'Recently',
                         requestDate: dateFormatted,
                         status: statusLabel,
-                        statusRaw: n.status_raw || 'pending',
+                        statusRaw: isCompleted ? 'completed' : (n.status_raw || 'pending'),
+                        isCompleted: isCompleted,
+                        orderStatus: n.order_status || (n.order as any)?.status || '',
+                        order_status: n.order_status || (n.order as any)?.status || '',
+                        podStatus: n.pod_status || (n.order as any)?.pod_status || '',
+                        pod_status: n.pod_status || (n.order as any)?.pod_status || '',
+                        order: n.order || null,
                         revisionStatus: n.revision_status || 'none',
                         unreadCount: typeof n.unread_count === 'number' ? Number(n.unread_count) : (n.is_read === false ? 1 : 0),
-                        palletType: n.pallet_type || 'Standard Euro Pallet',
+                        palletType: n.pallet_type || '-',
                         vehicleType: n.vehicle_type || 'Curtainsider (13.6m)',
                         pickupDate: n.pickup_date,
                         deliveryDate: n.delivery_date,
@@ -129,10 +157,16 @@ export const useCustomerNegotiations = () => {
                         lastSeenHuman: n.last_seen_human || (n.is_online ? "Active now" : "Offline"),
                         lastSeenAt: n.last_seen_at,
                         baseFreight: baseFreightAmount,
-                        isPaid: isBooked || Boolean(n.is_paid),
-                        hasOrder: isBooked || Boolean(n.has_order || n.order_id),
+                        isPaid: Boolean(n.is_paid),
+                        hasOrder: Boolean(n.has_order || n.order_id || n.order),
                         orderId: n.order_id,
                         orderNumber: n.order_number,
+                        canAccept,
+                        canCounter,
+                        canDecline,
+                        canWithdraw,
+                        isMyOffer,
+                        waitingForResponse,
                         raw: n,
                     };
                 });

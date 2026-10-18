@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
-import { MoreVertical, Eye, Mail, Ban, CheckCircle, Trash2, Copy, Check, Send } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { TeamMember } from '../types/team.types';
+import { TeamMemberActionsMenu } from './TeamMemberActionsMenu';
 
 interface TeamMemberRowActionsProps {
     row: TeamMember;
@@ -16,19 +15,13 @@ interface TeamMemberRowActionsProps {
 
 export const TeamMemberRowActions: React.FC<TeamMemberRowActionsProps> = ({
     row,
-    onViewProfile,
     onDelete,
     onBlock,
     onUnblock,
     onResendInvite,
 }) => {
-    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
-    const [copied, setCopied] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-
-    const isBlocked = row.status === 'Blocked' || Boolean(row.isBlocked);
-    const isPending = row.status === 'Pending' || (row.status as string) === 'invited' || row.lastLogin === 'Never';
 
     const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -45,15 +38,6 @@ export const TeamMemberRowActions: React.FC<TeamMemberRowActionsProps> = ({
     };
 
     const handleClose = () => setIsOpen(false);
-
-    const handleCopy = (text: string) => {
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => {
-            setCopied(false);
-            handleClose();
-        }, 1200);
-    };
 
     useEffect(() => {
         if (!isOpen) return;
@@ -87,122 +71,18 @@ export const TeamMemberRowActions: React.FC<TeamMemberRowActionsProps> = ({
                 <MoreVertical size={15} />
             </Button>
 
-            {isOpen && createPortal(
-                <>
-                    {/* Transparent Click-Outside Backdrop */}
-                    <div
-                        className="fixed inset-0 z-[9998] cursor-default bg-transparent"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleClose();
-                        }}
-                    />
-
-                    <div
-    className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left"
-                        style={{ top: dropdownPos.top, left: dropdownPos.left }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* View Profile */}
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                const memberId = row.rawId || row.id;
-                                navigate(`/supplier/team/member/${memberId}`);
-                            }}
-                        >
-                            <Eye size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                            <span>View Profile</span>
-                        </button>
-
-                        {/* Resend Invitation (for Pending members) */}
-                        {isPending && onResendInvite && (
-                            <button
-                                type="button"
-                                className="w-full text-left px-3.5 py-2 text-xs text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                                onClick={() => {
-                                    handleClose();
-                                    onResendInvite(row);
-                                }}
-                            >
-                                <Send size={14} className="text-[#FF4A1F] shrink-0" />
-                                <span>Resend Invitation</span>
-                            </button>
-                        )}
-
-                        {/* Send Email */}
-                        {row.email && (
-                            <a
-                                href={`mailto:${row.email}`}
-                                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                                onClick={handleClose}
-                            >
-                                <Mail size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                                <span>Send Email</span>
-                            </a>
-                        )}
-
-                        {/* Copy ID */}
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => handleCopy(row.id)}
-                        >
-                            {copied ? (
-                                <Check size={14} className="text-emerald-500 shrink-0" />
-                            ) : (
-                                <Copy size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                            )}
-                            <span>{copied ? 'Copied ID!' : 'Copy Employee ID'}</span>
-                        </button>
-
-                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
-
-                        {/* Block / Unblock Member */}
-                        {isBlocked ? (
-                            <button
-                                type="button"
-                                className="w-full text-left px-3.5 py-2 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                                onClick={() => {
-                                    handleClose();
-                                    if (onUnblock) onUnblock(row);
-                                }}
-                            >
-                                <CheckCircle size={14} className="text-emerald-500 shrink-0" />
-                                <span>Unblock Member</span>
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                className="w-full text-left px-3.5 py-2 text-xs text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                                onClick={() => {
-                                    handleClose();
-                                    if (onBlock) onBlock(row);
-                                }}
-                            >
-                                <Ban size={14} className="text-amber-500 shrink-0" />
-                                <span>Block Member</span>
-                            </button>
-                        )}
-
-                        {/* Delete Member */}
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                if (onDelete) onDelete(row);
-                            }}
-                        >
-                            <Trash2 size={14} className="text-red-500 shrink-0" />
-                            <span>Delete Member</span>
-                        </button>
-                    </div>
-                </>,
-                document.body
-            )}
+            <TeamMemberActionsMenu
+                isOpen={isOpen}
+                row={row}
+                dropdownPos={dropdownPos}
+                onClose={handleClose}
+                onDelete={onDelete}
+                onBlock={onBlock}
+                onUnblock={onUnblock}
+                onResendInvite={onResendInvite}
+            />
         </div>
     );
 };
+
+export default TeamMemberRowActions;

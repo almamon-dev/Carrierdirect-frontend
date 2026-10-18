@@ -1,5 +1,5 @@
+import { AlertTriangle, ShieldCheck, Thermometer, Truck } from 'lucide-react';
 import React from 'react';
-import { Truck, AlertTriangle, ShieldCheck, Thermometer } from 'lucide-react';
 import { ShipmentItem } from '../../../types';
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 
 export const DriverShipmentCargoSpecsCard: React.FC<Props> = ({ cargo, route }) => {
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs font-sans overflow-hidden">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs font-sans overflow-hidden">
             {/* Header */}
             <div className="px-4 py-2.5 min-h-[42px] border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-[#15191e]/50">
                 <div className="flex items-center gap-2">

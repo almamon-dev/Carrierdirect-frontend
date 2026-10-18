@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-export type QuotesReceivedFilterTab = 'all' | 'active' | 'counter' | 'accepted' | 'history';
+export type QuotesReceivedFilterTab = 'all' | 'new' | 'negotiation' | 'accepted' | 'rejected' | 'expired';
 
 interface QuotesReceivedFilterTabsProps {
     quotes: any[];
@@ -8,27 +8,43 @@ interface QuotesReceivedFilterTabsProps {
     setActiveFilterTab: (tab: any) => void;
 }
 
+export function isQuoteCompleted(item: any): boolean {
+    if (!item) return false;
+    const s = (item.status_raw || item.statusRaw || item.status || '').toLowerCase().trim();
+    const ost = (item.order_status || item.orderStatus || (item.order as any)?.status || '').toLowerCase().trim();
+    const podStatus = (item.pod_status || item.podStatus || (item.order as any)?.pod_status || '').toLowerCase().trim();
+    return s === 'completed' || ost === 'completed' || podStatus === 'confirmed' || podStatus === 'accepted';
+}
+
 export function isQuoteAccepted(item: any): boolean {
+    if (isQuoteCompleted(item)) return false;
     const s = (item.status_raw || item.statusRaw || item.status || '').toLowerCase().trim();
     const rev = (item.revision_status || item.revisionStatus || '').toLowerCase().trim();
-    return s === 'accepted' || s === 'booked' || s === 'completed' || s === 'won' || s === 'confirmed' || s === 'paid' || rev === 'accepted' || Boolean(item.is_paid || item.isPaid || item.has_order || item.hasOrder);
+    return s === 'accepted' || s === 'booked' || s === 'won' || s === 'confirmed' || s === 'paid' || rev === 'accepted' || Boolean(item.is_paid || item.isPaid || item.has_order || item.hasOrder);
 }
 
-export function isQuoteHistory(item: any): boolean {
+export function isQuoteExpired(item: any): boolean {
+    if (isQuoteCompleted(item)) return false;
+    const s = (item.status_raw || item.statusRaw || item.status || '').toLowerCase().trim();
+    return s === 'expired' || Boolean(item.is_expired || item.isExpired);
+}
+
+export function isQuoteRejected(item: any): boolean {
+    if (isQuoteCompleted(item) || isQuoteExpired(item)) return false;
+    const s = (item.status_raw || item.statusRaw || item.status || '').toLowerCase().trim();
+    return s === 'rejected' || s === 'declined' || s === 'cancelled' || s === 'closed' || s === 'lost';
+}
+
+export function isQuoteNegotiation(item: any): boolean {
+    if (isQuoteCompleted(item) || isQuoteAccepted(item) || isQuoteRejected(item) || isQuoteExpired(item)) return false;
     const s = (item.status_raw || item.statusRaw || item.status || '').toLowerCase().trim();
     const rev = (item.revision_status || item.revisionStatus || '').toLowerCase().trim();
-    return s === 'rejected' || s === 'expired' || s === 'closed' || s === 'lost' || s === 'declined' || s === 'cancelled';
+    const hasNeg = Boolean(item.is_negotiating || item.isNegotiating || item.has_negotiation_messages || item.hasNegotiationMessages);
+    return s.includes('counter') || s.includes('negotiat') || rev === 'pending' || hasNeg || (item.unreadCount !== undefined && item.unreadCount > 0);
 }
 
-export function isQuoteCounter(item: any): boolean {
-    if (isQuoteAccepted(item) || isQuoteHistory(item)) return false;
-    const s = (item.status_raw || item.statusRaw || item.status || '').toLowerCase().trim();
-    const rev = (item.revision_status || item.revisionStatus || '').toLowerCase().trim();
-    return s.includes('counter') || rev === 'pending' || (item.unreadCount !== undefined && item.unreadCount > 0);
-}
-
-export function isQuoteActive(item: any): boolean {
-    if (isQuoteAccepted(item) || isQuoteHistory(item)) return false;
+export function isQuoteNew(item: any): boolean {
+    if (isQuoteCompleted(item) || isQuoteAccepted(item) || isQuoteRejected(item) || isQuoteExpired(item) || isQuoteNegotiation(item)) return false;
     return true;
 }
 
@@ -37,32 +53,39 @@ export const QuotesReceivedFilterTabs: React.FC<QuotesReceivedFilterTabsProps> =
     activeFilterTab,
     setActiveFilterTab,
 }) => {
+    // Exact spec: New | Negotiation | Accepted | Rejected (Completed quotes strictly reside in Quote History)
     const tabs = useMemo(() => {
-        let activeCount = 0;
-        let counterCount = 0;
+        let allCount = 0;
+        let newCount = 0;
+        let negotiationCount = 0;
         let acceptedCount = 0;
-        let historyCount = 0;
+        let rejectedCount = 0;
+        let expiredCount = 0;
 
-        quotes.forEach((n) => {
-            if (isQuoteActive(n)) activeCount++;
-            if (isQuoteCounter(n)) counterCount++;
+        (quotes || []).forEach((n) => {
+            if (isQuoteCompleted(n)) return;
+            allCount++;
             if (isQuoteAccepted(n)) acceptedCount++;
-            if (isQuoteHistory(n)) historyCount++;
+            else if (isQuoteExpired(n)) expiredCount++;
+            else if (isQuoteRejected(n)) rejectedCount++;
+            else if (isQuoteNegotiation(n)) negotiationCount++;
+            else newCount++;
         });
 
         return [
-            { id: 'all' as QuotesReceivedFilterTab, label: 'All', count: quotes.length },
-            { id: 'active' as QuotesReceivedFilterTab, label: 'Active', count: activeCount },
-            { id: 'counter' as QuotesReceivedFilterTab, label: 'Counter Offers', count: counterCount },
+            { id: 'all' as QuotesReceivedFilterTab, label: 'All', count: allCount },
+            { id: 'new' as QuotesReceivedFilterTab, label: 'New', count: newCount },
+            { id: 'negotiation' as QuotesReceivedFilterTab, label: 'Negotiation', count: negotiationCount },
             { id: 'accepted' as QuotesReceivedFilterTab, label: 'Accepted', count: acceptedCount },
-            { id: 'history' as QuotesReceivedFilterTab, label: 'Closed / History', count: historyCount },
+            { id: 'rejected' as QuotesReceivedFilterTab, label: 'Rejected', count: rejectedCount },
+            { id: 'expired' as QuotesReceivedFilterTab, label: 'Expired', count: expiredCount },
         ];
     }, [quotes]);
 
     return (
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar mb-[-1px]">
             {tabs.map((tab) => {
-                const isActive = activeFilterTab === tab.id;
+                const isActive = activeFilterTab.toLowerCase() === tab.id.toLowerCase();
                 return (
                     <button
                         key={tab.id}

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { SupplierOrderItem } from '../../ActiveJobs/types';
 
-export type AssignDriverFilterTab = 'all' | 'pending' | 'assigned' | 'in_transit' | 'completed';
+export type AssignDriverFilterTab = 'pending' | 'assigned';
 
 interface AssignDriverFilterTabsProps {
     orders: SupplierOrderItem[];
@@ -15,23 +15,14 @@ export const AssignDriverFilterTabs: React.FC<AssignDriverFilterTabsProps> = ({
     onSelectTab,
 }) => {
     const tabs = useMemo(() => {
-        let all = orders.length;
         let pending = 0;
         let assigned = 0;
-        let in_transit = 0;
-        let completed = 0;
 
         orders.forEach((o) => {
             const rawStatus = (o.status_raw || o.status || 'confirmed').toLowerCase().trim();
-            const isAssigned = rawStatus === 'driver_assigned' || rawStatus === 'assigned';
-            const isInTransit = rawStatus === 'in_transit' || rawStatus === 'picked_up' || rawStatus === 'in_progress';
-            const isComp = rawStatus === 'completed' || rawStatus === 'delivered' || rawStatus === 'pod accepted';
+            const isAssigned = rawStatus === 'driver_assigned' || rawStatus === 'assigned' || rawStatus === 'in_transit' || rawStatus === 'picked_up' || rawStatus === 'in_progress';
 
-            if (isComp) {
-                completed++;
-            } else if (isInTransit) {
-                in_transit++;
-            } else if (isAssigned) {
+            if (isAssigned) {
                 assigned++;
             } else {
                 pending++;
@@ -39,11 +30,8 @@ export const AssignDriverFilterTabs: React.FC<AssignDriverFilterTabsProps> = ({
         });
 
         return [
-            { id: 'all' as AssignDriverFilterTab, label: 'All', count: all },
-            { id: 'pending' as AssignDriverFilterTab, label: 'Pending', count: pending },
+            { id: 'pending' as AssignDriverFilterTab, label: 'Driver Pending', count: pending },
             { id: 'assigned' as AssignDriverFilterTab, label: 'Assigned', count: assigned },
-            { id: 'in_transit' as AssignDriverFilterTab, label: 'In Transit', count: in_transit },
-            { id: 'completed' as AssignDriverFilterTab, label: 'Completed', count: completed },
         ];
     }, [orders]);
 
@@ -56,7 +44,7 @@ export const AssignDriverFilterTabs: React.FC<AssignDriverFilterTabsProps> = ({
                         key={tab.id}
                         type="button"
                         onClick={() => onSelectTab(tab.id)}
-                        className={`flex items-center gap-2 pb-3 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${
+                        className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 rounded-[3px] ${
                             isActive
                                 ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -66,7 +54,7 @@ export const AssignDriverFilterTabs: React.FC<AssignDriverFilterTabsProps> = ({
                             {tab.label}
                         </span>
                         <span
-                            className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
+                            className={`text-[12px] font-semibold px-2 py-0.5 rounded-[3px] transition-colors ${
                                 isActive
                                     ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'

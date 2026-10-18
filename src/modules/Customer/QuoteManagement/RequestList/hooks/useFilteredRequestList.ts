@@ -21,20 +21,33 @@ export function useFilteredRequestList({
     endDate,
 }: UseFilteredRequestListParams) {
     return useMemo(() => {
-        return requestData.filter((r) => {
+        return (requestData || []).filter((r) => {
             const statusStr = String(r.status || '').toLowerCase();
             const rawStatusStr = String(r.rawStatus || r.raw_status || '').toLowerCase();
+            const isComp = Boolean(r.isCompleted || statusStr === 'completed' || rawStatusStr === 'completed');
 
-            if (activeFilterTab === 'In Progress' || activeFilterTab === 'Active') {
-                if (!(statusStr === 'in progress' || rawStatusStr === 'in_progress' || statusStr === 'active' || rawStatusStr === 'active' || statusStr === 'bidding active')) return false;
-            } else if (activeFilterTab === 'Processing' || activeFilterTab === 'Pending' || activeFilterTab === 'Waiting') {
-                if (!(statusStr === 'processing' || rawStatusStr === 'pending' || statusStr === 'pending' || statusStr === 'draft' || ((r.quotesReceived || r.bidsCount || 0) === 0 && statusStr !== 'completed' && statusStr !== 'accepted'))) return false;
-            } else if (activeFilterTab === 'Completed' || activeFilterTab === 'Accepted') {
-                if (!(statusStr === 'completed' || rawStatusStr === 'completed' || statusStr === 'accepted' || statusStr === 'awarded' || r.hasAcceptedQuote)) return false;
-            } else if (activeFilterTab === 'Cancelled' || activeFilterTab === 'Expired') {
-                if (!(statusStr === 'cancelled' || rawStatusStr === 'cancelled' || statusStr === 'expired' || statusStr === 'rejected' || statusStr === 'closed')) return false;
-            } else if (activeFilterTab === 'Review') {
-                if (!(((r.quotesReceived || r.bidsCount || 0) > 0 || statusStr === 'negotiating') && statusStr !== 'completed' && statusStr !== 'accepted')) return false;
+            // Completed quote requests belong strictly in Quote History
+            if (isComp) return false;
+
+            const quotesCount = Number(r.quotesReceived || r.quotesCount || r.bidsCount || 0);
+            const isExp = Boolean(r.isExpired || statusStr === 'expired' || statusStr === 'cancelled' || statusStr === 'closed');
+            const isWon = Boolean(statusStr === 'won' || statusStr === 'accepted' || statusStr === 'booked' || r.hasAcceptedQuote);
+            const isNeg = Boolean(statusStr === 'negotiation' || statusStr === 'negotiating' || statusStr === 'review' || r.isNegotiating);
+
+            if (activeFilterTab === 'All') {
+                // All non-completed requests
+            } else if (activeFilterTab === 'Draft') {
+                if (statusStr !== 'draft' && rawStatusStr !== 'draft') return false;
+            } else if (activeFilterTab === 'Expired') {
+                if (!isExp) return false;
+            } else if ((activeFilterTab === 'Booked' || (activeFilterTab as string) === 'Won')) {
+                if (!isWon || isExp) return false;
+            } else if (activeFilterTab === 'Negotiation') {
+                if (!isNeg || isExp || isWon) return false;
+            } else if (activeFilterTab === 'Quotes Received') {
+                if (quotesCount === 0 || isExp || isWon || isNeg || statusStr === 'draft') return false;
+            } else if (activeFilterTab === 'Pending') {
+                if (quotesCount > 0 || isExp || isWon || isNeg || statusStr === 'draft') return false;
             }
 
             if (priorityFilter !== 'all' && String(r.priority).toLowerCase() !== priorityFilter.toLowerCase()) {
@@ -43,12 +56,12 @@ export function useFilteredRequestList({
 
             if (statusFilter !== 'all') {
                 const filterNorm = statusFilter.toLowerCase();
-                const matchesStatus = statusStr.includes(filterNorm) || rawStatusStr.includes(filterNorm.replace(/s+/g, '_'));
+                const matchesStatus = statusStr.includes(filterNorm) || rawStatusStr.includes(filterNorm.replace(/\s+/g, '_'));
                 if (!matchesStatus) return false;
             }
 
             if (quotesFilter !== 'all') {
-                const count = r.quotesReceived || r.bidsCount || r.bids_count || 0;
+                const count = quotesCount;
                 if (quotesFilter === 'none' && count > 0) return false;
                 if (quotesFilter === 'has_quotes' && count === 0) return false;
                 if (quotesFilter === 'multiple' && count < 2) return false;

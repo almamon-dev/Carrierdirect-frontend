@@ -1,7 +1,10 @@
 import {
     Activity,
+    ArrowLeftRight,
+    ArrowUpRight,
     Bell,
     Calendar,
+    CheckCircle2,
     Clock,
     CreditCard,
     Euro,
@@ -9,7 +12,9 @@ import {
     FileCheck,
     FileText,
     HandCoins,
+    Landmark,
     LayoutDashboard,
+    Link2,
     Map,
     MessageSquare,
     Package,
@@ -21,7 +26,8 @@ import {
     Truck,
     UserCircle,
     UserCheck,
-    Users
+    Users,
+    Wallet
 } from 'lucide-react';
 
 export interface NavItem {
@@ -67,6 +73,7 @@ export const navigationMap: Record<string, any[]> = {
             permission: 'quotes.view',
             items: [
                 { name: 'Quote Requests', path: '/supplier/quotes/requests', icon: FileText, permission: 'quotes.view' },
+                { name: 'My Quotes', path: '/supplier/quotes/my-quotes', icon: FileText, permission: 'quotes.view' },
                 { name: 'Won Quotes', path: '/supplier/quotes/won', icon: FileText, permission: 'quotes.view' },
                 { name: 'Negotiation', path: '/supplier/quotes/negotiation', icon: FileText, permission: 'quotes.view' },
             ]
@@ -80,6 +87,7 @@ export const navigationMap: Record<string, any[]> = {
                 { name: 'Active Jobs', path: '/supplier/orders/active-jobs', icon: Activity, permission: 'orders.view' },
                 { name: 'Assign Driver', path: '/supplier/orders/assign-driver', icon: UserCheck, permission: 'orders.view' },
                 { name: 'POD', path: '/supplier/orders/pod', icon: FileCheck, permission: 'orders.upload_pod' },
+                { name: 'Completed', path: '/supplier/orders/completed', icon: CheckCircle2, permission: 'orders.view' },
             ]
         },
         {
@@ -98,9 +106,13 @@ export const navigationMap: Record<string, any[]> = {
         {
             category: 'Main Menu',
             group: 'Finance',
-            icon: Euro,
+            icon: Landmark,
             permission: 'finance.view_earnings',
             items: [
+                { name: 'Wallet', path: '/supplier/wallet', icon: Wallet, permission: 'finance.view_earnings' },
+                { name: 'Transactions', path: '/supplier/wallet/transactions', icon: ArrowLeftRight, permission: 'finance.view_earnings' },
+                { name: 'Connected Account', path: '/supplier/wallet/connected-account', icon: Link2, permission: 'finance.view_earnings' },
+                { name: 'Withdraw Funds', path: '/supplier/wallet/withdraw', icon: ArrowUpRight, permission: 'finance.view_earnings' },
                 { name: 'Billing', path: '/supplier/finance/billing', icon: Receipt, permission: 'finance.view_earnings' },
                 { name: 'Invoices', path: '/supplier/finance/invoices', icon: FileText, permission: 'finance.invoices' },
                 { name: 'Payments', path: '/supplier/finance/payments', icon: CreditCard, permission: 'finance.invoices' },
@@ -135,7 +147,7 @@ export const navigationMap: Record<string, any[]> = {
         {
             category: 'Main Menu',
             group: 'Finance',
-            icon: Euro,
+            icon: Landmark,
             items: [
                 { name: 'Billing', path: '/customer/finance/billing', icon: Receipt },
                 { name: 'Invoices', path: '/customer/finance/invoices', icon: FileText },

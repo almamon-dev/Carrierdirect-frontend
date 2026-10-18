@@ -23,7 +23,7 @@ export const MetricCardsGrid: React.FC<MetricCardsGridProps> = ({
     const navigate = useNavigate();
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 md:gap-4 mt-1 sm:mt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 md:gap-3 mt-0.5">
             <MetricCard
                 title="Total Earnings"
                 description="View your recent and lifetime earnings overview."
@@ -52,13 +52,13 @@ export const MetricCardsGrid: React.FC<MetricCardsGridProps> = ({
                 onClick={() => navigate('/supplier/quotes/requests')}
             />
             <MetricCard
-                title="Withdrawable"
-                description="Balance currently available to withdraw."
+                title="Available Balance"
+                description="Available wallet balance ready for withdrawal."
                 value={withdrawableBalance}
                 icon={CreditCard}
                 colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
                 isLoading={isLoading}
-                onClick={() => navigate('/supplier/finance/withdrawal')}
+                onClick={() => navigate('/supplier/wallet')}
             />
             <MetricCard
                 title="Avg. Rating"

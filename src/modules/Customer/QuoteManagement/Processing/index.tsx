@@ -34,7 +34,7 @@ export default function Processing() {
         handleUpgradeRedirect,
     } = useSubscriptionQuota();
 
-    const [activeFilterTab, setActiveFilterTab] = useState<string>('all');
+    const [activeFilterTab, setActiveFilterTab] = useState<string>('in_progress');
     const [statusFilter, setStatusFilter] = useState('all');
     const [vehicleFilter, setVehicleFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
@@ -98,7 +98,7 @@ export default function Processing() {
                 data={filteredRequests}
                 columns={columns}
                 actions={(row: any) => <ProcessingRowActions row={row} />}
-                actionsColumnClassName="w-[48px] min-w-[48px] max-w-[48px] text-right pr-2"
+                actionsColumnClassName="w-[76px] min-w-[70px] text-right pr-3.5 sm:pr-4"
                 headerTabs={<ProcessingFilterTabs requests={requests} activeFilterTab={activeFilterTab} setActiveFilterTab={setActiveFilterTab} />}
                 filterContent={
                     <ProcessingTableFilterContent

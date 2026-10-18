@@ -44,6 +44,11 @@ export function mapQuoteToFormData(q: any, cleanId: string) {
 
     return {
         ...dynamicFlags,
+        status: q.status || q.status_raw || 'Pending',
+        rawStatus: String(q.status || q.status_raw || '').toLowerCase().trim(),
+        quotesCount: Number(q.quotes_count || q.quotesReceived || q.quotesCount || (Array.isArray(q.quotes) ? q.quotes.length : 0)),
+        isEditable: q.is_editable !== undefined ? Boolean(q.is_editable) : (q.can_edit !== undefined ? Boolean(q.can_edit) : undefined),
+        canEdit: q.can_edit !== undefined ? Boolean(q.can_edit) : (q.is_editable !== undefined ? Boolean(q.is_editable) : undefined),
         requestTitle: q.request_title || q.requestTitle || q.title || '-',
         priority: q.priority || 'Normal',
         shipmentType: q.shipment_type || q.shipmentType || 'One Way',

@@ -6,9 +6,13 @@ import Button from '@/components/ui/button';
 interface Props {
     isOpen: boolean;
     onClose: () => void;
+    rating?: number;
+    completedOrders?: number;
 }
 
-export const ReportsModal: React.FC<Props> = ({ isOpen, onClose }) => {
+export const ReportsModal: React.FC<Props> = ({ isOpen, onClose, rating, completedOrders }) => {
+    const displayRating = rating !== undefined && rating > 0 ? `${rating.toFixed(2)} / 5.00 ★` : '5.00 / 5.00 ★';
+    const displayOrders = `${completedOrders ?? 0} Orders`;
     if (!isOpen) return null;
 
     return createPortal(
@@ -60,11 +64,11 @@ export const ReportsModal: React.FC<Props> = ({ isOpen, onClose }) => {
                         </div>
                         <div className="p-2.5 bg-white dark:bg-[#12161c] rounded-[4px] border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
                             <span className="font-semibold text-slate-700 dark:text-slate-300">Completed Orders</span>
-                            <span className="font-bold text-slate-900 dark:text-white">8 Orders</span>
+                            <span className="font-bold text-slate-900 dark:text-white">{displayOrders}</span>
                         </div>
                         <div className="p-2.5 bg-white dark:bg-[#12161c] rounded-[4px] border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
                             <span className="font-semibold text-slate-700 dark:text-slate-300">Customer Satisfaction</span>
-                            <span className="font-bold text-amber-500">4.95 / 5.00 ★</span>
+                            <span className="font-bold text-amber-500">{displayRating}</span>
                         </div>
                     </div>
                 </div>

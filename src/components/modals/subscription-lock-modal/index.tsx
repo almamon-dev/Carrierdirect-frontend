@@ -13,7 +13,7 @@ export interface SubscriptionLockModalProps {
   userType?: 'supplier' | 'customer';
   requiredPlan?: string;
   benefits?: string[];
-  onUpgrade?: () => void;
+  onUpgrade?: (targetPlan?: string) => void;
 }
 
 export default function SubscriptionLockModal({
@@ -37,13 +37,31 @@ export default function SubscriptionLockModal({
 
   if (!isOpen) return null;
 
+  const getPlanParam = (planStr?: string) => {
+    const planLower = (planStr || '').toLowerCase();
+    if (planLower.includes('growth')) return '?plan=growth';
+    if (planLower.includes('starter')) return '?plan=starter';
+    if (planLower.includes('enterprise')) return '?plan=enterprise';
+    if (planLower.includes('professional')) return '?plan=professional';
+    return '';
+  };
+
+  const handleLearnMoreClick = () => {
+    onClose();
+    const overviewPath = userType === 'customer' ? '/customer/subscription' : '/supplier/subscription';
+    navigate(overviewPath);
+  };
+
   const handleUpgradeClick = () => {
     onClose();
     if (onUpgrade) {
-      onUpgrade();
+      onUpgrade(requiredPlan);
     } else {
-      const targetPath = userType === 'customer' ? '/customer/subscription' : '/supplier/subscription';
-      navigate(targetPath);
+      const planParam = getPlanParam(requiredPlan);
+      const checkoutPath = userType === 'customer'
+        ? `/customer/subscription/checkout${planParam}`
+        : `/supplier/subscription/checkout${planParam}`;
+      navigate(checkoutPath);
     }
   };
 
@@ -105,7 +123,7 @@ export default function SubscriptionLockModal({
           <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
             <button
               type="button"
-              onClick={handleUpgradeClick}
+              onClick={handleLearnMoreClick}
               className="text-[11.5px] font-semibold text-slate-600 dark:text-slate-400 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] hover:underline inline-flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span>Learn more & all packages</span>

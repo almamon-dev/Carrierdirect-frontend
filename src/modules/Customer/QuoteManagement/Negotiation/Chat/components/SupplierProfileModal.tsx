@@ -21,7 +21,7 @@ export const SupplierProfileModal: React.FC<SupplierProfileModalProps> = ({
 
     const raw = supplier.raw || {};
     const supplierName = supplier.supplier || supplier.supplierName || raw.supplier_name || 'Verified Carrier';
-    const rating = supplier.supplierRating || supplier.rating || 4.9;
+    const rating = supplier.supplierRating ?? supplier.rating ?? 5.0;
     const completedOrders = supplier.completedOrders || 58;
     const vehicleType = supplier.vehicleType || raw.vehicle_type || 'Curtain Sider (18T)';
     const route = (supplier.pickup && supplier.delivery) ? `${supplier.pickup} → ${supplier.delivery}` : (supplier.routeText || 'Munich Logistics Terminal → Stuttgart Freight Hub');

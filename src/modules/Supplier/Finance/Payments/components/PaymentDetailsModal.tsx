@@ -1,19 +1,13 @@
-import React from "react";
-import { 
-  Receipt, 
-  CheckCircle2, 
-  Clock, 
-  ShieldCheck, 
-  CreditCard, 
-  Building2, 
-  MapPin, 
-  ArrowRight,
-  Download,
-  ExternalLink
-} from "lucide-react";
 import Button from "@/components/ui/button";
-import Badge from "@/components/ui/badge";
 import { formatDisplayDate } from "@/lib/utils";
+import {
+  CheckCircle2,
+  Clock,
+  Download,
+  Receipt,
+  ShieldCheck
+} from "lucide-react";
+import React from "react";
 
 interface PaymentDetailsModalProps {
   payment: any;
@@ -39,7 +33,7 @@ export const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans">
-      <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg max-w-lg w-full overflow-hidden shadow-2xl space-y-4">
+      <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] max-w-lg w-full overflow-hidden shadow-2xl space-y-4">
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
           <div className="flex items-center gap-2">
@@ -65,11 +59,10 @@ export const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
         {/* Content */}
         <div className="px-5 py-1 space-y-3.5 text-xs">
           {/* Status Banner */}
-          <div className={`p-3 rounded-md border flex items-center gap-2.5 ${
-            isCleared ? "bg-emerald-50/70 border-emerald-200 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-800/60 dark:text-emerald-300" :
-            isInEscrow ? "bg-sky-50/70 border-sky-200 text-sky-900 dark:bg-sky-950/30 dark:border-sky-800/60 dark:text-sky-300" :
-            "bg-amber-50/70 border-amber-200 text-amber-900 dark:bg-amber-950/30 dark:border-amber-800/60 dark:text-amber-300"
-          }`}>
+          <div className={`p-3 rounded-md border flex items-center gap-2.5 ${isCleared ? "bg-emerald-50/70 border-emerald-200 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-800/60 dark:text-emerald-300" :
+              isInEscrow ? "bg-sky-50/70 border-sky-200 text-sky-900 dark:bg-sky-950/30 dark:border-sky-800/60 dark:text-sky-300" :
+                "bg-amber-50/70 border-amber-200 text-amber-900 dark:bg-amber-950/30 dark:border-amber-800/60 dark:text-amber-300"
+            }`}>
             {isCleared && <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />}
             {isInEscrow && <ShieldCheck size={16} className="text-sky-600 shrink-0" />}
             {isPayLater && <Clock size={16} className="text-amber-600 shrink-0" />}
@@ -77,8 +70,8 @@ export const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
               <p className="font-bold text-xs">{payment.payment_stage_label || (isCleared ? "Cleared & Available" : isInEscrow ? "Held in Escrow" : "Pending")}</p>
               <p className="text-[10.5px] opacity-80">
                 {isCleared ? "Funds are settled and ready in your balance for immediate withdrawal." :
-                 isInEscrow ? `Funds are secured by CarrierDirect escrow. ${daysLeft > 0 ? `${daysLeft} days remaining before auto-clearing.` : "Pending auto-clearance."}` :
-                 "Customer payment is under Pay Later (30-day net terms) or direct bank transfer."}
+                  isInEscrow ? `Funds are secured by CarrierDirect escrow. ${daysLeft > 0 ? `${daysLeft} days remaining before auto-clearing.` : "Pending auto-clearance."}` :
+                    "Customer payment is under Pay Later (30-day net terms) or direct bank transfer."}
               </p>
             </div>
           </div>
@@ -87,7 +80,7 @@ export const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
           <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-md border border-slate-100 dark:border-slate-800">
             <div>
               <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Customer / Client</p>
-              <p className="font-bold text-slate-800 dark:text-slate-200 text-xs">{payment.customer_company || payment.customer_name || "Direct Customer"}</p>
+              <p className="font-bold text-slate-800 dark:text-slate-200 text-xs">{payment.customer_company || payment.customer_name || '-'}</p>
               <p className="text-[11px] text-slate-500">{payment.customer_name || payment.customer_email || "Customer"}</p>
             </div>
             <div>

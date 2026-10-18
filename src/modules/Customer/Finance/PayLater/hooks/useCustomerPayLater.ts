@@ -4,6 +4,7 @@ import { CustomerPayLaterItem, PayLaterStats } from '../types';
 
 export const useCustomerPayLater = () => {
     const [invoices, setInvoices] = useState<CustomerPayLaterItem[]>([]);
+    const [creditRequests, setCreditRequests] = useState<any[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [userProfile, setUserProfile] = useState<any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -14,9 +15,10 @@ export const useCustomerPayLater = () => {
         else setIsRefreshing(true);
 
         try {
-            const [profileRes, invoicesRes] = await Promise.all([
+            const [profileRes, invoicesRes, requestsRes] = await Promise.all([
                 apiClient.get('/customer/profile').catch(() => ({})),
                 apiClient.get('/customer/finance/invoices', { params: { type: 'pay_later' } }).catch(() => ({})),
+                apiClient.get('/customer/pay-later/requests').catch(() => ({})),
             ]);
 
             if (profileRes?.data || profileRes?.user) {
@@ -42,6 +44,9 @@ export const useCustomerPayLater = () => {
             }
 
             setInvoices(list);
+
+            const reqList = requestsRes?.data?.data || requestsRes?.data || [];
+            setCreditRequests(Array.isArray(reqList) ? reqList : []);
         } catch (error) {
             console.error('Failed to fetch Pay Later data:', error);
             setInvoices([]);
@@ -79,16 +84,30 @@ export const useCustomerPayLater = () => {
         });
 
         const paymentInfo = userProfile?.payment_info || userProfile?.paymentInfo || {};
-        const totalCreditLimit = Number(paymentInfo.pay_later_limit ?? userProfile?.pay_later_limit ?? 80000);
-        const monthlyLimit = Number(paymentInfo.pay_later_monthly_limit ?? 40000);
-        const weeklyLimit = Number(paymentInfo.pay_later_weekly_limit ?? 15000);
-        const dailyLimit = Number(paymentInfo.pay_later_daily_limit ?? 8000);
-        const status = String(paymentInfo.pay_later_status ?? userProfile?.pay_later_status ?? 'approved').toLowerCase();
-        const payLaterDays = Number(paymentInfo.pay_later_days ?? 30);
+        const isEligible = Boolean(userProfile?.is_pay_later_eligible || userProfile?.has_wallet_access);
+        const status = String(paymentInfo.pay_later_status ?? userProfile?.pay_later_status ?? 'inactive').toLowerCase();
+        const isApproved = status === 'approved';
 
-        const availableCredit = Math.max(0, totalCreditLimit - totalOutstanding);
+        const rawLimit = Number(userProfile?.pay_later_limit ?? paymentInfo.pay_later_limit ?? 0);
+        const rawMonthly = Number(userProfile?.pay_later_monthly_limit ?? paymentInfo.pay_later_monthly_limit ?? 0);
+        const monthlyLimit = isApproved ? (rawMonthly > 0 ? rawMonthly : (rawLimit > 0 ? rawLimit : 0)) : 0;
+        const totalCreditLimit = monthlyLimit;
+        const weeklyLimit = isApproved ? Number(userProfile?.pay_later_weekly_limit ?? paymentInfo.pay_later_weekly_limit ?? 0) : 0;
+        const dailyLimit = isApproved ? Number(userProfile?.pay_later_daily_limit ?? paymentInfo.pay_later_daily_limit ?? 0) : 0;
+        const payLaterDays = Number(paymentInfo.pay_later_days ?? userProfile?.pay_later_days ?? 30);
+
+        const effectiveOutstanding = userProfile?.pay_later_used !== undefined
+            ? Number(userProfile.pay_later_used)
+            : totalOutstanding;
+
+        const availableCredit = isApproved
+            ? (userProfile?.pay_later_available !== undefined && Number(userProfile.pay_later_available) > 0
+                ? Number(userProfile.pay_later_available)
+                : Math.max(0, totalCreditLimit - effectiveOutstanding))
+            : 0;
+
         const totalSpentFormatted = `€${totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
-        const totalOutstandingFormatted = `€${totalOutstanding.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
+        const totalOutstandingFormatted = `€${effectiveOutstanding.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
 
         return {
             totalCreditLimit,
@@ -96,7 +115,7 @@ export const useCustomerPayLater = () => {
             weeklyLimit,
             dailyLimit,
             availableCredit,
-            outstandingBalance: totalOutstanding,
+            outstandingBalance: effectiveOutstanding,
             totalSpentFormatted,
             totalOutstandingFormatted,
             status,
@@ -110,6 +129,7 @@ export const useCustomerPayLater = () => {
 
     return {
         invoices,
+        creditRequests,
         stats,
         calculatedStats,
         userProfile,

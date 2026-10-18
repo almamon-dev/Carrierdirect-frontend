@@ -1,20 +1,19 @@
-import React from 'react';
+import { Bell, ChevronRight, CreditCard, LucideIcon, MapPin, Shield, User } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { User, MapPin, Bell, Shield, CreditCard } from 'lucide-react';
-import ProfileTab from './components/ProfileTab';
 import AddressBookTab from './components/AddressBookTab';
 import NotificationsTab from './components/NotificationsTab';
-import SecurityTab from './components/SecurityTab';
 import PaymentTab from './components/PaymentTab';
+import ProfileTab from './components/ProfileTab';
+import SecurityTab from './components/SecurityTab';
 
 type TabType = 'profile' | 'addresses' | 'notifications' | 'security' | 'payment';
 
-const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
-  { id: 'profile', label: 'Profile', icon: <User className="w-3.5 h-3.5" /> },
-  { id: 'addresses', label: 'Address Book', icon: <MapPin className="w-3.5 h-3.5" /> },
-  { id: 'notifications', label: 'Notifications', icon: <Bell className="w-3.5 h-3.5" /> },
-  { id: 'security', label: 'Security & 2FA', icon: <Shield className="w-3.5 h-3.5" /> },
-  { id: 'payment', label: 'Payment & Credit', icon: <CreditCard className="w-3.5 h-3.5" /> },
+const SETTINGS_TABS: { id: TabType; label: string; icon: LucideIcon }[] = [
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'addresses', label: 'Address Book', icon: MapPin },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'security', label: 'Security & 2FA', icon: Shield },
+  { id: 'payment', label: 'Payment & Credit', icon: CreditCard },
 ];
 
 export default function CustomerSettings() {
@@ -28,8 +27,8 @@ export default function CustomerSettings() {
   const activeTab: TabType = (paramTab && validTabs.includes(paramTab))
     ? paramTab
     : (sessionTab && validTabs.includes(sessionTab))
-    ? sessionTab
-    : 'profile';
+      ? sessionTab
+      : 'profile';
 
   const handleTabChange = (tabId: TabType) => {
     setSearchParams({ tab: tabId }, { replace: true });
@@ -37,52 +36,61 @@ export default function CustomerSettings() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 w-full space-y-5">
-      
-      {/* Module Header */}
-      <div className="">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
-                        Account Settings
-                    </h1>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        Manage profile, address book, notification preferences and security.
-                    </p>
-      </div>
+    <div className="p-4 sm:p-6 lg:p-8 w-full max-w-full mx-auto font-sans">
+      {/* Left Sidebar and Right Content Layout */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* Left Sidebar (Matching Quote Create Management Categories card with border & rounded-[4px]) */}
+        <div className="w-full lg:w-[240px] xl:w-[250px] shrink-0 space-y-3">
 
-      {/* Flush Left Aligned Underline Tab Bar */}
-      <div className="border-b border-slate-200 dark:border-slate-800 flex items-center gap-1 overflow-x-auto overflow-y-hidden hide-scrollbar no-scrollbar">
-        {tabs.map((tab, idx) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-1 px-2 py-1.5 border-b-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer -mb-px ${
-                idx === 0 ? 'pl-0 pr-3' : 'px-3'
-              } ${
-                isActive
-                  ? 'border-[#ff4a1f] text-[#ff4a1f]'
-                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
-              }`}
-            >
-              <span className={isActive ? 'text-[#ff4a1f]' : 'text-slate-400'}>
-                {tab.icon}
-              </span>
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+          <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[4px] overflow-hidden shadow-2xs">
+            <div className="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+              <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wider">
+                Settings
+              </h3>
+            </div>
 
-      {/* Tab Content Container */}
-      <div className="pt-1 w-full">
-        {activeTab === 'profile' && <ProfileTab />}
-        {activeTab === 'addresses' && <AddressBookTab />}
-        {activeTab === 'notifications' && <NotificationsTab />}
-        {activeTab === 'security' && <SecurityTab />}
-        {activeTab === 'payment' && <PaymentTab />}
-      </div>
+            <div className="flex flex-col">
+              {SETTINGS_TABS.map((tab) => {
+                const Icon = tab.icon;
+                const isSelected = activeTab === tab.id;
 
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-medium transition-colors border-l-[3px] border-b border-slate-100 dark:border-slate-800/60 last:border-b-0 cursor-pointer ${isSelected
+                      ? 'border-l-[#ff4a1f] bg-orange-50/50 dark:bg-orange-950/20 text-[#ff4a1f] font-semibold'
+                      : 'border-l-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Icon
+                        size={15}
+                        className={isSelected ? 'text-[#ff4a1f]' : 'text-slate-400'}
+                      />
+                      <span>{tab.label}</span>
+                    </div>
+                    <ChevronRight
+                      size={13}
+                      className={isSelected ? 'text-[#ff4a1f]' : 'text-slate-300 dark:text-slate-600'}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Content Panel */}
+        <div className="flex-1 w-full min-w-0">
+          {activeTab === 'profile' && <ProfileTab />}
+          {activeTab === 'addresses' && <AddressBookTab />}
+          {activeTab === 'notifications' && <NotificationsTab />}
+          {activeTab === 'security' && <SecurityTab />}
+          {activeTab === 'payment' && <PaymentTab />}
+        </div>
+      </div>
     </div>
   );
 }

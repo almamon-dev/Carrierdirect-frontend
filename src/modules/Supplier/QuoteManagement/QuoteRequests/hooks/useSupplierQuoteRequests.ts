@@ -10,6 +10,12 @@ export interface SupplierTabStats {
     all?: number;
     active?: number;
     new?: number;
+    viewed?: number;
+    expired?: number;
+    submitted?: number;
+    negotiation?: number;
+    accepted?: number;
+    rejected?: number;
     quoted?: number;
     today?: number;
     upcoming?: number;
@@ -68,11 +74,16 @@ export function useSupplierQuoteRequests() {
 
             if (!backendStats) {
                 const quotedCount = mapped.filter(item => item.status === 'Quoted' || item.isQuoted || item.hasQuoted).length;
+                const viewedCount = mapped.filter(item => !item.isQuoted && !item.hasQuoted && (item.status === 'Viewed' || item.supplierStatus === 'Viewed')).length;
+                const newCount = mapped.filter(item => !item.isExpired && !item.isQuoted && !item.hasQuoted && item.status !== 'Viewed' && item.supplierStatus !== 'Viewed').length;
+                const expiredCount = mapped.filter(item => item.isExpired || item.status === 'Expired').length;
                 setStats({
                     total: mapped.length,
                     all: mapped.length,
                     active: mapped.length,
-                    new: mapped.length - quotedCount,
+                    new: newCount,
+                    viewed: viewedCount,
+                    expired: expiredCount,
                     quoted: quotedCount,
                     today: mapped.filter(item => item.isToday).length,
                     upcoming: mapped.filter(item => item.isUpcoming).length,
@@ -99,7 +110,7 @@ export function useSupplierQuoteRequests() {
                 const cleanRId = String(r.rawId || r.slug || r.id).replace('REQ-', '').trim();
                 const cleanTargetId = String(id).replace('REQ-', '').trim();
                 if (cleanRId === cleanTargetId) {
-                    return { ...r, status };
+                    return { ...r, status, supplierStatus: status, isViewed: status === 'Viewed', hasViewed: status === 'Viewed' };
                 }
                 return r;
             }));

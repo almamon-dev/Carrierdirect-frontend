@@ -106,8 +106,8 @@ export const getPaymentColumns = (
         sortable: true,
         className: "w-auto max-w-[320px] min-w-[180px]",
         render: (row) => {
-            const pickup = row.pickup_address || row.pickup || row.pickup_name || row.from || "Origin Hub";
-            const delivery = row.delivery_address || row.delivery || row.delivery_name || row.to || "Destination Hub";
+            const pickup = row.pickup_address || row.pickup || row.pickup_name || row.from || '-';
+            const delivery = row.delivery_address || row.delivery || row.delivery_name || row.to || '-';
 
             return (
                 <div className="flex flex-col justify-center leading-tight py-0 min-w-0">

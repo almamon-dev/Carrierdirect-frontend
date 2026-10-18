@@ -11,8 +11,11 @@ const getPriorityClass = (p: string) => {
 
 const getStatusBadgeClass = (status?: string): string => {
     const s = (status || '').toLowerCase().trim();
-    if (s === 'delivered' || s === 'completed') {
+    if (s === 'completed') {
         return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60';
+    }
+    if (s === 'delivered') {
+        return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60';
     }
     if (s === 'in_transit' || s === 'in transit') {
         return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60';
@@ -149,10 +152,13 @@ export const getShipmentColumns = (navigate: (path: string) => void): Column<Shi
         sortable: true,
         className: 'w-[125px] min-w-[120px] text-center',
         render: (row) => {
-            const displayLabel = row.status === 'in_transit' ? 'In Transit' :
+            const displayLabel =
+                row.status === 'completed' ? 'Completed' :
+                row.status === 'delivered' ? 'Awaiting Review' :
+                row.status === 'in_transit' ? 'In Transit' :
                 row.status === 'at_pickup' ? 'At Pickup' :
                 row.status === 'at_delivery' ? 'At Delivery' :
-                row.status === 'delivered' ? 'Delivered' : 'Assigned';
+                'Assigned';
 
             return (
                 <div className="flex items-center justify-center h-5">

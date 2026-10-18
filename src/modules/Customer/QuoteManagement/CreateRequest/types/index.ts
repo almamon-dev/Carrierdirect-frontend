@@ -1,6 +1,6 @@
 export * from './formTypes';
 
-export type FilterTabId = 'All' | 'In Progress' | 'Processing' | 'Completed' | 'Cancelled' | 'Active' | 'Waiting' | 'Review' | 'Accepted' | 'Pending' | 'Draft' | 'Expired';
+export type FilterTabId = 'All' | 'Draft' | 'Pending' | 'Quotes Received' | 'Negotiation' | 'Booked' | 'Expired' | 'Cancelled';
 
 export interface CustomerQuoteRequestItem {
     id: string | number;

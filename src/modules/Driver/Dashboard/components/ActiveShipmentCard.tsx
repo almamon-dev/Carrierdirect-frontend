@@ -49,7 +49,7 @@ export const ActiveShipmentCard: React.FC<Props> = ({ shipment, onOpenBOL, onOpe
                                 {shipment.orderNumber || '#SHP-987654'}
                             </Link>
                             <span className="px-2 py-0.5 text-[10.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-[4px] border border-blue-200/60 dark:border-blue-800/60">
-                                {shipment.cargoTag || 'Standard Freight'}
+                                {shipment.cargoTag || '-'}
                             </span>
                         </div>
 
@@ -86,7 +86,7 @@ export const ActiveShipmentCard: React.FC<Props> = ({ shipment, onOpenBOL, onOpe
                             </div>
                             <div className="min-w-0">
                                 <div className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100">
-                                    {shipment.destination?.name || 'Delivery Destination'}
+                                    {shipment.destination?.name || '-'}
                                 </div>
                                 <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                                     {shipment.destination?.address || 'Delivery Address'}

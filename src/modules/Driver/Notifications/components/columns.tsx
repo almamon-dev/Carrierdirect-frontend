@@ -8,7 +8,7 @@ import { Column } from '@/components/tables/data-table';
 import { HeaderNotification } from '@/hooks/useHeaderNotifications';
 import Skeleton from '@/components/ui/skeleton';
 import { 
-    Truck, MessageSquare, Euro, AlertTriangle, Clock, ShieldCheck
+    Truck, MessageSquare, Landmark, AlertTriangle, Clock, ShieldCheck
 } from 'lucide-react';
 
 export const getCategoryConfig = (type: string) => {
@@ -20,7 +20,7 @@ export const getCategoryConfig = (type: string) => {
         return { icon: MessageSquare, bg: 'bg-purple-50 dark:bg-purple-950/40', text: 'text-purple-600 dark:text-purple-400', label: 'Dispatch Chat' };
     }
     if (t.includes('finance') || t.includes('payout') || t.includes('salary') || t.includes('earning')) {
-        return { icon: Euro, bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', label: 'Payout' };
+        return { icon: Landmark, bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', label: 'Payout' };
     }
     if (t.includes('safety') || t.includes('compliance') || t.includes('inspection')) {
         return { icon: ShieldCheck, bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-600 dark:text-amber-400', label: 'Safety' };

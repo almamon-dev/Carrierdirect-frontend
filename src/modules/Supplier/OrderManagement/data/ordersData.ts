@@ -1,5 +1,5 @@
 export * from '../types/order.types';
-export { mapApiOrderToSupplierOrder } from '../utils/orderMapper';
+export { mapApiOrderToSupplierOrder, checkHasRealDriver } from '../utils/orderMapper';
 import { SupplierOrder } from '../types/order.types';
 import { mapApiOrderToSupplierOrder } from '../utils/orderMapper';
 

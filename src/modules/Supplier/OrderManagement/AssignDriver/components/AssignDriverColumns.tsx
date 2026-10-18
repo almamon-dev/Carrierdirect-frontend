@@ -3,6 +3,7 @@ import { Column } from "@/components/tables/data-table";
 import Badge from "@/components/ui/badge";
 import { formatDisplayDate } from "@/lib/utils";
 import { SupplierOrderItem } from "../../ActiveJobs/types";
+import { checkHasRealDriver } from "../../ActiveJobs/utils/orderMapper";
 import { MapPin, Clock } from "lucide-react";
 
 export const getAssignDriverColumns = (
@@ -117,8 +118,8 @@ export const getAssignDriverColumns = (
         render: (row) => {
             const rawStatus = (row.status_raw || row.status || "confirmed").toLowerCase().trim();
             const dName = row.driver_name || (typeof row.driver === "string" ? row.driver : (row.driver as any)?.name);
-            const hasRealDriver = dName && !dName.toLowerCase().includes("assigned carrier") && !dName.toLowerCase().includes("assigned driver") && !dName.toLowerCase().includes("unassigned") && !dName.toLowerCase().includes("pending");
-            const isAssigned = (rawStatus === "driver_assigned" || rawStatus === "assigned" || rawStatus === "in_transit" || rawStatus === "picked_up") || hasRealDriver;
+            const hasRealDriver = checkHasRealDriver(row);
+            const isAssigned = (rawStatus === "in_transit" || rawStatus === "picked_up") || hasRealDriver;
 
             if (isAssigned && hasRealDriver) {
                 return (
@@ -158,17 +159,11 @@ export const getAssignDriverColumns = (
             } else if (rawStatus.includes("review") || rawStatus === "delivered") {
                 displayStatus = "POD Review";
                 variant = "secondary";
-            } else if (rawStatus === "in_transit") {
-                displayStatus = "In Transit";
-                variant = "warning";
-            } else if (rawStatus === "picked_up") {
-                displayStatus = "Picked Up";
+            } else if (rawStatus === "in_transit" || rawStatus === "picked_up") {
+                displayStatus = rawStatus === "in_transit" ? "In Transit" : "Picked Up";
                 variant = "warning";
             } else if (rawStatus === "driver_assigned" || rawStatus === "assigned") {
                 displayStatus = "Assigned";
-                variant = "info";
-            } else {
-                displayStatus = "Confirmed";
                 variant = "info";
             }
 
@@ -189,11 +184,8 @@ export const getAssignDriverColumns = (
         render: (row) => {
             let formattedAmt = "—";
             const raw = row.amount_raw ?? row.amount ?? row.total_amount ?? row.net_payout;
-            if (typeof raw === "number") {
-                formattedAmt = "€ " + raw.toLocaleString("en-US", { minimumFractionDigits: 2 });
-            } else if (typeof raw === "string" && raw) {
-                formattedAmt = raw.startsWith("€") || raw.startsWith("EUR") || raw.startsWith("$") ? raw : "€ " + raw;
-            }
+            if (typeof raw === "number") formattedAmt = "€ " + raw.toLocaleString("en-US", { minimumFractionDigits: 2 });
+            else if (typeof raw === "string" && raw) formattedAmt = raw.startsWith("€") || raw.startsWith("EUR") || raw.startsWith("$") ? raw : "€ " + raw;
             return (
                 <div className="flex items-center justify-end h-5">
                     <span className="whitespace-nowrap text-xs font-bold text-emerald-600 dark:text-emerald-400 leading-none">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { encryptId, decryptId } from '@/lib/encryption';
-import { Loader2, Truck, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Truck, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { driverApi } from '../../services/driverApi';
 import { ShipmentItem, ShipmentStatus } from '../../types';
 import { requireDriverCompliance } from '../../Compliance';
@@ -12,8 +12,11 @@ import { DriverShipmentLocationsCard } from './components/DriverShipmentLocation
 import { DriverShipmentCargoSpecsCard } from './components/DriverShipmentCargoSpecsCard';
 import { DriverShipmentActionCard } from './components/DriverShipmentActionCard';
 import { DriverShipmentSidebarTimeline } from './components/DriverShipmentSidebarTimeline';
+import { DriverShipmentDetailsSkeleton } from './components/DriverShipmentDetailsSkeleton';
 import { PODUploadModal } from './components/PODUploadModal';
+import { CustomerRatingModal } from './components/CustomerRatingModal';
 import { GPSComingSoonModal } from '@/components/modals';
+import { echo } from '@/lib/echo';
 
 export default function DriverShipmentDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -26,6 +29,7 @@ export default function DriverShipmentDetailPage() {
     const [isGPSOpen, setIsGPSOpen] = useState(false);
     const [gpsDestination, setGpsDestination] = useState<string | undefined>(undefined);
     const [actionMessage, setActionMessage] = useState<string | null>(null);
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
     const decryptedRawId = decryptId(id);
     const cleanId = decryptedRawId 
@@ -55,7 +59,98 @@ export default function DriverShipmentDetailPage() {
 
     useEffect(() => {
         loadShipment();
-    }, [cleanId, id]);
+
+        const targetId = String(cleanId || id || "");
+
+        const handleRealtimeUpdate = (data: any) => {
+            if (!data) {
+                loadShipment();
+                return;
+            }
+            const eventOrderId = String(data.order_id || data.id || "");
+            const eventOrderNumber = String(data.order_number || "");
+            if (
+                !eventOrderId ||
+                eventOrderId === targetId ||
+                eventOrderNumber === targetId ||
+                (shipment && eventOrderNumber === shipment.orderNumber)
+            ) {
+                loadShipment();
+                if (data.action === "delivery_accepted" || data.status === "completed" || data.type === "delivery_accepted") {
+                    setActionMessage("Customer has approved Proof of Delivery! Shipment completed successfully.");
+                    setTimeout(() => setActionMessage(null), 6000);
+                }
+            }
+        };
+
+        const handleCustomEvent = (e: any) => handleRealtimeUpdate(e.detail);
+
+        window.addEventListener("driver-shipment-updated", handleCustomEvent);
+        window.addEventListener("order-status-updated", handleCustomEvent);
+
+        let orderChannel: any = null;
+        if (targetId) {
+            try {
+                orderChannel = echo.private(`orders.${targetId}`);
+                orderChannel.listen(".ShipmentStatusUpdated", (event: any) => {
+                    handleRealtimeUpdate(event);
+                });
+                orderChannel.listen("ShipmentStatusUpdated", (event: any) => {
+                    handleRealtimeUpdate(event);
+                });
+            } catch (err) {
+                console.warn("Echo orders channel subscription skipped:", err);
+            }
+        }
+
+        return () => {
+            window.removeEventListener("driver-shipment-updated", handleCustomEvent);
+            window.removeEventListener("order-status-updated", handleCustomEvent);
+            if (orderChannel) {
+                orderChannel.stopListening(".ShipmentStatusUpdated");
+                orderChannel.stopListening("ShipmentStatusUpdated");
+            }
+        };
+    }, [cleanId, id, shipment?.orderNumber]);
+
+    useEffect(() => {
+        if (!shipment || shipment.status !== 'completed') return;
+
+        const checkRatingEligibility = async () => {
+            const sid = cleanId || shipment.id;
+            const alreadyRated = localStorage.getItem(`driver_rated_${sid}`) === 'true';
+            if (alreadyRated) return;
+
+            const skippedTimestamp = Number(localStorage.getItem(`driver_rate_skip_${sid}`) || 0);
+            const oneDayMs = 24 * 60 * 60 * 1000;
+            if (Date.now() - skippedTimestamp < oneDayMs) return;
+
+            const hasRatedBackend = await driverApi.checkCustomerReview(sid);
+            if (hasRatedBackend) {
+                localStorage.setItem(`driver_rated_${sid}`, 'true');
+                return;
+            }
+
+            setIsRatingModalOpen(true);
+        };
+
+        checkRatingEligibility();
+    }, [shipment, cleanId]);
+
+    const handleSkipRating = () => {
+        const sid = cleanId || (shipment ? shipment.id : '');
+        localStorage.setItem(`driver_rate_skip_${sid}`, String(Date.now()));
+        setIsRatingModalOpen(false);
+    };
+
+    const handleSubmitRating = async (data: { rating: number; skills: string[]; comment: string }) => {
+        const sid = cleanId || (shipment ? shipment.id : '');
+        await driverApi.submitCustomerReview(sid, data);
+        localStorage.setItem(`driver_rated_${sid}`, 'true');
+        setIsRatingModalOpen(false);
+        setActionMessage('Thank you! Your facility and customer review has been submitted.');
+        setTimeout(() => setActionMessage(null), 5000);
+    };
 
     
     const handleOpenGPS = (dest?: string) => {
@@ -70,7 +165,7 @@ export default function DriverShipmentDetailPage() {
             if (!shipment) return;
             const updated = await driverApi.updateShipmentMilestone(shipment.id, nextStatus);
             setShipment(updated);
-            setActionMessage(`Shipment milestone successfully updated to "${nextStatus.replace('_', ' ').toUpperCase()}"!`);
+            setActionMessage(`Shipment milestone successfully updated to "${nextStatus.replace('_', ' ')}"!`);
             setTimeout(() => setActionMessage(null), 4500);
         }, 'Update Delivery Milestone');
     };
@@ -91,14 +186,7 @@ export default function DriverShipmentDetailPage() {
     };
 
     if (isLoading) {
-        return (
-            <div className="p-12 flex flex-col items-center justify-center text-slate-500 gap-3 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
-                <Loader2 size={30} className="animate-spin text-[#FF4A1F]" />
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    Loading load details #{id}...
-                </span>
-            </div>
-        );
+        return <DriverShipmentDetailsSkeleton />;
     }
 
     if (!shipment) {
@@ -183,6 +271,18 @@ export default function DriverShipmentDetailPage() {
                 destination={gpsDestination}
                 onClose={() => setIsGPSOpen(false)}
             />
+
+            {/* Customer Rating Modal on Completed Shipment */}
+            {shipment && (
+                <CustomerRatingModal
+                    isOpen={isRatingModalOpen}
+                    onClose={() => setIsRatingModalOpen(false)}
+                    customerName={shipment.consignee.company || shipment.shipper.company || 'Customer'}
+                    orderNumber={shipment.orderNumber}
+                    onSubmit={handleSubmitRating}
+                    onSkip={handleSkipRating}
+                />
+            )}
         </div>
     );
 }

@@ -24,6 +24,10 @@ export type SupplierOrder = {
     deliveryTimeWindow: string;
     distance: string;
     estimatedDuration: string;
+    driver_id?: number | string | null;
+    driver_name?: string;
+    driver_email?: string;
+    status_raw?: string;
     driver: string;
     driverPhone: string;
     vehicle: string;

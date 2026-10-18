@@ -39,7 +39,7 @@ export default function QuotesReceived() {
         handleUpgradeRedirect,
     } = useSubscriptionQuota();
 
-    const [activeFilterTab, setActiveFilterTab] = useState<string>('all');
+    const [activeFilterTab, setActiveFilterTab] = useState<string>('new');
     const [statusFilter, setStatusFilter] = useState('all');
     const [vehicleFilter, setVehicleFilter] = useState('all');
     const [ratingFilter, setRatingFilter] = useState('all');

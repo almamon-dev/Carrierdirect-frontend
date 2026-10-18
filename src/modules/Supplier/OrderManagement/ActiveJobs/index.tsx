@@ -1,531 +1,48 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
-import { 
-    Eye, 
-    Truck, 
-    Navigation, 
-    FileCheck, 
-    MapPin, 
-    Star, 
-    RefreshCw, 
-    RotateCcw, 
-    UserCheck, 
-    ArrowRight, 
-    MoreVertical, 
-    Copy, 
-    Check 
-} from 'lucide-react';
-import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
-import Select from '@/components/ui/select';
-import Input from '@/components/ui/input';
-import DataTable, { Column } from '@/components/tables/data-table';
-import EmptyState from '@/components/tables/empty-state';
 import RatingModal from '@/components/modals/rating-modal';
-import { SupplierOrder, mapApiOrderToSupplierOrder } from '../data/ordersData';
-import { apiClient } from '@/lib/axios';
-import { formatDisplayDate } from '@/lib/utils';
-
-// Row Actions component with 3-dots Menu
-const ActiveJobRowActions = ({
-    row,
-    onOpenRating,
-    navigate
-}: {
-    row: SupplierOrder;
-    onOpenRating: (target: { id: string; customer: string; route: string }) => void;
-    navigate: (path: string, options?: any) => void;
-}) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-    const [copied, setCopied] = useState(false);
-
-    const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.stopPropagation();
-        if (isOpen) {
-            setIsOpen(false);
-        } else {
-            const rect = e.currentTarget.getBoundingClientRect();
-            setDropdownPos({
-                top: rect.bottom + 4,
-                left: Math.max(10, rect.right - 180)
-            });
-            setIsOpen(true);
-        }
-    };
-
-    const handleClose = () => setIsOpen(false);
-
-    useEffect(() => {
-        if (!isOpen) return;
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') handleClose();
-        };
-        const handleScroll = () => handleClose();
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('scroll', handleScroll, true);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('scroll', handleScroll, true);
-        };
-    }, [isOpen]);
-
-    const rawStatus = (row.status || '').toLowerCase().trim();
-    const isCompleted = rawStatus === 'completed' || rawStatus === 'delivered' || rawStatus === 'pod accepted';
-    const hasDriver = Boolean(row.driver && !row.driver.toLowerCase().includes('unassigned') && !row.driver.toLowerCase().includes('pending') && !row.driver.toLowerCase().includes('assigned carrier') && !row.driver.toLowerCase().includes('assigned driver'));
-    const isAssigned = hasDriver;
-
-    return (
-        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-            {/* Quick Assign Driver Button */}
-            {!isCompleted && (
-                <button
-                    type="button"
-                    onClick={() => navigate('/supplier/orders/assign-driver', { state: { selectedOrder: row } })}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[3px] transition-all cursor-pointer whitespace-nowrap active:scale-95 bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-2xs font-bold"
-                    title={isAssigned ? "Reassign Driver & Vehicle" : "Assign Driver & Vehicle"}
-                >
-                    <UserCheck size={12} className="text-white shrink-0" />
-                    <span>{isAssigned ? "Reassign" : "Assign"}</span>
-                </button>
-            )}
-
-            {/* 3-Dots Menu Button */}
-            <button
-                type="button"
-                onClick={handleToggle}
-                className="h-7 w-7 p-0 flex items-center justify-center rounded-[3px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                title="More actions"
-            >
-                <MoreVertical size={15} />
-            </button>
-
-            {isOpen && createPortal(
-                <>
-                    <div
-                        className="fixed inset-0 z-[9998] cursor-default bg-transparent"
-                        onClick={(e) => { e.stopPropagation(); handleClose(); }}
-                    />
-
-                    <div
-                        className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-lg shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
-                        style={{ top: dropdownPos.top, left: dropdownPos.left }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                navigate(`/supplier/orders/details/${row.slug}`);
-                            }}
-                        >
-                            <Eye size={14} className="text-slate-400 shrink-0" />
-                            <span>View Details</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                navigate(`/supplier/orders/details/${row.slug}`, { state: { openTab: "tracking" } });
-                            }}
-                        >
-                            <Navigation size={14} className="text-slate-400 shrink-0" />
-                            <span>Live Tracking</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
-                            onClick={() => {
-                                handleClose();
-                                navigate(`/supplier/orders/pod/${row.slug}`);
-                            }}
-                        >
-                            <FileCheck size={14} className="text-emerald-500 shrink-0" />
-                            <span>Upload / View POD</span>
-                        </button>
-
-                        {!isCompleted && (
-                            <button
-                                type="button"
-                                className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
-                                onClick={() => {
-                                    handleClose();
-                                    navigate('/supplier/orders/assign-driver', { state: { selectedOrder: row } });
-                                }}
-                            >
-                                <UserCheck size={14} className="text-[#ff4a1f] shrink-0" />
-                                <span>{isAssigned ? "Reassign Driver" : "Assign Driver"}</span>
-                            </button>
-                        )}
-
-                        {isCompleted && (
-                            <button
-                                type="button"
-                                className="w-full text-left px-3.5 py-2 text-xs text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
-                                onClick={() => {
-                                    handleClose();
-                                    onOpenRating({ id: row.id, customer: row.customer, route: `${row.pickup} → ${row.delivery}` });
-                                }}
-                            >
-                                <Star size={14} className="text-amber-500 fill-amber-500 shrink-0" />
-                                <span>Rate Customer</span>
-                            </button>
-                        )}
-
-                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
-
-                        <button
-                            type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                            onClick={() => {
-                                navigator.clipboard.writeText(row.id);
-                                setCopied(true);
-                                setTimeout(() => {
-                                    setCopied(false);
-                                    handleClose();
-                                }, 1000);
-                            }}
-                        >
-                            {copied ? (
-                                <>
-                                    <Check size={14} className="text-emerald-500 shrink-0" />
-                                    <span className="text-emerald-600 font-semibold">Copied!</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Copy size={14} className="text-slate-400 shrink-0" />
-                                    <span>Copy Job ID</span>
-                                </>
-                            )}
-                        </button>
-                    </div>
-                </>,
-                document.body
-            )}
-        </div>
-    );
-};
+import DataTable from '@/components/tables/data-table';
+import EmptyState from '@/components/tables/empty-state';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
+import Select from '@/components/ui/select';
+import apiClient from '@/lib/axios';
+import { RefreshCw, RotateCcw, Truck } from 'lucide-react';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getActiveJobColumns } from './components/ActiveJobColumns';
+import { ActiveJobRowActions } from './components/ActiveJobRowActions';
+import { useActiveJobsState } from './hooks/useActiveJobsState';
 
 export default function ActiveJobs() {
     const navigate = useNavigate();
-    const [orders, setOrders] = useState<SupplierOrder[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-    const [activeFilterTab, setActiveFilterTab] = useState<string>('all');
+    const {
+        isLoading,
+        isRefreshing,
+        activeFilterTab,
+        setActiveFilterTab,
+        statusFilter,
+        setStatusFilter,
+        vehicleFilter,
+        setVehicleFilter,
+        startDate,
+        setStartDate,
+        endDate,
+        setEndDate,
+        ratingTarget,
+        setRatingTarget,
+        fetchOrders,
+        handleResetFilters,
+        filteredJobs,
+        tabCounts,
+    } = useActiveJobsState();
 
-    // Advanced Dropdown Filters
-    const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [vehicleFilter, setVehicleFilter] = useState<string>('all');
-    const [startDate, setStartDate] = useState<string>('');
-    const [endDate, setEndDate] = useState<string>('');
-
-    const [ratingTarget, setRatingTarget] = useState<{ id: string; customer: string; route: string } | null>(null);
-
-    const fetchOrders = async (isManualRefresh = false) => {
-        if (isManualRefresh) setIsRefreshing(true);
-        else setIsLoading(true);
-
-        try {
-            const response = await apiClient.get('/supplier/orders');
-            let ordersList: any[] = [];
-            if (response.data?.data?.orders && Array.isArray(response.data.data.orders)) {
-                ordersList = response.data.data.orders;
-            } else if (response.data?.data && Array.isArray(response.data.data)) {
-                ordersList = response.data.data;
-            } else if (Array.isArray(response.data)) {
-                ordersList = response.data;
-            }
-
-            const mappedOrders = ordersList.map((apiOrder: any) => mapApiOrderToSupplierOrder(apiOrder));
-            setOrders(mappedOrders);
-        } catch (error) {
-            console.error('Failed to fetch supplier orders:', error);
-        } finally {
-            setIsLoading(false);
-            if (isManualRefresh) {
-                setTimeout(() => setIsRefreshing(false), 300);
-            }
-        }
-    };
-
-    useEffect(() => {
-        fetchOrders();
-    }, []);
-
-    const handleResetFilters = () => {
-        setStatusFilter('all');
-        setVehicleFilter('all');
-        setStartDate('');
-        setEndDate('');
-    };
-
-    // Filter Logic
-    const filteredJobs = useMemo(() => {
-        return orders.filter(job => {
-            const jobStatus = (job.status || '').toLowerCase().trim();
-
-            if (activeFilterTab === 'in_transit') {
-                if (jobStatus !== 'in transit' && jobStatus !== 'in_transit') return false;
-            } else if (activeFilterTab === 'scheduled') {
-                if (jobStatus !== 'scheduled' && jobStatus !== 'confirmed' && jobStatus !== 'driver assigned' && jobStatus !== 'driver_assigned') return false;
-            } else if (activeFilterTab === 'delivered') {
-                if (jobStatus !== 'delivered' && jobStatus !== 'completed' && jobStatus !== 'pod accepted') return false;
-            }
-
-            if (statusFilter !== 'all') {
-                if (statusFilter === 'in transit' && jobStatus !== 'in transit' && jobStatus !== 'in_transit') return false;
-                if (statusFilter === 'scheduled' && jobStatus !== 'scheduled' && jobStatus !== 'confirmed') return false;
-                if (statusFilter === 'delivered' && jobStatus !== 'delivered' && jobStatus !== 'completed') return false;
-            }
-
-            if (vehicleFilter !== 'all') {
-                const vehicle = (job.vehicle || '').toLowerCase();
-                if (vehicleFilter === 'van' && !vehicle.includes('van')) return false;
-                if (vehicleFilter === 'truck' && !vehicle.includes('truck') && !vehicle.includes('trailer') && !vehicle.includes('pallet')) return false;
-                if (vehicleFilter === 'refrigerated' && !vehicle.includes('refrig') && !vehicle.includes('temp')) return false;
-            }
-
-            if (startDate) {
-                const jobDate = new Date(job.pickupDate || '').getTime();
-                const fromDate = new Date(startDate).getTime();
-                if (!isNaN(jobDate) && !isNaN(fromDate) && jobDate < fromDate) return false;
-            }
-            if (endDate) {
-                const jobDate = new Date(job.pickupDate || '').getTime();
-                const toDate = new Date(endDate).getTime();
-                if (!isNaN(jobDate) && !isNaN(toDate) && jobDate > toDate) return false;
-            }
-
-            return true;
-        });
-    }, [orders, activeFilterTab, statusFilter, vehicleFilter, startDate, endDate]);
-
-    // Tab counts
-    const tabCounts = useMemo(() => {
-        let all = orders.length;
-        let in_transit = 0;
-        let scheduled = 0;
-        let delivered = 0;
-
-        orders.forEach(j => {
-            const st = (j.status || '').toLowerCase().trim();
-            if (st === 'in transit' || st === 'in_transit') in_transit++;
-            else if (st === 'delivered' || st === 'completed' || st === 'pod accepted') delivered++;
-            else scheduled++;
-        });
-
-        return { all, in_transit, scheduled, delivered };
-    }, [orders]);
-
-    const tabs = [
-        { id: 'all', label: 'All Jobs', count: tabCounts.all },
+    const tabs = useMemo(() => [
+        { id: 'new', label: 'New Jobs', count: tabCounts.new_jobs },
+        { id: 'driver_assigned', label: 'Assigned', count: tabCounts.driver_assigned },
+        { id: 'unassigned', label: 'Unassigned', count: tabCounts.unassigned },
         { id: 'in_transit', label: 'In Transit', count: tabCounts.in_transit },
-        { id: 'scheduled', label: 'Scheduled', count: tabCounts.scheduled },
-        { id: 'delivered', label: 'Delivered', count: tabCounts.delivered },
-    ];
+    ], [tabCounts]);
 
-    const columns: Column<SupplierOrder>[] = [
-        { 
-            id: 'id', 
-            label: 'Job ID', 
-            sortable: true,
-            className: 'w-[125px] min-w-[120px] text-left',
-            render: (row) => (
-                <div className="flex items-center h-5">
-                    <button 
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/supplier/orders/details/${row.slug}`);
-                        }}
-                        className="font-bold text-[#ff4a1f] hover:underline text-left cursor-pointer text-xs leading-none whitespace-nowrap"
-                    >
-                        {row.id}
-                    </button>
-                </div>
-            )
-        },
-        { 
-            id: 'customer', 
-            label: 'Customer', 
-            sortable: true,
-            className: 'w-[140px] min-w-[130px]',
-            render: (row) => {
-                const initial = row.customer ? row.customer.charAt(0).toUpperCase() : 'C';
-                return (
-                    <div className="flex items-center gap-2 min-w-0 h-5" title={row.customer}>
-                        <div className="w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-orange-100 dark:bg-[#ff4a1f]/20 border border-orange-200/60 text-[#ff4a1f] flex items-center justify-center text-[10px] font-bold shrink-0 aspect-square">
-                            {initial}
-                        </div>
-                        <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs truncate max-w-[110px] leading-tight">
-                            {row.customer}
-                        </span>
-                    </div>
-                );
-            } 
-        },
-        {
-            id: 'pickup',
-            label: 'Pickup Address',
-            sortable: true,
-            className: 'w-[18%] min-w-[140px] max-w-[220px]',
-            render: (row) => (
-                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.pickupFullAddress || row.pickup}>
-                    <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
-                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-                        {row.pickupFullAddress || row.pickup}
-                    </span>
-                </div>
-            )
-        },
-        {
-            id: 'delivery',
-            label: 'Delivery Address',
-            sortable: true,
-            className: 'w-[18%] min-w-[140px] max-w-[220px]',
-            render: (row) => (
-                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.deliveryFullAddress || row.delivery}>
-                    <MapPin size={12} className="text-emerald-500 shrink-0" />
-                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-                        {row.deliveryFullAddress || row.delivery}
-                    </span>
-                </div>
-            )
-        },
-        { 
-            id: 'date', 
-            label: 'Schedule Date', 
-            sortable: true,
-            className: 'w-[110px] min-w-[105px] text-center',
-            render: (row) => (
-                <div className="flex items-center justify-center h-5">
-                    <span className="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium leading-none">
-                        {formatDisplayDate(row.pickupDate)}
-                    </span>
-                </div>
-            )
-        },
-        {
-            id: 'driver',
-            label: 'Driver & Vehicle',
-            sortable: true,
-            className: 'w-[150px] min-w-[140px]',
-            render: (row) => {
-                const driverName = row.driver ? String(row.driver).trim() : '';
-                const hasDriver = Boolean(driverName && !driverName.toLowerCase().includes('unassigned') && !driverName.toLowerCase().includes('pending') && !driverName.toLowerCase().includes('assigned carrier') && !driverName.toLowerCase().includes('assigned driver'));
-                
-                if (hasDriver) {
-                    return (
-                        <div className="flex items-center gap-1.5 h-5 min-w-0" title={`${row.driver} • ${row.vehicle || ''}`}>
-                            <div className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                {row.driver.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[120px] leading-none">
-                                {row.driver}
-                            </span>
-                        </div>
-                    );
-                }
-
-                return (
-                    <div className="flex items-center h-5">
-                        <Badge variant="warning" className="text-[10px] font-bold whitespace-nowrap bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
-                            Unassigned
-                        </Badge>
-                    </div>
-                );
-            }
-        },
-        {
-            id: 'status',
-            label: 'Status',
-            sortable: true,
-            className: 'w-[120px] min-w-[115px] text-center',
-            render: (row) => {
-                const st = (row.status || 'Confirmed').toLowerCase();
-                let variant: any = 'info';
-                if (st.includes('delivered') || st.includes('completed')) variant = 'success';
-                else if (st.includes('transit') || st.includes('progress') || st.includes('picked')) variant = 'warning';
-                else if (st.includes('cancel')) variant = 'critical';
-
-                return (
-                    <div className="flex items-center justify-center h-5">
-                        <Badge variant={variant} showDot className="text-[10.5px] font-bold whitespace-nowrap">
-                            {row.status || 'Confirmed'}
-                        </Badge>
-                    </div>
-                );
-            }
-        },
-        {
-            id: 'payment_status',
-            label: 'Payment Terms',
-            sortable: true,
-            className: 'w-[135px] min-w-[130px] text-center',
-            render: (row) => {
-                const isPayLater = Boolean(
-                    row.is_pay_later || 
-                    row.payment_method === 'pay_later' || 
-                    row.invoice_type === 'pay_later' || 
-                    row.payment_status?.toLowerCase().includes('pay later')
-                );
-                const isPaid = Boolean(
-                    !isPayLater && (
-                        row.is_paid || 
-                        row.payment_status?.toLowerCase().includes('paid') ||
-                        row.status === 'Delivered'
-                    )
-                );
-
-                if (isPayLater) {
-                    return (
-                        <div className="flex items-center justify-center h-5">
-                            <Badge variant="warning" showDot className="text-[10.5px] font-bold whitespace-nowrap">
-                                Pay Later (Due)
-                            </Badge>
-                        </div>
-                    );
-                }
-
-                if (isPaid) {
-                    return (
-                        <div className="flex items-center justify-center h-5">
-                            <Badge variant="success" showDot className="text-[10.5px] font-bold whitespace-nowrap">
-                                Paid
-                            </Badge>
-                        </div>
-                    );
-                }
-
-                return (
-                    <div className="flex items-center justify-center h-5">
-                        <Badge variant="info" showDot className="text-[10.5px] font-bold whitespace-nowrap">
-                            In Escrow
-                        </Badge>
-                    </div>
-                );
-            }
-        },
-        {
-            id: 'payout',
-            label: 'Net Payout',
-            sortable: true,
-            className: 'w-[110px] min-w-[105px] text-right pr-2',
-            render: (row) => (
-                <div className="flex items-center justify-end h-5">
-                    <span className="whitespace-nowrap text-xs font-bold text-emerald-600 dark:text-emerald-400 leading-none">
-                        {row.netPayout || row.agreedPrice || '—'}
-                    </span>
-                </div>
-            )
-        }
-    ];
+    const columns = useMemo(() => getActiveJobColumns(navigate), [navigate]);
 
     return (
         <div className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
@@ -553,12 +70,29 @@ export default function ActiveJobs() {
                 </div>
             </div>
 
-            <DataTable 
-                columns={columns} 
-                data={filteredJobs} 
+            <DataTable
+                columns={columns}
+                data={filteredJobs}
                 compact={true}
                 searchPlaceholder="Search by Job ID, customer, route..."
                 hideViewToggle={false}
+                banner={
+                    activeFilterTab === 'unassigned' && tabCounts.unassigned > 0 ? (
+                        <div className="flex items-center gap-2.5 px-3 py-2 bg-[#fffbea] dark:bg-amber-950/25 border border-[#feedae] dark:border-amber-800/60 rounded-[4px] text-[12px] text-amber-900 dark:text-amber-200">
+                            <svg className="w-4 h-4 text-amber-500 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <div className="flex items-center gap-1 flex-wrap leading-tight">
+                                <span className="font-bold text-amber-900 dark:text-amber-100">
+                                    {tabCounts.unassigned} shipment{tabCounts.unassigned > 1 ? 's' : ''} needs a driver.
+                                </span>
+                                <span className="text-amber-800 dark:text-amber-200">
+                                    Assign a driver to move this job into Assigned.
+                                </span>
+                            </div>
+                        </div>
+                    ) : undefined
+                }
                 actions={(row) => (
                     <ActiveJobRowActions
                         row={row}
@@ -576,22 +110,14 @@ export default function ActiveJobs() {
                                     key={tab.id}
                                     type="button"
                                     onClick={() => setActiveFilterTab(tab.id)}
-                                    className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${
-                                        isActive
+                                    className={`flex items-center gap-2 pb-3 border-b-2 transition-colors whitespace-nowrap cursor-pointer px-1 ${isActive
                                             ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                                             : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                                    }`}
-                                >
-                                    <span className={`text-[14px] ${isActive ? 'font-bold text-[#ff4a1f]' : 'font-medium'}`}>
-                                        {tab.label}
-                                    </span>
-                                    <span
-                                        className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
-                                            isActive
-                                                ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                                         }`}
-                                    >
+                                >
+                                    <span className={`text-[14px] ${isActive ? 'font-bold text-[#ff4a1f]' : 'font-medium'}`}>{tab.label}</span>
+                                    <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${isActive ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                        }`}>
                                         {tab.count}
                                     </span>
                                 </button>
@@ -605,10 +131,11 @@ export default function ActiveJobs() {
                             <div className="min-w-0">
                                 <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">Status Filter</label>
                                 <Select value={statusFilter} onChange={(val) => setStatusFilter(val)} showSearch={false}>
-                                    <option value="all">All Jobs</option>
+                                    <option value="all">All Active Jobs</option>
+                                    <option value="new">New Jobs</option>
+                                    <option value="assigned">Driver Assigned</option>
+                                    <option value="unassigned">Unassigned</option>
                                     <option value="in transit">In Transit</option>
-                                    <option value="scheduled">Scheduled</option>
-                                    <option value="delivered">Delivered</option>
                                 </Select>
                             </div>
                             <div className="min-w-0">
@@ -622,33 +149,18 @@ export default function ActiveJobs() {
                             </div>
                             <div className="min-w-0">
                                 <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">Start Date</label>
-                                <Input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="h-9 text-xs"
-                                />
+                                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-9 text-xs" />
                             </div>
                             <div className="min-w-0">
                                 <div className="flex items-center justify-between mb-1">
                                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">End Date</label>
                                     {(statusFilter !== 'all' || vehicleFilter !== 'all' || startDate || endDate) && (
-                                        <button
-                                            type="button"
-                                            onClick={handleResetFilters}
-                                            className="text-[10.5px] font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-0.5 cursor-pointer"
-                                            title="Reset filters"
-                                        >
+                                        <button type="button" onClick={handleResetFilters} className="text-[10.5px] font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-0.5 cursor-pointer" title="Reset filters">
                                             <RotateCcw size={10} /> Reset
                                         </button>
                                     )}
                                 </div>
-                                <Input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="h-9 text-xs"
-                                />
+                                <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-9 text-xs" />
                             </div>
                         </div>
                     </div>
@@ -668,7 +180,6 @@ export default function ActiveJobs() {
                 }
             />
 
-            {/* Rating Modal for Supplier Rating Customer */}
             {ratingTarget && (
                 <RatingModal
                     isOpen={Boolean(ratingTarget)}

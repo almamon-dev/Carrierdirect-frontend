@@ -12,7 +12,7 @@ export default function SupportDashboard() {
         const fetchSupport = async () => {
             try {
                 const res = await apiClient.get('/supplier/orders');
-                setOrders(res.data?.data || res.data || []);
+                setOrders((Array.isArray(res?.data?.orders) && res.data.orders) || (Array.isArray(res?.data?.data?.orders) && res.data.data.orders) || (Array.isArray(res?.data?.data) && res.data.data) || (Array.isArray(res?.orders) && res.orders) || (Array.isArray(res?.data) && res.data) || []);
             } catch (err) {
                 console.error('Failed to load support data:', err);
             } finally {

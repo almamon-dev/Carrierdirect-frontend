@@ -19,7 +19,9 @@ export function useWonQuotesFilter(quotes: WonQuoteItem[], activeTab: WonFilterT
     const filteredQuotes = useMemo(() => {
         return quotes.filter((q) => {
             if (activeTab && activeTab.toLowerCase() !== "all") {
-                if ((q.status || "").toLowerCase() !== activeTab.toLowerCase()) return false;
+                const normTab = activeTab.toLowerCase().replace(/[^a-z]/g, '');
+                const normStatus = (q.status || "").toLowerCase().replace(/[^a-z]/g, '');
+                if (normTab !== normStatus) return false;
             }
 
             if (priorityFilter !== "all") {

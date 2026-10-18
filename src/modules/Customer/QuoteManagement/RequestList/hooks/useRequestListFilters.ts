@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FilterTabId } from '../../CreateRequest/types';
 
 export function useRequestListFilters() {
-    const [activeFilterTab, setActiveFilterTab] = useState<FilterTabId>('All');
+    const [activeFilterTab, setActiveFilterTab] = useState<FilterTabId>('Pending');
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [quotesFilter, setQuotesFilter] = useState('all');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Eye, MessageSquare, CheckCircle, Loader2, XCircle } from 'lucide-react';
+import { Eye, FileText, MessageSquare, CheckCircle, Loader2, XCircle, TrendingDown, PackageCheck, FileDown } from 'lucide-react';
 
 interface QuoteReceivedActionsMenuProps {
     isOpen: boolean;
@@ -8,12 +8,25 @@ interface QuoteReceivedActionsMenuProps {
     dropdownRef: React.RefObject<HTMLDivElement | null>;
     isPending: boolean;
     isNegotiating: boolean;
+    canNegotiate?: boolean;
+    canCounter?: boolean;
+    canAccept?: boolean;
+    canDecline?: boolean;
     isAccepting?: boolean;
-    onClose: () => void;
-    onViewDetails: () => void;
+    hasOrder?: boolean;
+    hasRequest?: boolean;
+    hasPdf?: boolean;
+    pdfUrl?: string;
+    onViewQuote?: () => void;
+    onViewDetails?: () => void;
+    onViewRequest?: () => void;
     onOpenChat: () => void;
+    onCounterOffer?: () => void;
     onAccept: () => void;
     onReject: () => void;
+    onViewOrder?: () => void;
+    onDownloadPdf?: () => void;
+    onClose: () => void;
 }
 
 export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> = ({
@@ -22,47 +35,97 @@ export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> =
     dropdownRef,
     isPending,
     isNegotiating,
+    canNegotiate = true,
+    canCounter = true,
+    canAccept = true,
+    canDecline = true,
     isAccepting,
-    onClose,
+    hasOrder,
+    hasRequest,
+    hasPdf,
+    pdfUrl,
+    onViewQuote,
     onViewDetails,
+    onViewRequest,
     onOpenChat,
+    onCounterOffer,
     onAccept,
     onReject,
+    onViewOrder,
+    onDownloadPdf,
+    onClose,
 }) => {
     if (!isOpen) return null;
+
+    const handleViewQuoteAction = onViewQuote || onViewDetails || (() => {});
 
     return createPortal(
         <div
             ref={dropdownRef}
-            className="fixed w-44 bg-white dark:bg-[#1e2329] rounded-[5px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
+            className="fixed w-48 bg-white dark:bg-[#1e2329] rounded-[5px] shadow-xl border border-slate-200 dark:border-slate-700/80 py-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 text-left font-sans"
             style={{ top: dropdownPos.top, left: dropdownPos.left }}
             onClick={(e) => e.stopPropagation()}
         >
+            {/* 1. View Quote */}
             <button
                 type="button"
                 className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
                 onClick={() => {
                     onClose();
-                    onViewDetails();
+                    handleViewQuoteAction();
                 }}
             >
                 <Eye size={14} className="text-slate-400 shrink-0" />
-                <span>View Details</span>
+                <span>View Quote</span>
             </button>
 
-            <button
-                type="button"
-                className="w-full text-left px-3.5 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
-                onClick={() => {
-                    onClose();
-                    onOpenChat();
-                }}
-            >
-                <MessageSquare size={14} className="text-indigo-500 shrink-0" />
-                <span>Chat / Negotiate</span>
-            </button>
+            {/* 2. View Request */}
+            {hasRequest && onViewRequest && (
+                <button
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    onClick={() => {
+                        onClose();
+                        onViewRequest();
+                    }}
+                >
+                    <FileText size={14} className="text-slate-400 shrink-0" />
+                    <span>View Request</span>
+                </button>
+            )}
 
-            {(isPending || isNegotiating) && (
+            {/* 3. Chat / Negotiate — when negotiation is allowed */}
+            {canNegotiate && (
+                <button
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    onClick={() => {
+                        onClose();
+                        onOpenChat();
+                    }}
+                >
+                    <MessageSquare size={14} className="text-indigo-500 shrink-0" />
+                    <span>Chat / Negotiate</span>
+                </button>
+            )}
+
+            {/* 4. Send Counter Offer — when permitted */}
+            {canCounter && onCounterOffer && (
+                <button
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
+                    onClick={() => {
+                        onClose();
+                        onCounterOffer();
+                    }}
+                >
+                    <TrendingDown size={14} className="text-[#ff4a1f] shrink-0" />
+                    <span>Send Counter Offer</span>
+                </button>
+            )}
+
+            {/* 5. Accept & Book — only when the quote is valid and booking is permitted */}
+            {canAccept && (
                 <button
                     type="button"
                     disabled={isAccepting}
@@ -77,14 +140,15 @@ export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> =
                     ) : (
                         <CheckCircle size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                     )}
-                    <span>Accept Offer</span>
+                    <span>Accept & Book</span>
                 </button>
             )}
 
-            {(isPending || isNegotiating) && (
+            {/* 6. Decline Offer — only when declining is permitted */}
+            {canDecline && (
                 <button
                     type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer border-t border-slate-100 dark:border-slate-800/80 mt-1 pt-1.5"
+                    className="w-full text-left px-3.5 py-2 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
                     onClick={() => {
                         onClose();
                         onReject();
@@ -92,6 +156,37 @@ export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> =
                 >
                     <XCircle size={14} className="text-rose-500 shrink-0" />
                     <span>Decline Offer</span>
+                </button>
+            )}
+
+            {/* 7. View Order — only when a valid booking or order exists */}
+            {hasOrder && onViewOrder && (
+                <button
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
+                    onClick={() => {
+                        onClose();
+                        onViewOrder();
+                    }}
+                >
+                    <PackageCheck size={14} className="text-blue-500 shrink-0" />
+                    <span>View Order</span>
+                </button>
+            )}
+
+            {/* 8. Download PDF — when available */}
+            {hasPdf && (
+                <button
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    onClick={() => {
+                        onClose();
+                        if (onDownloadPdf) onDownloadPdf();
+                        else if (pdfUrl) window.open(pdfUrl, '_blank');
+                    }}
+                >
+                    <FileDown size={14} className="text-slate-400 shrink-0" />
+                    <span>Download PDF</span>
                 </button>
             )}
         </div>,

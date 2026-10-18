@@ -23,6 +23,16 @@ export interface UserSubscriptionData {
   days_remaining?: number;
   started_at?: string;
   expires_at?: string;
+  created_at?: string;
+  plan_name?: string;
+  name?: string;
+  price?: number | string;
+  billing_period?: string;
+  quote_limit?: number;
+  has_subscription?: boolean;
+  pricing_plan?: {
+    name?: string;
+  };
   plan?: SubscriptionPlan;
   quota?: {
     allowed?: boolean;
@@ -33,6 +43,29 @@ export interface UserSubscriptionData {
     message?: string;
   };
 }
+
+export interface InvoiceItem {
+  id: string;
+  date: string;
+  details: string;
+  amount: string;
+  status: string;
+  raw_status?: string;
+  card_brand?: string;
+  card_last4?: string;
+  downloadText: string;
+  rawInvoice?: any;
+}
+
+export interface SavedCard {
+  id: string;
+  cardType: string;
+  last4: string;
+  brand: "MC" | "VISA" | "AMEX" | string;
+  isDefault: boolean;
+}
+
+export type SavedCardItem = SavedCard;
 
 export interface SubscriptionBillingHistoryItem {
   id: number | string;
@@ -66,10 +99,19 @@ export interface SubscriptionBillingHistoryItem {
   rawInvoice?: any;
 }
 
-export interface SavedCardItem {
-  id: string;
-  cardType: string;
-  last4: string;
-  brand: "MC" | "VISA" | "AMEX" | string;
-  isDefault: boolean;
+export interface CustomerPlanItem {
+  name: string;
+  description: string;
+  popular: boolean;
+  badgeText: string | null;
+  order?: number;
+  features: string[];
+  isTrial: boolean;
+  isCurrent: boolean;
+  displayPrice: string;
+  billingCycleText: string;
+  subNote: string;
+  planId: string | number;
+  monthlyPrice: number;
+  yearlyPrice: number;
 }

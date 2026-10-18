@@ -130,7 +130,7 @@ export const getPaymentColumns = (
         sortable: true,
         className: "whitespace-nowrap min-w-[130px]",
         render: (row) => {
-            const company = row.customer_company || row.customer?.company_name || row.customer_name || "Direct Customer";
+            const company = row.customer_company || row.customer?.company_name || row.customer_name || '-';
             return (
                 <div className="flex items-center min-h-[22px]">
                     <span className="text-[12.5px] font-normal text-slate-700 dark:text-slate-300 whitespace-nowrap truncate" title={company}>

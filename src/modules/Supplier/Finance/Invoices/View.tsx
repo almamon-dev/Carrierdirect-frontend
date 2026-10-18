@@ -114,8 +114,8 @@ export default function InvoiceView({ onBack, invoice, onDownload }: InvoiceView
                         <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Shipment & Order</h4>
                         <p className="font-bold text-slate-900 text-xs">Order #{invoiceData.order_number || invoiceData.order_id || 'ORD-0001'}</p>
                         <p className="text-slate-600 text-[11px] font-medium mt-0.5">Route: {invoiceData.route || 'Direct Transit'}</p>
-                        <p className="text-slate-400 text-[10px] mt-1">Pickup: {invoiceData.pickup_address || 'Origin Hub'}</p>
-                        <p className="text-slate-400 text-[10px]">Delivery: {invoiceData.delivery_address || 'Destination Hub'}</p>
+                        <p className="text-slate-400 text-[10px] mt-1">Pickup: {invoiceData.pickup_address || '-'}</p>
+                        <p className="text-slate-400 text-[10px]">Delivery: {invoiceData.delivery_address || '-'}</p>
                     </div>
                 </div>
 

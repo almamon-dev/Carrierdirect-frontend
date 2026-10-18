@@ -1,8 +1,3 @@
-/**
- * Customer Quote Requests Filter Tabs Component
- * Renders tab navigation with dynamic counts for Active, Waiting, Review, and Accepted requests.
- */
-
 import React, { useMemo } from 'react';
 import { CustomerQuoteRequestItem, FilterTabId } from '../types';
 
@@ -17,21 +12,59 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
     activeTab,
     onSelectTab,
 }) => {
-    // Calculate counts for canonical status categories
-    const counts = useMemo(() => ({
-        all: requestData.length,
-        inProgress: requestData.filter(r => r.status === 'In Progress' || r.rawStatus === 'in_progress' || r.status === 'Active' || r.status === 'active').length,
-        processing: requestData.filter(r => r.status === 'Processing' || r.rawStatus === 'pending' || r.status === 'Draft' || r.status === 'pending' || (r.quotesReceived === 0 && r.status !== 'Completed' && r.status !== 'Accepted')).length,
-        completed: requestData.filter(r => r.status === 'Completed' || r.rawStatus === 'completed' || r.status === 'Accepted' || r.hasAcceptedQuote).length,
-        cancelled: requestData.filter(r => r.status === 'Cancelled' || r.rawStatus === 'cancelled' || r.status === 'Expired' || r.status === 'rejected').length,
-    }), [requestData]);
+    // Exact spec: Pending | Quotes Received | Negotiation | Won | Expired
+    const counts = useMemo(() => {
+        let all = 0;
+        let draft = 0;
+        let pending = 0;
+        let quotesReceived = 0;
+        let negotiation = 0;
+        let booked = 0;
+        let expired = 0;
+
+        (requestData || []).forEach((r: any) => {
+            const s = (r.status || r.rawStatus || '').toLowerCase();
+            const isComp = Boolean(r.isCompleted || s === 'completed' || (r.raw_status || '').toLowerCase() === 'completed');
+            if (isComp) return;
+
+            all++;
+            const quotesCount = Number(r.quotesReceived || r.quotesCount || r.bidsCount || 0);
+            const isExp = Boolean(r.isExpired || s === 'expired' || s === 'cancelled' || s === 'closed');
+
+            if (s === 'draft') {
+                draft++;
+            } else if (isExp) {
+                expired++;
+            } else if (s === 'won' || s === 'accepted' || s === 'booked' || r.hasAcceptedQuote) {
+                booked++;
+            } else if (s === 'negotiation' || s === 'negotiating' || s === 'review' || r.isNegotiating) {
+                negotiation++;
+            } else if (quotesCount > 0) {
+                quotesReceived++;
+            } else {
+                pending++;
+            }
+        });
+
+        return {
+            all,
+            draft,
+            pending,
+            quotesReceived,
+            negotiation,
+            booked,
+            expired,
+        };
+    }, [requestData]);
 
     const tabs: { id: FilterTabId; label: string; count: number }[] = [
         { id: 'All', label: 'All', count: counts.all },
-        { id: 'In Progress', label: 'In Progress', count: counts.inProgress },
-        { id: 'Processing', label: 'Processing', count: counts.processing },
-        { id: 'Completed', label: 'Completed', count: counts.completed },
-        { id: 'Cancelled', label: 'Cancelled', count: counts.cancelled },
+        { id: 'Draft', label: 'Draft', count: counts.draft },
+        { id: 'Pending', label: 'Pending', count: counts.pending },
+        { id: 'Quotes Received', label: 'Quotes Received', count: counts.quotesReceived },
+        { id: 'Negotiation', label: 'Negotiation', count: counts.negotiation },
+        { id: 'Booked', label: 'Booked', count: counts.booked },
+        { id: 'Expired', label: 'Expired', count: counts.expired },
     ];
 
     return (

@@ -1,11 +1,8 @@
 import React, { useMemo } from 'react';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 import { SupplierTabStats } from '../hooks/useSupplierQuoteRequests';
-import { isRequestToday, isRequestUpcoming, isRequestUrgent } from '../utils/requestDateFilters';
 
-export { isRequestToday, isRequestExpired, isRequestUpcoming, isRequestUrgent } from '../utils/requestDateFilters';
-
-export type RequestFilterTab = 'all' | 'active' | 'new' | 'quoted' | 'today' | 'upcoming' | 'urgent';
+export type RequestFilterTab = 'new' | 'viewed' | 'expired' | 'submitted' | 'negotiation' | 'accepted' | 'rejected' | 'all';
 
 interface QuoteRequestsFilterTabsProps {
     requests: QuoteRequest[];
@@ -20,39 +17,37 @@ export const QuoteRequestsFilterTabs: React.FC<QuoteRequestsFilterTabsProps> = (
     onSelectTab,
     stats,
 }) => {
+    // Exact spec: New | Viewed | Expired
     const tabs = useMemo(() => {
         let newCount = 0;
-        let quotedCount = 0;
-        let todayCount = 0;
-        let upcomingCount = 0;
-        let urgentCount = 0;
+        let viewedCount = 0;
+        let expiredCount = 0;
 
-        requests.forEach((r) => {
-            const isQ = Boolean(r.status === 'Quoted' || r.isQuoted || r.hasQuoted);
-            if (isQ) {
-                quotedCount++;
-            } else {
+        (requests || []).forEach((r: any) => {
+            const isExp = Boolean(r.isExpired || r.is_expired || (r.status || '').toLowerCase() === 'expired');
+            const hasViewed = Boolean(r.hasViewed || r.isViewed || r.supplierStatus === 'Viewed' || (r.status || '').toLowerCase() === 'viewed');
+            const hasQuoted = Boolean(r.hasQuoted || r.isQuoted || (r.status || '').toLowerCase() === 'quoted');
+
+            if (isExp) {
+                expiredCount++;
+            } else if (hasViewed && !hasQuoted) {
+                viewedCount++;
+            } else if (!hasQuoted) {
                 newCount++;
             }
-            if (isRequestToday(r)) todayCount++;
-            if (isRequestUpcoming(r)) upcomingCount++;
-            if (isRequestUrgent(r)) urgentCount++;
         });
 
         return [
-            { id: 'all' as RequestFilterTab, label: 'Active', count: stats?.active ?? stats?.all ?? stats?.total ?? requests.length },
-            { id: 'new' as RequestFilterTab, label: 'New', count: stats?.new ?? newCount },
-            { id: 'quoted' as RequestFilterTab, label: 'Quoted', count: stats?.quoted ?? quotedCount },
-            { id: 'today' as RequestFilterTab, label: 'Today', count: stats?.today ?? todayCount },
-            { id: 'upcoming' as RequestFilterTab, label: 'Upcoming', count: stats?.upcoming ?? upcomingCount },
-            { id: 'urgent' as RequestFilterTab, label: 'Urgent', count: stats?.urgent ?? urgentCount },
+            { id: 'new' as RequestFilterTab, label: 'New', count: newCount },
+            { id: 'viewed' as RequestFilterTab, label: 'Viewed', count: viewedCount },
+            { id: 'expired' as RequestFilterTab, label: 'Expired', count: expiredCount },
         ];
     }, [requests, stats]);
 
     return (
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar mb-[-1px]">
             {tabs.map((tab) => {
-                const isActive = activeTab === tab.id || (tab.id === 'all' && activeTab === 'active');
+                const isActive = activeTab === tab.id;
                 return (
                     <button
                         key={tab.id}

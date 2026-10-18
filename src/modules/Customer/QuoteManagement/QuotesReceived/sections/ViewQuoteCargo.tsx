@@ -21,7 +21,7 @@ export const ViewQuoteCargo: React.FC<ViewQuoteCargoProps> = ({ quote, requestDe
                 <SectionHeader title="Vehicle & Equipment Requirements" icon={Truck} />
                 <ViewField label="Vehicle Type" value={<span className="font-bold text-slate-900 dark:text-slate-100">{req.vehicle_type || 'Covered Van (20ft)'}</span>} />
                 <ViewField label="Shipment Type" value={req.shipment_type || 'Full Truckload (FTL)'} />
-                <ViewField label="Service Type" value={req.service_type || 'Standard Freight'} />
+                <ViewField label="Service Type" value={req.service_type || '-'} />
                 <ViewField label="Loading Access" value={req.loading_access || 'Standard Loading Bay / Ramp'} />
 
                 <SectionHeader title="Cargo Specifications" icon={Layers} />

@@ -4,8 +4,8 @@ export const generateCustomerInitialMessages = (chatItem: any): CustomerChatMess
     if (!chatItem) return [];
     const raw = chatItem?.raw || chatItem;
     const origAmount = Number(raw?.originalAmount || chatItem?.currentPrice || 0);
-    const pickupLoc = raw?.origin || raw?.pickup || chatItem?.origin || 'Pickup Location';
-    const deliveryLoc = raw?.destination || raw?.delivery || chatItem?.destination || 'Delivery Destination';
+    const pickupLoc = raw?.origin || raw?.pickup || chatItem?.origin || '-';
+    const deliveryLoc = raw?.destination || raw?.delivery || chatItem?.destination || '-';
     const quoteNum = chatItem?.quoteNo || raw?.quoteId || (raw?.id ? `QT-${String(raw.id).padStart(4, '0')}` : 'QT-0001');
     const customerName = raw?.customer || 'Customer';
     const transitTime = raw?.transitTime || '1 - 2 Business Days';

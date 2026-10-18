@@ -1,8 +1,3 @@
-/**
- * FilterTabs Component
- * Dynamic tab navigation with automatic status extraction and dynamic count calculation.
- */
-
 import React, { useMemo } from 'react';
 import { WonQuoteItem, WonFilterTab } from '../types';
 
@@ -12,38 +7,44 @@ interface FilterTabsProps {
     onSelectTab: (tab: WonFilterTab) => void;
 }
 
-const DEFAULT_STATUSES: string[] = ['Won', 'In Transit', 'Delivered'];
-
 export const FilterTabs: React.FC<FilterTabsProps> = ({
     quotes,
     activeTab,
     onSelectTab,
 }) => {
-    // Dynamically calculate tabs and counts from incoming quotes
+    // Exact spec: Confirmed | Driver Assigned | In Transit | Delivered | POD Pending | Completed
     const tabs = useMemo(() => {
-        const countsByStatus: Record<string, number> = {};
+        let confirmed = 0;
+        let driverAssigned = 0;
+        let inTransit = 0;
+        let delivered = 0;
+        let podPending = 0;
+        let completed = 0;
 
-        // Aggregate counts by status
-        quotes.forEach((q) => {
-            if (q.status) {
-                const normalized = q.status.trim();
-                countsByStatus[normalized] = (countsByStatus[normalized] || 0) + 1;
+        (quotes || []).forEach((q: any) => {
+            const s = (q.deliveryStatus || q.status || q.order_status || '').toLowerCase().trim();
+            if (s === 'completed' || s === 'finished') {
+                completed++;
+            } else if (s === 'pod pending' || s === 'pod_pending' || s === 'pod_uploaded' || s === 'pod review' || s === 'pod_review') {
+                podPending++;
+            } else if (s === 'delivered') {
+                delivered++;
+            } else if (s === 'in transit' || s === 'in_transit' || s === 'picked up' || s === 'picked_up') {
+                inTransit++;
+            } else if (s === 'driver assigned' || s === 'driver_assigned' || s === 'assigned') {
+                driverAssigned++;
+            } else {
+                confirmed++;
             }
         });
 
-        // Use dynamically extracted statuses, or fallback to defaults if list is empty
-        const foundStatuses = Object.keys(countsByStatus);
-        const statusList = foundStatuses.length > 0 
-            ? Array.from(new Set([...foundStatuses]))
-            : DEFAULT_STATUSES;
-
         return [
-            { id: 'All', label: 'All', count: quotes.length },
-            ...statusList.map((status) => ({
-                id: status,
-                label: status,
-                count: countsByStatus[status] || 0,
-            })),
+            { id: 'Confirmed' as WonFilterTab, label: 'Confirmed', count: confirmed },
+            { id: 'Driver Assigned' as WonFilterTab, label: 'Driver Assigned', count: driverAssigned },
+            { id: 'In Transit' as WonFilterTab, label: 'In Transit', count: inTransit },
+            { id: 'Delivered' as WonFilterTab, label: 'Delivered', count: delivered },
+            { id: 'POD Pending' as WonFilterTab, label: 'POD Pending', count: podPending },
+            { id: 'Completed' as WonFilterTab, label: 'Completed', count: completed },
         ];
     }, [quotes]);
 

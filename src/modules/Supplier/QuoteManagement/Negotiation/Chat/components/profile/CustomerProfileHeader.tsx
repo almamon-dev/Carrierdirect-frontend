@@ -36,7 +36,7 @@ export const CustomerProfileHeader: React.FC<CustomerProfileHeaderProps> = ({
                 <div className="flex flex-wrap items-center gap-2 mt-1 text-[12.5px] text-slate-500">
                     <span className="font-semibold text-[#FF4A1F]">{formattedId}</span>
                     <span>•</span>
-                    <span className="font-bold text-amber-600">★ {customer.customerRating || 4.9}</span>
+                    <span className="font-bold text-amber-600">★ {customer.customerRating !== undefined && customer.customerRating !== null ? Number(customer.customerRating).toFixed(1) : (customer.rating !== undefined && customer.rating !== null ? Number(customer.rating).toFixed(1) : "5.0")}</span>
                     <span>•</span>
                     <span className="text-emerald-600 font-semibold">48 completed orders</span>
                     <span>•</span>

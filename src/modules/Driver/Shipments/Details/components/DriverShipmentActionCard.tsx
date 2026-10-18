@@ -1,182 +1,249 @@
-import React from 'react';
-import { Truck, MapPin, PackageCheck, FileCheck, CheckCircle2, ShieldCheck, Camera } from 'lucide-react';
+import React, { useState } from 'react';
+import { Truck, CheckCircle2, ShieldCheck, ArrowRight, FileCheck, Eye, ExternalLink, X } from 'lucide-react';
 import { ShipmentItem, ShipmentStatus } from '../../../types';
-import { ShipmentStatusBadge } from '../../components/ShipmentStatusBadge';
 import { requireDriverCompliance } from '../../../Compliance';
+import { getStatusDisplay } from '../utils/statusDisplayConfig';
+import { DriverShipmentNextActionBox } from './DriverShipmentNextActionBox';
 
 interface Props {
     shipment: ShipmentItem;
     onUpdateStatus: (nextStatus: ShipmentStatus) => void;
     onOpenPOD: () => void;
+    onOpenGPS?: () => void;
 }
 
 export const DriverShipmentActionCard: React.FC<Props> = ({
     shipment,
     onUpdateStatus,
     onOpenPOD,
+    onOpenGPS,
 }) => {
-    const pod = shipment.podData;
+    const status = shipment.status;
+    const isDeliveredOrCompleted = status === 'delivered' || status === 'completed';
+    const displayPod = shipment.podData || (isDeliveredOrCompleted ? {
+        receiverName: shipment.consignee.name || shipment.consignee.company || 'Consignee Receiver',
+        uploadedAt: shipment.updatedAt || shipment.createdAt,
+        signatureUrl: undefined,
+        documentPhotos: [],
+        notes: '',
+    } : undefined);
+    const [viewDocUrl, setViewDocUrl] = useState<string | null>(null);
 
-    const getNextActionConfig = () => {
-        switch (shipment.status) {
-            case 'assigned':
-            case 'accepted':
-                return {
-                    title: 'Next Step: Arrive at Shipper',
-                    description: 'Mark your arrival at the pickup warehouse dock when on site.',
-                    buttonLabel: 'Mark Arrived at Pickup',
-                    buttonColor: 'bg-indigo-600 hover:bg-indigo-700',
-                    icon: MapPin,
-                    onClick: () => requireDriverCompliance(() => onUpdateStatus('at_pickup'), 'Arrive at Pickup'),
-                };
-            case 'at_pickup':
-                return {
-                    title: 'Next Step: Start Transit',
-                    description: 'Confirm cargo loading is complete and depart towards destination.',
-                    buttonLabel: 'Cargo Loaded • Start Transit',
-                    buttonColor: 'bg-blue-600 hover:bg-blue-700',
-                    icon: PackageCheck,
-                    onClick: () => requireDriverCompliance(() => onUpdateStatus('in_transit'), 'Start Highway Transit'),
-                };
-            case 'in_transit':
-                return {
-                    title: 'Next Step: Arrive at Delivery',
-                    description: 'Notify consignee receiver of arrival at delivery dock.',
-                    buttonLabel: 'Mark Arrived at Delivery',
-                    buttonColor: 'bg-purple-600 hover:bg-purple-700',
-                    icon: MapPin,
-                    onClick: () => requireDriverCompliance(() => onUpdateStatus('at_delivery'), 'Arrive at Delivery'),
-                };
-            case 'at_delivery':
-                return {
-                    title: 'Next Step: Complete Delivery',
-                    description: 'Capture receiver digital signature and signed paper BOL for sign-off.',
-                    buttonLabel: 'Upload POD & Complete',
-                    buttonColor: 'bg-emerald-600 hover:bg-emerald-700',
-                    icon: FileCheck,
-                    onClick: () => requireDriverCompliance(() => onOpenPOD(), 'Upload POD'),
-                };
-            case 'delivered':
-                return null;
-            default:
-                return null;
+    const fromCity = shipment.shipper.city || 'Origin';
+    const toCity = shipment.consignee.city || 'Destination';
+
+    const pickupLat = shipment.route?.originCoords?.lat;
+    const pickupLng = shipment.route?.originCoords?.lng;
+    const deliveryLat = shipment.route?.destinationCoords?.lat;
+    const deliveryLng = shipment.route?.destinationCoords?.lng;
+
+    const hasExactCoords = Boolean(
+        pickupLat !== undefined && pickupLat !== null && !isNaN(Number(pickupLat)) &&
+        pickupLng !== undefined && pickupLng !== null && !isNaN(Number(pickupLng)) &&
+        deliveryLat !== undefined && deliveryLat !== null && !isNaN(Number(deliveryLat)) &&
+        deliveryLng !== undefined && deliveryLng !== null && !isNaN(Number(deliveryLng))
+    );
+
+    const googleMapsUrl = hasExactCoords
+        ? `https://www.google.com/maps/dir/?api=1&origin=${pickupLat},${pickupLng}&destination=${deliveryLat},${deliveryLng}&travelmode=driving`
+        : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(shipment.shipper.address || shipment.shipper.city)}&destination=${encodeURIComponent(shipment.consignee.address || shipment.consignee.city)}&travelmode=driving`;
+
+    const statusConfig = getStatusDisplay(shipment);
+
+    const handlePrimaryAction = () => {
+        if (statusConfig.actionType === 'pickup') {
+            requireDriverCompliance(() => onUpdateStatus('at_pickup'), 'Confirm Goods Picked Up');
+        } else if (statusConfig.actionType === 'transit') {
+            requireDriverCompliance(() => onUpdateStatus('in_transit'), 'Start Highway Transit');
+        } else if (statusConfig.actionType === 'navigate') {
+            if (onOpenGPS) {
+                onOpenGPS();
+            } else {
+                window.open(googleMapsUrl, '_blank');
+            }
+        } else if (statusConfig.actionType === 'pod') {
+            requireDriverCompliance(() => onOpenPOD(), 'Upload Proof of Delivery');
         }
     };
 
-    const nextAction = getNextActionConfig();
-
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs font-sans overflow-hidden">
-            {/* Header */}
-            <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-[#15191e]/50">
-                <div className="flex items-center gap-2">
-                    <Truck size={14} className="text-[#FF4A1F]" />
-                    <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100">
-                        Milestone & Delivery Sign-Off
-                    </h3>
-                </div>
-                <ShipmentStatusBadge status={shipment.status} />
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs font-sans overflow-hidden">
+            {/* Header with Live Badge */}
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-[#15191e]/50">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    Current Status
+                </h3>
+                {status === 'in_transit' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[4px] text-[11px] font-bold bg-orange-50 dark:bg-orange-950/50 text-[#FF4A1F] border border-orange-200 dark:border-orange-900/60 shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF4A1F] animate-pulse" />
+                        Live
+                    </span>
+                ) : status === 'delivered' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[4px] text-[11px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        Awaiting Review
+                    </span>
+                ) : status === 'completed' ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                        <CheckCircle2 size={11} />
+                        Completed
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] text-[11px] font-bold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                        Active
+                    </span>
+                )}
             </div>
 
-            {/* Action Area */}
-            <div className="p-4 space-y-3">
-                {nextAction ? (
-                    <div className="space-y-2.5">
-                        <div>
-                            <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                                {nextAction.title}
-                            </h4>
-                            <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
-                                {nextAction.description}
-                            </p>
-                        </div>
-
-                        {/* Action Buttons in the same row */}
-                        <div className="pt-0.5 flex items-center gap-2 flex-wrap">
-                            <button
-                                type="button"
-                                onClick={nextAction.onClick}
-                                className={`h-8 px-4 w-auto inline-flex items-center justify-center gap-2 text-white rounded-[4px] text-xs font-bold shadow-2xs transition-all cursor-pointer ${nextAction.buttonColor}`}
-                            >
-                                <nextAction.icon size={13.5} />
-                                <span>{nextAction.buttonLabel}</span>
-                            </button>
-
-                            {!pod && shipment.status !== 'delivered' && shipment.status !== 'at_delivery' && (
-                                <button
-                                    type="button"
-                                    onClick={() => requireDriverCompliance(onOpenPOD, 'Upload POD')}
-                                    className="h-8 px-3.5 w-auto inline-flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 rounded-[4px] text-xs font-semibold transition-colors cursor-pointer"
-                                >
-                                    <Camera size={12} className="text-[#FF4A1F]" />
-                                    <span>Attach POD / Document</span>
-                                </button>
-                            )}
-                        </div>
+            {/* Status Visual and Corridor */}
+            <div className="p-4 space-y-4">
+                <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-[4px] bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/40 flex items-center justify-center text-[#FF4A1F] shrink-0 shadow-2xs">
+                        <Truck size={24} />
                     </div>
-                ) : (
-                    <div className="text-center space-y-1.5 py-1">
-                        <CheckCircle2 size={24} className="mx-auto text-emerald-600 dark:text-emerald-400" />
-                        <div className="text-xs font-bold text-emerald-900 dark:text-emerald-300">
-                            Shipment Successfully Delivered
-                        </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                            Proof of Delivery (POD) confirmed & verified.
+                    <div>
+                        <h2 className={`text-xl font-extrabold tracking-tight ${statusConfig.color}`}>
+                            {statusConfig.label}
+                        </h2>
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mt-0.5">
+                            <span>{fromCity}</span>
+                            <ArrowRight size={11} className="text-slate-400" />
+                            <span>{toCity}</span>
                         </p>
                     </div>
-                )}
+                </div>
 
-                {/* POD Section (Aligned Key : Value with Highlighted Colon) */}
-                {pod && (
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-1.5 text-xs">
-                        <div className="grid grid-cols-[130px_14px_1fr] items-start min-w-0">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Signed By</span>
-                            <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
-                            <span className="font-bold text-slate-900 dark:text-slate-100">{pod.receiverName}</span>
+                {/* Next Action Box */}
+                <DriverShipmentNextActionBox
+                    status={status}
+                    statusConfig={statusConfig}
+                    handlePrimaryAction={handlePrimaryAction}
+                    onOpenPOD={onOpenPOD}
+                />
+
+                {/* POD Summary if present */}
+                {displayPod && (
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs">
+                        <div className="flex items-center justify-between pb-1">
+                            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                <FileCheck size={13} /> Proof of Delivery (POD) Sign-Off
+                            </span>
+                            <span className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                                Verified
+                            </span>
                         </div>
 
-                        <div className="grid grid-cols-[130px_14px_1fr] items-start min-w-0">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Timestamp</span>
-                            <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
-                            <span className="font-medium text-slate-700 dark:text-slate-300">{new Date(pod.uploadedAt).toLocaleString()}</span>
+                        <div className="grid grid-cols-[110px_14px_1fr] items-start min-w-0">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">Signed By</span>
+                            <span className="text-[#FF4A1F] font-bold text-center">:</span>
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{displayPod.receiverName || shipment.consignee.name || shipment.consignee.company || 'Consignee Receiver'}</span>
+                        </div>
+                        <div className="grid grid-cols-[110px_14px_1fr] items-start min-w-0">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">Time & Date</span>
+                            <span className="text-[#FF4A1F] font-bold text-center">:</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                {displayPod.uploadedAt ? new Date(displayPod.uploadedAt).toLocaleString() : '-'}
+                            </span>
                         </div>
 
-                        {pod.notes && (
-                            <div className="grid grid-cols-[130px_14px_1fr] items-start min-w-0">
-                                <span className="text-slate-500 dark:text-slate-400 font-medium text-left">POD Notes</span>
-                                <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
-                                <span className="text-slate-600 dark:text-slate-400 italic">{pod.notes}</span>
+                        {/* Signature Preview */}
+                        {displayPod.signatureUrl && (
+                            <div className="mt-1.5 p-2 bg-slate-50 dark:bg-slate-900/60 rounded border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <img
+                                        src={displayPod.signatureUrl}
+                                        alt="Receiver Signature"
+                                        className="h-8 max-w-[120px] object-contain border border-slate-200 dark:border-slate-700 rounded bg-white px-1"
+                                    />
+                                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                                        E-Signature
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewDocUrl(displayPod.signatureUrl!)}
+                                    className="px-2 py-1 text-[10.5px] font-semibold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                    <Eye size={12} />
+                                    <span>View</span>
+                                </button>
                             </div>
                         )}
 
-                        {pod.signatureUrl && (
-                            <div className="pt-2">
-                                <div className="grid grid-cols-[130px_14px_1fr] items-start min-w-0">
-                                    <span className="text-slate-500 dark:text-slate-400 font-medium text-left">Signature</span>
-                                    <span className="text-[#FF4A1F] font-bold text-center select-none shrink-0">:</span>
-                                    <div>
-                                        <img
-                                            src={pod.signatureUrl}
-                                            alt="Signature"
-                                            className="max-h-12 w-auto object-contain bg-slate-50 dark:bg-slate-900 p-1 rounded border border-slate-200 dark:border-slate-800"
-                                        />
+                        {/* Attached Cargo / Paper BOL Photo Preview */}
+                        {displayPod.documentPhotos && displayPod.documentPhotos[0] && (
+                            <div className="mt-1.5 p-2 bg-slate-50 dark:bg-slate-900/60 rounded border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <img
+                                        src={displayPod.documentPhotos[0]}
+                                        alt="Paper BOL"
+                                        className="w-9 h-9 object-cover rounded border border-slate-200 dark:border-slate-700 shrink-0"
+                                    />
+                                    <div className="min-w-0">
+                                        <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
+                                            Signed Paper BOL / Cargo Photo
+                                        </p>
+                                        <p className="text-[10px] text-slate-400">Attached Delivery Proof</p>
                                     </div>
                                 </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewDocUrl(displayPod.documentPhotos![0])}
+                                    className="px-2 py-1 text-[10.5px] font-semibold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+                                >
+                                    <Eye size={12} />
+                                    <span>View Photo</span>
+                                </button>
                             </div>
                         )}
                     </div>
                 )}
+
+                {/* Document / Photo View Lightbox */}
+                {viewDocUrl && (
+                    <div
+                        className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                        onClick={() => setViewDocUrl(null)}
+                    >
+                        <div
+                            className="relative max-w-4xl max-h-[90vh] bg-[#12161c] rounded-[4px] border border-slate-800 overflow-hidden flex flex-col shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-white">
+                                <span className="text-xs font-bold flex items-center gap-2">
+                                    <FileCheck size={15} className="text-emerald-500" />
+                                    Proof of Delivery Sign-Off Document
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewDocUrl(null)}
+                                    className="p-1 text-slate-400 hover:text-white rounded cursor-pointer"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            <div className="p-3 flex-1 overflow-auto flex items-center justify-center max-h-[calc(90vh-50px)]">
+                                <img
+                                    src={viewDocUrl}
+                                    alt="POD Document"
+                                    className="max-w-full max-h-[80vh] object-contain rounded"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Compliance Footer (Aligned Key : Value with Highlighted Colon) */}
-            <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#15191e]/50 text-xs">
-                <div className="grid grid-cols-[130px_14px_1fr] items-center min-w-0">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1 text-[11px]">
-                        <ShieldCheck size={12} className="text-emerald-600" />
-                        <span>Compliance</span>
+            {/* Compliance Footer */}
+            <div className="px-4 py-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#15191e]/50 text-xs">
+                <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 text-[11px]">
+                        <ShieldCheck size={13} className="text-emerald-600" />
+                        <span>Driver Compliance</span>
                     </span>
-                    <span className="text-[#FF4A1F] font-bold text-center select-none text-[11px] shrink-0">:</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">Verified Active</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">
+                        Verified Active
+                    </span>
                 </div>
             </div>
         </div>

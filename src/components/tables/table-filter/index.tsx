@@ -33,13 +33,13 @@ export default function TableFilter({
             {/* Filter Toggle Button */}
             <button
                 onClick={onFilterClick}
-                className={`h-[32px] px-3 rounded-[3px] border text-[12px] font-bold flex items-center gap-1.5 transition-all outline-none shadow-none cursor-pointer ${isFilterOpen || isFiltered
+                className={`h-[32px] px-2.5 xs:px-3 rounded-[3px] border text-[12px] font-bold flex items-center gap-1.5 transition-all outline-none shadow-none cursor-pointer ${isFilterOpen || isFiltered
                     ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 border-orange-200 dark:border-orange-500/40 text-[#FF4A1F]'
                     : 'bg-slate-50/50 dark:bg-[#1e2329] border-slate-200/80 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 hover:bg-slate-100/60 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600'
                     }`}
             >
                 <SlidersHorizontal size={14} className={isFilterOpen || isFiltered ? 'text-[#FF4A1F]' : 'text-slate-500 dark:text-slate-400'} />
-                <span>Filters</span>
+                <span className="hidden xs:inline">Filters</span>
                 {(isFilterOpen || isFiltered) && (
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF4A1F] ml-0.5" />
                 )}

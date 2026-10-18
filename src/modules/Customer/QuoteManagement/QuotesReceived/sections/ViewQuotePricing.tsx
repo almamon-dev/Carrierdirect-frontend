@@ -28,13 +28,13 @@ export const ViewQuotePricing: React.FC<ViewQuotePricingProps> = ({
     const supplier = quote.supplier || {};
 
     // User details (NO email, NO password)
-    const requesterName = customer.name || req.customer_name || req.user_name || 'Direct Customer';
+    const requesterName = customer.name || req.customer_name || req.user_name || '-';
     const requesterCompany = customer.company_name || req.company_name || 'Enterprise Shipper';
     const requesterPhone = customer.phone || req.customer_phone || req.phone || '+49 30 1234567';
     const requesterCity = customer.city || req.pickup_city || 'Berlin, Germany';
 
     const carrierName = quote.supplier_name || supplier.company_name || supplier.name || 'Verified Carrier';
-    const carrierRating = quote.rating || supplier.rating || '4.8';
+    const carrierRating = quote.rating !== undefined && quote.rating !== null ? Number(quote.rating).toFixed(1) : (supplier.rating !== undefined && supplier.rating !== null ? Number(supplier.rating).toFixed(1) : '5.0');
 
     // Pricing calculations
     const targetBudgetNum = parseFloat(String(req.budget || req.target_budget || req.price || 0).replace(/[^0-9.]/g, '')) || 0;
@@ -57,7 +57,7 @@ export const ViewQuotePricing: React.FC<ViewQuotePricingProps> = ({
                 <ViewField
                     label="Quote Reference"
                     value={
-                        <span className="font-mono text-[#ff4a1f] font-bold bg-orange-50 dark:bg-[#ff4a1f]/10 px-2 py-0.5 rounded-[5px] text-xs">
+                        <span className="font-mono text-[#ff4a1f] font-bold bg-orange-50 dark:bg-[#ff4a1f]/10 px-2 py-0.5 rounded-[3px] text-xs">
                             {quote.quote_id || `QT-${cleanQuoteId || '0000'}`}
                         </span>
                     }
@@ -65,7 +65,7 @@ export const ViewQuotePricing: React.FC<ViewQuotePricingProps> = ({
                 <ViewField
                     label="Offer Status"
                     value={
-                        <Badge variant={isPending ? 'warning' : 'secondary'} className="text-[10.5px] font-semibold rounded-[5px]">
+                        <Badge variant={isPending ? 'warning' : 'secondary'} className="text-[10.5px] font-semibold rounded-[3px]">
                             {quote.status || 'Pending Review'}
                         </Badge>
                     }
@@ -91,7 +91,7 @@ export const ViewQuotePricing: React.FC<ViewQuotePricingProps> = ({
                     value={
                         <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-100">
                             <span>{requesterName}</span>
-                            <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.2 rounded-[5px]">
+                            <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.2 rounded-[3px]">
                                 Shipper
                             </span>
                         </div>

@@ -43,27 +43,42 @@ export const mapRawChatMessages = (
             textContent.toLowerCase().includes('submitted a revised offer') ||
             textContent.toLowerCase().includes('revised offer of');
 
-        const rawNegotiation = (activeNegotiation as any)?.raw || {};
-        const isExplicitlyNotRevised = rawNegotiation.revision_status === 'none' || (activeNegotiation as any).revision_status === 'none' || (activeNegotiation as any).revisionStatus === 'none';
-        const isRevisedOffer = !isExplicitlyNotRevised && Boolean(
-            rawNegotiation.revision_status === 'revised' ||
-            rawNegotiation.revision_status === 'pending' ||
-            (activeNegotiation as any).revision_status === 'pending' ||
-            (activeNegotiation as any).revision_status === 'revised' ||
-            (activeNegotiation as any).revisionStatus === 'pending' ||
-            (activeNegotiation as any).revisionStatus === 'revised' ||
-            (rawNegotiation.revised_amount !== undefined && rawNegotiation.revised_amount !== null && Number(rawNegotiation.revised_amount) > 0) ||
+        const isSupplierOffer = Boolean(
+            m.sender_type === 'supplier' ||
+            (m.sender_id && (activeNegotiation as any)?.raw?.user_id && m.sender_id === (activeNegotiation as any).raw.user_id) ||
+            isSent
+        );
+
+        const msgHasPrev = Boolean(
+            (m.previous_amount !== undefined && m.previous_amount !== null && Number(m.previous_amount) > 0) ||
+            (m.previousTotal !== undefined && m.previousTotal !== null && Number(m.previousTotal) > 0)
+        );
+        const textIsRevised = textContent.toLowerCase().includes('submitted a revised offer') || textContent.toLowerCase().includes('revised offer of');
+        const isRevisedOffer = Boolean(
             rawType === 'revised_offer' ||
             m.type === 'revised_offer' ||
             m.message_type === 'revised_offer' ||
             (m.revision_status && m.revision_status !== 'none') ||
-            textContent.toLowerCase().includes('submitted a revised offer') ||
-            textContent.toLowerCase().includes('revised offer of')
+            textIsRevised ||
+            (isSupplierOffer && msgHasPrev)
+        );
+
+        const isCounterOffer = Boolean(
+            rawType === 'counter_offer' ||
+            rawType === 'counter-offer' ||
+            m.message_type === 'counter_offer' ||
+            m.type === 'counter_offer' ||
+            textContent.toLowerCase().includes('submitted a counter offer') ||
+            textContent.toLowerCase().includes('counter offer of') ||
+            (!isSupplierOffer && msgHasPrev)
         );
 
         const offerTitle = isRevisedOffer
             ? (isSent ? 'Revised Offer Submitted' : 'Revised Offer Received')
-            : (isSent ? 'Quotation Offer Submitted' : 'Counter Offer Received');
+            : (isCounterOffer
+                ? (isSent ? 'Counter Offer Submitted' : 'Counter Offer Received')
+                : (isSent ? 'Quotation Offer Submitted' : 'Quotation Offer Received')
+            );
 
         const isSystem = rawType === 'system' || textContent.startsWith('✅') || textContent.startsWith('❌') || textContent.startsWith('Offer Accepted') || textContent.startsWith('Payment completed!') || textContent.startsWith('Booking confirmed!');
         const isQuoteRequest = rawType === 'quote_request';
@@ -71,7 +86,9 @@ export const mapRawChatMessages = (
         const msgType = isSystem ? 'system' : (isQuoteRequest ? 'quote_request' : (isOffer ? 'offer' : (isSent ? 'sent' : 'received')));
 
         const proposedAmt = m.proposed_amount ? Number(m.proposed_amount) : (m.newTotal ? Number(m.newTotal) : (m.amount ? Number(m.amount) : undefined));
-        const prevAmt = m.previous_amount ? Number(m.previous_amount) : (m.previousTotal ? Number(m.previousTotal) : (activeNegotiation?.currentOffer || activeNegotiation?.originalAmount || undefined));
+        const prevAmt = (m.previous_amount !== undefined && m.previous_amount !== null && Number(m.previous_amount) > 0)
+            ? Number(m.previous_amount)
+            : ((m.previousTotal !== undefined && m.previousTotal !== null && Number(m.previousTotal) > 0) ? Number(m.previousTotal) : undefined);
 
         return {
             id: m.id || `msg-${Date.now()}-${Math.random()}`,

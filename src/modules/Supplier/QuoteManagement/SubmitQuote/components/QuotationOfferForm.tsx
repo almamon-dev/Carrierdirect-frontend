@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Send, Truck } from 'lucide-react';
-import Button from '@/components/ui/button';
+import CompliancePendingModal from '@/components/common/CompliancePendingModal';
+import SupplierAccountConnectModal from '@/components/modals/supplier-connect-modal';
 import Input from '@/components/ui/input';
 import FormLabel from '@/components/ui/label';
+import { X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QuoteRequest } from '../../data/quoteRequestsData';
-import { ExtraChargesSection, ExtraChargeItem } from './ExtraChargesSection';
-import { CommercialRemarksSection } from './CommercialRemarksSection';
-import SupplierAccountConnectModal from '@/components/modals/supplier-connect-modal';
-import CompliancePendingModal from '@/components/common/CompliancePendingModal';
+import { SubmissionMeta, useQuoteSubmit } from '../hooks/useQuoteSubmit';
 import { useStripeConnectCheck } from '../hooks/useStripeConnectCheck';
-import { useQuoteSubmit, SubmissionMeta } from '../hooks/useQuoteSubmit';
+import { CommercialRemarksSection } from './CommercialRemarksSection';
+import { ExtraChargeItem, ExtraChargesSection } from './ExtraChargesSection';
 import { OfferFormHeader } from './OfferFormHeader';
+import { OfferSubmitButtons } from './OfferSubmitButtons';
 import { OfferTermsSection } from './OfferTermsSection';
 import { PriceBreakdownCard } from './PriceBreakdownCard';
 
@@ -20,12 +20,16 @@ export type { SubmissionMeta };
 interface QuotationOfferFormProps {
     slug?: string;
     requestDetails: QuoteRequest;
+    isEditing?: boolean;
+    onCancelEdit?: () => void;
     onSubmittedSuccess: (total: string, meta?: SubmissionMeta) => void;
 }
 
 export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
     slug,
     requestDetails,
+    isEditing = false,
+    onCancelEdit,
     onSubmittedSuccess,
 }) => {
     const navigate = useNavigate();
@@ -58,12 +62,14 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
 
     useEffect(() => {
         const submitted = (requestDetails as any).quote_submitted;
-        if (submitted && submitted.amount) {
-            setPrice(String(submitted.amount));
+        if (submitted && (submitted.base_amount || submitted.amount)) {
+            setPrice(String(submitted.base_amount || submitted.amount));
             if (submitted.notes) setNotes(submitted.notes);
             if (submitted.extra_charges && Array.isArray(submitted.extra_charges)) {
                 setExtraCharges(submitted.extra_charges);
             }
+            if (submitted.validity) setValidity(submitted.validity);
+            if (submitted.payment_term) setPaymentTerm(submitted.payment_term);
         } else if (!price && requestDetails.budget && requestDetails.budget !== '—' && requestDetails.budget !== 'Open / Flexible' && requestDetails.budget !== 'Negotiable') {
             const numeric = requestDetails.budget.replace(/[^0-9.]/g, '');
             if (numeric && parseFloat(numeric) > 0) setPrice(numeric);
@@ -98,8 +104,25 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
     const totalAmountNum = parseFloat(calculateTotal()) || 0;
 
     return (
-        <div
-    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xs p-3 sm:p-4 space-y-3 sticky top-6 font-sans w-full overflow-hidden">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs p-3.5 sm:p-4 space-y-3 sticky top-6 font-sans w-full overflow-hidden">
+            {isEditing && (
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+                    <span className="font-bold text-slate-800 dark:text-slate-200">
+                        Editing Your Offer
+                    </span>
+                    {onCancelEdit && (
+                        <button
+                            type="button"
+                            onClick={onCancelEdit}
+                            className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+                        >
+                            <X size={13} />
+                            <span>Cancel</span>
+                        </button>
+                    )}
+                </div>
+            )}
+
             <OfferFormHeader
                 requestId={requestDetails.id}
                 isWon={isWon}
@@ -156,31 +179,15 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
                 />
             )}
 
-            <div className="pt-1 space-y-1">
-                {isWon ? (
-                    <Button 
-                        variant="primary" 
-                        className="w-full h-8.5 sm:h-9 text-xs font-semibold shadow-2xs rounded-[3px] flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
-                        icon={<Truck size={13} />}
-                        onClick={() => navigate('/supplier/orders/active-jobs')}
-                    >
-                        View Order in Active Jobs
-                    </Button>
-                ) : (
-                    <Button 
-                        variant="primary" 
-                        className={`w-full h-8.5 sm:h-9 text-xs font-semibold shadow-2xs rounded-[3px] flex items-center justify-center gap-1.5 ${
-                            isExpired ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed' : 'bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer'
-                        }`}
-                        icon={!isSubmitting && !isExpired ? <Send size={12} /> : undefined}
-                        isLoading={isSubmitting}
-                        onClick={handleSubmit}
-                        disabled={isExpired || totalAmountNum <= 0 || isSubmitting}
-                    >
-                        {isExpired ? 'Quote Request Expired (Closed)' : totalAmountNum > 0 ? `Submit Commercial Offer (€ ${totalAmountNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})` : 'Submit Commercial Offer'}
-                    </Button>
-                )}
-            </div>
+            <OfferSubmitButtons
+                isWon={isWon}
+                isExpired={isExpired}
+                isEditing={isEditing}
+                onCancelEdit={onCancelEdit}
+                isSubmitting={isSubmitting}
+                totalAmountNum={totalAmountNum}
+                onSubmit={handleSubmit}
+            />
 
             <SupplierAccountConnectModal isOpen={showConnectModal} onClose={() => setShowConnectModal(false)} requestId={requestDetails.id} />
             <CompliancePendingModal isOpen={showComplianceModal} onClose={() => setShowComplianceModal(false)} />

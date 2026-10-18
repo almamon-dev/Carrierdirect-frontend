@@ -49,7 +49,7 @@ export default function SupplierAccountConnectModal({
 
     const handleConnectClick = () => {
         onClose();
-        navigate('/supplier/finance/withdrawal');
+        navigate('/supplier/wallet/connected-account');
     };
 
     const steps = [

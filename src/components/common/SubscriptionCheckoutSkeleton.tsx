@@ -32,7 +32,7 @@ export const SubscriptionCheckoutSkeleton: React.FC<SubscriptionCheckoutSkeleton
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="space-y-1.5">
-                <Skeleton className="h-4.5 w-36 rounded-[3px]" />
+                <Skeleton className="h-[18px] w-36 rounded-[3px]" />
                 <Skeleton className="h-3 w-64 rounded-[2px]" />
               </div>
               <Skeleton className="h-6 w-28 rounded-[3px]" />
@@ -86,7 +86,7 @@ export const SubscriptionCheckoutSkeleton: React.FC<SubscriptionCheckoutSkeleton
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Skeleton className="w-6 h-6 rounded-[3px]" />
-                  <Skeleton className="h-4.5 w-36 rounded-[3px]" />
+                  <Skeleton className="h-[18px] w-36 rounded-[3px]" />
                 </div>
                 <Skeleton className="h-5 w-32 rounded-[3px]" />
               </div>
@@ -123,7 +123,7 @@ export const SubscriptionCheckoutSkeleton: React.FC<SubscriptionCheckoutSkeleton
                 <Skeleton className="h-3.5 w-12 rounded-[2px]" />
               </div>
               <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-                <Skeleton className="h-4.5 w-28 rounded-[2px]" />
+                <Skeleton className="h-[18px] w-28 rounded-[2px]" />
                 <Skeleton className="h-5 w-20 rounded-[3px]" />
               </div>
             </div>

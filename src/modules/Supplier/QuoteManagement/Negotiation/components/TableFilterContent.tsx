@@ -66,10 +66,12 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                         showSearch={false}
                     >
                         <option value="all">All Statuses</option>
+                        <option value="booked">Booked</option>
                         <option value="counter received">Counter Received</option>
                         <option value="counter offer sent">Counter Offer Sent</option>
-                        <option value="under review">Under Review</option>
                         <option value="accepted">Accepted</option>
+                        <option value="completed">Completed</option>
+                        <option value="closed">Closed</option>
                         <option value="negotiation">Negotiation</option>
                     </Select>
                 </div>

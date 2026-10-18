@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Star, CheckCircle2, X, MessageSquare, Loader2, Sparkles } from 'lucide-react';
+import { Star, X, MessageSquare, Loader2, Sparkles } from 'lucide-react';
+import { QUICK_TAGS_SUPPLIER, QUICK_TAGS_CUSTOMER } from './ratingModalConstants';
+import { RatingModalStars } from './RatingModalStars';
+import { RatingSuccessView } from './RatingSuccessView';
 
 export interface RatingModalProps {
   isOpen: boolean;
@@ -12,22 +15,6 @@ export interface RatingModalProps {
   orderTitle?: string;
 }
 
-const QUICK_TAGS_SUPPLIER = [
-  'Punctual Delivery',
-  'Careful Handling',
-  'Great Communication',
-  'Professional Driver',
-  'Fair Pricing'
-];
-
-const QUICK_TAGS_CUSTOMER = [
-  'Fast Payment',
-  'Accurate Cargo Details',
-  'Easy Communication',
-  'Ready at Pickup',
-  'Polite & Professional'
-];
-
 export default function RatingModal({
   isOpen,
   onClose,
@@ -35,7 +22,6 @@ export default function RatingModal({
   orderId = '',
   targetName = 'Supplier',
   targetRole = 'Supplier',
-  orderTitle = 'Logistics Cargo Dispatch'
 }: RatingModalProps) {
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
@@ -44,7 +30,6 @@ export default function RatingModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
-  // Format order ID gracefully (e.g. "2" becomes "ORD-0002")
   const formattedOrderId = useMemo(() => {
     if (!orderId && orderId !== 0) return '';
     const str = String(orderId).trim();
@@ -85,26 +70,6 @@ export default function RatingModal({
     }
   };
 
-  const getRatingFeedback = (val: number) => {
-    switch (val) {
-      case 5:
-        return { label: 'Outstanding Experience', score: '5.0', color: 'text-amber-500' };
-      case 4:
-        return { label: 'Very Good Service', score: '4.0', color: 'text-amber-500' };
-      case 3:
-        return { label: 'Average Experience', score: '3.0', color: 'text-amber-600' };
-      case 2:
-        return { label: 'Needs Improvement', score: '2.0', color: 'text-orange-500' };
-      case 1:
-        return { label: 'Poor Experience', score: '1.0', color: 'text-red-500' };
-      default:
-        return { label: 'Select Rating', score: `${val}.0`, color: 'text-slate-500' };
-    }
-  };
-
-  const activeRating = hoverRating !== null ? hoverRating : rating;
-  const feedback = getRatingFeedback(activeRating);
-
   return createPortal(
     <div className="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 font-sans animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#1e2329] rounded-xl max-w-[390px] w-full border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
@@ -140,56 +105,15 @@ export default function RatingModal({
         </div>
 
         {isSubmitted ? (
-          <div className="py-8 px-5 flex flex-col items-center justify-center text-center space-y-2">
-            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center animate-in zoom-in-75 duration-200">
-              <CheckCircle2 size={22} />
-            </div>
-            <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Rating Submitted!</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs">
-              Thank you! Your feedback for <strong className="text-slate-700 dark:text-slate-200">{targetName}</strong> has been successfully recorded.
-            </p>
-          </div>
+          <RatingSuccessView targetName={targetName} />
         ) : (
           <form onSubmit={handleSubmit} className="p-3.5 space-y-3 text-xs">
-            {/* Interactive Rating Section */}
-            <div className="flex flex-col items-center justify-center py-2 px-3 bg-slate-50/70 dark:bg-slate-900/40 rounded-lg border border-slate-100 dark:border-slate-800/80 space-y-1">
-              <span className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400">
-                Tap a star to rate
-              </span>
-              <div className="flex items-center gap-1.5">
-                {[1, 2, 3, 4, 5].map((star) => {
-                  const isFilled = star <= activeRating;
-                  return (
-                    <button
-                      key={star}
-                      type="button"
-                      onMouseEnter={() => setHoverRating(star)}
-                      onMouseLeave={() => setHoverRating(null)}
-                      onClick={() => setRating(star)}
-                      className="p-0.5 cursor-pointer hover:scale-115 transition-transform"
-                    >
-                      <Star
-                        size={21}
-                        className={`transition-colors ${
-                          isFilled
-                            ? 'fill-amber-400 text-amber-400'
-                            : 'text-slate-300 dark:text-slate-700 hover:text-amber-200'
-                        }`}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="flex items-center gap-1.5 pt-0.5">
-                <span className={`text-[11px] font-bold ${feedback.color}`}>
-                  {feedback.score}
-                </span>
-                <span className="text-slate-400">•</span>
-                <span className={`text-[11px] font-semibold ${feedback.color}`}>
-                  {feedback.label}
-                </span>
-              </div>
-            </div>
+            <RatingModalStars
+              rating={rating}
+              hoverRating={hoverRating}
+              onRatingChange={setRating}
+              onHoverChange={setHoverRating}
+            />
 
             {/* Quick Highlight Tags */}
             <div className="space-y-1">

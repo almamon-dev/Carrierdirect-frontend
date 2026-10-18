@@ -1,24 +1,39 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import apiClient from '@/lib/axios';
+import { useState, useRef, useEffect } from 'react';
+import { echo } from '@/lib/echo';
 import { CustomerChatItem, CustomerChatMessage } from '../types';
 import { generateCustomerInitialMessages } from '../utils/customerChatUtils';
 import { mapRawCustomerChatMessages } from '../utils/customerChatMessageMapper';
 import { useCustomerOfferActions } from './useCustomerOfferActions';
+import { useCustomerChatTyping } from './useCustomerChatTyping';
+import {
+    fetchCustomerMessagesApi,
+    markCustomerNegotiationSeenApi,
+    sendCustomerMessageApi,
+    editCustomerMessageApi,
+    pinCustomerMessageApi,
+    deleteCustomerMessageApi
+} from './customerChatMessageApi';
 
-export function useCustomerChatMessages(activeChat: CustomerChatItem | null, allNegotiations: any[]) {
+export function useCustomerChatMessages(activeChat: CustomerChatItem | null, _allNegotiations: any[]) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [inputValue, setInputValue] = useState('');
     const [editingMsgId, setEditingMsgId] = useState<number | string | null>(null);
-    const [editingText, setEditingText] = useState('');
-    const [isSupplierTyping, setIsSupplierTyping] = useState(false);
+    const [, setEditingText] = useState('');
 
     const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     const activeChatId = activeChat?.id || '';
 
     const [isMessagesLoading, setIsMessagesLoading] = useState<boolean>(true);
     const hasLoadedFromApiRef = useRef<Set<string | number>>(new Set());
-
     const [chatMessages, setChatMessages] = useState<Record<string | number, CustomerChatMessage[]>>({});
+
+    const {
+        isSupplierTyping,
+        setIsSupplierTyping,
+        notifyTyping,
+        pollTypingStatus,
+        typingAutoClearTimerRef
+    } = useCustomerChatTyping(activeChatId);
 
     const updateMessagesForActiveChat = (updater: (prev: CustomerChatMessage[]) => CustomerChatMessage[]) => {
         if (!activeChatId) return;
@@ -28,64 +43,15 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
         });
     };
 
-    // Typing debounce and receiver timeout refs
-    const typingInactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const lastTypingSentRef = useRef<number>(0);
-    const typingAutoClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const notifyTyping = useCallback((isTyping = true) => {
-        if (!activeChatId) return;
-
-        if (!isTyping) {
-            if (typingInactivityTimerRef.current) {
-                clearTimeout(typingInactivityTimerRef.current);
-                typingInactivityTimerRef.current = null;
-            }
-            lastTypingSentRef.current = 0;
-            apiClient.post(`/customer/negotiations/${activeChatId}/typing`, { is_typing: false }).catch(() =>
-                apiClient.post(`/negotiations/${activeChatId}/typing`, { is_typing: false }).catch(() => {})
-            );
-            return;
-        }
-
-        const now = Date.now();
-        if (now - lastTypingSentRef.current >= 1500) {
-            lastTypingSentRef.current = now;
-            apiClient.post(`/customer/negotiations/${activeChatId}/typing`, { is_typing: true }).catch(() =>
-                apiClient.post(`/negotiations/${activeChatId}/typing`, { is_typing: true }).catch(() => {})
-            );
-        }
-
-        if (typingInactivityTimerRef.current) clearTimeout(typingInactivityTimerRef.current);
-        typingInactivityTimerRef.current = setTimeout(() => {
-            lastTypingSentRef.current = 0;
-            apiClient.post(`/customer/negotiations/${activeChatId}/typing`, { is_typing: false }).catch(() =>
-                apiClient.post(`/negotiations/${activeChatId}/typing`, { is_typing: false }).catch(() => {})
-            );
-        }, 2500);
-    }, [activeChatId]);
-
     useEffect(() => {
         if (!activeChatId || !activeChat) return;
 
-        // Reset typing state on chat change
-        setIsSupplierTyping(false);
-        if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
-
         const alreadyLoaded = hasLoadedFromApiRef.current.has(activeChatId) || hasLoadedFromApiRef.current.has(String(activeChatId));
-        if (!alreadyLoaded) {
-            setIsMessagesLoading(true);
-        }
+        if (!alreadyLoaded) setIsMessagesLoading(true);
 
-        const fetchMessagesFromApi = async () => {
+        const fetchMessages = async () => {
             try {
-                let res;
-                try {
-                    res = await apiClient.get(`/customer/negotiations/${activeChatId}/messages`);
-                } catch {
-                    res = await apiClient.get(`/negotiations/${activeChatId}/messages`);
-                }
-
+                const res = await fetchCustomerMessagesApi(activeChatId);
                 const rawData = res?.data?.data || res?.data || res;
                 const rawMsgs = rawData?.all_messages || rawData?.messages || res?.data?.all_messages || res?.all_messages || (Array.isArray(rawData) ? rawData : []);
                 const quoteObj = rawData?.quote || rawData?.original_quote || res?.data?.quote || activeChat?.raw;
@@ -94,43 +60,41 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
                 const isQuoteRejected = quoteObj?.status === 'rejected' || quoteObj?.status === 'declined' || activeChat?.raw?.status === 'rejected';
                 const quoteDeclineReason = quoteObj?.decline_reason || quoteObj?.declineReason || activeChat?.raw?.decline_reason;
 
-                const supplierObj = rawData?.supplier;
-                if (supplierObj && activeChat) {
-                    if (supplierObj.is_online !== undefined) {
-                        activeChat.isOnline = Boolean(supplierObj.is_online);
-                    }
-                    if (supplierObj.last_seen_human) {
-                        activeChat.lastSeenHuman = supplierObj.last_seen_human;
-                    }
+                if (rawData?.supplier && activeChat) {
+                    if (rawData.supplier.is_online !== undefined) activeChat.isOnline = Boolean(rawData.supplier.is_online);
+                    if (rawData.supplier.last_seen_human) activeChat.lastSeenHuman = rawData.supplier.last_seen_human;
                 }
 
-                if (quoteObj && activeChat) {
-                    if (Array.isArray(quoteObj.extra_charges) && quoteObj.extra_charges.length > 0) {
-                        const freshCharges = quoteObj.extra_charges.map((c: any) => ({
-                            id: c.id,
-                            type: c.type || c.custom_name || c.customName || "Custom",
-                            custom_name: c.custom_name || c.customName || c.type || "Custom",
-                            label: c.type === "Custom" ? (c.custom_name || "Custom") : (c.custom_name || c.type),
-                            amount: Number(c.amount || 0)
-                        })).filter((c: any) => c.amount > 0);
-                        activeChat.extraCharges = freshCharges;
-                        activeChat.totalExtras = freshCharges.reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
-                    }
+                if (quoteObj && activeChat && Array.isArray(quoteObj.extra_charges) && quoteObj.extra_charges.length > 0) {
+                    const freshCharges = quoteObj.extra_charges.map((c: any) => ({
+                        id: c.id,
+                        type: c.type || c.custom_name || c.customName || "Custom",
+                        custom_name: c.custom_name || c.customName || c.type || "Custom",
+                        label: c.type === "Custom" ? (c.custom_name || "Custom") : (c.custom_name || c.type),
+                        amount: Number(c.amount || 0)
+                    })).filter((c: any) => c.amount > 0);
+                    activeChat.extraCharges = freshCharges;
+                    activeChat.totalExtras = freshCharges.reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
                 }
+
                 if (rawData?.is_supplier_typing !== undefined || rawData?.is_typing !== undefined) {
                     const isTypingNow = Boolean(rawData?.is_supplier_typing ?? rawData?.is_typing);
                     setIsSupplierTyping(isTypingNow);
                     if (isTypingNow) {
                         if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
-                        typingAutoClearTimerRef.current = setTimeout(() => {
-                            setIsSupplierTyping(false);
-                        }, 3500);
+                        typingAutoClearTimerRef.current = setTimeout(() => setIsSupplierTyping(false), 3500);
                     }
                 }
 
                 if (Array.isArray(rawMsgs) && rawMsgs.length > 0) {
                     const finalMessages = mapRawCustomerChatMessages(rawMsgs, activeChat, isQuoteAccepted, isQuoteRejected, quoteDeclineReason);
-                    setChatMessages(prev => ({ ...prev, [activeChatId]: finalMessages, [String(activeChatId)]: finalMessages }));
+                    setChatMessages(prev => {
+                        const existing = prev[activeChatId] || [];
+                        if (existing.length === finalMessages.length && existing[existing.length - 1]?.id === finalMessages[finalMessages.length - 1]?.id) {
+                            return prev; // Do not trigger state update if messages are unchanged
+                        }
+                        return { ...prev, [activeChatId]: finalMessages, [String(activeChatId)]: finalMessages };
+                    });
                 } else if (activeChat) {
                     const finalMessages = generateCustomerInitialMessages(activeChat);
                     setChatMessages(prev => ({ ...prev, [activeChatId]: finalMessages, [String(activeChatId)]: finalMessages }));
@@ -147,38 +111,36 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
             }
         };
 
-        const pollTypingStatus = async () => {
-            try {
-                const res = await apiClient.get(`/customer/negotiations/${activeChatId}/typing`).catch(() =>
-                    apiClient.get(`/negotiations/${activeChatId}/typing`)
-                );
-                const raw = res?.data?.data || res?.data || res;
-                if (raw?.is_supplier_typing !== undefined || raw?.is_typing !== undefined) {
-                    const isTypingNow = Boolean(raw?.is_supplier_typing ?? raw?.is_typing);
-                    setIsSupplierTyping(isTypingNow);
-                    if (isTypingNow) {
-                        if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
-                        typingAutoClearTimerRef.current = setTimeout(() => {
-                            setIsSupplierTyping(false);
-                        }, 3500);
-                    }
-                }
-            } catch {}
-        };
+        fetchMessages();
+        markCustomerNegotiationSeenApi(activeChatId);
 
-        fetchMessagesFromApi();
-        apiClient.post(`/customer/negotiations/${activeChatId}/seen`).catch(() => apiClient.post(`/negotiations/${activeChatId}/seen`).catch(() => {}));
-        
-        const messageTimer = setInterval(fetchMessagesFromApi, 3000);
-        const typingTimer = setInterval(pollTypingStatus, 1500);
+        // Real-Time Reverb WebSocket Listener
+        const cleanQuoteId = String(activeChatId).replace(/[^0-9]/g, '');
+        let quoteChannel: any = null;
+        if (cleanQuoteId) {
+            try {
+                quoteChannel = echo.private(`chat.quote.${cleanQuoteId}`);
+                quoteChannel.listen('.message.sent', () => {
+                    fetchMessages();
+                    setTimeout(scrollToBottom, 100);
+                });
+            } catch (err) {
+                console.warn('Echo quote channel error:', err);
+            }
+        }
+
+        // Relaxed fallback polling (20s) instead of aggressive 3s
+        const messageTimer = setInterval(fetchMessages, 20000);
+        const typingTimer = setInterval(pollTypingStatus, 3000);
 
         return () => {
             clearInterval(messageTimer);
             clearInterval(typingTimer);
-            if (typingAutoClearTimerRef.current) clearTimeout(typingAutoClearTimerRef.current);
-            if (typingInactivityTimerRef.current) clearTimeout(typingInactivityTimerRef.current);
+            if (quoteChannel) {
+                quoteChannel.stopListening('.message.sent');
+            }
         };
-    }, [activeChatId, activeChat?.raw?.status]);
+    }, [activeChatId, activeChat?.raw?.status, pollTypingStatus, setIsSupplierTyping, typingAutoClearTimerRef]);
 
     const { handleSendCounterOffer: baseSendCounterOffer, handleAcceptOffer, handleRejectOffer } = useCustomerOfferActions({
         activeChatId,
@@ -205,11 +167,7 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
             setEditingMsgId(null); setEditingText(''); setInputValue('');
 
             if (typeof targetEditId === 'number' || (typeof targetEditId === 'string' && /^\d+$/.test(targetEditId))) {
-                try {
-                    await apiClient.patch(`/negotiations/${activeChatId}/messages/${targetEditId}`, { message: text }).catch(() =>
-                        apiClient.put(`/negotiations/${activeChatId}/messages/${targetEditId}`, { message: text }).catch(() => {})
-                    );
-                } catch {}
+                await editCustomerMessageApi(activeChatId, targetEditId, text);
             }
             return;
         }
@@ -231,44 +189,20 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
         setInputValue('');
         setTimeout(scrollToBottom, 100);
 
-        try {
-            const formData = new FormData();
-            formData.append('quote_id', String(activeChatId));
-            formData.append('negotiation_id', String(activeChatId));
-            formData.append('message', text || '');
-            formData.append('text', text || '');
-            if (hasFiles) files!.forEach(f => formData.append('attachments[]', f));
-            await apiClient.post(`/customer/negotiations/${activeChatId}/messages`, formData).catch(() => apiClient.post(`/negotiations/${activeChatId}/messages`, formData));
-        } catch {}
+        await sendCustomerMessageApi(activeChatId, text, files);
     };
 
     const handleTogglePinMessage = async (msgId: number | string) => {
-        updateMessagesForActiveChat(prev =>
-            prev.map(m => m.id === msgId ? { ...m, isPinned: !m.isPinned } : m)
-        );
-
+        updateMessagesForActiveChat(prev => prev.map(m => m.id === msgId ? { ...m, isPinned: !m.isPinned } : m));
         if (typeof msgId === 'number' || (typeof msgId === 'string' && /^\d+$/.test(msgId))) {
-            try {
-                await apiClient.post(`/customer/negotiations/${activeChatId}/messages/${msgId}/pin`).catch(() =>
-                    apiClient.post(`/negotiations/${activeChatId}/messages/${msgId}/pin`).catch(() =>
-                        apiClient.post(`/negotiations/messages/${msgId}/pin`).catch(() => {})
-                    )
-                );
-            } catch {}
+            await pinCustomerMessageApi(activeChatId, msgId);
         }
     };
 
     const handleDeleteMessage = async (msgId: number | string) => {
-        updateMessagesForActiveChat(prev =>
-            prev.map(m => m.id === msgId ? { ...m, isDeleted: true, isPinned: false } : m)
-        );
-
+        updateMessagesForActiveChat(prev => prev.map(m => m.id === msgId ? { ...m, isDeleted: true, isPinned: false } : m));
         if (typeof msgId === 'number' || (typeof msgId === 'string' && /^\d+$/.test(msgId))) {
-            try {
-                await apiClient.delete(`/negotiations/${activeChatId}/messages/${msgId}`).catch(() =>
-                    apiClient.post(`/negotiations/${activeChatId}/messages/${msgId}/delete`).catch(() => {})
-                );
-            } catch {}
+            await deleteCustomerMessageApi(activeChatId, msgId);
         }
     };
 
@@ -276,11 +210,8 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, all
 
     return {
         messagesEndRef, inputValue, setInputValue, editingMsgId, isSupplierTyping, notifyTyping, currentMessages,
-        chatMessages,
-        isMessagesLoading,
-        scrollToBottom, handleSendMessage, handleSendCounterOffer, handleAcceptOffer, handleRejectOffer,
-        handleTogglePinMessage,
-        handleDeleteMessage,
+        chatMessages, isMessagesLoading, scrollToBottom, handleSendMessage, handleSendCounterOffer, handleAcceptOffer, handleRejectOffer,
+        handleTogglePinMessage, handleDeleteMessage,
         handleStartEdit: (msg: CustomerChatMessage) => { setEditingMsgId(msg.id); setEditingText(msg.text || ''); setInputValue(msg.text || ''); },
         handleCancelEdit: () => { setEditingMsgId(null); setEditingText(''); setInputValue(''); }
     };

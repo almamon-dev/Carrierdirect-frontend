@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
 export interface TablePaginationProps {
     total: number;
@@ -19,19 +19,6 @@ export interface TablePaginationProps {
     itemLabel?: string;
     perPageLabel?: string;
     className?: string;
-}
-
-function getPageNumbers(current: number, total: number): (number | 'ellipsis')[] {
-    if (total <= 5) {
-        return Array.from({ length: total }, (_, i) => i + 1);
-    }
-    if (current <= 3) {
-        return [1, 2, 3, 4, 'ellipsis', total];
-    }
-    if (current >= total - 2) {
-        return [1, 'ellipsis', total - 3, total - 2, total - 1, total];
-    }
-    return [1, 'ellipsis', current - 1, current, current + 1, 'ellipsis', total];
 }
 
 export default function TablePagination({
@@ -59,8 +46,6 @@ export default function TablePagination({
     const resolvedItemLabel = itemLabel || (isGrid ? 'items' : 'entries');
     const resolvedPerPageLabel = perPageLabel || (isGrid ? 'Cards per page:' : 'Rows per page:');
 
-    const pageNumbers = totalPages > 1 ? getPageNumbers(currentPage, totalPages) : [];
-
     const containerClasses = isGrid
         ? `flex items-center justify-between gap-2 px-3 py-2 bg-white dark:bg-[#12161c] rounded-[3px] border border-[#ebebeb] dark:border-slate-800 shadow-none font-sans ${className}`
         : `flex items-center justify-between gap-2 px-3 py-2 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#181d24] font-sans ${className}`;
@@ -77,41 +62,6 @@ export default function TablePagination({
                 <span className="font-bold text-slate-800 dark:text-slate-200 tabular-nums">{total}</span>
                 <span className="hidden sm:inline">{resolvedItemLabel}</span>
             </div>
-
-            {/* Center: Page Number Buttons (When multiple pages exist on desktop) */}
-            {totalPages > 1 && onPageChange && (
-                <div className="hidden md:flex items-center gap-1">
-                    {pageNumbers.map((p, idx) => {
-                        if (p === 'ellipsis') {
-                            return (
-                                <span
-                                    key={`ellipsis-${idx}`}
-                                    className="w-6 h-7 flex items-center justify-center text-slate-400 dark:text-slate-500 select-none"
-                                >
-                                    <MoreHorizontal size={13} />
-                                </span>
-                            );
-                        }
-
-                        const isActive = p === currentPage;
-                        return (
-                            <button
-                                key={p}
-                                onClick={() => onPageChange(p)}
-                                className={`w-7 h-7 flex items-center justify-center text-[11px] font-semibold rounded-[3px] transition-all cursor-pointer ${
-                                    isActive
-                                        ? 'bg-[#ff4a1f] text-white font-bold shadow-2xs'
-                                        : 'bg-slate-50/70 dark:bg-[#1e2329] border border-slate-200/80 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 hover:border-[#ff4a1f]/50 hover:text-[#ff4a1f] hover:bg-orange-50/40 dark:hover:bg-slate-800'
-                                }`}
-                                aria-label={`Go to page ${p}`}
-                                aria-current={isActive ? 'page' : undefined}
-                            >
-                                {p}
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
 
             {/* Right: Per page selector & Prev/Next buttons */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">

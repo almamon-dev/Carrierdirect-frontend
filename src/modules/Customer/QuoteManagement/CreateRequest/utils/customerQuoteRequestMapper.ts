@@ -60,25 +60,36 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
                     'Logistics Request')
         );
 
-        let finalStatus = 'In Progress';
-        let canonicalRawStatus = 'in_progress';
+        let finalStatus = 'Pending';
+        let canonicalRawStatus = 'pending';
         const rawStatusLower = String(q.raw_status || q.status_raw || q.status || '').toLowerCase();
 
-        if (hasAcceptedQuote || rawStatusLower === 'completed' || rawStatusLower === 'accepted' || rawStatusLower === 'awarded' || rawStatusLower === 'won') {
+        const hasCompletedQuote = matchingQuotes.some(item => {
+            const s = String(item.status_raw || item.status || '').toLowerCase();
+            const ost = String(item.order_status || item.order?.status || '').toLowerCase();
+            return s === 'completed' || ost === 'completed';
+        });
+
+        const isRequestCompleted = rawStatusLower === 'completed' || hasCompletedQuote || String(q.order_status || '').toLowerCase() === 'completed';
+
+        if (isRequestCompleted) {
             finalStatus = 'Completed';
             canonicalRawStatus = 'completed';
+        } else if (hasAcceptedQuote || rawStatusLower === 'accepted' || rawStatusLower === 'awarded' || rawStatusLower === 'won') {
+            finalStatus = 'Booked';
+            canonicalRawStatus = 'booked';
         } else if (rawStatusLower === 'cancelled' || rawStatusLower === 'expired' || rawStatusLower === 'closed' || rawStatusLower === 'rejected') {
-            finalStatus = 'Cancelled';
-            canonicalRawStatus = 'cancelled';
-        } else if (rawStatusLower === 'pending' || rawStatusLower === 'processing' || rawStatusLower === 'draft') {
-            finalStatus = 'Processing';
+            finalStatus = 'Expired';
+            canonicalRawStatus = 'expired';
+        } else if (rawStatusLower.includes('negotiat') || rawStatusLower === 'review') {
+            finalStatus = 'Negotiation';
+            canonicalRawStatus = 'negotiation';
+        } else if (qCount > 0) {
+            finalStatus = 'Quotes Received';
+            canonicalRawStatus = 'quotes_received';
+        } else {
+            finalStatus = 'Pending';
             canonicalRawStatus = 'pending';
-        } else if (rawStatusLower === 'in_progress' || rawStatusLower === 'in progress' || rawStatusLower === 'active' || rawStatusLower === 'bidding') {
-            finalStatus = 'In Progress';
-            canonicalRawStatus = 'in_progress';
-        } else if (q.status) {
-            finalStatus = String(q.status);
-            canonicalRawStatus = rawStatusLower;
         }
 
         return {
@@ -96,8 +107,9 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
             priority: q.priority || 'Normal',
             status: finalStatus,
             rawStatus: canonicalRawStatus,
-            badgeColor: q.badge_color || (canonicalRawStatus === "in_progress" ? "blue" : (canonicalRawStatus === "pending" ? "amber" : (canonicalRawStatus === "completed" ? "emerald" : "rose"))),
+            badgeColor: q.badge_color || (canonicalRawStatus === "won" ? "emerald" : (canonicalRawStatus === "quotes_received" ? "blue" : (canonicalRawStatus === "negotiation" ? "purple" : (canonicalRawStatus === "expired" ? "rose" : "amber")))),
             hasAcceptedQuote: hasAcceptedQuote,
+            isCompleted: isRequestCompleted,
             quotesReceived: qCount,
             type: q.shipment_type || 'FTL',
             load: q.load_type || q.type_of_pallets || 'Pallets',

@@ -19,9 +19,9 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
                 {/* Customer Test Account */}
                 <button
                     type="button"
-                    onClick={() => onSelect('customer@gmail.com', 'password')}
+                    onClick={() => onSelect('aidanalltrainedup@gmail.com', '12345678')}
                     className="flex items-center gap-1.5 p-2 bg-blue-50/70 hover:bg-blue-100/70 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 border border-blue-100 hover:border-blue-300 dark:border-blue-800/50 rounded-[3px] transition-all text-left group cursor-pointer"
-                    title="customer@gmail.com • password"
+                    title="aidanalltrainedup@gmail.com • 12345678"
                 >
                     <div className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center shrink-0">
                         <User size={11} />
@@ -34,9 +34,9 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
                 {/* Supplier Test Account */}
                 <button
                     type="button"
-                    onClick={() => onSelect('supplier@gmail.com', 'password')}
+                    onClick={() => onSelect('freightforwarder78@gmail.com', '12345678')}
                     className="flex items-center gap-1.5 p-2 bg-amber-50/70 hover:bg-amber-100/70 dark:bg-amber-950/30 dark:hover:bg-amber-900/40 border border-amber-100 hover:border-amber-300 dark:border-amber-800/50 rounded-[3px] transition-all text-left group cursor-pointer"
-                    title="supplier@gmail.com • password"
+                    title="freightforwarder78@gmail.com • 12345678"
                 >
                     <div className="w-5 h-5 rounded bg-amber-500 text-white flex items-center justify-center shrink-0">
                         <Truck size={11} />

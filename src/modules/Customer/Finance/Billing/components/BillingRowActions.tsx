@@ -31,7 +31,7 @@ export const BillingRowActions: React.FC<BillingRowActionsProps> = ({
     const isPaid = rawStatus === 'paid' || rawStatus === 'settled' || rawStatus === 'succeeded';
     const invoiceNum = row.invoice_number || (row.id ? `INV-${String(row.id).padStart(4, '0')}` : 'INV-0001');
     const orderTargetId = row.order_id || row.raw_id || row.id || 1;
-    const supplierName = row.supplier_name || row.supplier?.company_name || row.supplier?.name || 'Carrier Partner';
+    const supplierName = row.supplier_name || row.supplier?.company_name || row.supplier?.name || '-';
 
     const handleClose = useCallback(() => setIsOpen(false), []);
 
