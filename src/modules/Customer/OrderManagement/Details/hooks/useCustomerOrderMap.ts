@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import apiClient from '@/lib/axios';
+import { useEffect, useRef, useState } from 'react';
 
 let cachedApiKey: string | null = null;
 let apiKeyPromise: Promise<string | null> | null = null;
@@ -34,6 +34,7 @@ interface UseCustomerOrderMapProps {
     toCity: string;
     pickupAddress: string;
     deliveryAddress: string;
+    selectedRouteIndex?: number;
 }
 
 export const useCustomerOrderMap = ({
@@ -45,10 +46,12 @@ export const useCustomerOrderMap = ({
     toCity,
     pickupAddress,
     deliveryAddress,
+    selectedRouteIndex = 0,
 }: UseCustomerOrderMapProps) => {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapError, setMapError] = useState(false);
+    const [routesSummary, setRoutesSummary] = useState<Array<{ summary: string; distance: string; duration: string }>>([]);
 
     const hasExactCoordinates = Boolean(
         pickupLat !== null && pickupLat !== undefined && !isNaN(Number(pickupLat)) &&
@@ -67,6 +70,8 @@ export const useCustomerOrderMap = ({
 
     useEffect(() => {
         let isCancelled = false;
+        let directionsRenderers: any[] = [];
+        let bestRouteMarker: any = null;
 
         const initMap = async () => {
             if (!hasExactCoordinates || !mapContainerRef.current) return;
@@ -104,7 +109,7 @@ export const useCustomerOrderMap = ({
                 const map = new google.maps.Map(mapContainerRef.current, {
                     center: pPos,
                     zoom: 10,
-                    mapTypeControl: false,
+                    mapTypeControl: true,
                     streetViewControl: false,
                     fullscreenControl: true,
                     zoomControl: true,
@@ -114,6 +119,7 @@ export const useCustomerOrderMap = ({
                     ]
                 });
 
+                // Origin Pickup Marker (Green)
                 new google.maps.Marker({
                     position: pPos,
                     map: map,
@@ -129,6 +135,7 @@ export const useCustomerOrderMap = ({
                     label: { text: 'A', color: '#ffffff', fontSize: '10px', fontWeight: 'bold' }
                 });
 
+                // Destination Delivery Marker (Orange Red)
                 new google.maps.Marker({
                     position: dPos,
                     map: map,
@@ -145,21 +152,44 @@ export const useCustomerOrderMap = ({
                 });
 
                 const directionsService = new google.maps.DirectionsService();
-                const directionsRenderer = new google.maps.DirectionsRenderer({
-                    map: map,
-                    suppressMarkers: true,
-                    polylineOptions: {
-                        strokeColor: '#ff4a1f',
-                        strokeOpacity: 0.85,
-                        strokeWeight: 4,
-                    }
-                });
 
+                // Enable provideRouteAlternatives to discover Best Route and Alternatives
                 directionsService.route(
-                    { origin: pPos, destination: dPos, travelMode: google.maps.TravelMode.DRIVING },
+                    {
+                        origin: pPos,
+                        destination: dPos,
+                        travelMode: google.maps.TravelMode.DRIVING,
+                        provideRouteAlternatives: true,
+                    },
                     (result: any, status: any) => {
-                        if (status === google.maps.DirectionsStatus.OK && !isCancelled) {
-                            directionsRenderer.setDirections(result);
+                        if (status === google.maps.DirectionsStatus.OK && !isCancelled && result?.routes) {
+                            const routes = result.routes;
+                            const summaries = routes.map((r: any) => ({
+                                summary: r.summary || 'Corridor',
+                                distance: r.legs?.[0]?.distance?.text || '',
+                                duration: r.legs?.[0]?.duration?.text || '',
+                            }));
+                            setRoutesSummary(summaries);
+
+                            // Render all routes with distinction:
+                            // Best Route = Bold #FF4A1F with marker; Alternatives = Muted #94A3B8
+                            routes.forEach((route: any, index: number) => {
+                                const isBest = index === selectedRouteIndex;
+                                const renderer = new google.maps.DirectionsRenderer({
+                                    map: map,
+                                    directions: result,
+                                    routeIndex: index,
+                                    suppressMarkers: true,
+                                    polylineOptions: {
+                                        strokeColor: isBest ? '#FF4A1F' : '#94A3B8',
+                                        strokeOpacity: isBest ? 0.95 : 0.5,
+                                        strokeWeight: isBest ? 6 : 3,
+                                        zIndex: isBest ? 10 : 1,
+                                    }
+                                });
+                                directionsRenderers.push(renderer);
+                            });
+
                             setMapLoaded(true);
                         } else {
                             const bounds = new google.maps.LatLngBounds();
@@ -176,8 +206,14 @@ export const useCustomerOrderMap = ({
         };
 
         initMap();
-        return () => { isCancelled = true; };
-    }, [pickupLat, pickupLng, deliveryLat, deliveryLng, hasExactCoordinates, fromCity, toCity, pickupAddress, deliveryAddress]);
+        return () => {
+            isCancelled = true;
+            directionsRenderers.forEach((r) => r.setMap(null));
+            if (bestRouteMarker) {
+                try { bestRouteMarker.close(); } catch (_) { }
+            }
+        };
+    }, [pickupLat, pickupLng, deliveryLat, deliveryLng, hasExactCoordinates, fromCity, toCity, pickupAddress, deliveryAddress, selectedRouteIndex]);
 
     return {
         mapContainerRef,
@@ -186,6 +222,7 @@ export const useCustomerOrderMap = ({
         hasExactCoordinates,
         googleMapsUrl,
         embedMapSrc,
+        routesSummary,
     };
 };
 

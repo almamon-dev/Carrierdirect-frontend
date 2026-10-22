@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { getNotificationConfig, getRequestStatusConfig, timeAgo } from "../utils/dashboardUtils";
 
 interface RecentRequestsAndNotificationsProps {
@@ -47,9 +48,7 @@ export const RecentRequestsAndNotifications: React.FC<RecentRequestsAndNotificat
                       </span>
                     )}
                   </div>
-                  <span className={`${statusCfg.color} px-2 py-0.5 rounded-full border text-[10.5px] font-bold shrink-0`}>
-                    {statusCfg.label}
-                  </span>
+                  <StatusBadge status={req.status} label={statusCfg.label} />
                 </div>
               );
             })
@@ -78,22 +77,31 @@ export const RecentRequestsAndNotifications: React.FC<RecentRequestsAndNotificat
           ) : (
             notifications.slice(0, 5).map((notification, idx) => {
               const cfg = getNotificationConfig(notification);
-              const text = notification.data?.message || notification.message || notification.title || notification.text || "Notification update";
+              const title = notification.data?.title || notification.title;
+              const msg = notification.data?.message || notification.message || notification.text || "Notification update";
+              const text = title || msg;
+              const link = notification.data?.link || "/customer/notifications";
               const timeStr = timeAgo(notification.created_at || notification.date || notification.time);
               const IconComponent = cfg.icon;
 
               return (
-                <div key={notification.id || idx} className="flex items-center justify-between gap-2.5 py-2 sm:py-2.5 border-b border-dashed border-slate-200 dark:border-slate-800 last:border-0">
+                <Link
+                  key={notification.id || idx}
+                  to={link}
+                  className="flex items-center justify-between gap-2.5 py-2 sm:py-2.5 border-b border-dashed border-slate-200 dark:border-slate-800 last:border-0 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 rounded px-1 transition-colors group"
+                >
                   <div className="flex items-center gap-2.5 truncate min-w-0">
-                    <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full ${cfg.bg} dark:bg-slate-800 flex items-center justify-center shrink-0`}>
+                    <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full ${cfg.bg} dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}>
                       <IconComponent size={13} className={cfg.color} />
                     </div>
-                    <span className="truncate text-slate-700 dark:text-slate-300 text-[12px]">{text}</span>
+                    <span className="truncate text-slate-700 dark:text-slate-300 text-[12px] group-hover:text-brand transition-colors font-medium" title={text}>
+                      {text}
+                    </span>
                   </div>
                   <span className="text-[10.5px] sm:text-[11px] font-medium text-slate-400 dark:text-slate-500 shrink-0 ml-1">
                     {timeStr}
                   </span>
-                </div>
+                </Link>
               );
             })
           )}

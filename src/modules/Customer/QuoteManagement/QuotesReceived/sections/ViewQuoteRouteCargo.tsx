@@ -44,7 +44,7 @@ export const ViewQuoteRouteCargo: React.FC<ViewQuoteRouteCargoProps> = ({ quote,
                 <ViewField label="Load / Cargo Type" value={req.load_type || req.type_of_pallets || 'Palletized Cargo'} />
                 <ViewField label="Total Weight" value={<span className="font-bold text-slate-900 dark:text-slate-100">{req.weight ? `${req.weight} KG` : (req.total_weight || '500 KG')}</span>} />
                 <ViewField label="Total Volume" value={req.total_volume ? `${req.total_volume} m³` : '2.50 m³'} />
-                <ViewField label="Total Quantity" value={`${req.items_count || (cargoItems.length > 0 ? cargoItems.length : 1)} Units / Pallets`} />
+                <ViewField label="Total Quantity" value={req?.items_count ? `${req.items_count} Units / Pallets` : '—'} />
 
                 {/* Handling & Special Instructions */}
                 <SectionHeader title="Handling & Special Instructions" icon={Shield} />

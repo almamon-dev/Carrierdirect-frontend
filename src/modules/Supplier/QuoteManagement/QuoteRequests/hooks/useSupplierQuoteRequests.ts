@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { echo } from '@/lib/echo';
 import apiClient from '@/lib/axios';
 import { ENDPOINTS } from '@/config/api';
 import { QuoteRequest } from '../../data/quoteRequestsData';
@@ -99,6 +100,42 @@ export function useSupplierQuoteRequests() {
 
     useEffect(() => {
         fetchRequests();
+
+        const handleRealtimeUpdate = () => {
+            fetchRequests();
+        };
+
+        window.addEventListener('carrierdirect_notif_update', handleRealtimeUpdate);
+        window.addEventListener('carrierdirect_quote_updated', handleRealtimeUpdate);
+
+        let userChannel: any = null;
+        try {
+            const rawUser = localStorage.getItem('carrierdirect_user_data') || localStorage.getItem('user');
+            const user = rawUser ? JSON.parse(rawUser) : null;
+            if (user?.id) {
+                userChannel = echo.private(`App.Models.User.${user.id}`);
+                userChannel.notification(() => {
+                    fetchRequests();
+                });
+                userChannel.listen('.quote.updated', () => {
+                    fetchRequests();
+                });
+                userChannel.listen('quote.updated', () => {
+                    fetchRequests();
+                });
+            }
+        } catch (e) {
+            console.warn('Echo direct subscribe error in useSupplierQuoteRequests:', e);
+        }
+
+        return () => {
+            window.removeEventListener('carrierdirect_notif_update', handleRealtimeUpdate);
+            window.removeEventListener('carrierdirect_quote_updated', handleRealtimeUpdate);
+            if (userChannel) {
+                userChannel.stopListening('.quote.updated');
+                userChannel.stopListening('quote.updated');
+            }
+        };
     }, [fetchRequests]);
 
     useEffect(() => {

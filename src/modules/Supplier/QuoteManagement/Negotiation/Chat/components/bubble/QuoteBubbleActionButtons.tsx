@@ -38,23 +38,25 @@ export const QuoteBubbleActionButtons: React.FC<QuoteBubbleActionButtonsProps> =
                     <div className="flex items-center gap-2">
                         <Button
                             type="button"
+                            size="sm"
                             disabled={isAccepting}
                             onClick={onAccept}
-                            className="flex-1 h-7.5 rounded-[4px] bg-emerald-600 hover:bg-emerald-700 text-white text-[11.5px] font-semibold cursor-pointer transition-all flex items-center justify-center gap-1 shadow-2xs disabled:opacity-75 disabled:cursor-not-allowed"
+                            className="flex-1 h-8 rounded-[4px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-2xs disabled:opacity-75 disabled:cursor-not-allowed"
                             isLoading={isAccepting}
                         >
-                            <Check size={12} />
+                            <Check size={13} />
                             <span>Accept Offer</span>
                         </Button>
                         <Button
                             type="button"
+                            size="sm"
                             onClick={() => {
                                 const btn = document.querySelector(
                                     'button[title*="Revise"], button[title*="Counter"], button[title*="Propose"]'
                                 ) as HTMLButtonElement;
                                 if (btn) btn.click();
                             }}
-                            className="flex-1 h-7.5 rounded-[4px] bg-[#FF6A00] hover:bg-[#e65f00] text-white text-[11.5px] font-semibold cursor-pointer transition-all flex items-center justify-center gap-1"
+                            className="flex-1 h-8 rounded-[4px] bg-[#FF6A00] hover:bg-[#e65f00] text-white text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-2xs"
                         >
                             Revise Offer
                         </Button>

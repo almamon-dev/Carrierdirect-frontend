@@ -3,8 +3,49 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSupplierNegotiations } from '../../hooks/useSupplierNegotiations';
 import { NegotiationItem } from '../../types';
-import { NegotiationFilterTab } from '../types';
+import { NegotiationFilterTab, SupplierChatSortOption } from '../types';
 import { useChatMessages } from './useChatMessages';
+
+export const isSupplierQuoteBooked = (q: any): boolean => {
+    const rawStatusLower = String(q.status_raw || q.status || '').toLowerCase();
+    const ost = String(q.order_status || q.order?.status || '').toLowerCase();
+    return Boolean(
+        q.is_paid ||
+        q.isPaid ||
+        q.has_order ||
+        q.orderId ||
+        q.order_id ||
+        ost === 'confirmed' ||
+        ost === 'in_progress' ||
+        ost === 'completed' ||
+        ost === 'delivered' ||
+        rawStatusLower === 'booked' ||
+        rawStatusLower === 'completed'
+    );
+};
+
+export const isSupplierQuoteAwaitingPayment = (q: any): boolean => {
+    if (isSupplierQuoteBooked(q)) return false;
+    const rawStatusLower = String(q.status_raw || q.status || '').toLowerCase();
+    const rev = String(q.revision_status || '').toLowerCase();
+    const isAccepted = rawStatusLower === 'accepted' || rawStatusLower === 'won' || rev === 'accepted';
+    return Boolean(
+        q.is_awaiting_payment ||
+        rawStatusLower === 'awaiting_payment' ||
+        (isAccepted && !q.is_paid && !q.isPaid)
+    );
+};
+
+export const isSupplierQuoteCounterOffer = (q: any): boolean => {
+    if (isSupplierQuoteBooked(q) || isSupplierQuoteAwaitingPayment(q)) return false;
+    const rev = String(q.revision_status || '').toLowerCase();
+    const rawStatusLower = String(q.status_raw || q.status || '').toLowerCase();
+    return Boolean(
+        rev === 'pending' ||
+        rev === 'counter_proposed' ||
+        rawStatusLower.includes('counter')
+    );
+};
 
 export function useChatNegotiation() {
     const { id, sessionKey } = useParams<{ id: string; sessionKey?: string }>();
@@ -12,6 +53,7 @@ export function useChatNegotiation() {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [filterTab, setFilterTab] = useState<NegotiationFilterTab>('all');
+    const [sortBy, setSortBy] = useState<SupplierChatSortOption>('recent');
     const [showMobileDetails, setShowMobileDetails] = useState(false);
 
     const { negotiations = [], isLoading = false } = useSupplierNegotiations() || {};
@@ -212,22 +254,27 @@ export function useChatNegotiation() {
         }));
     }, [allNegotiations, activeNegotiation, messagesHook.chatMessages, readChatIds, pinnedChatIds]);
 
+
     // Counts for tabs based on grouped customer contacts
     const counts = useMemo(() => {
         let newCount = 0;
         let existingCount = 0;
         let unreadCount = 0;
+        let awaitingPaymentCount = 0;
+        let counterOffersCount = 0;
+        let bookedCount = 0;
+        let pinnedCount = 0;
 
         customerGroups.forEach((group) => {
-            if (group.groupIsExisting) {
-                existingCount++;
-            } else {
-                newCount++;
-            }
+            const quotes = group.allCustomerQuotes || [];
+            if (quotes.some(isSupplierQuoteBooked)) bookedCount++;
+            if (quotes.some(isSupplierQuoteAwaitingPayment)) awaitingPaymentCount++;
+            if (quotes.some(isSupplierQuoteCounterOffer)) counterOffersCount++;
+            if (group.groupIsPinned || quotes.some((q: any) => q.isPinned)) pinnedCount++;
+            if (group.groupIsExisting) existingCount++;
+            else newCount++;
 
-            if (group.groupHasUnread) {
-                unreadCount++;
-            }
+            if (group.groupHasUnread) unreadCount++;
         });
 
         return {
@@ -235,6 +282,10 @@ export function useChatNegotiation() {
             new: newCount,
             existing: existingCount,
             unread: unreadCount,
+            awaiting_payment: awaitingPaymentCount,
+            counter_offers: counterOffersCount,
+            booked: bookedCount,
+            pinned: pinnedCount,
         };
     }, [customerGroups]);
 
@@ -255,18 +306,38 @@ export function useChatNegotiation() {
 
                 if (!matches) return false;
 
+                const quotes = group.allCustomerQuotes || [];
                 if (filterTab === 'unread') return group.groupHasUnread;
                 if (filterTab === 'new') return !group.groupIsExisting;
                 if (filterTab === 'existing') return group.groupIsExisting;
+                if (filterTab === 'awaiting_payment') return quotes.some(isSupplierQuoteAwaitingPayment);
+                if (filterTab === 'counter_offers') return quotes.some(isSupplierQuoteCounterOffer);
+                if (filterTab === 'booked') return quotes.some(isSupplierQuoteBooked);
+                if (filterTab === 'pinned') return group.groupIsPinned || quotes.some((q: any) => q.isPinned);
                 return true;
             })
-            .sort((a, b) => (b.groupIsPinned ? 1 : 0) - (a.groupIsPinned ? 1 : 0));
-    }, [customerGroups, searchQuery, filterTab]);
+            .sort((a, b) => {
+                if (sortBy === 'unread_first') {
+                    const diff = (b.groupHasUnread ? 1 : 0) - (a.groupHasUnread ? 1 : 0);
+                    if (diff !== 0) return diff;
+                } else if (sortBy === 'amount_high') {
+                    const getAmt = (g: any) => Math.max(0, ...(g.allCustomerQuotes || []).map((q: any) => q.amount_raw || q.amount || 0));
+                    const diff = getAmt(b) - getAmt(a);
+                    if (diff !== 0) return diff;
+                } else if (sortBy === 'amount_low') {
+                    const getAmt = (g: any) => Math.min(...(g.allCustomerQuotes || []).map((q: any) => q.amount_raw || q.amount || 999999));
+                    const diff = getAmt(a) - getAmt(b);
+                    if (diff !== 0) return diff;
+                }
+                return (b.groupIsPinned ? 1 : 0) - (a.groupIsPinned ? 1 : 0);
+            });
+    }, [customerGroups, searchQuery, filterTab, sortBy]);
 
     return {
         sessionKey,
         searchQuery, setSearchQuery,
         filterTab, setFilterTab,
+        sortBy, setSortBy,
         counts,
         repeatCustomerMap,
         showMobileDetails, setShowMobileDetails,

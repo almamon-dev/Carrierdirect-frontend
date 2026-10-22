@@ -1,3 +1,4 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import { PODOrderItem } from '../types';
 
 export const mapApiToPODOrderItem = (o: any): PODOrderItem => {
@@ -10,8 +11,8 @@ export const mapApiToPODOrderItem = (o: any): PODOrderItem => {
     const customerName = clientObj.name || o?.customer?.name || o?.customer_name || o?.client_name || o?.user?.name || '-';
     const customerAvatar = clientObj.avatar || o?.customer?.profile_picture || o?.customer?.avatar || o?.customer_avatar || '';
 
-    const pickupFull = shippingObj.from || o?.pickup_address || o?.pickup_full_address || [o?.pickup_city, o?.pickup_country].filter(Boolean).join(', ') || '';
-    const deliveryFull = shippingObj.to || o?.delivery_address || o?.delivery_full_address || [o?.delivery_city, o?.delivery_country].filter(Boolean).join(', ') || '';
+    const pickupFull = formatStandardAddress(o, 'pickup');
+    const deliveryFull = formatStandardAddress(o, 'delivery');
 
     const pickupCity = o?.pickup_city || (pickupFull ? pickupFull.split(',')[0]?.trim() : '') || '';
     const deliveryCity = o?.delivery_city || (deliveryFull ? deliveryFull.split(',')[0]?.trim() : '') || '';

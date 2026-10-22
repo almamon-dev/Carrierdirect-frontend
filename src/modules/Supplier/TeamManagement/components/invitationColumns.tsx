@@ -1,5 +1,5 @@
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Mail, Building2, Calendar, Clock } from 'lucide-react';
 import { InvitationItem } from '../types/team.types';
 
@@ -91,13 +91,7 @@ export const getInvitationColumns = (): Column<InvitationItem>[] => [
         sortable: true,
         render: (row) => (
             <div className="flex items-center min-h-[26px]">
-                <Badge variant="secondary" className={
-                    row.status === 'Pending' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-semibold text-[10.5px] border border-amber-200/60 dark:border-amber-800/60' :
-                    row.status === 'Accepted' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-semibold text-[10.5px] border border-emerald-200/60 dark:border-emerald-800/60' :
-                    'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 font-semibold text-[10.5px] border border-red-200/60 dark:border-red-800/60'
-                }>
-                    {row.status}
-                </Badge>
+                <StatusBadge status={row.status} />
             </div>
         ),
     },

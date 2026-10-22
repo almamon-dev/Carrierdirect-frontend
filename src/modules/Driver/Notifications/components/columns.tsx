@@ -7,6 +7,7 @@ import React from 'react';
 import { Column } from '@/components/tables/data-table';
 import { HeaderNotification } from '@/hooks/useHeaderNotifications';
 import Skeleton from '@/components/ui/skeleton';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { 
     Truck, MessageSquare, Landmark, AlertTriangle, Clock, ShieldCheck
 } from 'lucide-react';
@@ -64,9 +65,7 @@ export const getNotificationColumns = (): Column<HeaderNotification>[] => [
                         {row.title}
                     </span>
                     {row.unread && (
-                        <span className="shrink-0 inline-flex items-center justify-center bg-[#ff4a1f] text-white text-[9px] font-black px-1.5 py-0.5 rounded-[2px] leading-none uppercase shadow-2xs">
-                            NEW
-                        </span>
+                        <StatusBadge status="New" className="text-[10px] px-1.5 py-0.5" />
                     )}
                     {row.amount && (
                         <span className="shrink-0 text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -98,16 +97,7 @@ export const getNotificationColumns = (): Column<HeaderNotification>[] => [
         className: 'w-[95px]',
         skeleton: () => <Skeleton className="h-5 w-14 rounded-[2px]" />,
         render: (row) => (
-            row.unread ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#ff4a1f] bg-orange-50 dark:bg-[#ff4a1f]/15 px-2 py-0.5 rounded-[2px] border border-orange-200/60 dark:border-orange-500/20 whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f] shrink-0" />
-                    Unread
-                </span>
-            ) : (
-                <span className="text-[10.5px] text-slate-400 dark:text-slate-500 font-medium">
-                    Read
-                </span>
-            )
+            <StatusBadge status={row.unread ? 'Unread' : 'Read'} />
         )
     }
 ];

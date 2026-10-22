@@ -1,5 +1,5 @@
 import React from 'react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Layers, Tag, Globe, Clock } from 'lucide-react';
 import { ActivityLogItem, ActivityLogActions } from './ActivityLogActions';
 
@@ -33,21 +33,7 @@ export const ActivityLogGridCard: React.FC<ActivityLogGridCardProps> = ({ log, o
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                    <Badge
-                        variant="secondary"
-                        className={`whitespace-nowrap text-[10px] font-semibold border flex items-center gap-1 px-1.5 py-0.5 ${
-                            log.status === 'Success'
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                : log.status === 'Warning'
-                                    ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300'
-                                    : 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300'
-                        }`}
-                    >
-                        {log.status === 'Success' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />}
-                        {log.status === 'Warning' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />}
-                        {log.status === 'Failed' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />}
-                        {log.status}
-                    </Badge>
+                    <StatusBadge status={log.status} />
                     <ActivityLogActions row={log} onViewDetails={onViewDetails} />
                 </div>
             </div>

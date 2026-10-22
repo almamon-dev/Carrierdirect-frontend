@@ -1,7 +1,8 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import React from 'react';
 import { MapPin, FileText } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { PODOrderItem } from '../types';
 import { formatDisplayDate } from '@/lib/utils';
 
@@ -62,7 +63,7 @@ export const getPODColumns = (
             sortable: true,
             className: 'min-w-[130px] max-w-[190px]',
             render: (row) => {
-                const address = row.pickup_full_address || row.pickup_address || row.pickup_city || 'Origin';
+                const address = formatStandardAddress(row, 'pickup');
                 return (
                     <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
                         <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
@@ -79,7 +80,7 @@ export const getPODColumns = (
             sortable: true,
             className: 'min-w-[130px] max-w-[190px]',
             render: (row) => {
-                const address = row.delivery_full_address || row.delivery_address || row.delivery_city || 'Destination';
+                const address = formatStandardAddress(row, 'delivery');
                 return (
                     <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
                         <MapPin size={12} className="text-emerald-500 shrink-0" />
@@ -133,9 +134,7 @@ export const getPODColumns = (
 
                 return (
                     <div className="flex items-center h-5">
-                        <Badge variant="warning" className="text-[10px] font-bold whitespace-nowrap bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
-                            Unassigned
-                        </Badge>
+                        <StatusBadge status="Unassigned" category="pending" />
                     </div>
                 );
             },
@@ -180,28 +179,29 @@ export const getPODColumns = (
             className: 'w-[105px] min-w-[100px] text-center',
             render: (row) => {
                 const podStatus = row.pod_status;
-                let variant: any = 'outline';
-                let label = 'Not Uploaded';
-
                 if (podStatus === 'Approved') {
-                    variant = 'success';
-                    label = 'Approved';
+                    return (
+                        <div className="flex items-center justify-center h-5">
+                            <StatusBadge status="Approved" category="success" />
+                        </div>
+                    );
                 } else if (podStatus === 'Pending Review') {
-                    variant = 'warning';
-                    label = 'In Review';
+                    return (
+                        <div className="flex items-center justify-center h-5">
+                            <StatusBadge status="In Review" category="action_required" />
+                        </div>
+                    );
                 } else if (podStatus === 'Rejected') {
-                    variant = 'critical';
-                    label = 'Rejected';
-                } else {
-                    variant = 'outline';
-                    label = 'Not Uploaded';
+                    return (
+                        <div className="flex items-center justify-center h-5">
+                            <StatusBadge status="Rejected" category="failed" />
+                        </div>
+                    );
                 }
 
                 return (
                     <div className="flex items-center justify-center h-5">
-                        <Badge variant={variant} showDot className="text-[10px] font-bold whitespace-nowrap">
-                            {label}
-                        </Badge>
+                        <StatusBadge status="Not Uploaded" category="neutral" />
                     </div>
                 );
             },
@@ -214,33 +214,24 @@ export const getPODColumns = (
             render: (row) => {
                 const rawStatus = String(row.status_raw || row.status || 'delivered').toLowerCase().trim();
                 let displayStatus = 'Delivered';
-                let variant: any = 'success';
 
                 if (rawStatus === 'completed' || rawStatus === 'pod accepted') {
                     displayStatus = 'Completed';
-                    variant = 'success';
                 } else if (rawStatus.includes('review') || rawStatus.includes('pod_uploaded') || rawStatus === 'delivered') {
                     displayStatus = 'Delivered';
-                    variant = 'success';
                 } else if (rawStatus.includes('cancel')) {
                     displayStatus = 'Cancelled';
-                    variant = 'critical';
                 } else if (rawStatus === 'in_transit' || rawStatus === 'on_the_way') {
                     displayStatus = 'In Transit';
-                    variant = 'warning';
                 } else if (rawStatus === 'driver_assigned' || rawStatus === 'assigned') {
                     displayStatus = 'Driver Assigned';
-                    variant = 'info';
                 } else {
                     displayStatus = row.status || 'Delivered';
-                    variant = 'secondary';
                 }
 
                 return (
                     <div className="flex items-center justify-center h-5">
-                        <Badge variant={variant} showDot className="text-[10.5px] font-bold whitespace-nowrap">
-                            {displayStatus}
-                        </Badge>
+                        <StatusBadge status={displayStatus} />
                     </div>
                 );
             },
@@ -257,20 +248,20 @@ export const getPODColumns = (
                 if (isPayLater) {
                     return (
                         <div className="flex items-center justify-center h-5">
-                            <Badge variant="warning" showDot className="text-[10.5px] font-bold whitespace-nowrap">Pay Later (Due)</Badge>
+                            <StatusBadge status="Pay Later (Due)" category="financial_hold" />
                         </div>
                     );
                 }
                 if (isPaid) {
                     return (
                         <div className="flex items-center justify-center h-5">
-                            <Badge variant="success" showDot className="text-[10.5px] font-bold whitespace-nowrap">Paid</Badge>
+                            <StatusBadge status="Paid" category="success" />
                         </div>
                     );
                 }
                 return (
                     <div className="flex items-center justify-center h-5">
-                        <Badge variant="info" showDot className="text-[10.5px] font-bold whitespace-nowrap">In Escrow</Badge>
+                        <StatusBadge status="In Escrow" category="financial_hold" />
                     </div>
                 );
             },

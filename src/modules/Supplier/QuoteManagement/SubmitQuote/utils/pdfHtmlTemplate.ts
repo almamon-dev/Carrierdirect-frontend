@@ -72,7 +72,7 @@ export const generateQuoteRequestPdfHtml = (requestDetails: QuoteRequest, printD
     <div class="field-row"><span class="field-label"><span>Total Weight</span><span>:</span></span><span class="field-val">${requestDetails.weight || '—'}</span></div>
     <div class="field-row"><span class="field-label"><span>Total Volume</span><span>:</span></span><span class="field-val">${requestDetails.volume || '—'}</span></div>
     <div class="field-row"><span class="field-label"><span>Cargo Load Type</span><span>:</span></span><span class="field-val">${requestDetails.loadType || '—'}</span></div>
-    <div class="field-row"><span class="field-label"><span>Pallets Count</span><span>:</span></span><span class="field-val">${requestDetails.itemsCount || '—'}</span></div>
+    <div class="field-row"><span class="field-label"><span>Pallets Count</span><span>:</span></span><span class="field-val">${requestDetails.palletsCount || '—'}</span></div>
     <h3>Cargo Dimensions</h3>
     <table>
         <thead><tr><th style="width: 45px;">#</th><th>Length</th><th>Width</th><th>Height</th><th style="width: 60px; text-align: center;">Qty</th><th style="width: 60px; text-align: center;">Unit</th></tr></thead>

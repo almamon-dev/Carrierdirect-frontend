@@ -22,53 +22,61 @@ export function useFilteredRequestList({
 }: UseFilteredRequestListParams) {
     return useMemo(() => {
         return (requestData || []).filter((r) => {
-            const statusStr = String(r.status || '').toLowerCase();
-            const rawStatusStr = String(r.rawStatus || r.raw_status || '').toLowerCase();
-            const isComp = Boolean(r.isCompleted || statusStr === 'completed' || rawStatusStr === 'completed');
-
-            // Completed quote requests belong strictly in Quote History
-            if (isComp) return false;
-
+            const statusStr = String(r.status || '').toLowerCase().trim();
+            const rawStatusStr = String(r.rawStatus || r.raw_status || '').toLowerCase().trim();
+            const isComp = Boolean(
+                r.isCompleted ||
+                statusStr === 'completed' ||
+                rawStatusStr === 'completed' ||
+                String(r.order_status || '').toLowerCase() === 'completed'
+            );
+            const isBooked = !isComp && Boolean(
+                statusStr === 'booked' ||
+                statusStr === 'confirmed' ||
+                r.is_booked ||
+                r.has_order ||
+                (statusStr === 'accepted' && (r.is_paid || r.has_order))
+            );
+            const isDraft = statusStr === 'draft' || rawStatusStr === 'draft';
             const quotesCount = Number(r.quotesReceived || r.quotesCount || r.bidsCount || 0);
-            const isExp = Boolean(r.isExpired || statusStr === 'expired' || statusStr === 'cancelled' || statusStr === 'closed');
-            const isWon = Boolean(statusStr === 'won' || statusStr === 'accepted' || statusStr === 'booked' || r.hasAcceptedQuote);
-            const isNeg = Boolean(statusStr === 'negotiation' || statusStr === 'negotiating' || statusStr === 'review' || r.isNegotiating);
 
-            if (activeFilterTab === 'All') {
-                // All non-completed requests
-            } else if (activeFilterTab === 'Draft') {
-                if (statusStr !== 'draft' && rawStatusStr !== 'draft') return false;
-            } else if (activeFilterTab === 'Expired') {
-                if (!isExp) return false;
-            } else if ((activeFilterTab === 'Booked' || (activeFilterTab as string) === 'Won')) {
-                if (!isWon || isExp) return false;
-            } else if (activeFilterTab === 'Negotiation') {
-                if (!isNeg || isExp || isWon) return false;
-            } else if (activeFilterTab === 'Quotes Received') {
-                if (quotesCount === 0 || isExp || isWon || isNeg || statusStr === 'draft') return false;
-            } else if (activeFilterTab === 'Pending') {
-                if (quotesCount > 0 || isExp || isWon || isNeg || statusStr === 'draft') return false;
+            // Tab filtering
+            if (activeFilterTab === 'Drafts' || (activeFilterTab as string) === 'Draft') {
+                if (!isDraft) return false;
+            } else if (activeFilterTab === 'In Progress' || (activeFilterTab as string) === 'Active') {
+                if (isDraft || isBooked || isComp) return false;
+            } else if (activeFilterTab === 'Booked') {
+                if (!isBooked) return false;
+            } else if (activeFilterTab === 'Completed') {
+                if (!isComp) return false;
             }
+            // 'All' includes all requests
 
+            // Advanced Filter 1: Priority
             if (priorityFilter !== 'all' && String(r.priority).toLowerCase() !== priorityFilter.toLowerCase()) {
                 return false;
             }
 
+            // Advanced Filter 2: Status
             if (statusFilter !== 'all') {
                 const filterNorm = statusFilter.toLowerCase();
-                const matchesStatus = statusStr.includes(filterNorm) || rawStatusStr.includes(filterNorm.replace(/\s+/g, '_'));
-                if (!matchesStatus) return false;
+                if (filterNorm === 'draft' && !isDraft) return false;
+                if ((filterNorm === 'in_progress' || filterNorm === 'in progress') && (isDraft || isBooked || isComp)) return false;
+                if (filterNorm === 'booked' && !isBooked) return false;
+                if (filterNorm === 'completed' && !isComp) return false;
+                if (filterNorm === 'expired' && !(statusStr === 'expired' || rawStatusStr === 'expired')) return false;
+                if (filterNorm === 'cancelled' && !(statusStr === 'cancelled' || rawStatusStr === 'cancelled')) return false;
             }
 
+            // Advanced Filter 3: Quotes count
             if (quotesFilter !== 'all') {
-                const count = quotesCount;
-                if (quotesFilter === 'none' && count > 0) return false;
-                if (quotesFilter === 'has_quotes' && count === 0) return false;
-                if (quotesFilter === 'multiple' && count < 2) return false;
+                if (quotesFilter === 'has_quotes' && quotesCount === 0) return false;
+                if (quotesFilter === 'no_quotes' && quotesCount > 0) return false;
             }
 
+            // Advanced Filter 4: Pickup Date / Schedule Date Range
             if (startDate || endDate) {
-                const rowDateStr = r.created_at || r.createdAt || r.date || r.pickup_date;
+                const rowDateStr = r.pickup_date || r.pickupDate || r.created_at || r.createdAt || r.date;
                 if (rowDateStr) {
                     const rowDate = new Date(rowDateStr);
                     if (!isNaN(rowDate.getTime())) {

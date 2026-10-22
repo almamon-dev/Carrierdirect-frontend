@@ -125,9 +125,18 @@ export const CustomerOrderPODReviewModal: React.FC<CustomerOrderPODReviewModalPr
                                 <div><span className="text-slate-500">Submitted: </span><span className="font-semibold text-slate-800 dark:text-slate-200">{uploadedAt}</span></div>
                             </div>
                         )}
-                        <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/60 mt-1">
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-700/60 mt-1">
                             <span className="text-slate-500">Escrow Payout:</span>
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{order.pricing?.totalFormatted || '€ 0.00'}</span>
+                            <div className="text-right">
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400 block">
+                                    {order.pricing?.quoteFormatted || order.pricing?.baseFormatted || '€ 0.00'}
+                                </span>
+                                {order.pricing?.platformFee && order.pricing.platformFee > 0 ? (
+                                    <span className="text-[10.5px] font-medium text-slate-500 dark:text-slate-400 block">
+                                        +€{Number(order.pricing.platformFee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{order.pricing.platformFeePercent ? ` (${order.pricing.platformFeePercent}% platform charge)` : ' (platform charge)'}
+                                    </span>
+                                ) : null}
+                            </div>
                         </div>
                         {order.pod.note && (
                             <div className="flex items-start gap-2 pt-1 border-t border-slate-200 dark:border-slate-700/60">

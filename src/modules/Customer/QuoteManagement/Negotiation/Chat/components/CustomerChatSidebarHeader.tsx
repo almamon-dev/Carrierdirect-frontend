@@ -1,7 +1,21 @@
-import React, { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Search, PanelLeftClose, MoreHorizontal } from "lucide-react";
 import Button from "@/components/ui/button";
-import { CustomerChatFilterTab } from "../types";
+import {
+    ArrowLeft,
+    ArrowUpDown,
+    CheckCircle2,
+    Clock,
+    CreditCard,
+    Filter,
+    Flame,
+    MoreHorizontal,
+    PanelLeftClose,
+    Pin,
+    Search,
+    Tag,
+    X
+} from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { ChatSortOption, CustomerChatFilterTab } from "../types";
 
 interface CustomerChatSidebarHeaderProps {
     searchQuery: string;
@@ -13,7 +27,13 @@ interface CustomerChatSidebarHeaderProps {
         new: number;
         existing: number;
         unread: number;
+        awaiting_payment?: number;
+        counter_offers?: number;
+        booked?: number;
+        pinned?: number;
     };
+    sortBy?: ChatSortOption;
+    setSortBy?: (val: ChatSortOption) => void;
     onBack: () => void;
     onToggleCollapse?: () => void;
     isLoading?: boolean;
@@ -27,19 +47,14 @@ export const CustomerChatSidebarHeader: React.FC<CustomerChatSidebarHeaderProps>
     filterTab,
     setFilterTab,
     counts,
+    sortBy = "recent",
+    setSortBy,
     onBack,
     onToggleCollapse,
     isLoading = false,
     totalUnreadCount,
     sidebarWidth = 320,
 }) => {
-    const filterTabs: { id: CustomerChatFilterTab; label: string; count: number }[] = [
-        { id: "all", label: "All", count: counts?.all ?? 0 },
-        { id: "new", label: "New", count: counts?.new ?? 0 },
-        { id: "existing", label: "Existing", count: counts?.existing ?? 0 },
-        { id: "unread", label: "Unread", count: counts?.unread ?? totalUnreadCount },
-    ];
-
     const [isMoreOpen, setIsMoreOpen] = useState(false);
     const moreMenuRef = useRef<HTMLDivElement>(null);
 
@@ -65,11 +80,156 @@ export const CustomerChatSidebarHeader: React.FC<CustomerChatSidebarHeaderProps>
         };
     }, [isMoreOpen]);
 
-    const visibleCount = sidebarWidth >= 310 ? 4 : sidebarWidth >= 260 ? 3 : 2;
-    const visibleTabs = filterTabs.slice(0, visibleCount);
-    const hiddenTabs = filterTabs.slice(visibleCount);
-    const isHiddenTabActive = hiddenTabs.some((t) => t.id === filterTab);
-    const activeHiddenTab = hiddenTabs.find((t) => t.id === filterTab);
+    const awaitingPaymentCount = counts?.awaiting_payment ?? 0;
+    const counterOffersCount = counts?.counter_offers ?? 0;
+    const bookedCount = counts?.booked ?? 0;
+    const pinnedCount = counts?.pinned ?? 0;
+    const unreadCount = counts?.unread ?? totalUnreadCount;
+
+    // Track custom swapped 3rd pill when picked from dropdown
+    const [customThirdTab, setCustomThirdTab] = useState<CustomerChatFilterTab | null>(null);
+
+    const defaultThirdTab: CustomerChatFilterTab =
+        awaitingPaymentCount > 0
+            ? "awaiting_payment"
+            : counterOffersCount > 0
+                ? "counter_offers"
+                : "new";
+
+    // Sync customThirdTab if filterTab was set from outside to a non-primary tab
+    useEffect(() => {
+        if (filterTab !== "all" && filterTab !== "unread" && filterTab !== defaultThirdTab) {
+            setCustomThirdTab(filterTab);
+        }
+    }, [filterTab, defaultThirdTab]);
+
+    const activeThirdTabId: CustomerChatFilterTab =
+        customThirdTab || (!["all", "unread"].includes(filterTab) ? filterTab : defaultThirdTab);
+
+    const isThirdTabCustom = activeThirdTabId !== defaultThirdTab;
+
+    const getTabMeta = (tabId: CustomerChatFilterTab) => {
+        switch (tabId) {
+            case "awaiting_payment":
+                return {
+                    id: tabId,
+                    label: "awaiting payment",
+                    count: awaitingPaymentCount,
+                    icon: <CreditCard size={11} className="shrink-0" />,
+                };
+            case "counter_offers":
+                return {
+                    id: tabId,
+                    label: "counter offers",
+                    count: counterOffersCount,
+                    icon: <Tag size={11} className="shrink-0" />,
+                };
+            case "booked":
+                return {
+                    id: tabId,
+                    label: "booked & paid",
+                    count: bookedCount,
+                    icon: <CheckCircle2 size={11} className="shrink-0" />,
+                };
+            case "pinned":
+                return {
+                    id: tabId,
+                    label: "pinned chats",
+                    count: pinnedCount,
+                    icon: <Pin size={11} className="shrink-0" />,
+                };
+            case "new":
+                return {
+                    id: tabId,
+                    label: "new",
+                    count: counts?.new ?? 0,
+                    icon: <Flame size={11} className="shrink-0" />,
+                };
+            case "existing":
+                return {
+                    id: tabId,
+                    label: "existing",
+                    count: counts?.existing ?? 0,
+                    icon: <Clock size={11} className="shrink-0" />,
+                };
+            default:
+                return {
+                    id: tabId,
+                    label: tabId,
+                    count: 0,
+                    icon: undefined,
+                };
+        }
+    };
+
+    // Exactly 3 pills always: [all], [unread], [swapped 3rd pill]
+    const primaryPills: { id: CustomerChatFilterTab; label: string; count: number; icon?: React.ReactNode }[] = [
+        { id: "all", label: "all", count: counts?.all ?? 0 },
+        { id: "unread", label: "unread", count: unreadCount },
+        getTabMeta(activeThirdTabId),
+    ];
+
+    const isSpecialFilterActive = isThirdTabCustom || (filterTab !== "all" && filterTab !== "unread" && filterTab !== defaultThirdTab) || sortBy !== "recent";
+
+    const moreFilterOptions = [
+        {
+            id: "awaiting_payment" as CustomerChatFilterTab,
+            label: "awaiting payment",
+            desc: "accepted quotes, pay to confirm booking",
+            count: awaitingPaymentCount,
+            icon: <CreditCard size={13} className="text-amber-500" />,
+            badgeClass: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+        },
+        {
+            id: "counter_offers" as CustomerChatFilterTab,
+            label: "counter offers",
+            desc: "suppliers proposed revised rates",
+            count: counterOffersCount,
+            icon: <Tag size={13} className="text-purple-500" />,
+            badgeClass: "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300",
+        },
+        {
+            id: "booked" as CustomerChatFilterTab,
+            label: "booked & paid",
+            desc: "active shipment and confirmed orders",
+            count: bookedCount,
+            icon: <CheckCircle2 size={13} className="text-emerald-500" />,
+            badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
+        },
+        {
+            id: "pinned" as CustomerChatFilterTab,
+            label: "pinned chats",
+            desc: "starred and high priority conversations",
+            count: pinnedCount,
+            icon: <Pin size={13} className="text-orange-500" />,
+            badgeClass: "bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300",
+        },
+        {
+            id: "new" as CustomerChatFilterTab,
+            label: "new inquiries",
+            desc: "ongoing unbooked requests",
+            count: counts?.new ?? 0,
+            icon: <Flame size={13} className="text-blue-500" />,
+            badgeClass: "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300",
+        },
+        {
+            id: "existing" as CustomerChatFilterTab,
+            label: "existing deals",
+            desc: "confirmed and historic quotes",
+            count: counts?.existing ?? 0,
+            icon: <Clock size={13} className="text-slate-500" />,
+            badgeClass: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+        },
+    ];
+
+    const sortOptions: { id: ChatSortOption; label: string; icon: React.ReactNode }[] = [
+        { id: "recent", label: "recent activity", icon: <Clock size={12} /> },
+        { id: "unread_first", label: "unread first", icon: <Flame size={12} /> },
+        { id: "amount_high", label: "highest quote", icon: <ArrowUpDown size={12} /> },
+        { id: "amount_low", label: "lowest quote", icon: <ArrowUpDown size={12} /> },
+    ];
+
+    const activeFilterObj = moreFilterOptions.find((o) => o.id === filterTab);
 
     return (
         <>
@@ -90,10 +250,11 @@ export const CustomerChatSidebarHeader: React.FC<CustomerChatSidebarHeaderProps>
                             Negotiations
                         </h2>
                         <span className="text-[11px] text-slate-400 font-medium truncate block mt-0.5">
-                            Supplier Negotiations
+                            Supplier negotiations
                         </span>
                     </div>
                 </div>
+
                 {onToggleCollapse && (
                     <Button
                         variant="ghost"
@@ -108,7 +269,7 @@ export const CustomerChatSidebarHeader: React.FC<CustomerChatSidebarHeaderProps>
             </div>
 
             {/* Search */}
-            <div className="px-3.5 pt-3 pb-2">
+            <div className="px-3 pt-3 pb-2">
                 <div className="relative">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
                     <input
@@ -121,96 +282,179 @@ export const CustomerChatSidebarHeader: React.FC<CustomerChatSidebarHeaderProps>
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="px-3.5 py-1.5 flex items-center gap-1.5 relative z-30 shrink-0 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                {visibleTabs.map((tab) => {
-                    const isActive = filterTab === tab.id;
-                    return (
-                        <button
-                            key={tab.id}
-                            type="button"
-                            onClick={() => setFilterTab(tab.id)}
-                            className={`rounded-full px-3 py-1 text-[11.5px] cursor-pointer whitespace-nowrap outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-all flex items-center gap-1.5 shrink-0 ${
-                                isActive
-                                    ? "bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/80 dark:border-orange-800 font-bold shadow-2xs"
-                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 font-semibold"
-                            }`}
-                        >
-                            <span>{tab.label}</span>
-                            {!isLoading && tab.count > 0 && (
-                                <span
-                                    className={`min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold inline-flex items-center justify-center leading-none shrink-0 ${
-                                        isActive
-                                            ? "bg-[#FF4A1F] text-white"
-                                            : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                                    }`}
-                                >
-                                    {tab.count}
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
+            {/* Filters Row with Quick Pills & 3-Dot More Filter */}
+            <div className="px-3 py-1.5 flex items-center justify-between gap-1 relative z-30 shrink-0">
+                <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar flex-1 min-w-0 pr-0.5">
+                    {primaryPills.map((tab, idx) => {
+                        const isActive = filterTab === tab.id;
+                        const isThisTabCustom = idx === 2 && isThirdTabCustom;
+                        return (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setFilterTab(tab.id)}
+                                className={`rounded-full px-2 py-0.5 text-[11px] cursor-pointer whitespace-nowrap outline-none transition-all flex items-center gap-1 shrink-0 ${
+                                    isActive
+                                        ? "bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/80 dark:border-orange-800 font-semibold shadow-2xs"
+                                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 font-normal"
+                                }`}
+                            >
+                                {tab.icon}
+                                <span>{tab.label}</span>
+                                {!isLoading && tab.count > 0 && (
+                                    <span
+                                        className={`min-w-[15px] h-[15px] px-1 rounded-full text-[9.5px] font-bold inline-flex items-center justify-center leading-none shrink-0 ${
+                                            isActive
+                                                ? "bg-[#FF4A1F] text-white"
+                                                : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                                        }`}
+                                    >
+                                        {tab.count}
+                                    </span>
+                                )}
+                                {isThisTabCustom && (
+                                    <span
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCustomThirdTab(null);
+                                            setFilterTab("all");
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                e.stopPropagation();
+                                                setCustomThirdTab(null);
+                                                setFilterTab("all");
+                                            }
+                                        }}
+                                        className="ml-0.5 hover:bg-orange-200/60 dark:hover:bg-orange-900/60 rounded-full p-0.5 text-[#FF4A1F] cursor-pointer inline-flex items-center justify-center"
+                                        title="Reset to default pill"
+                                    >
+                                        <X size={10} />
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
 
-                {hiddenTabs.length > 0 && (
-                    <div className="relative shrink-0" ref={moreMenuRef}>
-                        <button
-                            type="button"
-                            onClick={() => setIsMoreOpen((prev) => !prev)}
-                            title={isHiddenTabActive && activeHiddenTab ? `Active: ${activeHiddenTab.label} (More filters)` : "More filter tabs"}
-                            className={`rounded-full px-2.5 py-1 text-[11.5px] cursor-pointer whitespace-nowrap outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 transition-all flex items-center justify-center shrink-0 ${
-                                isHiddenTabActive
-                                    ? "bg-orange-50 dark:bg-orange-950/40 text-[#FF4A1F] border border-orange-200/80 dark:border-orange-800 font-bold shadow-2xs"
-                                    : isMoreOpen
-                                        ? "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600 font-semibold"
-                                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 font-semibold"
-                            }`}
-                        >
-                            <MoreHorizontal size={15} className="shrink-0" />
-                        </button>
+                {/* 3-Dot (•••) More Filters Button */}
+                <div className="relative shrink-0" ref={moreMenuRef}>
+                    <button
+                        type="button"
+                        onClick={() => setIsMoreOpen((prev) => !prev)}
+                        title="More filters & sorting options"
+                        className={`h-[26px] w-[26px] rounded-full cursor-pointer flex items-center justify-center transition-all ${
+                            isMoreOpen
+                                ? "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700"
+                        }`}
+                    >
+                        <MoreHorizontal size={14} />
+                    </button>
 
-                        {isMoreOpen && (
-                            <div className="absolute right-0 top-full mt-1.5 min-w-[155px] bg-white dark:bg-[#12161c] border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 p-1.5 animate-in fade-in zoom-in-95 duration-100">
-                                <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                                    More Filters
+                    {/* Popover Dropdown Menu */}
+                    {isMoreOpen && (
+                        <div className="absolute right-0 top-full mt-2 w-[280px] bg-white dark:bg-[#161a22] border border-slate-200 dark:border-slate-700 rounded-[4px] shadow-2xl z-50 p-2.5 animate-in fade-in zoom-in-95 duration-150 text-xs">
+                            {/* Dropdown Header */}
+                            <div className="flex items-center justify-between px-2 py-1.5 border-b border-slate-100 dark:border-slate-800/80 mb-1.5">
+                                <div className="flex items-center gap-1.5 text-slate-800 dark:text-slate-100 font-semibold">
+                                    <Filter size={12} className="text-[#FF4A1F]" />
+                                    <span>filter & sort</span>
                                 </div>
-                                <div className="space-y-0.5 mt-0.5">
-                                    {hiddenTabs.map((tab) => {
-                                        const isTabActive = filterTab === tab.id;
-                                        return (
-                                            <button
-                                                key={tab.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setFilterTab(tab.id);
-                                                    setIsMoreOpen(false);
-                                                }}
-                                                className={`w-full px-2.5 py-1.5 rounded-lg text-[12px] cursor-pointer flex items-center justify-between gap-2 transition-colors ${
-                                                    isTabActive
-                                                        ? "bg-orange-50 dark:bg-orange-950/50 text-[#FF4A1F] font-bold"
-                                                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 font-medium"
-                                                }`}
-                                            >
-                                                <span className="truncate">{tab.label}</span>
-                                                {!isLoading && tab.count > 0 && (
-                                                    <span
-                                                        className={`min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold inline-flex items-center justify-center leading-none shrink-0 ${
-                                                            isTabActive
-                                                                ? "bg-[#FF4A1F] text-white"
-                                                                : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                                                        }`}
-                                                    >
-                                                        {tab.count}
-                                                    </span>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                {(filterTab !== "all" || sortBy !== "recent" || isThirdTabCustom) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setFilterTab("all");
+                                            setCustomThirdTab(null);
+                                            if (setSortBy) setSortBy("recent");
+                                            setIsMoreOpen(false);
+                                        }}
+                                        className="text-[10.5px] font-semibold text-[#FF4A1F] hover:underline cursor-pointer"
+                                    >
+                                        reset
+                                    </button>
+                                )}
                             </div>
-                        )}
-                    </div>
-                )}
+
+                            {/* Section 1: Lifecycle Filters */}
+                            <div className="px-2 py-1 text-[10.5px] font-semibold text-slate-400 dark:text-slate-500">
+                                status & deals
+                            </div>
+                            <div className="space-y-0.5">
+                                {moreFilterOptions.map((opt) => {
+                                    const isOptActive = filterTab === opt.id;
+                                    return (
+                                        <button
+                                            key={opt.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setCustomThirdTab(opt.id);
+                                                setFilterTab(opt.id);
+                                                setIsMoreOpen(false);
+                                            }}
+                                            className={`w-full px-2.5 py-1.5 rounded-[4px] flex items-center justify-between text-left transition-colors cursor-pointer ${
+                                                isOptActive
+                                                    ? "bg-orange-50 dark:bg-orange-950/50 text-[#FF4A1F] font-semibold"
+                                                    : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-normal"
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                {opt.icon}
+                                                <div className="truncate">
+                                                    <span className="block truncate leading-tight">{opt.label}</span>
+                                                    <span className="text-[10px] text-slate-400 font-normal block truncate leading-none mt-0.5">
+                                                        {opt.desc}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {opt.count > 0 && (
+                                                <span className={`min-w-[17px] h-[17px] px-1 rounded-full text-[9.5px] font-bold inline-flex items-center justify-center shrink-0 ml-1.5 ${isOptActive ? "bg-[#FF4A1F] text-white" : opt.badgeClass
+                                                    }`}>
+                                                    {opt.count}
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Section 2: Sort By */}
+                            {setSortBy && (
+                                <>
+                                    <div className="h-[1px] bg-slate-100 dark:bg-slate-800 my-1.5" />
+                                    <div className="px-2 py-1 text-[10.5px] font-semibold text-slate-400 dark:text-slate-500">
+                                        sort conversations
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                                        {sortOptions.map((s) => {
+                                            const isSortActive = sortBy === s.id;
+                                            return (
+                                                <button
+                                                    key={s.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSortBy(s.id);
+                                                        setIsMoreOpen(false);
+                                                    }}
+                                                    className={`px-2 py-1.5 rounded-[4px] text-[11px] flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors cursor-pointer border ${isSortActive
+                                                            ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white font-semibold shadow-xs"
+                                                            : "bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 font-normal"
+                                                        }`}
+                                                >
+                                                    {s.icon}
+                                                    <span>{s.label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

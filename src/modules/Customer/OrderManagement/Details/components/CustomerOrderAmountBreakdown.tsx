@@ -93,9 +93,16 @@ export const CustomerOrderAmountBreakdown: React.FC<CustomerOrderAmountBreakdown
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 mt-2 space-y-1.5">
                 <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Total Quotation Amount</span>
-                    <span className="text-[14px] font-black text-[#FF4A1F]">
-                        {pricing.totalFormatted}
-                    </span>
+                    <div className="text-right">
+                        <span className="text-[14px] font-black text-[#FF4A1F] block">
+                            {pricing.quoteFormatted || pricing.baseFormatted}
+                        </span>
+                        {pricing.platformFee && pricing.platformFee > 0 ? (
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mt-0.5">
+                                +€{Number(pricing.platformFee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{pricing.platformFeePercent ? ` (${pricing.platformFeePercent}% platform charge)` : ' (platform charge)'}
+                            </span>
+                        ) : null}
+                    </div>
                 </div>
 
                 {/* Status / Balance sub-row */}

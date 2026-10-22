@@ -51,7 +51,7 @@ export const DriverProfileHeader: React.FC<Props> = ({ profile, onEditClick }) =
                                 </div>
                             )}
                             {profile.licenseBadge && (
-                                <span className="inline-flex items-center px-2 py-0.5 text-[10.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-[4px] border border-blue-200/60 dark:border-blue-800/60">
+                                <span className="inline-flex items-center px-2 py-0.5 text-[10.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-[2px] border border-blue-200/60 dark:border-blue-800/60">
                                     {profile.licenseBadge}
                                 </span>
                             )}

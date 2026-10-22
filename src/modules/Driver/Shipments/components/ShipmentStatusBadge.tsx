@@ -1,63 +1,64 @@
 import React from 'react';
 import { ShipmentStatus } from '../../types';
+import { STATUS_BADGE_BASE_CLASS, STATUS_CATEGORY_STYLES } from '@/components/common/StatusBadge';
 
 interface Props {
     status: ShipmentStatus;
+    className?: string;
 }
 
-export const ShipmentStatusBadge: React.FC<Props> = ({ status }) => {
+export const ShipmentStatusBadge: React.FC<Props> = ({ status, className = '' }) => {
     switch (status) {
         case 'in_transit':
             return (
-                <span className="inline-flex items-center gap-1.5 h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                    <span>In Transit</span>
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.in_progress.className} ${className}`}>
+                    In Transit
                 </span>
             );
         case 'at_pickup':
             return (
-                <span className="inline-flex items-center h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 whitespace-nowrap">
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.in_progress.className} ${className}`}>
                     At Pickup
                 </span>
             );
         case 'at_delivery':
             return (
-                <span className="inline-flex items-center h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800/60 whitespace-nowrap">
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.in_progress.className} ${className}`}>
                     At Delivery
                 </span>
             );
         case 'assigned':
         case 'accepted':
             return (
-                <span className="inline-flex items-center h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60 whitespace-nowrap">
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.in_progress.className} ${className}`}>
                     Assigned
                 </span>
             );
         case 'delivered':
             return (
-                <span className="inline-flex items-center gap-1.5 h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60 whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                    <span>Awaiting Review</span>
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.pending.className} ${className}`}>
+                    Awaiting Review
                 </span>
             );
         case 'completed':
             return (
-                <span className="inline-flex items-center gap-1 h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 whitespace-nowrap">
-                    <span>✓</span>
-                    <span>Completed</span>
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.success.className} ${className}`}>
+                    Completed
                 </span>
             );
         case 'cancelled':
             return (
-                <span className="inline-flex items-center h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 border border-red-200/60 dark:border-red-800/60 whitespace-nowrap">
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.failed.className} ${className}`}>
                     Cancelled
                 </span>
             );
         default:
             return (
-                <span className="inline-flex items-center h-6.5 px-2.5 text-[11px] font-bold rounded-[4px] bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-nowrap capitalize">
-                    {String(status).replace('_', ' ')}
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.neutral.className} ${className} capitalize`}>
+                    {String(status || 'Scheduled').replace(/_/g, ' ')}
                 </span>
             );
     }
 };
+
+export default ShipmentStatusBadge;

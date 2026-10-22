@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     FileText, MapPin, Truck, Euro, Paperclip, CheckCircle2, ChevronRight,
-    Edit, Copy, ArrowLeft
+    Edit, Copy, ArrowLeft, FileDown, Loader2
 } from 'lucide-react';
 import Button from '@/components/ui/button';
+import { apiClient } from '@/lib/axios';
 import { QuoteViewSkeleton } from './components/QuoteViewSkeleton';
 import { useViewQuoteRequest } from './hooks/useViewQuoteRequest';
 import { ViewBasicInfo } from './sections/ViewBasicInfo';
@@ -24,6 +25,27 @@ const VIEW_TABS = [
 
 export default function ViewRequestForm() {
     const { cleanId, activeTab, setActiveTab, isLoading, formData, servicesCount, navigate } = useViewQuoteRequest();
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+    const handleDownloadPdf = async () => {
+        if (!cleanId) return;
+        setIsDownloadingPdf(true);
+        try {
+            const blob = await apiClient.getBlob(`/customer/quote-requests/${cleanId}/download-pdf`);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `QuoteRequest-REQ-${String(cleanId).padStart(4, '0')}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        } catch (err) {
+            console.error('Failed to download PDF:', err);
+        } finally {
+            setIsDownloadingPdf(false);
+        }
+    };
 
     if (isLoading) {
         return <QuoteViewSkeleton activeTab={activeTab} />;
@@ -56,6 +78,21 @@ export default function ViewRequestForm() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isDownloadingPdf}
+                        className="h-[34px] text-[12px] border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer font-medium disabled:opacity-50"
+                        onClick={handleDownloadPdf}
+                    >
+                        {isDownloadingPdf ? (
+                            <Loader2 size={14} className="animate-spin text-slate-500" />
+                        ) : (
+                            <FileDown size={14} className="text-slate-500" />
+                        )}
+                        <span>{isDownloadingPdf ? 'Downloading...' : 'Download PDF'}</span>
+                    </Button>
                     <Button
                         type="button"
                         variant="outline"

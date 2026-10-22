@@ -5,6 +5,7 @@ import { ENDPOINTS } from '@/config/api';
 import { encryptId } from '@/lib/encryption';
 import { useToastStore } from '@/stores/useToastStore';
 import { computeTrackTabCounts, filterAndSortBids } from '../utils/trackBidsFilterUtils';
+import { normalizeQuoteItem } from '../utils/quotesReceivedHelpers';
 
 export function useTrackBids(cleanId: string) {
     const navigate = useNavigate();
@@ -17,10 +18,30 @@ export function useTrackBids(cleanId: string) {
 
     // Filters & Tabs state
     const [activeTab, setActiveTab] = useState<'all' | 'new' | 'negotiation' | 'accepted' | 'rejected'>('all');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [vehicleFilter, setVehicleFilter] = useState<string>('all');
-    const [ratingFilter, setRatingFilter] = useState<string>('all');
-    const [filterMode, setFilterMode] = useState<string>('lowest_price');
+    const [statusFilter, _setStatusFilter] = useState<string>('all');
+    const [vehicleFilter, _setVehicleFilter] = useState<string>('all');
+    const [ratingFilter, _setRatingFilter] = useState<string>('all');
+    const [filterMode, _setFilterMode] = useState<string>('lowest_price');
+
+    const setStatusFilter = useCallback((val: any) => {
+        const v = typeof val === 'object' ? (val?.target?.value ?? val?.value ?? val?.id ?? 'all') : val;
+        _setStatusFilter(String(v || 'all'));
+    }, []);
+
+    const setVehicleFilter = useCallback((val: any) => {
+        const v = typeof val === 'object' ? (val?.target?.value ?? val?.value ?? val?.id ?? 'all') : val;
+        _setVehicleFilter(String(v || 'all'));
+    }, []);
+
+    const setRatingFilter = useCallback((val: any) => {
+        const v = typeof val === 'object' ? (val?.target?.value ?? val?.value ?? val?.id ?? 'all') : val;
+        _setRatingFilter(String(v || 'all'));
+    }, []);
+
+    const setFilterMode = useCallback((val: any) => {
+        const v = typeof val === 'object' ? (val?.target?.value ?? val?.value ?? val?.id ?? 'lowest_price') : val;
+        _setFilterMode(String(v || 'lowest_price'));
+    }, []);
 
     const [actionLoading, setActionLoading] = useState<number | null>(null);
     const [rejectModalQuote, setRejectModalQuote] = useState<any>(null);
@@ -46,7 +67,7 @@ export function useTrackBids(cleanId: string) {
                     const list = res.data?.data?.quotes_request || res.data?.quotes_request || res.data?.data || [];
                     const details = res.data?.data?.quote_details || res.data?.quote_details || null;
                     if (details) foundDetails = details;
-                    if (Array.isArray(list)) foundList = list;
+                    if (Array.isArray(list)) foundList = list.map(normalizeQuoteItem);
                 } catch (err) {
                     console.warn('Direct request quotes call failed:', err);
                 }
@@ -65,7 +86,7 @@ export function useTrackBids(cleanId: string) {
                         if (Array.isArray(allList)) {
                             foundList = allList.filter((item: any) => 
                                 String(item.quote_request_id || item.request_id || item.quote_request?.id) === String(cleanId)
-                            );
+                            ).map(normalizeQuoteItem);
                         }
                     } catch {}
                 }
@@ -75,7 +96,7 @@ export function useTrackBids(cleanId: string) {
             } else {
                 const res = await apiClient.get(ENDPOINTS.CUSTOMER.QUOTES || '/customer/quotes');
                 const quotesList = res.data?.data?.data || res.data?.data || res.data?.quotes || [];
-                setQuotes(Array.isArray(quotesList) ? quotesList : []);
+                setQuotes(Array.isArray(quotesList) ? quotesList.map(normalizeQuoteItem) : []);
             }
 
             if (isManualRefresh) {

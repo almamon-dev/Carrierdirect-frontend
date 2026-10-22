@@ -2,6 +2,7 @@ import React, { RefObject } from 'react';
 import { Shield, CheckCircle2, UploadCloud, FileText } from 'lucide-react';
 import Input from '@/components/ui/input';
 import DatePicker from '@/components/ui/date-picker';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface Props {
     isEditMode: boolean;
@@ -39,10 +40,7 @@ export const InsurancePolicyCard: React.FC<Props> = ({
                         Commercial Fleet & Auto Liability
                     </h3>
                 </div>
-                <span className="h-6.5 px-2 text-[10.5px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 rounded-[3px] border border-purple-200 dark:border-purple-800 inline-flex items-center gap-1 shrink-0">
-                    <CheckCircle2 size={10.5} className="text-purple-600" />
-                    <span>Active Policy</span>
-                </span>
+                <StatusBadge status="Active" label="Active Policy" />
             </div>
 
             <div className="p-3.5 space-y-2 text-xs flex-1">

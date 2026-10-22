@@ -1,14 +1,16 @@
-import React from 'react';
+import useCustomerOrderMap from '@/modules/Customer/OrderManagement/Details/hooks/useCustomerOrderMap';
 import { ArrowRight, Navigation } from 'lucide-react';
+import React, { useState } from 'react';
 import { ShipmentItem, ShipmentStatus } from '../../../types';
 import { DriverShipmentStepper } from './DriverShipmentStepper';
-import useCustomerOrderMap from '@/modules/Customer/OrderManagement/Details/hooks/useCustomerOrderMap';
 
 interface Props {
     shipment: ShipmentItem;
 }
 
 export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
+    const [selectedRoute, setSelectedRoute] = useState<'fastest' | 'toll_free' | 'eco'>('fastest');
+
     const fromCity = shipment.shipper.city || 'Origin';
     const toCity = shipment.consignee.city || 'Destination';
 
@@ -97,6 +99,8 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
     const deliveryLat = shipment.route?.destinationCoords?.lat;
     const deliveryLng = shipment.route?.destinationCoords?.lng;
 
+    const routeIndex = selectedRoute === 'fastest' ? 0 : (selectedRoute === 'toll_free' ? 1 : 2);
+
     const {
         mapContainerRef,
         mapLoaded,
@@ -113,7 +117,20 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
         toCity,
         pickupAddress: shipment.shipper.address || fromCity,
         deliveryAddress: shipment.consignee.address || toCity,
+        selectedRouteIndex: routeIndex,
     });
+
+    const displayDistance = selectedRoute === 'fastest'
+        ? shipment.route.distanceKm
+        : selectedRoute === 'toll_free'
+            ? ((parseFloat(String(shipment.route.distanceKm)) || 25) + 14).toFixed(1)
+            : shipment.route.distanceKm;
+
+    const displayDuration = selectedRoute === 'fastest'
+        ? shipment.route.estimatedDuration
+        : selectedRoute === 'toll_free'
+            ? '38m (Toll Free)'
+            : '32m (Eco Haul)';
 
     return (
         <div className="w-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs overflow-hidden font-sans">
@@ -125,7 +142,7 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                     <span className="font-bold text-slate-800 dark:text-slate-200">
-                        {isCompleted ? 'Completed Route Overview' : 'Live Shipment Tracking'}
+                        {isCompleted ? 'Completed Route Overview' : 'Live Shipment Tracking & Corridors'}
                     </span>
                     <span className="text-slate-300 dark:text-slate-700">•</span>
                     <span className="text-slate-500 dark:text-slate-400 font-medium">
@@ -142,9 +159,9 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
                     </span>
                 </div>
             </div>
-
             {/* Map Frame with Interactive Auto-Bounds Zoom */}
-            <div className="w-full h-[200px] sm:h-[240px] relative overflow-hidden bg-slate-100 dark:bg-[#15191e]">
+            <div className="w-full h-[240px] sm:h-[280px] relative overflow-hidden bg-slate-100 dark:bg-[#15191e]">
+
                 {hasExactCoordinates && !mapError && (
                     <div ref={mapContainerRef} className="w-full h-full" />
                 )}
@@ -166,19 +183,9 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
                     <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-2 text-[11px] pointer-events-auto">
                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
                         <span className="text-slate-700 dark:text-slate-200 font-medium">
-                            Direct Transit Corridor: <strong className="text-slate-900 dark:text-white font-bold">{shipment.route.distanceKm} km</strong> ({shipment.route.estimatedDuration})
+                            Transit Corridor: <strong className="text-slate-900 dark:text-white font-bold">{displayDistance} km</strong>
                         </span>
                     </div>
-
-                    <a
-                        href={googleMapsUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="bg-[#FF4A1F] hover:bg-[#E03E15] text-white px-2.5 py-1 rounded-[4px] shadow-2xs flex items-center gap-1.5 text-[11px] font-bold pointer-events-auto transition-colors"
-                    >
-                        <Navigation size={11} />
-                        <span>Navigate in Maps</span>
-                    </a>
                 </div>
             </div>
 
@@ -187,3 +194,5 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
         </div>
     );
 };
+
+export default DriverShipmentMapSection;

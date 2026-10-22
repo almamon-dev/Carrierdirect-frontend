@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
     Loader2, AlertCircle, Euro, Package, ArrowLeft, Users
 } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
 import { DeclineOfferModal } from '../Negotiation/Chat/components/DeclineOfferModal';
@@ -24,7 +24,9 @@ const THREE_TABS: QuoteViewTab[] = [
 export default function QuoteView() {
     const navigate = useNavigate();
     const { quoteId, requestId } = useParams();
-    const [activeTab, setActiveTab] = useState<string>('suppliers');
+    const [searchParams] = useSearchParams();
+    const urlTab = searchParams.get('tab');
+    const [activeTab, setActiveTab] = useState<string>(urlTab || 'suppliers');
     const [isCounterModalOpen, setIsCounterModalOpen] = useState<boolean>(false);
 
     const {

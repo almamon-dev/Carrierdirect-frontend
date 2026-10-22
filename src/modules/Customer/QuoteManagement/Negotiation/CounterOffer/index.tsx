@@ -69,9 +69,9 @@ export default function CounterOfferMessage({
 
     const isSuperseded = status === "superseded" || msg.is_superseded === true;
     const isWithdrawn = status === "withdrawn";
-    const isAccepted = status === "accepted" || (activeData as any)?.status === "Accepted" || (activeData as any)?.status === "Booked" || isOrderPaid;
+    const isAccepted = status === "accepted" || msg.status === "accepted";
     const isDeclined = status === "rejected" || status === "declined" || (activeData as any)?.status === "Offer Declined" || (activeData as any)?.status === "rejected";
-    const isPending = status === "pending" && !isSuperseded && !isWithdrawn && !isAccepted && !isDeclined;
+    const isPending = !isSuperseded && !isWithdrawn && !isAccepted && !isDeclined;
     const canAccept = !isSentByMe && isPending;
 
     const handleConfirmAccept = () => {
@@ -148,6 +148,7 @@ export default function CounterOfferMessage({
                             localReason={localReason}
                             otherPartyName={otherPartyName}
                             orderId={orderId}
+                            quoteId={targetQuoteId}
                             onConfirmAccept={handleConfirmAccept}
                             onOpenCounterOffer={onOpenCounterOffer}
                             onShowDeclineModal={() => setShowDeclineModal(true)}

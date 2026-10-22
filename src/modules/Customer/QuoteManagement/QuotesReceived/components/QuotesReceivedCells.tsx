@@ -1,3 +1,5 @@
+import { StandardRouteCell } from '@/components/common/StandardRouteCell';
+import { formatStandardAddress, formatStandardRoute, formatCompactRoute } from "@/utils/addressFormatter";
 import React from 'react';
 import { formatDisplayDate } from '@/lib/utils';
 import {
@@ -18,22 +20,13 @@ export {
   QuotesReceivedRequestIdCell,
 };
 
-const cleanAddressWithoutZip = (addr: string): string => {
-  if (!addr || addr === '—') return addr;
-  return addr
-    .replace(/\s*\(?ZIP:?\s*\d+\)?/gi, '')
-    .replace(/\b(?:ZIP|Postal Code):?\s*\d+\b/gi, '')
-    .replace(/\s+\d{4,6}\b(?=[,\s]|$)/g, '')
-    .replace(/\s*,\s*,/g, ',')
-    .replace(/,\s*$/g, '')
-    .trim();
-};
-
 export const QuotesReceivedSupplierCell: React.FC<{ row: any }> = ({ row }) => {
   const name =
+    row.supplier?.full_name ||
+    row.supplier?.name ||
+    row.supplier_full_name ||
     row.supplier_name ||
     row.supplier?.company_name ||
-    row.supplier?.name ||
     row.carrier_name ||
     row.customer ||
     row.supplier ||
@@ -57,18 +50,22 @@ export const QuotesReceivedSupplierCell: React.FC<{ row: any }> = ({ row }) => {
           {name.charAt(0).toUpperCase()}
         </div>
       )}
-      <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px] truncate max-w-[110px]">
+      <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px] whitespace-nowrap">
         {name}
       </span>
     </div>
   );
 };
 
-export const QuotesReceivedAddressCell: React.FC<{ address: string }> = ({ address }) => {
-  const displayAddr = cleanAddressWithoutZip(address);
+export const QuotesReceivedRouteCell: React.FC<{ row: any }> = ({ row }) => {
+    return <StandardRouteCell row={row} />;
+};
+
+export const QuotesReceivedAddressCell: React.FC<{ address?: string; row?: any; type?: "pickup" | "delivery" }> = ({ address, row, type = "pickup" }) => {
+  const displayAddr = row ? formatStandardAddress(row, type) : formatStandardAddress(address);
   return (
     <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={displayAddr}>
-      <span className="font-semibold text-slate-800 dark:text-slate-200 text-[12.5px] truncate block max-w-full leading-normal">
+      <span className="font-semibold text-slate-800 dark:text-slate-200 text-[12.5px] whitespace-nowrap block leading-normal">
         {displayAddr}
       </span>
     </div>
@@ -77,7 +74,7 @@ export const QuotesReceivedAddressCell: React.FC<{ address: string }> = ({ addre
 
 export const QuotesReceivedVehicleCell: React.FC<{ vehicle: string }> = ({ vehicle }) => (
   <div className="flex items-center min-h-[26px]" title={vehicle}>
-    <span className="text-[12.5px] text-slate-800 dark:text-slate-200 font-semibold truncate max-w-[125px]">
+    <span className="text-[12.5px] text-slate-800 dark:text-slate-200 font-semibold whitespace-nowrap">
       {vehicle || 'Covered Van (20ft)'}
     </span>
   </div>

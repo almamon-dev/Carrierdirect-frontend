@@ -1,3 +1,4 @@
+import { formatStandardAddress } from "@/utils/addressFormatter";
 import apiClient from '@/lib/axios';
 import { formatDisplayDate } from '@/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
@@ -37,7 +38,7 @@ export const useCustomerNegotiations = () => {
                     const idFormatted = n.quote_id_formatted || (n.id ? `QT-${String(n.id).padStart(4, '0')}` : `QT-0000`);
                     const reqId = n.request_id || (n.quote_request_id ? `REQ-${String(n.quote_request_id).padStart(4, '0')}` : 'REQ-0000');
                     const reqTitle = n.request_title || n.quote_request?.request_title || reqId;
-                    const supplierName = n.sender_name || n.supplier_name || n.supplier?.name || n.company_name || '-';
+                    const supplierName = n.supplier?.full_name || n.supplier?.name || n.supplier_full_name || n.sender_name || n.supplier_name || n.company_name || '-';
                     const avatarUrl = n.profile_picture || n.supplier?.profile_picture || '';
 
                     const extraCharges = Array.isArray(n.extra_charges) ? n.extra_charges.map((c: any) => ({
@@ -58,8 +59,8 @@ export const useCustomerNegotiations = () => {
                         (n.base_amount ? parseFloat(String(n.base_amount).replace(/[^0-9.]/g, "")) : (origPrice > totalExtras && totalExtras > 0 ? origPrice - totalExtras : origPrice))
                     );
 
-                    const pickupLoc = n.origin || n.pickup_address || n.pickup || '-';
-                    const deliveryLoc = n.destination || n.delivery_address || n.delivery || '-';
+                    const pickupLoc = formatStandardAddress(n, "pickup");
+                    const deliveryLoc = formatStandardAddress(n, "delivery");
                     const distStr = resolveQuoteDistance({ ...n, ...(n.quote_request || {}), ...(n.quoteRequest || {}), origin: pickupLoc, destination: deliveryLoc }).distanceStr;
                     const dateFormatted = formatDisplayDate(n.created_at || n.request_date || n.date);
 
@@ -89,10 +90,21 @@ export const useCustomerNegotiations = () => {
                         (statusRawLower === 'accepted' && (n.is_paid || isOrderActive))
                     );
 
+                    const isAwaitingPayment = Boolean(
+                        !isCompleted && !isBooked && (
+                            n.is_awaiting_payment ||
+                            statusRawLower === 'awaiting_payment' ||
+                            statusRawLower === 'awaiting payment' ||
+                            ((statusRawLower === 'accepted' || statusRawLower === 'won') && (!n.is_paid && !isOrderActive))
+                        )
+                    );
+
                     if (isCompleted) {
                         statusLabel = 'Completed';
                     } else if (isBooked) {
                         statusLabel = 'Booked';
+                    } else if (isAwaitingPayment) {
+                        statusLabel = 'Awaiting Payment';
                     } else if (statusRawLower === 'accepted' || String(statusLabel).toLowerCase().includes('accept')) {
                         statusLabel = 'Accepted';
                     } else if (statusRawLower === 'closed' || statusRawLower === 'rejected' || statusRawLower === 'expired' || statusRawLower === 'declined' || statusRawLower === 'cancelled' || isDateExpired) {
@@ -158,6 +170,8 @@ export const useCustomerNegotiations = () => {
                         lastSeenAt: n.last_seen_at,
                         baseFreight: baseFreightAmount,
                         isPaid: Boolean(n.is_paid),
+                        isAwaitingPayment: isAwaitingPayment,
+                        is_awaiting_payment: isAwaitingPayment,
                         hasOrder: Boolean(n.has_order || n.order_id || n.order),
                         orderId: n.order_id,
                         orderNumber: n.order_number,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Euro, Clock, TrendingUp, ShieldCheck, AlertCircle } from 'lucide-react';
 import MetricCard from '@/components/cards/metric-card';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { StripeRedirectTarget } from '../types/withdrawal.types';
 
 interface WithdrawalMetricCardsProps {
@@ -31,7 +31,7 @@ export function WithdrawalMetricCards({
                 value={`€${(stats.availableBalance || 0).toFixed(2)}`}
                 icon={Euro}
                 colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
-                badge={<span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-[3px]">Ready to Withdraw</span>}
+                badge={<StatusBadge status="Ready to Withdraw" category="success" />}
                 isLoading={loading}
             />
             <MetricCard
@@ -58,13 +58,9 @@ export function WithdrawalMetricCards({
                 colorClass={isStripeConnected ? "bg-[#635BFF]/10 text-[#635BFF]" : "bg-red-50 dark:bg-red-950/40 text-red-600"}
                 badge={
                     isStripeConnected ? (
-                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 font-semibold text-[10px]">
-                            Active
-                        </Badge>
+                        <StatusBadge status="Active" category="success" />
                     ) : (
-                        <span className="px-1.5 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded shadow-2xs animate-pulse">
-                            Required
-                        </span>
+                        <StatusBadge status="Required" category="action_required" />
                     )
                 }
                 onClick={() => onStripeCardClick('card_stat', isStripeConnected)}

@@ -92,7 +92,7 @@ export const SupplierVehicleDetails: React.FC<SupplierVehicleDetailsProps> = ({
                     <span className="text-slate-500 dark:text-slate-400 font-medium text-xs">Dispatched Driver</span>
                     {isDriverAssigned ? (
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-[4px]">
+                            <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-[2px]">
                                 <UserCheck size={12} className="text-emerald-600 shrink-0" />
                                 <span>{driver.name}</span>
                             </span>

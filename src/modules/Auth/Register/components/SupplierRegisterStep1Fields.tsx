@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Input from '../../../../components/ui/input';
 import Button from '../../../../components/ui/button';
@@ -45,6 +45,25 @@ export const SupplierRegisterStep1Fields: React.FC<SupplierRegisterStep1FieldsPr
                         value={formData.fullName}
                         onChange={(e) => onInputChange('fullName', e.target.value)}
                         error={errors.fullName}
+                    />
+                </div>
+            </div>
+
+            <div>
+                <label className="block text-[13px] font-medium text-gray-700 dark:text-slate-200 mb-1">
+                    Company / Business Name <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                    <div className="absolute top-0 left-0 h-[42px] pl-3 flex items-center pointer-events-none z-10">
+                        <Building2 className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <Input
+                        type="text"
+                        className="pl-9 bg-white"
+                        placeholder="e.g. Acme Transport & Logistics Ltd"
+                        value={formData.companyName}
+                        onChange={(e) => onInputChange('companyName', e.target.value)}
+                        error={errors.companyName}
                     />
                 </div>
             </div>

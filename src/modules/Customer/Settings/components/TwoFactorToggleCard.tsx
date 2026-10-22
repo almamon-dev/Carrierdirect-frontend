@@ -1,6 +1,6 @@
 import React from 'react';
 import { Shield, ShieldCheck } from 'lucide-react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface TwoFactorToggleCardProps {
   twoFactor: boolean;
@@ -27,9 +27,7 @@ export const TwoFactorToggleCard: React.FC<TwoFactorToggleCardProps> = ({
               Two-Factor Authentication (2FA)
             </h4>
             {twoFactor && (
-              <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                Enabled
-              </Badge>
+              <StatusBadge status="Enabled" />
             )}
           </div>
           <p className="text-[11px] text-slate-500 font-normal">

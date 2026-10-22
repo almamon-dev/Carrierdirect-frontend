@@ -10,6 +10,38 @@ export interface DropdownItem {
     [key: string]: any;
 }
 
+const BUILT_IN_DROPDOWNS: Record<string, DropdownItem[]> = {
+    load_type: [
+        { id: 'Euro Pallets', name: 'Euro Pallets', key: 'euro_pallets' },
+        { id: 'Industrial Pallets', name: 'Industrial Pallets', key: 'industrial_pallets' },
+        { id: 'Pallets', name: 'Pallets', key: 'pallets' },
+        { id: 'Boxes', name: 'Boxes', key: 'boxes' },
+        { id: 'Crates', name: 'Crates', key: 'crates' },
+        { id: 'Machinery', name: 'Machinery', key: 'machinery' },
+        { id: 'Vehicles', name: 'Vehicles', key: 'vehicles' },
+        { id: 'Furniture', name: 'Furniture', key: 'furniture' },
+        { id: 'Dry Freight', name: 'Dry Freight', key: 'dry_freight' },
+        { id: 'Packages', name: 'Packages', key: 'packages' },
+        { id: 'Containers', name: 'Containers', key: 'containers' },
+        { id: 'Other', name: 'Other', key: 'other' },
+    ],
+    vehicle_type: [
+        { id: 'Curtainsider', name: 'Curtainsider', key: 'curtainsider' },
+        { id: 'Box Truck', name: 'Box Truck', key: 'box_truck' },
+        { id: 'Box Truck with Tail Lift', name: 'Box Truck with Tail Lift', key: 'box_truck_tail_lift' },
+        { id: 'Refrigerated Trailer', name: 'Refrigerated Trailer', key: 'refrigerated_trailer' },
+        { id: 'Sprinter Van', name: 'Sprinter Van', key: 'sprinter_van' },
+        { id: 'Small Van', name: 'Small Van', key: 'small_van' },
+        { id: 'Cargo Van', name: 'Cargo Van', key: 'cargo_van' },
+        { id: 'Mega Trailer', name: 'Mega Trailer', key: 'mega_trailer' },
+        { id: 'Semi Trailer', name: 'Semi Trailer', key: 'semi_trailer' },
+        { id: 'Flatbed Trailer', name: 'Flatbed Trailer', key: 'flatbed_trailer' },
+        { id: 'Flatbed Truck', name: 'Flatbed Truck', key: 'flatbed_truck' },
+        { id: 'Pickup Truck', name: 'Pickup Truck', key: 'pickup_truck' },
+        { id: 'Covered Van (20ft)', name: 'Covered Van (20ft)', key: 'covered_van_20ft' },
+    ],
+};
+
 export function useDropdownOptions() {
     const [dropdowns, setDropdowns] = useState<Record<string, DropdownItem[]>>({});
     const [loading, setLoading] = useState<boolean>(false);
@@ -76,32 +108,48 @@ export function useDropdownOptions() {
     }, []);
 
     /**
-     * Retrieve options by category with alias key fallback and default options.
+     * Retrieve options by category with alias key fallback, built-in options and default options.
      */
     const getOptions = (category: string, defaultOptions: DropdownItem[] = []): DropdownItem[] => {
+        let result: DropdownItem[] = [];
+
         // Direct category match
         if (dropdowns[category] && Array.isArray(dropdowns[category]) && dropdowns[category].length > 0) {
-            return dropdowns[category];
-        }
+            result = dropdowns[category];
+        } else {
+            // Aliases check
+            const aliases = [
+                category.toLowerCase(),
+                category.toUpperCase(),
+                category.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()), // camelCase
+                `${category}s`,
+                `${category}_types`,
+                category.replace(/_type$/i, ''),
+                `${category.replace(/_type$/i, '')}s`,
+            ];
 
-        // Aliases check
-        const aliases = [
-            category.toLowerCase(),
-            category.toUpperCase(),
-            category.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()), // camelCase
-            `${category}s`,
-            `${category}_types`,
-            category.replace(/_type$/i, ''),
-            `${category.replace(/_type$/i, '')}s`,
-        ];
-
-        for (const alias of aliases) {
-            if (dropdowns[alias] && Array.isArray(dropdowns[alias]) && dropdowns[alias].length > 0) {
-                return dropdowns[alias];
+            for (const alias of aliases) {
+                if (dropdowns[alias] && Array.isArray(dropdowns[alias]) && dropdowns[alias].length > 0) {
+                    result = dropdowns[alias];
+                    break;
+                }
             }
         }
 
-        return defaultOptions;
+        const builtin = BUILT_IN_DROPDOWNS[category] || BUILT_IN_DROPDOWNS[category.toLowerCase()] || [];
+        const baseFallbacks = defaultOptions.length > 0 ? defaultOptions : builtin;
+
+        if (result.length === 0) {
+            return baseFallbacks;
+        }
+
+        if (baseFallbacks.length > 0) {
+            const existingKeys = new Set(result.map(r => String(r.name || r.label || r.id).toLowerCase().trim()));
+            const missing = baseFallbacks.filter(b => !existingKeys.has(String(b.name || b.label || b.id).toLowerCase().trim()));
+            return [...result, ...missing];
+        }
+
+        return result;
     };
 
     return { dropdowns, loading, getOptions };

@@ -76,9 +76,16 @@ export const CustomerOrderBottomCards: React.FC<Props> = ({ order }) => {
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 mt-2 space-y-1">
                     <div className="flex items-center justify-between">
                         <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Total Quotation Amount</span>
-                        <span className="text-sm font-black text-[#FF4A1F]">
-                            {order.pricing?.totalFormatted || '-'}
-                        </span>
+                        <div className="text-right">
+                            <span className="text-sm font-black text-[#FF4A1F] block">
+                                {order.pricing?.quoteFormatted || order.pricing?.baseFormatted || '-'}
+                            </span>
+                            {order.pricing?.platformFee && order.pricing.platformFee > 0 ? (
+                                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mt-0.5">
+                                    +€{Number(order.pricing.platformFee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{order.pricing.platformFeePercent ? ` (${order.pricing.platformFeePercent}% platform charge)` : ' (platform charge)'}
+                                </span>
+                            ) : null}
+                        </div>
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-slate-400">
                         <span>Balance Due on POD</span>

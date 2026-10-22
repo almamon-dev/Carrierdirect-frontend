@@ -1,7 +1,8 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { SupplierOrderItem } from '../types';
 import { formatDisplayDate } from '@/lib/utils';
 import {
@@ -66,7 +67,7 @@ export const getOrderColumns = (
         sortable: true,
         className: 'w-[18%] min-w-[140px] max-w-[220px]',
         render: (row) => {
-            const address = row.pickup_full_address || row.pickup_address || row.pickup_city || 'Origin';
+            const address = formatStandardAddress(row, 'pickup');
             return (
                 <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
                     <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
@@ -83,7 +84,7 @@ export const getOrderColumns = (
         sortable: true,
         className: 'w-[18%] min-w-[140px] max-w-[220px]',
         render: (row) => {
-            const address = row.delivery_full_address || row.delivery_address || row.delivery_city || 'Destination';
+            const address = formatStandardAddress(row, 'delivery');
             return (
                 <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
                     <MapPin size={12} className="text-emerald-500 shrink-0" />
@@ -137,9 +138,7 @@ export const getOrderColumns = (
 
             return (
                 <div className="flex items-center h-5">
-                    <Badge variant="warning" className="text-[10px] font-bold whitespace-nowrap bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
-                        Unassigned
-                    </Badge>
+                    <StatusBadge status="Unassigned" category="pending" />
                 </div>
             );
         },

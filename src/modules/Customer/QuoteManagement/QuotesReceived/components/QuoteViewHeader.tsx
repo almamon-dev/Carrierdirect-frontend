@@ -1,8 +1,7 @@
 import React from 'react';
 import { MessageSquare, TrendingDown, XCircle, Check, Loader2 } from 'lucide-react';
-import Badge from '@/components/ui/badge';
+import StatusBadge from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
-import { getStatusBadgeClass } from '@/modules/Supplier/QuoteManagement/utils/statusStyles';
 
 export interface QuoteViewHeaderProps {
     quote: any;
@@ -40,9 +39,7 @@ export const QuoteViewHeader: React.FC<QuoteViewHeaderProps> = ({
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Quote {quote.quote_id || `QT-${cleanQuoteId.padStart(4, '0')}`}
                     </h1>
-                    <Badge variant="secondary" className={`text-[11px] font-semibold rounded-[3px] border ${getStatusBadgeClass(statusInfo.statusKey)}`}>
-                        {statusInfo.text}
-                    </Badge>
+                    <StatusBadge status={statusInfo.statusKey} label={statusInfo.text} context="quote" />
                 </div>
                 <p className="text-[13px] font-medium text-[#ff4a1f] mt-0.5">
                     For Request REQ-{cleanReqId || '—'}: {req?.request_title || 'Transportation quote specifications & supplier offer.'}

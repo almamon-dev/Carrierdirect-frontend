@@ -20,18 +20,18 @@ export const DriverShipmentCargoSpecsCard: React.FC<Props> = ({ cargo, route }) 
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                     {cargo.hazardous ? (
-                        <span className="h-6.5 px-2.5 text-[11px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-[4px] border border-amber-200/80 dark:border-amber-800/80 inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span className="h-6.5 px-2.5 text-[11px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-[2px] border border-amber-200/80 dark:border-amber-800/80 inline-flex items-center gap-1.5 whitespace-nowrap">
                             <AlertTriangle size={12} className="shrink-0 text-amber-600" />
                             <span>ADR / Hazmat</span>
                         </span>
                     ) : (
-                        <span className="h-6.5 px-2.5 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-[4px] border border-emerald-200/80 dark:border-emerald-800/80 inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span className="h-6.5 px-2.5 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-[2px] border border-emerald-200/80 dark:border-emerald-800/80 inline-flex items-center gap-1.5 whitespace-nowrap">
                             <ShieldCheck size={12} className="shrink-0 text-emerald-600" />
                             <span>Standard Dry Freight</span>
                         </span>
                     )}
                     {cargo.temperatureControlled && (
-                        <span className="h-6.5 px-2.5 text-[11px] font-bold bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 rounded-[4px] border border-cyan-200/80 dark:border-cyan-800/80 inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span className="h-6.5 px-2.5 text-[11px] font-bold bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 rounded-[2px] border border-cyan-200/80 dark:border-cyan-800/80 inline-flex items-center gap-1.5 whitespace-nowrap">
                             <Thermometer size={12} className="shrink-0 text-cyan-600" />
                             <span>Reefer {cargo.temperatureControlled}</span>
                         </span>

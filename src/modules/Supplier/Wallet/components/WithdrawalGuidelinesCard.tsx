@@ -21,7 +21,7 @@ export function WithdrawalGuidelinesCard({ availableBalanceNum }: WithdrawalGuid
                             Withdrawal Guidelines
                         </h3>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[10.5px] font-semibold">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[10.5px] font-semibold">
                         On Demand
                     </span>
                 </div>

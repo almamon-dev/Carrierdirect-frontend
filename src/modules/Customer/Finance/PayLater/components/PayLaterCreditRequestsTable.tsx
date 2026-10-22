@@ -11,6 +11,7 @@ import {
 import DataTable, { Column } from '@/components/tables/data-table';
 import EmptyState from '@/components/tables/empty-state';
 import Button from '@/components/ui/button';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 export interface CreditRequestItem {
   id: number;
@@ -54,43 +55,20 @@ export const PayLaterCreditRequestsTable: React.FC<PayLaterCreditRequestsTablePr
   };
 
   const renderStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
-            <CheckCircle2 size={11} className="text-emerald-600 dark:text-emerald-400" />
-            Approved
-          </span>
-        );
-      case 'under_review':
-      case 'pending':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
-            <Clock size={11} className="text-amber-600 dark:text-amber-400 animate-pulse" />
-            Under Review
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
-            <AlertCircle size={11} className="text-rose-600 dark:text-rose-400" />
-            Rejected
-          </span>
-        );
-      case 'suspended':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
-            <AlertCircle size={11} className="text-rose-600 dark:text-rose-400" />
-            Suspended
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-            {status}
-          </span>
-        );
+    const s = String(status || '').toLowerCase().trim();
+    if (s === 'approved') {
+      return <StatusBadge status="Approved" category="success" />;
     }
+    if (s === 'under_review' || s === 'pending') {
+      return <StatusBadge status="Under Review" category="pending" />;
+    }
+    if (s === 'rejected') {
+      return <StatusBadge status="Rejected" category="failed" />;
+    }
+    if (s === 'suspended') {
+      return <StatusBadge status="Suspended" category="failed" />;
+    }
+    return <StatusBadge status={status} />;
   };
 
   const renderLimitType = (type?: string) => {

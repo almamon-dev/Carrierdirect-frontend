@@ -2,6 +2,7 @@ import React from "react";
 import { ShieldCheck, CheckCircle2, ArrowRight, Euro, CreditCard, Clock, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PayLaterInfo } from "../types/paymentTypes";
+import { StatusBadge } from "@/components/common/StatusBadge";
 
 const MetricCard = ({
   title,
@@ -41,31 +42,15 @@ interface PayLaterFacilityBannerProps {
 export const PayLaterFacilityBanner: React.FC<PayLaterFacilityBannerProps> = ({ payLater }) => {
   const renderStatusBadge = () => {
     if (payLater.status === "approved") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10.5px] font-bold rounded border border-emerald-200 dark:border-emerald-800/60">
-          <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Active Facility
-        </span>
-      );
+      return <StatusBadge status="Active Facility" category="success" />;
     }
     if (payLater.status === "pending") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[10.5px] font-bold rounded border border-amber-200 dark:border-amber-800/60">
-          <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Approval Pending
-        </span>
-      );
+      return <StatusBadge status="Approval Pending" category="pending" />;
     }
     if (payLater.status === "rejected") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-[10.5px] font-bold rounded border border-red-200 dark:border-red-800/60">
-          <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" /> Request Rejected
-        </span>
-      );
+      return <StatusBadge status="Request Rejected" category="failed" />;
     }
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10.5px] font-bold rounded border border-slate-200 dark:border-slate-700">
-        Inactive Facility
-      </span>
-    );
+    return <StatusBadge status="Inactive Facility" category="neutral" />;
   };
 
   return (

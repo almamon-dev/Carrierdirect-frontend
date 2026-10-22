@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, MoreVertical } from 'lucide-react';
+import { MessageSquare, MoreVertical, CreditCard } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
 import { CustomerNegotiationItem } from '../types';
@@ -27,11 +27,18 @@ export const NegotiationRowActions: React.FC<CustomerNegotiationRowActionsProps>
 
     const isClosed = isNegotiationClosed(row);
     const isAgreed = isNegotiationAgreed(row);
+    const isAwaitingPayment = Boolean(
+        row.isAwaitingPayment ||
+        row.is_awaiting_payment ||
+        row.status === 'Awaiting Payment' ||
+        row.statusRaw === 'awaiting_payment' ||
+        ((row.statusRaw === 'accepted' || row.status === 'Accepted') && !row.isPaid && !row.is_paid && !row.isCompleted)
+    );
     const isActive = isNegotiationActive(row);
 
-    const canAccept = isActive && Boolean(row.canAccept ?? (!row.isMyOffer && row.statusRaw !== 'closed'));
-    const canCounter = isActive && Boolean(row.canCounter ?? (!row.isMyOffer && row.statusRaw !== 'closed'));
-    const canClose = isActive;
+    const canAccept = !isAwaitingPayment && isActive && Boolean(row.canAccept ?? (!row.isMyOffer && row.statusRaw !== 'closed'));
+    const canCounter = !isAwaitingPayment && isActive && Boolean(row.canCounter ?? (!row.isMyOffer && row.statusRaw !== 'closed'));
+    const canClose = !isAwaitingPayment && isActive;
 
     const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -140,20 +147,35 @@ export const NegotiationRowActions: React.FC<CustomerNegotiationRowActionsProps>
 
     return (
         <div className="relative flex items-center justify-end gap-1.5 w-full">
-            <button
-                type="button"
-                onClick={handleOpenChat}
-                title="Open Negotiation Chat"
-                className="h-7 px-2.5 rounded-[3px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group shrink-0"
-            >
-                <MessageSquare size={12.5} className="shrink-0" />
-                <span className="leading-none">Chat</span>
-                {unreadCount > 0 ? (
-                    <span className="flex items-center justify-center min-w-[17px] h-[17px] px-1 text-[10px] font-bold text-white bg-emerald-500 rounded-full leading-none text-center shadow-xs">
-                        {unreadCount}
-                    </span>
-                ) : null}
-            </button>
+            {isAwaitingPayment ? (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/customer/quotes/received/checkout/${encryptId(rawId)}`);
+                    }}
+                    title="Complete Payment"
+                    className="h-7 px-2.5 rounded-[3px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
+                >
+                    <CreditCard size={12.5} className="shrink-0" />
+                    <span className="leading-none whitespace-nowrap">Pay Now</span>
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    onClick={handleOpenChat}
+                    title="Open Negotiation Chat"
+                    className="h-7 px-2.5 rounded-[3px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group shrink-0"
+                >
+                    <MessageSquare size={12.5} className="shrink-0" />
+                    <span className="leading-none">Chat</span>
+                    {unreadCount > 0 ? (
+                        <span className="flex items-center justify-center min-w-[17px] h-[17px] px-1 text-[10px] font-bold text-white bg-emerald-500 rounded-full leading-none text-center shadow-xs">
+                            {unreadCount}
+                        </span>
+                    ) : null}
+                </button>
+            )}
 
             <Button
                 variant="ghost"
@@ -169,10 +191,15 @@ export const NegotiationRowActions: React.FC<CustomerNegotiationRowActionsProps>
                 isOpen={isOpen}
                 dropdownPos={dropdownPos}
                 copied={copied}
+                isAwaitingPayment={isAwaitingPayment}
                 canAccept={canAccept}
                 canCounter={canCounter}
                 canClose={canClose}
                 onClose={handleClose}
+                onPayNow={() => {
+                    handleClose();
+                    navigate(`/customer/quotes/received/checkout/${encryptId(rawId)}`);
+                }}
                 onViewNegotiation={handleOpenChat}
                 onViewOfferHistory={handleViewOfferHistory}
                 onAcceptOffer={handleAcceptOffer}

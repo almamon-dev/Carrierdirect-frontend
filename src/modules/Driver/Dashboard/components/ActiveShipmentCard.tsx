@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, FileText, ChevronRight, Triangle, Truck, ArrowRight } from 'lucide-react';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface Props {
     shipment: any;
@@ -48,15 +49,12 @@ export const ActiveShipmentCard: React.FC<Props> = ({ shipment, onOpenBOL, onOpe
                             >
                                 {shipment.orderNumber || '#SHP-987654'}
                             </Link>
-                            <span className="px-2 py-0.5 text-[10.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-[4px] border border-blue-200/60 dark:border-blue-800/60">
+                            <span className="px-2 py-0.5 text-[10.5px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-[2px] border border-blue-200/60 dark:border-blue-800/60">
                                 {shipment.cargoTag || '-'}
                             </span>
                         </div>
 
-                        <span className="px-2 py-0.5 text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/50 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-[4px] flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>{shipment.status || 'IN TRANSIT'}</span>
-                        </span>
+                        <StatusBadge status={shipment.status || 'IN TRANSIT'} />
                     </div>
 
                     {/* Origin & Destination Timeline */}

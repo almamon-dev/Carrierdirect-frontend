@@ -40,19 +40,21 @@ export default function Select({
     const triggerRef = useRef<HTMLButtonElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const { finalOptions, filteredOptions } = useSelectOptions(options, children, searchQuery);
-    const shouldShowSearch = showSearch !== undefined ? showSearch : finalOptions.length > 6;
-
     const rawValue = getRawValue(value);
     const normalizedValue = multiple
         ? (Array.isArray(rawValue) ? rawValue : (rawValue ? [rawValue] : []))
         : rawValue;
 
+    const { finalOptions, filteredOptions } = useSelectOptions(options, children, searchQuery, normalizedValue);
+    const shouldShowSearch = showSearch !== undefined ? showSearch : finalOptions.length > 6;
+
     const isSelected = (optId: any) => {
         if (multiple) {
-            return Array.isArray(normalizedValue) && normalizedValue.map(v => String(v)).includes(String(optId));
+            return Array.isArray(normalizedValue) && normalizedValue.map(v => String(v).toLowerCase().trim()).includes(String(optId).toLowerCase().trim());
         }
-        return String(normalizedValue) === String(optId);
+        const normLower = String(normalizedValue ?? "").toLowerCase().trim();
+        const optLower = String(optId ?? "").toLowerCase().trim();
+        return normLower !== "" && normLower === optLower;
     };
 
     const handleSelectOption = (option: SelectOption) => {

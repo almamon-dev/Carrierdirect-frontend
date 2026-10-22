@@ -2,6 +2,7 @@ import React, { RefObject } from 'react';
 import { Briefcase, CheckCircle2, UploadCloud, FileText } from 'lucide-react';
 import Input from '@/components/ui/input';
 import DatePicker from '@/components/ui/date-picker';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface Props {
     isEditMode: boolean;
@@ -47,10 +48,7 @@ export const DotMedicalCard: React.FC<Props> = ({
                         DOT Medical Certificate
                     </h3>
                 </div>
-                <span className="h-6.5 px-2 text-[10.5px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 rounded-[3px] border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1 shrink-0">
-                    <CheckCircle2 size={10.5} className="text-emerald-600" />
-                    <span>NRCME Active</span>
-                </span>
+                <StatusBadge status="Active" label="NRCME Active" />
             </div>
 
             <div className="p-3.5 space-y-2 text-xs flex-1">

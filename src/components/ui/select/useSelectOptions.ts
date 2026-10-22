@@ -4,7 +4,8 @@ import { SelectOption } from './selectTypes';
 export function useSelectOptions(
     options: SelectOption[] = [],
     children?: React.ReactNode,
-    searchQuery: string = ''
+    searchQuery: string = '',
+    selectedValue?: any
 ) {
     const childOptions: SelectOption[] = useMemo(() => {
         return React.Children.toArray(children)
@@ -26,7 +27,7 @@ export function useSelectOptions(
 
     const finalOptions: SelectOption[] = useMemo(() => {
         const rawList = options && options.length > 0 ? options : childOptions;
-        return rawList.map((opt: any) => {
+        const mapped = rawList.map((opt: any) => {
             if (typeof opt === 'string' || typeof opt === 'number') {
                 return {
                     id: opt,
@@ -47,7 +48,29 @@ export function useSelectOptions(
                 icon: opt.icon || opt['data-icon'],
             };
         });
-    }, [options, childOptions]);
+
+        if (selectedValue !== null && selectedValue !== undefined && selectedValue !== '' && !Array.isArray(selectedValue)) {
+            const valStr = String(selectedValue).trim();
+            const valLower = valStr.toLowerCase();
+            const exists = mapped.some(opt =>
+                String(opt.id).toLowerCase().trim() === valLower ||
+                String(opt.value).toLowerCase().trim() === valLower ||
+                (opt.key && String(opt.key).toLowerCase().trim() === valLower) ||
+                (opt.name && String(opt.name).toLowerCase().trim() === valLower) ||
+                (opt.label && String(opt.label).toLowerCase().trim() === valLower)
+            );
+            if (!exists) {
+                mapped.unshift({
+                    id: valStr,
+                    value: valStr,
+                    name: valStr,
+                    label: valStr,
+                });
+            }
+        }
+
+        return mapped;
+    }, [options, childOptions, selectedValue]);
 
     const filteredOptions = useMemo(() => {
         if (!searchQuery.trim()) return finalOptions;

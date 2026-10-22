@@ -59,10 +59,10 @@ export const ChatSidebarMobileDrawer: React.FC<ChatSidebarMobileDrawerProps> = (
     const totalUnread = counts?.unread ?? allNegotiations.filter((n) => !readChatIds[n.rawId] && (n.unreadCount || 0) > 0).length;
 
     const filterTabs: { id: NegotiationFilterTab; label: string; count: number }[] = [
-        { id: 'all', label: 'All', count: counts?.all ?? allNegotiations.length },
-        { id: 'new', label: 'New', count: counts?.new ?? 0 },
-        { id: 'existing', label: 'Existing', count: counts?.existing ?? 0 },
-        { id: 'unread', label: 'Unread', count: counts?.unread ?? totalUnread },
+        { id: 'all', label: 'all', count: counts?.all ?? allNegotiations.length },
+        { id: 'new', label: 'new', count: counts?.new ?? 0 },
+        { id: 'existing', label: 'existing', count: counts?.existing ?? 0 },
+        { id: 'unread', label: 'unread', count: counts?.unread ?? totalUnread },
     ];
 
     const handleSelectMobileChat = (item: NegotiationItem) => {

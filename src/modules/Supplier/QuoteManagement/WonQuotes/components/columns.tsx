@@ -2,13 +2,11 @@ import React from 'react';
 import { Column } from '@/components/tables/data-table';
 import Skeleton from '@/components/ui/skeleton';
 import { encryptId } from '@/lib/encryption';
+import { formatDisplayDate } from '@/lib/utils';
+import { StandardRouteCell } from '@/components/common/StandardRouteCell';
 import { WonQuoteItem } from '../types';
 import {
-    SupplierAddressCell,
-    SupplierDistanceCell,
-    SupplierPriorityBadgeCell,
     SupplierStatusBadgeCell,
-    SupplierDateCell,
 } from '../../QuoteRequests/components/SupplierQuoteRequestCells';
 
 export const getWonQuoteColumns = (navigate: (path: string) => void): Column<WonQuoteItem>[] => [
@@ -16,12 +14,14 @@ export const getWonQuoteColumns = (navigate: (path: string) => void): Column<Won
         id: 'id',
         label: 'Request ID',
         sortable: true,
-        className: 'w-[95px] min-w-[90px]',
+        className: 'w-[110px] whitespace-nowrap',
         render: (row) => {
             const rawId = String(row.rawId || row.slug || row.id).replace('REQ-', '').trim();
             const reqText = row.id ? (String(row.id).startsWith('REQ-') ? row.id : `REQ-${String(row.id).padStart(4, '0')}`) : 'REQ-0000';
+            const rawDate = row.requestDate || (row as any).date || (row as any).created_at;
+
             return (
-                <div className="flex items-center min-h-[26px]">
+                <div className="flex flex-col justify-center min-h-[26px]">
                     <button
                         type="button"
                         onClick={() => navigate(`/supplier/quotes/requests/${encryptId(rawId)}`)}
@@ -29,12 +29,18 @@ export const getWonQuoteColumns = (navigate: (path: string) => void): Column<Won
                     >
                         {reqText}
                     </button>
+                    {rawDate && (
+                        <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 leading-none whitespace-nowrap">
+                            {formatDisplayDate(rawDate)}
+                        </span>
+                    )}
                 </div>
             );
         },
         skeleton: () => (
-            <div className="flex items-center min-h-[22px]">
+            <div className="flex flex-col gap-1 min-h-[22px]">
                 <Skeleton className="h-4 w-16 rounded-[3px] !bg-orange-100/70 dark:!bg-orange-950/40" />
+                <Skeleton className="h-2.5 w-12 rounded-[2px]" />
             </div>
         )
     },
@@ -42,7 +48,7 @@ export const getWonQuoteColumns = (navigate: (path: string) => void): Column<Won
         id: 'customer',
         label: 'Customer',
         sortable: true,
-        className: 'w-[140px] min-w-[130px] max-w-[170px]',
+        className: 'w-[24%] min-w-[180px]',
         render: (row) => (
             <div className="flex items-center gap-2 min-w-0 pr-1 min-h-[26px]" title={row.customer}>
                 {row.customerAvatar ? (
@@ -70,36 +76,14 @@ export const getWonQuoteColumns = (navigate: (path: string) => void): Column<Won
         )
     },
     {
-        id: 'pickup',
-        label: 'Pickup Address',
-        className: 'w-[18%] min-w-[130px] max-w-[190px]',
-        render: (row) => <SupplierAddressCell address={row.pickup} />,
+        id: 'route',
+        label: 'Route',
+        className: 'w-[42%] min-w-[320px]',
+        render: (row) => <StandardRouteCell row={row} />,
         skeleton: () => (
-            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
-                <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
-            </div>
-        )
-    },
-    {
-        id: 'delivery',
-        label: 'Delivery Address',
-        className: 'w-[18%] min-w-[130px] max-w-[190px]',
-        render: (row) => <SupplierAddressCell address={row.delivery} />,
-        skeleton: () => (
-            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
-                <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
-            </div>
-        )
-    },
-    {
-        id: 'distance',
-        label: 'Distance',
-        sortable: true,
-        className: 'w-[90px] min-w-[85px] text-center',
-        render: (row) => <SupplierDistanceCell distance={row.distance} />,
-        skeleton: () => (
-            <div className="flex items-center justify-center min-h-[22px]">
-                <Skeleton className="h-3.5 w-14 rounded-[3px]" />
+            <div className="flex flex-col gap-1 min-w-0 pr-1 min-h-[22px]">
+                <Skeleton className="h-3.5 w-40 max-w-full rounded-[3px]" />
+                <Skeleton className="h-2.5 w-20 rounded-[2px]" />
             </div>
         )
     },
@@ -107,7 +91,7 @@ export const getWonQuoteColumns = (navigate: (path: string) => void): Column<Won
         id: 'budget',
         label: 'Won Amount',
         sortable: true,
-        className: 'w-[115px] min-w-[105px]',
+        className: 'w-[130px] whitespace-nowrap',
         render: (row) => {
             const rawStr = String(row.budget || '').trim();
             const num = parseFloat(rawStr.replace(/[^0-9.]/g, ''));
@@ -127,39 +111,16 @@ export const getWonQuoteColumns = (navigate: (path: string) => void): Column<Won
         )
     },
     {
-        id: 'priority',
-        label: 'Priority',
-        sortable: true,
-        className: 'w-[85px] min-w-[80px] text-center',
-        render: (row) => <SupplierPriorityBadgeCell priority={row.priority} />,
-        skeleton: () => (
-            <div className="flex items-center justify-center min-h-[22px]">
-                <Skeleton className="h-5 w-14 rounded-[3px] !bg-amber-100/70 dark:!bg-amber-950/50" />
-            </div>
-        )
-    },
-    {
         id: 'status',
         label: 'Status',
         sortable: true,
-        className: 'w-[95px] min-w-[90px] text-center',
+        className: 'w-[115px] text-center whitespace-nowrap',
         render: (row) => <SupplierStatusBadgeCell status={row.status || 'Won'} />,
         skeleton: () => (
             <div className="flex items-center justify-center min-h-[22px]">
                 <Skeleton className="h-5 w-18 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/50" />
             </div>
         )
-    },
-    {
-        id: 'requestDate',
-        label: 'Date',
-        sortable: true,
-        className: 'w-[105px] min-w-[100px] text-center',
-        render: (row) => <SupplierDateCell row={row as any} />,
-        skeleton: () => (
-            <div className="flex items-center justify-center min-h-[22px]">
-                <Skeleton className="h-3.5 w-16 rounded-[3px]" />
-            </div>
-        )
     }
 ];
+

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Truck, Package, FileCheck, MapPin, Navigation, Clock, CheckCircle2, AlertCircle, ArrowUpRight } from 'lucide-react';
 import apiClient from '@/lib/axios';
 import Button from '@/components/ui/button';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 export default function DriverDashboard() {
     const [orders, setOrders] = useState<any[]>([]);
@@ -141,9 +142,7 @@ export default function DriverDashboard() {
                                         <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-200">
                                             {job.order_number || job.tracking_number || `JOB-${String(job.id || idx + 1).padStart(4, '0')}`}
                                         </span>
-                                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-                                            {job.status || 'In Transit'}
-                                        </span>
+                                        <StatusBadge status={job.status || 'In Transit'} />
                                     </div>
                                     <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2">
                                         <span>{job.origin_city || 'Main Depot'}</span>

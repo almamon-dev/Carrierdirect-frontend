@@ -71,17 +71,24 @@ export default function TrackBids() {
                 onNewRequest={() => navigate('/customer/quotes/create/new')}
             />
 
-            <TrackOverviewCard
-                quoteRequestDetails={quoteRequestDetails}
-                quotesCount={quotes.length}
-                lowestBidPrice={lowestBidPrice}
-            />
+            {/* Split Top Section: Dates & Route on Left, Milestones on Right */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
+                <div className="lg:col-span-5 flex flex-col">
+                    <TrackOverviewCard
+                        quoteRequestDetails={quoteRequestDetails}
+                        quotesCount={quotes.length}
+                        lowestBidPrice={lowestBidPrice}
+                    />
+                </div>
 
-            <QuoteLifecycleTracker
-                quote={quotes.find(q => isQuoteAccepted(q)) || quotes[0]}
-                requestDetail={quoteRequestDetails}
-                allBids={quotes}
-            />
+                <div className="lg:col-span-7 flex flex-col">
+                    <QuoteLifecycleTracker
+                        quote={quotes.find(q => isQuoteAccepted(q)) || quotes[0]}
+                        requestDetail={quoteRequestDetails}
+                        allBids={quotes}
+                    />
+                </div>
+            </div>
 
             <DataTable
                 data={filteredAndSortedQuotes}
@@ -94,7 +101,7 @@ export default function TrackBids() {
                         onReject={(r) => setRejectModalQuote(r)}
                     />
                 )}
-                actionsColumnClassName="w-[76px] min-w-[70px] text-right pr-3.5 sm:pr-4"
+                actionsColumnClassName="w-[85px] whitespace-nowrap text-right pr-2 sm:pr-3"
                 headerTabs={
                     <TrackHeaderTabs
                         activeTab={activeTab}
@@ -117,10 +124,11 @@ export default function TrackBids() {
                 }
                 searchPlaceholder="Search offers by carrier, vehicle or location..."
                 compact={true}
+                disableHorizontalScroll={true}
                 isLoading={isLoading}
                 onRowClick={(row) => navigate(`/customer/quotes/received/view/${encryptId(row.rawId || row.id)}`)}
-                tableLayout="fixed"
-                tableClassName="w-full min-w-[1150px]"
+                tableLayout="auto"
+                tableClassName="w-full"
                 keyExtractor={(item) => item?.id || item?.rawId || Math.random().toString()}
                 emptyState={
                     <EmptyState

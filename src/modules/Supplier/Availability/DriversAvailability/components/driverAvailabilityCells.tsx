@@ -1,6 +1,8 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import { DriverItem } from '../types/driverAvailability.types';
+import { STATUS_BADGE_BASE_CLASS, STATUS_CATEGORY_STYLES } from '@/components/common/StatusBadge';
+import { cn } from '@/lib/utils';
 
 export const DriverNameCell: React.FC<{
     driver: DriverItem;
@@ -106,7 +108,7 @@ export const DriverAreaCell: React.FC<{
                 {visibleAreas.join(', ')}
             </span>
             {moreCount > 0 && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-[4px] bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 text-[10px] font-bold shrink-0">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-[2px] bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 text-[10px] font-bold shrink-0">
                     +{moreCount} more
                 </span>
             )}
@@ -129,11 +131,11 @@ export const DriverStatusBadgeCell: React.FC<{
             <button
                 type="button"
                 onClick={() => onStatusChange?.(driver, isActive ? 'Unavailable' : 'Available')}
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-[4px] text-[11px] font-semibold border transition-colors cursor-pointer ${
-                    isActive
-                        ? 'bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-400 border-[#a7f3d0] dark:border-emerald-800/60'
-                        : 'bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-400 border-[#fde68a] dark:border-amber-800/60'
-                }`}
+                className={cn(
+                    STATUS_BADGE_BASE_CLASS,
+                    isActive ? STATUS_CATEGORY_STYLES.success.className : STATUS_CATEGORY_STYLES.pending.className,
+                    "cursor-pointer transition-opacity hover:opacity-90"
+                )}
                 title="Click to toggle status"
             >
                 {label}

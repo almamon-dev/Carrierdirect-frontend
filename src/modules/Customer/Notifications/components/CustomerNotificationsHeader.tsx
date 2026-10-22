@@ -1,6 +1,7 @@
 import React from "react";
 import { CheckCheck, RefreshCw, Trash2 } from "lucide-react";
 import Button from "@/components/ui/button";
+import { StatusBadge } from "@/components/common/StatusBadge";
 
 interface CustomerNotificationsHeaderProps {
   unreadCount: number;
@@ -25,9 +26,9 @@ export const CustomerNotificationsHeader: React.FC<CustomerNotificationsHeaderPr
         <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1 flex items-center gap-2">
           <span>Notifications</span>
           {unreadCount > 0 && (
-            <span className="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] border border-orange-200/80 dark:border-orange-500/20 text-[11px] font-bold px-2 py-0.5 rounded-[3px]">
+            <StatusBadge status="unread">
               {unreadCount} Unread
-            </span>
+            </StatusBadge>
           )}
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">

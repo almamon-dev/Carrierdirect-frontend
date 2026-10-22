@@ -1,15 +1,17 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Eye, History, CheckCircle2, DollarSign, XCircle, Copy, Check } from 'lucide-react';
+import { Eye, History, CheckCircle2, DollarSign, XCircle, Copy, Check, CreditCard } from 'lucide-react';
 
 interface NegotiationActionsMenuProps {
     isOpen: boolean;
     dropdownPos: { top: number; left: number };
     copied: boolean;
+    isAwaitingPayment?: boolean;
     canAccept: boolean;
     canCounter: boolean;
     canClose: boolean;
     onClose: () => void;
+    onPayNow?: () => void;
     onViewNegotiation: () => void;
     onViewOfferHistory: () => void;
     onAcceptOffer?: () => void;
@@ -22,10 +24,12 @@ export const NegotiationActionsMenu: React.FC<NegotiationActionsMenuProps> = ({
     isOpen,
     dropdownPos,
     copied,
+    isAwaitingPayment,
     canAccept,
     canCounter,
     canClose,
     onClose,
+    onPayNow,
     onViewNegotiation,
     onViewOfferHistory,
     onAcceptOffer,
@@ -49,7 +53,19 @@ export const NegotiationActionsMenu: React.FC<NegotiationActionsMenuProps> = ({
                 style={{ top: dropdownPos.top, left: dropdownPos.left }}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* 1. View Conversation */}
+                {/* 1. Complete Payment — when awaiting payment */}
+                {isAwaitingPayment && onPayNow && (
+                    <button
+                        type="button"
+                        className="w-full text-left px-3.5 py-2 text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
+                        onClick={onPayNow}
+                    >
+                        <CreditCard size={14} className="text-emerald-500 shrink-0" />
+                        <span>Complete Payment</span>
+                    </button>
+                )}
+
+                {/* 2. View Conversation */}
                 <button
                     type="button"
                     className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
@@ -59,7 +75,7 @@ export const NegotiationActionsMenu: React.FC<NegotiationActionsMenuProps> = ({
                     <span>View Conversation</span>
                 </button>
 
-                {/* 2. View Offer History */}
+                {/* 3. View Offer History */}
                 <button
                     type="button"
                     className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
@@ -69,7 +85,7 @@ export const NegotiationActionsMenu: React.FC<NegotiationActionsMenuProps> = ({
                     <span>View Offer History</span>
                 </button>
 
-                {/* 3. Send Counter Offer — when it is the customer's turn */}
+                {/* 4. Send Counter Offer — when it is the customer's turn */}
                 {canCounter && onSendCounterOffer && (
                     <button
                         type="button"
@@ -81,7 +97,7 @@ export const NegotiationActionsMenu: React.FC<NegotiationActionsMenuProps> = ({
                     </button>
                 )}
 
-                {/* 4. Accept Offer — when a valid offer is available */}
+                {/* 5. Accept Offer — when a valid offer is available */}
                 {canAccept && onAcceptOffer && (
                     <button
                         type="button"
@@ -93,7 +109,7 @@ export const NegotiationActionsMenu: React.FC<NegotiationActionsMenuProps> = ({
                     </button>
                 )}
 
-                {/* 5. Decline Offer — when declining is permitted */}
+                {/* 6. Decline Offer — when declining is permitted */}
                 {canClose && onCloseNegotiation && (
                     <button
                         type="button"

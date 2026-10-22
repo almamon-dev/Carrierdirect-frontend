@@ -8,7 +8,7 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from "recharts";
-import Badge from "@/components/ui/badge";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface EarningsChartSectionProps {
@@ -28,7 +28,7 @@ export function EarningsChartSection({ revenueTrend, stats }: EarningsChartSecti
         <Card className="xl:col-span-1 flex flex-col min-h-[300px] border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1f26] shadow-2xs rounded-md overflow-hidden">
             <CardHeader className="py-3 px-4 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
                 <CardTitle className="text-xs font-bold text-slate-900 dark:text-slate-100">Revenue Trend</CardTitle>
-                <Badge variant="secondary" className="bg-orange-50 text-[#ff4a1f] font-semibold text-[10px]">Live</Badge>
+                <StatusBadge status="Live" category="success" />
             </CardHeader>
             <div className="p-4 flex-1 flex flex-col justify-between">
                 <div className="flex-1 w-full h-[220px]">

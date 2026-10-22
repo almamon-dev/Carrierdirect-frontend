@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Truck, Scale, Box, TrendingUp, RefreshCw } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import FormLabel from '@/components/ui/label';
 import MetricCard from '@/components/cards/metric-card';
 
@@ -37,7 +37,7 @@ export default function CapacityManagement() {
                     value={`${maxTonnage} T`}
                     icon={Scale}
                     colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
-                    badge={<Badge variant="secondary" className="bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200">Cap</Badge>}
+                    badge={<StatusBadge status="Cap" />}
                 />
                 <MetricCard
                     title="Allocated Tonnage"
@@ -45,7 +45,7 @@ export default function CapacityManagement() {
                     value={`${allocatedTonnage} T`}
                     icon={Box}
                     colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-                    badge={<Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">Booked</Badge>}
+                    badge={<StatusBadge status="Booked" />}
                 />
                 <MetricCard
                     title="Remaining Capacity"
@@ -53,7 +53,7 @@ export default function CapacityManagement() {
                     value={`${remainingTonnage} T`}
                     icon={Truck}
                     colorClass="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
-                    badge={<Badge variant="secondary" className="bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-200">Free</Badge>}
+                    badge={<StatusBadge status="Free" />}
                 />
                 <MetricCard
                     title="Fleet Utilization"
@@ -61,7 +61,7 @@ export default function CapacityManagement() {
                     value={`${utilizationPct}%`}
                     icon={TrendingUp}
                     colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
-                    badge={<Badge variant="secondary" className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">Optimal</Badge>}
+                    badge={<StatusBadge status="Optimal" />}
                 />
             </div>
 

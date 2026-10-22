@@ -1,7 +1,7 @@
 import React from "react";
 import { RefreshCw } from "lucide-react";
 import Button from "@/components/ui/button";
-import Badge from "@/components/ui/badge";
+import { StatusBadge } from "@/components/common/StatusBadge";
 
 interface SupplierSubscriptionHeaderProps {
   isLoading: boolean;
@@ -21,9 +21,10 @@ export const SupplierSubscriptionHeader: React.FC<SupplierSubscriptionHeaderProp
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
             Carrier Subscription & Fleet Dispatch
           </h1>
-          <Badge className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold rounded-[3px] border border-emerald-200">
-            {isActive ? "Active Carrier Account" : "Trial Carrier Account"}
-          </Badge>
+          <StatusBadge
+            status={isActive ? "Active" : "Trial"}
+            label={isActive ? "Active Carrier Account" : "Trial Carrier Account"}
+          />
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
           Manage your transport membership tier, load quote quotas, and automated invoices.

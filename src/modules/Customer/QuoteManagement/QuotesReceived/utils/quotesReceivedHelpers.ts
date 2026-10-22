@@ -1,3 +1,4 @@
+import { formatStandardAddress } from "@/utils/addressFormatter";
 import { formatDisplayDate } from "@/lib/utils";
 import { resolveQuoteDistance } from "@/utils/geoDistance";
 
@@ -7,7 +8,7 @@ export const normalizeQuoteItem = (n: any) => {
     const reqIdVal = n.quote_request_id || n.quote_request?.id || n.rawId;
     const reqId = n.request_id || (reqIdVal ? (String(reqIdVal).startsWith('REQ-') ? reqIdVal : `REQ-${String(reqIdVal).padStart(4, '0')}`) : 'REQ-0000');
     const reqTitle = n.request_title || n.quote_request?.request_title || reqId;
-    const supplierName = n.sender_name || n.supplier_name || n.supplier?.company_name || n.supplier?.name || n.carrier_name || n.company_name || n.customer || n.supplier || 'Supplier';
+    const supplierName = n.supplier?.full_name || n.supplier?.name || n.supplier_full_name || n.sender_name || n.supplier_name || n.supplier?.company_name || n.carrier_name || n.company_name || n.customer || n.supplier || 'Supplier';
     const avatarUrl = n.profile_picture || n.supplier?.profile_picture || n.supplier_avatar || n.customerAvatar || n.supplierAvatar || '';
 
     const extraCharges = Array.isArray(n.extra_charges) ? n.extra_charges.map((c: any) => ({
@@ -25,8 +26,8 @@ export const normalizeQuoteItem = (n: any) => {
         (n.base_amount ? parseFloat(String(n.base_amount).replace(/[^0-9.]/g, "")) : (origPrice > totalExtras && totalExtras > 0 ? origPrice - totalExtras : origPrice))
     );
 
-    const pickupLoc = n.origin || n.pickup_address || n.pickup || n.quote_request?.pickup_city || '-';
-    const deliveryLoc = n.destination || n.delivery_address || n.delivery || n.quote_request?.delivery_city || '-';
+    const pickupLoc = formatStandardAddress(n, "pickup");
+    const deliveryLoc = formatStandardAddress(n, "delivery");
     const distStr = resolveQuoteDistance({ ...n, ...(n.quote_request || {}), ...(n.quoteRequest || {}), origin: pickupLoc, destination: deliveryLoc }).distanceStr;
     const dateFormatted = formatDisplayDate(n.created_at || n.request_date || n.date || n.received_at || n.quote_request?.created_at);
 
@@ -85,6 +86,8 @@ export const normalizeQuoteItem = (n: any) => {
         supplier_name: supplierName,
         customerAvatar: avatarUrl,
         supplierAvatar: avatarUrl,
+        rating: Number(n.rating ?? n.supplier_rating ?? n.supplier?.rating ?? 5.0),
+        supplierRating: Number(n.rating ?? n.supplier_rating ?? n.supplier?.rating ?? 5.0),
         supplier_avatar: avatarUrl,
         pickup: pickupLoc,
         pickup_address: pickupLoc,
@@ -133,6 +136,45 @@ export const normalizeQuoteItem = (n: any) => {
         hasOrder: isBooked || Boolean(n.has_order || n.order_id),
         orderId: n.order_id,
         orderNumber: n.order_number,
+        is_reviewed: Boolean(n.is_reviewed || n.reviewed_at || (typeof window !== "undefined" && localStorage.getItem("carrierdirect_quote_reviewed_" + rawId))),
+        isReviewed: Boolean(n.is_reviewed || n.reviewed_at || (typeof window !== "undefined" && localStorage.getItem("carrierdirect_quote_reviewed_" + rawId))),
+        reviewed_at: n.reviewed_at || null,
+        reviewedAt: n.reviewed_at || null,
         raw: n,
     };
+};
+
+
+export const isQuoteReviewed = (item: any): boolean => {
+    if (!item) return false;
+    if (Array.isArray(item.quotes) && item.quotes.length > 0) {
+        return item.quotes.some((q: any) => isQuoteReviewed(q));
+    }
+    const rawId = item.rawId || item.id || item.quote_id;
+    const isLocal = typeof window !== "undefined" && Boolean(localStorage.getItem('carrierdirect_quote_reviewed_' + rawId));
+    return Boolean(item.is_reviewed || item.isReviewed || item.reviewed_at || item.reviewedAt || isLocal);
+};
+
+export const isQuoteNew = (item: any): boolean => {
+    if (!item) return false;
+    if (Array.isArray(item.quotes) && item.quotes.length > 0) {
+        return item.quotes.some((q: any) => !isQuoteReviewed(q));
+    }
+    return !isQuoteReviewed(item);
+};
+
+export const markQuoteAsReviewed = async (quoteId: number | string) => {
+    if (!quoteId) return;
+    const numId = String(quoteId).replace(/[^0-9]/g, "");
+    const targetId = numId || quoteId;
+    if (typeof window !== "undefined") {
+        localStorage.setItem('carrierdirect_quote_reviewed_' + targetId, "true");
+        window.dispatchEvent(new CustomEvent("carrierdirect_quote_reviewed", { detail: { quoteId: targetId } }));
+    }
+    try {
+        const apiClient = (await import("@/lib/axios")).default;
+        await apiClient.post(`/customer/quotes/${targetId}/review`);
+    } catch (e) {
+        // Safe silent fail
+    }
 };

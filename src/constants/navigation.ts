@@ -68,14 +68,13 @@ export const navigationMap: Record<string, any[]> = {
         { category: 'Main Menu', name: 'Dashboard', path: '/supplier/dashboard', icon: LayoutDashboard },
         {
             category: 'Main Menu',
-            group: 'Quote Management',
+            group: 'Quotes',
             icon: FileText,
             permission: 'quotes.view',
             items: [
-                { name: 'Quote Requests', path: '/supplier/quotes/requests', icon: FileText, permission: 'quotes.view' },
+                { name: 'Available Requests', path: '/supplier/quotes/requests', icon: FileText, permission: 'quotes.view' },
                 { name: 'My Quotes', path: '/supplier/quotes/my-quotes', icon: FileText, permission: 'quotes.view' },
-                { name: 'Won Quotes', path: '/supplier/quotes/won', icon: FileText, permission: 'quotes.view' },
-                { name: 'Negotiation', path: '/supplier/quotes/negotiation', icon: FileText, permission: 'quotes.view' },
+                { name: 'Negotiations', path: '/supplier/quotes/negotiation', icon: FileText, permission: 'quotes.view' },
             ]
         },
         {
@@ -130,10 +129,10 @@ export const navigationMap: Record<string, any[]> = {
             group: 'Quote Management',
             icon: FileText,
             items: [
-                { name: 'Create Request', path: '/customer/quotes/create', icon: FileText },
-                { name: 'Processing', path: '/customer/quotes/processing', icon: Activity },
-                { name: 'Quotes Received', path: '/customer/quotes/received', icon: FileText },
-                { name: 'Negotiation', path: '/customer/quotes/negotiation', icon: FileText },
+                { name: 'My Requests', path: '/customer/quotes/create', icon: FileText },
+                { name: 'Open Requests', path: '/customer/quotes/processing', icon: Activity },
+                { name: 'Compare Quotes', path: '/customer/quotes/received', icon: FileText },
+                { name: 'Negotiations', path: '/customer/quotes/negotiation', icon: FileText },
             ]
         },
         {

@@ -102,4 +102,14 @@ export interface LinkPreviewData {
     image?: string;
 }
 
-export type CustomerChatFilterTab = "all" | "new" | "existing" | "unread";
+export type CustomerChatFilterTab =
+    | "all"
+    | "new"
+    | "existing"
+    | "unread"
+    | "awaiting_payment"
+    | "counter_offers"
+    | "booked"
+    | "pinned";
+
+export type ChatSortOption = "recent" | "unread_first" | "amount_high" | "amount_low";

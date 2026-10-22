@@ -1,5 +1,5 @@
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Shield, Users, CheckCircle2 } from 'lucide-react';
 import { RoleItem } from './RoleRowActions';
 
@@ -73,16 +73,10 @@ export const getRoleColumns = ({ onSelectRole }: RoleColumnsProps): Column<RoleI
         className: 'w-[120px] min-w-[120px]',
         render: (row) => (
             <div className="flex items-center min-h-[26px]">
-                <Badge 
-                    variant="secondary" 
-                    className={
-                        row.name.toLowerCase() === 'admin'
-                            ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] font-semibold text-[10.5px] px-2 py-0.5 border border-orange-200/60 dark:border-orange-900/40'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-[10.5px] px-2 py-0.5 border border-slate-200 dark:border-slate-700'
-                    }
-                >
-                    {row.name.toLowerCase() === 'admin' ? 'Super admin' : 'Staff role'}
-                </Badge>
+                <StatusBadge 
+                    status={row.name.toLowerCase() === 'admin' ? 'Super admin' : 'Staff role'}
+                    category={row.name.toLowerCase() === 'admin' ? 'action_required' : 'neutral'}
+                />
             </div>
         ),
     },

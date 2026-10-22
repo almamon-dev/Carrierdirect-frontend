@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { RefreshCw, Inbox } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import DataTable from '@/components/tables/data-table';
 import Button from '@/components/ui/button';
 import EmptyState from '@/components/tables/empty-state';
@@ -18,6 +18,9 @@ import { CreateRequestDropdown } from '../CreateRequest/components/CreateRequest
 
 export default function Processing() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const tabFromUrl = searchParams.get('tab');
+
     const { requests, isLoading, isRefreshing, fetchProcessingRequests } = useProcessingRequests();
     const {
         isLoading: isQuotaLoading,
@@ -34,10 +37,22 @@ export default function Processing() {
         handleUpgradeRedirect,
     } = useSubscriptionQuota();
 
-    const [activeFilterTab, setActiveFilterTab] = useState<string>('in_progress');
+    const [activeFilterTab, setActiveFilterTab] = useState<string>(() => {
+        if (tabFromUrl && ['all', 'pending', 'quotes_received', 'negotiation', 'booking_in_progress', 'booked', 'cancelled', 'expired'].includes(tabFromUrl)) {
+            return tabFromUrl;
+        }
+        return 'all';
+    });
+
+    React.useEffect(() => {
+        if (tabFromUrl && ['all', 'pending', 'quotes_received', 'negotiation', 'booking_in_progress', 'booked', 'cancelled', 'expired'].includes(tabFromUrl)) {
+            setActiveFilterTab(tabFromUrl);
+        }
+    }, [tabFromUrl]);
     const [statusFilter, setStatusFilter] = useState('all');
     const [vehicleFilter, setVehicleFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
+    const [locationFilter, setLocationFilter] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
@@ -45,6 +60,7 @@ export default function Processing() {
         setStatusFilter('all');
         setVehicleFilter('all');
         setPriorityFilter('all');
+        setLocationFilter('');
         setStartDate('');
         setEndDate('');
     };
@@ -55,6 +71,7 @@ export default function Processing() {
         statusFilter,
         vehicleFilter,
         priorityFilter,
+        locationFilter,
         startDate,
         endDate,
     });
@@ -65,7 +82,7 @@ export default function Processing() {
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c] space-y-5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Processing Quote Requests</h1>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">Open Requests</h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Track shipments currently in carrier bidding, negotiate terms, or review quotes.
                     </p>
@@ -97,6 +114,8 @@ export default function Processing() {
             <DataTable
                 data={filteredRequests}
                 columns={columns}
+                tableLayout="auto"
+                tableClassName="w-full"
                 actions={(row: any) => <ProcessingRowActions row={row} />}
                 actionsColumnClassName="w-[76px] min-w-[70px] text-right pr-3.5 sm:pr-4"
                 headerTabs={<ProcessingFilterTabs requests={requests} activeFilterTab={activeFilterTab} setActiveFilterTab={setActiveFilterTab} />}
@@ -108,6 +127,8 @@ export default function Processing() {
                         setVehicleFilter={setVehicleFilter}
                         priorityFilter={priorityFilter}
                         setPriorityFilter={setPriorityFilter}
+                        locationFilter={locationFilter}
+                        setLocationFilter={setLocationFilter}
                         startDate={startDate}
                         setStartDate={setStartDate}
                         endDate={endDate}
@@ -118,9 +139,7 @@ export default function Processing() {
                 searchPlaceholder="Search requests by ID, route, vehicle..."
                 compact={true}
                 isLoading={isLoading || isRefreshing}
-                onRowClick={(row) => navigate(buildSecureQuoteUrl(row.rawId || row.id, 'view'))}
-                tableLayout="fixed"
-                tableClassName="w-full"
+                onRowClick={(row) => navigate(buildSecureQuoteUrl('view', row.rawId || row.id))}
                 emptyState={
                     <EmptyState
                         icon={Inbox}

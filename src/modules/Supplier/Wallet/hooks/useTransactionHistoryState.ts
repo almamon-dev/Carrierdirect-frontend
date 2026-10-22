@@ -23,7 +23,7 @@ export function useTransactionHistoryState() {
         try {
             const res = await apiClient.get('/supplier/wallet/transactions');
             const data = res.data?.data || res.data || {};
-            const list = Array.isArray(data) ? data : (data.transactions || []);
+            const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : (data.transactions || []));
             setTransactions(list);
         } catch (err: any) {
             console.error('Failed to load transaction history:', err);

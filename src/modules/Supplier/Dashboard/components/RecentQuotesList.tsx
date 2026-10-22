@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Star, CheckCircle2, User } from 'lucide-react';
 import { encryptId } from '@/lib/encryption';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 export interface RecentQuoteRow {
     id: string;
@@ -143,10 +144,8 @@ export const RecentQuotesList: React.FC<RecentQuotesListProps> = ({ quotes, isLo
                                     </div>
 
                                     {/* 6. Status Badge */}
-                                    <div className="col-span-2 text-right min-w-0">
-                                        <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/50 px-1.5 py-0.2 rounded text-[9.5px] font-bold inline-block">
-                                            {quote.status || 'Open'}
-                                        </span>
+                                    <div className="col-span-2 text-right min-w-0 flex justify-end">
+                                        <StatusBadge status={quote.status || 'Open'} />
                                     </div>
                                 </div>
                             );

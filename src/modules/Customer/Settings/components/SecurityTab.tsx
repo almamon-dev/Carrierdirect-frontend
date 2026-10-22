@@ -26,8 +26,8 @@ export default function SecurityTab() {
 
   const fetch2FASetup = async () => {
     try {
-      const res = await apiClient.get('/customer/2fa/setup');
-      if (res.data) {
+      const res: any = await apiClient.get('/customer/2fa/setup');
+      if (res?.data) {
         if (res.data.secret) setRawSecret(res.data.secret);
         setTwoFactor(!!res.data.two_factor_enabled);
       }
@@ -36,20 +36,16 @@ export default function SecurityTab() {
     }
   };
 
-  useEffect(() => {
-    fetch2FASetup();
-  }, []);
-
-  useEffect(() => {
-    const ua = navigator.userAgent;
+  const getLocalSessionFallback = (): SessionItem => {
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
     let browser = 'Browser';
     let os = 'Device';
     const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
 
-    if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Chrome';
-    else if (ua.includes('Edg')) browser = 'Edge';
-    else if (ua.includes('Firefox')) browser = 'Firefox';
-    else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+    if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Google Chrome';
+    else if (ua.includes('Edg')) browser = 'Microsoft Edge';
+    else if (ua.includes('Firefox')) browser = 'Mozilla Firefox';
+    else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Apple Safari';
 
     if (ua.includes('Win')) os = 'Windows';
     else if (ua.includes('Mac')) os = 'macOS';
@@ -57,15 +53,44 @@ export default function SecurityTab() {
     else if (ua.includes('Android')) os = 'Android';
     else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
 
-    setSessions([
-      {
-        id: 'curr-session',
-        device: `${browser} on ${os} (This Device)`,
-        isCurrent: true,
-        isMobile,
-        lastActive: 'Active Now',
-      },
-    ]);
+    return {
+      id: 'curr-session',
+      device: `${browser} on ${os} (This Device)`,
+      isCurrent: true,
+      isMobile,
+      lastActive: 'Active Now',
+    };
+  };
+
+  const fetchSessions = async () => {
+    try {
+      const res: any = await apiClient.get('/auth/sessions');
+      const list =
+        res?.data?.sessions ||
+        res?.sessions ||
+        res?.data?.data?.sessions ||
+        (Array.isArray(res?.data) ? res.data : null);
+
+      if (Array.isArray(list) && list.length > 0) {
+        setSessions(list.map((s: any) => ({
+          id: s.id,
+          device: s.device,
+          isCurrent: Boolean(s.is_current ?? s.current),
+          isMobile: Boolean(s.is_mobile),
+          lastActive: s.last_active,
+        })));
+        return;
+      }
+    } catch (err) {
+      console.error('Error fetching auth sessions:', err);
+    }
+
+    setSessions([getLocalSessionFallback()]);
+  };
+
+  useEffect(() => {
+    fetch2FASetup();
+    fetchSessions();
   }, []);
 
   useEffect(() => {
@@ -114,16 +139,17 @@ export default function SecurityTab() {
 
     setIsVerifying(true);
     try {
-      const res = await apiClient.post('/customer/2fa/enable', { code: otpCode });
+      const res: any = await apiClient.post('/customer/2fa/enable', { code: otpCode });
       setIsVerifying(false);
       setTwoFactor(true);
       setIs2FAModalOpen(false);
       setShowHelpGuide(false);
       setOtpCode('');
-      showToast(res.data?.message || 'Two-Factor Authentication successfully enabled!', 'success');
+      showToast(res?.message || res?.data?.message || 'Two-Factor Authentication successfully enabled!', 'success');
     } catch (err: any) {
       setIsVerifying(false);
       const errMsg =
+        err.response?.data?.message ||
         err.data?.message ||
         err.message ||
         'Invalid verification code. Please check your Authenticator app.';
@@ -140,8 +166,8 @@ export default function SecurityTab() {
   const handleRefreshQR = async () => {
     setIsRefreshingQR(true);
     try {
-      const res = await apiClient.get('/customer/2fa/setup');
-      if (res.data?.secret) setRawSecret(res.data.secret);
+      const res: any = await apiClient.get('/customer/2fa/setup');
+      if (res?.data?.secret) setRawSecret(res.data.secret);
     } catch {
       // Fallback
     }
@@ -160,13 +186,25 @@ export default function SecurityTab() {
       <TwoFactorToggleCard twoFactor={twoFactor} onToggle={handleToggle2FA} />
       <ActiveSessionsCard
         sessions={sessions}
-        onRevokeSession={(id) => {
-          setSessions((prev) => prev.filter((s) => s.id !== id));
-          showToast('Session revoked successfully.', 'info');
+        onRevokeSession={async (id) => {
+          try {
+            await apiClient.delete(`/auth/sessions/${id}`);
+            setSessions((prev) => prev.filter((s) => s.id !== id));
+            showToast('Session revoked successfully.', 'info');
+          } catch (err: any) {
+            const msg = err.response?.data?.message || err.data?.message || err.message || 'Failed to revoke session.';
+            showToast(msg, 'error');
+          }
         }}
-        onRevokeAllOther={() => {
-          setSessions((prev) => prev.filter((s) => s.isCurrent));
-          showToast('All other active sessions have been revoked.', 'success');
+        onRevokeAllOther={async () => {
+          try {
+            await apiClient.delete('/auth/sessions');
+            setSessions((prev) => prev.filter((s) => s.isCurrent));
+            showToast('All other active sessions have been revoked.', 'success');
+          } catch (err: any) {
+            const msg = err.response?.data?.message || err.data?.message || err.message || 'Failed to revoke other sessions.';
+            showToast(msg, 'error');
+          }
         }}
       />
       <TwoFactorSetupModal

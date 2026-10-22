@@ -24,6 +24,7 @@ export function useSupplierRegisterForm() {
     const [isStep1Loading, setIsStep1Loading] = useState(false);
     const [formData, setFormData] = useState<SupplierFormData>({
         fullName: '',
+        companyName: '',
         email: '',
         password: '',
         confirmPassword: '',
@@ -32,6 +33,7 @@ export function useSupplierRegisterForm() {
         insuranceProviderName: '',
         policyNumber: '',
         policyExpiryDate: '',
+        companyLogo: null,
         insuranceDocument: null,
         licenses: null
     });
@@ -112,8 +114,8 @@ export function useSupplierRegisterForm() {
                 const finalInsuranceType = isOtherInsurance ? formData.customInsuranceType.trim() : formData.insuranceType;
                 const registerPayload = new FormData();
                 registerPayload.append('user_type', 'supplier');
-                registerPayload.append('company_name', formData.fullName);
                 registerPayload.append('name', formData.fullName);
+                registerPayload.append('company_name', formData.companyName);
                 registerPayload.append('email', formData.email);
                 registerPayload.append('password', formData.password);
                 registerPayload.append('password_confirmation', formData.confirmPassword);
@@ -121,6 +123,7 @@ export function useSupplierRegisterForm() {
                 registerPayload.append('insurance_provider_name', formData.insuranceProviderName);
                 registerPayload.append('policy_number', formData.policyNumber);
                 registerPayload.append('policy_expiry_date', formData.policyExpiryDate);
+                if (formData.companyLogo instanceof File) registerPayload.append('company_logo', formData.companyLogo);
                 if (formData.insuranceDocument instanceof File) registerPayload.append('insurance_document', formData.insuranceDocument);
                 if (formData.licenses instanceof File) registerPayload.append('license_document', formData.licenses);
 

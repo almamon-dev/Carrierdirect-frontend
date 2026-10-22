@@ -1,7 +1,7 @@
 import React from 'react';
 import { Download, FileText, X, ExternalLink, ShieldCheck } from 'lucide-react';
 import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { PODOrderItem } from '../types';
 
 interface PODPreviewModalProps {
@@ -20,10 +20,6 @@ export const PODPreviewModal: React.FC<PODPreviewModalProps> = ({
     if (!isOpen || !order) return null;
 
     const podStatus = order.pod_status;
-    let badgeVariant: any = 'outline';
-    if (podStatus === 'Approved') badgeVariant = 'success';
-    else if (podStatus === 'Pending Review') badgeVariant = 'warning';
-    else if (podStatus === 'Rejected') badgeVariant = 'critical';
 
     const handleDownload = () => {
         const url = order.pod_document_url || order.pod_file_url;
@@ -44,9 +40,10 @@ export const PODPreviewModal: React.FC<PODPreviewModalProps> = ({
                         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
                             POD Receipt: {order.order_id || order.id}
                         </h3>
-                        <Badge variant={badgeVariant} showDot className="text-[11px] font-bold">
-                            {podStatus}
-                        </Badge>
+                        <StatusBadge
+                            status={podStatus}
+                            category={podStatus === 'Approved' ? 'success' : podStatus === 'Pending Review' ? 'action_required' : podStatus === 'Rejected' ? 'failed' : 'neutral'}
+                        />
                     </div>
                     <button
                         type="button"

@@ -47,33 +47,39 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         if (totalKg > 0) formattedWeight = `${totalKg.toLocaleString()} kg`;
     }
 
-    let volumeVal = d.total_volume || d.volume || raw.volume || (d.volume_cbm ? `${d.volume_cbm} m³` : null);
-    const isVolumeZero = !volumeVal || volumeVal === 0 || volumeVal === "0" || volumeVal === "0.00" || volumeVal === "—";
-    if (isVolumeZero && rawItems.length > 0) {
+    const rawVolume = d.total_volume ?? d.volume ?? d.volume_cbm ?? raw.total_volume ?? raw.volume ?? raw.volume_cbm ?? null;
+    const volNum = (rawVolume !== null && rawVolume !== undefined && rawVolume !== "" && rawVolume !== "—")
+        ? parseFloat(String(rawVolume).replace(/[^0-9.]/g, ""))
+        : NaN;
+    let formattedVolume = (!isNaN(volNum) && volNum > 0)
+        ? (String(rawVolume).includes("m³") ? String(rawVolume) : `${volNum.toFixed(2)} m³`)
+        : "—";
+
+    if (formattedVolume === "—" && rawItems.length > 0) {
         const totalCbm = rawItems.reduce((acc: number, item: any) => {
             const l = Number(item.length) || 0;
             const w = Number(item.width) || 0;
             const h = Number(item.height) || 0;
             const q = Number(item.quantity) || 1;
-            return (l && w && h) ? acc + ((l * w * h * q) / 1000000) : acc;
+            if (l > 0 && w > 0 && h > 0) {
+                return acc + ((l * w * h * q) / 1000000);
+            }
+            return acc;
         }, 0);
-        if (totalCbm > 0) volumeVal = `${totalCbm.toFixed(2)} m³`;
+        if (totalCbm > 0) {
+            formattedVolume = `${totalCbm.toFixed(2)} m³`;
+        }
     }
-    const formattedVolume = (volumeVal && !["—", 0, "0", "0.00", "0 m³", "0.00 m³"].includes(volumeVal))
-        ? (String(volumeVal).includes("m³") || String(volumeVal).includes("CBM") || String(volumeVal).includes("cm") ? String(volumeVal) : `${volumeVal} m³`)
-        : "—";
 
-    // Clean items_summary if it contains raw dimension units like "2 CM"
-    let rawSummary = d.items_summary || raw.items_summary || "";
-    if (rawSummary) {
-        rawSummary = rawSummary.replace(/\b(cm|mm|m|in|inch|inches|ft|feet)\b/gi, "Items").trim();
-    }
-    const totalQty = rawItems.length > 0 ? rawItems.reduce((acc: number, item: any) => acc + (Number(item.quantity) || 1), 0) : (raw.items_count || d.items_count || 0);
-    const rawPallets = d.pallets_count ?? raw.pallets_count ?? raw.palletsCount ?? d.palletsCount ?? "";
-    const formattedPallets = rawPallets ? `${rawPallets} Pallets` : "";
-    const itemsCountSummary = (rawSummary && !["—", "0 Items", "0 Item", "0"].includes(rawSummary))
-        ? rawSummary
-        : (totalQty > 0 ? `${totalQty} ${totalQty === 1 ? "Item" : "Items"}` : "—");
+    const rawPallets = d.pallets_count ?? raw.pallets_count ?? raw.palletsCount ?? d.palletsCount;
+    const formattedPallets = (rawPallets !== null && rawPallets !== undefined && rawPallets !== '' && rawPallets !== '—')
+        ? (String(rawPallets).includes('Pallet') ? String(rawPallets) : `${rawPallets} Pallets`)
+        : '—';
+
+    const rawItemsCount = d.items_count ?? raw.items_count ?? raw.itemsCount ?? d.itemsCount;
+    const formattedItemsCount = (rawItemsCount !== null && rawItemsCount !== undefined && rawItemsCount !== '' && rawItemsCount !== '—')
+        ? (String(rawItemsCount).includes('Item') ? String(rawItemsCount) : `${rawItemsCount} Items`)
+        : '—';
 
     // Fix Load Type: Prevent dimension units (CM, cm, etc.) from appearing as load type
     const invalidLoadUnits = ["cm", "m", "mm", "in", "inch", "inches", "ft", "feet", "n/a", "—", "-", "null", "undefined"];
@@ -94,7 +100,11 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         status: computedStatus,
         is_won: isWon,
         is_expired: isExpired,
+        is_paid: Boolean(raw.is_paid || raw.quote_submitted?.is_paid),
+        is_awaiting_payment: Boolean(raw.is_awaiting_payment || raw.quote_submitted?.is_awaiting_payment),
+        payment_status: raw.payment_status || raw.quote_submitted?.payment_status || 'Pending',
         quote_submitted: raw.quote_submitted,
+        order: raw.order || raw.quote_submitted?.order || null,
         customer: d.client_name || d.customer_name || raw.customer?.name || raw.user?.name || raw.customer_name || '-',
         customerAvatar: d.client_avatar || d.customer_avatar || raw.customer_avatar || raw.customerAvatar || raw.customer?.avatar || raw.customer?.profile_picture || raw.user?.avatar || raw.user?.avatar_url || "",
         customerPhone: d.client_phone || raw.customer?.phone || raw.user?.phone || "",
@@ -116,8 +126,8 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         budget: d.budget ? (String(d.budget).includes("€") ? String(d.budget) : `€${d.budget}`) : (raw.budget ? (String(raw.budget).includes("€") ? String(raw.budget) : `€${raw.budget}`) : "Open / Flexible"),
         vehicleType: d.vehicle_type || d.vehicleType || raw.vehicle_type || raw.vehicleType || "—",
         loadType: resolvedLoadType,
-        itemsCount: itemsCountSummary,
-        palletsCount: formattedPallets || (rawPallets ? String(rawPallets) : itemsCountSummary),
+        itemsCount: formattedItemsCount,
+        palletsCount: formattedPallets,
         dimensions: rawItems.map((item: any, i: number) => ({
             id: item.id ?? i + 1,
             length: item.length != null ? String(item.length) : "—",

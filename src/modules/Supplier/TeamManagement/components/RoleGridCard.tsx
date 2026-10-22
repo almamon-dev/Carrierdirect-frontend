@@ -1,5 +1,5 @@
 import React from 'react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Shield, Users, CheckCircle2 } from 'lucide-react';
 import { RoleItem, RoleRowActions } from './RoleRowActions';
 
@@ -37,16 +37,10 @@ export const RoleGridCard: React.FC<RoleGridCardProps> = ({ role, onEdit, onDele
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                        <Badge 
-                            variant="secondary" 
-                            className={
-                                isSuper
-                                    ? 'bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] font-semibold text-[10px] px-1.5 py-0.2 border border-orange-200/60 dark:border-orange-900/40'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-[10px] px-1.5 py-0.2 border border-slate-200 dark:border-slate-700'
-                            }
-                        >
-                            {isSuper ? 'Default' : 'Custom'}
-                        </Badge>
+                        <StatusBadge 
+                            status={isSuper ? 'Default' : 'Custom'}
+                            category={isSuper ? 'action_required' : 'neutral'}
+                        />
                         <RoleRowActions
                             row={role}
                             onEdit={onEdit}

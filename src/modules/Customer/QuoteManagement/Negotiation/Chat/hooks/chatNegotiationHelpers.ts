@@ -1,7 +1,12 @@
 import { decryptId } from "@/lib/encryption";
-import { CustomerChatItem, CustomerContactGroup } from "../types";
+import { CustomerChatFilterTab, CustomerChatItem, CustomerContactGroup, ChatSortOption } from "../types";
 
-export function resolveActiveNegotiationId(id: string | undefined, allNegotiations: any[]): number | string {
+export const resolveActiveNegotiationId = (id: string | undefined, allNegotiations: any[]) => resolveTargetNegotiationId(id, allNegotiations);
+
+export function resolveTargetNegotiationId(
+    id: string | undefined,
+    allNegotiations: any[]
+): number | string {
     if (!id) return allNegotiations[0]?.rawId || "";
     const decrypted = decryptId(id);
     const rawNum = Number(String(decrypted).replace(/[^0-9]/g, ""));
@@ -92,7 +97,7 @@ export function groupChatsBySupplier(
                 latestPreview: chat.preview,
                 totalUnreadCount: chatUnreadCount,
                 hasUnread: isChatUnread,
-                hasPendingOffer: Boolean(chat.raw?.status === "Counter Received" || chat.raw?.status === "Pending"),
+                hasPendingOffer: Boolean(chat.raw?.status === "Counter Received" || chat.raw?.status === "Pending" || chat.raw?.revision_status === "pending"),
                 isPinned: Boolean(chat.isPinned)
             });
         } else {
@@ -114,27 +119,59 @@ export function groupChatsBySupplier(
     return Array.from(groupMap.values());
 }
 
-export const isCustomerQuoteExisting = (q: any): boolean => {
+export const isCustomerQuoteBooked = (q: any): boolean => {
     const rawStatusLower = String(q.raw?.status_raw || q.raw?.status || q.status || '').toLowerCase();
+    const ost = String(q.raw?.order_status || q.order_status || q.raw?.order?.status || '').toLowerCase();
     return Boolean(
         q.raw?.is_paid ||
-        q.raw?.has_order ||
-        q.raw?.order_id ||
-        q.raw?.orderNumber ||
         q.isPaid ||
+        q.raw?.has_order ||
         q.hasOrder ||
-        q.isBooked ||
-        q.isCompleted ||
-        rawStatusLower.includes('book') ||
-        rawStatusLower.includes('complete') ||
-        rawStatusLower.includes('order')
+        q.raw?.order_id ||
+        q.orderId ||
+        ost === 'confirmed' ||
+        ost === 'in_progress' ||
+        ost === 'completed' ||
+        ost === 'delivered' ||
+        rawStatusLower === 'booked' ||
+        rawStatusLower === 'completed'
     );
+};
+
+export const isCustomerQuoteAwaitingPayment = (q: any): boolean => {
+    if (isCustomerQuoteBooked(q)) return false;
+    const rawStatusLower = String(q.raw?.status_raw || q.raw?.status || q.status || '').toLowerCase();
+    const rev = String(q.raw?.revision_status || q.revision_status || '').toLowerCase();
+    const isAccepted = rawStatusLower === 'accepted' || rawStatusLower === 'won' || rev === 'accepted';
+    return Boolean(
+        q.raw?.is_awaiting_payment ||
+        q.isAwaitingPayment ||
+        rawStatusLower === 'awaiting_payment' ||
+        (isAccepted && !q.raw?.is_paid && !q.isPaid)
+    );
+};
+
+export const isCustomerQuoteCounterOffer = (q: any): boolean => {
+    if (isCustomerQuoteBooked(q) || isCustomerQuoteAwaitingPayment(q)) return false;
+    const rev = String(q.raw?.revision_status || q.revision_status || '').toLowerCase();
+    const rawStatusLower = String(q.raw?.status_raw || q.raw?.status || q.status || '').toLowerCase();
+    return Boolean(
+        rev === 'pending' ||
+        rev === 'counter_proposed' ||
+        rawStatusLower.includes('counter') ||
+        q.hasPendingOffer
+    );
+};
+
+export const isCustomerQuoteExisting = (q: any): boolean => {
+    return isCustomerQuoteBooked(q);
 };
 
 export function filterContactGroups(
     contactGroups: CustomerContactGroup[],
     searchQuery: string,
-    filterTab: "all" | "new" | "existing" | "unread"
+    filterTab: CustomerChatFilterTab,
+    sortBy: ChatSortOption = "recent"
 ): CustomerContactGroup[] {
     const query = searchQuery.trim().toLowerCase();
     return contactGroups
@@ -158,15 +195,42 @@ export function filterContactGroups(
             if (filterTab === "existing") {
                 return group.quotes.some(isCustomerQuoteExisting);
             }
+            if (filterTab === "awaiting_payment") {
+                return group.quotes.some(isCustomerQuoteAwaitingPayment);
+            }
+            if (filterTab === "counter_offers") {
+                return group.quotes.some(isCustomerQuoteCounterOffer);
+            }
+            if (filterTab === "booked") {
+                return group.quotes.some(isCustomerQuoteBooked);
+            }
+            if (filterTab === "pinned") {
+                return group.isPinned || group.quotes.some(q => q.isPinned);
+            }
             return true;
         })
-        .sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+        .sort((a, b) => {
+            if (sortBy === "unread_first") {
+                const unreadDiff = (b.totalUnreadCount || (b.hasUnread ? 1 : 0)) - (a.totalUnreadCount || (a.hasUnread ? 1 : 0));
+                if (unreadDiff !== 0) return unreadDiff;
+            } else if (sortBy === "amount_high") {
+                const getAmt = (g: CustomerContactGroup) => Math.max(0, ...g.quotes.map(q => q.currentPrice || (q.raw && (q.raw.amount_raw || q.raw.amount)) || 0));
+                const amtDiff = getAmt(b) - getAmt(a);
+                if (amtDiff !== 0) return amtDiff;
+            } else if (sortBy === "amount_low") {
+                const getAmt = (g: CustomerContactGroup) => Math.min(...g.quotes.map(q => q.currentPrice || (q.raw && (q.raw.amount_raw || q.raw.amount)) || 999999));
+                const amtDiff = getAmt(a) - getAmt(b);
+                if (amtDiff !== 0) return amtDiff;
+            }
+            return (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0);
+        });
 }
 
 export function filterChats(
     chats: CustomerChatItem[],
     searchQuery: string,
-    filterTab: "all" | "new" | "existing" | "unread"
+    filterTab: CustomerChatFilterTab,
+    sortBy: ChatSortOption = "recent"
 ): CustomerChatItem[] {
     const query = searchQuery.trim().toLowerCase();
     return chats
@@ -187,7 +251,31 @@ export function filterChats(
             if (filterTab === "existing") {
                 return isCustomerQuoteExisting(chat);
             }
+            if (filterTab === "awaiting_payment") {
+                return isCustomerQuoteAwaitingPayment(chat);
+            }
+            if (filterTab === "counter_offers") {
+                return isCustomerQuoteCounterOffer(chat);
+            }
+            if (filterTab === "booked") {
+                return isCustomerQuoteBooked(chat);
+            }
+            if (filterTab === "pinned") {
+                return Boolean(chat.isPinned);
+            }
             return true;
         })
-        .sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+        .sort((a, b) => {
+            if (sortBy === "unread_first") {
+                const unreadDiff = (b.unreadCount || (b.unread ? 1 : 0)) - (a.unreadCount || (a.unread ? 1 : 0));
+                if (unreadDiff !== 0) return unreadDiff;
+            } else if (sortBy === "amount_high") {
+                const amtDiff = (b.currentPrice || 0) - (a.currentPrice || 0);
+                if (amtDiff !== 0) return amtDiff;
+            } else if (sortBy === "amount_low") {
+                const amtDiff = (a.currentPrice || 0) - (b.currentPrice || 0);
+                if (amtDiff !== 0) return amtDiff;
+            }
+            return (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0);
+        });
 }

@@ -4,7 +4,7 @@
  * Alerts suppliers that an active Stripe/Bank payout setup is required before placing bids.
  */
 
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
 import {
     ArrowRight,
@@ -91,9 +91,7 @@ export default function SupplierAccountConnectModal({
                                 <h3 className="text-[13.5px] sm:text-[14px] font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
                                     {title}
                                 </h3>
-                                <Badge className="bg-[#ff4a1f]/10 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] border border-[#ff4a1f]/20 text-[9.5px] font-bold px-1.5 py-0.2 rounded-full">
-                                    Required
-                                </Badge>
+                                <StatusBadge status="Action Required" label="Required" />
                             </div>
                             <p className="text-[11.5px] text-slate-500 dark:text-slate-400 font-normal mt-0.5 leading-relaxed">
                                 {description}

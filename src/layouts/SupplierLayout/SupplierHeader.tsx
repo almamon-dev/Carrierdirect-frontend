@@ -1,8 +1,8 @@
+import HeaderMessages from '@/components/HeaderMessages';
+import HeaderNotifications from '@/components/HeaderNotifications';
+import { ChevronDown, LogOut, Search, Settings, User } from 'lucide-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, User, Settings, LogOut, ChevronDown } from 'lucide-react';
-import HeaderNotifications from '@/components/HeaderNotifications';
-import HeaderMessages from '@/components/HeaderMessages';
 
 interface AuthUser {
     name?: string;

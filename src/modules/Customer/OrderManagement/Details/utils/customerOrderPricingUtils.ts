@@ -17,16 +17,6 @@ export function calculateOrderPricing(
     isPaid: boolean,
     isPayLater: boolean
 ): PricingCalculationResult {
-    const totalAmount = Number(
-        foundOrder?.total_amount_raw ??
-        foundOrder?.amount_raw ??
-        (foundOrder?.total_amount
-            ? parseFloat(String(foundOrder.total_amount).replace(/[^0-9.]/g, ''))
-            : foundOrder?.amount
-              ? parseFloat(String(foundOrder.amount).replace(/[^0-9.]/g, ''))
-              : 1250)
-    ) || 1250;
-
     let extraChargesList: ExtraChargeItem[] = [];
     const rawExtraCharges = foundOrder?.extra_charges || foundOrder?.extraCharges || foundOrder?.quote?.extra_charges;
     if (Array.isArray(rawExtraCharges) && rawExtraCharges.length > 0) {
@@ -37,7 +27,7 @@ export function calculateOrderPricing(
                 id: ch.id || idx,
                 name: name,
                 amount: amount,
-                amountFormatted: `+€ ${amount.toLocaleString()}`,
+                amountFormatted: `+€ ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
             };
         });
     }
@@ -57,15 +47,17 @@ export function calculateOrderPricing(
     );
 
     const platformFeePercent = Number(
+        foundOrder?.platform_charge_percent ??
         foundOrder?.platform_fee_percent ??
         foundOrder?.platformFeePercent ??
-        foundOrder?.platform_charge_percent ??
         foundOrder?.quote?.platform_fee_percent ??
         foundOrder?.quote?.platform_charge_percent ??
         0
     );
 
+    // Determine base freight price (without platform fee)
     const rawBasePrice = Number(
+        foundOrder?.subtotal ??
         foundOrder?.base_price ??
         foundOrder?.base_amount ??
         foundOrder?.base_rate ??
@@ -76,20 +68,38 @@ export function calculateOrderPricing(
         0
     );
 
-    let platformFee = rawPlatformFee;
     let basePrice = rawBasePrice;
+    let platformFee = rawPlatformFee;
 
-    if (basePrice > 0 && totalAmount > basePrice) {
-        if (platformFee <= 0) {
-            platformFee = Math.max(0, totalAmount - basePrice - extraTotalCalculated);
-        }
-    } else if (basePrice <= 0) {
-        if (platformFee > 0 && totalAmount > platformFee) {
-            basePrice = totalAmount - platformFee - extraTotalCalculated;
+    const rawTotalFromPayload = Number(
+        foundOrder?.total_amount_raw ??
+        (foundOrder?.total_amount
+            ? parseFloat(String(foundOrder.total_amount).replace(/[^0-9.]/g, ''))
+            : 0)
+    );
+
+    if (basePrice <= 0) {
+        const rawAmt = Number(
+            foundOrder?.amount_raw ??
+            (foundOrder?.amount ? parseFloat(String(foundOrder.amount).replace(/[^0-9.]/g, '')) : 0)
+        );
+        if (rawAmt > 0) {
+            basePrice = rawAmt;
+        } else if (rawTotalFromPayload > 0) {
+            basePrice = platformFee > 0 && rawTotalFromPayload > platformFee ? (rawTotalFromPayload - platformFee - extraTotalCalculated) : rawTotalFromPayload;
         } else {
-            basePrice = Math.max(0, totalAmount - extraTotalCalculated);
+            basePrice = 1250;
         }
     }
+
+    const quoteAmount = basePrice + extraTotalCalculated;
+    const totalAmount = rawTotalFromPayload > quoteAmount ? rawTotalFromPayload : (quoteAmount + platformFee);
+
+    if (platformFee <= 0 && totalAmount > quoteAmount) {
+        platformFee = totalAmount - quoteAmount;
+    }
+
+    const effectivePercent = platformFeePercent || (quoteAmount > 0 && platformFee > 0 ? Math.round((platformFee / quoteAmount) * 100) : 0);
 
     const advancePaid = isPaid ? totalAmount : isPayLater ? 0 : Math.round(totalAmount * 0.30);
     const dueBalance = isPaid ? 0 : isPayLater ? totalAmount : totalAmount - advancePaid;
@@ -99,16 +109,18 @@ export function calculateOrderPricing(
         extra: extraTotalCalculated,
         extraCharges: extraChargesList,
         platformFee: platformFee,
-        platformFeeFormatted: `+€ ${platformFee.toLocaleString()}`,
-        platformFeePercent: platformFeePercent || (basePrice > 0 && platformFee > 0 ? Math.round((platformFee / basePrice) * 100) : 0),
+        platformFeeFormatted: `+€ ${platformFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        platformFeePercent: effectivePercent,
+        quoteAmount: quoteAmount,
+        quoteFormatted: `€ ${quoteAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         total: totalAmount,
-        baseFormatted: `€ ${basePrice.toLocaleString()}`,
-        extraFormatted: `€ ${extraTotalCalculated.toLocaleString()}`,
-        totalFormatted: `€ ${totalAmount.toLocaleString()}`,
+        baseFormatted: `€ ${basePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        extraFormatted: `€ ${extraTotalCalculated.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        totalFormatted: `€ ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         advancePaid: advancePaid,
         due: dueBalance,
-        advanceFormatted: `€ ${advancePaid.toLocaleString()}`,
-        dueFormatted: `€ ${dueBalance.toLocaleString()}`,
+        advanceFormatted: `€ ${advancePaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        dueFormatted: `€ ${dueBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     };
 
     return {
@@ -116,7 +128,7 @@ export function calculateOrderPricing(
         extraChargesList,
         extraTotalCalculated,
         platformFee,
-        platformFeePercent,
+        platformFeePercent: effectivePercent,
         basePrice,
         advancePaid,
         dueBalance,

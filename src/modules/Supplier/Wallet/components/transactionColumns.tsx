@@ -28,19 +28,51 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
             id: 'amount',
             label: 'Amount',
             sortable: true,
-            className: 'w-[130px] whitespace-nowrap',
+            className: 'w-[145px] whitespace-nowrap',
             render: (row) => {
                 const rawAmt = typeof row.raw_amount === 'number'
                     ? Math.abs(row.raw_amount)
                     : Math.abs(parseFloat(String(row.amount || '').replace(/[^0-9.-]/g, '')) || 0);
                 const isPositive = row.amount?.startsWith('+') || row.raw_type === 'earning';
-                const formatted = rawAmt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 const cur = (row.currency || 'EUR').toUpperCase();
+
+                const fee = typeof row.fee_amount === 'number'
+                    ? Math.abs(row.fee_amount)
+                    : (Math.abs(parseFloat(String(row.fee || row.platform_charge || '').replace(/[^0-9.-]/g, ''))) || 0);
+                const feePercent = typeof row.fee_percent === 'number'
+                    ? row.fee_percent
+                    : (typeof row.platform_charge_percent === 'number' ? row.platform_charge_percent : 0);
+
+                const grossVal = typeof row.gross_amount === 'number' && row.gross_amount > 0
+                    ? row.gross_amount
+                    : (fee > 0 && isPositive ? rawAmt + fee : rawAmt);
+                
+                const grossFormatted = grossVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const netFormatted = rawAmt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                if (!isPositive) {
+                    return (
+                        <div className="flex items-center min-h-[22px]">
+                            <span className="font-bold text-[13px] whitespace-nowrap text-slate-900 dark:text-white">
+                                -€{netFormatted} <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{cur}</span>
+                            </span>
+                        </div>
+                    );
+                }
+
                 return (
-                    <div className="flex items-center min-h-[22px]">
-                        <span className={`font-bold text-[13px] whitespace-nowrap ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-                            {isPositive ? '+' : '-'}€{formatted} <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{cur}</span>
+                    <div
+                        className="flex flex-col min-h-[22px] justify-center py-0.5"
+                        title={`Gross: €${grossFormatted} | Platform Charge: -€${fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} | Net Payout: €${netFormatted}`}
+                    >
+                        <span className="text-[13px] font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight whitespace-nowrap">
+                            €{grossFormatted} <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{cur}</span>
                         </span>
+                        {fee > 0 && (
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight mt-0.5 whitespace-nowrap">
+                                -€{fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{feePercent > 0 ? ` (${feePercent}% platform charge)` : ' (platform charge)'}
+                            </span>
+                        )}
                     </div>
                 );
             },
@@ -55,7 +87,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 if (st === 'completed' || st === 'paid' || st === 'succeeded' || st === 'cleared') {
                     return (
                         <div className="flex items-center min-h-[22px]">
-                            <span className="inline-flex items-center gap-1 bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11.5px] px-2 py-0.5 rounded-[2px] font-semibold whitespace-nowrap">
                                 Paid
                             </span>
                         </div>
@@ -64,7 +96,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 if (st === 'payout' || st === 'in_escrow' || st === 'processing') {
                     return (
                         <div className="flex items-center min-h-[22px]">
-                            <span className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[11.5px] px-2 py-0.5 rounded-[2px] font-semibold whitespace-nowrap">
                                 Processing
                             </span>
                         </div>
@@ -73,7 +105,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 if (st === 'failed') {
                     return (
                         <div className="flex items-center min-h-[22px]">
-                            <span className="inline-flex items-center gap-1 bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border border-[#fecdd3] dark:border-rose-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border border-[#fecdd3] dark:border-rose-800/60 text-[11.5px] px-2 py-0.5 rounded-[2px] font-semibold whitespace-nowrap">
                                 Failed
                             </span>
                         </div>
@@ -81,7 +113,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 }
                 return (
                     <div className="flex items-center min-h-[22px]">
-                        <span className="inline-flex items-center gap-1 bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60 text-[11.5px] px-2 py-0.5 rounded-[2px] font-semibold whitespace-nowrap">
                             Pending
                         </span>
                     </div>
@@ -118,7 +150,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 if (rawType === 'earning' || typeText.toLowerCase().includes('order') || typeText.toLowerCase().includes('earning')) {
                     return (
                         <div className="flex items-center min-h-[22px]">
-                            <span className="inline-flex items-center gap-1 bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11px] px-2 py-0.5 rounded-[2px] font-semibold whitespace-nowrap">
                                 <ArrowDownLeft size={11} className="text-[#059669] dark:text-emerald-400" />
                                 Order Payment
                             </span>
@@ -128,7 +160,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 if (rawType === 'fee' || typeText.toLowerCase().includes('fee') || typeText.toLowerCase().includes('commission')) {
                     return (
                         <div className="flex items-center min-h-[22px]">
-                            <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] px-2 py-0.5 rounded-[4px] font-medium whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] px-2 py-0.5 rounded-[2px] font-medium whitespace-nowrap">
                                 <Percent size={10} className="text-slate-500" />
                                 Platform Fee
                             </span>
@@ -138,7 +170,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 if (rawType === 'payout' || rawType === 'withdrawal' || typeText.toLowerCase().includes('payout') || typeText.toLowerCase().includes('withdraw')) {
                     return (
                         <div className="flex items-center min-h-[22px]">
-                            <span className="inline-flex items-center gap-1 bg-[#fff7ed] dark:bg-orange-950/40 text-[#ea580c] dark:text-orange-300 border border-[#fed7aa] dark:border-orange-800/60 text-[11px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 bg-[#fff7ed] dark:bg-orange-950/40 text-[#ea580c] dark:text-orange-300 border border-[#fed7aa] dark:border-orange-800/60 text-[11px] px-2 py-0.5 rounded-[2px] font-semibold whitespace-nowrap">
                                 <ArrowUpRight size={11} className="text-[#ea580c] dark:text-orange-400" />
                                 Payout to Stripe
                             </span>
@@ -148,7 +180,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 if (rawType === 'refund' || typeText.toLowerCase().includes('refund')) {
                     return (
                         <div className="flex items-center min-h-[22px]">
-                            <span className="inline-flex items-center gap-1 bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border border-[#fecdd3] dark:border-rose-800/60 text-[11px] px-2 py-0.5 rounded-[4px] font-medium whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border border-[#fecdd3] dark:border-rose-800/60 text-[11px] px-2 py-0.5 rounded-[2px] font-medium whitespace-nowrap">
                                 Refund
                             </span>
                         </div>

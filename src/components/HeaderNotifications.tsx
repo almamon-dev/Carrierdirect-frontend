@@ -60,7 +60,7 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
             return n.category === 'finance' || n.subCategory === 'escrow' || n.subCategory === 'funds_released';
         }
         if (activeCategory === 'quote') {
-            return n.category === 'quote' || n.subCategory === 'new_quote_request' || n.subCategory === 'quote_accepted';
+            return n.category === 'quote' || n.subCategory === 'new_quote_request' || n.subCategory === 'quote_accepted' || n.subCategory === 'quote_received' || n.subCategory === 'quote_submitted' || n.subCategory === 'quote_revised';
         }
         if (activeCategory === 'shipment') {
             return n.category === 'shipment' || n.subCategory === 'pod' || n.subCategory === 'transit' || n.subCategory === 'driver_assigned';
@@ -69,9 +69,16 @@ export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ role =
     });
 
     const handleItemClick = (notif: HeaderNotification) => {
-        if (notif.unread) markAsRead(notif.id);
+        if (notif.unread) {
+            markAsRead(notif.id);
+        }
         setIsOpen(false);
-        navigate(normalizeNotifLink(notif.link, role));
+        const targetLink = normalizeNotifLink(notif.link, role);
+        if (targetLink.startsWith('http://') || targetLink.startsWith('https://')) {
+            window.location.href = targetLink;
+        } else {
+            navigate(targetLink);
+        }
     };
 
     return (

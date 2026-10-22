@@ -1,3 +1,4 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import React from "react";
 import { Column } from "@/components/tables/data-table";
 import { formatDisplayDate } from "@/lib/utils";
@@ -74,8 +75,8 @@ export const getBillingColumns = (
         sortable: true,
         className: "w-auto max-w-[320px] min-w-[180px]",
         render: (row) => {
-            const pickup = row.pickup_address || row.pickup || row.pickup_name || row.from || '-';
-            const delivery = row.delivery_address || row.delivery || row.delivery_name || row.to || '-';
+            const pickup = formatStandardAddress(row, 'pickup');
+            const delivery = formatStandardAddress(row, 'delivery');
 
             return (
                 <div className="flex flex-col justify-center leading-tight py-0 min-w-0">

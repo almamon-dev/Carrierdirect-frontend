@@ -145,15 +145,15 @@ export function DataTableSkeletonBody<T = any>({
           {actions && (
             <td className={`${cellPaddingClass} whitespace-nowrap text-right pr-3.5 sm:pr-4 ${actionsColumnClassName || 'w-[76px] min-w-[70px]'}`}>
               <div className="flex items-center justify-end gap-1.5 w-full min-h-[26px]">
-                {actionsColumnClassName?.includes('180') ? (
+                {actionsColumnClassName?.includes('220') || actionsColumnClassName?.includes('200') ? (
                   <>
                     <Skeleton className="h-7 w-14 rounded-[5px]" />
                     <Skeleton className="h-7 w-16 rounded-[5px]" />
                     <Skeleton className="h-7 w-7 rounded-[5px]" />
                   </>
-                ) : actionsColumnClassName?.includes('130') || actionsColumnClassName?.includes('125') || actionsColumnClassName?.includes('115') || actionsColumnClassName?.includes('120') || actionsColumnClassName?.includes('100') ? (
+                ) : actionsColumnClassName?.includes('180') || actionsColumnClassName?.includes('175') || actionsColumnClassName?.includes('170') || actionsColumnClassName?.includes('165') || actionsColumnClassName?.includes('160') || actionsColumnClassName?.includes('145') || actionsColumnClassName?.includes('140') || actionsColumnClassName?.includes('130') || actionsColumnClassName?.includes('125') || actionsColumnClassName?.includes('115') || actionsColumnClassName?.includes('120') || actionsColumnClassName?.includes('100') ? (
                   <>
-                    <Skeleton className="h-7 w-18 rounded-[5px]" />
+                    <Skeleton className="h-7 w-20 rounded-[5px]" />
                     <Skeleton className="h-7 w-7 rounded-[5px]" />
                   </>
                 ) : (

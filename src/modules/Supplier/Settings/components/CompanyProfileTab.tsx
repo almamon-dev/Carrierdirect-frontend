@@ -20,6 +20,7 @@ export default function CompanyProfileTab() {
     handleSave,
     handleLogoUpload,
     handleLogoRemove,
+    fetchProfile,
   } = useCompanyProfileState();
 
   if (isFetching) {
@@ -70,6 +71,7 @@ export default function CompanyProfileTab() {
       {/* Compliance Documents Section */}
       <CompanyComplianceCard
         complianceData={complianceData}
+        onRefresh={fetchProfile}
       />
 
       {/* Bottom Save Action Bar */}

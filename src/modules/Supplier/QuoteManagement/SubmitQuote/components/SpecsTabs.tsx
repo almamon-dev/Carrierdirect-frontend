@@ -85,7 +85,7 @@ export const SpecsTabs: React.FC<SpecsTabsProps> = ({ requestDetails }) => {
                             <div className="grid grid-cols-[100px_10px_1fr] sm:grid-cols-[115px_12px_1fr] items-baseline pt-1.5">
                                 <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Pallets Count</span>
                                 <span className="text-slate-400 dark:text-slate-500 text-center select-none">:</span>
-                                <span className="font-medium text-slate-800 dark:text-slate-200 text-[11.5px] sm:text-xs">{requestDetails.palletsCount && requestDetails.palletsCount !== '—' ? requestDetails.palletsCount : (requestDetails.itemsCount && requestDetails.itemsCount !== '—' ? requestDetails.itemsCount : '—')}</span>
+                                <span className="font-medium text-slate-800 dark:text-slate-200 text-[11.5px] sm:text-xs">{requestDetails.palletsCount && requestDetails.palletsCount !== '—' ? requestDetails.palletsCount : '—'}</span>
                             </div>
                             <div className="grid grid-cols-[100px_10px_1fr] sm:grid-cols-[115px_12px_1fr] items-baseline pt-1.5">
                                 <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px] sm:text-[11.5px]">Total Volume</span>

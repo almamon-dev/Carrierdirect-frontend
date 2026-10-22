@@ -1,6 +1,8 @@
+import { formatCompactRoute, formatStandardAddress } from "@/utils/addressFormatter";
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { encryptId } from '@/lib/encryption';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { getOrderProgress, getOrderStatusConfig } from '../utils/dashboardUtils';
 
 export const ShipmentOrderIdCell: React.FC<{ row: any }> = ({ row }) => {
@@ -26,9 +28,11 @@ export const ShipmentOrderIdCell: React.FC<{ row: any }> = ({ row }) => {
 };
 
 export const ShipmentRouteCell: React.FC<{ row: any }> = ({ row }) => {
-  const origin = row.pickup_address || row.pickup_city || 'Origin';
-  const destination = row.delivery_address || row.delivery_city || 'Destination';
-  const routeDisplay = row.routeDisplay || row.route || `${origin} → ${destination}`;
+  const origin = formatStandardAddress(row, 'pickup');
+  const destination = formatStandardAddress(row, 'delivery');
+  const routeDisplay = (origin !== '—' && destination !== '—')
+    ? `${origin} → ${destination}`
+    : (row.routeDisplay || row.route || formatCompactRoute(row, 'In Transit'));
   const locationDisplay =
     row.locationDisplay || row.last_location || row.checkpoint || row.current_location || row.pickup_city || 'In Route';
 
@@ -97,12 +101,11 @@ export const ShipmentVehicleCell: React.FC<{ row: any }> = ({ row }) => {
 };
 
 export const ShipmentStatusCell: React.FC<{ row: any }> = ({ row }) => {
-  const statusCfg = getOrderStatusConfig(row.status || row.status_raw || 'In Transit');
+  const raw = row.status || row.status_raw || 'In Transit';
+  const statusCfg = getOrderStatusConfig(raw);
   return (
     <div className="flex items-center justify-center min-h-[26px]">
-      <span className={`inline-flex items-center text-[10.5px] px-2 py-0.5 rounded-[4px] font-bold whitespace-nowrap border ${statusCfg.color}`}>
-        {statusCfg.label}
-      </span>
+      <StatusBadge status={raw} label={statusCfg.label} />
     </div>
   );
 };

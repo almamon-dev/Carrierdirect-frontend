@@ -11,19 +11,14 @@ import {
 
 export function useNegotiationFilter(negotiations: NegotiationItem[]) {
     const [activeTab, setActiveTab] = useState<NegotiationFilterTab>("all");
-    const [priorityFilter, setPriorityFilter] = useState<string>("all");
     const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [vehicleFilter, setVehicleFilter] = useState<string>("all");
-    const [startDate, setStartDate] = useState<string>("");
+    const [startDate, setStartDate] = useState<string>("" );
     const [endDate, setEndDate] = useState<string>("");
 
     const handleResetFilters = () => {
-        setPriorityFilter("all");
         setStatusFilter("all");
-        setVehicleFilter("all");
         setStartDate("");
         setEndDate("");
-        // Preserve activeTab as per specification
     };
 
     const filteredData = useMemo(() => {
@@ -31,33 +26,36 @@ export function useNegotiationFilter(negotiations: NegotiationItem[]) {
         return list.filter(item => {
             if (!item) return false;
 
-            if (activeTab === "active" && !isNegotiationActive(item)) return false;
-            if (activeTab === "waiting_you" && (!isNegotiationActive(item) || !isWaitingForYou(item))) return false;
-            if (activeTab === "waiting_customer" && (!isNegotiationActive(item) || !isWaitingForCustomer(item))) return false;
-            if (activeTab === "agreed" && !isNegotiationAgreed(item)) return false;
-            if (activeTab === "closed" && !isNegotiationClosed(item)) return false;
+            const tab = String(activeTab).toLowerCase();
 
-            if (priorityFilter !== "all" && item.priority?.toLowerCase() !== priorityFilter.toLowerCase()) {
-                return false;
+            if (tab === "your_turn" || tab === "waiting_you") {
+                if (!isWaitingForYou(item)) return false;
+            } else if (tab === "customers_turn" || tab === "waiting_customer") {
+                if (!isWaitingForCustomer(item)) return false;
+            } else if (tab === "agreed") {
+                if (!isNegotiationAgreed(item)) return false;
+            } else if (tab === "active") {
+                if (!isNegotiationActive(item)) return false;
+            } else if (tab === "closed") {
+                if (!isNegotiationClosed(item)) return false;
             }
+
+            // Minimal Filter: Status
             if (statusFilter !== "all") {
                 const normStatus = (item.status || item.statusRaw || "").toLowerCase();
                 const filterVal = statusFilter.toLowerCase();
-                if (filterVal === "active" && !isNegotiationActive(item)) return false;
-                else if (filterVal === "agreed" && !isNegotiationAgreed(item)) return false;
-                else if (filterVal === "closed" && !isNegotiationClosed(item)) return false;
-                else if (!normStatus.includes(filterVal)) return false;
-            }
-            if (vehicleFilter !== "all") {
-                const normVehicle = (item.vehicleType || "").toLowerCase().replace(/[\s_-]+/g, "");
-                const targetVehicle = vehicleFilter.toLowerCase().replace(/[\s_-]+/g, "");
-                if (!normVehicle.includes(targetVehicle)) {
+                if (filterVal === "agreed" || filterVal === "accepted") {
+                    if (!isNegotiationAgreed(item) && !normStatus.includes("accept")) return false;
+                } else if (filterVal === "closed") {
+                    if (!isNegotiationClosed(item) && !normStatus.includes("close")) return false;
+                } else if (!normStatus.includes(filterVal)) {
                     return false;
                 }
             }
 
+            // Minimal Filter: Last Activity Date Range
             if (startDate || endDate) {
-                const rowDateStr = (item as any).created_at || item.requestDate || item.pickupDate || item.lastUpdated;
+                const rowDateStr = (item as any).lastUpdatedDate || (item as any).updated_at || (item as any).created_at || item.lastUpdated || item.requestDate;
                 if (rowDateStr) {
                     try {
                         const rowTime = new Date(rowDateStr).getTime();
@@ -79,15 +77,17 @@ export function useNegotiationFilter(negotiations: NegotiationItem[]) {
 
             return true;
         });
-    }, [negotiations, activeTab, priorityFilter, statusFilter, vehicleFilter, startDate, endDate]);
+    }, [negotiations, activeTab, statusFilter, startDate, endDate]);
 
     return {
-        activeTab, setActiveTab,
-        priorityFilter, setPriorityFilter,
-        statusFilter, setStatusFilter,
-        vehicleFilter, setVehicleFilter,
-        startDate, setStartDate,
-        endDate, setEndDate,
+        activeTab,
+        setActiveTab,
+        statusFilter,
+        setStatusFilter,
+        startDate,
+        setStartDate,
+        endDate,
+        setEndDate,
         handleResetFilters,
         filteredData,
     };

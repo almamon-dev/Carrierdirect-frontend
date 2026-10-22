@@ -1,4 +1,14 @@
-export type NegotiationFilterTab = 'all' | 'new' | 'existing' | 'unread';
+export type NegotiationFilterTab =
+    | 'all'
+    | 'new'
+    | 'existing'
+    | 'unread'
+    | 'awaiting_payment'
+    | 'counter_offers'
+    | 'booked'
+    | 'pinned';
+
+export type SupplierChatSortOption = 'recent' | 'unread_first' | 'amount_high' | 'amount_low';
 
 export interface ChatAttachment {
     name: string;

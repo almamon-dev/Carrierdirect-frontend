@@ -2,7 +2,7 @@ import Button from '@/components/ui/button';
 import apiClient from '@/lib/axios';
 import { encryptId } from '@/lib/encryption';
 import { useToastStore } from '@/stores/useToastStore';
-import { Edit3, MessageSquare } from 'lucide-react';
+import { Edit3, MessageSquare, CreditCard, CheckCircle2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QuoteRequest } from '../../data/quoteRequestsData';
@@ -38,9 +38,24 @@ export const SubmittedOfferCard: React.FC<SubmittedOfferCardProps> = ({
 
     const validityDisplay = formatValidity(quote.validity || quote.estimated_time);
     const paymentTermDisplay = formatPaymentTerm(quote.payment_term);
-    const remarks = quote.notes || 'Equipped with hydraulic tail-lift (1,500 kg) and pallet jack. Driver assisted loading and unloading.';
+    const remarks = quote.notes || 'Standard offer';
 
     const rawQuoteStatus = String(quote.status || quote.status_raw || quote.status_label || '').toLowerCase().trim();
+    const isWon = Boolean(
+        (requestDetails as any).is_won ||
+        (requestDetails.status || '').toLowerCase() === 'won' ||
+        rawQuoteStatus === 'accepted' ||
+        rawQuoteStatus === 'won'
+    );
+    const isPaid = Boolean(
+        (requestDetails as any).is_paid ||
+        (requestDetails as any).isPaid ||
+        quote.is_paid ||
+        quote.isPaid ||
+        (requestDetails as any).payment_status === 'Paid' ||
+        quote.payment_status === 'Paid' ||
+        ((requestDetails as any).order?.status === 'confirmed' && (requestDetails as any).order?.is_paid)
+    );
     const isTerminal = ['accepted', 'booked', 'won', 'completed', 'rejected', 'declined', 'cancelled', 'lost', 'expired'].includes(rawQuoteStatus);
     const hasNegotiation = rawQuoteStatus === 'negotiating' || rawQuoteStatus === 'negotiation' || quote.revision_status === 'pending' || Boolean((requestDetails as any).hasNegotiation);
     const apiCanEdit = quote.is_editable ?? quote.can_edit ?? (requestDetails as any).can_edit_quote;
@@ -81,28 +96,47 @@ export const SubmittedOfferCard: React.FC<SubmittedOfferCardProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs p-4 sm:p-5 space-y-4 font-sans">
-            {/* Header: Submitted Offer & REQ-2 */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                    Submitted Offer
-                </h3>
-                <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs p-3.5 space-y-2.5 font-sans">
+            {/* Header: Submitted Offer & REQ-ID */}
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                        Submitted Offer
+                    </h3>
+                    {isWon && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                            Accepted
+                        </span>
+                    )}
+                    {isWon && !isPaid && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700 flex items-center gap-1">
+                            <CreditCard size={9.5} />
+                            <span>Awaiting Payment</span>
+                        </span>
+                    )}
+                    {isWon && isPaid && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-700 flex items-center gap-1">
+                            <CheckCircle2 size={9.5} />
+                            <span>Paid</span>
+                        </span>
+                    )}
+                </div>
+                <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
                     {requestDetails.id || `REQ-${cleanId}`}
                 </span>
             </div>
 
             {/* Offer Key Details */}
-            <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between">
-                    <span className="text-slate-600 dark:text-slate-400 font-normal">Base Freight Price</span>
-                    <span className="font-bold text-slate-900 dark:text-white text-xs">
+            <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between py-0.5">
+                    <span className="text-slate-600 dark:text-slate-400">Base Freight Price</span>
+                    <span className="font-bold text-slate-900 dark:text-white">
                         €{baseAmountNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                 </div>
 
-                <div className="flex items-center justify-between">
-                    <span className="text-slate-600 dark:text-slate-400 font-normal">Extra Charges</span>
+                <div className="flex items-center justify-between py-0.5">
+                    <span className="text-slate-600 dark:text-slate-400">Extra Charges</span>
                     <span className="text-slate-700 dark:text-slate-300 font-medium">
                         {extraCharges.length > 0 ? (
                             `+€${extraChargesTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -112,72 +146,77 @@ export const SubmittedOfferCard: React.FC<SubmittedOfferCardProps> = ({
                     </span>
                 </div>
 
-                <div className="flex items-center justify-between">
-                    <span className="text-slate-600 dark:text-slate-400 font-normal">Validity</span>
-                    <span className="text-slate-800 dark:text-slate-200 font-medium">
+                <div className="flex items-center justify-between py-0.5 pt-1 border-t border-slate-100/80 dark:border-slate-800/60">
+                    <span className="text-slate-500 dark:text-slate-400 text-[11.5px]">Validity</span>
+                    <span className="text-slate-800 dark:text-slate-200 font-medium text-[11.5px]">
                         {validityDisplay}
                     </span>
                 </div>
 
-                <div className="flex items-center justify-between">
-                    <span className="text-slate-600 dark:text-slate-400 font-normal">Payment Term</span>
-                    <span className="text-slate-800 dark:text-slate-200 font-medium">
+                <div className="flex items-center justify-between py-0.5">
+                    <span className="text-slate-500 dark:text-slate-400 text-[11.5px]">Payment Term</span>
+                    <span className="text-slate-800 dark:text-slate-200 font-medium text-[11.5px]">
                         {paymentTermDisplay}
                     </span>
                 </div>
-            </div>
 
-            {/* Commercial Remarks Box */}
-            <div className="space-y-1.5 pt-1">
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
-                    Commercial Remarks
-                </span>
-                <div className="p-3 rounded-md bg-slate-50 dark:bg-[#181d24] border border-slate-200/80 dark:border-slate-800 text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed font-normal whitespace-pre-line">
-                    {remarks}
+                <div className="flex items-center justify-between py-1 border-t border-slate-100/80 dark:border-slate-800/60">
+                    <span className="text-slate-500 dark:text-slate-400 text-[11.5px]">Payment Status</span>
+                    {isWon ? (
+                        isPaid ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                                <CheckCircle2 size={11} className="text-emerald-600 dark:text-emerald-400" />
+                                <span>Paid (Escrow Secured)</span>
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700 animate-pulse">
+                                <CreditCard size={11} className="text-amber-600 dark:text-amber-400" />
+                                <span>Awaiting Payment</span>
+                            </span>
+                        )
+                    ) : (
+                        <span className="text-slate-600 dark:text-slate-300 font-medium text-[11.5px]">
+                            Pending Acceptance
+                        </span>
+                    )}
                 </div>
             </div>
 
-            {/* Payment Breakdown Card */}
-            <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
-                    Payment Breakdown
-                </span>
-                <div className="space-y-1.5 text-xs">
-                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                        <span>Base Freight Price</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">
-                            € {baseAmountNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                        <span>Extra Charges</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">
-                            € {extraChargesTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
+            {/* Commercial Remarks Box (Compact) */}
+            {remarks && (
+                <div className="space-y-1 pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
+                        Commercial Remarks
+                    </span>
+                    <div 
+                        className="px-2.5 py-1.5 rounded-[3px] bg-slate-50 dark:bg-[#181d24] border border-slate-200/70 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 leading-snug line-clamp-2"
+                        title={remarks}
+                    >
+                        {remarks}
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Total Quotation Amount */}
-            <div className="pt-3 pb-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 dark:text-white">
                     Total Quotation Amount
                 </span>
-                <span className="text-base sm:text-lg font-extrabold text-[#059669] dark:text-emerald-400">
+                <span className="text-base font-extrabold text-[#059669] dark:text-emerald-400">
                     € {totalAmountNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
             </div>
 
             {/* Action Buttons: Edit Offer & Negotiation */}
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
                 {canEditOffer && (
                     <Button
                         type="button"
                         variant="outline"
                         onClick={onEditOffer}
-                        className="flex-1 h-10 text-xs sm:text-[13px] font-semibold rounded-md border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
+                        className="w-auto px-3.5 h-8 text-xs font-semibold rounded-[3px] border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1e2329] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
                     >
-                        <Edit3 size={15} className="text-slate-600 dark:text-slate-300 shrink-0" />
+                        <Edit3 size={13} className="text-slate-600 dark:text-slate-300 shrink-0" />
                         <span>Edit Offer</span>
                     </Button>
                 )}
@@ -190,9 +229,9 @@ export const SubmittedOfferCard: React.FC<SubmittedOfferCardProps> = ({
                         const rawId = String(targetId).replace('REQ-', '').replace('QT-', '').trim();
                         navigate(`/supplier/quotes/negotiation/conversation/${encryptId(rawId)}`);
                     }}
-                    className={`${canEditOffer ? 'flex-1' : 'w-full'} h-10 text-xs sm:text-[13px] font-semibold rounded-md border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/60 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/50 flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs`}
+                    className="w-auto px-3.5 h-8 text-xs font-semibold rounded-[3px] border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/60 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/50 flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
                 >
-                    <MessageSquare size={15} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                    <MessageSquare size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
                     <span>Negotiation</span>
                 </Button>
             </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { DigitalBOLModal } from './DigitalBOLModal';
 import { ReportsModal } from './ReportsModal';
 import { DispatcherSupportModal } from '../../Profile/components/DispatcherSupportModal';
-import { GPSComingSoonModal } from '@/components/modals';
+import { DriverLiveGPSModal } from './DriverLiveGPSModal';
 
 interface DriverDashboardModalsProps {
     isBOLOpen: boolean;
@@ -14,8 +14,8 @@ interface DriverDashboardModalsProps {
     completedOrders?: number;
     isSupportOpen: boolean;
     setIsSupportOpen: (val: boolean) => void;
-    isGPSOpen: boolean;
-    setIsGPSOpen: (val: boolean) => void;
+    isGPSOpen?: boolean;
+    setIsGPSOpen?: (val: boolean) => void;
     gpsDestination?: string;
 }
 
@@ -29,7 +29,7 @@ export const DriverDashboardModals: React.FC<DriverDashboardModalsProps> = ({
     completedOrders,
     isSupportOpen,
     setIsSupportOpen,
-    isGPSOpen,
+    isGPSOpen = false,
     setIsGPSOpen,
     gpsDestination,
 }) => {
@@ -53,11 +53,16 @@ export const DriverDashboardModals: React.FC<DriverDashboardModalsProps> = ({
                 onClose={() => setIsSupportOpen(false)}
             />
 
-            <GPSComingSoonModal
-                isOpen={isGPSOpen}
-                destination={gpsDestination}
-                onClose={() => setIsGPSOpen(false)}
-            />
+            {setIsGPSOpen && (
+                <DriverLiveGPSModal
+                    isOpen={isGPSOpen}
+                    destination={gpsDestination}
+                    activeShipment={activeShipment}
+                    onClose={() => setIsGPSOpen(false)}
+                />
+            )}
         </>
     );
 };
+
+export default DriverDashboardModals;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileCheck, CheckCircle2, Camera, Eye, X, FileText } from 'lucide-react';
 import { ShipmentItem } from '../../../types';
 import { requireDriverCompliance } from '../../../Compliance';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface Props {
     shipment: ShipmentItem;
@@ -27,15 +28,10 @@ export const DriverShipmentPODSection: React.FC<Props> = ({ shipment, onOpenPOD 
                         Proof of Delivery (POD)
                     </h3>
                 </div>
-                {pod ? (
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60">
-                        Verified Sign-off
-                    </span>
-                ) : (
-                    <span className="text-[10px] font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                        Pending Sign-off
-                    </span>
-                )}
+                <StatusBadge 
+                    status={pod ? "Verified Sign-off" : "Pending Sign-off"} 
+                    category={pod ? "success" : "pending"} 
+                />
             </div>
 
             {pod ? (

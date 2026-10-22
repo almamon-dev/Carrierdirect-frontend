@@ -3,6 +3,7 @@ import Skeleton from '@/components/ui/skeleton';
 import { encryptId } from '@/lib/encryption';
 import { ShieldCheck, Star } from 'lucide-react';
 import { StatusBadgeCell } from '../../CreateRequest/components/CreateRequestCells';
+import { getQuoteStatusInfo, QuotesReceivedStatusCell } from './quoteStatusHelpers';
 
 interface TrackBidIdCellProps {
     row: any;
@@ -50,7 +51,7 @@ export const TrackBidSupplierCell: React.FC<{ row: any }> = ({ row }) => {
                     {name.charAt(0).toUpperCase()}
                 </div>
             )}
-            <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px] truncate max-w-[95px]">{name}</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px] " title={name}>{name}</span>
             {(row.supplier?.is_verified ?? true) && (
                 <span title="Verified Carrier" className="inline-flex items-center">
                     <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
@@ -72,22 +73,9 @@ export const TrackBidSupplierSkeleton: React.FC = () => (
 );
 
 export const resolveTrackBidStatus = (row: any): string => {
-    const rawStatus = (row.status_raw || row.status || (row.revision_status === 'pending' ? 'negotiating' : 'pending')).toLowerCase();
-    if (rawStatus.includes('accept') || rawStatus.includes('won') || rawStatus.includes('completed')) {
-        return 'Accepted';
-    }
-    if (rawStatus.includes('negotiat') || row.revision_status === 'pending') {
-        return 'Negotiating';
-    }
-    if (rawStatus.includes('reject') || rawStatus.includes('decline') || rawStatus.includes('cancel')) {
-        return 'Declined';
-    }
-    if (rawStatus.includes('pending')) {
-        return 'Pending Review';
-    }
-    return rawStatus ? rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1) : 'Pending Review';
+    return getQuoteStatusInfo(row).text;
 };
 
 export const TrackBidStatusCell: React.FC<{ row: any }> = ({ row }) => {
-    return <StatusBadgeCell status={resolveTrackBidStatus(row)} />;
+    return <QuotesReceivedStatusCell row={row} />;
 };

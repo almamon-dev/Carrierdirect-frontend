@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Edit, Copy, FileDown, XCircle, Trash2 } from 'lucide-react';
+import { Eye, Edit, Copy, FileDown, XCircle, Trash2, FileText } from 'lucide-react';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
 import { CustomerQuoteRequestItem } from '../types';
+import apiClient from '@/lib/axios';
 
 interface RowActionsMenuProps {
     dropdownRef: React.RefObject<HTMLDivElement | null>;
@@ -12,6 +13,7 @@ interface RowActionsMenuProps {
     onClose: () => void;
     onRepeatRequest: (row: CustomerQuoteRequestItem) => void;
     onDeleteRequest: (row: CustomerQuoteRequestItem) => void;
+    onMoveToDraft?: (row: CustomerQuoteRequestItem) => void;
 }
 
 export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
@@ -22,6 +24,7 @@ export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
     onClose,
     onRepeatRequest,
     onDeleteRequest,
+    onMoveToDraft,
 }) => {
     const navigate = useNavigate();
 
@@ -35,6 +38,7 @@ export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
         ? Boolean(apiEditable)
         : (isDraft || (!isTerminal && quotesCount === 0 && !hasNegotiation));
     const canCancel = !isDraft && !['cancelled', 'expired', 'won', 'booked', 'completed'].includes(rawStatus);
+    const canMoveToDraft = !isDraft && !isTerminal && quotesCount === 0 && !hasNegotiation;
 
     const pdfUrl = (row as any).pdf_url || (row as any).pdf_path || (row as any).attachment_url || (row as any).pdfUrl || (row as any).pdf_document_url || (row as any).packingList?.url || (row as any).commercialInvoice?.url || '';
     const hasPdf = Boolean(pdfUrl);
@@ -58,6 +62,21 @@ export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
                 <Eye size={14} className="text-slate-400 shrink-0" />
                 <span>View Details</span>
             </button>
+
+            {/* 2. View Received Quotes / Bids */}
+            {quotesCount > 0 && (
+                <button 
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] dark:text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-orange-950/40 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer" 
+                    onClick={() => { 
+                        onClose(); 
+                        navigate(`/customer/quotes/received/${row.rawId || row.id}`); 
+                    }}
+                >
+                    <FileText size={14} className="text-[#ff4a1f] shrink-0" />
+                    <span>View Bids ({quotesCount})</span>
+                </button>
+            )}
             {/* 3. Edit Request — only when the request is editable */}
             {isEditable && (
                 <button 
@@ -91,23 +110,56 @@ export const RowActionsMenu: React.FC<RowActionsMenuProps> = ({
                 <span>{isRepeating ? 'Duplicating...' : 'Duplicate Request'}</span>
             </button>
 
-            {/* 5. Download PDF — only when a valid PDF is available */}
-            {hasPdf && (
+            {/* 5. Download PDF */}
+            <button 
+                type="button"
+                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
+                onClick={async () => {
+                    onClose();
+                    if (pdfUrl && typeof pdfUrl === 'string' && pdfUrl.startsWith('http')) {
+                        window.open(pdfUrl, '_blank');
+                        return;
+                    }
+                    const cleanId = String(row.rawId || row.id || '').replace(/[^0-9]/g, '').trim();
+                    if (!cleanId) return;
+                    try {
+                        const blob = await apiClient.getBlob(`/customer/quote-requests/${cleanId}/download-pdf`);
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `QuoteRequest-REQ-${cleanId.padStart(4, '0')}.pdf`);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                    } catch (err) {
+                        console.error('Failed to download PDF:', err);
+                    }
+                }}
+            >
+                <FileDown size={14} className="text-slate-400 shrink-0" />
+                <span>Download PDF</span>
+            </button>
+
+            {/* Move to Draft — only for open/pending requests without carrier bids */}
+            {canMoveToDraft && (
                 <button 
                     type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
+                    className="w-full text-left px-3.5 py-2 text-xs text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer" 
                     onClick={() => {
                         onClose();
-                        window.open(pdfUrl, '_blank');
+                        if (onMoveToDraft) {
+                            onMoveToDraft(row);
+                        }
                     }}
                 >
-                    <FileDown size={14} className="text-slate-400 shrink-0" />
-                    <span>Download PDF</span>
+                    <FileText size={14} className="text-amber-500 shrink-0" />
+                    <span>Move to Draft</span>
                 </button>
             )}
 
             {/* Divider if action below */}
-            {(canCancel || isDraft) && <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />}
+            {(canCancel || isDraft || canMoveToDraft) && <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />}
 
             {/* 6. Cancel Request — only when cancellation is permitted */}
             {canCancel && (

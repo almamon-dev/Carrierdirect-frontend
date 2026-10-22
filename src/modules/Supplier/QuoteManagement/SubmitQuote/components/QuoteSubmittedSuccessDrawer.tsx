@@ -9,7 +9,7 @@ import {
     BellRing 
 } from 'lucide-react';
 import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import Drawer from '@/components/modals/drawer';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 
@@ -81,7 +81,7 @@ export const QuoteSubmittedSuccessDrawer: React.FC<SubmittedSuccessDrawerProps> 
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-slate-900 dark:text-slate-100">Offer Delivered to Shipper</span>
-                            <Badge variant="success" className="text-[10px] py-0 px-1.5">Live</Badge>
+                            <StatusBadge status="Live" />
                         </div>
                         <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                             Your formal commercial proposal of <strong className="text-slate-900 dark:text-white">€ {totalOffer}</strong> was registered and transmitted to <span className="font-semibold text-slate-800 dark:text-slate-200">{requestDetails.customer}</span>.

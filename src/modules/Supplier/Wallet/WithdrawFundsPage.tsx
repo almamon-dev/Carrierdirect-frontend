@@ -108,11 +108,11 @@ export default function WithdrawFundsPage() {
                                 Limits: <strong className="text-slate-700 dark:text-slate-300">Min €50.00</strong> • Max €{availableBalance.toFixed(2)}
                             </span>
                             {availableBalance < MIN_WITHDRAWAL_AMOUNT ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-semibold">
                                     Below €50.00 Min Threshold
                                 </span>
                             ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[10px] font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-emerald-50 dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[10px] font-semibold">
                                     Eligible for Withdrawal
                                 </span>
                             )}

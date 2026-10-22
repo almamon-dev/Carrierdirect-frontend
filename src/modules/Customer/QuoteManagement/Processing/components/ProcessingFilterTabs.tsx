@@ -2,13 +2,8 @@ import React, { useMemo } from "react";
 
 export type ProcessingFilterTabId = 
     | "all"
-    | "pending"
-    | "quotes_received"
-    | "negotiation"
-    | "booking_in_progress"
-    | "booked"
-    | "cancelled"
-    | "expired";
+    | "awaiting_quotes"
+    | "quotes_received";
 
 interface ProcessingFilterTabsProps {
     requests: any[];
@@ -23,63 +18,52 @@ export const ProcessingFilterTabs: React.FC<ProcessingFilterTabsProps> = ({
 }) => {
     const counts = useMemo(() => {
         let all = 0;
-        let pending = 0;
+        let awaitingQuotes = 0;
         let quotesReceived = 0;
-        let negotiation = 0;
-        let bookingInProgress = 0;
-        let booked = 0;
-        let cancelled = 0;
-        let expired = 0;
 
         (requests || []).forEach((r) => {
-            all++;
-            const s = String(r.rawStatus || r.status || "").toLowerCase();
-            const quotesCount = Number(r.bidsCount || r.quotesCount || r.quotesReceived || 0);
+            const s = String(r.rawStatus || r.status || "").toLowerCase().trim();
+            const isComp = Boolean(r.isCompleted || s === "completed" || String(r.raw_status || "").toLowerCase() === "completed");
+            const isBooked = Boolean(s === "booked" || s === "confirmed" || r.is_booked || r.has_order || (s === "accepted" && (r.is_paid || r.has_order)));
+            const isClosed = s === "cancelled" || s === "expired" || s === "closed";
+            const isDraft = s === "draft" || String(r.rawStatus || "").toLowerCase() === "draft";
 
-            if (s === "cancelled" || s === "closed" || s === "rejected") {
-                cancelled++;
-            } else if (s === "expired") {
-                expired++;
-            } else if (s === "booked" || s === "completed") {
-                booked++;
-            } else if (s === "booking_in_progress" || s === "booking in progress" || s === "payment_pending") {
-                bookingInProgress++;
-            } else if (s === "negotiation" || s === "negotiating") {
-                negotiation++;
-            } else if (quotesCount > 0 || s === "quotes_received" || s === "quotes received") {
+            // Exclude cancelled, expired, booked, and completed requests
+            if (isComp || isBooked || isClosed || isDraft) return;
+
+            all++;
+            const quotesCount = Number(r.bidsCount || r.quotesCount || r.quotesReceived || 0);
+            if (quotesCount > 0 || s === "quotes_received" || s === "quotes received") {
                 quotesReceived++;
             } else {
-                pending++;
+                awaitingQuotes++;
             }
         });
 
         return {
             all,
-            pending,
+            awaitingQuotes,
             quotesReceived,
-            negotiation,
-            bookingInProgress,
-            booked,
-            cancelled,
-            expired,
         };
     }, [requests]);
 
     const tabs = [
         { id: "all", label: "All", count: counts.all },
-        { id: "pending", label: "Pending", count: counts.pending },
+        { id: "awaiting_quotes", label: "Awaiting Quotes", count: counts.awaitingQuotes },
         { id: "quotes_received", label: "Quotes Received", count: counts.quotesReceived },
-        { id: "negotiation", label: "Negotiation", count: counts.negotiation },
-        { id: "booking_in_progress", label: "Booking in Progress", count: counts.bookingInProgress },
-        { id: "booked", label: "Booked", count: counts.booked },
-        { id: "cancelled", label: "Cancelled", count: counts.cancelled },
-        { id: "expired", label: "Expired", count: counts.expired },
     ];
+
+    const isTabActive = (tabId: string) => {
+        const norm = activeFilterTab.toLowerCase();
+        if (norm === tabId) return true;
+        if (tabId === "awaiting_quotes" && (norm === "pending" || norm === "awaiting")) return true;
+        return false;
+    };
 
     return (
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar mb-[-1px]">
             {tabs.map((tab) => {
-                const isActive = activeFilterTab.toLowerCase() === tab.id.toLowerCase();
+                const isActive = isTabActive(tab.id);
                 return (
                     <button
                         key={tab.id}

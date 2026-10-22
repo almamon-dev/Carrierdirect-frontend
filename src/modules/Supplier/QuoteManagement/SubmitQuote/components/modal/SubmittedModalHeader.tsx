@@ -1,5 +1,6 @@
 import { BadgeCheck, CheckCircle2 } from 'lucide-react';
 import React from 'react';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { QuoteRequest } from '../../../data/quoteRequestsData';
 
 interface SubmittedModalHeaderProps {
@@ -43,9 +44,6 @@ export const SubmittedModalHeader: React.FC<SubmittedModalHeaderProps> = ({
             </div>
         </div>
 
-        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-lg text-emerald-700 dark:text-emerald-400 text-[11px] font-medium shrink-0 self-start sm:self-auto">
-            <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400" />
-            <span>Quotation Submitted</span>
-        </div>
+        <StatusBadge status="Quotation Submitted" category="success" className="self-start sm:self-auto" />
     </div>
 );

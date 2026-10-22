@@ -11,16 +11,51 @@ export const getInvoiceColumns = (
         id: "net_amount",
         label: "Amount",
         sortable: true,
-        className: "w-[130px] whitespace-nowrap",
+        className: "w-[145px] whitespace-nowrap",
         render: (row) => {
-            const rawAmt = Number((row.gross_amount ?? row.total_amount ?? row.amount_raw ?? row.supplier_amount ?? row.amount ?? 0));
-            const formatted = rawAmt.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const platformFee = Number(
+                row.platform_fee ??
+                row.platform_charge ??
+                (row as any).order?.platform_fee ??
+                (row as any).order?.quote?.platform_fee ??
+                0
+            );
+            const platformPercent = Number(
+                row.platform_charge_percent ??
+                row.platform_fee_percent ??
+                (row as any).order?.platform_charge_percent ??
+                (row as any).order?.quote?.platform_charge_percent ??
+                0
+            );
+
+            // Base freight quote / supplier amount without platform charge
+            let baseAmtVal = Number(
+                row.supplier_amount ??
+                row.subtotal ??
+                row.base_amount ??
+                0
+            );
+            if (!baseAmtVal || isNaN(baseAmtVal) || baseAmtVal <= 0) {
+                const rawTotal = Number(row.amount_raw ?? row.gross_amount ?? row.total_amount ?? row.amount ?? 0);
+                if (rawTotal > 0) {
+                    baseAmtVal = platformFee > 0 && rawTotal > platformFee ? rawTotal - platformFee : rawTotal;
+                }
+            }
+
+            const effectivePercent = platformPercent || (baseAmtVal > 0 && platformFee > 0 ? Math.round((platformFee / baseAmtVal) * 100) : 0);
+            const formatted = baseAmtVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const cur = (row.currency || "EUR").toUpperCase();
+
             return (
-                <div className="flex items-center min-h-[22px]">
-                    <span className="font-bold text-[13px] text-slate-900 dark:text-white whitespace-nowrap">
+                <div className="flex flex-col min-h-[22px] justify-center py-0.5">
+                    <span className="font-bold text-[13px] text-slate-900 dark:text-white whitespace-nowrap leading-tight">
                         €{formatted} <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{cur}</span>
                     </span>
+                    {platformFee > 0 && (
+                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight mt-0.5 whitespace-nowrap">
+                            +€{platformFee.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{effectivePercent > 0 ? ` (${effectivePercent}% platform charge)` : ' (platform charge)'}
+                        </span>
+                    )}
                 </div>
             );
         }

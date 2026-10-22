@@ -69,6 +69,8 @@ export default function LostQuotes() {
             <DataTable
                 data={filteredQuotes}
                 columns={columns}
+                tableLayout="auto"
+                tableClassName="w-full"
                 actions={(row) => <LostRowActions row={row} />}
                 headerTabs={
                     <FilterTabs
@@ -83,8 +85,6 @@ export default function LostQuotes() {
                 compact={true}
                 hideViewToggle={false}
                 isLoading={isLoading || isRefreshing}
-                tableLayout="fixed"
-                tableClassName="min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={Inbox}

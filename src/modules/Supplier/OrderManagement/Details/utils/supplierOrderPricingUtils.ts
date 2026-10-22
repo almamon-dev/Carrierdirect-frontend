@@ -27,10 +27,12 @@ export const resolveSupplierPaymentInfo = (foundOrder: any, rawStatus: string, c
         (cleanNum === '2' ? 'pay_later' : cleanNum === '3' ? 'paid' : 'in_escrow')
     ).toLowerCase().trim();
 
-    const isPaid = (rawStatus === 'completed') ||
-        rawPayment === 'paid' ||
-        foundOrder?.payment?.is_paid === true ||
-        foundOrder?.is_paid === true;
+    // Carrier payout is ONLY paid/settled if order is completed (delivered and POD accepted)
+    // or if the payout record is explicitly marked as released/settled.
+    const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'pod_accepted';
+    const isExplicitlySettled = foundOrder?.payout_status === 'settled' || foundOrder?.payout_status === 'released' || foundOrder?.payment?.payout_status === 'released';
+
+    const isPaid = isCompleted || isExplicitlySettled;
 
     const isPayLater = !isPaid && (
         rawPayment.includes('pay later') ||

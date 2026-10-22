@@ -1,3 +1,4 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 export const checkHasRealDriver = (item: any): boolean => {
     if (!item) return false;
     const rawDriverId = item.driver_id ?? (typeof item.driver === 'object' ? item.driver?.id : null);
@@ -37,12 +38,12 @@ export const mapApiToSupplierOrderItem = (o: any): SupplierOrderItem => {
 
     const customerName = clientObj.name || o?.customer_name || 'Customer';
     const customerAvatar = clientObj.avatar || o?.customer_avatar || o?.customer_profile_picture;
-    const pickupFull = shippingObj.from || o?.pickup_address || o?.pickup_city || 'Dhaka';
-    const deliveryFull = shippingObj.to || o?.delivery_address || o?.delivery_city || 'Chittagong';
+    const pickupFull = formatStandardAddress(o, 'pickup');
+    const deliveryFull = formatStandardAddress(o, 'delivery');
 
-    const pickupCity = (pickupFull.split(',')[0] || pickupFull).trim();
-    const deliveryCity = (deliveryFull.split(',')[0] || deliveryFull).trim();
-    const routeDisplay = `${pickupCity} → ${deliveryCity}`;
+    const pickupCity = o?.pickup_city || (pickupFull.split(',')[1] || pickupFull.split(',')[0] || pickupFull).trim();
+    const deliveryCity = o?.delivery_city || (deliveryFull.split(',')[1] || deliveryFull.split(',')[0] || deliveryFull).trim();
+    const routeDisplay = `${pickupFull} → ${deliveryFull}`;
 
     const vehicle = shippingObj.service || o?.vehicle || o?.vehicle_type || o?.truck_type || 'Pallets';
     const shipmentObj = o?.shipment || {};

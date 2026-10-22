@@ -14,6 +14,17 @@ interface TrackBidsFilterContentProps {
     onResetFilters: () => void;
 }
 
+const extractVal = (val: any): string => {
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object') {
+        if (val.target && val.target.value !== undefined) return String(val.target.value);
+        if (val.value !== undefined) return String(val.value);
+        if (val.id !== undefined) return String(val.id);
+    }
+    return String(val);
+};
+
 export const TrackBidsFilterContent: React.FC<TrackBidsFilterContentProps> = ({
     statusFilter,
     setStatusFilter,
@@ -39,7 +50,7 @@ export const TrackBidsFilterContent: React.FC<TrackBidsFilterContentProps> = ({
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Sort Offers By
                     </label>
-                    <Select value={sortBy} onChange={(val) => setSortBy(val)} showSearch={false}>
+                    <Select value={sortBy} onChange={(val) => setSortBy(extractVal(val))} showSearch={false}>
                         <option value="lowest_price">Price: Low to High</option>
                         <option value="highest_price">Price: High to Low</option>
                         <option value="top_rated">Top Rated Carrier</option>
@@ -53,7 +64,7 @@ export const TrackBidsFilterContent: React.FC<TrackBidsFilterContentProps> = ({
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Status
                     </label>
-                    <Select value={statusFilter} onChange={(val) => setStatusFilter(val)} showSearch={false}>
+                    <Select value={statusFilter} onChange={(val) => setStatusFilter(extractVal(val))} showSearch={false}>
                         <option value="all">All Statuses</option>
                         <option value="pending">🟡 Pending Review</option>
                         <option value="negotiating">🟣 Negotiating</option>
@@ -67,7 +78,7 @@ export const TrackBidsFilterContent: React.FC<TrackBidsFilterContentProps> = ({
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Vehicle Type
                     </label>
-                    <Select value={vehicleFilter} onChange={(val) => setVehicleFilter(val)} showSearch={false}>
+                    <Select value={vehicleFilter} onChange={(val) => setVehicleFilter(extractVal(val))} showSearch={false}>
                         <option value="all">All Vehicles</option>
                         <option value="cargo van">Cargo Van</option>
                         <option value="covered van">Covered Van</option>
@@ -82,7 +93,7 @@ export const TrackBidsFilterContent: React.FC<TrackBidsFilterContentProps> = ({
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Carrier Rating
                     </label>
-                    <Select value={ratingFilter} onChange={(val) => setRatingFilter(val)} showSearch={false}>
+                    <Select value={ratingFilter} onChange={(val) => setRatingFilter(extractVal(val))} showSearch={false}>
                         <option value="all">All Ratings</option>
                         <option value="4.8">★ 4.8 & Above</option>
                         <option value="4.5">★ 4.5 & Above</option>

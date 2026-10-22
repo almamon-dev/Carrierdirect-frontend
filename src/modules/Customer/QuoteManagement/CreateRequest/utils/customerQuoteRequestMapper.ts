@@ -1,17 +1,7 @@
+import { formatStandardAddress } from "@/utils/addressFormatter";
 import { formatDisplayDate } from '@/lib/utils';
 import { resolveQuoteDistance } from '@/utils/geoDistance';
 import { CustomerQuoteRequestItem } from '../types';
-
-const cleanAddressWithoutZip = (addr: string): string => {
-    if (!addr || addr === '—') return addr;
-    return addr
-        .replace(/\s*\(?ZIP:?\s*\d+\)?/gi, '')
-        .replace(/\b(?:ZIP|Postal Code):?\s*\d+\b/gi, '')
-        .replace(/\s+\d{4,6}\b(?=[,\s]|$)/g, '')
-        .replace(/\s*,\s*,/g, ',')
-        .replace(/,\s*$/g, '')
-        .trim();
-};
 
 export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes: any[]): CustomerQuoteRequestItem[] => {
     return rawItems.map((q: any) => {
@@ -70,18 +60,29 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
             return s === 'completed' || ost === 'completed';
         });
 
+        const hasNegotiatingQuote = matchingQuotes.some(item => {
+            const s = String(item.status_raw || item.status || '').toLowerCase().trim();
+            const rev = String(item.revision_status || item.revisionStatus || '').toLowerCase().trim();
+            return s.includes('counter') || s.includes('negotiat') || rev === 'pending' || Boolean(item.is_negotiating || item.isNegotiating || item.has_negotiation_messages || item.hasNegotiationMessages);
+        });
+
+        const hasNegotiation = Boolean(q.has_negotiation || q.is_negotiating || hasNegotiatingQuote || rawStatusLower.includes('negotiat') || rawStatusLower === 'review');
+
         const isRequestCompleted = rawStatusLower === 'completed' || hasCompletedQuote || String(q.order_status || '').toLowerCase() === 'completed';
 
         if (isRequestCompleted) {
             finalStatus = 'Completed';
             canonicalRawStatus = 'completed';
-        } else if (hasAcceptedQuote || rawStatusLower === 'accepted' || rawStatusLower === 'awarded' || rawStatusLower === 'won') {
+        } else if (rawStatusLower === 'draft') {
+            finalStatus = 'Draft';
+            canonicalRawStatus = 'draft';
+        } else if (hasAcceptedQuote || rawStatusLower === 'accepted' || rawStatusLower === 'awarded' || rawStatusLower === 'won' || rawStatusLower === 'booked') {
             finalStatus = 'Booked';
             canonicalRawStatus = 'booked';
         } else if (rawStatusLower === 'cancelled' || rawStatusLower === 'expired' || rawStatusLower === 'closed' || rawStatusLower === 'rejected') {
             finalStatus = 'Expired';
             canonicalRawStatus = 'expired';
-        } else if (rawStatusLower.includes('negotiat') || rawStatusLower === 'review') {
+        } else if (hasNegotiation) {
             finalStatus = 'Negotiation';
             canonicalRawStatus = 'negotiation';
         } else if (qCount > 0) {
@@ -100,8 +101,8 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
             request_title: titleStr,
             requestTitle: titleStr,
             date: dateStr,
-            pickup: cleanAddressWithoutZip((q.pickup_address || q.pickup_city || '—').trim()),
-            delivery: cleanAddressWithoutZip((q.delivery_address || q.delivery_city || '—').trim()),
+            pickup: formatStandardAddress(q, "pickup"),
+            delivery: formatStandardAddress(q, "delivery"),
             distance: distanceStr,
             budget: budgetStr,
             priority: q.priority || 'Normal',
@@ -110,6 +111,8 @@ export const mapCustomerQuoteRequestItems = (rawItems: any[], allReceivedQuotes:
             badgeColor: q.badge_color || (canonicalRawStatus === "won" ? "emerald" : (canonicalRawStatus === "quotes_received" ? "blue" : (canonicalRawStatus === "negotiation" ? "purple" : (canonicalRawStatus === "expired" ? "rose" : "amber")))),
             hasAcceptedQuote: hasAcceptedQuote,
             isCompleted: isRequestCompleted,
+            isNegotiating: hasNegotiation,
+            hasNegotiation: hasNegotiation,
             quotesReceived: qCount,
             type: q.shipment_type || 'FTL',
             load: q.load_type || q.type_of_pallets || 'Pallets',

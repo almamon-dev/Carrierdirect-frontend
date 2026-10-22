@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, ArrowUpRight } from 'lucide-react';
 import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { UserSubscriptionData, SavedCardItem } from '../types';
 import { SubscriptionPaymentMethodsCard } from './SubscriptionPaymentMethodsCard';
 
@@ -41,12 +41,10 @@ export const SubscriptionOverviewTab: React.FC<SubscriptionOverviewTabProps> = (
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                                 Current Subscription Tier
                             </span>
-                            <Badge
-                                variant={isActive ? 'success' : 'critical'}
-                                className="text-[10px] font-bold px-2 py-0.5 rounded"
-                            >
-                                {isActive ? (isTrial ? 'Active Trial' : 'Active Plan') : 'Expired'}
-                            </Badge>
+                            <StatusBadge
+                                status={isActive ? 'Active' : 'Expired'}
+                                label={isActive ? (isTrial ? 'Active Trial' : 'Active Plan') : 'Expired'}
+                            />
                         </div>
                         <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
                             {plan?.name || (isTrial ? '7-Day Free Trial' : 'Standard Plan')}

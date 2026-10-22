@@ -73,6 +73,8 @@ export default function WonQuotes() {
             <DataTable
                 data={filteredQuotes}
                 columns={columns}
+                tableLayout="auto"
+                tableClassName="w-full"
                 actions={(row) => <WonRowActions row={row} />}
                 headerTabs={
                     <FilterTabs
@@ -102,8 +104,6 @@ export default function WonQuotes() {
                 hideViewToggle={false}
                 isLoading={quotes.length > 0 && (isLoading || isRefreshing)}
                 onRowClick={(row) => navigate(`/supplier/quotes/requests/${row.slug}`)}
-                tableLayout="fixed"
-                tableClassName="min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={Trophy}

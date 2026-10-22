@@ -1,12 +1,7 @@
 import { HeaderNotification, NotificationCategory } from './headerNotificationTypes';
+import { encryptId } from '@/lib/encryption';
 
-export const encryptId = (id: string | number): string => {
-    try {
-        return btoa(String(id));
-    } catch {
-        return String(id);
-    }
-};
+export { encryptId };
 
 export const normalizeNotifLink = (
     rawLink: string | undefined,
@@ -18,12 +13,26 @@ export const normalizeNotifLink = (
             : (role === 'supplier' ? '/supplier/notifications' : '/customer/notifications');
     }
 
-    if (rawLink.startsWith('http://') || rawLink.startsWith('https://')) {
-        return rawLink;
-    }
-
     let link = rawLink.trim();
 
+    // 1. If full URL (http/https), extract pathname + search + hash if it's on localhost or app host
+    if (link.startsWith('http://') || link.startsWith('https://')) {
+        try {
+            const urlObj = new URL(link);
+            link = urlObj.pathname + urlObj.search + urlObj.hash;
+        } catch {
+            return link;
+        }
+    }
+
+    // 2. Strip leading /api if present from backend responses
+    if (link.startsWith('/api/')) {
+        link = link.replace(/^\/api/, '');
+    } else if (link === '/api') {
+        link = '/';
+    }
+
+    // 3. Conversation links
     if (link.startsWith('/supplier/quotes/conversation/')) {
         link = link.replace('/supplier/quotes/conversation/', '/supplier/quotes/negotiation/conversation/');
     }
@@ -31,6 +40,7 @@ export const normalizeNotifLink = (
         link = link.replace('/customer/quotes/conversation/', '/customer/quotes/negotiation/conversation/');
     }
 
+    // 4. Role-specific link formatting
     if (role === 'supplier') {
         if (link.startsWith('/orders') || link.startsWith('/supplier/orders')) {
             link = '/supplier/orders/active-jobs';
@@ -42,6 +52,14 @@ export const normalizeNotifLink = (
             link = '/supplier' + (link.startsWith('/') ? link : '/' + link);
         }
     } else if (role === 'customer') {
+        if (link.includes('quote')) {
+            link = '/customer/quotes/processing?view=table';
+        } else if (link.startsWith('/orders') && !link.startsWith('/customer/orders')) {
+            link = '/customer' + link;
+        } else if (link.startsWith('/invoices') && !link.startsWith('/customer/finance/invoices')) {
+            link = '/customer/finance' + link;
+        }
+
         if (!link.startsWith('/customer')) {
             link = '/customer' + (link.startsWith('/') ? link : '/' + link);
         }
@@ -188,6 +206,15 @@ export const resolveNotificationSubCategory = (
     if (combined.includes('driver_assigned') || combined.includes('driver assigned') || combined.includes('assigned to your shipment')) {
         return 'driver_assigned';
     }
+    if (combined.includes('quote_revised') || combined.includes('revised quote') || combined.includes('revised offer') || combined.includes('revision')) {
+        return 'quote_revised';
+    }
+    if (combined.includes('quote_submitted') || combined.includes('quote submitted')) {
+        return 'quote_submitted';
+    }
+    if (combined.includes('quote_received') || combined.includes('new_quote') || combined.includes('new quote from') || combined.includes('new quote received') || combined.includes('offer received')) {
+        return 'quote_received';
+    }
     if (combined.includes('new_rfq') || combined.includes('new quote request') || combined.includes('freight request')) {
         return 'new_quote_request';
     }
@@ -235,8 +262,20 @@ export const parseRawNotification = (
     if (!rawTitle) {
         if (typeName.includes('pod')) {
             rawTitle = orderNumber ? `POD Received: Order #${orderNumber}` : 'POD Received';
-        } else if (typeName.includes('newquote') || (notifType === 'quote' && role === 'customer')) {
+        } else if (typeName.includes('quote_submitted')) {
+            rawTitle = dataObj.request_code ? `Quote Submitted: ${dataObj.request_code}` : 'Quote Submitted';
+        } else if (typeName.includes('quote_revised') || typeName.includes('revision')) {
+            rawTitle = dataObj.supplier_company ? `Revised Quote from ${dataObj.supplier_company}` : (dataObj.request_code ? `Quote Revised: ${dataObj.request_code}` : 'Quote Revised');
+        } else if (typeName.includes('newquote') || typeName.includes('quote_received')) {
+            rawTitle = dataObj.supplier_company || dataObj.supplier_name
+                ? `New Quote from ${dataObj.supplier_company || dataObj.supplier_name}`
+                : (dataObj.request_code ? `New Quote: ${dataObj.request_code}` : 'New Quote Received');
+        } else if (typeName.includes('new_rfq') || (notifType === 'quote' && role === 'supplier')) {
             rawTitle = 'New Quote Request';
+        } else if (notifType === 'quote' && role === 'customer') {
+            rawTitle = dataObj.supplier_company || dataObj.supplier_name
+                ? `New Quote from ${dataObj.supplier_company || dataObj.supplier_name}`
+                : 'New Quote Received';
         } else if (typeName.includes('quoteaccepted') || typeName.includes('accept')) {
             rawTitle = 'Quote Accepted';
         } else if (typeName.includes('fund_release') || typeName.includes('funds_released')) {
@@ -275,21 +314,27 @@ export const parseRawNotification = (
     if (subCategory === 'delivery_accepted' || title.toLowerCase().includes('delivery accepted')) {
         desc = rawDesc || (orderNumber ? `Customer has accepted delivery and approved Proof of Delivery for Order #${orderNumber}. Shipment is completed!` : 'Customer has accepted delivery and approved Proof of Delivery. Shipment is completed!');
     } else if (subCategory === 'pod' && driverName) {
-        desc = `Driver ${driverName} has delivered your shipment and submitted the Proof of Delivery.`;
+        desc = rawDesc || `Driver ${driverName} has delivered your shipment and submitted the Proof of Delivery.`;
     } else if (subCategory === 'transit' && orderNumber) {
-        desc = `Your shipment for Order #${orderNumber} is currently in transit with ${driverName || 'driver'}.`;
+        desc = rawDesc || `Your shipment for Order #${orderNumber} is currently in transit with ${driverName || 'driver'}.`;
     } else if (subCategory === 'escrow' && formattedAmount && orderNumber) {
-        desc = `${formattedAmount} is held securely in escrow for Order #${orderNumber}.`;
+        desc = rawDesc || `${formattedAmount} is held securely in escrow for Order #${orderNumber}.`;
     } else if (subCategory === 'driver_assigned' && orderNumber) {
-        desc = `${driverName || 'Driver'} has been assigned to your shipment for Order #${orderNumber}.`;
+        desc = rawDesc || `${driverName || 'Driver'} has been assigned to your shipment for Order #${orderNumber}.`;
     } else if (subCategory === 'funds_released' && formattedAmount && orderNumber) {
-        desc = `${formattedAmount} for Order #${orderNumber} has been released to your balance.`;
+        desc = rawDesc || `${formattedAmount} for Order #${orderNumber} has been released to your balance.`;
     } else if (subCategory === 'documents_expiring') {
-        desc = `Your insurance document will expire in ${dataObj.days || 5} days. Please upload an updated document.`;
+        desc = rawDesc || `Your insurance document will expire in ${dataObj.days || 5} days. Please upload an updated document.`;
     } else if (subCategory === 'quote_accepted' && formattedAmount) {
-        desc = `Your quote of ${formattedAmount} was accepted by ${customerName}. Order #${orderNumber || ''} has been created.`;
+        desc = rawDesc || `Your quote of ${formattedAmount} was accepted by ${customerName}. Order #${orderNumber || ''} has been created.`;
+    } else if (subCategory === 'quote_received' || subCategory === 'quote_submitted' || subCategory === 'quote_revised') {
+        desc = rawDesc || (
+            subCategory === 'quote_submitted'
+                ? `Your quote of ${formattedAmount || 'amount'} for ${dataObj.request_code || 'quote request'} was submitted.`
+                : `${dataObj.supplier_company || dataObj.supplier_name || 'A carrier'} submitted an offer of ${formattedAmount || 'amount'} for ${dataObj.request_code || 'your freight request'}.`
+        );
     } else if (subCategory === 'new_quote_request' && routeStr) {
-        desc = `New freight request: ${routeStr}.${formattedAmount ? ` Budget: ${formattedAmount}` : ''}`;
+        desc = rawDesc || `New freight request: ${routeStr}.${formattedAmount ? ` Budget: ${formattedAmount}` : ''}`;
     }
 
     if (!desc || desc.length < 3) {
@@ -305,6 +350,8 @@ export const parseRawNotification = (
                 rawLink = '/supplier/wallet';
             } else if (category === 'compliance') {
                 rawLink = '/supplier/settings';
+            } else if (subCategory === 'quote_submitted' || subCategory === 'quote_revised') {
+                rawLink = '/supplier/quotes/my-quotes';
             } else if (subCategory === 'new_quote_request' || category === 'quote') {
                 rawLink = reqSlug ? `/supplier/quotes/requests/${encryptId(reqSlug)}` : '/supplier/quotes/requests';
             } else {
@@ -316,7 +363,7 @@ export const parseRawNotification = (
             if (category === 'finance') {
                 rawLink = '/customer/finance/invoices';
             } else if (category === 'quote') {
-                rawLink = '/customer/quotes/received';
+                rawLink = '/customer/quotes/processing?view=table';
             } else {
                 rawLink = '/customer/orders';
             }

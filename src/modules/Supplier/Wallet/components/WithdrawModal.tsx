@@ -162,7 +162,7 @@ export default function WithdrawModal({
                         ) : (
                             <>
                                 <ArrowUpRight size={14} />
-                                <span>Request Withdrawal (€{(numAmount * 0.90).toFixed(2)} Net)</span>
+                                <span>Request Withdrawal (€{numAmount.toFixed(2)} Net)</span>
                             </>
                         )}
                     </Button>

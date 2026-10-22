@@ -127,10 +127,18 @@ export const buildUpdatePayload = (formData: QuoteFormData, cleanId?: string) =>
 
         vehicle_type: formData.vehicleType || '',
         load_type: formData.loadType || '',
-        items_count: formData.itemsCount ? parseInt(formData.itemsCount, 10) : (formData.palletsCount ? parseInt(formData.palletsCount, 10) : 1),
-        pallets_count: formData.palletsCount ? parseInt(formData.palletsCount, 10) : (formData.itemsCount ? parseInt(formData.itemsCount, 10) : 1),
-        weight: formData.weight ? parseFloat(formData.weight) : 0,
-        volume: formData.volume ? parseFloat(formData.volume) : 0,
+        items_count: (formData.itemsCount && !isNaN(parseInt(String(formData.itemsCount).replace(/[^0-9.]/g, ''), 10)))
+            ? parseInt(String(formData.itemsCount).replace(/[^0-9.]/g, ''), 10)
+            : null,
+        pallets_count: (formData.palletsCount && !isNaN(parseInt(String(formData.palletsCount).replace(/[^0-9.]/g, ''), 10)))
+            ? parseInt(String(formData.palletsCount).replace(/[^0-9.]/g, ''), 10)
+            : null,
+        weight: (formData.weight && !isNaN(parseFloat(String(formData.weight).replace(/[^0-9.]/g, ''))))
+            ? parseFloat(String(formData.weight).replace(/[^0-9.]/g, ''))
+            : null,
+        volume: (formData.volume && !isNaN(parseFloat(String(formData.volume).replace(/[^0-9.]/g, ''))))
+            ? parseFloat(String(formData.volume).replace(/[^0-9.]/g, ''))
+            : null,
 
         items: Array.isArray(formData.dimensions) && formData.dimensions.length > 0
             ? formData.dimensions

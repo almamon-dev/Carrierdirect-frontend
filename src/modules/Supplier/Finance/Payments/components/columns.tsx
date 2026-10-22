@@ -1,6 +1,6 @@
 import React from "react";
 import { Building2 } from "lucide-react";
-import Badge from "@/components/ui/badge";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { Column } from "@/components/tables/data-table";
 import { formatDisplayDate } from "@/lib/utils";
 
@@ -39,35 +39,27 @@ export const getPaymentColumns = (
             if (isCleared) {
                 return (
                     <div className="flex items-center min-h-[22px]">
-                        <span className="inline-flex items-center gap-1 bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
-                            Succeeded
-                        </span>
+                        <StatusBadge status="Succeeded" category="success" />
                     </div>
                 );
             }
             if (isInEscrow) {
                 return (
                     <div className="flex items-center min-h-[22px]">
-                        <span className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
-                            In Escrow
-                        </span>
+                        <StatusBadge status="In Escrow" category="financial_hold" />
                     </div>
                 );
             }
             if (isPayLater) {
                 return (
                     <div className="flex items-center min-h-[22px]">
-                        <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
-                            Net-30
-                        </span>
+                        <StatusBadge status="Net-30" category="financial_hold" />
                     </div>
                 );
             }
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
-                        Pending
-                    </span>
+                    <StatusBadge status="Pending" category="pending" />
                 </div>
             );
         }
@@ -86,7 +78,7 @@ export const getPaymentColumns = (
             if (isPayLater) {
                 return (
                     <div className="flex items-center min-h-[22px]">
-                        <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-[11px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-[11px] px-2 py-0.5 rounded-[2px] font-semibold whitespace-nowrap">
                             Net-30 Terms
                         </span>
                     </div>

@@ -9,15 +9,19 @@ import {
     groupChatsBySupplier,
     filterContactGroups,
     filterChats,
-    isCustomerQuoteExisting
+    isCustomerQuoteExisting,
+    isCustomerQuoteBooked,
+    isCustomerQuoteAwaitingPayment,
+    isCustomerQuoteCounterOffer
 } from "./chatNegotiationHelpers";
-import { CustomerChatFilterTab, CustomerChatItem, CustomerContactGroup } from "../types";
+import { CustomerChatFilterTab, CustomerChatItem, CustomerContactGroup, ChatSortOption } from "../types";
 
 export function useCustomerChatNegotiation() {
     const { id } = useParams<{ id: string; sessionKey?: string }>();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
     const [filterTab, setFilterTab] = useState<CustomerChatFilterTab>("all");
+    const [sortBy, setSortBy] = useState<ChatSortOption>("recent");
     const { negotiations = [], isLoading = false } = useCustomerNegotiations() || {};
 
     const allNegotiations = useMemo(() => {
@@ -80,12 +84,12 @@ export function useCustomerChatNegotiation() {
     }, [chats, activeContactGroup, activeChatId]);
 
     const filteredContactGroups = useMemo(() => {
-        return filterContactGroups(contactGroups, searchQuery, filterTab);
-    }, [contactGroups, searchQuery, filterTab]);
+        return filterContactGroups(contactGroups, searchQuery, filterTab, sortBy);
+    }, [contactGroups, searchQuery, filterTab, sortBy]);
 
     const filteredChats = useMemo(() => {
-        return filterChats(chats, searchQuery, filterTab);
-    }, [chats, searchQuery, filterTab]);
+        return filterChats(chats, searchQuery, filterTab, sortBy);
+    }, [chats, searchQuery, filterTab, sortBy]);
 
     const handleSelectChat = (chatId: number | string) => {
         const rawNum = Number(String(chatId).replace(/[^0-9]/g, "")) || chatId;
@@ -125,12 +129,18 @@ export function useCustomerChatNegotiation() {
         let newCount = 0;
         let existingCount = 0;
         let unreadCount = 0;
+        let awaitingPaymentCount = 0;
+        let counterOffersCount = 0;
+        let bookedCount = 0;
+        let pinnedCount = 0;
 
         contactGroups.forEach((group) => {
-            const hasExisting = group.quotes.some(isCustomerQuoteExisting);
-            const hasNew = group.quotes.some(q => !isCustomerQuoteExisting(q));
-            if (hasExisting) existingCount++;
-            if (hasNew) newCount++;
+            if (group.quotes.some(isCustomerQuoteBooked)) bookedCount++;
+            if (group.quotes.some(isCustomerQuoteAwaitingPayment)) awaitingPaymentCount++;
+            if (group.quotes.some(isCustomerQuoteCounterOffer)) counterOffersCount++;
+            if (group.isPinned || group.quotes.some(q => q.isPinned)) pinnedCount++;
+            if (group.quotes.some(isCustomerQuoteExisting)) existingCount++;
+            if (group.quotes.some(q => !isCustomerQuoteExisting(q))) newCount++;
             if (group.hasUnread && group.totalUnreadCount > 0) unreadCount++;
         });
 
@@ -139,6 +149,10 @@ export function useCustomerChatNegotiation() {
             new: newCount,
             existing: existingCount,
             unread: unreadCount,
+            awaiting_payment: awaitingPaymentCount,
+            counter_offers: counterOffersCount,
+            booked: bookedCount,
+            pinned: pinnedCount,
         };
     }, [contactGroups]);
 
@@ -149,6 +163,8 @@ export function useCustomerChatNegotiation() {
         setSearchQuery,
         filterTab,
         setFilterTab,
+        sortBy,
+        setSortBy,
         counts,
         isLoading,
         allNegotiations,

@@ -21,12 +21,14 @@ export default function SupplierNegotiation() {
     const { negotiations = [], isLoading = false, fetchNegotiations } = useSupplierNegotiations() || {};
 
     const {
-        activeTab, setActiveTab,
-        priorityFilter, setPriorityFilter,
-        statusFilter, setStatusFilter,
-        vehicleFilter, setVehicleFilter,
-        startDate, setStartDate,
-        endDate, setEndDate,
+        activeTab,
+        setActiveTab,
+        statusFilter,
+        setStatusFilter,
+        startDate,
+        setStartDate,
+        endDate,
+        setEndDate,
         handleResetFilters,
         filteredData
     } = useNegotiationFilter(negotiations);
@@ -53,7 +55,7 @@ export default function SupplierNegotiation() {
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
-                        Price Negotiation
+                        Negotiations
                     </h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         Live commercial negotiation, counter-offers, and freight rates with shippers.
@@ -76,6 +78,8 @@ export default function SupplierNegotiation() {
             <DataTable
                 data={filteredData || []}
                 columns={columns}
+                tableLayout="auto"
+                tableClassName="w-full"
                 actions={(row) => <NegotiationRowActions row={row} onAction={handleQuoteAction} onRefresh={handleRefresh} />}
                 onRowClick={(row) => handleQuoteAction(row)}
                 headerTabs={
@@ -87,12 +91,8 @@ export default function SupplierNegotiation() {
                 }
                 filterContent={
                     <TableFilterContent
-                        priorityFilter={priorityFilter}
-                        setPriorityFilter={setPriorityFilter}
                         statusFilter={statusFilter}
                         setStatusFilter={setStatusFilter}
-                        vehicleFilter={vehicleFilter}
-                        setVehicleFilter={setVehicleFilter}
                         startDate={startDate}
                         setStartDate={setStartDate}
                         endDate={endDate}
@@ -105,25 +105,21 @@ export default function SupplierNegotiation() {
                 compact={true}
                 hideViewToggle={false}
                 isLoading={isLoading || isRefreshing}
-                tableLayout="fixed"
-                tableClassName="min-w-[1180px]"
                 actionsColumnClassName="w-[130px] min-w-[130px]"
                 emptyState={
                     <EmptyState
                         icon={MessageSquare}
                         title={
                             startDate || endDate ? "No Negotiations Found in Selected Date Range" :
-                                activeTab === "active" ? "No Active Negotiations Found" :
-                                    activeTab === "waiting_you" ? "No Negotiations Waiting for You" :
-                                        activeTab === "waiting_customer" ? "No Negotiations Waiting for Customer" :
-                                            activeTab === "agreed" ? "No Agreed Offers Found" :
-                                                activeTab === "closed" ? "No Closed Negotiations Found" :
-                                                    "No Negotiations Available"
+                                activeTab === "your_turn" ? "No Negotiations Waiting for Your Response" :
+                                    activeTab === "customers_turn" ? "No Negotiations Waiting for Customer" :
+                                        activeTab === "agreed" ? "No Agreed Offers Found" :
+                                            "No Negotiations Available"
                         }
                         description={
                             startDate || endDate
-                                ? `No negotiation threads matched the date range ${startDate || 'the start'} to ${endDate || 'the end'}.`
-                                : `There are no negotiations matching the "${String(activeTab).replace('_', ' ').toUpperCase()}" tab criteria.`
+                                ? `No negotiation threads matched the date range ${startDate || "the start"} to ${endDate || "the end"}.`
+                                : `There are no negotiations matching the "${String(activeTab).replace("_", " ").toUpperCase()}" tab criteria.`
                         }
                     />
                 }

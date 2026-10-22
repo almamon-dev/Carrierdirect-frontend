@@ -168,16 +168,23 @@ export const QuotationOfferForm: React.FC<QuotationOfferFormProps> = ({
 
             <CommercialRemarksSection notes={notes} onChange={setNotes} isExpired={isExpired || isWon} />
 
-            {totalAmountNum > 0 && (
-                <PriceBreakdownCard
-                    basePrice={basePriceNum}
-                    extraCharges={extraCharges}
-                    totalAmount={totalAmountNum}
-                    isExpired={isExpired || isWon}
-                    isStripeConnected={isStripeConnected}
-                    onOpenConnect={() => setShowConnectModal(true)}
-                />
-            )}
+            {totalAmountNum > 0 && (() => {
+                const commissionPercent = Number((requestDetails as any).supplier_commission_percent ?? 0);
+                const commissionFee = commissionPercent > 0 ? Math.round(totalAmountNum * commissionPercent) / 100 : 0;
+                const netPayout = Math.max(0, Math.round((totalAmountNum - commissionFee) * 100) / 100);
+                return (
+                    <PriceBreakdownCard
+                        basePrice={basePriceNum}
+                        extraCharges={extraCharges}
+                        totalAmount={totalAmountNum}
+                        escrowFee={commissionFee}
+                        netPayout={netPayout}
+                        isExpired={isExpired || isWon}
+                        isStripeConnected={isStripeConnected}
+                        onOpenConnect={() => setShowConnectModal(true)}
+                    />
+                );
+            })()}
 
             <OfferSubmitButtons
                 isWon={isWon}

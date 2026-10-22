@@ -62,7 +62,7 @@ export default function CustomerNegotiation() {
 
     return (
         <div
-            className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
+            className="p-3 sm:p-4 md:p-6 w-full mx-auto space-y-4 sm:space-y-5 font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
@@ -116,9 +116,9 @@ export default function CustomerNegotiation() {
                 hideViewToggle={false}
                 isLoading={isLoading || isRefreshing}
                 onRowClick={(row) => handleQuoteAction(row)}
-                tableLayout="fixed"
-                tableClassName="min-w-[1180px]"
-                actionsColumnClassName="w-[130px] min-w-[130px]"
+                tableLayout="auto"
+                tableClassName="w-full"
+                actionsColumnClassName="w-[125px] whitespace-nowrap text-right pr-3.5 sm:pr-4"
                 emptyState={
                     <EmptyState
                         icon={MessageSquare}

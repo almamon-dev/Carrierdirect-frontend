@@ -1,6 +1,6 @@
 import React from 'react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Building2, Eye, ExternalLink } from 'lucide-react';
 import { WithdrawalItem } from '../index';
 
@@ -102,18 +102,7 @@ export const getWithdrawalColumns = (
             const s = row.status;
             return (
                 <div className="flex items-center justify-center">
-                    <Badge
-                        variant="secondary"
-                        className={`whitespace-nowrap text-[10.5px] font-semibold border ${
-                            s === 'Completed'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50'
-                                : s === 'Processing'
-                                ? 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/50'
-                                : 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/50'
-                        }`}
-                    >
-                        {s}
-                    </Badge>
+                    <StatusBadge status={s} />
                 </div>
             );
         },

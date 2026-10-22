@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
-import { CustomerNegotiationItem, NegotiationFilterTab } from '../types';
+import { useMemo } from "react";
+import { CustomerNegotiationItem, NegotiationFilterTab } from "../types";
 import {
     isNegotiationActive,
     isNegotiationAgreed,
     isNegotiationClosed,
     isWaitingForYou,
     isWaitingForSupplier,
-} from '../components/NegotiationFilterTabs';
+} from "../components/NegotiationFilterTabs";
 
 interface UseFilteredCustomerNegotiationsProps {
     negotiations: CustomerNegotiationItem[];
@@ -31,29 +31,50 @@ export function useFilteredCustomerNegotiations({
         return (negotiations || []).filter((item) => {
             if (!item) return false;
 
-            if (activeTab === 'active' && !isNegotiationActive(item)) return false;
-            if (activeTab === 'waiting_you' && (!isNegotiationActive(item) || !isWaitingForYou(item))) return false;
-            if (activeTab === 'waiting_supplier' && (!isNegotiationActive(item) || !isWaitingForSupplier(item))) return false;
-            if (activeTab === 'agreed' && !isNegotiationAgreed(item)) return false;
-            if (activeTab === 'closed' && !isNegotiationClosed(item)) return false;
+            const tab = String(activeTab).toLowerCase();
 
-            if (priorityFilter !== 'all') {
-                const normPriority = (item.priority || '').toLowerCase();
+            if (tab === "your_turn" || tab === "waiting_you") {
+                if (!isWaitingForYou(item)) return false;
+            } else if (tab === "suppliers_turn" || tab === "waiting_supplier") {
+                if (!isWaitingForSupplier(item)) return false;
+            } else if (tab === "agreed") {
+                if (!isNegotiationAgreed(item)) return false;
+            } else if (tab === "active") {
+                if (!isNegotiationActive(item)) return false;
+            } else if (tab === "closed") {
+                if (!isNegotiationClosed(item)) return false;
+            }
+
+            // Advanced Filter: Status
+            if (statusFilter !== "all") {
+                const normStatus = String(item.status || item.statusRaw || "").toLowerCase();
+                const filterVal = statusFilter.toLowerCase();
+                if (filterVal === "agreed" || filterVal === "accepted") {
+                    if (!isNegotiationAgreed(item) && !normStatus.includes("accept") && !normStatus.includes("awaiting")) return false;
+                } else if (filterVal === "awaiting_payment" || filterVal === "awaiting payment") {
+                    if (!normStatus.includes("awaiting") && !item.isAwaitingPayment && !(item as any).is_awaiting_payment) return false;
+                } else if (filterVal === "closed") {
+                    if (!isNegotiationClosed(item) && !normStatus.includes("close")) return false;
+                } else if (!normStatus.includes(filterVal)) {
+                    return false;
+                }
+            }
+
+            // Advanced Filter: Priority
+            if (priorityFilter !== "all") {
+                const normPriority = (item.priority || "").toLowerCase();
                 if (!normPriority.includes(priorityFilter.toLowerCase())) return false;
             }
 
-            if (statusFilter !== 'all') {
-                const normStatus = (item.status || item.statusRaw || '').toLowerCase();
-                if (!normStatus.includes(statusFilter.toLowerCase())) return false;
-            }
-
-            if (vehicleFilter !== 'all') {
-                const normVehicle = (item.vehicleType || '').toLowerCase();
+            // Advanced Filter: Vehicle
+            if (vehicleFilter !== "all") {
+                const normVehicle = (item.vehicleType || "").toLowerCase();
                 if (!normVehicle.includes(vehicleFilter.toLowerCase())) return false;
             }
 
+            // Advanced Filter: Last Activity (startDate / endDate)
             if (startDate || endDate) {
-                const dateVal = item.createdAt || item.date || item.pickupDate;
+                const dateVal = item.lastUpdatedDate || item.lastSeenAt || item.updatedAt || item.updated_at || item.createdAt || item.date || item.requestDate;
                 if (dateVal) {
                     const time = new Date(dateVal).getTime();
                     if (!isNaN(time)) {

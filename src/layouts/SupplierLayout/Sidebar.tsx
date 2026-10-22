@@ -1,13 +1,13 @@
+import LogoWhite from '@/assets/Images/Logo.png';
+import LogoBlack from '@/assets/Images/LogoBlack.png';
+import LogoIcon from '@/assets/Images/LogoIcon.png';
+import { hasPermission } from '@/components/common/PermissionGuard';
+import { TOKEN_CONFIG } from '@/config/auth';
+import { navigationMap } from '@/constants/navigation';
+import { getRoleDashboardUrl } from '@/utils/roleDashboard';
+import { LayoutDashboard, LogOut, Settings, X } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Settings, X } from 'lucide-react';
-import LogoBlack from '@/assets/Images/LogoBlack.png';
-import LogoWhite from '@/assets/Images/Logo.png';
-import LogoIcon from '@/assets/Images/LogoIcon.png';
-import { navigationMap } from '@/constants/navigation';
-import { TOKEN_CONFIG } from '@/config/auth';
-import { hasPermission } from '@/components/common/PermissionGuard';
-import { getRoleDashboardUrl } from '@/utils/roleDashboard';
 import { SupplierNavGroup } from './SupplierNavGroup';
 
 interface SidebarProps {
@@ -148,8 +148,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     }}
                                     title={!isOpen ? item.name : undefined}
                                     className={`flex items-center ${isOpen ? 'justify-between px-3' : 'justify-center'} py-2 rounded-lg text-[14px] font-medium transition-colors group mb-0.5 ${(location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
-                                            ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80'
-                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
+                                        ? 'text-[#ff4a1f] dark:text-orange-400 font-semibold bg-orange-50/70 dark:bg-slate-800/80'
+                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
                                         }`}
                                 >
                                     <div className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'}`}>

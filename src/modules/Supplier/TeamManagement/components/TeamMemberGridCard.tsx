@@ -1,6 +1,6 @@
 import React from 'react';
 import { Building2, Shield, Mail, Phone, Calendar, Clock } from 'lucide-react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { TeamMember } from '../types/team.types';
 import { TeamMemberRowActions } from './TeamMemberRowActions';
 
@@ -43,20 +43,10 @@ export const TeamMemberGridCard: React.FC<TeamMemberGridCardProps> = ({
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                        <Badge
-                            variant="secondary"
-                            className={`whitespace-nowrap text-[10px] font-semibold border flex items-center gap-1 px-1.5 py-0.5 ${
-                                member.isBlocked
-                                    ? 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300'
-                                    : (member.status || '').toLowerCase() === 'active'
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                    : 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300'
-                            }`}
-                        >
-                            {(member.status || '').toLowerCase() === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />}
-                            {member.isBlocked && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />}
-                            {member.isBlocked ? 'Blocked' : member.status}
-                        </Badge>
+                        <StatusBadge
+                            status={member.isBlocked ? 'Blocked' : (member.status || 'Active')}
+                            category={member.isBlocked ? 'failed' : undefined}
+                        />
                         <TeamMemberRowActions
                             row={member}
                             onViewProfile={onNavigateProfile}

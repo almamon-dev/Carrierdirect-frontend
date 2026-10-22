@@ -1,5 +1,5 @@
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge, StatusCategory } from '@/components/common/StatusBadge';
 import { encryptId } from '@/lib/encryption';
 import { Link } from 'react-router-dom';
 import { CustomerOrderItem } from '../types';
@@ -46,24 +46,51 @@ export const getOrderColumns = (
             id: 'amount',
             label: 'Amount',
             sortable: true,
-            className: 'min-w-[140px] whitespace-nowrap',
+            className: 'min-w-[150px] whitespace-nowrap',
             render: (row) => {
-                const numVal = Number(row.gross_amount ?? row.total_amount ?? row.amount_raw);
+                const platformFee = Number(
+                    row.platform_fee ??
+                    row.platform_charge ??
+                    (row as any).quote?.platform_fee ??
+                    0
+                );
+                const platformPercent = Number(
+                    row.platform_charge_percent ??
+                    row.platform_fee_percent ??
+                    (row as any).quote?.platform_charge_percent ??
+                    0
+                );
+
+                // Base freight / quotation amount without platform charge
+                let baseAmtVal = Number(row.subtotal ?? row.base_amount ?? row.base_price ?? 0);
+                if (!baseAmtVal || isNaN(baseAmtVal) || baseAmtVal <= 0) {
+                    const rawVal = Number(row.amount_raw ?? row.gross_amount ?? row.total_amount ?? 0);
+                    if (rawVal > 0) {
+                        baseAmtVal = platformFee > 0 && rawVal > platformFee ? rawVal - platformFee : rawVal;
+                    }
+                }
+
                 let formattedAmt = '€0.00 EUR';
-                if (!isNaN(numVal) && numVal > 0) {
-                    formattedAmt = `€${numVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
-                } else if (row.gross_amount_formatted) {
-                    formattedAmt = row.gross_amount_formatted.includes('EUR') ? row.gross_amount_formatted : `${row.gross_amount_formatted} EUR`;
-                } else if (row.total_amount_formatted) {
-                    formattedAmt = row.total_amount_formatted.includes('EUR') ? row.total_amount_formatted : `${row.total_amount_formatted} EUR`;
+                if (!isNaN(baseAmtVal) && baseAmtVal > 0) {
+                    formattedAmt = `€${baseAmtVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
+                } else if (row.subtotal_formatted) {
+                    formattedAmt = row.subtotal_formatted.includes('EUR') ? row.subtotal_formatted : `${row.subtotal_formatted} EUR`;
+                } else if (row.base_amount_formatted) {
+                    formattedAmt = row.base_amount_formatted.includes('EUR') ? row.base_amount_formatted : `${row.base_amount_formatted} EUR`;
                 } else if (row.amount) {
                     formattedAmt = String(row.amount).includes('EUR') ? String(row.amount) : `${row.amount} EUR`;
                 }
+
                 return (
-                    <div className="flex items-center min-h-[22px]">
-                        <span className="text-[13px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                    <div className="flex flex-col min-h-[22px] justify-center py-0.5">
+                        <span className="text-[13px] font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
                             {formattedAmt}
                         </span>
+                        {platformFee > 0 && (
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight mt-0.5 whitespace-nowrap">
+                                +€{platformFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{platformPercent > 0 ? ` (${platformPercent}% platform charge)` : ' (platform charge)'}
+                            </span>
+                        )}
                     </div>
                 );
             },
@@ -79,30 +106,28 @@ export const getOrderColumns = (
                 const payMethod = String((row as any).payment_method || '').toLowerCase().trim();
 
                 let displayStatus = 'Paid';
-                let variant: any = 'success';
+                let category: StatusCategory = 'success';
 
                 if (payMethod.includes('later') || payStatus.includes('later')) {
                     displayStatus = payStatus === 'paid' ? 'Paid (Pay Later)' : 'Net-30 Pay Later';
-                    variant = payStatus === 'paid' ? 'success' : 'info';
+                    category = payStatus === 'paid' ? 'success' : 'financial_hold';
                 } else if (payStatus === 'paid' || rawStatus === 'paid' || rawStatus === 'confirmed' || rawStatus === 'completed' || rawStatus === 'won') {
                     displayStatus = 'Paid';
-                    variant = 'success';
+                    category = 'success';
                 } else if (payStatus.includes('escrow')) {
                     displayStatus = 'In Escrow';
-                    variant = 'success';
+                    category = 'financial_hold';
                 } else if (payStatus === 'refunded' || rawStatus.includes('cancel')) {
                     displayStatus = 'Refunded';
-                    variant = 'critical';
+                    category = 'neutral';
                 } else if (payStatus === 'pending' || payStatus === 'unpaid' || payStatus === 'due') {
                     displayStatus = 'Pending';
-                    variant = 'warning';
+                    category = 'pending';
                 }
 
                 return (
                     <div className="flex items-center min-h-[22px]">
-                        <Badge variant={variant} className="text-[10px] font-semibold whitespace-nowrap px-2 py-0.5 rounded">
-                            {displayStatus}
-                        </Badge>
+                        <StatusBadge status={displayStatus} category={category} />
                     </div>
                 );
             },

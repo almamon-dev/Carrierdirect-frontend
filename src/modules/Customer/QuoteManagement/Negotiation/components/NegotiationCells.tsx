@@ -1,3 +1,5 @@
+import { StandardRouteCell } from '@/components/common/StandardRouteCell';
+import { formatStandardAddress, formatStandardRoute, formatCompactRoute } from "@/utils/addressFormatter";
 import React from 'react';
 import { CustomerNegotiationItem } from '../types';
 import { encryptId } from '@/lib/encryption';
@@ -10,23 +12,14 @@ import {
 
 export { PriorityCell, StatusCell, NegotiationStatusBadgeCell, NegotiationDateCell };
 
-const cleanAddressWithoutZip = (addr: string): string => {
-    if (!addr || addr === '—') return addr;
-    return addr
-        .replace(/\s*\(?ZIP:?\s*\d+\)?/gi, '')
-        .replace(/\b(?:ZIP|Postal Code):?\s*\d+\b/gi, '')
-        .replace(/\s+\d{4,6}\b(?=[,\s]|$)/g, '')
-        .replace(/\s*,\s*,/g, ',')
-        .replace(/,\s*$/g, '')
-        .trim();
-};
-
 export const NegotiationQuoteIdCell: React.FC<{ row: CustomerNegotiationItem | any; onNavigate: (path: string) => void }> = ({ row, onNavigate }) => {
     const rawId = row.rawId || row.id;
     const quoteText = row.quoteId || row.quote_id || (rawId ? (String(rawId).startsWith('QT-') ? rawId : `QT-${String(rawId).padStart(4, '0')}`) : 'QT-0000');
+    const rawReq = row.requestId ? String(row.requestId).replace('REQ-', '') : (row.quote_request_id || row.quote_request?.id || '');
+    const reqText = row.requestId || row.request_id || (rawReq ? `REQ-${String(rawReq).padStart(4, '0')}` : '');
 
     return (
-        <div className="flex items-center min-h-[26px]">
+        <div className="flex flex-col justify-center min-h-[26px]">
             <button
                 type="button"
                 onClick={(e) => {
@@ -37,6 +30,18 @@ export const NegotiationQuoteIdCell: React.FC<{ row: CustomerNegotiationItem | a
             >
                 {quoteText}
             </button>
+            {reqText && (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (rawReq) onNavigate(`/customer/quotes/create/view/${rawReq}`);
+                    }}
+                    className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 hover:text-[#ff4a1f] hover:underline text-left mt-1 leading-none whitespace-nowrap cursor-pointer"
+                >
+                    {reqText}
+                </button>
+            )}
         </div>
     );
 };
@@ -66,7 +71,7 @@ export const NegotiationRequestIdCell: React.FC<{ row: CustomerNegotiationItem |
 export const SupplierCell: React.FC<{ row: CustomerNegotiationItem | any }> = ({ row }) => {
     const avatarUrl = row.customerAvatar || row.supplierAvatar || row.supplier?.profile_picture;
     const hasValidUrl = Boolean(avatarUrl && (avatarUrl.startsWith('http') || avatarUrl.startsWith('/storage') || avatarUrl.startsWith('data:') || avatarUrl.includes('.')));
-    const name = row.customer || row.supplier || row.supplierName || row.supplier_name || 'Supplier';
+    const name = row.supplier?.full_name || row.supplier?.name || row.customer || row.supplier || row.supplierName || row.supplier_name || 'Supplier';
     const initial = name ? name.charAt(0).toUpperCase() : 'S';
 
     return (
@@ -85,7 +90,7 @@ export const SupplierCell: React.FC<{ row: CustomerNegotiationItem | any }> = ({
                     <span>{initial}</span>
                 )}
             </div>
-            <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px] truncate max-w-[110px]">
+            <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px] whitespace-nowrap">
                 {name}
             </span>
         </div>
@@ -94,11 +99,15 @@ export const SupplierCell: React.FC<{ row: CustomerNegotiationItem | any }> = ({
 
 export const NegotiationSupplierCell = SupplierCell;
 
-export const NegotiationAddressCell: React.FC<{ address: string }> = ({ address }) => {
-    const displayAddr = cleanAddressWithoutZip(address);
+export const NegotiationRouteCell: React.FC<{ row: any }> = ({ row }) => {
+    return <StandardRouteCell row={row} />;
+};
+
+export const NegotiationAddressCell: React.FC<{ address?: string; row?: any; type?: "pickup" | "delivery" }> = ({ address, row, type = "pickup" }) => {
+    const displayAddr = row ? formatStandardAddress(row, type) : formatStandardAddress(address);
     return (
         <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={displayAddr}>
-            <span className="font-semibold text-slate-800 dark:text-slate-200 text-[12.5px] truncate block max-w-full leading-normal">
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-[12.5px] whitespace-nowrap block leading-normal">
                 {displayAddr}
             </span>
         </div>
@@ -107,7 +116,7 @@ export const NegotiationAddressCell: React.FC<{ address: string }> = ({ address 
 
 export const NegotiationVehicleCell: React.FC<{ vehicle: string }> = ({ vehicle }) => (
     <div className="flex items-center min-h-[26px]" title={vehicle}>
-        <span className="text-[12.5px] text-slate-800 dark:text-slate-200 font-semibold truncate max-w-[125px]">
+        <span className="text-[12.5px] text-slate-800 dark:text-slate-200 font-semibold whitespace-nowrap">
             {vehicle || 'Covered Van (20ft)'}
         </span>
     </div>

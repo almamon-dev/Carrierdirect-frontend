@@ -10,6 +10,7 @@ interface RowActionsProps {
     isRepeating: boolean;
     onRepeatRequest: (row: CustomerQuoteRequestItem) => void;
     onDeleteRequest: (row: CustomerQuoteRequestItem) => void;
+    onMoveToDraft?: (row: CustomerQuoteRequestItem) => void;
 }
 
 export const RowActions: React.FC<RowActionsProps> = ({
@@ -17,6 +18,7 @@ export const RowActions: React.FC<RowActionsProps> = ({
     isRepeating,
     onRepeatRequest,
     onDeleteRequest,
+    onMoveToDraft,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -89,6 +91,7 @@ export const RowActions: React.FC<RowActionsProps> = ({
                     onClose={handleClose}
                     onRepeatRequest={onRepeatRequest}
                     onDeleteRequest={onDeleteRequest}
+                    onMoveToDraft={onMoveToDraft}
                 />,
                 document.body
             )}

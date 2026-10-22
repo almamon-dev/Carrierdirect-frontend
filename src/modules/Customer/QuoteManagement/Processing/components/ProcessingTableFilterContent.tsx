@@ -1,12 +1,12 @@
 /**
- * Customer Processing Table Filter Content
- * Filter bar tailored for Quote Requests (Priority, Status, Vehicle Type, Quotes Count, Date ranges, Reset).
+ * Customer Open Requests Table Filter Content
+ * Advanced Filters: Pickup Date (Start & End), Location, Status, Vehicle Type
  */
 
 import React from 'react';
 import Select from '@/components/ui/select';
 import Input from '@/components/ui/input';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, MapPin } from 'lucide-react';
 
 interface ProcessingTableFilterContentProps {
     priorityFilter: string;
@@ -15,8 +15,8 @@ interface ProcessingTableFilterContentProps {
     setStatusFilter: (value: string) => void;
     vehicleFilter: string;
     setVehicleFilter: (value: string) => void;
-    quotesFilter?: string;
-    setQuotesFilter?: (value: string) => void;
+    locationFilter?: string;
+    setLocationFilter?: (value: string) => void;
     startDate?: string;
     setStartDate?: (value: string) => void;
     endDate?: string;
@@ -31,8 +31,8 @@ export const ProcessingTableFilterContent: React.FC<ProcessingTableFilterContent
     setStatusFilter,
     vehicleFilter,
     setVehicleFilter,
-    quotesFilter = 'all',
-    setQuotesFilter,
+    locationFilter = '',
+    setLocationFilter,
     startDate = '',
     setStartDate,
     endDate = '',
@@ -43,59 +43,34 @@ export const ProcessingTableFilterContent: React.FC<ProcessingTableFilterContent
         priorityFilter !== 'all' ||
         statusFilter !== 'all' ||
         vehicleFilter !== 'all' ||
-        quotesFilter !== 'all' ||
+        Boolean(locationFilter) ||
         Boolean(startDate) ||
         Boolean(endDate);
 
     return (
         <div className="w-full font-sans">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 items-end">
-                {/* 1. Priority */}
+                {/* 1. Location Filter */}
                 <div className="min-w-0">
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Priority
+                        Location
                     </label>
-                    <Select value={priorityFilter} onChange={(val) => setPriorityFilter(val)} showSearch={false}>
-                        <option value="all">All Priorities</option>
-                        <option value="urgent">Urgent</option>
-                        <option value="high">High</option>
-                        <option value="normal">Normal</option>
-                    </Select>
+                    <div className="relative">
+                        <Input
+                            type="text"
+                            placeholder="City, Country, or Region"
+                            value={locationFilter}
+                            onChange={(e) => setLocationFilter && setLocationFilter(e.target.value)}
+                            className="h-9 text-xs pl-8"
+                        />
+                        <MapPin size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
                 </div>
 
-                {/* 2. Status */}
+                {/* 2. Pickup Date - From */}
                 <div className="min-w-0">
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Status
-                    </label>
-                    <Select value={statusFilter} onChange={(val) => setStatusFilter(val)} showSearch={false}>
-                        <option value="all">All Statuses</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="pending">Processing</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </Select>
-                </div>
-
-                {/* 3. Vehicle Type */}
-                <div className="min-w-0">
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Vehicle Type
-                    </label>
-                    <Select value={vehicleFilter} onChange={(val) => setVehicleFilter(val)} showSearch={false}>
-                        <option value="all">All Vehicles</option>
-                        <option value="covered van">Covered Van</option>
-                        <option value="refrigerated truck">Refrigerated Truck</option>
-                        <option value="flatbed">Flatbed Truck</option>
-                        <option value="box truck">Box Truck</option>
-                        <option value="curtain sider">Curtain Sider</option>
-                    </Select>
-                </div>
-
-                {/* 4. Start Date */}
-                <div className="min-w-0">
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Start Date
+                        Pickup Date From
                     </label>
                     <Input
                         type="date"
@@ -105,11 +80,37 @@ export const ProcessingTableFilterContent: React.FC<ProcessingTableFilterContent
                     />
                 </div>
 
-                {/* 5. End Date & Reset */}
+                {/* 3. Pickup Date - To */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Pickup Date To
+                    </label>
+                    <Input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate && setEndDate(e.target.value)}
+                        className="h-9 text-xs"
+                    />
+                </div>
+
+                {/* 4. Priority */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Priority Level
+                    </label>
+                    <Select value={priorityFilter} onChange={(val) => setPriorityFilter(val)} showSearch={false}>
+                        <option value="all">All Priorities</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="high">High</option>
+                        <option value="normal">Normal</option>
+                    </Select>
+                </div>
+
+                {/* 5. Vehicle Type & Reset */}
                 <div className="min-w-0">
                     <div className="flex items-center justify-between mb-1">
                         <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">
-                            End Date
+                            Vehicle Type
                         </label>
                         {hasActiveFilters && onResetFilters && (
                             <button
@@ -122,12 +123,14 @@ export const ProcessingTableFilterContent: React.FC<ProcessingTableFilterContent
                             </button>
                         )}
                     </div>
-                    <Input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate && setEndDate(e.target.value)}
-                        className="h-9 text-xs"
-                    />
+                    <Select value={vehicleFilter} onChange={(val) => setVehicleFilter(val)} showSearch={false}>
+                        <option value="all">All Vehicles</option>
+                        <option value="covered van">Covered Van</option>
+                        <option value="refrigerated truck">Refrigerated Truck</option>
+                        <option value="flatbed">Flatbed Truck</option>
+                        <option value="box truck">Box Truck</option>
+                        <option value="curtain sider">Curtain Sider</option>
+                    </Select>
                 </div>
             </div>
         </div>

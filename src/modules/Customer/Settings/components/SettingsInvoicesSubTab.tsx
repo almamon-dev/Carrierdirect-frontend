@@ -1,3 +1,4 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   FileText,
@@ -233,8 +234,8 @@ export default function SettingsInvoicesSubTab() {
         sortable: true,
         className: "min-w-[180px] max-w-[300px]",
         render: (row) => {
-          const pickup = row.pickup_address || "Hub A";
-          const delivery = row.delivery_address || "Hub B";
+          const pickup = formatStandardAddress(row, "pickup");
+          const delivery = formatStandardAddress(row, "delivery");
           return (
             <div className="flex flex-col text-[11px] leading-tight">
               <span className="text-slate-700 dark:text-slate-300 truncate" title={pickup}>

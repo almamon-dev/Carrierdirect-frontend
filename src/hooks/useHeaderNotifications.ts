@@ -54,6 +54,55 @@ function getAuthUserId(): number | null {
     }
 }
 
+const getStoredReadIds = (role: string): Set<string> => {
+    try {
+        const raw = localStorage.getItem(`carrierdirect_read_notifications_${role}`);
+        if (!raw) return new Set<string>();
+        const parsed = JSON.parse(raw);
+        return new Set<string>(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch {
+        return new Set<string>();
+    }
+};
+
+const addStoredReadId = (role: string, id: string | number) => {
+    try {
+        const key = `carrierdirect_read_notifications_${role}`;
+        const raw = localStorage.getItem(key);
+        const list: string[] = raw ? JSON.parse(raw) : [];
+        const idStr = String(id);
+        if (!list.includes(idStr)) {
+            list.push(idStr);
+            if (list.length > 300) list.splice(0, list.length - 300);
+            localStorage.setItem(key, JSON.stringify(list));
+        }
+    } catch {}
+};
+
+const removeStoredReadId = (role: string, id: string | number) => {
+    try {
+        const key = `carrierdirect_read_notifications_${role}`;
+        const raw = localStorage.getItem(key);
+        const list: string[] = raw ? JSON.parse(raw) : [];
+        const idStr = String(id);
+        const filtered = list.filter(item => item !== idStr);
+        localStorage.setItem(key, JSON.stringify(filtered));
+    } catch {}
+};
+
+const addAllStoredReadIds = (role: string, ids: (string | number)[]) => {
+    try {
+        const key = `carrierdirect_read_notifications_${role}`;
+        const raw = localStorage.getItem(key);
+        const list: string[] = raw ? JSON.parse(raw) : [];
+        const set = new Set(list);
+        ids.forEach(id => set.add(String(id)));
+        const updated = Array.from(set);
+        if (updated.length > 300) updated.splice(0, updated.length - 300);
+        localStorage.setItem(key, JSON.stringify(updated));
+    } catch {}
+};
+
 export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' = 'supplier') => {
     const [localNotifs, setLocalNotifs] = useState<HeaderNotification[]>([]);
     const [apiNotifs, setApiNotifs] = useState<HeaderNotification[]>([]);
@@ -62,7 +111,7 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
     const notifications = useMemo(() => {
         return deduplicateNotifications([
             ...localNotifs,
-            ...apiNotifs.filter(a => !localNotifs.some(l => l.id === a.id))
+            ...apiNotifs.filter(a => !localNotifs.some(l => String(l.id) === String(a.id)))
         ]);
     }, [localNotifs, apiNotifs]);
 
@@ -85,12 +134,17 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
                 [];
             
             if (Array.isArray(rawList) && rawList.length > 0) {
-                const mapped: HeaderNotification[] = rawList.map((item: any, idx: number) =>
-                    parseRawNotification(item, idx, role)
-                );
+                const storedReadIds = getStoredReadIds(role);
+                const mapped: HeaderNotification[] = rawList.map((item: any, idx: number) => {
+                    const parsed = parseRawNotification(item, idx, role);
+                    if (storedReadIds.has(String(parsed.id))) {
+                        parsed.unread = false;
+                    }
+                    return parsed;
+                });
                 const deduped = deduplicateNotifications(mapped);
                 setApiNotifs(prev => {
-                    if (prev.length === deduped.length && prev[0]?.id === deduped[0]?.id) {
+                    if (prev.length === deduped.length && prev[0]?.id === deduped[0]?.id && prev.every((p, i) => p.unread === deduped[i]?.unread)) {
                         return prev; // Prevent unnecessary re-render if notifications haven't changed
                     }
                     return deduped;
@@ -127,6 +181,8 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
 
                 window.dispatchEvent(new CustomEvent('driver-shipment-updated', { detail: parsed }));
                 window.dispatchEvent(new CustomEvent('order-status-updated', { detail: parsed }));
+                window.dispatchEvent(new CustomEvent('carrierdirect_notif_update', { detail: notification }));
+                window.dispatchEvent(new CustomEvent('carrierdirect_quote_updated', { detail: notification }));
             });
 
             channel.listen('.ShipmentStatusUpdated', (event: any) => {
@@ -135,9 +191,16 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
                 fetchNotifications(true);
             });
 
+            channel.listen('.quote.updated', (event: any) => {
+                window.dispatchEvent(new CustomEvent('carrierdirect_quote_updated', { detail: event }));
+                window.dispatchEvent(new CustomEvent('carrierdirect_notif_update', { detail: event }));
+                fetchNotifications(true);
+            });
+
             return () => {
                 channel.stopListening('.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated');
                 channel.stopListening('.ShipmentStatusUpdated');
+                channel.stopListening('.quote.updated');
             };
         } catch (err) {
             console.warn('Echo notification subscription skipped:', err);
@@ -175,26 +238,48 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
     }, [role, fetchNotifications]);
 
     const markAsRead = useCallback(async (id: string | number) => {
-        setLocalNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
-        setApiNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
+        if (!id) return;
+        const idStr = String(id);
+        addStoredReadId(role, idStr);
+        setLocalNotifs(prev => prev.map(n => String(n.id) === idStr ? { ...n, unread: false } : n));
+        setApiNotifs(prev => prev.map(n => String(n.id) === idStr ? { ...n, unread: false } : n));
         try {
-            await apiClient.post(`/${role}/notifications/${id}/read`).catch(() => {});
+            await apiClient.post(`/${role}/notifications/${id}/read`)
+                .catch(() => apiClient.patch(`/${role}/notifications/${id}/read`))
+                .catch(() => apiClient.post(`/notifications/${id}/read`))
+                .catch(() => apiClient.post(`/${role}/notifications/read/${id}`))
+                .catch(() => {});
         } catch {}
     }, [role]);
 
     const markAsUnread = useCallback(async (id: string | number) => {
-        setLocalNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: true } : n));
-        setApiNotifs(prev => prev.map(n => n.id === id ? { ...n, unread: true } : n));
+        if (!id) return;
+        const idStr = String(id);
+        removeStoredReadId(role, idStr);
+        setLocalNotifs(prev => prev.map(n => String(n.id) === idStr ? { ...n, unread: true } : n));
+        setApiNotifs(prev => prev.map(n => String(n.id) === idStr ? { ...n, unread: true } : n));
         try {
-            await apiClient.post(`/${role}/notifications/${id}/unread`).catch(() => {});
+            await apiClient.post(`/${role}/notifications/${id}/unread`)
+                .catch(() => apiClient.patch(`/${role}/notifications/${id}/unread`))
+                .catch(() => apiClient.post(`/notifications/${id}/unread`))
+                .catch(() => {});
         } catch {}
     }, [role]);
 
     const markAllAsRead = useCallback(async () => {
-        setLocalNotifs(prev => prev.map(n => ({ ...n, unread: false })));
-        setApiNotifs(prev => prev.map(n => ({ ...n, unread: false })));
+        setLocalNotifs(prev => {
+            addAllStoredReadIds(role, prev.map(n => n.id));
+            return prev.map(n => ({ ...n, unread: false }));
+        });
+        setApiNotifs(prev => {
+            addAllStoredReadIds(role, prev.map(n => n.id));
+            return prev.map(n => ({ ...n, unread: false }));
+        });
         try {
-            await apiClient.post(`/${role}/notifications/mark-all-read`).catch(() => {});
+            await apiClient.post(`/${role}/notifications/mark-all-read`)
+                .catch(() => apiClient.post(`/notifications/read-all`))
+                .catch(() => apiClient.post(`/notifications/mark-all-read`))
+                .catch(() => {});
         } catch {}
     }, [role]);
 

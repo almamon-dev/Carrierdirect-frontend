@@ -1,7 +1,6 @@
 /**
- * Customer Quote Requests Filter Bar Component
- * Clean, seamless inline filter bar with:
- * 1. Priority Level | 2. Status | 3. Quotes Received | 4. Start Date | 5. End Date
+ * Customer My Requests Filter Bar Component
+ * Advanced Filters: Status, Pickup Date (Start & End), Priority, Quotes count
  */
 
 import React from 'react';
@@ -46,7 +45,49 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
     return (
         <div className="w-full font-sans">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 items-end">
-                {/* 1. Priority Level */}
+                {/* 1. Status Filter */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Status
+                    </label>
+                    <Select value={statusFilter} onChange={(val) => setStatusFilter(val)} showSearch={false}>
+                        <option value="all">All Statuses</option>
+                        <option value="in_progress">🔵 In Progress</option>
+                        <option value="draft">📝 Draft</option>
+                        <option value="booked">📦 Booked</option>
+                        <option value="completed">🟢 Completed</option>
+                        <option value="expired">⏳ Expired</option>
+                        <option value="cancelled">🔴 Cancelled</option>
+                    </Select>
+                </div>
+
+                {/* 2. Pickup Date - From */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Pickup Date From
+                    </label>
+                    <Input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="h-9 text-xs"
+                    />
+                </div>
+
+                {/* 3. Pickup Date - To */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Pickup Date To
+                    </label>
+                    <Input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="h-9 text-xs"
+                    />
+                </div>
+
+                {/* 4. Priority Level */}
                 <div className="min-w-0">
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Priority Level
@@ -59,50 +100,11 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     </Select>
                 </div>
 
-                {/* 2. Status */}
-                <div className="min-w-0">
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Status
-                    </label>
-                    <Select value={statusFilter} onChange={(val) => setStatusFilter(val)} showSearch={false}>
-                        <option value="all">All Statuses</option>
-                        <option value="In Progress">🔵 In Progress</option>
-                        <option value="Processing">🟡 Processing</option>
-                        <option value="Completed">🟢 Completed</option>
-                        <option value="Cancelled">🔴 Cancelled</option>
-                    </Select>
-                </div>
-
-                {/* 3. Quotes Received */}
-                <div className="min-w-0">
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Quotes
-                    </label>
-                    <Select value={quotesFilter} onChange={(val) => setQuotesFilter(val)} showSearch={false}>
-                        <option value="all">All Quotes</option>
-                        <option value="has_quotes">Has Quotes (1+)</option>
-                        <option value="no_quotes">No Quotes (0)</option>
-                    </Select>
-                </div>
-
-                {/* 4. Start Date */}
-                <div className="min-w-0">
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Start Date
-                    </label>
-                    <Input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="h-9 text-xs"
-                    />
-                </div>
-
-                {/* 5. End Date */}
+                {/* 5. Quotes Received & Reset */}
                 <div className="min-w-0">
                     <div className="flex items-center justify-between mb-1">
                         <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">
-                            End Date
+                            Quotes Received
                         </label>
                         {hasActiveFilters && (
                             <button
@@ -115,12 +117,11 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                             </button>
                         )}
                     </div>
-                    <Input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="h-9 text-xs"
-                    />
+                    <Select value={quotesFilter} onChange={(val) => setQuotesFilter(val)} showSearch={false}>
+                        <option value="all">All Quotes</option>
+                        <option value="has_quotes">Has Quotes (1+)</option>
+                        <option value="no_quotes">No Quotes (0)</option>
+                    </Select>
                 </div>
             </div>
         </div>

@@ -38,7 +38,9 @@ export const SupplierRegisterStep2Fields: React.FC<SupplierRegisterStep2FieldsPr
         !formData.policyNumber.trim() ||
         !formData.policyExpiryDate ||
         !isPolicyDateValid(formData.policyExpiryDate) ||
+        !formData.companyLogo ||
         !formData.insuranceDocument ||
+        !formData.licenses ||
         !agreed;
 
     return (
@@ -135,8 +137,10 @@ export const SupplierRegisterStep2Fields: React.FC<SupplierRegisterStep2FieldsPr
             </div>
 
             <SupplierRegisterDocumentUploads
+                companyLogo={formData.companyLogo}
                 insuranceDocument={formData.insuranceDocument}
                 licenses={formData.licenses}
+                companyLogoError={errors.companyLogo}
                 insuranceDocumentError={errors.insuranceDocument}
                 licensesError={errors.licenses}
                 onFileChange={(field, file) => onInputChange(field, file)}

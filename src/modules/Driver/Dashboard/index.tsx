@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TodayOverviewCards } from './components/TodayOverviewCards';
 import { DriverDashboardSkeleton } from './components/DriverDashboardSkeleton';
 import { DriverDashboardHeader } from './components/DriverDashboardHeader';
@@ -26,6 +27,7 @@ function getAuthUser() {
 }
 
 export default function DriverDashboard() {
+    const navigate = useNavigate();
     const { isVerified, verificationStatus, complianceData, reloadCompliance, setIsVerificationModalOpen } = useDriverCompliance();
     const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
@@ -73,7 +75,7 @@ export default function DriverDashboard() {
 
     const handleOpenLiveGPS = (dest?: any) => {
         requireDriverCompliance(() => {
-            const finalDest = typeof dest === 'string' && dest.trim() ? dest.trim() : (activeShipment?.destination?.address || 'Seattle, WA');
+            const finalDest = typeof dest === 'string' && dest.trim() ? dest.trim() : (activeShipment?.destination?.address || 'Gazipur, Bangladesh');
             setGpsDestination(finalDest);
             setIsGPSOpen(true);
         }, 'Live GPS Navigation');

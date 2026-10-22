@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageSquare, MoreVertical, RotateCcw } from 'lucide-react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
 import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
 import CustomerOrderHeaderMenu from './CustomerOrderHeaderMenu';
@@ -93,38 +93,15 @@ export const CustomerOrderHeader: React.FC<CustomerOrderHeaderProps> = ({
                             </span>
                         </h1>
 
-                        <Badge
-                            className={`px-2 py-0.25 text-[11px] font-semibold rounded-full border ${
-                                isCompleted
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
-                                    : isTransit
-                                      ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800'
-                                      : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800'
-                            }`}
-                        >
-                            {order.status}
-                        </Badge>
+                        <StatusBadge status={order.status} />
 
                         {order.isPayLater ? (
-                            <Badge className="px-2 py-0.25 text-[11px] font-semibold rounded-full border flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800">
-                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                                <span>Pay Later (Net-30)</span>
-                            </Badge>
+                            <StatusBadge status="Pay Later (Net-30)" category="financial_hold" />
                         ) : (
-                            <Badge
-                                className={`px-2 py-0.25 text-[11px] font-semibold rounded-full border flex items-center gap-1 ${
-                                    order.isPaid
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
-                                        : order.isEscrow
-                                          ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800'
-                                          : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800'
-                                }`}
-                            >
-                                <span
-                                    className={`w-1.5 h-1.5 rounded-full ${order.isPaid ? 'bg-emerald-500' : order.isEscrow ? 'bg-blue-500' : 'bg-amber-500'}`}
-                                />
-                                <span>{order.paymentStatus}</span>
-                            </Badge>
+                            <StatusBadge
+                                status={order.paymentStatus}
+                                category={order.isPaid ? 'success' : order.isEscrow ? 'financial_hold' : 'pending'}
+                            />
                         )}
                     </div>
 

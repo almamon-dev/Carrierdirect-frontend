@@ -1,5 +1,5 @@
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Layers, Clock } from 'lucide-react';
 import { ActivityLogItem } from './ActivityLogActions';
 
@@ -101,13 +101,7 @@ export const getActivityLogColumns = ({ onSelectLog }: ActivityLogColumnsProps):
         sortable: true,
         render: (row) => (
             <div className="flex items-center justify-center min-h-[26px]">
-                <Badge variant="secondary" className={
-                    row.status === 'Success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-semibold text-[10.5px] border' :
-                    row.status === 'Warning' ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 font-semibold text-[10.5px] border' :
-                    'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 font-semibold text-[10.5px] border'
-                }>
-                    {row.status}
-                </Badge>
+                <StatusBadge status={row.status} />
             </div>
         ),
     },

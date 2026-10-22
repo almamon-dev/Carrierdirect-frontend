@@ -1,20 +1,16 @@
 /**
  * Supplier Negotiation Filter Bar Component
- * Matches QuoteRequests TableFilterContent style with Priority Level, Status, Vehicle Type, Date ranges, and Reset.
+ * Minimal Filters: Status, Last Activity (From / To), and Reset.
  */
 
-import React from 'react';
-import Select from '@/components/ui/select';
-import Input from '@/components/ui/input';
-import { RotateCcw } from 'lucide-react';
+import React from "react";
+import Select from "@/components/ui/select";
+import Input from "@/components/ui/input";
+import { RotateCcw, Calendar } from "lucide-react";
 
 interface TableFilterContentProps {
-    priorityFilter?: string;
-    setPriorityFilter?: (val: string) => void;
     statusFilter?: string;
     setStatusFilter?: (val: string) => void;
-    vehicleFilter?: string;
-    setVehicleFilter?: (val: string) => void;
     startDate?: string;
     setStartDate?: (val: string) => void;
     endDate?: string;
@@ -23,84 +19,63 @@ interface TableFilterContentProps {
 }
 
 export const TableFilterContent: React.FC<TableFilterContentProps> = ({
-    priorityFilter = 'all',
-    setPriorityFilter,
-    statusFilter = 'all',
+    statusFilter = "all",
     setStatusFilter,
-    vehicleFilter = 'all',
-    setVehicleFilter,
-    startDate = '',
+    startDate = "",
     setStartDate,
-    endDate = '',
+    endDate = "",
     setEndDate,
     onResetFilters,
 }) => {
     const hasActiveFilters =
-        priorityFilter !== 'all' ||
-        statusFilter !== 'all' ||
-        vehicleFilter !== 'all' ||
+        statusFilter !== "all" ||
         Boolean(startDate) ||
         Boolean(endDate);
 
     return (
-        <div className="w-full font-sans">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 items-end">
-                <div>
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">Priority Level</label>
-                    <Select
-                        value={priorityFilter}
-                        onChange={(val: any) => setPriorityFilter?.(val)}
-                        showSearch={false}
-                    >
-                        <option value="all">All Priorities</option>
-                        <option value="urgent">Urgent</option>
-                        <option value="high">High</option>
-                        <option value="normal">Normal</option>
-                    </Select>
-                </div>
-                <div>
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">Status</label>
+        <div className="w-full mb-3.5 font-sans">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                {/* 1. Status Filter */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Status
+                    </label>
                     <Select
                         value={statusFilter}
                         onChange={(val: any) => setStatusFilter?.(val)}
                         showSearch={false}
                     >
                         <option value="all">All Statuses</option>
-                        <option value="booked">Booked</option>
-                        <option value="counter received">Counter Received</option>
-                        <option value="counter offer sent">Counter Offer Sent</option>
-                        <option value="accepted">Accepted</option>
-                        <option value="completed">Completed</option>
-                        <option value="closed">Closed</option>
-                        <option value="negotiation">Negotiation</option>
+                        <option value="open">💬 Open / Active</option>
+                        <option value="counter">🔄 Counter Offers</option>
+                        <option value="agreed">🤝 Agreed</option>
+                        <option value="booked">📦 Booked</option>
+                        <option value="closed">🔒 Closed / Expired</option>
                     </Select>
                 </div>
-                <div>
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">Vehicle Type</label>
-                    <Select
-                        value={vehicleFilter}
-                        onChange={(val: any) => setVehicleFilter?.(val)}
-                        showSearch={false}
-                    >
-                        <option value="all">All Vehicles</option>
-                        <option value="covered">Covered Van</option>
-                        <option value="truck">Open Truck</option>
-                        <option value="refrigerated">Refrigerated Van</option>
-                        <option value="curtain">Curtain Sider</option>
-                    </Select>
+
+                {/* 2. Last Activity - From */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Last Activity From
+                    </label>
+                    <div className="relative">
+                        <Input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate?.(e.target.value)}
+                            className="h-9 text-xs pl-8"
+                        />
+                        <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
                 </div>
-                <div>
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">Start Date</label>
-                    <Input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate?.(e.target.value)}
-                        className="h-9 text-xs"
-                    />
-                </div>
-                <div>
+
+                {/* 3. Last Activity - To & Reset */}
+                <div className="min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">End Date</label>
+                        <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">
+                            Last Activity To
+                        </label>
                         {hasActiveFilters && onResetFilters && (
                             <button
                                 type="button"
@@ -112,12 +87,15 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                             </button>
                         )}
                     </div>
-                    <Input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate?.(e.target.value)}
-                        className="h-9 text-xs"
-                    />
+                    <div className="relative">
+                        <Input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate?.(e.target.value)}
+                            className="h-9 text-xs pl-8"
+                        />
+                        <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
                 </div>
             </div>
         </div>

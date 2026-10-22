@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, MapPin, ChevronRight, Calendar } from 'lucide-react';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface ScheduleTrip {
     id: string;
@@ -55,7 +56,7 @@ export const TodayScheduleSection: React.FC<Props> = ({ scheduleList }) => {
                             {/* Top row: Time + Trip ID + Cargo Type */}
                             <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-100 dark:border-slate-800">
                                 <div className="flex items-center gap-2">
-                                    <span className="px-2 py-0.5 text-[10.5px] font-bold bg-orange-50 dark:bg-orange-950/50 text-[#FF4A1F] rounded-[4px] border border-orange-200/80 dark:border-orange-900/60 flex items-center gap-1">
+                                    <span className="px-2 py-0.5 text-[10.5px] font-bold bg-orange-50 dark:bg-orange-950/50 text-[#FF4A1F] rounded-[2px] border border-orange-200/80 dark:border-orange-900/60 flex items-center gap-1">
                                         <Clock size={11} />
                                         <span>{item.time}</span>
                                     </span>
@@ -97,9 +98,7 @@ export const TodayScheduleSection: React.FC<Props> = ({ scheduleList }) => {
 
                             {/* Bottom Status Tag */}
                             <div className="flex justify-end pt-0.5">
-                                <span className="px-2.5 py-0.5 text-[10.5px] font-bold text-[#FF4A1F] border border-orange-200 dark:border-orange-900/60 bg-orange-50/60 dark:bg-orange-950/30 rounded-[4px]">
-                                    {item.status}
-                                </span>
+                                <StatusBadge status={item.status} />
                             </div>
                         </Link>
                     ))

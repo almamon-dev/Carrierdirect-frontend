@@ -1,6 +1,8 @@
 import React from 'react';
 import Modal, { ModalProps } from '../modal';
 import { AlertCircle } from 'lucide-react';
+import Button from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export interface ConfirmModalProps extends Omit<ModalProps, 'children'> {
   onConfirm: () => void;
@@ -8,6 +10,7 @@ export interface ConfirmModalProps extends Omit<ModalProps, 'children'> {
   cancelText?: string;
   isDestructive?: boolean;
   isLoading?: boolean;
+  icon?: React.ReactNode;
 }
 
 export default function ConfirmModal({
@@ -20,6 +23,8 @@ export default function ConfirmModal({
   cancelText = "Cancel",
   isDestructive = false,
   isLoading = false,
+  icon,
+  className,
   size = 'sm',
   ...props
 }: ConfirmModalProps) {
@@ -34,39 +39,50 @@ export default function ConfirmModal({
       onClose={onClose}
       size={size}
       showCloseButton={false}
+      className={cn(
+        "max-w-[370px] sm:max-w-[390px] p-4.5 sm:p-5 border border-slate-200 dark:border-slate-800 rounded-[5px] bg-white dark:bg-[#1e2329] shadow-xl",
+        className
+      )}
       {...props}
     >
-      <div className="flex flex-col items-center text-center pt-4 pb-2">
-        <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-5 ${isDestructive ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
-          <AlertCircle size={28} strokeWidth={2} />
+      <div className="flex flex-col items-center text-center pt-2 pb-1">
+        <div className={`w-11 h-11 rounded-full flex items-center justify-center mb-3 shrink-0 ${
+          isDestructive 
+            ? 'bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400' 
+            : 'bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'
+        }`}>
+          {icon || <AlertCircle size={22} strokeWidth={2} />}
         </div>
-        <h3 className="text-[20px] font-bold text-slate-900 mb-2">{title}</h3>
-        <p className="text-[14px] text-slate-500 font-medium px-4">
+        <h3 className="text-[15px] font-bold text-slate-900 dark:text-slate-100 mb-1 leading-snug">
+          {title}
+        </h3>
+        <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium px-2 leading-relaxed">
           {description}
         </p>
       </div>
 
-      <div className="mt-8 flex items-center gap-3 w-full">
-        <button
+      <div className="mt-5 flex items-center gap-2.5 w-full">
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
           onClick={onClose}
           disabled={isLoading}
-          className="flex-1 px-4 py-2.5 rounded-md font-semibold text-[14px] text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+          className="flex-1 h-8 rounded-[3px] text-xs font-semibold whitespace-nowrap bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-none cursor-pointer flex items-center justify-center"
         >
           {cancelText}
-        </button>
-        <button
+        </Button>
+        <Button
+          type="button"
+          variant={isDestructive ? "destructive" : "default"}
+          size="sm"
           onClick={handleConfirm}
+          isLoading={isLoading}
           disabled={isLoading}
-          className={`flex-1 px-4 py-2.5 rounded-md font-semibold text-[14px] text-white transition-colors disabled:opacity-50 flex items-center justify-center ${isDestructive ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+          className="flex-1 h-8 rounded-[3px] text-xs font-semibold whitespace-nowrap cursor-pointer shadow-2xs flex items-center justify-center"
         >
-          {isLoading ? (
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          ) : confirmText}
-        </button>
+          {confirmText}
+        </Button>
       </div>
     </Modal>
   );

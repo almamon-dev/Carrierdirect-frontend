@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { buildSecureQuoteUrl } from "@/utils/urlSecurity";
 import { encryptId } from "@/lib/encryption";
+import { apiClient } from "@/lib/axios";
 
 interface ProcessingRowActionsMenuProps {
     isOpen: boolean;
@@ -64,7 +65,7 @@ export const ProcessingRowActionsMenu: React.FC<ProcessingRowActionsMenuProps> =
                 className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap" 
                 onClick={() => { 
                     onClose(); 
-                    navigate(buildSecureQuoteUrl(rawId || row.id, "view")); 
+                    navigate(buildSecureQuoteUrl('view', rawId || row.id)); 
                 }}
             >
                 <Eye size={14} className="text-slate-400 shrink-0" />
@@ -118,20 +119,36 @@ export const ProcessingRowActionsMenu: React.FC<ProcessingRowActionsMenuProps> =
                 </button>
             )}
 
-            {/* 5. Download PDF — when available */}
-            {hasPdf && (
-                <button 
-                    type="button"
-                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap" 
-                    onClick={() => {
-                        onClose();
-                        window.open(pdfUrl, "_blank");
-                    }}
-                >
-                    <FileDown size={14} className="text-slate-400 shrink-0" />
-                    <span className="whitespace-nowrap">Download PDF</span>
-                </button>
-            )}
+            {/* 5. Download PDF */}
+            <button 
+                type="button"
+                className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer whitespace-nowrap" 
+                onClick={async () => {
+                    onClose();
+                    if (pdfUrl && typeof pdfUrl === 'string' && pdfUrl.startsWith('http')) {
+                        window.open(pdfUrl, '_blank');
+                        return;
+                    }
+                    const cleanId = String(rawId || '').replace(/[^0-9]/g, '').trim();
+                    if (!cleanId) return;
+                    try {
+                        const blob = await apiClient.getBlob(`/customer/quote-requests/${cleanId}/download-pdf`);
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `QuoteRequest-REQ-${cleanId.padStart(4, '0')}.pdf`);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                    } catch (err) {
+                        console.error('Failed to download PDF:', err);
+                    }
+                }}
+            >
+                <FileDown size={14} className="text-slate-400 shrink-0" />
+                <span className="whitespace-nowrap">Download PDF</span>
+            </button>
 
             {canCancel && <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />}
 

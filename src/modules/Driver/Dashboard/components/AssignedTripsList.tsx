@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Package, ArrowUpRight, Truck, MapPin, Clock, FileCheck } from 'lucide-react';
 import Button from '@/components/ui/button';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { ShipmentItem } from '../../types';
 
 interface Props {
@@ -43,16 +44,7 @@ export const AssignedTripsList: React.FC<Props> = ({ shipments }) => {
                                         <span className="font-mono font-bold text-xs text-slate-900 dark:text-white">
                                             {shipment.orderNumber}
                                         </span>
-                                        <span
-                                            className={`px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${isDelivered
-                                                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400'
-                                                    : isInTransit
-                                                        ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400'
-                                                        : 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400'
-                                                }`}
-                                        >
-                                            {shipment.status.replace('_', ' ')}
-                                        </span>
+                                        <StatusBadge status={shipment.status} />
                                         <span className="text-[11px] text-slate-400 font-medium">
                                             {shipment.cargo.freightType}
                                         </span>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { encryptId } from '@/lib/encryption';
+import { formatDisplayDate } from '@/lib/utils';
 
 export const QuotesReceivedQuoteIdCell: React.FC<{ row: any; onNavigate: (path: string) => void }> = ({
   row,
@@ -37,8 +38,10 @@ export const QuotesReceivedRequestIdCell: React.FC<{ row: any; onNavigate: (path
     row.requestId ||
     (reqIdVal ? (String(reqIdVal).startsWith('REQ-') ? reqIdVal : `REQ-${String(reqIdVal).padStart(4, '0')}`) : 'REQ-0000');
 
+  const dateVal = row.created_at || row.date || row.requestDate || row.request_date;
+
   return (
-    <div className="flex items-center min-h-[26px]">
+    <div className="flex flex-col justify-center min-h-[26px]">
       <button
         type="button"
         onClick={(e) => {
@@ -50,6 +53,11 @@ export const QuotesReceivedRequestIdCell: React.FC<{ row: any; onNavigate: (path
       >
         {reqIdText}
       </button>
+      {dateVal && (
+        <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 leading-none whitespace-nowrap">
+          {formatDisplayDate(dateVal)}
+        </span>
+      )}
     </div>
   );
 };

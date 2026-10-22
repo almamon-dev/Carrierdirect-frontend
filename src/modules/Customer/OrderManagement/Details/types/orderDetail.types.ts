@@ -58,6 +58,8 @@ export interface OrderPricingDetails {
     platformFee?: number;
     platformFeeFormatted?: string;
     platformFeePercent?: number;
+    quoteAmount?: number;
+    quoteFormatted?: string;
     total: number;
     baseFormatted: string;
     extraFormatted: string;

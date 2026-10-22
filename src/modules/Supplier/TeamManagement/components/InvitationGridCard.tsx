@@ -1,5 +1,5 @@
 import React from 'react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Mail, Shield, Building2, Calendar, Clock } from 'lucide-react';
 import { InvitationItem } from '../types/team.types';
 import { InvitationRowActions } from './InvitationRowActions';
@@ -31,13 +31,7 @@ export const InvitationGridCard: React.FC<InvitationGridCardProps> = ({ inv, onR
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                    <Badge variant="secondary" className={
-                        inv.status === 'Pending' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-semibold text-[10px] border border-amber-200/60' :
-                        inv.status === 'Accepted' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-semibold text-[10px] border border-emerald-200/60' :
-                        'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 font-semibold text-[10px] border border-red-200/60'
-                    }>
-                        {inv.status}
-                    </Badge>
+                    <StatusBadge status={inv.status} />
                     <InvitationRowActions
                         row={inv}
                         onResend={onResend}

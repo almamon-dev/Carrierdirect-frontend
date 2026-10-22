@@ -122,10 +122,24 @@ export function generateEncryptionKey(id: string | number): string {
  * Build a secured URL with large encrypted ID and long session/encryption keys
  */
 export function buildSecureQuoteUrl(
-    action: 'view' | 'edit',
-    rawId: string | number,
+    actionOrId: 'view' | 'edit' | string | number,
+    idOrAction?: string | number | 'view' | 'edit',
     tab?: string
 ): string {
+    let action: 'view' | 'edit' = 'view';
+    let rawId: string | number = '';
+
+    if (actionOrId === 'view' || actionOrId === 'edit') {
+        action = actionOrId;
+        rawId = idOrAction || '';
+    } else if (idOrAction === 'view' || idOrAction === 'edit') {
+        action = idOrAction;
+        rawId = actionOrId;
+    } else {
+        rawId = actionOrId;
+        action = 'view';
+    }
+
     const encId = encryptQuoteId(rawId);
     const sessionKey = getOrCreateSessionKey();
     const encKey = generateEncryptionKey(rawId);

@@ -1,6 +1,7 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import React from "react";
 import { Column } from "@/components/tables/data-table";
-import Badge from "@/components/ui/badge";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { formatDisplayDate } from "@/lib/utils";
 import { SupplierOrderItem } from "../../ActiveJobs/types";
 import { checkHasRealDriver } from "../../ActiveJobs/utils/orderMapper";
@@ -57,28 +58,34 @@ export const getAssignDriverColumns = (
         label: "Pickup Address",
         sortable: true,
         className: "w-[18%] min-w-[140px] max-w-[220px]",
-        render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.pickup_full_address || row.pickup_address || row.pickup_city}>
-                <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-                    {row.pickup_full_address || row.pickup_address || row.pickup_city || "Origin"}
-                </span>
-            </div>
-        )
+        render: (row) => {
+            const address = formatStandardAddress(row, 'pickup');
+            return (
+                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
+                    <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
+                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+                        {address}
+                    </span>
+                </div>
+            );
+        }
     },
     {
         id: "delivery",
         label: "Delivery Address",
         sortable: true,
         className: "w-[18%] min-w-[140px] max-w-[220px]",
-        render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.delivery_full_address || row.delivery_address || row.delivery_city}>
-                <MapPin size={12} className="text-emerald-500 shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-                    {row.delivery_full_address || row.delivery_address || row.delivery_city || "Destination"}
-                </span>
-            </div>
-        )
+        render: (row) => {
+            const address = formatStandardAddress(row, 'delivery');
+            return (
+                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
+                    <MapPin size={12} className="text-emerald-500 shrink-0" />
+                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+                        {address}
+                    </span>
+                </div>
+            );
+        }
     },
     {
         id: "pickup_date",
@@ -136,9 +143,7 @@ export const getAssignDriverColumns = (
 
             return (
                 <div className="flex items-center h-5">
-                    <Badge variant="warning" className="text-[10px] font-bold whitespace-nowrap bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
-                        Unassigned
-                    </Badge>
+                    <StatusBadge status="Unassigned" category="pending" />
                 </div>
             );
         }
@@ -151,27 +156,20 @@ export const getAssignDriverColumns = (
         render: (row) => {
             const rawStatus = String(row.status_raw || row.status || "confirmed").toLowerCase().trim();
             let displayStatus = "Confirmed";
-            let variant: any = "info";
 
             if (rawStatus === "completed" || rawStatus === "pod accepted") {
                 displayStatus = "Completed";
-                variant = "success";
             } else if (rawStatus.includes("review") || rawStatus === "delivered") {
                 displayStatus = "POD Review";
-                variant = "secondary";
             } else if (rawStatus === "in_transit" || rawStatus === "picked_up") {
                 displayStatus = rawStatus === "in_transit" ? "In Transit" : "Picked Up";
-                variant = "warning";
             } else if (rawStatus === "driver_assigned" || rawStatus === "assigned") {
                 displayStatus = "Assigned";
-                variant = "info";
             }
 
             return (
                 <div className="flex items-center justify-center h-5">
-                    <Badge variant={variant} showDot className="text-[10.5px] font-bold whitespace-nowrap">
-                        {displayStatus}
-                    </Badge>
+                    <StatusBadge status={displayStatus} />
                 </div>
             );
         }

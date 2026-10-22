@@ -6,6 +6,15 @@ export interface TransactionRow {
     type: string;
     raw_type?: string;
     description: string;
+    gross?: string;
+    gross_amount?: number;
+    fee?: string;
+    fee_amount?: number;
+    fee_percent?: number;
+    platform_charge?: string;
+    platform_charge_percent?: number;
+    net?: string;
+    net_amount?: number;
     amount: string;
     raw_amount?: number;
     currency?: string;

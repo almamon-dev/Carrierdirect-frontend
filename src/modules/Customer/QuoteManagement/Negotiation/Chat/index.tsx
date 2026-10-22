@@ -18,6 +18,8 @@ export default function CustomerNegotiationChat() {
         setSearchQuery,
         filterTab,
         setFilterTab,
+        sortBy,
+        setSortBy,
         counts,
         allNegotiations,
         activeChatId,
@@ -106,6 +108,8 @@ export default function CustomerNegotiationChat() {
                     setSearchQuery={setSearchQuery}
                     filterTab={filterTab}
                     setFilterTab={setFilterTab}
+                    sortBy={sortBy}
+                    setSortBy={setSortBy}
                     counts={counts}
                     chats={chats}
                     filteredChats={filteredChats}

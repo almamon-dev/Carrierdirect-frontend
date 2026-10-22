@@ -51,10 +51,26 @@ export const buildQuoteRequestFormData = (
 
     if (formData.vehicleType) submitData.append('vehicle_type', formData.vehicleType);
     if (formData.loadType) submitData.append('load_type', formData.loadType);
-    if (formData.itemsCount) submitData.append('items_count', String(formData.itemsCount));
-    if (formData.palletsCount) submitData.append('pallets_count', String(formData.palletsCount));
-    if (formData.weight) submitData.append('weight', String(formData.weight));
-    if (formData.volume) submitData.append('volume', String(formData.volume));
+
+    const sanitizeNumeric = (v: any) => {
+        if (!v) return null;
+        const s = String(v).trim();
+        if (s === '' || s === '-' || s === '—' || s.toLowerCase() === 'null') return null;
+        const cleaned = s.replace(/[^0-9.]/g, '');
+        return cleaned && !isNaN(Number(cleaned)) ? cleaned : null;
+    };
+
+    const cleanItemsCount = sanitizeNumeric(formData.itemsCount);
+    if (cleanItemsCount) submitData.append('items_count', cleanItemsCount);
+
+    const cleanPalletsCount = sanitizeNumeric(formData.palletsCount);
+    if (cleanPalletsCount) submitData.append('pallets_count', cleanPalletsCount);
+
+    const cleanWeight = sanitizeNumeric(formData.weight);
+    if (cleanWeight) submitData.append('weight', cleanWeight);
+
+    const cleanVolume = sanitizeNumeric(formData.volume);
+    if (cleanVolume) submitData.append('volume', cleanVolume);
 
     // Dimensions table / items
     if (Array.isArray(formData.dimensions) && formData.dimensions.length > 0) {

@@ -58,4 +58,4 @@ export interface CustomerNegotiationItem {
 }
 
 export type NegotiationTab = 'active' | 'history';
-export type NegotiationFilterTab = 'all' | 'active' | 'waiting_you' | 'waiting_supplier' | 'agreed' | 'closed';
+export type NegotiationFilterTab = 'all' | 'your_turn' | 'suppliers_turn' | 'agreed' | 'active' | 'waiting_you' | 'waiting_supplier' | 'closed';

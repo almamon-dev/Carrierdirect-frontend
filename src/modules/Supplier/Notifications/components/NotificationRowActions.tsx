@@ -102,7 +102,12 @@ export const NotificationRowActions: React.FC<NotificationRowActionsProps> = ({
                                 onClick={() => {
                                     handleClose();
                                     if (row.unread) onMarkAsRead(row.id);
-                                    navigate(normalizeNotifLink(row.link));
+                                    const targetLink = normalizeNotifLink(row.link);
+                                    if (targetLink.startsWith('http://') || targetLink.startsWith('https://')) {
+                                        window.location.href = targetLink;
+                                    } else {
+                                        navigate(targetLink);
+                                    }
                                 }}
                             >
                                 <ExternalLink size={13} className="text-slate-400 shrink-0" />

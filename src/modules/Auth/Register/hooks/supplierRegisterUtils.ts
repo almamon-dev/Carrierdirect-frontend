@@ -1,5 +1,6 @@
 export interface SupplierFormData {
     fullName: string;
+    companyName: string;
     email: string;
     password: string;
     confirmPassword: string;
@@ -8,6 +9,7 @@ export interface SupplierFormData {
     insuranceProviderName: string;
     policyNumber: string;
     policyExpiryDate: string;
+    companyLogo: any;
     insuranceDocument: any;
     licenses: any;
 }
@@ -34,7 +36,8 @@ export const getRegisterSessionId = (): string => {
 
 export const validateStep1 = (data: SupplierFormData): Record<string, string> => {
     const errs: Record<string, string> = {};
-    if (!data.fullName.trim()) errs.fullName = 'Full Name is required';
+    if (!data.fullName.trim()) errs.fullName = 'Full Name (Contact Person) is required';
+    if (!data.companyName?.trim()) errs.companyName = 'Company / Business Name is required';
     if (!data.email.trim()) {
         errs.email = 'Email Address is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
@@ -71,7 +74,9 @@ export const validateStep2 = (
     } else if (!isPolicyDateValid(data.policyExpiryDate)) {
         errs.policyExpiryDate = 'Expiry date must be in the future';
     }
+    if (!data.companyLogo) errs.companyLogo = 'Company Logo / Profile Image is required';
     if (!data.insuranceDocument) errs.insuranceDocument = 'Insurance Document is required';
+    if (!data.licenses) errs.licenses = 'Operating License / Certification is required';
     if (!agreed) errs.agreed = 'You must agree to the Terms & Privacy Policy';
     return errs;
 };

@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { HeaderNotification } from '@/hooks/useHeaderNotifications';
 import { 
     FileText, Truck, MessageSquare, Landmark, AlertTriangle, Clock
@@ -57,9 +57,7 @@ export const getNotificationColumns = (): Column<HeaderNotification>[] => [
                         {row.title}
                     </span>
                     {row.unread && (
-                        <Badge className="bg-[#ff4a1f] text-white text-[8.5px] font-black px-1.5 py-0 rounded-[2px] border-none shadow-2xs shrink-0">
-                            NEW
-                        </Badge>
+                        <StatusBadge status="New" className="text-[10px] px-1.5 py-0.5" />
                     )}
                 </div>
                 <p className={`text-[11px] leading-tight truncate ${row.unread ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
@@ -85,16 +83,7 @@ export const getNotificationColumns = (): Column<HeaderNotification>[] => [
         className: 'w-[75px] min-w-[70px]',
         render: (row) => (
             <div className="flex items-center min-h-[28px]">
-                {row.unread ? (
-                    <span className="inline-flex items-center gap-1 text-[9.5px] font-bold text-[#ff4a1f] bg-orange-50 dark:bg-[#ff4a1f]/15 px-1.5 py-0.5 rounded-[2px] border border-orange-200/60 dark:border-orange-500/20 whitespace-nowrap">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f]" />
-                        Unread
-                    </span>
-                ) : (
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">
-                        Read
-                    </span>
-                )}
+                <StatusBadge status={row.unread ? 'Unread' : 'Read'} />
             </div>
         )
     }

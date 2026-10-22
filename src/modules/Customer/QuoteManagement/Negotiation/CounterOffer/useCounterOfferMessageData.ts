@@ -120,8 +120,6 @@ export function useCounterOfferMessageData(msg: any, activeChat: any, activeNego
     const cleanQuoteId = String(targetQuoteId || "").replace(/[^0-9]/g, "");
 
     const isOrderPaid = Boolean(
-        (cleanQuoteId && localStorage.getItem(`cd_quote_paid_${cleanQuoteId}`) === "true") ||
-        (targetQuoteId && localStorage.getItem(`cd_quote_paid_${targetQuoteId}`) === "true") ||
         rawData.is_paid || rawData.has_order || rawData.order_id || rawData.status_raw === "booked" || rawData.status === "Booked" ||
         (activeData as any)?.status === "Booked" || (activeData as any)?.statusRaw === "booked" ||
         (activeData as any)?.isPaid || (activeData as any)?.hasOrder || (activeData as any)?.is_paid || (activeData as any)?.has_order ||

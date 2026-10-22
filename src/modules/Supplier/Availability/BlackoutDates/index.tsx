@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Calendar, AlertTriangle, Trash2 } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import FormLabel from '@/components/ui/label';
 import DataTable, { Column } from '@/components/tables/data-table';
 
@@ -77,13 +77,10 @@ export default function BlackoutDates() {
             id: 'status', 
             label: 'Status', 
             render: (r) => (
-                <Badge variant="secondary" className={
-                    r.status === 'Upcoming' ? 'bg-amber-50 text-amber-700 font-semibold' :
-                    r.status === 'Active' ? 'bg-red-50 text-red-700 font-semibold' :
-                    'bg-slate-100 text-slate-600 font-semibold'
-                }>
-                    {r.status}
-                </Badge>
+                <StatusBadge
+                    status={r.status}
+                    category={r.status === 'Active' ? 'action_required' : r.status === 'Upcoming' ? 'pending' : 'neutral'}
+                />
             )
         },
     ];

@@ -3,12 +3,10 @@ import { Column } from '@/components/tables/data-table';
 import Skeleton from '@/components/ui/skeleton';
 import {
     ProcessingRequestIdCell,
-    ProcessingAddressCell,
+    ProcessingRouteCell,
     ProcessingVehicleCell,
-    ProcessingPriorityBadgeCell,
     ProcessingBidsCountCell,
     ProcessingStatusBadgeCell,
-    ProcessingDateCell
 } from './ProcessingCells';
 
 export const getProcessingColumns = (navigate: (path: string) => void): Column<any>[] => [
@@ -16,33 +14,24 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
         id: 'id',
         label: 'Request ID',
         sortable: true,
-        className: 'w-[95px] min-w-[90px]',
+        className: 'w-[115px] min-w-[110px]',
         render: (row) => <ProcessingRequestIdCell row={row} onNavigate={navigate} />,
         skeleton: () => (
-            <div className="flex items-center min-h-[22px]">
+            <div className="flex flex-col gap-1 min-h-[22px]">
                 <Skeleton className="h-4 w-16 rounded-[3px] !bg-orange-100/70 dark:!bg-orange-950/40" />
+                <Skeleton className="h-2.5 w-12 rounded-[2px]" />
             </div>
         )
     },
     {
-        id: 'pickup',
-        label: 'Pickup Address',
-        className: 'w-[18%] min-w-[130px] max-w-[190px]',
-        render: (row) => <ProcessingAddressCell address={row.pickup} />,
+        id: 'route',
+        label: 'Route',
+        className: 'w-[240px] min-w-[210px]',
+        render: (row) => <ProcessingRouteCell row={row} />,
         skeleton: () => (
-            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
-                <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
-            </div>
-        )
-    },
-    {
-        id: 'delivery',
-        label: 'Delivery Address',
-        className: 'w-[18%] min-w-[130px] max-w-[190px]',
-        render: (row) => <ProcessingAddressCell address={row.delivery} />,
-        skeleton: () => (
-            <div className="flex items-center min-w-0 pr-1 min-h-[22px]">
-                <Skeleton className="h-3.5 w-32 max-w-full rounded-[3px]" />
+            <div className="flex flex-col gap-1 min-w-0 pr-1 min-h-[22px]">
+                <Skeleton className="h-3.5 w-40 max-w-full rounded-[3px]" />
+                <Skeleton className="h-2.5 w-20 rounded-[2px]" />
             </div>
         )
     },
@@ -50,7 +39,7 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
         id: 'vehicle',
         label: 'Vehicle Type',
         sortable: true,
-        className: 'w-[130px] min-w-[120px]',
+        className: 'w-[140px] min-w-[125px]',
         render: (row) => <ProcessingVehicleCell vehicleType={row.vehicleType} />,
         skeleton: () => (
             <div className="flex items-center min-h-[22px]">
@@ -59,22 +48,10 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
         )
     },
     {
-        id: 'priority',
-        label: 'Priority',
-        sortable: true,
-        className: 'w-[85px] min-w-[80px] text-center',
-        render: (row) => <ProcessingPriorityBadgeCell priority={row.priority} />,
-        skeleton: () => (
-            <div className="flex items-center justify-center min-h-[22px]">
-                <Skeleton className="h-5 w-14 rounded-[3px] !bg-amber-100/70 dark:!bg-amber-950/50" />
-            </div>
-        )
-    },
-    {
         id: 'bids',
         label: 'Bids / Quotes',
         sortable: true,
-        className: 'w-[85px] min-w-[80px] text-center',
+        className: 'w-[110px] min-w-[100px] text-center',
         render: (row) => <ProcessingBidsCountCell row={row} onNavigate={navigate} />,
         skeleton: () => (
             <div className="flex items-center justify-center min-h-[22px]">
@@ -86,23 +63,11 @@ export const getProcessingColumns = (navigate: (path: string) => void): Column<a
         id: 'status',
         label: 'Status',
         sortable: true,
-        className: 'w-[95px] min-w-[90px] text-center',
+        className: 'w-[125px] min-w-[115px] text-center',
         render: (row) => <ProcessingStatusBadgeCell status={row.status} />,
         skeleton: () => (
             <div className="flex items-center justify-center min-h-[22px]">
                 <Skeleton className="h-5 w-18 rounded-[3px] !bg-emerald-100/70 dark:!bg-emerald-950/50" />
-            </div>
-        )
-    },
-    {
-        id: 'date',
-        label: 'Date',
-        sortable: true,
-        className: 'w-[105px] min-w-[100px] text-center',
-        render: (row) => <ProcessingDateCell date={row.createdAt} />,
-        skeleton: () => (
-            <div className="flex items-center justify-center min-h-[22px]">
-                <Skeleton className="h-3.5 w-16 rounded-[3px]" />
             </div>
         )
     }

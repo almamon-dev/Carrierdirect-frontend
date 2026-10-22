@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { CustomerChatItem } from "../../types";
-import { getStatusBadgeClass } from "@/modules/Supplier/QuoteManagement/utils/statusStyles";
+import StatusBadge from "@/components/common/StatusBadge";
 
 interface CustomerChatQuotationsListSectionProps {
     contactQuotes: CustomerChatItem[];
@@ -95,9 +95,7 @@ export const CustomerChatQuotationsListSection: React.FC<CustomerChatQuotationsL
                                                 <td className="py-1 text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap w-[70px]">Status</td>
                                                 <td className="py-1 text-slate-400 font-bold text-center w-[15px] select-none">:</td>
                                                 <td className="py-1 pl-1 text-right">
-                                                    <span className={`text-[9.5px] px-1.5 py-0.5 rounded font-semibold border inline-block ${getStatusBadgeClass(statusLabel)}`}>
-                                                        {statusLabel}
-                                                    </span>
+                                                    <StatusBadge status={statusLabel} label={statusLabel} context="quote" />
                                                 </td>
                                             </tr>
                                             <tr className="border-b border-slate-100/60 dark:border-slate-800/60">

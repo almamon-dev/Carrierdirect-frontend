@@ -13,6 +13,7 @@ import {
 import DataTable from '@/components/tables/data-table';
 import Button from '@/components/ui/button';
 import EmptyState from '@/components/tables/empty-state';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { getNotificationColumns } from './components/columns';
 import { NotificationRowActions } from './components/NotificationRowActions';
 import { FilterTabs } from './components/FilterTabs';
@@ -54,9 +55,9 @@ export default function SupplierNotifications() {
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1 flex items-center gap-2">
                         <span>Notifications</span>
                         {unreadCount > 0 && (
-                            <span className="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f] border border-orange-200/80 dark:border-orange-500/20 text-[11px] font-bold px-2 py-0.5 rounded-[3px]">
+                            <StatusBadge status="unread">
                                 {unreadCount} Unread
-                            </span>
+                            </StatusBadge>
                         )}
                     </h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">

@@ -115,18 +115,41 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, _al
         markCustomerNegotiationSeenApi(activeChatId);
 
         // Real-Time Reverb WebSocket Listener
-        const cleanQuoteId = String(activeChatId).replace(/[^0-9]/g, '');
+        const cleanQuoteId = String(activeChatId).replace(/[^0-9]/g, "");
         let quoteChannel: any = null;
+        let userChannel: any = null;
+
+        const handleRealtimeMessageUpdate = () => {
+            fetchMessages();
+            setTimeout(scrollToBottom, 100);
+        };
+
+        window.addEventListener("carrierdirect_notif_update", handleRealtimeMessageUpdate);
+        window.addEventListener("carrierdirect_quote_updated", handleRealtimeMessageUpdate);
+        window.addEventListener("carrierdirect_negotiation_refresh", handleRealtimeMessageUpdate);
+
         if (cleanQuoteId) {
             try {
                 quoteChannel = echo.private(`chat.quote.${cleanQuoteId}`);
-                quoteChannel.listen('.message.sent', () => {
-                    fetchMessages();
-                    setTimeout(scrollToBottom, 100);
-                });
+                quoteChannel.listen(".message.sent", handleRealtimeMessageUpdate);
+                quoteChannel.listen(".quote.updated", handleRealtimeMessageUpdate);
+                quoteChannel.listen("quote.updated", handleRealtimeMessageUpdate);
             } catch (err) {
-                console.warn('Echo quote channel error:', err);
+                console.warn("Echo quote channel error:", err);
             }
+        }
+
+        try {
+            const rawUser = localStorage.getItem("carrierdirect_user_data") || localStorage.getItem("user");
+            const user = rawUser ? JSON.parse(rawUser) : null;
+            if (user?.id) {
+                userChannel = echo.private(`App.Models.User.${user.id}`);
+                userChannel.listen(".quote.updated", handleRealtimeMessageUpdate);
+                userChannel.listen("quote.updated", handleRealtimeMessageUpdate);
+                userChannel.notification(handleRealtimeMessageUpdate);
+            }
+        } catch (err) {
+            console.warn("Echo user channel error in useCustomerChatMessages:", err);
         }
 
         // Relaxed fallback polling (20s) instead of aggressive 3s
@@ -136,8 +159,17 @@ export function useCustomerChatMessages(activeChat: CustomerChatItem | null, _al
         return () => {
             clearInterval(messageTimer);
             clearInterval(typingTimer);
+            window.removeEventListener("carrierdirect_notif_update", handleRealtimeMessageUpdate);
+            window.removeEventListener("carrierdirect_quote_updated", handleRealtimeMessageUpdate);
+            window.removeEventListener("carrierdirect_negotiation_refresh", handleRealtimeMessageUpdate);
             if (quoteChannel) {
-                quoteChannel.stopListening('.message.sent');
+                quoteChannel.stopListening(".message.sent");
+                quoteChannel.stopListening(".quote.updated");
+                quoteChannel.stopListening("quote.updated");
+            }
+            if (userChannel) {
+                userChannel.stopListening(".quote.updated");
+                userChannel.stopListening("quote.updated");
             }
         };
     }, [activeChatId, activeChat?.raw?.status, pollTypingStatus, setIsSupplierTyping, typingAutoClearTimerRef]);

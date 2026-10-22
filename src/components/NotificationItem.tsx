@@ -97,7 +97,25 @@ export const getNotificationVisualConfig = (notif: HeaderNotification): IconConf
         };
     }
 
-    // 7. New Quote Request / RFQ
+    // 7. Quote Received / Supplier Offer Submitted / Revision
+    if (
+        sub === 'quote_received' ||
+        sub === 'quote_submitted' ||
+        sub === 'quote_revised' ||
+        title.includes('new quote from') ||
+        title.includes('quote received') ||
+        title.includes('quote submitted') ||
+        title.includes('revised quote') ||
+        title.includes('revised offer')
+    ) {
+        return {
+            icon: FileText,
+            bg: 'bg-[#EFF6FF] dark:bg-blue-950/40 border border-blue-100/80 dark:border-blue-800/40',
+            color: 'text-blue-600 dark:text-blue-400',
+        };
+    }
+
+    // 8. New Quote Request / RFQ
     if (
         sub === 'new_quote_request' ||
         title.includes('quote request') ||

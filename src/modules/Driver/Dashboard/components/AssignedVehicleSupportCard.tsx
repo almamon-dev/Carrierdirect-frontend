@@ -23,7 +23,7 @@ export const AssignedVehicleSupportCard: React.FC<AssignedVehicleSupportCardProp
                         Assigned Vehicle & Equipment
                     </h3>
                 </div>
-                <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-[4px] border border-emerald-200/60 dark:border-emerald-800/40 flex items-center gap-1">
+                <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-[2px] border border-emerald-200/60 dark:border-emerald-800/40 flex items-center gap-1">
                     <CheckCircle2 size={11} />
                     <span>Verified Active</span>
                 </span>

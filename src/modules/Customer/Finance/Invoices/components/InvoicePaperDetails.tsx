@@ -1,6 +1,6 @@
 import React from 'react';
 import { Phone, Mail, Building2, ShieldCheck, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface InvoicePaperDetailsProps {
   invoiceData: any;
@@ -74,24 +74,16 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
             <div className="flex justify-end gap-2 items-center pt-0.5">
               <span className="font-normal text-slate-400">Status:</span>
               {isPaid && (
-                <Badge className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0 text-[9.5px] font-bold">
-                  <CheckCircle2 size={10} className="mr-1 inline" /> Paid
-                </Badge>
+                <StatusBadge status="Paid" />
               )}
               {isDue && !isOverdue && isPayLater && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60">
-                  <span>🏢</span> Net-30 Due
-                </span>
+                <StatusBadge status="Net-30 Due" />
               )}
               {isDue && !isOverdue && !isPayLater && (
-                <Badge className="bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-1.5 py-0 text-[9.5px] font-bold">
-                  <Clock size={10} className="mr-1 inline" /> Payment Due
-                </Badge>
+                <StatusBadge status="Due" label="Payment Due" />
               )}
               {isOverdue && (
-                <Badge className="bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 px-1.5 py-0 text-[9.5px] font-bold">
-                  <AlertCircle size={10} className="mr-1 inline" /> Overdue
-                </Badge>
+                <StatusBadge status="Overdue" />
               )}
             </div>
           </div>

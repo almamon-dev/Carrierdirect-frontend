@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import DataTable, { Column } from '@/components/tables/data-table';
 import MetricCard from '@/components/cards/metric-card';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import Badge from '@/components/ui/badge';
 import { useCustomerPayments } from '@/modules/Customer/Finance/Payments/hooks/useCustomerPayments';
 import { CustomerPaymentItem } from '@/modules/Customer/Finance/Payments/types';
@@ -57,26 +58,12 @@ export default function BalanceSubTab({
   const renderStatusBadge = (p: CustomerPaymentItem) => {
     const st = String(p.raw_status || p.status || '').toLowerCase().trim();
     if (st === 'succeeded' || st === 'paid' || st === 'completed') {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
-          <CheckCircle2 size={11} className="text-emerald-600 dark:text-emerald-400" />
-          Completed
-        </span>
-      );
+      return <StatusBadge status="Completed" category="success" />;
     }
     if (st === 'failed' || st === 'rejected') {
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10.5px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200">
-          Failed
-        </span>
-      );
+      return <StatusBadge status="Failed" category="failed" />;
     }
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[10.5px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
-        <Clock size={11} className="text-amber-600 dark:text-amber-400" />
-        Processing
-      </span>
-    );
+    return <StatusBadge status="Processing" category="in_progress" />;
   };
 
   const renderMethodBadge = (p: CustomerPaymentItem) => {
@@ -87,14 +74,14 @@ export default function BalanceSubTab({
 
     if (isPayLater) {
       return (
-        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] text-[11px] font-semibold bg-orange-50 text-[#ff4a1f] border border-orange-200/80 dark:bg-orange-950/40 dark:border-orange-900/60">
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] text-[11px] font-semibold bg-orange-50 text-[#ff4a1f] border border-orange-200/80 dark:bg-orange-950/40 dark:border-orange-900/60">
           <Landmark size={11} /> Net-30 Pay Later
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
         <CreditCard size={11} />
         {p.card_brand ? `${p.card_brand} •••• ${p.card_last4 || '4242'}` : 'Credit Card (Stripe)'}
       </span>

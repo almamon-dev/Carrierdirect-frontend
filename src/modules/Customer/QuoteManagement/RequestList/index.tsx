@@ -22,7 +22,7 @@ import { RequestListModals } from './components/RequestListModals';
 export default function RequestList() {
     const navigate = useNavigate();
     const filters = useRequestListFilters();
-    const { requestData, setRequestData, isLoading, isRepeating, fetchQuoteRequests, handleRepeatRequest } = useCustomerQuoteRequests();
+    const { requestData, setRequestData, isLoading, isRepeating, fetchQuoteRequests, handleRepeatRequest, handleMoveToDraft } = useCustomerQuoteRequests();
     const deleteState = useRequestListDelete(setRequestData);
     const wizard = useRequestListImportWizard(fetchQuoteRequests);
 
@@ -58,7 +58,7 @@ export default function RequestList() {
     const columns = useMemo(() => getCustomerColumns(navigate), [navigate]);
 
     return (
-        <div className="p-4 md:p-6 w-full mx-auto space-y-5 min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c]">
+        <div className="p-4 md:p-6 w-full mx-auto space-y-5 font-sans bg-[#f8fafc] dark:bg-[#12161c]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
@@ -98,9 +98,10 @@ export default function RequestList() {
                         isRepeating={isRepeating === (row.rawId || row.id)}
                         onRepeatRequest={(req) => checkOrLock(() => handleRepeatRequest(req))}
                         onDeleteRequest={deleteState.handleDeleteRequestClick}
+                        onMoveToDraft={handleMoveToDraft}
                     />
                 )}
-                actionsColumnClassName="w-[76px] min-w-[70px] text-right pr-3.5 sm:pr-4"
+                actionsColumnClassName="w-[60px] text-right whitespace-nowrap pr-3.5"
                 onDeleteSelected={deleteState.handleDeleteSelectedClick}
                 headerTabs={<FilterTabs requestData={requestData} activeTab={filters.activeFilterTab} onSelectTab={filters.setActiveFilterTab} />}
                 filterContent={
@@ -122,8 +123,8 @@ export default function RequestList() {
                 compact={true}
                 isLoading={isLoading}
                 onRowClick={(row) => navigate(buildSecureQuoteUrl('view', row.rawId || row.id))}
-                tableLayout="fixed"
-                tableClassName="w-full min-w-[1150px]"
+                tableLayout="auto"
+                tableClassName="w-full"
                 emptyState={
                     <EmptyState
                         icon={Inbox}

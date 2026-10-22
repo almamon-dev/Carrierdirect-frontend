@@ -111,6 +111,8 @@ export default function CustomerQuoteHistory() {
             <DataTable
                 data={filteredHistoryQuotes}
                 columns={columns}
+                tableLayout="auto"
+                tableClassName="w-full"
                 actions={(row) => <CustomerWonRowActions row={row} />}
                 actionsColumnClassName="w-[120px] min-w-[120px] text-right"
                 headerTabs={
@@ -124,8 +126,6 @@ export default function CustomerQuoteHistory() {
                 compact={true}
                 isLoading={loading || isRefreshing}
                 onRowClick={(row) => navigate(`/customer/quotes/received/view/${encryptId(row.rawId || row.id)}`)}
-                tableLayout="fixed"
-                tableClassName="min-w-[1050px]"
                 emptyState={
                     <EmptyState
                         icon={History}

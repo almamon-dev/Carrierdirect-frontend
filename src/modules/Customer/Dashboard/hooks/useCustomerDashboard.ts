@@ -1,3 +1,4 @@
+import { echo } from "@/lib/echo";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import apiClient from "@/lib/axios";
 import { useSubscriptionQuota } from "@/hooks/useSubscriptionQuota";
@@ -36,8 +37,8 @@ export function useCustomerDashboard() {
   const [spendFilter, setSpendFilter] = useState<"30_days" | "3_months" | "this_year">("30_days");
   const [overviewFilter, setOverviewFilter] = useState<"30_days" | "3_months" | "this_year">("30_days");
 
-  const fetchDashboardData = useCallback(async () => {
-    setLoading(true);
+  const fetchDashboardData = useCallback(async (silent: boolean = false) => {
+    if (!silent) setLoading(true);
     try {
       const [profileRes, ordersRes, quotesRes, invoicesRes, notifsRes, overviewRes] = await Promise.allSettled([
         apiClient.get("/customer/profile"),
@@ -62,21 +63,74 @@ export function useCustomerDashboard() {
         setInvoices(Array.isArray(list) ? list : []);
       }
       if (notifsRes.status === "fulfilled") {
-        const list = notifsRes.value.data?.notifications || notifsRes.value.data?.data || notifsRes.value.data || [];
-        setNotifications(Array.isArray(list) ? list : []);
+        const notifsData = notifsRes.value.data?.data?.notifications || notifsRes.value.data?.notifications || notifsRes.value.data?.data || notifsRes.value.data || [];
+        setNotifications(Array.isArray(notifsData) ? notifsData : []);
       }
       if (overviewRes.status === "fulfilled") {
         const ovData = overviewRes.value.data?.data || overviewRes.value.data;
         setOverviewStats(ovData?.stats || ovData || null);
       }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(false);
   }, [fetchDashboardData]);
+
+  // Real-time synchronization for Customer Dashboard
+  useEffect(() => {
+    const handleSync = () => {
+      fetchDashboardData(true);
+    };
+
+    window.addEventListener("carrierdirect_notif_update", handleSync);
+    window.addEventListener("carrierdirect_quote_updated", handleSync);
+    window.addEventListener("order-status-updated", handleSync);
+
+    // Reverb WebSocket direct subscription
+    let channel: any = null;
+    try {
+      const userStr = localStorage.getItem("user");
+      const parsedUser = userStr ? JSON.parse(userStr) : null;
+      const uid = profile?.id || parsedUser?.id;
+
+      if (uid) {
+        channel = echo.private(`App.Models.User.${uid}`);
+        channel.notification(() => {
+          fetchDashboardData(true);
+        });
+        channel.listen(".quote.updated", () => {
+          fetchDashboardData(true);
+        });
+        channel.listen(".ShipmentStatusUpdated", () => {
+          fetchDashboardData(true);
+        });
+      }
+    } catch (e) {
+      console.warn("Customer Dashboard Echo error:", e);
+    }
+
+    // Fallback polling every 20 seconds for seamless real-time updates
+    const pollTimer = setInterval(() => {
+      fetchDashboardData(true);
+    }, 20000);
+
+    return () => {
+      window.removeEventListener("carrierdirect_notif_update", handleSync);
+      window.removeEventListener("carrierdirect_quote_updated", handleSync);
+      window.removeEventListener("order-status-updated", handleSync);
+      clearInterval(pollTimer);
+      if (channel) {
+        try {
+          channel.stopListening(".Illuminate\Notifications\Events\BroadcastNotificationCreated");
+          channel.stopListening(".quote.updated");
+          channel.stopListening(".ShipmentStatusUpdated");
+        } catch {}
+      }
+    };
+  }, [fetchDashboardData, profile?.id]);
 
   const metrics = useMemo(() => {
     let totalSpend = invoices.reduce((acc, curr) => {

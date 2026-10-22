@@ -7,7 +7,7 @@ interface Props {
 }
 
 export const DriverShipmentSidebarTimeline: React.FC<Props> = ({ shipment }) => {
-    const status = shipment.status;
+    const status = (shipment.status || '').toLowerCase();
     const isCompleted = status === 'completed';
 
     let currentStep = 1;
@@ -16,13 +16,13 @@ export const DriverShipmentSidebarTimeline: React.FC<Props> = ({ shipment }) => 
     if (status === 'completed' || status === 'delivered') {
         currentStep = 5;
         isDelivered = true;
-    } else if (status === 'at_delivery') {
+    } else if (status === 'at_delivery' || status === 'arrived') {
         currentStep = 4;
-    } else if (status === 'in_transit') {
+    } else if (status === 'in_transit' || status.includes('transit')) {
         currentStep = 3;
-    } else if (status === 'at_pickup') {
+    } else if (status === 'at_pickup' || status === 'picked_up' || status.includes('pick')) {
         currentStep = 2;
-    } else if (status === 'assigned' || status === 'accepted') {
+    } else if (status === 'assigned' || status === 'driver_assigned' || status === 'accepted') {
         currentStep = 1;
     }
 
@@ -80,14 +80,14 @@ export const DriverShipmentSidebarTimeline: React.FC<Props> = ({ shipment }) => 
             active: currentStep === 3 && !isDelivered,
             isLive: currentStep === 3 && !isDelivered,
         },
-        ...(isDelivered || currentStep >= 4 ? [{
+        {
             id: 5,
-            title: isCompleted ? 'Delivery Approved & Completed' : 'Delivered • POD Uploaded',
-            time: isDelivered ? (findHistoryTime(['delivered', 'completed']) || deliveryTimeStr) : 'Pending Sign-Off',
+            title: isCompleted ? 'Delivery Approved & Completed' : (isDelivered ? 'Delivered • POD Uploaded' : 'Delivered'),
+            time: isDelivered ? (findHistoryTime(['delivered', 'completed']) || deliveryTimeStr) : 'Pending',
             completed: isDelivered,
             active: currentStep === 4 && !isDelivered,
             isLive: false,
-        }] : []),
+        },
     ];
 
     return (

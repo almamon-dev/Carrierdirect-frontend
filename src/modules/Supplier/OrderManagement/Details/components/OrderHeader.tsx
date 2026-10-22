@@ -3,7 +3,7 @@ import React from 'react';
 import { ArrowLeft, Download, Upload, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { SupplierOrder, OrderStatus } from '../../types/order.types';
 
 interface OrderHeaderProps {
@@ -34,17 +34,7 @@ export const OrderHeader: React.FC<OrderHeaderProps> = ({
                     <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-1">
                         Order Details: {order.id}
                     </h1>
-                    <Badge 
-                        variant="secondary" 
-                        className={
-                            currentStatus === 'In Transit' ? 'bg-blue-50 text-blue-700 font-semibold' :
-                            currentStatus === 'Delivered' ? 'bg-emerald-50 text-emerald-700 font-semibold' :
-                            currentStatus === 'Scheduled' ? 'bg-amber-50 text-amber-700 font-semibold' :
-                            'bg-slate-100 text-slate-700 font-semibold'
-                        }
-                    >
-                        {currentStatus}
-                    </Badge>
+                    <StatusBadge status={currentStatus} />
                 </div>
 
                 {/* Toolbar */}

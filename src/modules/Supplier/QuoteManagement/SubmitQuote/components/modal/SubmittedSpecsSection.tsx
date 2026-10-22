@@ -86,7 +86,7 @@ export const SubmittedSpecsSection: React.FC<SubmittedSpecsSectionProps> = ({
                     <DetailRow label="Vehicle Type" value={requestDetails.vehicleType && requestDetails.vehicleType !== '—' ? requestDetails.vehicleType : 'Standard Haulage'} />
                     <DetailRow label="Total Weight" value={requestDetails.weight && requestDetails.weight !== '—' ? requestDetails.weight : '—'} />
                     <DetailRow label="Load Type" value={requestDetails.loadType && requestDetails.loadType !== '—' ? requestDetails.loadType : 'General Freight'} />
-                    <DetailRow label="Pallets Count" value={requestDetails.itemsCount && requestDetails.itemsCount !== '—' ? requestDetails.itemsCount : '—'} />
+                    <DetailRow label="Pallets Count" value={requestDetails.palletsCount && requestDetails.palletsCount !== '—' ? requestDetails.palletsCount : '—'} />
                     <DetailRow label="Total Volume" value={getDisplayVolume(requestDetails)} />
                     <DetailRow label="Transit Distance" value={requestDetails.distance && requestDetails.distance !== '—' ? requestDetails.distance : '—'} />
                 </div>

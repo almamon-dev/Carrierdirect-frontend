@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, MoreVertical } from 'lucide-react';
+import { MessageSquare, MoreVertical, CreditCard, Layers } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
+import { apiClient } from '@/lib/axios';
 import { QuoteReceivedActionsMenu } from './QuoteReceivedActionsMenu';
 
 interface QuoteReceivedRowActionsProps {
@@ -34,6 +35,13 @@ export const QuoteReceivedRowActions: React.FC<QuoteReceivedRowActionsProps> = (
         rawStatus === 'cancelled'
     );
     const isBooked = rawStatus === 'booked' || rawStatusRaw === 'booked';
+    const isAwaitingPayment = Boolean(
+        row.is_awaiting_payment ||
+        row.isAwaitingPayment ||
+        rawStatus === 'awaiting_payment' ||
+        rawStatusRaw === 'awaiting_payment' ||
+        ((rawStatus === 'accepted' || rawStatusRaw === 'accepted') && !isBooked)
+    );
     const isPending = !isExpired && !isBooked && (rawStatusRaw === 'pending' || rawStatus === 'pending');
     const isNegotiating = !isExpired && !isBooked && (row.revision_status === 'pending' || rawStatus === 'negotiating' || rawStatus === 'negotiation');
 
@@ -50,7 +58,7 @@ export const QuoteReceivedRowActions: React.FC<QuoteReceivedRowActionsProps> = (
     const hasRequest = Boolean(reqId);
 
     const pdfUrl = row.pdf_url || row.pdf_path || row.quote_pdf || row.attachment_url || row.pdfUrl || '';
-    const hasPdf = Boolean(pdfUrl);
+    const hasPdf = Boolean(pdfUrl || reqId);
 
     const handleClose = () => setIsOpen(false);
 
@@ -94,15 +102,27 @@ export const QuoteReceivedRowActions: React.FC<QuoteReceivedRowActionsProps> = (
 
     return (
         <div className="relative flex items-center justify-end gap-1.5 w-full">
-            <button
-                type="button"
-                onClick={handleOpenChat}
-                title="Open Negotiation Chat"
-                className="h-7 px-2.5 rounded-[3px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group shrink-0"
-            >
-                <MessageSquare size={12.5} className="shrink-0" />
-                <span className="leading-none">Chat</span>
-            </button>
+            {isAwaitingPayment ? (
+                <button
+                    type="button"
+                    onClick={() => navigate(`/customer/quotes/received/checkout/${encryptId(rawId)}`)}
+                    title="Proceed to Payment"
+                    className="h-7 px-2.5 rounded-[3px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group shrink-0"
+                >
+                    <CreditCard size={12.5} className="shrink-0" />
+                    <span className="leading-none">Pay Now</span>
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    onClick={handleOpenChat}
+                    title="Open Negotiation Chat"
+                    className="h-7 px-2.5 rounded-[3px] bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group shrink-0"
+                >
+                    <MessageSquare size={12.5} className="shrink-0" />
+                    <span className="leading-none">Chat</span>
+                </button>
+            )}
 
             <Button
                 variant="ghost"
@@ -131,14 +151,33 @@ export const QuoteReceivedRowActions: React.FC<QuoteReceivedRowActionsProps> = (
                 pdfUrl={pdfUrl}
                 onClose={handleClose}
                 onViewQuote={() => navigate(`/customer/quotes/received/view/${encryptId(rawId)}`)}
+                onCompareQuotes={() => navigate(`/customer/quotes/received/view/${encryptId(rawId)}?tab=suppliers`)}
                 onViewRequest={handleViewRequest}
                 onOpenChat={handleOpenChat}
                 onCounterOffer={() => navigate(`/customer/quotes/negotiation/conversation/${encryptId(rawId)}`, { state: { autoOpenCounter: true } })}
                 onViewOrder={() => navigate(`/customer/orders/${encryptId(validOrderId || rawId)}`)}
                 onAccept={() => onAccept(rawId)}
                 onReject={() => onReject(row)}
-                onDownloadPdf={() => {
-                    if (pdfUrl) window.open(pdfUrl, '_blank');
+                onDownloadPdf={async () => {
+                    if (pdfUrl && typeof pdfUrl === 'string' && pdfUrl.startsWith('http')) {
+                        window.open(pdfUrl, '_blank');
+                        return;
+                    }
+                    const cleanReqId = String(reqId || '').replace(/[^0-9]/g, '').trim();
+                    if (!cleanReqId) return;
+                    try {
+                        const blob = await apiClient.getBlob(`/customer/quote-requests/${cleanReqId}/download-pdf`);
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `QuoteRequest-REQ-${cleanReqId.padStart(4, '0')}.pdf`);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+                    } catch (err) {
+                        console.error('Failed to download PDF:', err);
+                    }
                 }}
             />
         </div>

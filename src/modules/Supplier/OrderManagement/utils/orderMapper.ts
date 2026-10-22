@@ -1,3 +1,4 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 export { checkHasRealDriver } from '../ActiveJobs/utils/orderMapper';
 import { SupplierOrder, OrderStatus } from '../types/order.types';
 
@@ -30,8 +31,8 @@ export function mapApiOrderToSupplierOrder(o: any): SupplierOrder {
     const shipmentObj = o?.shipment || {};
     const trackingObj = o?.tracking || {};
 
-    const pickupAddress = shippingObj.from || o?.pickup_address || o?.pickup_full_address || [o?.pickup_city, o?.pickup_country].filter(Boolean).join(', ') || '-';
-    const deliveryAddress = shippingObj.to || o?.delivery_address || o?.delivery_full_address || [o?.delivery_city, o?.delivery_country].filter(Boolean).join(', ') || '-';
+    const pickupAddress = formatStandardAddress(o, 'pickup');
+    const deliveryAddress = formatStandardAddress(o, 'delivery');
     const customerName = clientObj.name || o?.customer?.name || o?.client_name || o?.user?.name || o?.customer_name || 'Verified Customer';
 
     const rawTotal = paymentObj.total ?? o?.total_amount ?? o?.total ?? o?.amount ?? o?.agreed_price;

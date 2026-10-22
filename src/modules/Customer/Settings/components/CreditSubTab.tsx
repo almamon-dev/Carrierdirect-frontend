@@ -120,15 +120,15 @@ export default function CreditSubTab({
                   Corporate Net-30 Credit Facility
                 </h2>
                 {status === 'approved' ? (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 rounded-[4px] text-[10.5px] font-semibold">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 rounded-[2px] text-[10.5px] font-semibold">
                     <CheckCircle2 size={10} /> Active
                   </span>
                 ) : status === 'pending' || status === 'under_review' ? (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 rounded-[4px] text-[10.5px] font-semibold">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 rounded-[2px] text-[10.5px] font-semibold">
                     <Clock size={10} /> Pending Review
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-[4px] text-[10.5px] font-semibold">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 rounded-[2px] text-[10.5px] font-semibold">
                     Inactive
                   </span>
                 )}
@@ -323,7 +323,7 @@ export default function CreditSubTab({
                     Growth Logistics Subscription
                   </span>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 rounded-[4px] text-[10.5px] font-semibold">
+                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 rounded-[2px] text-[10.5px] font-semibold">
                   Active
                 </span>
               </div>
@@ -336,7 +336,7 @@ export default function CreditSubTab({
                     Business Verification
                   </span>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 rounded-[4px] text-[10.5px] font-semibold">
+                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 rounded-[2px] text-[10.5px] font-semibold">
                   Verified
                 </span>
               </div>
@@ -350,12 +350,12 @@ export default function CreditSubTab({
                   </span>
                 </div>
                 {hasLinkedCard ? (
-                  <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 rounded-[4px] text-[10.5px] font-semibold">
+                  <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 rounded-[2px] text-[10.5px] font-semibold">
                     Added
                   </span>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 rounded-[4px] text-[10.5px] font-semibold">
+                    <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 rounded-[2px] text-[10.5px] font-semibold">
                       Card Required
                     </span>
                     <button
@@ -395,7 +395,7 @@ export default function CreditSubTab({
 
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-slate-500 dark:text-slate-400 text-[11px]">Status</span>
-                <span className={`px-1.5 py-0.5 font-semibold rounded-[4px] text-[10.5px] border ${
+                <span className={`px-1.5 py-0.5 font-semibold rounded-[2px] text-[10.5px] border ${
                   status === 'approved'
                     ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
                     : status === 'pending' || status === 'under_review'
@@ -434,7 +434,7 @@ export default function CreditSubTab({
                 <span className="text-slate-500 dark:text-slate-400 text-[11px]">Auto Payment</span>
                 {hasLinkedCard ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="px-1.5 py-0.5 rounded-[4px] text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="px-1.5 py-0.5 rounded-[2px] text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       Enabled
                     </span>
                     <span className="text-[10px] text-slate-400 font-medium">
@@ -443,7 +443,7 @@ export default function CreditSubTab({
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
-                    <span className="px-1.5 py-0.5 rounded-[4px] text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                    <span className="px-1.5 py-0.5 rounded-[2px] text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                       Card Required
                     </span>
                     <button

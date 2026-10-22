@@ -43,7 +43,7 @@ export function AvailabilityMetricCards({
                 colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
                 isLoading={isLoading}
                 badge={
-                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 rounded-[4px] border border-orange-200/60 dark:border-orange-900/40">
+                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 rounded-[2px] border border-orange-200/60 dark:border-orange-900/40">
                         {totalAreas} Total
                     </span>
                 }
@@ -57,7 +57,7 @@ export function AvailabilityMetricCards({
                 colorClass="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
                 isLoading={isLoading}
                 badge={
-                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded-[4px] border border-blue-200/60 dark:border-blue-900/40">
+                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded-[2px] border border-blue-200/60 dark:border-blue-900/40">
                         {totalDrivers} Total
                     </span>
                 }
@@ -71,7 +71,7 @@ export function AvailabilityMetricCards({
                 colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
                 isLoading={isLoading}
                 badge={
-                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-[4px] border border-emerald-200/60 dark:border-emerald-900/40">
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-[2px] border border-emerald-200/60 dark:border-emerald-900/40">
                         {totalVehicles} Total
                     </span>
                 }
@@ -85,7 +85,7 @@ export function AvailabilityMetricCards({
                 colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
                 isLoading={isLoading}
                 trend={
-                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-[4px] border border-emerald-200/60 dark:border-emerald-800/40">
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-[2px] border border-emerald-200/60 dark:border-emerald-800/40">
                         <TrendingUp size={10} />
                         <span>+12%</span>
                     </span>

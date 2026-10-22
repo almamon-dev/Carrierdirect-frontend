@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowLeft, RefreshCw, Eye, Plus } from 'lucide-react';
 import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import StatusBadge from '@/components/common/StatusBadge';
 
 export interface TrackHeaderProps {
     formattedReqId: string;
@@ -26,16 +26,6 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
 }) => {
     return (
         <div className="space-y-3">
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={onBack}
-                className="h-7 px-2.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shrink-0 text-slate-700 dark:text-slate-300"
-            >
-                <ArrowLeft size={13} className="text-slate-500" />
-                <span>Back to Quote Requests</span>
-            </Button>
-
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -43,9 +33,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
                             Bids & Tracking: {formattedReqId}
                         </h1>
                         {status && (
-                            <Badge variant="secondary" className="text-[10px] font-bold border bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/40 dark:border-blue-900/60 dark:text-blue-400">
-                                {status}
-                            </Badge>
+                            <StatusBadge status={status} context="quote" />
                         )}
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">

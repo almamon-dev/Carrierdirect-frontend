@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageSquare, MoreVertical, RefreshCw } from 'lucide-react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
 import { NormalizedSupplierOrder } from '../utils/supplierOrderTrackUtils';
 import SupplierOrderHeaderMenu from './SupplierOrderHeaderMenu';
@@ -101,22 +101,12 @@ export const SupplierOrderHeader: React.FC<SupplierOrderHeaderProps> = ({
                             </span>
                         </h1>
 
-                        <Badge className={`px-2 py-0.25 text-[11px] font-semibold rounded-full border ${
-                            isCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
-                            : isTransit ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800'
-                            : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800'
-                        }`}>
-                            {order.status}
-                        </Badge>
+                        <StatusBadge status={order.status} />
 
-                        <Badge className={`px-2 py-0.25 text-[11px] font-semibold rounded-full border flex items-center gap-1 ${
-                            isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
-                            : isPayLater ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-400 dark:border-purple-800'
-                            : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800'
-                        }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${isPaid ? 'bg-emerald-500' : isPayLater ? 'bg-purple-500' : 'bg-blue-500'}`} />
-                            <span>{order.pricing?.paymentStatus || (isPaid ? 'Paid' : isPayLater ? 'Pay Later (Net-30)' : 'In Escrow')}</span>
-                        </Badge>
+                        <StatusBadge
+                            status={order.pricing?.paymentStatus || (isPaid ? 'Paid' : isPayLater ? 'Pay Later (Net-30)' : 'In Escrow')}
+                            category={isPaid ? 'success' : isPayLater ? 'financial_hold' : 'financial_hold'}
+                        />
                     </div>
 
                     <div className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 flex-wrap">

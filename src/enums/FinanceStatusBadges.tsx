@@ -5,12 +5,13 @@ import {
     parseInvoiceStatus,
     parsePaymentStatus
 } from "./FinanceStatus";
+import { STATUS_CATEGORY_STYLES, STATUS_BADGE_BASE_CLASS } from "@/components/common/StatusBadge";
 
 export function renderInvoiceStatusBadge(rawStatus?: string, isPayLater?: boolean) {
     if (isPayLater) {
         return (
             <div className="flex items-center min-h-[22px]">
-                <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.financial_hold.className}`}>
                     Net-30
                 </span>
             </div>
@@ -23,7 +24,7 @@ export function renderInvoiceStatusBadge(rawStatus?: string, isPayLater?: boolea
         case InvoiceStatus.PAID:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.success.className}`}>
                         Paid
                     </span>
                 </div>
@@ -31,7 +32,7 @@ export function renderInvoiceStatusBadge(rawStatus?: string, isPayLater?: boolea
         case InvoiceStatus.IN_ESCROW:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.financial_hold.className}`}>
                         In Escrow
                     </span>
                 </div>
@@ -39,8 +40,16 @@ export function renderInvoiceStatusBadge(rawStatus?: string, isPayLater?: boolea
         case InvoiceStatus.OVERDUE:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border border-[#fecdd3] dark:border-rose-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.action_required.className}`}>
                         Overdue
+                    </span>
+                </div>
+            );
+        case InvoiceStatus.CANCELLED:
+            return (
+                <div className="flex items-center min-h-[22px]">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.failed.className}`}>
+                        Cancelled
                     </span>
                 </div>
             );
@@ -50,8 +59,8 @@ export function renderInvoiceStatusBadge(rawStatus?: string, isPayLater?: boolea
         default:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
-                        Due
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.pending.className}`}>
+                        {enumVal === InvoiceStatus.PENDING ? "Pending" : enumVal === InvoiceStatus.UNPAID ? "Unpaid" : "Due"}
                     </span>
                 </div>
             );
@@ -62,7 +71,7 @@ export function renderPaymentStatusBadge(rawStatus?: string, isPayLater?: boolea
     if (isPayLater) {
         return (
             <div className="flex items-center min-h-[22px]">
-                <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.financial_hold.className}`}>
                     Net-30
                 </span>
             </div>
@@ -75,7 +84,7 @@ export function renderPaymentStatusBadge(rawStatus?: string, isPayLater?: boolea
         case PaymentStatus.SUCCEEDED:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.success.className}`}>
                         Succeeded
                     </span>
                 </div>
@@ -83,7 +92,7 @@ export function renderPaymentStatusBadge(rawStatus?: string, isPayLater?: boolea
         case PaymentStatus.IN_ESCROW:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.financial_hold.className}`}>
                         In Escrow
                     </span>
                 </div>
@@ -91,7 +100,7 @@ export function renderPaymentStatusBadge(rawStatus?: string, isPayLater?: boolea
         case PaymentStatus.REFUNDED:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.neutral.className}`}>
                         Refunded
                     </span>
                 </div>
@@ -99,7 +108,7 @@ export function renderPaymentStatusBadge(rawStatus?: string, isPayLater?: boolea
         case PaymentStatus.FAILED:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border border-[#fecdd3] dark:border-rose-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.failed.className}`}>
                         Failed
                     </span>
                 </div>
@@ -108,7 +117,7 @@ export function renderPaymentStatusBadge(rawStatus?: string, isPayLater?: boolea
         default:
             return (
                 <div className="flex items-center min-h-[22px]">
-                    <span className="inline-flex items-center gap-1 bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap">
+                    <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.pending.className}`}>
                         Pending
                     </span>
                 </div>

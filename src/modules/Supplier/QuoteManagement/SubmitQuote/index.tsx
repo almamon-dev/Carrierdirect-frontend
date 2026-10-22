@@ -107,9 +107,7 @@ export default function SubmitQuote() {
                 <div className="lg:col-span-7 xl:col-span-8 space-y-3 sm:space-y-4">
                     <CustomerRouteCard requestDetails={requestDetails} />
                     <SpecsTabs requestDetails={requestDetails} />
-                    {isQuoted && (
-                        <QuoteRequestTimeline requestDetails={requestDetails} />
-                    )}
+                    <QuoteRequestTimeline requestDetails={requestDetails} />
                 </div>
 
                 {/* RIGHT PANEL: Submitted Offer Card OR Quotation Offer Form */}

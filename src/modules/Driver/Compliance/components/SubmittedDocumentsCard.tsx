@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import React from "react";
+import { StatusBadge } from "@/components/common/StatusBadge";
 
 export interface SubmittedDocItem {
     title: string;
@@ -49,9 +50,7 @@ export const SubmittedDocumentsCard: React.FC<SubmittedDocumentsCardProps> = ({
                             </div>
                         </div>
                         <div className="flex items-center gap-2.5 shrink-0">
-                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded">
-                                Uploaded
-                            </span>
+                            <StatusBadge status="Uploaded" />
                             <button
                                 type="button"
                                 onClick={() => onViewDoc(doc)}

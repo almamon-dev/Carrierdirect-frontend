@@ -5,7 +5,7 @@ import {
     Shield, FileText, CheckCircle2, Navigation
 } from 'lucide-react';
 import TabHeader from '@/components/ui/tab-header';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { ViewField, SectionHeader } from '@/modules/Customer/QuoteManagement/ViewRequest/components/ViewField';
 import { QuoteData } from '../types/quoteViewDetailTypes';
 
@@ -65,9 +65,7 @@ export const ViewQuotePricing: React.FC<ViewQuotePricingProps> = ({
                 <ViewField
                     label="Offer Status"
                     value={
-                        <Badge variant={isPending ? 'warning' : 'secondary'} className="text-[10.5px] font-semibold rounded-[3px]">
-                            {quote.status || 'Pending Review'}
-                        </Badge>
+                        <StatusBadge status={quote.status_raw || quote.status} label={quote.status || 'Pending Review'} />
                     }
                 />
                 <ViewField

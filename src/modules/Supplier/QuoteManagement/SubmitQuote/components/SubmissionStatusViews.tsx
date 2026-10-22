@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, XCircle, ArrowLeft, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 
 export { QuoteSubmittedSuccessDrawer } from './QuoteSubmittedSuccessDrawer';
@@ -26,7 +26,7 @@ export const SubmittedSuccessView: React.FC<SubmittedSuccessViewProps> = ({
                 <div className="w-11 h-11 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 rounded-lg flex items-center justify-center mx-auto mb-3 border border-emerald-200 dark:border-emerald-800">
                     <CheckCircle2 size={24} />
                 </div>
-                <Badge variant="success" className="mb-2 rounded-[3px] text-xs">Proposal Submitted</Badge>
+                <StatusBadge status="Proposal Submitted" category="success" className="mb-2" />
                 <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-1">Quote Submitted Successfully</h2>
                 <p className="text-xs text-slate-500 leading-relaxed mb-4">
                     Your offer of <span className="font-bold text-slate-800 dark:text-slate-200">€ {totalOffer}</span> for request <span className="font-semibold text-slate-700 dark:text-slate-300">{requestDetails.id}</span> has been sent to <strong className="text-slate-800 dark:text-slate-200">{requestDetails.customer}</strong>.

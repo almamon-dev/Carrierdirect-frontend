@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Wallet, Receipt } from 'lucide-react';
 import MetricCard from '@/components/cards/metric-card';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 interface PaymentMetricsRowProps {
   calculatedStats: {
@@ -24,14 +24,7 @@ export const PaymentMetricsRow: React.FC<PaymentMetricsRowProps> = ({
         value={calculatedStats.totalSettledFormatted}
         icon={CheckCircle2}
         colorClass="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
-        badge={
-          <Badge
-            variant="secondary"
-            className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200"
-          >
-            Paid
-          </Badge>
-        }
+        badge={<StatusBadge status="Paid" />}
         valueClassName="text-base sm:text-lg"
         className="p-2.5 sm:p-3"
         isLoading={isLoading}
@@ -42,14 +35,7 @@ export const PaymentMetricsRow: React.FC<PaymentMetricsRowProps> = ({
         value={calculatedStats.payLaterTotalFormatted}
         icon={Wallet}
         colorClass="bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400"
-        badge={
-          <Badge
-            variant="secondary"
-            className="bg-purple-50 text-purple-700 text-[10px] font-semibold border border-purple-200"
-          >
-            Net-30
-          </Badge>
-        }
+        badge={<StatusBadge status="Net-30" />}
         valueClassName="text-base sm:text-lg"
         className="p-2.5 sm:p-3"
         isLoading={isLoading}
@@ -60,14 +46,7 @@ export const PaymentMetricsRow: React.FC<PaymentMetricsRowProps> = ({
         value={calculatedStats.totalTransactions}
         icon={Receipt}
         colorClass="bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]"
-        badge={
-          <Badge
-            variant="secondary"
-            className="bg-slate-100 text-slate-700 text-[10px] font-semibold border border-slate-200"
-          >
-            Total
-          </Badge>
-        }
+        badge={<StatusBadge status="Total" />}
         valueClassName="text-base sm:text-lg"
         className="p-2.5 sm:p-3"
         isLoading={isLoading}

@@ -1,7 +1,8 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { formatDisplayDate } from '@/lib/utils';
 import { SupplierOrder, checkHasRealDriver } from '../../data/ordersData';
 
@@ -52,28 +53,34 @@ export const getActiveJobColumns = (
         label: 'Pickup Address',
         sortable: true,
         className: 'w-[18%] min-w-[140px] max-w-[220px]',
-        render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.pickupFullAddress || row.pickup}>
-                <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-                    {row.pickupFullAddress || row.pickup}
-                </span>
-            </div>
-        ),
+        render: (row) => {
+            const address = formatStandardAddress(row, 'pickup');
+            return (
+                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
+                    <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
+                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+                        {address}
+                    </span>
+                </div>
+            );
+        },
     },
     {
         id: 'delivery',
         label: 'Delivery Address',
         sortable: true,
         className: 'w-[18%] min-w-[140px] max-w-[220px]',
-        render: (row) => (
-            <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={row.deliveryFullAddress || row.delivery}>
-                <MapPin size={12} className="text-emerald-500 shrink-0" />
-                <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
-                    {row.deliveryFullAddress || row.delivery}
-                </span>
-            </div>
-        ),
+        render: (row) => {
+            const address = formatStandardAddress(row, 'delivery');
+            return (
+                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
+                    <MapPin size={12} className="text-emerald-500 shrink-0" />
+                    <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
+                        {address}
+                    </span>
+                </div>
+            );
+        },
     },
     {
         id: 'date',
@@ -111,9 +118,7 @@ export const getActiveJobColumns = (
 
             return (
                 <div className="flex items-center h-5">
-                    <Badge variant="warning" className="text-[10px] font-bold whitespace-nowrap bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
-                        Unassigned
-                    </Badge>
+                    <StatusBadge status="Unassigned" category="pending" />
                 </div>
             );
         },
@@ -124,17 +129,9 @@ export const getActiveJobColumns = (
         sortable: true,
         className: 'w-[120px] min-w-[115px] text-center',
         render: (row) => {
-            const st = (row.status || 'Confirmed').toLowerCase();
-            let variant: any = 'info';
-            if (st.includes('delivered') || st.includes('completed')) variant = 'success';
-            else if (st.includes('transit') || st.includes('progress') || st.includes('picked')) variant = 'warning';
-            else if (st.includes('cancel')) variant = 'critical';
-
             return (
                 <div className="flex items-center justify-center h-5">
-                    <Badge variant={variant} showDot className="text-[10.5px] font-bold whitespace-nowrap">
-                        {row.status || 'Confirmed'}
-                    </Badge>
+                    <StatusBadge status={row.status || 'Confirmed'} />
                 </div>
             );
         },
@@ -151,20 +148,20 @@ export const getActiveJobColumns = (
             if (isPayLater) {
                 return (
                     <div className="flex items-center justify-center h-5">
-                        <Badge variant="warning" showDot className="text-[10.5px] font-bold whitespace-nowrap">Pay Later (Due)</Badge>
+                        <StatusBadge status="Pay Later (Due)" category="financial_hold" />
                     </div>
                 );
             }
             if (isPaid) {
                 return (
                     <div className="flex items-center justify-center h-5">
-                        <Badge variant="success" showDot className="text-[10.5px] font-bold whitespace-nowrap">Paid</Badge>
+                        <StatusBadge status="Paid" category="success" />
                     </div>
                 );
             }
             return (
                 <div className="flex items-center justify-center h-5">
-                    <Badge variant="info" showDot className="text-[10.5px] font-bold whitespace-nowrap">In Escrow</Badge>
+                    <StatusBadge status="In Escrow" category="financial_hold" />
                 </div>
             );
         },

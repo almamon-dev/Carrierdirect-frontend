@@ -12,65 +12,72 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
     activeTab,
     onSelectTab,
 }) => {
-    // Exact spec: Pending | Quotes Received | Negotiation | Won | Expired
+    // Spec: All | Drafts | In Progress | Booked | Completed
     const counts = useMemo(() => {
         let all = 0;
-        let draft = 0;
-        let pending = 0;
-        let quotesReceived = 0;
-        let negotiation = 0;
+        let drafts = 0;
+        let inProgress = 0;
         let booked = 0;
-        let expired = 0;
+        let completed = 0;
 
         (requestData || []).forEach((r: any) => {
-            const s = (r.status || r.rawStatus || '').toLowerCase();
-            const isComp = Boolean(r.isCompleted || s === 'completed' || (r.raw_status || '').toLowerCase() === 'completed');
-            if (isComp) return;
-
             all++;
-            const quotesCount = Number(r.quotesReceived || r.quotesCount || r.bidsCount || 0);
-            const isExp = Boolean(r.isExpired || s === 'expired' || s === 'cancelled' || s === 'closed');
+            const s = String(r.status || r.rawStatus || r.raw_status || "").toLowerCase().trim();
+            const isComp = Boolean(
+                r.isCompleted ||
+                s === "completed" ||
+                String(r.raw_status || "").toLowerCase() === "completed" ||
+                String(r.order_status || "").toLowerCase() === "completed"
+            );
+            const isBooked = !isComp && Boolean(
+                s === "booked" ||
+                s === "confirmed" ||
+                r.is_booked ||
+                r.has_order ||
+                (s === "accepted" && (r.is_paid || r.has_order))
+            );
 
-            if (s === 'draft') {
-                draft++;
-            } else if (isExp) {
-                expired++;
-            } else if (s === 'won' || s === 'accepted' || s === 'booked' || r.hasAcceptedQuote) {
+            if (isComp) {
+                completed++;
+            } else if (isBooked) {
                 booked++;
-            } else if (s === 'negotiation' || s === 'negotiating' || s === 'review' || r.isNegotiating) {
-                negotiation++;
-            } else if (quotesCount > 0) {
-                quotesReceived++;
+            } else if (s === "draft") {
+                drafts++;
             } else {
-                pending++;
+                // In Progress: submitted requests that are still collecting quotes or undergoing review
+                inProgress++;
             }
         });
 
         return {
             all,
-            draft,
-            pending,
-            quotesReceived,
-            negotiation,
+            drafts,
+            inProgress,
             booked,
-            expired,
+            completed,
         };
     }, [requestData]);
 
     const tabs: { id: FilterTabId; label: string; count: number }[] = [
-        { id: 'All', label: 'All', count: counts.all },
-        { id: 'Draft', label: 'Draft', count: counts.draft },
-        { id: 'Pending', label: 'Pending', count: counts.pending },
-        { id: 'Quotes Received', label: 'Quotes Received', count: counts.quotesReceived },
-        { id: 'Negotiation', label: 'Negotiation', count: counts.negotiation },
-        { id: 'Booked', label: 'Booked', count: counts.booked },
-        { id: 'Expired', label: 'Expired', count: counts.expired },
+        { id: "All", label: "All", count: counts.all },
+        { id: "Drafts", label: "Drafts", count: counts.drafts },
+        { id: "In Progress", label: "In Progress", count: counts.inProgress },
+        { id: "Booked", label: "Booked", count: counts.booked },
+        { id: "Completed", label: "Completed", count: counts.completed },
     ];
+
+    // Normalize activeTab comparison
+    const isTabActive = (tabId: FilterTabId) => {
+        if (activeTab === tabId) return true;
+        if (tabId === "Drafts" && (activeTab === "Draft" as FilterTabId)) return true;
+        if (tabId === "In Progress" && (activeTab === "Active" as FilterTabId)) return true;
+        return false;
+    };
 
     return (
         <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar mb-[-1px]">
             {tabs.map((tab) => {
-                const isActive = activeTab === tab.id;
+                const isActive = isTabActive(tab.id);
                 return (
                     <button 
                         key={tab.id}

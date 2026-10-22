@@ -1,43 +1,44 @@
+import { StandardRouteCell } from '@/components/common/StandardRouteCell';
+import { formatStandardAddress, formatCompactRoute } from "@/utils/addressFormatter";
 import React from 'react';
 import { formatDisplayDate } from '@/lib/utils';
 import { buildSecureQuoteUrl } from '@/utils/urlSecurity';
 
-const cleanAddressWithoutZip = (addr: string): string => {
-    if (!addr || addr === '—') return addr;
-    return addr
-        .replace(/\s*\(?ZIP:?\s*\d+\)?/gi, '')
-        .replace(/\b(?:ZIP|Postal Code):?\s*\d+\b/gi, '')
-        .replace(/\s+\d{4,6}\b(?=[,\s]|$)/g, '')
-        .replace(/\s*,\s*,/g, ',')
-        .replace(/,\s*$/g, '')
-        .trim();
-};
-
 export const ProcessingRequestIdCell: React.FC<{ row: any; onNavigate: (path: string) => void }> = ({ row, onNavigate }) => {
     const rawId = row.rawId || row.id;
     const reqText = row.requestId || (rawId ? (String(rawId).startsWith('REQ-') ? rawId : `REQ-${String(rawId).padStart(4, '0')}`) : 'REQ-0000');
+    const dateVal = row.createdAt || row.date || row.created_at;
 
     return (
-        <div className="flex items-center min-h-[26px]">
+        <div className="flex flex-col justify-center min-h-[26px]">
             <button
                 type="button"
                 onClick={(e) => {
                     e.stopPropagation();
-                    onNavigate(buildSecureQuoteUrl(rawId, 'view'));
+                    onNavigate(buildSecureQuoteUrl('view', rawId));
                 }}
                 className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[13.5px] tracking-tight transition-colors leading-none"
             >
                 {reqText}
             </button>
+            {dateVal && (
+                <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 leading-none whitespace-nowrap">
+                    {formatDisplayDate(dateVal)}
+                </span>
+            )}
         </div>
     );
 };
 
-export const ProcessingAddressCell: React.FC<{ address: string }> = ({ address }) => {
-    const displayAddr = cleanAddressWithoutZip(address);
+export const ProcessingRouteCell: React.FC<{ row: any }> = ({ row }) => {
+    return <StandardRouteCell row={row} />;
+};
+
+export const ProcessingAddressCell: React.FC<{ address?: string; row?: any; type?: "pickup" | "delivery" }> = ({ address, row, type = "pickup" }) => {
+    const displayAddr = row ? formatStandardAddress(row, type) : formatStandardAddress(address);
     return (
         <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={displayAddr}>
-            <span className="font-medium text-slate-700 dark:text-slate-300 text-[13px] truncate block max-w-full leading-normal">
+            <span className="font-medium text-slate-700 dark:text-slate-300 text-[13px] whitespace-nowrap block leading-normal">
                 {displayAddr}
             </span>
         </div>
@@ -46,7 +47,7 @@ export const ProcessingAddressCell: React.FC<{ address: string }> = ({ address }
 
 export const ProcessingVehicleCell: React.FC<{ vehicleType: string }> = ({ vehicleType }) => (
     <div className="flex items-center min-w-0 min-h-[26px]" title={vehicleType}>
-        <span className="text-[13px] text-slate-800 dark:text-slate-200 font-medium truncate block max-w-full">
+        <span className="text-[13px] text-slate-800 dark:text-slate-200 font-medium whitespace-nowrap block">
             {vehicleType || '—'}
         </span>
     </div>
@@ -54,7 +55,7 @@ export const ProcessingVehicleCell: React.FC<{ vehicleType: string }> = ({ vehic
 
 export const ProcessingTransitTimeCell: React.FC<{ time: string }> = ({ time }) => (
     <div className="flex items-center min-w-0 min-h-[26px]" title={time}>
-        <span className="text-[13px] text-slate-700 dark:text-slate-300 font-medium truncate block max-w-full">
+        <span className="text-[13px] text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap block">
             {time || '—'}
         </span>
     </div>
@@ -87,15 +88,13 @@ export const ProcessingBudgetCell: React.FC<{ budget: any }> = ({ budget }) => {
 
 export const ProcessingPriorityBadgeCell: React.FC<{ priority: string }> = ({ priority }) => {
     const p = (priority || '').toLowerCase().trim();
-    const badgeStyle = p === 'urgent'
-        ? 'bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border-[#fecdd3] dark:border-rose-800/60'
-        : p === 'high'
-            ? 'bg-[#fff7ed] dark:bg-orange-950/40 text-[#ea580c] dark:text-orange-300 border-[#fed7aa] dark:border-orange-800/60'
-            : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+    const isActionRequired = p === 'urgent' || p === 'high';
 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
-            <span className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap border ${badgeStyle}`}>
+            <span className={`inline-flex items-center justify-center px-[10px] py-[4px] text-[12px] font-semibold leading-none rounded-[2px] whitespace-nowrap ${
+                isActionRequired ? 'bg-[#F5D0AD] text-[#8A4210]' : 'bg-[#D8DCE3] text-[#374151]'
+            }`}>
                 {priority || 'Standard'}
             </span>
         </div>
@@ -130,28 +129,32 @@ export const ProcessingBidsCountCell: React.FC<{ row: any; onNavigate: (path: st
 
 export const ProcessingStatusBadgeCell: React.FC<{ status: string }> = ({ status }) => {
     const s = (status || '').toLowerCase().trim();
-    const isCompleted = s === 'completed';
-    const isBooked = s === 'booked' || s === 'won' || s === 'accepted' || s === 'awarded' || s === 'paid';
-    const isInProgress = s === 'in progress' || s === 'in_progress' || s === 'active' || s === 'bidding active' || s === 'negotiating' || s === 'quotes received' || s === 'quotes_received' || s === 'negotiation';
-    const isProcessing = s === 'processing' || s === 'pending' || s === 'draft' || s === 'waiting';
-    const isCancelled = s === 'cancelled' || s === 'expired' || s === 'closed' || s === 'rejected' || s === 'failed';
+    let displayLabel = status || 'Active';
+    if (s === 'in progress' || s === 'in_progress') displayLabel = 'In Progress';
+    else if (s === 'quotes received' || s === 'quotes_received') displayLabel = 'Quotes Received';
+    else if (s === 'bidding active') displayLabel = 'Bidding Active';
 
-    const badgeStyle = isCompleted
-        ? 'bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60'
-        : isBooked
-            ? 'bg-[#eff6ff] dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-300 border border-[#bfdbfe] dark:border-blue-800/60'
-            : isInProgress
-            ? 'bg-[#eff6ff] dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-300 border border-[#bfdbfe] dark:border-blue-800/60'
-            : isProcessing
-                ? 'bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60'
-                : isCancelled
-                    ? 'bg-[#fef2f2] dark:bg-rose-950/40 text-[#dc2626] dark:text-rose-300 border border-[#fecaca] dark:border-rose-800/60'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
+    let category = 'in_progress';
+    if (s === 'completed') category = 'success';
+    else if (s === 'booked' || s === 'won' || s === 'accepted' || s === 'paid') category = 'success';
+    else if (s === 'processing' || s === 'pending' || s === 'waiting') category = 'pending';
+    else if (s === 'cancelled' || s === 'rejected' || s === 'failed') category = 'failed';
+    else if (s === 'draft' || s === 'closed' || s === 'expired') category = 'neutral';
+
+    const colorClass = category === 'success'
+        ? 'bg-[#BBEBD0] text-[#166534]'
+        : category === 'pending'
+        ? 'bg-[#F5E3A3] text-[#805B10]'
+        : category === 'failed'
+        ? 'bg-[#F4C2C2] text-[#991B1B]'
+        : category === 'neutral'
+        ? 'bg-[#D8DCE3] text-[#374151]'
+        : 'bg-[#BBD8F7] text-[#1E40AF]';
 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
-            <span className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap border ${badgeStyle}`}>
-                {status || 'Active'}
+            <span className={`inline-flex items-center justify-center px-[10px] py-[4px] text-[12px] font-semibold leading-none rounded-[2px] whitespace-nowrap ${colorClass}`}>
+                {displayLabel}
             </span>
         </div>
     );

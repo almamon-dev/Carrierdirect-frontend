@@ -60,7 +60,7 @@ export const SupplierNavGroup: React.FC<SupplierNavGroupProps> = ({
                                 strokeWidth={1.5}
                                 className={isActiveGroup ? 'text-[#ff4a1f] dark:text-orange-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}
                             />
-                            {!isOpen && newRequestsCount > 0 && item.group === 'Quote Management' && (
+                            {!isOpen && newRequestsCount > 0 && (item.group === 'Quotes' || item.group === 'Quote Management') && (
                                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#ff4a1f] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#12161c] shadow-xs animate-in zoom-in duration-200 leading-none">
                                     {newRequestsCount > 99 ? '99+' : newRequestsCount}
                                 </span>
@@ -71,7 +71,7 @@ export const SupplierNavGroup: React.FC<SupplierNavGroupProps> = ({
                 </div>
                 {isOpen && (
                     <div className="flex items-center gap-1.5 shrink-0">
-                        {!isExpanded && newRequestsCount > 0 && item.group === 'Quote Management' && (
+                        {!isExpanded && newRequestsCount > 0 && (item.group === 'Quotes' || item.group === 'Quote Management') && (
                             <span className="min-w-[18px] h-[18px] px-1 bg-[#ff4a1f] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-[#12161c] shadow-xs animate-in zoom-in duration-200 leading-none">
                                 {newRequestsCount > 99 ? '99+' : newRequestsCount}
                             </span>

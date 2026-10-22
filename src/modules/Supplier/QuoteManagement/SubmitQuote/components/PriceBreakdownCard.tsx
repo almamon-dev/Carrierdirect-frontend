@@ -17,6 +17,8 @@ export const PriceBreakdownCard: React.FC<PriceBreakdownCardProps> = ({
     basePrice,
     extraCharges,
     totalAmount,
+    escrowFee,
+    netPayout,
     isExpired,
     isStripeConnected,
     onOpenConnect,
@@ -24,10 +26,9 @@ export const PriceBreakdownCard: React.FC<PriceBreakdownCardProps> = ({
     const validExtras = extraCharges.filter(c => parseFloat(c.amount) > 0);
 
     return (
-        <div className="space-y-2 pt-1">
-            <div
-    className="p-3 bg-slate-50/90 dark:bg-[#181d24]/90 rounded-lg border border-slate-200/90 dark:border-slate-800 space-y-1.5 font-sans">
-                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400  tracking-wider mb-1">
+        <div className="space-y-2 pt-1 font-sans">
+            <div className="p-3 bg-slate-50/90 dark:bg-[#181d24]/90 rounded-lg border border-slate-200/90 dark:border-slate-800 space-y-1.5">
+                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider mb-1">
                     Payment Breakdown
                 </div>
 
@@ -52,12 +53,35 @@ export const PriceBreakdownCard: React.FC<PriceBreakdownCardProps> = ({
                         <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
                             Total Quotation Amount:
                         </span>
-                        <span className="text-[10px] text-slate-400">Total customer payable</span>
+                        <span className="text-[10px] text-slate-400">Gross quote subtotal</span>
                     </div>
                     <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
                         € {totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                 </div>
+
+                {escrowFee !== undefined && escrowFee > 0 && (
+                    <div className="flex justify-between items-center text-[11.5px] text-slate-500 dark:text-slate-400 pt-1">
+                        <span>Platform Commission:</span>
+                        <span className="font-semibold text-rose-600 dark:text-rose-400">
+                            -€ {escrowFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                    </div>
+                )}
+
+                {netPayout !== undefined && (
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-1.5 flex justify-between items-baseline">
+                        <div>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                                Estimated Net Payout:
+                            </span>
+                            <span className="text-[10px] text-slate-400">Funds released to your wallet</span>
+                        </div>
+                        <span className="text-sm font-extrabold text-blue-600 dark:text-blue-400">
+                            € {netPayout.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {isStripeConnected === false && !isExpired && (

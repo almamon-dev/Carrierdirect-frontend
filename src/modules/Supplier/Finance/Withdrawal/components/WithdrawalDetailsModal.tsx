@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from '@/components/modals/modal';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
 import { Building2, CheckCircle2, Clock, XCircle, ArrowUpRight, Receipt, ShieldCheck } from 'lucide-react';
 import { WithdrawalItem } from '../index';
@@ -40,19 +40,7 @@ export const WithdrawalDetailsModal: React.FC<WithdrawalDetailsModalProps> = ({
                         </p>
                     </div>
 
-                    <Badge
-                        variant="secondary"
-                        className={`text-xs font-semibold px-3 py-1 border ${
-                            s === 'Completed'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50'
-                                : s === 'Processing'
-                                ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/50'
-                                : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900/50'
-                        }`}
-                    >
-                        {s === 'Completed' ? <CheckCircle2 size={13} className="mr-1 inline text-emerald-500" /> : s === 'Processing' ? <Clock size={13} className="mr-1 inline text-amber-500" /> : <XCircle size={13} className="mr-1 inline text-rose-500" />}
-                        {s}
-                    </Badge>
+                    <StatusBadge status={s} />
                 </div>
 
                 {/* Details Breakdown */}

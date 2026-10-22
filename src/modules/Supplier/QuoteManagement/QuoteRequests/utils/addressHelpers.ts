@@ -1,20 +1,10 @@
+import { formatStandardAddress } from '@/utils/addressFormatter';
+
 /**
  * Supplier Address Resolver Utility
- * Extracts and cleans pickup/delivery addresses from various backend response shapes.
+ * Extracts and cleans pickup/delivery addresses using standardized format:
+ * Country, City, State/Region, ZIP
  */
-
 export const resolveAddress = (q: any, type: 'pickup' | 'delivery'): string => {
-    if (type === 'delivery') {
-        const val = q.delivery_address || q.location?.destination || q.destination || q.delivery_full_address || q.deliveryFullAddress;
-        if (typeof val === 'string' && val.trim()) {
-            return val.trim();
-        }
-        return '—';
-    } else {
-        const val = q.pickup_address || q.location?.origin || q.origin || q.pickup_full_address || q.pickupFullAddress;
-        if (typeof val === 'string' && val.trim()) {
-            return val.trim();
-        }
-        return '—';
-    }
+    return formatStandardAddress(q, type);
 };

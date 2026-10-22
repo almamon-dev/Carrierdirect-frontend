@@ -213,5 +213,6 @@ export function useCompanyProfileState() {
     handleSave,
     handleLogoUpload,
     handleLogoRemove,
+    fetchProfile,
   };
 }

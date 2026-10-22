@@ -22,6 +22,7 @@ export default {
         'xs': '375px',
       },
       spacing: {
+        '7.5': '1.875rem',
         '8.5': '2.125rem',
         '9.5': '2.375rem',
       },

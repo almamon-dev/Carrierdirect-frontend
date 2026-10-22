@@ -67,12 +67,12 @@ export default function ConnectedAccountCard({ account, onRefresh }: ConnectedAc
                             Connected Account (Stripe)
                         </h3>
                         {isConnected ? (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11px] font-semibold">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60 text-[11px] font-semibold">
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#059669] dark:bg-emerald-400"></span>
                                 Connected
                             </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-semibold">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-semibold">
                                 Not Connected
                             </span>
                         )}

@@ -1,3 +1,4 @@
+import { formatStandardAddress } from "@/utils/addressFormatter";
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import apiClient from '@/lib/axios';
 import { ENDPOINTS } from '@/config/api';
@@ -44,8 +45,8 @@ export function useProcessingRequests() {
                             return String(quoteReqId) === String(r.id);
                         });
 
-                        const pickup = (r.pickup_address || r.pickup_city || r.pickup || '—').trim();
-                        const delivery = (r.delivery_address || r.delivery_city || r.delivery || '—').trim();
+                        const pickup = formatStandardAddress(r, "pickup");
+                        const delivery = formatStandardAddress(r, "delivery");
                         const fromCity = r.pickup_city || pickup.split(',')[0]?.trim() || pickup;
                         const toCity = r.delivery_city || delivery.split(',')[0]?.trim() || delivery;
 
@@ -77,34 +78,32 @@ export function useProcessingRequests() {
                         let statusLabel = 'In Progress';
                         let effectiveRawStatus = 'in_progress';
 
+                        const hasNegotiatingQuote = matchingQuotes.some(item => {
+                            const s = String(item.status_raw || item.status || '').toLowerCase().trim();
+                            const rev = String(item.revision_status || item.revisionStatus || '').toLowerCase().trim();
+                            return s.includes('counter') || s.includes('negotiat') || rev === 'pending' || Boolean(item.is_negotiating || item.isNegotiating || item.has_negotiation_messages || item.hasNegotiationMessages);
+                        });
+
+                        const hasNegotiation = Boolean(r.has_negotiation || r.is_negotiating || hasNegotiatingQuote || rawStatusLower.includes('negotiat') || rawStatusLower === 'review');
+
                         if (isOrderCompleted || (rawStatusLower === 'completed' && !hasAcceptedQuote)) {
                             statusLabel = 'Completed';
                             effectiveRawStatus = 'completed';
                         } else if (hasAcceptedQuote || rawStatusLower === 'won' || rawStatusLower === 'booked' || rawStatusLower === 'accepted' || rawStatusLower === 'awarded') {
                             statusLabel = 'Booked';
-                            effectiveRawStatus = 'in_progress';
+                            effectiveRawStatus = 'booked';
                         } else if (rawStatusLower === 'cancelled' || rawStatusLower === 'expired' || rawStatusLower === 'closed' || rawStatusLower === 'rejected') {
                             statusLabel = 'Cancelled';
                             effectiveRawStatus = 'cancelled';
-                        } else if (rawStatusLower === 'pending' || rawStatusLower === 'processing' || rawStatusLower === 'draft') {
-                            statusLabel = 'Processing';
+                        } else if (hasNegotiation) {
+                            statusLabel = 'Negotiation';
+                            effectiveRawStatus = 'negotiation';
+                        } else if (bidsCount > 0 || rawStatusLower === 'quotes_received' || rawStatusLower === 'quotes received') {
+                            statusLabel = 'Quotes Received';
+                            effectiveRawStatus = 'quotes_received';
+                        } else {
+                            statusLabel = 'Pending';
                             effectiveRawStatus = 'pending';
-                        } else if (
-                            rawStatusLower === 'quotes_received' ||
-                            rawStatusLower === 'quotes received' ||
-                            rawStatusLower === 'negotiation' ||
-                            rawStatusLower === 'in_progress' ||
-                            rawStatusLower === 'in progress' ||
-                            rawStatusLower === 'active' ||
-                            rawStatusLower === 'bidding'
-                        ) {
-                            statusLabel = (rawStatusLower === 'quotes_received' || rawStatusLower === 'quotes received')
-                                ? 'Quotes Received'
-                                : (rawStatusLower === 'negotiation' ? 'Negotiation' : 'In Progress');
-                            effectiveRawStatus = 'in_progress';
-                        } else if (r.status) {
-                            statusLabel = String(r.status);
-                            effectiveRawStatus = rawStatusLower;
                         }
 
                         return {
@@ -117,12 +116,14 @@ export function useProcessingRequests() {
                             route: { from: fromCity, to: toCity, fullFrom: pickup, fullTo: delivery },
                             vehicleType: r.vehicle_type || r.vehicle || 'Covered Van',
                             palletType: r.type_of_pallets || r.load_type || 'Standard Euro Pallets',
-                            cargoWeight: r.weight ? `${r.weight} KG` : '2,500 KG',
-                            itemsCount: r.items_count || r.items?.length || 1,
+                            cargoWeight: r.weight ? `${r.weight} KG` : '—',
+                            itemsCount: r.items_count || (r.items?.length ? r.items.length : '—'),
                             priority: r.priority || 'Normal',
                             status: statusLabel,
                             rawStatus: effectiveRawStatus,
                             hasAcceptedQuote,
+                            isNegotiating: hasNegotiation,
+                            hasNegotiation: hasNegotiation,
                             bidsCount,
                             pickupDate: r.pickup_date || r.requested_date || 'Standard Pickup',
                             deliveryDate: r.delivery_date || 'Standard Delivery',

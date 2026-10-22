@@ -10,7 +10,7 @@ import {
     Ban,
     CheckCircle,
 } from 'lucide-react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { TeamMember } from '../types/team.types';
 
 interface MemberProfileSidebarProps {
@@ -39,22 +39,10 @@ export const MemberProfileSidebar: React.FC<MemberProfileSidebarProps> = ({
                     <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">{member.name}</h2>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{member.designation}</span>
                     <div className="flex items-center gap-1.5 mt-2">
-                        <Badge
-                            variant="secondary"
-                            className={
-                                isBlocked
-                                    ? 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400 font-semibold text-[10.5px] px-1.5 py-0'
-                                    : member.status === 'Active'
-                                    ? 'bg-emerald-50 text-emerald-700 font-semibold text-[10.5px] px-1.5 py-0'
-                                    : member.status === 'Pending'
-                                    ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 font-semibold text-[10.5px] px-1.5 py-0'
-                                    : member.status === 'On Leave'
-                                    ? 'bg-blue-50 text-blue-700 font-semibold text-[10.5px] px-1.5 py-0'
-                                    : 'bg-slate-100 text-slate-700 font-semibold text-[10.5px] px-1.5 py-0'
-                            }
-                        >
-                            {isBlocked ? 'Blocked' : member.status}
-                        </Badge>
+                        <StatusBadge
+                            status={isBlocked ? 'Blocked' : member.status}
+                            category={isBlocked ? 'failed' : undefined}
+                        />
                         <span className="text-[10.5px] font-bold px-1.5 py-0.5 rounded bg-orange-50 dark:bg-[#ff4a1f]/15 text-[#ff4a1f]">
                             {member.id}
                         </span>

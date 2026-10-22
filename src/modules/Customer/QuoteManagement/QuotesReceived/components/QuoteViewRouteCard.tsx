@@ -83,14 +83,14 @@ export const QuoteViewRouteCard: React.FC<QuoteViewRouteCardProps> = ({ quote, r
                         className="p-3 bg-slate-50 dark:bg-[#161a20] rounded-lg border border-slate-100 dark:border-slate-800">
                         <span className="text-slate-400 block text-[11px] font-medium">Total Weight</span>
                         <span className="font-bold text-slate-900 dark:text-slate-100 mt-0.5 block truncate">
-                            {req?.weight ? `${req.weight} KG` : (req?.total_weight || '2,500 KG')}
+                            {req?.weight ? `${req.weight} KG` : (req?.total_weight || '—')}
                         </span>
                     </div>
                     <div
                         className="p-3 bg-slate-50 dark:bg-[#161a20] rounded-lg border border-slate-100 dark:border-slate-800">
                         <span className="text-slate-400 block text-[11px] font-medium">Items Count</span>
                         <span className="font-bold text-slate-900 dark:text-slate-100 mt-0.5 block truncate">
-                            {req?.items_count || req?.items?.length || 1} Units
+                            {req?.items_count ? `${req.items_count} Units` : '—'}
                         </span>
                     </div>
                 </div>

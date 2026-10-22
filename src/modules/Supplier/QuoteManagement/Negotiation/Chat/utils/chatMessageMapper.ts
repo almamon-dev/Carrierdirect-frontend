@@ -127,16 +127,16 @@ export const mapRawChatMessages = (
     const cleanId = String(rawQuoteId || "").replace(/[^0-9]/g, "");
 
     const isPayLater = Boolean(
-        (cleanId && localStorage.getItem(`cd_quote_paid_type_${cleanId}`) === "pay_later") ||
-        (rawQuoteId && localStorage.getItem(`cd_quote_paid_type_${rawQuoteId}`) === "pay_later") ||
+        
+        
         (activeNegotiation as any)?.raw?.invoice?.invoice_type === "pay_later" ||
         (activeNegotiation as any)?.raw?.order?.invoice_type === "pay_later" ||
         (activeNegotiation as any)?.raw?.payment_option === "pay_later"
     );
 
     const isPaid = Boolean(
-        (cleanId && localStorage.getItem(`cd_quote_paid_${cleanId}`) === "true") ||
-        (rawQuoteId && localStorage.getItem(`cd_quote_paid_${rawQuoteId}`) === "true") ||
+        
+        
         (activeNegotiation as any)?.raw?.is_paid ||
         (activeNegotiation as any)?.raw?.has_order ||
         (activeNegotiation as any)?.raw?.order_id ||

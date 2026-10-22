@@ -1,7 +1,7 @@
 import React from 'react';
 import { Building2 } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { TeamMember } from '../types/team.types';
 
 interface GetTeamMemberColumnsProps {
@@ -98,26 +98,12 @@ export function getTeamMemberColumns({
             className: 'w-[95px] text-center',
             render: (row) => {
                 const isBlocked = row.status === 'Blocked' || Boolean(row.isBlocked);
-                const rawStatus = (row.status || 'Active').toLowerCase();
                 return (
                     <div className="flex items-center justify-center min-h-[26px]">
-                        <Badge
-                            variant="secondary"
-                            className={`whitespace-nowrap text-[10.5px] font-semibold border flex items-center gap-1 px-2 py-0.5 ${
-                                isBlocked
-                                    ? 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300'
-                                    : rawStatus === 'active'
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                    : rawStatus === 'pending' || rawStatus === 'invited'
-                                    ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300'
-                                    : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300'
-                            }`}
-                        >
-                            {rawStatus === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />}
-                            {(rawStatus === 'pending' || rawStatus === 'invited') && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />}
-                            {isBlocked && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />}
-                            {isBlocked ? 'Blocked' : row.status}
-                        </Badge>
+                        <StatusBadge
+                            status={isBlocked ? 'Blocked' : (row.status || 'Active')}
+                            category={isBlocked ? 'failed' : undefined}
+                        />
                     </div>
                 );
             },

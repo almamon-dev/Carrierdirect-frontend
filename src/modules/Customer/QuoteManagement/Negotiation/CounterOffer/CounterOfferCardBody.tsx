@@ -68,7 +68,7 @@ export const CounterOfferCardBody: React.FC<CounterOfferCardBodyProps> = ({
                     </div>
                 </div>
 
-                <span className="text-[11px] font-semibold text-[#FF6A00] bg-orange-50/70 dark:bg-orange-950/40 px-2.5 py-0.5 rounded-[4px] border border-[#FF6A00]/40 shrink-0">
+                <span className="text-[11px] font-semibold text-[#FF6A00] bg-orange-50/70 dark:bg-orange-950/40 px-2.5 py-0.5 rounded-[2px] border border-[#FF6A00]/40 shrink-0">
                     #{String(quoteNum).replace(/^#+/, '')}
                 </span>
             </div>

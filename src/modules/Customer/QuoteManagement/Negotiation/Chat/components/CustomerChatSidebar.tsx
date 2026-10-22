@@ -1,6 +1,6 @@
 import React from "react";
 import Skeleton from "@/components/ui/skeleton";
-import { CustomerChatFilterTab, CustomerChatItem, CustomerContactGroup } from "../types";
+import { CustomerChatFilterTab, CustomerChatItem, CustomerContactGroup, ChatSortOption } from "../types";
 import { CustomerChatSidebarCollapsed } from "./CustomerChatSidebarCollapsed";
 import { extractSidebarGroupsDisplay } from "./chatSidebarUtils";
 import { CustomerChatSidebarHeader } from "./CustomerChatSidebarHeader";
@@ -11,11 +11,17 @@ interface CustomerChatSidebarProps {
     setSearchQuery: (val: string) => void;
     filterTab: CustomerChatFilterTab;
     setFilterTab: (val: CustomerChatFilterTab) => void;
+    sortBy?: ChatSortOption;
+    setSortBy?: (val: ChatSortOption) => void;
     counts?: {
         all: number;
         new: number;
         existing: number;
         unread: number;
+        awaiting_payment?: number;
+        counter_offers?: number;
+        booked?: number;
+        pinned?: number;
     };
     chats?: CustomerChatItem[];
     filteredChats?: CustomerChatItem[];
@@ -37,6 +43,8 @@ export const CustomerChatSidebar: React.FC<CustomerChatSidebarProps> = ({
     setSearchQuery,
     filterTab,
     setFilterTab,
+    sortBy,
+    setSortBy,
     counts,
     chats = [],
     filteredChats = [],
@@ -82,13 +90,15 @@ export const CustomerChatSidebar: React.FC<CustomerChatSidebarProps> = ({
     }
 
     return (
-        <div className="hidden lg:flex w-[320px] 2xl:w-[350px] shrink-0 flex-col min-h-0 h-full bg-white dark:bg-[#12161c] border-r border-slate-200 dark:border-slate-800">
+        <div className="hidden lg:flex w-[335px] 2xl:w-[355px] shrink-0 flex-col min-h-0 h-full bg-white dark:bg-[#12161c] border-r border-slate-200 dark:border-slate-800">
             <CustomerChatSidebarHeader
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 filterTab={filterTab}
                 setFilterTab={setFilterTab}
                 counts={counts}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
                 onBack={onBack}
                 onToggleCollapse={onToggleCollapse}
                 isLoading={isLoading}

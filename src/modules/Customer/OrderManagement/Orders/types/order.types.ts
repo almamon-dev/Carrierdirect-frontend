@@ -76,6 +76,14 @@ export interface CustomerOrderItem {
     gross_amount_formatted?: string;
     subtotal?: string | number;
     subtotal_formatted?: string;
+    base_amount?: string | number;
+    base_amount_formatted?: string;
+    base_price?: string | number;
+    base_price_formatted?: string;
+    platform_charge?: string | number;
+    platform_charge_formatted?: string;
+    platform_charge_percent?: number;
+    platform_fee_percent?: number;
     platform_fee?: string | number;
     platform_fee_formatted?: string;
     amount_raw?: number;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import Button from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import DataTable from '@/components/tables/data-table';
 
 const HISTORY_DATA = [
@@ -15,7 +15,7 @@ const HISTORY_DATA = [
 
 const HISTORY_COLUMNS = [
     { id: 'date', label: 'Date & Time', render: (row: any) => <span className="text-[12px] font-medium text-slate-700">{row.date}</span> },
-    { id: 'action', label: 'Action Type', render: (row: any) => <Badge className="bg-slate-100 text-slate-700 h-5 px-1.5 text-[10px]">{row.action}</Badge> },
+    { id: 'action', label: 'Action Type', render: (row: any) => <StatusBadge status={row.action} /> },
     { id: 'details', label: 'Details', render: (row: any) => <span className="text-[12px] text-slate-600">{row.details}</span> },
     { id: 'user', label: 'Initiated By', render: (row: any) => <span className="text-[12px] font-semibold text-slate-800">{row.user}</span> },
 ];

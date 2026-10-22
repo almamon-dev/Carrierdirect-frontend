@@ -5,6 +5,8 @@ import { MoreVertical, Eye, Copy, Send, CheckCircle2, FileDown, Check } from 'lu
 import Button from '@/components/ui/button';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 import { encryptId } from '@/lib/encryption';
+import apiClient from '@/lib/axios';
+import { useToastStore } from '@/stores/useToastStore';
 
 interface SupplierRowActionsProps {
     row: QuoteRequest;
@@ -16,8 +18,10 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
     onQuoteAction,
 }) => {
     const navigate = useNavigate();
+    const showToast = useToastStore(state => state.showToast);
     const [isOpen, setIsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
     const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -93,9 +97,29 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
         }
     };
 
-    const handleDownloadPdf = () => {
+    const handleDownloadPdf = async () => {
         handleClose();
-        window.print();
+        const cleanId = String(row.rawId || (row as any).slug || row.id || '').replace(/[^0-9]/g, '').trim();
+        if (!cleanId) return;
+
+        setIsDownloading(true);
+        try {
+            const blob = await apiClient.getBlob(`/supplier/requests/${cleanId}/download-pdf`);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `QuoteRequest-REQ-${cleanId.padStart(4, '0')}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+            showToast('Quote Request PDF downloaded successfully!', 'success');
+        } catch (err) {
+            console.error('Failed to download request PDF:', err);
+            showToast('Failed to download Quote Request PDF.', 'error');
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     const handleCopyId = () => {
@@ -167,11 +191,12 @@ export const SupplierRowActions: React.FC<SupplierRowActionsProps> = ({
                         {/* 4. Download Request PDF */}
                         <button
                             type="button"
-                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                            disabled={isDownloading}
+                            className="w-full text-left px-3.5 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 flex items-center gap-2.5 transition-colors font-medium cursor-pointer disabled:opacity-50"
                             onClick={handleDownloadPdf}
                         >
                             <FileDown size={14} className="text-slate-400 shrink-0" />
-                            <span>Download Request PDF</span>
+                            <span>{isDownloading ? 'Downloading PDF...' : 'Download Request PDF'}</span>
                         </button>
 
                         <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />

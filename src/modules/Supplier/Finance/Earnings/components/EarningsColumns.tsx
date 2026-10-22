@@ -2,7 +2,7 @@ import React from "react";
 import { Copy, Check } from "lucide-react";
 import { NavigateFunction } from "react-router-dom";
 import { Column } from "@/components/tables/data-table";
-import Badge from "@/components/ui/badge";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { formatDisplayDate } from "@/lib/utils";
 import { EarningItem } from "../types/earnings.types";
 
@@ -139,13 +139,10 @@ export function getEarningsColumns({
                 const isCleared = row.status === "Cleared" || row.raw_status === "cleared" || row.raw_status === "completed" || row.raw_status === "paid";
                 return (
                     <div className="flex items-center justify-center min-h-[26px]">
-                        <Badge variant="secondary" className={`whitespace-nowrap text-[10.5px] font-semibold border ${
-                            isCleared 
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60" 
-                                : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60"
-                        }`}>
-                            {isCleared ? "Cleared" : "Pending Clearance"}
-                        </Badge>
+                        <StatusBadge
+                            status={isCleared ? "Cleared" : "Pending Clearance"}
+                            category={isCleared ? "success" : "pending"}
+                        />
                     </div>
                 );
             }

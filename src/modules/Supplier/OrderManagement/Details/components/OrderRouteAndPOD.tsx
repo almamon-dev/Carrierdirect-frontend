@@ -1,4 +1,4 @@
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
 import { Download, FileText, MapPin, Upload } from 'lucide-react';
 import React from 'react';
@@ -88,14 +88,11 @@ export const OrderRouteAndPOD: React.FC<OrderRouteAndPODProps> = ({
                 className="lg:col-span-5 bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-5 space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Proof of Delivery (POD)</h3>
-                    <Badge
-                        variant="secondary"
-                        className={
-                            podUploaded ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'bg-amber-50 text-amber-700 font-semibold'
-                        }
-                    >
-                        {podUploaded ? 'POD Attached' : 'Pending POD'}
-                    </Badge>
+                    {podUploaded ? (
+                        <StatusBadge status="Approved" label="POD Attached" category="success" />
+                    ) : (
+                        <StatusBadge status="POD Pending" label="Pending POD" category="action_required" />
+                    )}
                 </div>
 
                 {podUploaded ? (

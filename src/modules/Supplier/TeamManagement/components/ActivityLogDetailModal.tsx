@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Activity, Clock } from 'lucide-react';
 import Badge from '@/components/ui/badge';
 import Button from '@/components/ui/button';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { ActivityLogItem } from './ActivityLogActions';
 
 interface ActivityLogDetailModalProps {
@@ -102,13 +103,7 @@ export const ActivityLogDetailModal: React.FC<ActivityLogDetailModalProps> = ({ 
 
                         <div className="py-2 flex items-center justify-between text-xs">
                             <span className="text-slate-500 dark:text-slate-400 font-normal">Outcome / Status:</span>
-                            <Badge variant="secondary" className={
-                                log.status === 'Success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-semibold text-[10.5px] border' :
-                                log.status === 'Warning' ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 font-semibold text-[10.5px] border' :
-                                'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 font-semibold text-[10.5px] border'
-                            }>
-                                {log.status}
-                            </Badge>
+                            <StatusBadge status={log.status} />
                         </div>
 
                         <div className="py-2 flex items-center justify-between text-xs">

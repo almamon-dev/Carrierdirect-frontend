@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { echo } from '@/lib/echo';
 import apiClient from '@/lib/axios';
 import { ENDPOINTS } from '@/config/api';
 import { formatDisplayDate } from '@/lib/utils';
@@ -44,6 +45,12 @@ export interface MyQuoteItem {
     hasOrder?: boolean;
     hasNegotiation?: boolean;
     isExpired?: boolean;
+    acceptedAt?: string | null;
+    paymentExpiresAt?: string | null;
+    paymentExpiresInSeconds?: number | null;
+    reminderSentAt?: string | null;
+    isAwaitingPayment?: boolean;
+    isPaid?: boolean;
 }
 
 export function useSupplierMyQuotes() {
@@ -82,11 +89,24 @@ export function useSupplierMyQuotes() {
                 const isDateExpired = expiryField ? (!isNaN(new Date(expiryField).getTime()) && new Date(expiryField).getTime() < Date.now()) : false;
                 const isOrderActive = ost && ['booked', 'confirmed', 'in_progress', 'completed', 'delivered', 'pod_accepted'].includes(ost) && !['cancelled', 'rejected'].includes(ost);
 
+                const isPaid = Boolean(
+                    q.is_paid ||
+                    q.has_order ||
+                    ['booked', 'confirmed', 'in_progress', 'completed', 'delivered', 'pod_accepted'].includes(ost)
+                );
+
+                const isAwaitingPayment = Boolean(
+                    q.is_awaiting_payment ||
+                    (statusRaw === 'accepted' && !isPaid && !isOrderActive)
+                );
+
                 let canonicalStatus = 'submitted';
                 if (ost === 'completed' || statusRaw === 'completed') {
                     canonicalStatus = 'completed';
-                } else if (statusRaw === 'booked' || (statusRaw === 'accepted' && (q.is_paid || isOrderActive))) {
+                } else if (statusRaw === 'booked' || (statusRaw === 'accepted' && (isPaid || isOrderActive))) {
                     canonicalStatus = 'booked';
+                } else if (isAwaitingPayment) {
+                    canonicalStatus = 'awaiting_payment';
                 } else if (statusRaw === 'accepted' || statusRaw === 'won') {
                     canonicalStatus = 'accepted';
                 } else if (statusRaw === 'rejected' || statusRaw === 'lost' || statusRaw === 'declined' || statusRaw === 'cancelled') {
@@ -141,6 +161,12 @@ export function useSupplierMyQuotes() {
                     hasOrder,
                     hasNegotiation,
                     isExpired: isDateExpired || statusRaw === 'expired',
+                    acceptedAt: q.accepted_at || null,
+                    paymentExpiresAt: q.payment_expires_at || null,
+                    paymentExpiresInSeconds: q.payment_expires_in_seconds ?? null,
+                    reminderSentAt: q.reminder_sent_at || null,
+                    isAwaitingPayment,
+                    isPaid,
                 };
             });
 
@@ -158,6 +184,42 @@ export function useSupplierMyQuotes() {
 
     useEffect(() => {
         fetchMyQuotes();
+
+        const handleRealtimeUpdate = () => {
+            fetchMyQuotes();
+        };
+
+        window.addEventListener('carrierdirect_notif_update', handleRealtimeUpdate);
+        window.addEventListener('carrierdirect_quote_updated', handleRealtimeUpdate);
+
+        let userChannel: any = null;
+        try {
+            const rawUser = localStorage.getItem('carrierdirect_user_data') || localStorage.getItem('user');
+            const user = rawUser ? JSON.parse(rawUser) : null;
+            if (user?.id) {
+                userChannel = echo.private(`App.Models.User.${user.id}`);
+                userChannel.notification(() => {
+                    fetchMyQuotes();
+                });
+                userChannel.listen('.quote.updated', () => {
+                    fetchMyQuotes();
+                });
+                userChannel.listen('quote.updated', () => {
+                    fetchMyQuotes();
+                });
+            }
+        } catch (e) {
+            console.warn('Echo direct subscribe error in useSupplierMyQuotes:', e);
+        }
+
+        return () => {
+            window.removeEventListener('carrierdirect_notif_update', handleRealtimeUpdate);
+            window.removeEventListener('carrierdirect_quote_updated', handleRealtimeUpdate);
+            if (userChannel) {
+                userChannel.stopListening('.quote.updated');
+                userChannel.stopListening('quote.updated');
+            }
+        };
     }, [fetchMyQuotes]);
 
     return {

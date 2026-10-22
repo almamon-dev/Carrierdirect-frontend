@@ -1,58 +1,48 @@
-import { useMemo, useState } from 'react';
-import { QuoteRequest } from '../../data/quoteRequestsData';
-import { RequestFilterTab } from '../components/QuoteRequestsFilterTabs';
+import { useMemo, useState } from "react";
+import { QuoteRequest } from "../../data/quoteRequestsData";
+import { RequestFilterTab, isRequestClosedOrBooked, isRequestQuoted } from "../components/QuoteRequestsFilterTabs";
 
 export function useQuoteRequestsFilter(requests: QuoteRequest[]) {
-    const [activeTab, setActiveTab] = useState<RequestFilterTab>('new');
-    const [priorityFilter, setPriorityFilter] = useState<string>('all');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [vehicleFilter, setVehicleFilter] = useState<string>('all');
-    const [startDate, setStartDate] = useState<string>('');
-    const [endDate, setEndDate] = useState<string>('');
+    const [activeTab, setActiveTab] = useState<RequestFilterTab>("all");
+    const [locationFilter, setLocationFilter] = useState<string>("");
+    const [startDate, setStartDate] = useState<string>("");
+    const [endDate, setEndDate] = useState<string>("");
 
     const handleResetFilters = () => {
-        setPriorityFilter('all');
-        setStatusFilter('all');
-        setVehicleFilter('all');
-        setStartDate('');
-        setEndDate('');
-        // Preserve activeTab as per specification
+        setLocationFilter("");
+        setStartDate("");
+        setEndDate("");
     };
 
     const filteredRequests = useMemo(() => {
+        const normLoc = (locationFilter || "").trim().toLowerCase();
+
         return requests.filter((item) => {
             if (!item) return false;
 
-            const isExp = Boolean(item.isExpired || (item as any).is_expired || (item.status || '').toLowerCase() === 'expired');
-            const hasQuoted = Boolean(item.hasQuoted || item.isQuoted || (item.status || "").toLowerCase() === "quoted");
-            const hasViewed = Boolean((item as any).hasViewed || (item as any).isViewed || item.supplierStatus === "Viewed" || (item.status || "").toLowerCase() === "viewed");
+            // Always exclude expired, cancelled, booked, completed from available requests
+            if (isRequestClosedOrBooked(item)) return false;
 
-            if (activeTab === 'new') {
-                if (isExp || hasQuoted || hasViewed) return false;
-            } else if (activeTab === 'viewed') {
-                if (isExp || hasQuoted || !hasViewed) return false;
-            } else if (activeTab === 'expired') {
-                if (!isExp) return false;
+            const isQuoted = isRequestQuoted(item);
+
+            if (activeTab === "new") {
+                if (isQuoted) return false;
+            } else if (activeTab === "quoted") {
+                if (!isQuoted) return false;
             }
 
-            if (priorityFilter !== 'all') {
-                const normPriority = (item.priority || '').toLowerCase();
-                if (!normPriority.includes(priorityFilter.toLowerCase())) return false;
+            // Minimal Filter: Location
+            if (normLoc) {
+                const pickupLoc = String(item.pickup || (item as any).pickup_address || (item as any).pickup_city || "").toLowerCase();
+                const deliveryLoc = String(item.delivery || (item as any).delivery_address || (item as any).delivery_city || "").toLowerCase();
+                if (!pickupLoc.includes(normLoc) && !deliveryLoc.includes(normLoc)) {
+                    return false;
+                }
             }
 
-            if (statusFilter !== 'all') {
-                const normStatus = (item.status || '').toLowerCase();
-                if (!normStatus.includes(statusFilter.toLowerCase())) return false;
-            }
-
-            if (vehicleFilter !== 'all') {
-                const normVehicle = (item.vehicleType || '').toLowerCase().replace(/[\s_-]+/g, '');
-                const targetVehicle = vehicleFilter.toLowerCase().replace(/[\s_-]+/g, '');
-                if (!normVehicle.includes(targetVehicle)) return false;
-            }
-
+            // Minimal Filter: Pickup Date (Start & End)
             if (startDate || endDate) {
-                const dateVal = item.pickupDate || item.requestDate;
+                const dateVal = item.pickupDate || (item as any).pickupDateRaw || (item as any).pickup_date_raw || (item as any).pickup_date || item.requestDate;
                 if (dateVal) {
                     try {
                         const itemTime = new Date(dateVal).getTime();
@@ -74,17 +64,13 @@ export function useQuoteRequestsFilter(requests: QuoteRequest[]) {
 
             return true;
         });
-    }, [requests, activeTab, priorityFilter, statusFilter, vehicleFilter, startDate, endDate]);
+    }, [requests, activeTab, locationFilter, startDate, endDate]);
 
     return {
         activeTab,
         setActiveTab,
-        priorityFilter,
-        setPriorityFilter,
-        statusFilter,
-        setStatusFilter,
-        vehicleFilter,
-        setVehicleFilter,
+        locationFilter,
+        setLocationFilter,
         startDate,
         setStartDate,
         endDate,

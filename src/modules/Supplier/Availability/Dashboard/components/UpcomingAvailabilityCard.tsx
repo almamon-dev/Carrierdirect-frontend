@@ -66,7 +66,7 @@ export function UpcomingAvailabilityCard({
                         Upcoming Availability
                     </h3>
                     {!isLoading && serviceAreas.length > 0 && (
-                        <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-[4px] bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] border border-orange-200/60 dark:border-orange-900/40 shrink-0">
+                        <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-[2px] bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] border border-orange-200/60 dark:border-orange-900/40 shrink-0">
                             {serviceAreas.length}
                         </span>
                     )}

@@ -18,6 +18,17 @@ export interface CustomerPayLaterItem {
     gross_amount?: number;
     gross_amount_formatted?: string;
     supplier_amount?: number;
+    subtotal?: number;
+    subtotal_formatted?: string;
+    base_amount?: number;
+    base_amount_formatted?: string;
+    platform_fee?: number;
+    platform_fee_formatted?: string;
+    platform_charge?: number;
+    platform_charge_formatted?: string;
+    platform_charge_percent?: number;
+    platform_fee_percent?: number;
+
     currency?: string;
     status?: string;
     raw_status?: string;

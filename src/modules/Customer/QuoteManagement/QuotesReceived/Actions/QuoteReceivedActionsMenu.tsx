@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Eye, FileText, MessageSquare, CheckCircle, Loader2, XCircle, TrendingDown, PackageCheck, FileDown } from 'lucide-react';
+import { Eye, Layers, FileText, MessageSquare, CheckCircle, Loader2, XCircle, TrendingDown, PackageCheck, FileDown, CreditCard } from 'lucide-react';
 
 interface QuoteReceivedActionsMenuProps {
     isOpen: boolean;
@@ -8,6 +8,7 @@ interface QuoteReceivedActionsMenuProps {
     dropdownRef: React.RefObject<HTMLDivElement | null>;
     isPending: boolean;
     isNegotiating: boolean;
+    isAwaitingPayment?: boolean;
     canNegotiate?: boolean;
     canCounter?: boolean;
     canAccept?: boolean;
@@ -18,6 +19,7 @@ interface QuoteReceivedActionsMenuProps {
     hasPdf?: boolean;
     pdfUrl?: string;
     onViewQuote?: () => void;
+    onCompareQuotes?: () => void;
     onViewDetails?: () => void;
     onViewRequest?: () => void;
     onOpenChat: () => void;
@@ -35,6 +37,7 @@ export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> =
     dropdownRef,
     isPending,
     isNegotiating,
+    isAwaitingPayment,
     canNegotiate = true,
     canCounter = true,
     canAccept = true,
@@ -45,6 +48,7 @@ export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> =
     hasPdf,
     pdfUrl,
     onViewQuote,
+    onCompareQuotes,
     onViewDetails,
     onViewRequest,
     onOpenChat,
@@ -78,6 +82,21 @@ export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> =
                 <Eye size={14} className="text-slate-400 shrink-0" />
                 <span>View Quote</span>
             </button>
+
+            {/* 1.1 Compare All Carrier Quotes — only when handler is provided */}
+            {onCompareQuotes && (
+                <button
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-[#ff4a1f]/10 flex items-center gap-2.5 transition-colors font-semibold cursor-pointer"
+                    onClick={() => {
+                        onClose();
+                        onCompareQuotes();
+                    }}
+                >
+                    <Layers size={14} className="text-[#ff4a1f] shrink-0" />
+                    <span>Compare All Quotes</span>
+                </button>
+            )}
 
             {/* 2. View Request */}
             {hasRequest && onViewRequest && (
@@ -124,8 +143,23 @@ export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> =
                 </button>
             )}
 
-            {/* 5. Accept & Book — only when the quote is valid and booking is permitted */}
-            {canAccept && (
+            {/* 4.1 Complete Payment — when quote is accepted but awaiting payment */}
+            {isAwaitingPayment && (
+                <button
+                    type="button"
+                    className="w-full text-left px-3.5 py-2 text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-2.5 transition-colors font-bold cursor-pointer"
+                    onClick={() => {
+                        onClose();
+                        onAccept();
+                    }}
+                >
+                    <CreditCard size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span>Complete Payment</span>
+                </button>
+            )}
+
+            {/* 5. Accept & Book — only when the quote is pending/negotiating and not yet accepted */}
+            {canAccept && !isAwaitingPayment && (
                 <button
                     type="button"
                     disabled={isAccepting}
@@ -144,8 +178,8 @@ export const QuoteReceivedActionsMenu: React.FC<QuoteReceivedActionsMenuProps> =
                 </button>
             )}
 
-            {/* 6. Decline Offer — only when declining is permitted */}
-            {canDecline && (
+            {/* 6. Decline Offer — only when declining is permitted and not already accepted */}
+            {canDecline && !isAwaitingPayment && (
                 <button
                     type="button"
                     className="w-full text-left px-3.5 py-2 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Copy, Check, Navigation } from 'lucide-react';
 import { ShipmentItem } from '../../../types';
 import { ShipmentStatusBadge } from '../../components/ShipmentStatusBadge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { requireDriverCompliance } from '../../../Compliance';
 
 interface Props {
@@ -52,16 +53,14 @@ export const DriverShipmentHeader: React.FC<Props> = ({ shipment, onOpenGPS }) =
                     {shipment.orderNumber}
                 </h1>
 
-                <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1e2329] px-2 py-0.5 rounded-[4px] border border-slate-200 dark:border-slate-800 shadow-2xs">
+                <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1e2329] px-2 py-0.5 rounded-[2px] border border-slate-200 dark:border-slate-800 shadow-2xs">
                     {shipment.trackingNumber}
                 </span>
 
                 <ShipmentStatusBadge status={shipment.status} />
 
                 {shipment.priority === 'Urgent' && (
-                    <span className="h-6.5 px-2.5 text-[11px] font-bold bg-red-50 dark:bg-red-950/60 text-red-600 rounded-[4px] border border-red-200/60 dark:border-red-900/40 inline-flex items-center">
-                        Urgent Dispatch
-                    </span>
+                    <StatusBadge status="Urgent" label="Urgent Dispatch" />
                 )}
             </div>
 

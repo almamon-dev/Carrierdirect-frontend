@@ -1,6 +1,6 @@
 import React from 'react';
 import { Package, MapPin, ArrowRight, Clock, Search } from 'lucide-react';
-import Badge from '@/components/ui/badge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import Input from '@/components/ui/input';
 import { formatDisplayDate } from '@/lib/utils';
 import { SupplierOrderItem } from '../../ActiveJobs/types';
@@ -108,11 +108,11 @@ export const AssignDriverQueue: React.FC<AssignDriverQueueProps> = ({
 
                                     {isAssigned ? (
                                         <div className="flex flex-col items-end">
-                                            <Badge variant="info" className="text-[10px] font-bold">✓ {hasRealDriver ? dName : 'Driver Assigned'}</Badge>
+                                            <StatusBadge status={hasRealDriver ? dName : 'Driver Assigned'} category="in_progress" />
                                             {dEmail && <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 max-w-[150px] truncate text-right" title={dEmail}>{dEmail}</span>}
                                         </div>
                                     ) : (
-                                        <Badge variant="warning" className="text-[10px] font-bold animate-pulse">Pending Dispatch</Badge>
+                                        <StatusBadge status="Pending Dispatch" category="pending" />
                                     )}
                                 </div>
 

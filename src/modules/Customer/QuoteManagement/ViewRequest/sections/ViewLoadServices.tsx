@@ -50,10 +50,10 @@ export const ViewLoadServices: React.FC<ViewLoadServicesProps> = ({ formData }) 
 
                 <ViewField label="Vehicle Type" value={formData.vehicleType} />
                 <ViewField label="Load Type" value={formData.loadType} />
-                <ViewField label="Total Items (Qty)" value={formData.itemsCount} />
-                <ViewField label="Total Pallets" value={formData.palletsCount} />
-                <ViewField label="Total Weight" value={`${formData.weight} KG`} />
-                <ViewField label="Total Volume" value={`${formData.volume} CBM`} />
+                <ViewField label="Total Items (Qty)" value={formData.itemsCount || '—'} />
+                <ViewField label="Total Pallets" value={formData.palletsCount || '—'} />
+                <ViewField label="Total Weight" value={formData.weight ? `${formData.weight} KG` : '—'} />
+                <ViewField label="Total Volume" value={formData.volume ? `${formData.volume} CBM` : '—'} />
 
                 <SectionHeader title="Cargo Item Dimensions" icon={Box} />
                 <div className="col-span-1 md:col-span-2 overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">

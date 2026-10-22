@@ -1,12 +1,12 @@
 /**
  * Customer Negotiation Table Filter Content
- * Matches Quote Management TableFilterContent standards with Priority, Status (Open, Counter Offers, Accepted, Booked, Closed), Vehicle Type, Date Ranges, and Reset.
+ * Advanced Filters: Status, Last Activity (From / To), Priority, Vehicle Type, and Reset.
  */
 
-import React from 'react';
-import Select from '@/components/ui/select';
-import Input from '@/components/ui/input';
-import { RotateCcw } from 'lucide-react';
+import React from "react";
+import Select from "@/components/ui/select";
+import Input from "@/components/ui/input";
+import { RotateCcw } from "lucide-react";
 
 interface TableFilterContentProps {
     priorityFilter: string;
@@ -29,69 +29,42 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
     setStatusFilter,
     vehicleFilter,
     setVehicleFilter,
-    startDate = '',
+    startDate = "",
     setStartDate,
-    endDate = '',
+    endDate = "",
     setEndDate,
     onResetFilters,
 }) => {
     const hasActiveFilters =
-        priorityFilter !== 'all' ||
-        statusFilter !== 'all' ||
-        vehicleFilter !== 'all' ||
+        priorityFilter !== "all" ||
+        statusFilter !== "all" ||
+        vehicleFilter !== "all" ||
         Boolean(startDate) ||
         Boolean(endDate);
 
     return (
         <div className="w-full font-sans">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 items-end">
-                {/* 1. Priority */}
-                <div className="min-w-0">
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Priority
-                    </label>
-                    <Select value={priorityFilter} onChange={(val) => setPriorityFilter(val)} showSearch={false}>
-                        <option value="all">All Priorities</option>
-                        <option value="urgent">Urgent</option>
-                        <option value="high">High</option>
-                        <option value="normal">Normal</option>
-                    </Select>
-                </div>
-
-                {/* 2. Status */}
+                {/* 1. Status Filter */}
                 <div className="min-w-0">
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                         Status
                     </label>
                     <Select value={statusFilter} onChange={(val) => setStatusFilter(val)} showSearch={false}>
                         <option value="all">All Statuses</option>
-                        <option value="open">Open</option>
-                        <option value="counter">Counter Offers</option>
-                        <option value="accepted">Accepted</option>
-                        <option value="booked">Booked</option>
-                        <option value="closed">Closed</option>
+                        <option value="open">💬 Open / Active</option>
+                        <option value="counter">🔄 Counter Offers</option>
+                        <option value="agreed">🤝 Agreed</option>
+                        <option value="awaiting_payment">💳 Awaiting Payment</option>
+                        <option value="booked">📦 Booked</option>
+                        <option value="closed">🔒 Closed / Expired</option>
                     </Select>
                 </div>
 
-                {/* 3. Vehicle Type */}
+                {/* 2. Last Activity - From */}
                 <div className="min-w-0">
                     <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Vehicle Type
-                    </label>
-                    <Select value={vehicleFilter} onChange={(val) => setVehicleFilter(val)} showSearch={false}>
-                        <option value="all">All Vehicles</option>
-                        <option value="covered van">Covered Van</option>
-                        <option value="refrigerated truck">Refrigerated Truck</option>
-                        <option value="flatbed">Flatbed Truck</option>
-                        <option value="box truck">Box Truck</option>
-                        <option value="curtain sider">Curtain Sider</option>
-                    </Select>
-                </div>
-
-                {/* 4. Start Date */}
-                <div className="min-w-0">
-                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Start Date
+                        Last Activity From
                     </label>
                     <Input
                         type="date"
@@ -101,11 +74,37 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                     />
                 </div>
 
-                {/* 5. End Date & Reset */}
+                {/* 3. Last Activity - To */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Last Activity To
+                    </label>
+                    <Input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate && setEndDate(e.target.value)}
+                        className="h-9 text-xs"
+                    />
+                </div>
+
+                {/* 4. Priority */}
+                <div className="min-w-0">
+                    <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                        Priority Level
+                    </label>
+                    <Select value={priorityFilter} onChange={(val) => setPriorityFilter(val)} showSearch={false}>
+                        <option value="all">All Priorities</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="high">High</option>
+                        <option value="normal">Normal</option>
+                    </Select>
+                </div>
+
+                {/* 5. Vehicle Type & Reset */}
                 <div className="min-w-0">
                     <div className="flex items-center justify-between mb-1">
                         <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">
-                            End Date
+                            Vehicle Type
                         </label>
                         {hasActiveFilters && onResetFilters && (
                             <button
@@ -118,12 +117,14 @@ export const TableFilterContent: React.FC<TableFilterContentProps> = ({
                             </button>
                         )}
                     </div>
-                    <Input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate && setEndDate(e.target.value)}
-                        className="h-9 text-xs"
-                    />
+                    <Select value={vehicleFilter} onChange={(val) => setVehicleFilter(val)} showSearch={false}>
+                        <option value="all">All Vehicles</option>
+                        <option value="covered van">Covered Van</option>
+                        <option value="refrigerated truck">Refrigerated Truck</option>
+                        <option value="flatbed">Flatbed Truck</option>
+                        <option value="box truck">Box Truck</option>
+                        <option value="curtain sider">Curtain Sider</option>
+                    </Select>
                 </div>
             </div>
         </div>

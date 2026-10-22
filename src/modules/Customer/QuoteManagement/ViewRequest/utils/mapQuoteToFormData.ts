@@ -99,10 +99,10 @@ export function mapQuoteToFormData(q: any, cleanId: string) {
 
         vehicleType: q.vehicle_type || q.vehicleType || q.vehicle || '-',
         loadType: q.load_type || q.loadType || q.load || '-',
-        itemsCount: q.items_count || q.itemsCount ? String(q.items_count || q.itemsCount) : '-',
-        palletsCount: q.pallets_count || q.palletsCount ? String(q.pallets_count || q.palletsCount) : '-',
-        weight: q.weight ? String(q.weight) : '-',
-        volume: q.volume ? String(q.volume) : '-',
+        itemsCount: q.items_count || q.itemsCount ? String(q.items_count || q.itemsCount) : '',
+        palletsCount: q.pallets_count || q.palletsCount ? String(q.pallets_count || q.palletsCount) : '',
+        weight: q.weight ? String(q.weight) : '',
+        volume: q.volume ? String(q.volume) : '',
         dimensions: Array.isArray(q.items) && q.items.length > 0
             ? q.items.map((it: any, idx: number) => ({
                 id: it.id || idx + 1,

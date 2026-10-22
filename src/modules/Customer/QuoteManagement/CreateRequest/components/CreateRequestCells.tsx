@@ -1,13 +1,17 @@
-import { formatDisplayDate } from '@/lib/utils';
-import { Plane } from 'lucide-react';
 import React from 'react';
+import { Plane } from 'lucide-react';
+import { formatDisplayDate } from '@/lib/utils';
+import { StandardRouteCell } from '@/components/common/StandardRouteCell';
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import { CustomerQuoteRequestItem } from '../types';
 
 export const RequestIdCell: React.FC<{ row: CustomerQuoteRequestItem; onNavigate: (path: string) => void }> = ({ row, onNavigate }) => {
     const reqText = row.id ? (String(row.id).startsWith('REQ-') ? row.id : `REQ-${String(row.id).padStart(4, '0')}`) : 'REQ-0000';
     const rawId = row.rawId || String(row.id).replace('REQ-', '');
+    const dateVal = row.date || row.created_at;
+
     return (
-        <div className="flex items-center min-h-[26px]">
+        <div className="flex flex-col justify-center min-h-[26px]">
             <button
                 type="button"
                 onClick={() => onNavigate(`/customer/quotes/create/view/${rawId}`)}
@@ -15,6 +19,11 @@ export const RequestIdCell: React.FC<{ row: CustomerQuoteRequestItem; onNavigate
             >
                 {reqText}
             </button>
+            {dateVal && (
+                <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 leading-none whitespace-nowrap">
+                    {formatDisplayDate(dateVal)}
+                </span>
+            )}
         </div>
     );
 };
@@ -23,29 +32,22 @@ export const TitleCell: React.FC<{ row: CustomerQuoteRequestItem }> = ({ row }) 
     const title = row.title || row.request_title || row.requestTitle || '—';
     return (
         <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={title}>
-            <span className="font-bold text-slate-900 dark:text-slate-100 text-[13.5px] truncate block max-w-full leading-normal">
+            <span className="font-bold text-slate-900 dark:text-slate-100 text-[13.5px] whitespace-nowrap block leading-normal">
                 {title}
             </span>
         </div>
     );
 };
 
-const cleanAddressWithoutZip = (addr: string): string => {
-    if (!addr || addr === '—') return addr;
-    return addr
-        .replace(/\s*\(?ZIP:?\s*\d+\)?/gi, '')
-        .replace(/\b(?:ZIP|Postal Code):?\s*\d+\b/gi, '')
-        .replace(/\s+\d{4,6}\b(?=[,\s]|$)/g, '')
-        .replace(/\s*,\s*,/g, ',')
-        .replace(/,\s*$/g, '')
-        .trim();
+export const RequestRouteCell: React.FC<{ row: any }> = ({ row }) => {
+    return <StandardRouteCell row={row} />;
 };
 
-export const AddressCell: React.FC<{ address: string }> = ({ address }) => {
-    const displayAddr = cleanAddressWithoutZip(address);
+export const AddressCell: React.FC<{ address?: string; row?: any; type?: "pickup" | "delivery" }> = ({ address, row, type = "pickup" }) => {
+    const displayAddr = row ? formatStandardAddress(row, type) : formatStandardAddress(address);
     return (
         <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={displayAddr}>
-            <span className="font-medium text-slate-700 dark:text-slate-300 text-[13px] truncate block max-w-full leading-normal">
+            <span className="font-medium text-slate-700 dark:text-slate-300 text-[13px] whitespace-nowrap block leading-normal">
                 {displayAddr}
             </span>
         </div>
@@ -95,54 +97,69 @@ export const BudgetCell: React.FC<{ budget: string | number }> = ({ budget }) =>
     );
 };
 
-export const QuotesCountCell: React.FC<{ count: number }> = ({ count }) => (
+export const QuotesCountCell: React.FC<{ count: number; rawId?: any; onNavigate?: (path: string) => void }> = ({ count, rawId, onNavigate }) => (
     <div className="flex items-center justify-center min-h-[26px]">
-        <span className={`whitespace-nowrap text-[13px] leading-none ${count > 0 ? 'text-[#ff4a1f] font-bold' : 'text-slate-400 dark:text-slate-500 font-medium'}`}>
-            {count} {count === 1 ? 'Quote' : 'Quotes'}
-        </span>
+        {count > 0 && onNavigate ? (
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onNavigate(`/customer/quotes/received/${rawId}`);
+                }}
+                className="whitespace-nowrap text-[13px] leading-none text-[#ff4a1f] font-bold hover:underline cursor-pointer"
+            >
+                {count} {count === 1 ? 'Quote' : 'Quotes'}
+            </button>
+        ) : (
+            <span className={`whitespace-nowrap text-[13px] leading-none ${count > 0 ? 'text-[#ff4a1f] font-bold' : 'text-slate-400 dark:text-slate-500 font-medium'}`}>
+                {count} {count === 1 ? 'Quote' : 'Quotes'}
+            </span>
+        )}
     </div>
 );
 
 export const PriorityBadgeCell: React.FC<{ priority: string }> = ({ priority }) => {
     const p = (priority || '').toLowerCase().trim();
-    const badgeStyle = p === 'urgent'
-        ? 'bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border-[#fecdd3] dark:border-rose-800/60'
-        : p === 'high'
-            ? 'bg-[#fff7ed] dark:bg-orange-950/40 text-[#ea580c] dark:text-orange-300 border-[#fed7aa] dark:border-orange-800/60'
-            : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+    const isActionRequired = p === 'urgent' || p === 'high';
 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
-            <span className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap border ${badgeStyle}`}>
-                {priority}
+            <span className={`inline-flex items-center justify-center px-[10px] py-[4px] text-[12px] font-semibold leading-none rounded-[2px] whitespace-nowrap ${
+                isActionRequired ? 'bg-[#F5D0AD] text-[#8A4210]' : 'bg-[#D8DCE3] text-[#374151]'
+            }`}>
+                {priority || 'Standard'}
             </span>
         </div>
     );
 };
 
 export const StatusBadgeCell: React.FC<{ status: string }> = ({ status }) => {
-    const s = (status || '').toLowerCase().trim();
+    const raw = (status || '').trim();
+    const clean = raw.replace(/_/g, ' ').replace(/\w/g, c => c.toUpperCase());
+    const s = clean.toLowerCase();
 
-    let badgeStyle = 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+    let colorClass = 'bg-[#D8DCE3] text-[#374151]';
 
-    if (s === 'won' || s === 'completed' || s === 'accepted' || s === 'awarded' || s === 'paid') {
-        badgeStyle = 'bg-[#ecfdf5] dark:bg-emerald-950/40 text-[#059669] dark:text-emerald-300 border border-[#a7f3d0] dark:border-emerald-800/60';
-    } else if (s === 'quotes received' || s === 'quotes_received' || s === 'quoted') {
-        badgeStyle = 'bg-[#eff6ff] dark:bg-blue-950/40 text-[#2563eb] dark:text-blue-300 border border-[#bfdbfe] dark:border-blue-800/60';
+    if (s === 'awaiting payment') {
+        colorClass = 'bg-[#D8DCE3] text-[#374151]';
+    } else if (s === 'won' || s === 'completed' || s === 'accepted' || s === 'awarded' || s === 'paid') {
+        colorClass = 'bg-[#BBEBD0] text-[#166534]';
+    } else if (s === 'quotes received' || s === 'quotes_received' || s === 'quoted' || s === 'in progress' || s === 'in_progress' || s === 'active') {
+        colorClass = 'bg-[#BBD8F7] text-[#1E40AF]';
     } else if (s === 'negotiation' || s === 'negotiating' || s.includes('counter')) {
-        badgeStyle = 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60';
-    } else if (s === 'pending' || s === 'processing' || s === 'draft' || s === 'waiting') {
-        badgeStyle = 'bg-[#fffbeb] dark:bg-amber-950/40 text-[#d97706] dark:text-amber-300 border border-[#fde68a] dark:border-amber-800/60';
-    } else if (s === 'expired' || s === 'cancelled' || s === 'closed' || s === 'rejected' || s === 'failed') {
-        badgeStyle = 'bg-[#fef2f2] dark:bg-rose-950/40 text-[#dc2626] dark:text-rose-300 border border-[#fecaca] dark:border-rose-800/60';
-    } else if (s === 'in progress' || s === 'in_progress' || s === 'active') {
-        badgeStyle = 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60';
+        colorClass = s.includes('counter received') ? 'bg-[#F5D0AD] text-[#8A4210]' : 'bg-[#BBD8F7] text-[#1E40AF]';
+    } else if (s === 'pending' || s === 'processing' || s === 'waiting') {
+        colorClass = 'bg-[#F5E3A3] text-[#805B10]';
+    } else if (s === 'expired' || s === 'closed' || s === 'draft') {
+        colorClass = 'bg-[#D8DCE3] text-[#374151]';
+    } else if (s === 'cancelled' || s === 'rejected' || s === 'failed') {
+        colorClass = 'bg-[#F4C2C2] text-[#991B1B]';
     }
 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
-            <span className={`inline-flex items-center justify-center gap-1 text-[11.5px] px-2.5 py-0.5 rounded-[4px] font-semibold whitespace-nowrap shrink-0 border ${badgeStyle}`}>
-                {status}
+            <span className={"inline-flex items-center justify-center px-[10px] py-[4px] text-[12px] font-semibold leading-none rounded-[2px] whitespace-nowrap shrink-0 " + colorClass}>
+                {clean || 'Pending'}
             </span>
         </div>
     );

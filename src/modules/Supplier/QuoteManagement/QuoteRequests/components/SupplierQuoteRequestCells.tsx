@@ -1,19 +1,10 @@
+import { StandardRouteCell } from '@/components/common/StandardRouteCell';
+import { formatStandardAddress } from '@/utils/addressFormatter';
 import React from 'react';
 import { Plane } from 'lucide-react';
 import { formatDisplayDate } from '@/lib/utils';
 import { encryptId } from '@/lib/encryption';
 import { QuoteRequest } from '../../data/quoteRequestsData';
-
-const cleanAddressWithoutZip = (addr: string): string => {
-    if (!addr || addr === '—') return addr;
-    return addr
-        .replace(/\s*\(?ZIP:?\s*\d+\)?/gi, '')
-        .replace(/\b(?:ZIP|Postal Code):?\s*\d+\b/gi, '')
-        .replace(/\s+\d{4,6}\b(?=[,\s]|$)/g, '')
-        .replace(/\s*,\s*,/g, ',')
-        .replace(/,\s*$/g, '')
-        .trim();
-};
 
 export const SupplierRequestIdCell: React.FC<{ row: QuoteRequest; onNavigate: (path: string) => void }> = ({ row, onNavigate }) => {
     const reqText = row.id ? (String(row.id).startsWith('REQ-') ? row.id : `REQ-${String(row.id).padStart(4, '0')}`) : 'REQ-0000';
@@ -54,8 +45,8 @@ export const SupplierCustomerCell: React.FC<{ row: QuoteRequest }> = ({ row }) =
     );
 };
 
-export const SupplierAddressCell: React.FC<{ address: string }> = ({ address }) => {
-    const displayAddr = cleanAddressWithoutZip(address);
+export const SupplierAddressCell: React.FC<{ address?: string; row?: any; type?: 'pickup' | 'delivery' }> = ({ address, row, type = 'pickup' }) => {
+    const displayAddr = row ? formatStandardAddress(row, type) : formatStandardAddress(address);
     return (
         <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={displayAddr}>
             <span className="font-medium text-slate-700 dark:text-slate-300 text-[13px] truncate block max-w-full leading-normal">
@@ -110,16 +101,15 @@ export const SupplierBudgetCell: React.FC<{ budget: string | number }> = ({ budg
 
 export const SupplierPriorityBadgeCell: React.FC<{ priority: string }> = ({ priority }) => {
     const p = (priority || '').toLowerCase().trim();
-    const badgeStyle = p === 'urgent'
-        ? 'bg-[#fff1f2] dark:bg-rose-950/40 text-[#e11d48] dark:text-rose-300 border-[#fecdd3] dark:border-rose-800/60'
-        : p === 'high'
-            ? 'bg-[#fff7ed] dark:bg-orange-950/40 text-[#ea580c] dark:text-orange-300 border-[#fed7aa] dark:border-orange-800/60'
-            : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+    const isActionRequired = p === 'urgent' || p === 'high';
+    const category = isActionRequired ? 'action_required' : 'neutral';
 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
-            <span className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded-[4px] font-semibold whitespace-nowrap border ${badgeStyle}`}>
-                {priority}
+            <span className={`inline-flex items-center justify-center px-[10px] py-[4px] text-[12px] font-semibold leading-none rounded-[2px] whitespace-nowrap ${
+                isActionRequired ? 'bg-[#F5D0AD] text-[#8A4210]' : 'bg-[#D8DCE3] text-[#374151]'
+            }`}>
+                {priority || 'Standard'}
             </span>
         </div>
     );
@@ -139,4 +129,8 @@ export const SupplierDateCell: React.FC<{ row: QuoteRequest }> = ({ row }) => {
             </span>
         </div>
     );
+};
+
+export const SupplierRouteCell: React.FC<{ row: any }> = ({ row }) => {
+    return <StandardRouteCell row={row} />;
 };
