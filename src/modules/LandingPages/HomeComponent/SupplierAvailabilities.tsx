@@ -1,153 +1,294 @@
-import React, { useRef } from "react";
-import { MapPin, Calendar, Truck, ChevronLeft, ChevronRight } from "lucide-react";
+import apiClient from "@/lib/axios";
+import {
+  ArrowRight,
+  Box,
+  Calendar,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Fuel,
+  Layers,
+  MapPin,
+  Snowflake,
+  Target,
+  Truck,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { useLandingCMS } from "../components/useLandingCMS";
 
 interface AvailabilityItem {
   id: string | number;
   pickup_region?: string;
   delivery_region?: string;
+  country?: string;
   start_date?: string;
   end_date?: string;
   supplier_name?: string;
   supplier_image?: string;
   trailer_type?: string;
+  radius_km?: number;
+  specs?: string;
+  tag?: string;
 }
 
-function formatDate(dateStr?: string) {
-  if (!dateStr) return "Flexible";
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return "Today";
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
 }
 
-const mockAvailabilities: AvailabilityItem[] = [
-  {
-    id: 1,
-    pickup_region: "London",
-    delivery_region: "Manchester",
-    start_date: "2026-07-25",
-    end_date: "2026-07-26",
-    supplier_name: "Swift Transport UK",
-    trailer_type: "Luton Van",
-  },
-  {
-    id: 2,
-    pickup_region: "Birmingham",
-    delivery_region: "Glasgow",
-    start_date: "2026-07-26",
-    end_date: "2026-07-27",
-    supplier_name: "Apex Logistics Fleet",
-    trailer_type: "HGV Flatbed",
-  },
-  {
-    id: 3,
-    pickup_region: "Leeds",
-    delivery_region: "Bristol",
-    start_date: "2026-07-28",
-    end_date: "2026-07-29",
-    supplier_name: "Direct Haulage Co.",
-    trailer_type: "Sprinter Van",
-  },
+const filterTabs = [
+  { id: "all", label: "All", icon: null },
+  { id: "curtainsider", label: "Curtainsider", icon: Truck },
+  { id: "box", label: "Box Van", icon: Box },
+  { id: "refrigerated", label: "Refrigerated", icon: Snowflake },
+  { id: "flatbed", label: "Flatbed", icon: Layers },
+  { id: "tanker", label: "Tanker", icon: Fuel },
 ];
 
 export default function SupplierAvailabilities() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const { getSection, isSectionEnabled } = useLandingCMS();
+  const cmsSupplier = getSection("supplier_capacity");
+
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [availabilities, setAvailabilities] = useState<AvailabilityItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    apiClient
+      .get("/public/supplier-availabilities")
+      .then((res: any) => {
+        if (!isMounted) return;
+        const list = res.data?.data?.availabilities || res.data?.availabilities || [];
+        if (Array.isArray(list) && list.length > 0) {
+          setAvailabilities(list);
+        }
+      })
+      .catch(() => {
+        // Fallback default sample if API fails
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter items dynamically based on selected tab
+  const filteredList = useMemo(() => {
+    if (activeCategory === "all") return availabilities;
+
+    return availabilities.filter((item) => {
+      const type = (item.trailer_type || "").toLowerCase();
+      if (activeCategory === "curtainsider") return type.includes("curtain") || type.includes("luton");
+      if (activeCategory === "box") return type.includes("box") || type.includes("van") || type.includes("courier") || type.includes("sprinter");
+      if (activeCategory === "refrigerated") return type.includes("refrig") || type.includes("temp") || type.includes("cold") || type.includes("frozen");
+      if (activeCategory === "flatbed") return type.includes("flatbed") || type.includes("machinery") || type.includes("low loader") || type.includes("artic");
+      if (activeCategory === "tanker") return type.includes("tank") || type.includes("bulk") || type.includes("adr");
+      return true;
+    });
+  }, [availabilities, activeCategory]);
 
   const scrollLeft = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -280, behavior: "smooth" });
+      scrollRef.current.scrollBy({ left: -320, behavior: "smooth" });
     }
   };
 
   const scrollRight = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 280, behavior: "smooth" });
+      scrollRef.current.scrollBy({ left: 320, behavior: "smooth" });
     }
   };
 
-  return (
-    <section className="w-full bg-transparent pt-12 pb-4 px-4">
-      <div className="max-w-7xl mx-auto relative">
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 relative">
-          <div className="hidden sm:block w-24"></div>
+  if (!isSectionEnabled("supplier_capacity")) {
+    return null;
+  }
 
-          <div className="text-center w-full sm:absolute sm:left-1/2 sm:-translate-x-1/2 flex flex-col items-center mt-2 sm:mt-0">
-            <h2 className="text-[#0f0400] text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-              Available Supplier Capacity
-            </h2>
-            <p className="text-sm text-gray-500 max-w-sm sm:max-w-md">
-              Book empty runs and available capacity directly from our verified suppliers at competitive rates.
-            </p>
+  const badge = cmsSupplier?.badge || "REAL-TIME FLEET AVAILABILITY";
+  const title = cmsSupplier?.title || "Available Supplier Capacity";
+  const subtitle = cmsSupplier?.subtitle || "Book empty runs, return legs, and available truck space directly from verified carriers at discounted backhaul rates.";
+
+  // If no database items loaded yet or empty, provide a clean loading or display state
+  const displayItems = filteredList.length > 0 ? filteredList : availabilities;
+
+  return (
+    <section id="supplier-capacity" className="w-full bg-transparent pt-12 pb-8 px-4 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        {/* Top Centered Header Matching Screenshot */}
+        <div className="text-center max-w-3xl mx-auto mb-8">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-[#ff4a1f]/10 text-[#ff4a1f] border border-[#ff4a1f]/20 mb-3 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-[#ff4a1f]" />
+            {badge}
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
           </div>
 
-          <div className="flex gap-1.5 mt-4 sm:mt-0 z-10 ml-auto items-start">
+          <h2 className="text-[#0f0400] dark:text-slate-100 text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
+            {title}
+          </h2>
+
+          <p className="text-sm text-gray-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
+            {subtitle}
+          </p>
+        </div>
+
+        {/* Filters and Navigation Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1 w-full sm:w-auto">
+            {filterTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeCategory === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveCategory(tab.id)}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${isActive
+                    ? "bg-[#ff4a1f] text-white shadow-sm"
+                    : "bg-white dark:bg-[#1e2329] text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                >
+                  {Icon && <Icon className="w-3.5 h-3.5" />}
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Navigation Arrows */}
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             <button
               onClick={scrollLeft}
-              className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-400 hover:text-[#ff4a1f] hover:border-[#ff4a1f] transition-all shadow-sm hover:shadow cursor-pointer"
-              aria-label="Previous capacity"
+              className="w-9 h-9 rounded-full bg-white dark:bg-[#1e2329] border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-300 hover:text-[#ff4a1f] hover:border-[#ff4a1f] transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+              aria-label="Previous"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={scrollRight}
-              className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-400 hover:text-[#ff4a1f] hover:border-[#ff4a1f] transition-all shadow-sm hover:shadow cursor-pointer"
-              aria-label="Next capacity"
+              className="w-9 h-9 rounded-full bg-[#ff4a1f] hover:bg-[#e63d15] text-white transition-all flex items-center justify-center cursor-pointer shadow-sm"
+              aria-label="Next"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
 
+        {/* Horizontal Scroll Cards Carousel */}
         <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 pt-2"
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 pt-1"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {mockAvailabilities.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-md p-5 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-3 min-w-[260px] max-w-[280px] shrink-0 snap-start"
-              >
-                <div className="flex items-center mb-1">
-                  <Truck className="w-4 h-4 text-orange-400" />
+            {isLoading ? (
+              // Loading Skeleton Placeholders
+              [...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className="min-w-[280px] sm:min-w-[320px] max-w-[340px] bg-white dark:bg-[#1e2329] rounded-xl p-5 border border-gray-200/80 dark:border-slate-800/80 animate-pulse shrink-0 snap-start"
+                >
+                  <div className="h-5 bg-gray-200 dark:bg-slate-800 rounded w-1/3 mb-4" />
+                  <div className="h-10 bg-gray-200 dark:bg-slate-800 rounded w-full mb-3" />
+                  <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-2/3 mb-4" />
+                  <div className="h-9 bg-gray-200 dark:bg-slate-800 rounded w-full mt-4" />
                 </div>
-
-                <div className="relative mb-2 space-y-2.5">
-                  <div className="flex items-start gap-2 text-xs text-gray-700">
-                    <MapPin className="w-3.5 h-3.5 mt-0.5 text-gray-400 shrink-0" />
-                    <div>
-                      <span className="font-semibold">{item.pickup_region}</span>
-                      <span className="text-gray-400 mx-1">to</span>
-                      <span className="font-semibold">{item.delivery_region}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    <span>
-                      {formatDate(item.start_date)}
-                      {item.end_date && ` - ${formatDate(item.end_date)}`}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-auto">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold ring-2 ring-orange-50 text-xs">
-                      {item.supplier_name?.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-[#0f0400] text-xs font-semibold truncate max-w-[100px]">
-                        {item.supplier_name}
-                      </p>
-                      <p className="text-gray-400 text-[10px] capitalize">
-                        {item.trailer_type || "Standard"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              ))
+            ) : displayItems.length === 0 ? (
+              <div className="w-full py-12 text-center bg-white dark:bg-[#1e2329] rounded-xl border border-gray-200 dark:border-slate-800">
+                <Truck className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                <p className="text-gray-500 text-sm">No live capacity listed in this category right now.</p>
               </div>
-            ))}
+            ) : (
+              displayItems.map((item, idx) => {
+                const originText = item.pickup_region || "Flexible Origin";
+                const destText = item.delivery_region || "Any European Route";
+                const trailerType = item.trailer_type || "Standard Curtain";
+                const dateText = item.start_date ? formatDate(item.start_date) : "Immediate";
+
+                return (
+                  <div
+                    key={item.id || idx}
+                    className="min-w-[280px] sm:min-w-[320px] max-w-[340px] bg-white dark:bg-[#1e2329] rounded-xl p-5 border border-gray-200/90 dark:border-slate-800/90 shadow-xs hover:shadow-md hover:border-[#ff4a1f]/40 dark:hover:border-[#ff4a1f]/40 transition-all duration-200 flex flex-col justify-between shrink-0 snap-start group"
+                  >
+                    <div>
+                      {/* Top Header Row with Route Tag & Date */}
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] border border-orange-200/60 dark:border-orange-900/40">
+                          <Truck className="w-3 h-3" />
+                          {trailerType}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 dark:text-slate-400">
+                          <Calendar className="w-3 h-3 text-gray-400" />
+                          {dateText}
+                        </span>
+                      </div>
+
+                      {/* Route Locations */}
+                      <div className="space-y-2 mb-4 bg-gray-50/70 dark:bg-[#15191f] p-3 rounded-lg border border-gray-100 dark:border-slate-800/60">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                          <div className="text-xs font-bold text-gray-800 dark:text-slate-200 truncate">
+                            {originText}
+                          </div>
+                        </div>
+
+                        <div className="pl-1 text-gray-300 dark:text-slate-600 text-[10px]">
+                          ↓
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#ff4a1f] shrink-0" />
+                          <div className="text-xs font-bold text-gray-800 dark:text-slate-200 truncate">
+                            {destText}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Carrier Details Card Snippet */}
+                      <div className="flex items-center gap-2.5 mb-4 pt-1">
+                        {item.supplier_image ? (
+                          <img
+                            src={item.supplier_image}
+                            alt={item.supplier_name || "Supplier"}
+                            className="w-7 h-7 rounded-full object-cover border border-gray-200 dark:border-slate-700"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-bold text-xs">
+                            {(item.supplier_name || "C").charAt(0)}
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-1 font-bold text-xs text-gray-900 dark:text-white">
+                            <span className="truncate max-w-[130px]">
+                              {item.supplier_name || "Verified Supplier"}
+                            </span>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#ff4a1f] fill-[#ff4a1f] text-white shrink-0" />
+                          </div>
+                          <div className="text-[10px] text-gray-400 dark:text-slate-500">
+                            Verified Carrier
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Book Run CTA Button */}
+                    <Link to="/web/register/customer" className="w-full">
+                      <button className="w-full py-2.5 px-4 rounded-[4px] bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                        <span>Book Run</span>
+                      </button>
+                    </Link>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

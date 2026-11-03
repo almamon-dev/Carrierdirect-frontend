@@ -23,6 +23,25 @@ export interface ShipmentItem {
     trackingNumber: string;
     status: ShipmentStatus;
     priority: 'Standard' | 'Urgent' | 'High Value';
+    driverType?: 'internal' | 'subcontractor';
+    subcontractorCompany?: string;
+    subcontractorJourneyLeg?: string;
+    pickup_address?: string;
+    delivery_address?: string;
+    pickup_city?: string;
+    delivery_city?: string;
+    pickup_country?: string;
+    delivery_country?: string;
+    pickup_state?: string;
+    delivery_state?: string;
+    pickup_zip?: string;
+    delivery_zip?: string;
+    pickupAddress?: string;
+    deliveryAddress?: string;
+    from?: string;
+    to?: string;
+    pickup?: any;
+    delivery?: any;
     shipper: {
         name: string;
         company: string;

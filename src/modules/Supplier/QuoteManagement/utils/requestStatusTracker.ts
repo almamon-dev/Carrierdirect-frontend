@@ -62,6 +62,8 @@ export function resolveSupplierQuoteStatus(rawItem: {
     is_quoted?: boolean;
     is_booked?: boolean;
     is_won?: boolean;
+    is_rejected?: boolean;
+    is_lost?: boolean;
     is_expired?: boolean;
 }): string {
     const rawStatus = (rawItem.status_raw || rawItem.status || '').toLowerCase().trim();
@@ -83,6 +85,17 @@ export function resolveSupplierQuoteStatus(rawItem: {
         rawItem.is_won
     ) {
         return 'Booked';
+    }
+
+    // 1.5. Check if Rejected / Declined
+    if (
+        rawStatus === 'rejected' ||
+        rawStatus === 'declined' ||
+        supplierStatus === 'rejected' ||
+        supplierStatus === 'declined' ||
+        rawItem.is_rejected
+    ) {
+        return 'Rejected';
     }
 
     // 2. Check if Expired / Closed / Cancelled

@@ -39,7 +39,7 @@ export const normalizeQuoteItem = (n: any) => {
     const isDateExpired = expiryField ? (!isNaN(new Date(expiryField).getTime()) && new Date(expiryField).getTime() < Date.now()) : false;
 
     const orderStatusLower = String(n.order_status || n.orderStatus || n.order?.status || '').toLowerCase().trim();
-    const isOrderCompleted = orderStatusLower === 'completed' || statusRawLower === 'completed';
+    const isOrderCompleted = ['completed', 'delivered', 'pod_accepted', 'pod_uploaded'].includes(orderStatusLower) || statusRawLower === 'completed' || statusRawLower === 'delivered';
 
     const isBooked = !isOrderCompleted && Boolean(
         statusRawLower === 'booked' ||
@@ -132,6 +132,10 @@ export const normalizeQuoteItem = (n: any) => {
         lastSeenHuman: n.last_seen_human || (n.is_online ? "Active now" : "Offline"),
         lastSeenAt: n.last_seen_at,
         baseFreight: baseFreightAmount,
+        order: n.order || n.raw?.order,
+        order_status: n.order_status || n.orderStatus || n.order?.status || n.raw?.order_status,
+        orderStatus: n.order_status || n.orderStatus || n.order?.status || n.raw?.order_status,
+        is_delivered: isOrderCompleted || orderStatusLower === 'delivered' || Boolean(n.is_delivered),
         isPaid: isBooked || Boolean(n.is_paid),
         hasOrder: isBooked || Boolean(n.has_order || n.order_id),
         orderId: n.order_id,

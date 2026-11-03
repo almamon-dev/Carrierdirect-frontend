@@ -95,7 +95,7 @@ export const CustomerOrderAmountBreakdown: React.FC<CustomerOrderAmountBreakdown
                     <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Total Quotation Amount</span>
                     <div className="text-right">
                         <span className="text-[14px] font-black text-[#FF4A1F] block">
-                            {pricing.quoteFormatted || pricing.baseFormatted}
+                            {pricing.totalFormatted || pricing.quoteFormatted || pricing.baseFormatted}
                         </span>
                         {pricing.platformFee && pricing.platformFee > 0 ? (
                             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mt-0.5">

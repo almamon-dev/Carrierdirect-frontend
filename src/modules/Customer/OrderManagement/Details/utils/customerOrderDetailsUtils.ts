@@ -81,10 +81,87 @@ export const buildNormalizedCustomerOrder = (
     const cargoWeight = foundOrder?.weight || foundOrder?.cargo_weight || foundOrder?.total_weight || '-';
     const goodsType = foundOrder?.type_of_pallets || foundOrder?.pallets || foundOrder?.items_summary || foundOrder?.goods_type || '-';
 
-    // Driver Info
+    // Driver Info & Live GPS Telemetry
     const driverName = foundOrder?.driver_name || foundOrder?.driver?.name;
     const driverPhone = foundOrder?.driver_phone || foundOrder?.driver?.phone;
     const driverEmail = foundOrder?.driver_email || foundOrder?.driver?.email;
+    const rawDriverLat = foundOrder?.driver_lat ?? foundOrder?.driver?.latitude ?? foundOrder?.tracking?.driver_lat;
+    const rawDriverLng = foundOrder?.driver_lng ?? foundOrder?.driver?.longitude ?? foundOrder?.tracking?.driver_lng;
+    const driverLat = rawDriverLat !== undefined && rawDriverLat !== null && !isNaN(Number(rawDriverLat)) ? Number(rawDriverLat) : null;
+    const driverLng = rawDriverLng !== undefined && rawDriverLng !== null && !isNaN(Number(rawDriverLng)) ? Number(rawDriverLng) : null;
+    const driverCurrentLocation = foundOrder?.driver_current_location || foundOrder?.driver?.current_location || foundOrder?.tracking?.current_location || '';
+    const driverLocationUpdatedHuman = foundOrder?.driver_location_updated_human || foundOrder?.driver?.last_location_updated_human || foundOrder?.tracking?.updated_human || 'Just now';
+
+    // Product Current Location & Stage
+    const prodLocObj = foundOrder?.product_location || {};
+    const isCompletedOrDelivered = rawStatus === 'completed' || rawStatus === 'pod_accepted' || rawStatus === 'delivered' || rawStatus === 'pod_uploaded' || rawStatus === 'pod_review';
+    const isInTransitStage = !isCompletedOrDelivered && (rawStatus === 'picked_up' || rawStatus === 'in_transit');
+    const resolvedStage: 'at_pickup' | 'in_transit' | 'delivered' =
+        prodLocObj.stage || (isCompletedOrDelivered ? 'delivered' : isInTransitStage ? 'in_transit' : 'at_pickup');
+
+    const resolvedStatusLabel: string =
+        prodLocObj.status_label ||
+        (resolvedStage === 'delivered'
+            ? 'Delivered at Destination'
+            : resolvedStage === 'in_transit'
+            ? 'In Transit — En Route to Destination'
+            : driverName
+            ? 'At Pickup Facility (Driver Assigned)'
+            : 'At Pickup Facility (Ready for Dispatch)');
+
+    const resolvedCurrentAddress: string =
+        prodLocObj.current_address ||
+        (resolvedStage === 'delivered'
+            ? (deliveryAddress !== '-' ? deliveryAddress : toCity)
+            : resolvedStage === 'in_transit'
+            ? (driverCurrentLocation || `In Transit (${fromCity} → ${toCity})`)
+            : (pickupAddress !== '-' ? pickupAddress : fromCity));
+
+    const resolvedCurrentCity: string =
+        prodLocObj.current_city ||
+        (resolvedStage === 'delivered'
+            ? toCity
+            : resolvedStage === 'in_transit'
+            ? (driverCurrentLocation || fromCity)
+            : fromCity);
+
+    const resolvedProductLat =
+        prodLocObj.latitude !== undefined && prodLocObj.latitude !== null
+            ? Number(prodLocObj.latitude)
+            : (resolvedStage === 'delivered' ? deliveryLat : (driverLat ?? pickupLat));
+
+    const resolvedProductLng =
+        prodLocObj.longitude !== undefined && prodLocObj.longitude !== null
+            ? Number(prodLocObj.longitude)
+            : (resolvedStage === 'delivered' ? deliveryLng : (driverLng ?? pickupLng));
+
+    // Product / Cargo Items
+    const rawItemsList = Array.isArray(foundOrder?.product_items)
+        ? foundOrder.product_items
+        : Array.isArray(foundOrder?.items)
+        ? foundOrder.items
+        : [];
+    const productItems = rawItemsList.length > 0
+        ? rawItemsList.map((it: any, idx: number) => ({
+              id: it.id ?? idx + 1,
+              itemType: it.item_type || it.itemType || goodsType || 'Freight Cargo',
+              quantity: Number(it.quantity ?? 1),
+              dimensions: it.dimensions || (it.length && it.width && it.height ? `${it.length} × ${it.width} × ${it.height} cm` : foundOrder?.dimensions || null),
+              weight: it.weight !== undefined && it.weight !== null ? Number(it.weight) : null,
+              weightFormatted: it.weight_formatted || (it.weight ? `${it.weight} KG` : (cargoWeight !== '-' ? String(cargoWeight) : null)),
+          }))
+        : [
+              {
+                  id: 1,
+                  itemType: goodsType !== '-' ? goodsType : (foundOrder?.load_type || 'Freight Cargo'),
+                  quantity: 1,
+                  dimensions: foundOrder?.dimensions || null,
+                  weight: foundOrder?.weight_raw ? Number(foundOrder.weight_raw) : null,
+                  weightFormatted: cargoWeight !== '-' ? (String(cargoWeight).toUpperCase().includes('KG') ? String(cargoWeight) : `${cargoWeight} KG`) : null,
+              },
+          ];
+
+    const estimatedDurationMinutes = foundOrder?.estimated_duration_minutes ? Number(foundOrder.estimated_duration_minutes) : null;
 
     // POD Info
     const rawPod = String(foundOrder?.pod_status || foundOrder?.tracking?.pod_status || '').toLowerCase().trim();
@@ -144,15 +221,32 @@ export const buildNormalizedCustomerOrder = (
         route: `${fromCity} → ${toCity}`,
         distance: distanceFormatted,
         distanceKm: distanceKmVal,
+        estimatedDurationMinutes: estimatedDurationMinutes,
         pickupLat: pickupLat,
         pickupLng: pickupLng,
         deliveryLat: deliveryLat,
         deliveryLng: deliveryLng,
+        driverLat: driverLat,
+        driverLng: driverLng,
+        driverCurrentLocation: driverCurrentLocation,
+        driverLocationUpdatedHuman: driverLocationUpdatedHuman,
+        productLocation: {
+            stage: resolvedStage,
+            statusLabel: resolvedStatusLabel,
+            currentAddress: resolvedCurrentAddress,
+            currentCity: resolvedCurrentCity,
+            latitude: resolvedProductLat,
+            longitude: resolvedProductLng,
+            hasLiveGps: Boolean(driverLat !== null && driverLng !== null),
+            updatedAt: prodLocObj.updated_at || foundOrder?.driver_location_updated_at || foundOrder?.updated_at,
+            updatedHuman: prodLocObj.updated_human || driverLocationUpdatedHuman,
+        },
+        productItems: productItems,
         estArrival: foundOrder?.estimated_delivery || foundOrder?.estimated_time || foundOrder?.eta || 'Scheduled',
         vehicle: {
             type: vehicleType,
             number: vehicleNumber,
-            capacity: cargoWeight ? `${cargoWeight} kg` : '-',
+            capacity: cargoWeight ? (String(cargoWeight).toUpperCase().includes('KG') ? String(cargoWeight) : `${cargoWeight} kg`) : '-',
             goodsType: goodsType,
             dimensions: foundOrder?.dimensions || '-',
         },
@@ -161,6 +255,10 @@ export const buildNormalizedCustomerOrder = (
             phone: driverPhone || '',
             email: driverEmail || '',
             plate: vehicleNumber,
+            latitude: driverLat,
+            longitude: driverLng,
+            currentLocation: driverCurrentLocation,
+            lastUpdatedHuman: driverLocationUpdatedHuman,
         } : undefined,
         supplier: {
             id: supplierObj?.id || foundOrder?.supplier_id || 2,
@@ -195,5 +293,8 @@ export const buildNormalizedCustomerOrder = (
         reference: foundOrder?.reference || `REF-${cleanNumericId}`,
         instructions: foundOrder?.instructions || '-',
         loadType: foundOrder?.load_type || 'Full Truckload',
+        createdAt: foundOrder?.created_at_formatted || foundOrder?.created_at || foundOrder?.date || '',
+        trackingHistory: Array.isArray(foundOrder?.tracking?.history) ? foundOrder.tracking.history : (Array.isArray(foundOrder?.updates) ? foundOrder.updates : (Array.isArray(foundOrder?.live_updates) ? foundOrder.live_updates : [])),
+        updates: Array.isArray(foundOrder?.updates) ? foundOrder.updates : (Array.isArray(foundOrder?.live_updates) ? foundOrder.live_updates : []),
     };
 };

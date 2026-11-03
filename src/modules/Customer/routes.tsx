@@ -16,7 +16,7 @@ const QuoteNegotiationChat = lazy(() => import('./QuoteManagement/Negotiation/Ch
 const SupplierQuotations = lazy(() => import('./QuoteManagement/Negotiation/SupplierQuotations'));
 const CustomerWonQuotes = lazy(() => import('./QuoteManagement/WonQuotes'));
 const Orders = lazy(() => import('./OrderManagement/Orders'));
-
+const TrackOrder = lazy(() => import('./OrderManagement/TrackOrder'));
 const OrderDetails = lazy(() => import('./OrderManagement/Details'));
 const Billing = lazy(() => import('./Finance/Billing'));
 const Invoices = lazy(() => import('./Finance/Invoices'));
@@ -56,6 +56,9 @@ export const customerRoutes: RouteObject[] = [
     { path: 'quotes/negotiation/view/:id/:sessionKey', element: <QuoteNegotiationChat /> },
     { path: 'quotes/negotiation/supplier/:slug', element: <SupplierQuotations /> },
     { path: 'orders', element: <Orders /> },
+    { path: 'orders/track', element: <TrackOrder /> },
+    { path: 'orders/track/:orderId', element: <TrackOrder /> },
+    { path: 'track-order', element: <TrackOrder /> },
     { path: 'orders/:id', element: <OrderDetails /> },
     { path: 'orders/details/:id', element: <OrderDetails /> },
     { path: 'finance', element: <Navigate to="/customer/finance/invoices" replace /> },

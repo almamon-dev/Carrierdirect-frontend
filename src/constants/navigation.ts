@@ -141,6 +141,7 @@ export const navigationMap: Record<string, any[]> = {
             icon: Package,
             items: [
                 { name: 'Orders', path: '/customer/orders', icon: Package },
+                { name: 'Track Shipment', path: '/customer/orders/track', icon: Map },
             ]
         },
         {

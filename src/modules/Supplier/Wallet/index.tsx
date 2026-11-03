@@ -102,7 +102,10 @@ export default function SupplierWallet() {
                 <div className="lg:col-span-7 flex flex-col">
                     <ConnectedAccountCard account={connectedAccount} onRefresh={() => fetchWalletData(true)} />
                 </div>
-                <WithdrawalGuidelinesCard availableBalanceNum={availableBalanceNum} />
+                <WithdrawalGuidelinesCard
+                    availableBalanceNum={availableBalanceNum}
+                    payoutFeePercent={Number(data?.stats?.payout_fee_percent || 0)}
+                />
             </div>
 
             {/* Recent Transactions Section */}

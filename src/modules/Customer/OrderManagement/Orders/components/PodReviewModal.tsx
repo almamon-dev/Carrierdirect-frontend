@@ -40,10 +40,14 @@ export const PodReviewModal: React.FC<PodReviewModalProps> = ({ isOpen, onClose,
     const vehiclePlate = (order as any).vehicle_plate || (order as any).vehicle_number || (order as any).driver?.vehicle_plate || '';
 
     const amountFormatted = (
-        order.gross_amount_formatted || order.total_amount_formatted ||
-        (order.gross_amount ? `€${Number(order.gross_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} EUR` : '') ||
-        (order.amount ? (String(order.amount).includes('€') ? String(order.amount) : `€${order.amount}`) : '€0.00 EUR')
+        order.total_amount_formatted ||
+        (order.total_amount ? `€${Number(order.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} EUR` : '') ||
+        (order as any).pricing?.totalFormatted ||
+        (order as any).pricing?.quoteFormatted ||
+        order.gross_amount_formatted ||
+        (order.amount ? (String(order.amount).includes('EUR') ? String(order.amount) : `${order.amount} EUR`) : '€0.00 EUR')
     );
+    const cleanAmountFormatted = amountFormatted.includes('EUR') ? amountFormatted : `${amountFormatted} EUR`;
 
     const isImage = /\.(jpg|jpeg|png|webp|gif)/i.test(fileUrl);
     const fileName = order.pod_file_name || (fileUrl ? fileUrl.split('/').pop()?.split('?')[0] : 'Proof_of_Delivery.pdf');
@@ -112,7 +116,7 @@ export const PodReviewModal: React.FC<PodReviewModalProps> = ({ isOpen, onClose,
                     deliveryAddress={deliveryAddress}
                     receiverName={receiverName}
                     uploadedAt={uploadedAt}
-                    amountFormatted={amountFormatted}
+                    amountFormatted={cleanAmountFormatted}
                 />
 
                 <div className="space-y-2">

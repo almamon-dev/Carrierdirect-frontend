@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/axios';
 
+export interface AssignDriverData {
+    name: string;
+    phone: string;
+    email?: string;
+    plate: string;
+    driverType?: 'internal' | 'subcontractor';
+    subcontractorCompany?: string;
+    journeyLeg?: string;
+}
+
 interface UseAssignDriverModalProps {
     isOpen: boolean;
     currentDriver?: any;
     currentVehiclePlate?: string;
-    onSave: (driverData: { name: string; phone: string; email?: string; plate: string }) => Promise<void> | void;
+    onSave: (driverData: AssignDriverData) => Promise<void> | void;
 }
 
 export const useAssignDriverModal = ({
@@ -14,6 +24,9 @@ export const useAssignDriverModal = ({
     currentVehiclePlate = '',
     onSave,
 }: UseAssignDriverModalProps) => {
+    const [driverType, setDriverType] = useState<'internal' | 'subcontractor'>('internal');
+    const [subcontractorCompany, setSubcontractorCompany] = useState('ABC Logistics');
+    const [journeyLeg, setJourneyLeg] = useState('Dublin Port → Final Destination');
     const [driverName, setDriverName] = useState('');
     const [driverPhone, setDriverPhone] = useState('');
     const [driverEmail, setDriverEmail] = useState('');
@@ -30,6 +43,13 @@ export const useAssignDriverModal = ({
         setDriverEmail(currentDriver?.email || '');
         setVehiclePlate(currentVehiclePlate && currentVehiclePlate !== 'Assigning Fleet...' ? currentVehiclePlate : 'DE-TR-8821');
         setIsSubmitting(false);
+
+        if (currentDriver?.driverType) {
+            setDriverType(currentDriver.driverType);
+        }
+        if (currentDriver?.subcontractorCompany) {
+            setSubcontractorCompany(currentDriver.subcontractorCompany);
+        }
 
         async function fetchTeam() {
             setIsLoadingTeam(true);
@@ -74,13 +94,27 @@ export const useAssignDriverModal = ({
 
         setIsSubmitting(true);
         try {
-            await onSave({ name: finalName, phone: finalPhone, email: finalEmail, plate: finalPlate });
+            await onSave({
+                name: finalName,
+                phone: finalPhone,
+                email: finalEmail,
+                plate: finalPlate,
+                driverType,
+                subcontractorCompany: driverType === 'subcontractor' ? subcontractorCompany.trim() : undefined,
+                journeyLeg: driverType === 'subcontractor' ? journeyLeg.trim() : undefined,
+            });
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return {
+        driverType,
+        setDriverType,
+        subcontractorCompany,
+        setSubcontractorCompany,
+        journeyLeg,
+        setJourneyLeg,
         driverName,
         setDriverName,
         driverPhone,

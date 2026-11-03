@@ -27,7 +27,7 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
         <div>
           <div className="flex items-center gap-1.5 mb-1">
             <span className="text-base font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              Carrier<span className="text-[#ff4a1f]">Direct</span>
+              Carrier<span className="text-[#FF5A1F]">Direct</span>
             </span>
             <span className="text-[9.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 ml-1">
               Enterprise
@@ -39,7 +39,7 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
             <div className="flex items-center gap-2 pt-0.5 text-[10.5px] text-slate-500">
               <span className="flex items-center gap-0.5"><Phone size={10} /> +880 1711-000000</span>
               <span>•</span>
-              <span className="flex items-center gap-0.5"><Mail size={10} /> billing@carrierdirect.com</span>
+              <span className="flex items-center gap-0.5"><Mail size={10} /> support@carrierdirect.io</span>
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
         <div className="bg-slate-50/80 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 space-y-0.5">
           <span className="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 mb-1">
-            <Building2 size={12} className="text-[#ff4a1f]" /> Billed To
+            <Building2 size={12} className="text-[#FF5A1F]" /> Billed To
           </span>
           <p className="font-bold text-slate-900 dark:text-slate-100 text-xs">
             {invoiceData.customer_company || invoiceData.customer_name || 'Customer Logistics BD'}
@@ -111,7 +111,7 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
 
         <div className="bg-slate-50/80 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 space-y-0.5">
           <span className="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 mb-1">
-            <ShieldCheck size={12} className="text-[#ff4a1f]" /> Settlement Information
+            <ShieldCheck size={12} className="text-[#FF5A1F]" /> Settlement Information
           </span>
           <p className="font-bold text-slate-900 dark:text-slate-100">
             {invoiceData.payment_method || (isPaid ? 'Credit Card / Escrow Cleared' : 'Escrow Secured Settlement')}

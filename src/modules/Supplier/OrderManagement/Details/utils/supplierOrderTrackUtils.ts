@@ -38,6 +38,8 @@ export interface NormalizedSupplierOrder {
         name: string;
         phone: string;
         email: string;
+        driverType?: 'internal' | 'subcontractor';
+        subcontractorCompany?: string;
     };
     customer: {
         id?: number | string;
@@ -57,6 +59,8 @@ export interface NormalizedSupplierOrder {
     pricing: {
         base: number;
         total: number;
+        commissionFee?: number;
+        commissionPercent?: number;
         netPayout: number;
         paymentStatus: string;
         paymentStatusLabel: string;
@@ -86,6 +90,10 @@ export interface NormalizedSupplierOrder {
     serviceType?: string;
     reference?: string;
     loadType?: string;
+    createdAt?: string;
+    date?: string;
+    trackingHistory?: any[];
+    updates?: any[];
 }
 
 export const buildSupplierOrderDetails = (
@@ -93,7 +101,14 @@ export const buildSupplierOrderDetails = (
     foundOrder: any,
     isPodAccepted: boolean,
     statusOverride?: string,
-    assignedDriver?: { name: string; phone: string; email?: string; plate: string } | null
+    assignedDriver?: {
+        name: string;
+        phone: string;
+        email?: string;
+        plate: string;
+        driverType?: 'internal' | 'subcontractor';
+        subcontractorCompany?: string;
+    } | null
 ): NormalizedSupplierOrder => {
     const rawId = foundOrder?.id || id || '1';
     const cleanNum = String(rawId).replace(/^ORD-0*/i, '') || '1';
@@ -109,7 +124,11 @@ export const buildSupplierOrderDetails = (
     const fromCity = foundOrder?.pickup_city || foundOrder?.quote_request?.pickup_city || (pickupFullAddress !== '-' ? pickupFullAddress.split(',')[0]?.trim() : '') || '-';
     const toCity = foundOrder?.delivery_city || foundOrder?.quote_request?.delivery_city || (deliveryFullAddress !== '-' ? deliveryFullAddress.split(',')[0]?.trim() : '') || '-';
 
-    const totalAmount = Number(foundOrder?.payout_amount ?? foundOrder?.payment?.payout_amount ?? foundOrder?.payment?.total ?? foundOrder?.amount_raw ?? foundOrder?.total_amount ?? foundOrder?.amount ?? 0);
+    const rawTotalGross = Number(foundOrder?.gross_amount ?? foundOrder?.total_amount ?? foundOrder?.amount_raw ?? foundOrder?.payment?.total ?? foundOrder?.payment?.gross ?? foundOrder?.amount ?? 0);
+    const commissionFee = Number(foundOrder?.commission_fee ?? foundOrder?.payment?.commission_fee ?? foundOrder?.supplier_fee ?? 0);
+    const commissionPercent = Number(foundOrder?.commission_fee_percent ?? foundOrder?.payment?.commission_fee_percent ?? 0);
+    const netPayoutAmount = Number(foundOrder?.net_payout_raw ?? foundOrder?.payout_amount ?? foundOrder?.payment?.payout_amount ?? (commissionFee > 0 ? Math.max(0, rawTotalGross - commissionFee) : rawTotalGross));
+    const totalAmount = rawTotalGross;
     const customerName = foundOrder?.client?.name || foundOrder?.client?.company_name || foundOrder?.customer?.name || foundOrder?.customer?.company_name || foundOrder?.customer_name || (typeof foundOrder?.customer === 'string' ? foundOrder.customer : '-');
     const vehicleType = foundOrder?.shipping?.service || foundOrder?.vehicle?.type || foundOrder?.vehicle_type || foundOrder?.truck_type || foundOrder?.quote_request?.vehicle_type || (typeof foundOrder?.vehicle === 'string' ? foundOrder.vehicle : '-');
     const cargoWeight = foundOrder?.shipment?.total_weight || foundOrder?.weight || foundOrder?.cargo_weight || foundOrder?.quote_request?.weight || '-';
@@ -158,7 +177,14 @@ export const buildSupplierOrderDetails = (
             capacity: String(cargoWeight).toUpperCase().includes('KG') || String(cargoWeight).toUpperCase().includes('T') ? String(cargoWeight) : (cargoWeight !== '-' ? `${cargoWeight} KG` : '-'),
             goodsType: loadType
         },
-        driver: { id: foundOrder?.driver_id || foundOrder?.driver?.id, name: driverName, phone: driverPhone, email: driverEmail },
+        driver: {
+            id: foundOrder?.driver_id || foundOrder?.driver?.id,
+            name: driverName,
+            phone: driverPhone,
+            email: driverEmail,
+            driverType: assignedDriver?.driverType || (foundOrder?.driver_type as any) || (foundOrder?.subcontractor ? 'subcontractor' : 'internal'),
+            subcontractorCompany: assignedDriver?.subcontractorCompany || foundOrder?.subcontractor_company || foundOrder?.subcontractor?.name || undefined,
+        },
         customer: {
             id: foundOrder?.client?.id || foundOrder?.customer?.id,
             name: customerName,
@@ -172,9 +198,11 @@ export const buildSupplierOrderDetails = (
             completedOrders: Number(foundOrder?.client?.completed_orders || foundOrder?.customer?.completed_orders || 0)
         },
         pricing: {
-            base: totalAmount,
-            total: totalAmount,
-            netPayout: totalAmount,
+            base: rawTotalGross,
+            total: rawTotalGross,
+            commissionFee: commissionFee,
+            commissionPercent: commissionPercent,
+            netPayout: netPayoutAmount,
             paymentStatus: paymentStatusLabel,
             paymentStatusLabel,
             isPaid,

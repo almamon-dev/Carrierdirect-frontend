@@ -1,5 +1,6 @@
 import { formatStandardAddress } from '@/utils/addressFormatter';
 import React from 'react';
+import { MapPin } from 'lucide-react';
 import { Column } from '@/components/tables/data-table';
 import Badge from '@/components/ui/badge';
 import { ShipmentItem } from '../../types';
@@ -68,11 +69,13 @@ export const getShipmentColumns = (navigate: (path: string) => void): Column<Shi
     {
         id: 'pickup',
         label: 'Pickup Address',
-        className: 'w-[18%] min-w-[130px] max-w-[180px]',
+        sortable: true,
+        className: 'w-[18%] min-w-[140px] max-w-[220px]',
         render: (row) => {
-            const address = formatStandardAddress(row.shipper || row, 'pickup');
+            const address = formatStandardAddress(row, 'pickup');
             return (
-                <div className="flex items-center min-w-0 pr-1 h-5" title={address}>
+                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
+                    <MapPin size={12} className="text-[#ff4a1f] shrink-0" />
                     <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
                         {address}
                     </span>
@@ -83,11 +86,13 @@ export const getShipmentColumns = (navigate: (path: string) => void): Column<Shi
     {
         id: 'delivery',
         label: 'Delivery Address',
-        className: 'w-[18%] min-w-[130px] max-w-[180px]',
+        sortable: true,
+        className: 'w-[18%] min-w-[140px] max-w-[220px]',
         render: (row) => {
-            const address = formatStandardAddress(row.consignee || row, 'delivery');
+            const address = formatStandardAddress(row, 'delivery');
             return (
-                <div className="flex items-center min-w-0 pr-1 h-5" title={address}>
+                <div className="flex items-center gap-1.5 min-w-0 pr-1 h-5" title={address}>
+                    <MapPin size={12} className="text-emerald-500 shrink-0" />
                     <span className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate leading-normal">
                         {address}
                     </span>

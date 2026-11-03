@@ -82,31 +82,42 @@ export const DriverShipmentPODSection: React.FC<Props> = ({ shipment, onOpenPOD 
                         )}
 
                         {/* Document Photo Preview */}
-                        {pod.documentPhotos && pod.documentPhotos[0] && (
-                            <div className="mt-1.5 p-2 bg-white dark:bg-slate-900 rounded border border-emerald-200 dark:border-emerald-900/40 flex items-center justify-between">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <img
-                                        src={pod.documentPhotos[0]}
-                                        alt="Signed BOL Document"
-                                        className="w-9 h-9 object-cover rounded border border-slate-200 dark:border-slate-800 shrink-0"
-                                    />
-                                    <div className="min-w-0">
-                                        <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
-                                            Signed Paper BOL / Cargo Photo
-                                        </p>
-                                        <p className="text-[10px] text-slate-400">Attached Delivery Proof</p>
+                        {pod.documentPhotos && pod.documentPhotos[0] && (() => {
+                            const docUrl = pod.documentPhotos[0];
+                            const isPdfDoc = String(docUrl).toLowerCase().includes('.pdf');
+                            return (
+                                <div className="mt-1.5 p-2 bg-white dark:bg-slate-900 rounded border border-emerald-200 dark:border-emerald-900/40 flex items-center justify-between">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        {isPdfDoc ? (
+                                            <div className="w-9 h-9 rounded bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex flex-col items-center justify-center shrink-0 text-rose-600 dark:text-rose-400">
+                                                <FileText size={15} />
+                                                <span className="text-[8px] font-black uppercase tracking-tighter leading-none mt-0.5">PDF</span>
+                                            </div>
+                                        ) : (
+                                            <img
+                                                src={docUrl}
+                                                alt="Signed BOL Document"
+                                                className="w-9 h-9 object-cover rounded border border-slate-200 dark:border-slate-800 shrink-0"
+                                            />
+                                        )}
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
+                                                Signed Paper BOL / Cargo Photo
+                                            </p>
+                                            <p className="text-[10px] text-slate-400">Attached Delivery Proof ({isPdfDoc ? 'PDF Document' : 'Photo'})</p>
+                                        </div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setViewDocUrl(docUrl)}
+                                        className="px-2 py-1 text-[10.5px] font-semibold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+                                    >
+                                        <Eye size={12} />
+                                        <span>{isPdfDoc ? 'View PDF' : 'View Photo'}</span>
+                                    </button>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setViewDocUrl(pod.documentPhotos![0])}
-                                    className="px-2 py-1 text-[10.5px] font-semibold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded flex items-center gap-1 cursor-pointer transition-colors shrink-0"
-                                >
-                                    <Eye size={12} />
-                                    <span>View Photo</span>
-                                </button>
-                            </div>
-                        )}
+                            );
+                        })()}
 
                         {pod.notes && (
                             <div className="text-[10.5px] text-slate-600 dark:text-slate-400 bg-white/80 dark:bg-slate-900/80 p-1.5 rounded">
@@ -164,12 +175,20 @@ export const DriverShipmentPODSection: React.FC<Props> = ({ shipment, onOpenPOD 
                                 <X size={18} />
                             </button>
                         </div>
-                        <div className="p-3 flex-1 overflow-auto flex items-center justify-center max-h-[calc(90vh-50px)]">
-                            <img
-                                src={viewDocUrl}
-                                alt="POD Document"
-                                className="max-w-full max-h-[80vh] object-contain rounded"
-                            />
+                        <div className="p-3 flex-1 overflow-auto flex items-center justify-center max-h-[calc(90vh-50px)] w-full">
+                            {String(viewDocUrl).toLowerCase().includes('.pdf') ? (
+                                <iframe
+                                    src={viewDocUrl}
+                                    title="POD PDF Document"
+                                    className="w-[85vw] max-w-3xl h-[75vh] rounded bg-white border-0"
+                                />
+                            ) : (
+                                <img
+                                    src={viewDocUrl}
+                                    alt="POD Document"
+                                    className="max-w-full max-h-[80vh] object-contain rounded"
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

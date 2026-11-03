@@ -16,6 +16,7 @@ export const useOrderDetails = () => {
 
     const [apiOrder, setApiOrder] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     const [isPodAccepted, setIsPodAccepted] = useState<boolean>(false);
     const [actionMessage, setActionMessage] = useState<string | null>(null);
     const [isRatingOpen, setIsRatingOpen] = useState<boolean>(false);
@@ -31,43 +32,57 @@ export const useOrderDetails = () => {
         }
     }, [id, cleanId, navigate, location.state]);
 
+    const fetchDetail = useCallback(async (silent = false) => {
+        if (!cleanId) return;
+        if (!silent) setIsLoading(true);
+        else setIsRefreshing(true);
+
+        try {
+            const data = await orderDetailService.fetchOrderDetail(cleanId);
+            if (!data) return;
+            setApiOrder(data);
+            const statusRaw = (data.status_raw || data.status || '').toLowerCase();
+            const podStatusRaw = (data.pod_status || data.pod?.status || data.pod?.pod_status || '').toLowerCase();
+            if (
+                statusRaw === 'completed' ||
+                statusRaw === 'pod_accepted' ||
+                statusRaw === 'pod accepted' ||
+                podStatusRaw === 'confirmed' ||
+                podStatusRaw === 'accepted' ||
+                podStatusRaw === 'approved'
+            ) {
+                setIsPodAccepted(true);
+            }
+        } catch (err) {
+            console.warn('Could not fetch remote order details:', err);
+            if (!silent && location.state?.orderData) {
+                setApiOrder(location.state.orderData);
+            }
+        } finally {
+            setIsLoading(false);
+            setIsRefreshing(false);
+        }
+    }, [cleanId, location.state?.orderData]);
+
     // Fetch order details from API with fallback to route state
     useEffect(() => {
-        let isMounted = true;
-        if (cleanId) {
-            setIsLoading(true);
-            orderDetailService
-                .fetchOrderDetail(cleanId)
-                .then((data) => {
-                    if (!isMounted || !data) return;
-                    setApiOrder(data);
-                    const statusRaw = (data.status_raw || data.status || '').toLowerCase();
-                    const podStatusRaw = (data.pod_status || data.pod?.status || data.pod?.pod_status || '').toLowerCase();
-                    if (
-                        statusRaw === 'completed' ||
-                        statusRaw === 'pod_accepted' ||
-                        statusRaw === 'pod accepted' ||
-                        podStatusRaw === 'confirmed' ||
-                        podStatusRaw === 'accepted' ||
-                        podStatusRaw === 'approved'
-                    ) {
-                        setIsPodAccepted(true);
-                    }
-                })
-                .catch((err) => {
-                    console.warn('Could not fetch remote order details:', err);
-                    if (isMounted && location.state?.orderData) {
-                        setApiOrder(location.state.orderData);
-                    }
-                })
-                .finally(() => {
-                    if (isMounted) setIsLoading(false);
-                });
-        }
-        return () => {
-            isMounted = false;
-        };
-    }, [cleanId, location.state?.orderData]);
+        fetchDetail(false);
+    }, [fetchDetail]);
+
+    // Auto-poll live GPS & order status every 15s while shipment is active
+    useEffect(() => {
+        const statusRaw = (apiOrder?.status_raw || apiOrder?.status || '').toLowerCase();
+        if (statusRaw === 'completed' || statusRaw === 'cancelled') return;
+
+        const interval = setInterval(() => {
+            fetchDetail(true);
+        }, 15000);
+        return () => clearInterval(interval);
+    }, [apiOrder?.status_raw, apiOrder?.status, fetchDetail]);
+
+    const handleRefreshLive = useCallback(() => {
+        fetchDetail(true);
+    }, [fetchDetail]);
 
     const order: NormalizedCustomerOrder = buildNormalizedCustomerOrder(cleanId, apiOrder, isPodAccepted);
     const timeline: TimelineItem[] = buildCustomerOrderTimeline(order);
@@ -115,6 +130,7 @@ export const useOrderDetails = () => {
         order,
         timeline,
         isLoading,
+        isRefreshing,
         isPodAccepted,
         actionMessage,
         setActionMessage,
@@ -126,6 +142,7 @@ export const useOrderDetails = () => {
         handleOpenChat,
         handleApprovePOD,
         handleRatingSubmit,
+        handleRefreshLive,
     };
 };
 

@@ -25,10 +25,10 @@ export const buildQuoteLifecycleSteps = (
     });
 
     const hasOrder = Boolean(acceptedBid?.has_order || acceptedBid?.order_id || acceptedBid?.order || req?.order_id || req?.order);
-    const order = acceptedBid?.order || req?.order;
-    const rawOrderStatus = String(order?.status || acceptedBid?.order_status || '').toLowerCase();
+    const order = acceptedBid?.order || req?.order || acceptedBid?.raw?.order || req?.raw?.order;
+    const rawOrderStatus = String(order?.status || acceptedBid?.order_status || acceptedBid?.raw?.order_status || '').toLowerCase();
     
-    const isCompleted = rawOrderStatus === 'completed' || rawOrderStatus === 'delivered' || Boolean(acceptedBid?.is_delivered);
+    const isCompleted = ['completed', 'delivered', 'pod_accepted', 'pod_uploaded'].includes(rawOrderStatus) || Boolean(acceptedBid?.is_delivered) || String(req?.status || '').toLowerCase() === 'completed';
     const isInTransit = ['in_transit', 'picked_up', 'in_progress', 'dispatched', 'driver_assigned'].includes(rawOrderStatus);
     const isRejected = bids.length > 0 && bids.every(q => {
         const s = String(q.status_raw || q.status || '').toLowerCase();

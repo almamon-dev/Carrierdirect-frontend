@@ -7,6 +7,7 @@ import { NAVIGATION_LINKS } from "./landingHeaderConstants";
 import { LandingAuthWidget } from "./LandingAuthWidget";
 import { LandingMobileMenu } from "./LandingMobileMenu";
 import { useLandingAuth } from "./useLandingAuth";
+import { useLandingCMS } from "./useLandingCMS";
 
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -15,6 +16,16 @@ export default function Header() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { getSection } = useLandingCMS();
+  const cmsFooter = getSection("footer");
+
+  const logoLight = (cmsFooter?.content?.logo_image && typeof cmsFooter.content.logo_image === "string" && cmsFooter.content.logo_image.trim() !== "")
+    ? cmsFooter.content.logo_image.trim()
+    : AllImages.Logo;
+
+  const logoDark = (cmsFooter?.content?.logo_image_dark && typeof cmsFooter.content.logo_image_dark === "string" && cmsFooter.content.logo_image_dark.trim() !== "")
+    ? cmsFooter.content.logo_image_dark.trim()
+    : AllImages.LogoBlack;
 
   const {
     currentUser,
@@ -90,20 +101,20 @@ export default function Header() {
             {isScrolled ? (
               <>
                 <img
-                  src={AllImages.LogoBlack}
-                  alt="GetItMoving Logo"
+                  src={logoDark}
+                  alt="Carrier Direct Logo"
                   className="h-8 sm:h-9 md:h-10 w-auto object-contain dark:hidden"
                 />
                 <img
-                  src={AllImages.Logo}
-                  alt="GetItMoving Logo"
+                  src={logoLight}
+                  alt="Carrier Direct Logo"
                   className="h-8 sm:h-9 md:h-10 w-auto object-contain hidden dark:block"
                 />
               </>
             ) : (
               <img
-                src={AllImages.Logo}
-                alt="GetItMoving Logo"
+                src={logoLight}
+                alt="Carrier Direct Logo"
                 className="h-8 sm:h-9 md:h-10 w-auto object-contain"
               />
             )}

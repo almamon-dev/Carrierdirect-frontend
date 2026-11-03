@@ -94,19 +94,6 @@ export const CustomerOrderSupplierProfile: React.FC<CustomerOrderSupplierProfile
                     </>
                 )}
             </div>
-
-            {/* Action with full width */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onOpenChat}
-                    className="w-full h-8 text-xs font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
-                >
-                    <MessageSquare size={12} className="text-[#ff4a1f]" />
-                    <span>Chat with Carrier</span>
-                </Button>
-            </div>
         </div>
     );
 };

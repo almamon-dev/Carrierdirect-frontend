@@ -259,7 +259,9 @@ export function formatStandardAddress(
         source[altPrefix] ||
         nested[`${prefix}_address`] ||
         nested.address ||
-        (type === 'pickup' ? source.shipper?.address : source.consignee?.address) ||
+        source.address ||
+        source[`${prefix}Address`] ||
+        (type === 'pickup' ? (source.shipper?.address || source.shipper?.pickup_address) : (source.consignee?.address || source.consignee?.delivery_address)) ||
         city;
 
     if (rawAddress && typeof rawAddress === 'string') {

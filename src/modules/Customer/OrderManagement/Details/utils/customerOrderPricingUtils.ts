@@ -55,22 +55,6 @@ export function calculateOrderPricing(
         0
     );
 
-    // Determine base freight price (without platform fee)
-    const rawBasePrice = Number(
-        foundOrder?.subtotal ??
-        foundOrder?.base_price ??
-        foundOrder?.base_amount ??
-        foundOrder?.base_rate ??
-        foundOrder?.base ??
-        foundOrder?.quote?.amount ??
-        foundOrder?.quote?.quote_amount ??
-        foundOrder?.quote?.base_price ??
-        0
-    );
-
-    let basePrice = rawBasePrice;
-    let platformFee = rawPlatformFee;
-
     const rawTotalFromPayload = Number(
         foundOrder?.total_amount_raw ??
         (foundOrder?.total_amount
@@ -78,28 +62,57 @@ export function calculateOrderPricing(
             : 0)
     );
 
-    if (basePrice <= 0) {
-        const rawAmt = Number(
-            foundOrder?.amount_raw ??
-            (foundOrder?.amount ? parseFloat(String(foundOrder.amount).replace(/[^0-9.]/g, '')) : 0)
-        );
-        if (rawAmt > 0) {
-            basePrice = rawAmt;
-        } else if (rawTotalFromPayload > 0) {
-            basePrice = platformFee > 0 && rawTotalFromPayload > platformFee ? (rawTotalFromPayload - platformFee - extraTotalCalculated) : rawTotalFromPayload;
-        } else {
-            basePrice = 1250;
-        }
+    // Determine base freight price (without extra charges or platform fee)
+    const explicitBasePrice = Number(
+        foundOrder?.base_price ??
+        foundOrder?.base_amount ??
+        foundOrder?.base_rate ??
+        foundOrder?.base ??
+        foundOrder?.quote?.base_amount ??
+        foundOrder?.quote?.base_price ??
+        0
+    );
+
+    const quoteSubtotal = Number(
+        foundOrder?.subtotal ??
+        foundOrder?.amount_raw ??
+        foundOrder?.quote?.amount ??
+        foundOrder?.quote?.quote_amount ??
+        0
+    );
+
+    let basePrice = 0;
+    if (explicitBasePrice > 0) {
+        basePrice = explicitBasePrice;
+    } else if (quoteSubtotal > 0) {
+        basePrice = Math.max(0, quoteSubtotal - extraTotalCalculated);
+    } else if (rawTotalFromPayload > 0) {
+        basePrice = Math.max(0, rawTotalFromPayload - rawPlatformFee - extraTotalCalculated);
+    } else {
+        basePrice = 0;
     }
 
-    const quoteAmount = basePrice + extraTotalCalculated;
-    const totalAmount = rawTotalFromPayload > quoteAmount ? rawTotalFromPayload : (quoteAmount + platformFee);
+    const quoteAmount = (quoteSubtotal > 0 && explicitBasePrice <= 0)
+        ? quoteSubtotal
+        : (basePrice + extraTotalCalculated);
 
-    if (platformFee <= 0 && totalAmount > quoteAmount) {
-        platformFee = totalAmount - quoteAmount;
+    let platformFee = rawPlatformFee;
+    // If admin set 0% customer platform charge or target is not customer, do not force a platform fee
+    if (platformFeePercent <= 0) {
+        platformFee = 0;
+    } else if (rawTotalFromPayload > 0 && rawTotalFromPayload <= quoteAmount) {
+        // Customer was charged only the quote amount without platform fee
+        platformFee = 0;
+    } else if (platformFee <= 0 && rawTotalFromPayload > quoteAmount && platformFeePercent > 0) {
+        platformFee = Math.round((rawTotalFromPayload - quoteAmount) * 100) / 100;
+    } else if (platformFee <= 0 && platformFeePercent > 0 && quoteAmount > 0) {
+        platformFee = Math.round((quoteAmount * (platformFeePercent / 100)) * 100) / 100;
     }
 
-    const effectivePercent = platformFeePercent || (quoteAmount > 0 && platformFee > 0 ? Math.round((platformFee / quoteAmount) * 100) : 0);
+    const totalAmount = rawTotalFromPayload > 0 && rawTotalFromPayload >= (quoteAmount + platformFee)
+        ? rawTotalFromPayload
+        : (quoteAmount + platformFee);
+    const effectivePercent = platformFee > 0 ? (platformFeePercent || (quoteAmount > 0 ? Math.round((platformFee / quoteAmount) * 100) : 0)) : 0;
 
     const advancePaid = isPaid ? totalAmount : isPayLater ? 0 : Math.round(totalAmount * 0.30);
     const dueBalance = isPaid ? 0 : isPayLater ? totalAmount : totalAmount - advancePaid;

@@ -41,15 +41,26 @@ export const SupplierBottomCards: React.FC<Props> = ({ order }) => {
                                 <span>Net Carrier Payout</span>
                             </span>
                             <span className="font-bold text-slate-800 dark:text-slate-200">
-                                {order.pricing?.netPayout ? `€ ${order.pricing.netPayout.toLocaleString()}` : '-'}
+                                {order.pricing?.netPayout ? `€ ${Number(order.pricing.netPayout).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-'}
                             </span>
                         </div>
+                        {(order.pricing as any)?.commissionFee && (order.pricing as any).commissionFee > 0 ? (
+                            <div className="flex items-center justify-between pl-3">
+                                <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                                    <span>Platform Commission{(order.pricing as any).commissionPercent ? ` (${(order.pricing as any).commissionPercent}%)` : ''}</span>
+                                </span>
+                                <span className="font-semibold text-rose-600 dark:text-rose-400">
+                                    -€ {Number((order.pricing as any).commissionFee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 mt-2 space-y-1">
                     <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Total Settlement</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Total Settlement (Gross)</span>
                         <span className="text-sm font-black text-[#FF4A1F]">
                             {order.pricing?.total ? `€ ${order.pricing.total.toLocaleString()}` : '-'}
                         </span>
