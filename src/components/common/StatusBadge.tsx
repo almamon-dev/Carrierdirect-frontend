@@ -61,7 +61,7 @@ export const STATUS_CATEGORY_STYLES: Record<StatusCategory, { bg: string; text: 
 };
 
 export const STATUS_BADGE_BASE_CLASS =
-    'inline-flex items-center justify-center px-[10px] py-[4px] text-[12px] font-semibold leading-none rounded-[2px] whitespace-nowrap shrink-0 border-0 select-none';
+    'inline-flex items-center justify-center px-[10px] py-[4px] text-[12px] font-semibold leading-none rounded-[4px] whitespace-nowrap shrink-0 border-0 select-none';
 
 /**
  * Maps any raw status string or enum value across CarrierDirect to its official semantic category.

@@ -38,7 +38,7 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
                             </span>
                             <span className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80">
                                 <Star size={10} className="fill-amber-400 text-amber-500 shrink-0" />
-                                <span>{requestDetails.customerRating !== undefined && requestDetails.customerRating !== null ? Number(requestDetails.customerRating).toFixed(1) : "5.0"}</span>
+                                <span>{requestDetails.customerRating !== undefined && requestDetails.customerRating !== null ? Number(requestDetails.customerRating).toFixed(1) : "0.0"}</span>
                             </span>
                             <span className="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/80">
                                 <Package size={10} className="text-blue-500 shrink-0" />

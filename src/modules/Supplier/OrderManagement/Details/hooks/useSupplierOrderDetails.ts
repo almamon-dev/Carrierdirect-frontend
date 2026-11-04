@@ -23,6 +23,8 @@ export const useSupplierOrderDetails = () => {
         phone: string;
         email?: string;
         plate: string;
+        driverType?: 'internal' | 'subcontractor';
+        subcontractorCompany?: string;
     } | null>(null);
     const [isPodUploaded, setIsPodUploaded] = useState<boolean>(false);
 

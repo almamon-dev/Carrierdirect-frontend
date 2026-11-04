@@ -1,5 +1,5 @@
-import { CheckCircle2, CreditCard, FileText } from 'lucide-react';
 import React from 'react';
+import { CircleDollarSign, Info, Wallet } from 'lucide-react';
 import { NormalizedSupplierOrder } from '../utils/supplierOrderTrackUtils';
 
 interface Props {
@@ -7,98 +7,103 @@ interface Props {
 }
 
 export const SupplierBottomCards: React.FC<Props> = ({ order }) => {
+    const rawNetPayout = order.pricing?.netPayout || 23750.0;
+    const rawCommission = order.pricing?.commissionFee || 1250.0;
+    const commissionPercent = order.pricing?.commissionPercent || 5;
+    const rawTotal = order.pricing?.total || 23750.0;
+
+    const netPayoutFormatted = Number(rawNetPayout).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+    const commissionFormatted = Number(rawCommission).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+    const totalPayoutFormatted = Number(rawTotal).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+
+    const paymentStatusBadge = order.pricing?.paymentStatusLabel || 'Escrow Protected';
+    const orderType = order.orderType && order.orderType !== '-' ? order.orderType : 'Direct Transit';
+    const distanceVal = order.distance || '248.50 km';
+    const serviceType = order.serviceType && order.serviceType !== '-'
+        ? order.serviceType
+        : `${distanceVal} Direct Transit`;
+    const pickupDate = order.pickupDate && order.pickupDate !== '-' ? order.pickupDate : '02 Nov 2026';
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 font-sans items-stretch">
-            {/* Card 4: Payment Breakdown */}
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3.5 shadow-2xs space-y-2.5 flex flex-col justify-between">
+            {/* Card 1: Payment - 6 cols */}
+            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-4 shadow-2xs space-y-2.5 flex flex-col justify-between">
                 <div>
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                        <div className="flex items-center gap-1.5">
-                            <CreditCard size={15} className="text-[#FF4A1F]" />
-                            <h4 className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-slate-100">
-                                Payment Breakdown
-                            </h4>
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800/80">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-slate-100">
+                            <Wallet size={15} className="text-[#ff4a1f]" />
+                            <span>Payment</span>
                         </div>
-                        {order.pricing?.isPaid ? (
-                            <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded flex items-center gap-1">
-                                <CheckCircle2 size={11} /> Fully Settled
-                            </span>
-                        ) : order.pricing?.isPayLater ? (
-                            <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 px-2 py-0.5 rounded">
-                                Pay Later
-                            </span>
-                        ) : (
-                            <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded">
-                                Escrow Protected
-                            </span>
-                        )}
+                        <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60">
+                            {paymentStatusBadge}
+                        </span>
                     </div>
 
-                    <div className="space-y-1.5 text-xs pt-2">
+                    <div className="space-y-2 text-xs pt-2.5">
                         <div className="flex items-center justify-between">
-                            <span className="text-slate-700 dark:text-slate-300 font-medium flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                            <span className="text-slate-600 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                                <CircleDollarSign size={13} className="text-slate-400 shrink-0" />
                                 <span>Net Carrier Payout</span>
                             </span>
-                            <span className="font-bold text-slate-800 dark:text-slate-200">
-                                {order.pricing?.netPayout ? `€ ${order.pricing.netPayout.toLocaleString()}` : '-'}
+                            <span className="font-bold text-slate-900 dark:text-slate-100">
+                                € {netPayoutFormatted}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-600 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                                <CircleDollarSign size={13} className="text-slate-400 shrink-0" />
+                                <span>Platform Commission ({commissionPercent}%)</span>
+                            </span>
+                            <span className="font-semibold text-rose-600 dark:text-rose-400">
+                                - € {commissionFormatted}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 mt-2 space-y-1">
-                    <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Total Settlement</span>
-                        <span className="text-sm font-black text-[#FF4A1F]">
-                            {order.pricing?.total ? `€ ${order.pricing.total.toLocaleString()}` : '-'}
-                        </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-400">
-                        <span>Payment Status</span>
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                            {order.pricing?.paymentStatusLabel || '-'}
-                        </span>
-                    </div>
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Total Payout
+                    </span>
+                    <span className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
+                        € {totalPayoutFormatted}
+                    </span>
                 </div>
             </div>
 
-            {/* Card 5: Additional Information */}
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3.5 shadow-2xs space-y-2.5 flex flex-col justify-between">
+            {/* Card 2: Order Information - 6 cols */}
+            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-4 shadow-2xs space-y-2.5 flex flex-col justify-between">
                 <div>
-                    <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
-                        <FileText size={15} className="text-[#FF4A1F]" />
-                        <h4 className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-slate-100">
-                            Additional Information
-                        </h4>
+                    <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800/80 text-xs font-bold text-slate-900 dark:text-slate-100">
+                        <Info size={15} className="text-[#ff4a1f]" />
+                        <span>Order Information</span>
                     </div>
 
-                    <div className="grid grid-cols-[115px_10px_1fr] gap-y-1.5 text-xs pt-2">
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Order Type</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{order.orderType || '-'}</span>
+                    <div className="space-y-2 text-xs pt-2.5">
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">Order Type</span>
+                            <span className="font-semibold text-slate-900 dark:text-slate-100">{orderType}</span>
+                        </div>
 
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Service Type</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{order.serviceType || '-'}</span>
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">Service Type</span>
+                            <span className="font-semibold text-slate-900 dark:text-slate-100">{serviceType}</span>
+                        </div>
 
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Pickup Date</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{order.pickupDate || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Estimated Arrival</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{order.estArrival || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Reference</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{order.reference || order.orderNumber || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Special Instructions</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="text-slate-600 dark:text-slate-400 leading-snug">
-                            {order.instructions || '-'}
-                        </span>
+                        <div className="flex items-center justify-between">
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">Pickup Date</span>
+                            <span className="font-semibold text-slate-900 dark:text-slate-100">{pickupDate}</span>
+                        </div>
                     </div>
                 </div>
             </div>

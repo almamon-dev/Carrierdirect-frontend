@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '@/lib/axios';
 import { useToastStore } from '@/stores/useToastStore';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export const MIN_WITHDRAWAL_AMOUNT = 50;
 
@@ -60,6 +60,13 @@ export function useWithdrawFundsState() {
 
     const stripeAccount = walletData?.stripe_account || walletData?.connected_account;
     const isStripeConnected = Boolean(stripeAccount?.is_connected);
+    const payoutFeePercent = Number(
+        walletData?.stats?.payout_fee_percent ??
+        walletData?.payout_fee_percent ??
+        walletData?.stats?.payout_charge ??
+        walletData?.payout_charge ??
+        0
+    );
 
     const numAmount = parseFloat(amount) || 0;
     const isBelowMin = numAmount > 0 && numAmount < MIN_WITHDRAWAL_AMOUNT;
@@ -159,6 +166,7 @@ export function useWithdrawFundsState() {
         availableBalance,
         stripeAccount,
         isStripeConnected,
+        payoutFeePercent,
         numAmount,
         isBelowMin,
         isOverBalance,

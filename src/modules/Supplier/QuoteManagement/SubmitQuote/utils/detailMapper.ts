@@ -19,13 +19,29 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         (raw.status === "completed" && raw.quote_submitted)
     );
 
-    const isExpired = !isWon && Boolean(
+    const isRejected = !isWon && Boolean(
+        raw.is_rejected ||
+        raw.is_lost ||
+        raw.status === "Rejected" ||
+        raw.status === "Lost" ||
+        raw.status === "Declined" ||
+        raw.supplier_status === "Rejected" ||
+        raw.supplier_status === "Lost" ||
+        raw.supplier_status === "Declined" ||
+        raw.quote_submitted?.status === "rejected" ||
+        raw.quote_submitted?.status === "declined" ||
+        raw.quote_submitted?.status === "lost" ||
+        raw.quote_submitted?.is_rejected ||
+        raw.quote_submitted?.is_lost
+    );
+
+    const isExpired = !isWon && !isRejected && Boolean(
         raw.is_expired ||
         raw.status === "Expired" ||
         raw.supplier_status === "Expired"
     );
 
-    const computedStatus = isWon ? "Won" : resolveSupplierQuoteStatus({
+    const computedStatus = isWon ? "Won" : (isRejected ? "Rejected" : resolveSupplierQuoteStatus({
         id: raw.id || cleanId,
         rawId: raw.id || cleanId,
         status: raw.status || d.status,
@@ -33,8 +49,10 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         quote_submitted: Boolean(raw.quote_submitted || raw.is_quoted),
         is_booked: Boolean(raw.is_booked || isWon),
         is_won: isWon,
+        is_rejected: isRejected,
+        is_lost: isRejected,
         is_expired: isExpired,
-    });
+    }));
 
     const rawItems = Array.isArray(d.items) ? d.items : (Array.isArray(raw.items) ? raw.items : []);
 
@@ -99,6 +117,8 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         slug: String(raw.id || cleanId),
         status: computedStatus,
         is_won: isWon,
+        is_rejected: isRejected,
+        is_lost: isRejected,
         is_expired: isExpired,
         is_paid: Boolean(raw.is_paid || raw.quote_submitted?.is_paid),
         is_awaiting_payment: Boolean(raw.is_awaiting_payment || raw.quote_submitted?.is_awaiting_payment),
@@ -108,7 +128,7 @@ export function mapSubmitQuoteDetail(raw: any, cleanId: string): { requestDetail
         customer: d.client_name || d.customer_name || raw.customer?.name || raw.user?.name || raw.customer_name || '-',
         customerAvatar: d.client_avatar || d.customer_avatar || raw.customer_avatar || raw.customerAvatar || raw.customer?.avatar || raw.customer?.profile_picture || raw.user?.avatar || raw.user?.avatar_url || "",
         customerPhone: d.client_phone || raw.customer?.phone || raw.user?.phone || "",
-        customerRating: Number(d.client_rating ?? raw.customer?.rating ?? raw.user?.rating ?? 5.0),
+        customerRating: Number(d.client_rating ?? raw.customer?.rating ?? raw.user?.rating ?? 0.0),
         customerOrdersCount: d.client_orders_count ?? raw.customer?.orders_count ?? raw.user?.orders_count ?? 1,
         requestDate: d.request_created_at || d.requested_date || raw.requested_date || raw.created_at || "",
         pickup: d.origin || d.pickup || raw.pickup || "—",

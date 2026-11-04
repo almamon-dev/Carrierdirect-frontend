@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageSquare, MoreVertical, RotateCcw } from 'lucide-react';
+import { MessageSquare, MoreVertical, RotateCcw, Truck } from 'lucide-react';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
 import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
 import CustomerOrderHeaderMenu from './CustomerOrderHeaderMenu';
+import { ReorderSameCarrierModal } from '@/modules/Customer/OrderManagement/components/ReorderSameCarrierModal';
 
 interface CustomerOrderHeaderProps {
     order: NormalizedCustomerOrder;
@@ -23,6 +24,7 @@ export const CustomerOrderHeader: React.FC<CustomerOrderHeaderProps> = ({
     onOpenRating,
 }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -134,11 +136,11 @@ export const CustomerOrderHeader: React.FC<CustomerOrderHeaderProps> = ({
                     <Button
                         variant="primary"
                         size="sm"
-                        onClick={onRepeatOrder}
-                        className="h-8 px-3.5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        onClick={() => setIsReorderModalOpen(true)}
+                        className="h-8 px-3.5 bg-gradient-to-r from-orange-600 to-[#ff4a1f] hover:from-orange-700 hover:to-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs"
                     >
-                        <RotateCcw size={12} />
-                        <span>Repeat Order</span>
+                        <Truck size={13} />
+                        <span>Re-order with Carrier</span>
                     </Button>
 
                     <Button
@@ -162,6 +164,13 @@ export const CustomerOrderHeader: React.FC<CustomerOrderHeaderProps> = ({
                         onPrint={onPrint}
                         onOpenRating={onOpenRating}
                         onCopyId={handleCopyId}
+                        onRepeatOrder={onRepeatOrder}
+                    />
+
+                    <ReorderSameCarrierModal
+                        isOpen={isReorderModalOpen}
+                        onClose={() => setIsReorderModalOpen(false)}
+                        order={(order as any).raw || order}
                     />
                 </div>
             </div>

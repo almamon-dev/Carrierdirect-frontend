@@ -59,6 +59,15 @@ export const DriverShipmentHeader: React.FC<Props> = ({ shipment, onOpenGPS }) =
 
                 <ShipmentStatusBadge status={shipment.status} />
 
+                {shipment.driverType === 'subcontractor' && (
+                    <span className="inline-flex items-center gap-1 font-sans text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-[3px] border border-blue-200 dark:border-blue-900">
+                        <span>🏢 {shipment.subcontractorCompany || 'Subcontractor Driver'}</span>
+                        {shipment.subcontractorJourneyLeg && (
+                            <span className="text-blue-600 dark:text-blue-400 font-medium">({shipment.subcontractorJourneyLeg})</span>
+                        )}
+                    </span>
+                )}
+
                 {shipment.priority === 'Urgent' && (
                     <StatusBadge status="Urgent" label="Urgent Dispatch" />
                 )}

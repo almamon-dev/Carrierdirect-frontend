@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageSquare, MoreVertical, RefreshCw } from 'lucide-react';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
+import { ArrowLeft, Box, MessageSquare, MoreVertical, RefreshCw } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { NormalizedSupplierOrder } from '../utils/supplierOrderTrackUtils';
 import SupplierOrderHeaderMenu from './SupplierOrderHeaderMenu';
 
@@ -87,35 +88,46 @@ export const SupplierOrderHeader: React.FC<SupplierOrderHeaderProps> = ({
 
     const shortFrom = extractShortLocation(order.from || order.pickupFullAddress);
     const shortTo = extractShortLocation(order.to || order.deliveryFullAddress);
+    const navigate = useNavigate();
     const triggerUpdateStatus = onOpenUpdateStatus || onUpdateStatus;
+    const rawOrderNo = order.orderNumber || order.id || 'ORD-2026-10001';
+    const displayOrderNumber = rawOrderNo.startsWith('#') ? rawOrderNo : `#${rawOrderNo}`;
 
     return (
         <div className="flex flex-col gap-1.5 pb-0.5 font-sans">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
-                <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-1.5">
-                            <span>Order Details</span>
-                            <span className="font-mono text-slate-600 dark:text-slate-400 font-semibold">
-                                {order.orderNumber || order.id}
-                            </span>
-                        </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                    {/* Left arrow Back button */}
+                    <button
+                        type="button"
+                        onClick={() => navigate('/supplier/orders')}
+                        className="w-8.5 h-8.5 rounded-[4px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e2329] flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer shadow-2xs shrink-0 transition-colors"
+                        title="Back to Orders"
+                    >
+                        <ArrowLeft size={16} />
+                    </button>
 
+                    {/* Order icon (package / box inside rounded orange container) */}
+                    <div className="w-8.5 h-8.5 rounded-[4px] bg-[#fff5f2] dark:bg-[#2a1c18] border border-[#ffd5cc] dark:border-[#52291d] flex items-center justify-center text-[#ff4a1f] shrink-0 shadow-2xs">
+                        <Box size={18} />
+                    </div>
+
+                    {/* Title: Order #ORD-... */}
+                    <h1 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-1">
+                        <span>Order</span>
+                        <span className="font-mono text-slate-900 dark:text-slate-100 font-extrabold">
+                            {displayOrderNumber}
+                        </span>
+                    </h1>
+
+                    {/* Status Badges */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
                         <StatusBadge status={order.status} />
 
                         <StatusBadge
                             status={order.pricing?.paymentStatus || (isPaid ? 'Paid' : isPayLater ? 'Pay Later (Net-30)' : 'In Escrow')}
                             category={isPaid ? 'success' : isPayLater ? 'financial_hold' : 'financial_hold'}
                         />
-                    </div>
-
-                    <div className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 flex-wrap">
-                        <span>Route:</span>
-                        <span className="text-slate-800 dark:text-slate-200 font-semibold">{shortFrom}</span>
-                        <span className="text-slate-400">➔</span>
-                        <span className="text-slate-800 dark:text-slate-200 font-semibold">{shortTo}</span>
-                        <span className="text-slate-300 dark:text-slate-700">•</span>
-                        <span>Delivery: <strong className="text-slate-700 dark:text-slate-300 font-semibold">{order.deliveryDate}</strong></span>
                     </div>
                 </div>
 
@@ -125,9 +137,9 @@ export const SupplierOrderHeader: React.FC<SupplierOrderHeaderProps> = ({
                             variant="outline"
                             size="sm"
                             onClick={onOpenChat}
-                            className="h-8 px-3 text-xs font-semibold bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                            className="h-8.5 px-3 text-xs font-semibold bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center gap-1.5 shadow-2xs rounded-[4px]"
                         >
-                            <MessageSquare size={12} className="text-[#ff4a1f]" />
+                            <MessageSquare size={13} className="text-[#ff4a1f]" />
                             <span>Chat Customer</span>
                         </Button>
                     )}
@@ -137,9 +149,9 @@ export const SupplierOrderHeader: React.FC<SupplierOrderHeaderProps> = ({
                             variant="primary"
                             size="sm"
                             onClick={triggerUpdateStatus}
-                            className="h-8 px-3.5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                            className="h-8.5 px-3.5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs rounded-[4px] transition-all"
                         >
-                            <RefreshCw size={12} />
+                            <RefreshCw size={13} />
                             <span>Update Status</span>
                         </Button>
                     )}
@@ -148,11 +160,11 @@ export const SupplierOrderHeader: React.FC<SupplierOrderHeaderProps> = ({
                         ref={triggerRef}
                         variant="outline"
                         size="sm"
-                        className="h-8 w-8 p-0 flex items-center justify-center shrink-0 bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer shadow-2xs"
+                        className="h-8.5 w-8.5 p-0 flex items-center justify-center shrink-0 bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer shadow-2xs rounded-[4px]"
                         onClick={handleToggleMenu}
                         title="More options"
                     >
-                        <MoreVertical size={13} />
+                        <MoreVertical size={14} />
                     </Button>
 
                     <SupplierOrderHeaderMenu

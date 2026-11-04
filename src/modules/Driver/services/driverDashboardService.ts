@@ -25,7 +25,7 @@ export const driverDashboardService = {
                 const totalAssigned = Number(metricsRaw.total_assigned ?? 0);
                 const distanceVal = Number(metricsRaw.total_distance_km ?? 0);
                 const todayDistVal = Number(metricsRaw.today_distance_km ?? 0);
-                const ratingVal = Number(metricsRaw.driver_rating ?? 5.0);
+                const ratingVal = Number(metricsRaw.driver_rating ?? 0.0);
                 const reviewsCountVal = Number(metricsRaw.reviews_count ?? 0);
 
                 const recentTripsRaw = Array.isArray(data.recent_trips) ? data.recent_trips : [];
@@ -45,7 +45,7 @@ export const driverDashboardService = {
                 const metrics = {
                     activeLoads: {
                         value: `${activeShipmentsCount} ${activeShipmentsCount === 1 ? 'Load' : 'Loads'}`,
-                        subtitle: activeShipmentsCount > 0 ? `${activeShipmentsCount} in active dispatch` : (totalAssigned > 0 ? 'Assigned & ready' : 'All loads delivered'),
+                        subtitle: activeShipmentsCount > 0 ? `${activeShipmentsCount} in active dispatch` : 'All loads delivered',
                         count: activeShipmentsCount,
                     },
                     tripsCompleted: {
@@ -61,14 +61,14 @@ export const driverDashboardService = {
                         km: totalComputedDist,
                     },
                     driverRating: {
-                        value: ratingVal > 0 ? `${ratingVal.toFixed(2)}` : '5.00',
-                        subtitle: reviewsCountVal > 0 ? `${reviewsCountVal} fleet reviews` : '',
-                        rating: ratingVal > 0 ? ratingVal : 5.0,
+                        value: ratingVal > 0 ? `${ratingVal.toFixed(2)}` : '0.00',
+                        subtitle: reviewsCountVal > 0 ? `${reviewsCountVal} fleet reviews` : 'No reviews yet',
+                        rating: ratingVal > 0 ? ratingVal : 0.0,
                         reviewsCount: reviewsCountVal,
                     },
                 };
 
-                const activeShipmentItem = mappedRecent.find(s => s.status !== 'delivered' && s.status !== 'cancelled') || mappedRecent[0] || null;
+                const activeShipmentItem = mappedRecent.find(s => ['assigned', 'accepted', 'at_pickup', 'in_transit', 'at_delivery'].includes(s.status)) || null;
 
                 let activeShipment = null;
                 if (activeShipmentItem) {
@@ -96,7 +96,7 @@ export const driverDashboardService = {
                     };
                 }
 
-                const scheduleSources = mappedToday.length > 0 ? mappedToday : mappedRecent;
+                const scheduleSources = mappedToday;
                 const scheduleList = scheduleSources.map(s => ({
                     id: s.id,
                     tripId: s.orderNumber,
@@ -145,7 +145,8 @@ export const driverDashboardService = {
             const res = await apiClient.get('/driver/dashboard');
             const data = res.data?.data || res.data || res;
             if (data?.recent_trips && data.recent_trips.length > 0) {
-                return data.recent_trips[0];
+                const active = data.recent_trips.find((t: any) => ['assigned', 'accepted', 'in_progress', 'picked_up', 'in_transit', 'arrived'].includes(t.status));
+                return active || null;
             }
         } catch (err) {
             console.error('API Error in getActiveTripSummary:', err);

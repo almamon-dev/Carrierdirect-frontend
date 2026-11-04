@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Euro, CreditCard, HandCoins, Receipt, ArrowUpRight, TrendingUp, ShieldCheck } from 'lucide-react';
+import { Euro, CreditCard, HandCoins, Receipt, ArrowUpRight, TrendingUp, ShieldCheck, BarChart3, Users2, Clock, CheckCircle2 } from 'lucide-react';
 import apiClient from '@/lib/axios';
 import Button from '@/components/ui/button';
 
@@ -91,6 +91,69 @@ export default function FinanceDashboard() {
                     </div>
                     <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
                         <CreditCard size={20} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Subcontractor & Freight Overview (Step 6 Mockup) */}
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                            <span>Supplier Finance Dashboard</span>
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                Subcontractor & Expense Breakdown
+                            </span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Overview of customer revenues, accrued external contractor costs, and verified payments.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    {/* 1. Total Revenue */}
+                    <div className="bg-white dark:bg-[#12161c] p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Revenue</span>
+                            <p className="text-xl font-bold text-slate-900 dark:text-white">€10,000</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
+                            <BarChart3 size={20} />
+                        </div>
+                    </div>
+
+                    {/* 2. Total Contractor Expenses */}
+                    <div className="bg-white dark:bg-[#12161c] p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Total Contractor Expenses</span>
+                            <p className="text-xl font-bold text-slate-900 dark:text-white">€2,000</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center">
+                            <Users2 size={20} />
+                        </div>
+                    </div>
+
+                    {/* 3. Pending Verification */}
+                    <div className="bg-white dark:bg-[#12161c] p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Pending Verification</span>
+                            <p className="text-xl font-bold text-amber-600 dark:text-amber-400">€500</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
+                            <Clock size={20} />
+                        </div>
+                    </div>
+
+                    {/* 4. Paid to Contractors */}
+                    <div className="bg-white dark:bg-[#12161c] p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                        <div className="space-y-1">
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Paid to Contractors</span>
+                            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">€1,500</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
+                            <CheckCircle2 size={20} />
+                        </div>
                     </div>
                 </div>
             </div>

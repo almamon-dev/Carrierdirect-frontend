@@ -54,7 +54,7 @@ export const CustomerOrderSupplierProfile: React.FC<CustomerOrderSupplierProfile
 
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
                         <Star size={11} className="text-amber-500 fill-amber-500" />
-                        <span className="text-[11.5px]">{(Number(supplier?.rating) || 5.0).toFixed(1)}</span>
+                        <span className="text-[11.5px]">{(Number(supplier?.rating) || 0.0).toFixed(1)}</span>
                         <span className="font-medium text-slate-400 text-[10.5px]">({supplier?.reviews ?? 0} reviews)</span>
                     </div>
                 </div>
@@ -93,19 +93,6 @@ export const CustomerOrderSupplierProfile: React.FC<CustomerOrderSupplierProfile
                         <span className="font-semibold text-slate-900 dark:text-slate-100 truncate">{supplier.location}</span>
                     </>
                 )}
-            </div>
-
-            {/* Action with full width */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onOpenChat}
-                    className="w-full h-8 text-xs font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
-                >
-                    <MessageSquare size={12} className="text-[#ff4a1f]" />
-                    <span>Chat with Carrier</span>
-                </Button>
             </div>
         </div>
     );

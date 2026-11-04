@@ -58,12 +58,16 @@ export function useSubmitQuoteDetails(slug?: string) {
         }
     }, [slug]);
 
-    // Initial load
+    // Reset state immediately and fetch details whenever slug changes
     useEffect(() => {
         isMountedRef.current = true;
+        const cleanId = slug ? decryptId(slug).replace('REQ-', '').trim() : '';
+        setRequestDetails(getInitialEmptyDetails(cleanId));
+        setApiData({});
+        setLoading(true);
         fetchDetails(false);
         return () => { isMountedRef.current = false; };
-    }, [fetchDetails]);
+    }, [fetchDetails, slug]);
 
     // Real-Time Listeners (Echo WebSockets & Window Events)
     useEffect(() => {

@@ -11,6 +11,7 @@ interface SubmitQuoteHeaderProps {
     isFromMyQuotes: boolean;
     isQuoted: boolean;
     isWon: boolean;
+    isRejected?: boolean;
     isExpired: boolean;
     submittedAt?: string;
     showBanner: boolean;
@@ -22,6 +23,7 @@ export const SubmitQuoteHeader: React.FC<SubmitQuoteHeaderProps> = ({
     isFromMyQuotes,
     isQuoted,
     isWon,
+    isRejected,
     isExpired,
     submittedAt,
     showBanner,
@@ -52,6 +54,11 @@ export const SubmitQuoteHeader: React.FC<SubmitQuoteHeaderProps> = ({
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-700 shadow-2xs">
                                     <Check size={12} strokeWidth={2.8} />
                                     <span>Quote Won • Awarded</span>
+                                </span>
+                            ) : isRejected ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F4C2C2] text-[#991B1B] border border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800 shadow-2xs">
+                                    <X size={12} strokeWidth={2.8} />
+                                    <span>Offer Rejected</span>
                                 </span>
                             ) : isQuoted ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 shadow-2xs">
@@ -99,6 +106,20 @@ export const SubmitQuoteHeader: React.FC<SubmitQuoteHeaderProps> = ({
                                     </span>
                                 </div>
                             )
+                        ) : isRejected ? (
+                            <div className="h-9 px-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/60 rounded-md flex items-center gap-2 shadow-2xs shrink-0">
+                                <div className="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                    <X size={12} strokeWidth={2.8} />
+                                </div>
+                                <div className="flex items-center gap-1.5 leading-none">
+                                    <span className="text-xs font-bold text-rose-800 dark:text-rose-300 whitespace-nowrap">
+                                        Offer Rejected
+                                    </span>
+                                    <span className="hidden xl:inline text-[11px] text-slate-400 dark:text-slate-500 font-normal">
+                                        • Declined by customer
+                                    </span>
+                                </div>
+                            </div>
                         ) : isQuoted ? (
                             <div className="h-9 px-3 bg-[#fffbeb] dark:bg-amber-950/20 border border-[#fef3c7] dark:border-amber-900/40 rounded-md flex items-center gap-2 shadow-2xs shrink-0">
                                 <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
@@ -194,6 +215,30 @@ export const SubmitQuoteHeader: React.FC<SubmitQuoteHeaderProps> = ({
                         </button>
                     </div>
                 )
+            ) : isRejected && showBanner ? (
+                <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/60 rounded-lg p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-2xs animate-in fade-in duration-150">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <X size={13} strokeWidth={2.8} />
+                        </div>
+                        <div className="min-w-0">
+                            <h4 className="text-xs sm:text-[13px] font-bold text-rose-900 dark:text-rose-200 leading-snug">
+                                Customer has rejected this offer.
+                            </h4>
+                            <p className="text-[11.5px] text-rose-700 dark:text-rose-400 leading-snug mt-0.5">
+                                This offer has been declined and closed. No further response from the customer is pending.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onDismissBanner}
+                        className="text-rose-700 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-200 p-1 rounded transition-colors cursor-pointer shrink-0"
+                        title="Dismiss notification"
+                    >
+                        <X size={15} />
+                    </button>
+                </div>
             ) : isQuoted && showBanner ? (
                 <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 border border-[#bbf7d0] dark:border-emerald-800/60 rounded-lg p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-2xs animate-in fade-in duration-150">
                     <div className="flex items-center gap-2.5 min-w-0">

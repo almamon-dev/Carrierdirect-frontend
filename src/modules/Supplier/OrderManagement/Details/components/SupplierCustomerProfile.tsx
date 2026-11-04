@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Star, MessageSquare, Building, CheckCircle2, Clock, MapPin } from 'lucide-react';
+import { ShieldCheck, Star, MessageSquare, Building, CheckCircle2, Clock, MapPin, ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/button';
 
 interface SupplierCustomerProfileProps {
@@ -19,21 +19,54 @@ interface SupplierCustomerProfileProps {
         payoutTerms?: string;
     };
     onOpenChat?: () => void;
+    compact?: boolean;
 }
 
 export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = ({
     customer,
     onOpenChat,
+    compact = true,
 }) => {
-    const custName = customer?.companyName || customer?.name || 'Corporate Shipper';
-    const rating = typeof customer?.rating === 'number' && customer.rating > 0 ? customer.rating : 5.0;
+    const custName = customer?.companyName || customer?.name || 'Customer Co 1';
+    const rating = typeof customer?.rating === 'number' && customer.rating > 0 ? customer.rating : 0.0;
     const reviews = typeof customer?.reviews === 'number' ? customer.reviews : 0;
     const completedOrders = customer?.completedOrders !== undefined && customer?.completedOrders !== null ? customer.completedOrders : 0;
     const paymentRecord = customer?.paymentRecord || '100% Reliable';
     const payoutTerms = customer?.payoutTerms || 'Instant upon POD';
 
+    // Compact mode matching the design screenshot
+    if (compact) {
+        return (
+            <div
+                onClick={onOpenChat}
+                className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3.5 shadow-2xs flex items-center justify-between cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 transition-all font-sans group"
+                title="Shipper Profile & Chat"
+            >
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold text-sm flex items-center justify-center shrink-0">
+                        {custName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-[#ff4a1f] transition-colors">
+                                {custName}
+                            </h3>
+                            {customer?.verified !== false && (
+                                <CheckCircle2 size={16} className="text-white fill-emerald-500 shrink-0" />
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+                            Verified Corporate Shipper
+                        </p>
+                    </div>
+                </div>
+                <ChevronRight size={18} className="text-slate-400 dark:text-slate-500 group-hover:translate-x-0.5 transition-transform shrink-0" />
+            </div>
+        );
+    }
+
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs p-3.5 sm:p-4 space-y-3 font-sans">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs p-3.5 sm:p-4 space-y-3 font-sans">
             {/* Header / Avatar */}
             <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/60 flex items-center justify-center text-sm font-bold relative shrink-0 shadow-2xs">
@@ -127,7 +160,7 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
             <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80">
                 <Button
                     variant="outline"
-                    className="w-full h-9 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center gap-2 rounded-[6px] shadow-2xs"
+                    className="w-full h-9 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-center gap-2 rounded-[4px] shadow-2xs"
                     onClick={onOpenChat}
                 >
                     <MessageSquare size={14} className="text-[#ff4a1f] shrink-0" />

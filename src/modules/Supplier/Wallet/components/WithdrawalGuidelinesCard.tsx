@@ -4,9 +4,10 @@ import { Wallet, ArrowRight } from 'lucide-react';
 
 interface WithdrawalGuidelinesCardProps {
     availableBalanceNum: number;
+    payoutFeePercent?: number;
 }
 
-export function WithdrawalGuidelinesCard({ availableBalanceNum }: WithdrawalGuidelinesCardProps) {
+export function WithdrawalGuidelinesCard({ availableBalanceNum, payoutFeePercent = 0 }: WithdrawalGuidelinesCardProps) {
     const navigate = useNavigate();
 
     return (
@@ -42,7 +43,11 @@ export function WithdrawalGuidelinesCard({ availableBalanceNum }: WithdrawalGuid
                     </li>
                     <li className="flex items-start gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c] mt-1.5 shrink-0"></span>
-                        <span><strong className="text-slate-800 dark:text-slate-200">10% Platform Fee:</strong> A 10% processing fee is deducted from the payout amount upon disbursement.</span>
+                        {payoutFeePercent > 0 ? (
+                            <span><strong className="text-slate-800 dark:text-slate-200">{payoutFeePercent}% Platform Fee:</strong> A {payoutFeePercent}% processing fee is deducted from the payout amount upon disbursement.</span>
+                        ) : (
+                            <span><strong className="text-slate-800 dark:text-slate-200">0% Payout Fee:</strong> Standard withdrawal is 100% free of charge (0% disbursement fee).</span>
+                        )}
                     </li>
                 </ul>
 

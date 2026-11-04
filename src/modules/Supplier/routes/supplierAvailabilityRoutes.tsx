@@ -10,6 +10,7 @@ const VehiclesAvailability = lazy(() => import('../Availability/VehiclesAvailabi
 const BlackoutDates = lazy(() => import('../Availability/BlackoutDates'));
 const TimeSlots = lazy(() => import('../Availability/TimeSlots'));
 const CapacityManagement = lazy(() => import('../Availability/CapacityManagement'));
+const SubcontractorsPage = lazy(() => import('../Subcontractors'));
 
 export const supplierAvailabilityRoutes: RouteObject[] = [
     { 
@@ -99,5 +100,21 @@ export const supplierAvailabilityRoutes: RouteObject[] = [
     { 
         path: 'availability/settings', 
         element: <Navigate to="/supplier/availability/dashboard" replace />
+    },
+    { 
+        path: 'availability/subcontractors', 
+        element: (
+            <PermissionGuard requiredPermission="fleet.view">
+                <SubcontractorsPage />
+            </PermissionGuard>
+        ),
+    },
+    { 
+        path: 'subcontractors', 
+        element: (
+            <PermissionGuard requiredPermission="fleet.view">
+                <SubcontractorsPage />
+            </PermissionGuard>
+        ),
     },
 ];

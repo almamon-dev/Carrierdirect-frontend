@@ -1,9 +1,29 @@
 import React from "react";
 import { Package, CheckCircle2, Sparkles, Layers } from "lucide-react";
 import useScrollReveal from "@/Hooks/useScrollReveal";
+import { useLandingCMS } from "../components/useLandingCMS";
 
 export default function HowItWorks() {
   const reveal = useScrollReveal();
+  const { getSection, isSectionEnabled } = useLandingCMS();
+  const cms = getSection("how_it_works");
+
+  if (!isSectionEnabled("how_it_works")) {
+    return null;
+  }
+
+  const badge = cms?.badge || "Simple 3-Step Process";
+  const title = cms?.title || "How It Works";
+  const subtitle = cms?.subtitle || "Direct connection between shippers and verified carriers in three seamless steps.";
+
+  const step1Title = cms?.content?.steps?.[0]?.title || "Submit A Quote Request";
+  const step1Desc = cms?.content?.steps?.[0]?.description || "Client enters route (Country → Country / City → City), pickup date, pallets, weight, and dimensions.";
+
+  const step2Title = cms?.content?.steps?.[1]?.title || "Smart Matching";
+  const step2Desc = cms?.content?.steps?.[1]?.description || "The system automatically matches your shipment to a trusted pickup date availability and capacity.";
+
+  const step3Title = cms?.content?.steps?.[2]?.title || "Receive Real Quotes";
+  const step3Desc = cms?.content?.steps?.[2]?.description || "Suppliers review the request, submit final prices, and client compares & accepts the best option.";
 
   return (
     <section 
@@ -16,10 +36,22 @@ export default function HowItWorks() {
     >
       <div className="max-w-5xl mx-auto relative z-10">
         
-        {/* Title */}
-        <h2 className="text-[#0f0400] text-2xl sm:text-3xl font-bold tracking-tight text-center mb-8 md:mb-10">
-          How It Works
-        </h2>
+        {/* Title Header */}
+        <div className="text-center mb-8 md:mb-10 max-w-2xl mx-auto">
+          {badge && (
+            <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-2 block">
+              {badge}
+            </span>
+          )}
+          <h2 className="text-[#0f0400] text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
+              {subtitle}
+            </p>
+          )}
+        </div>
 
         {/* Central Connected Diagram Area */}
         <div ref={reveal.ref} className={`relative reveal ${reveal.isVisible ? "visible" : ""}`}>
@@ -73,10 +105,10 @@ export default function HowItWorks() {
                 <Package className="w-5 h-5" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-[#0f0400] mb-1.5">
-                Submit A Quote Request
+                {step1Title}
               </h3>
               <p className="text-slate-500 text-xs sm:text-sm leading-normal max-w-sm">
-                Client enters route (Country → Country / City → City), pickup date, pallets, weight, and dimensions.
+                {step1Desc}
               </p>
             </div>
 
@@ -87,10 +119,10 @@ export default function HowItWorks() {
                 <Sparkles className="w-5 h-5" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-[#0f0400] mb-1.5">
-                Smart Matching
+                {step2Title}
               </h3>
               <p className="text-slate-500 text-xs sm:text-sm leading-normal max-w-sm">
-                The system automatically matches your shipment to a trusted pickup date availability and capacity.
+                {step2Desc}
               </p>
             </div>
 
@@ -104,10 +136,10 @@ export default function HowItWorks() {
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-[#0f0400] mb-1.5">
-                Receive Real Quotes
+                {step3Title}
               </h3>
               <p className="text-slate-500 text-xs sm:text-sm leading-normal max-w-sm">
-                Suppliers review the request, submit final prices, and client compares & accepts the best option.
+                {step3Desc}
               </p>
             </div>
           </div>

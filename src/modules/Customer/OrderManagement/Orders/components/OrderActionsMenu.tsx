@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Eye, MessageSquare, Copy, Check, Navigation, FileCheck, Star, FileText, RotateCcw, ShieldCheck, CreditCard } from 'lucide-react';
+import { Eye, MessageSquare, Copy, Check, Navigation, FileCheck, Star, FileText, RotateCcw, ShieldCheck, CreditCard, Truck } from 'lucide-react';
 
 interface OrderActionsMenuProps {
     isOpen: boolean;
@@ -14,6 +14,7 @@ interface OrderActionsMenuProps {
     onOpenRating: () => void;
     onDownloadInvoice: () => void;
     onRepeatOrder: () => void;
+    onReorderSameCarrier?: () => void;
     onCopyId: () => void;
     onOpenPodReview?: () => void;
     onViewPaymentDetails?: () => void;
@@ -31,6 +32,7 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
     onOpenRating,
     onDownloadInvoice,
     onRepeatOrder,
+    onReorderSameCarrier,
     onCopyId,
     onOpenPodReview,
     onViewPaymentDetails,
@@ -171,6 +173,16 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
                     <span>Download Order Documents</span>
                 </button>
 
+                {/* Re-order with Same Carrier */}
+                <button
+                    type="button"
+                    className={`${btnClass} text-[#ff4a1f] dark:text-[#ff6b4a] hover:bg-orange-50 dark:hover:bg-orange-950/40 font-semibold`}
+                    onClick={() => { onClose(); onReorderSameCarrier ? onReorderSameCarrier() : onRepeatOrder(); }}
+                >
+                    <Truck size={14} className="text-[#ff4a1f] dark:text-[#ff6b4a] shrink-0" />
+                    <span>Re-order with Same Carrier</span>
+                </button>
+
                 {/* Repeat Order */}
                 <button
                     type="button"
@@ -178,7 +190,7 @@ export const OrderActionsMenu: React.FC<OrderActionsMenuProps> = ({
                     onClick={() => { onClose(); onRepeatOrder(); }}
                 >
                     <RotateCcw size={14} className="text-slate-400 shrink-0" />
-                    <span>Repeat Order</span>
+                    <span>Repeat in Full Form</span>
                 </button>
 
                 {/* Copy Order ID */}

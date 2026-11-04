@@ -73,7 +73,7 @@ export const GeneralChatDetailsProfileTab: React.FC<GeneralChatDetailsProfileTab
                                 <span className="text-amber-500 font-bold">
                                     {partner.rating !== undefined && partner.rating !== null && Number(partner.rating) > 0
                                         ? Number(partner.rating).toFixed(1)
-                                        : partner.reviews_count ? '0.0' : '5.0'}
+                                        : '0.0'}
                                 </span>{' '}
                                 <span className="text-[10px] text-slate-400 font-normal">
                                     ({partner.reviews_count ?? (partner as any).reviews ?? 0} reviews)

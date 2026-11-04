@@ -28,7 +28,7 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
             id: 'amount',
             label: 'Amount',
             sortable: true,
-            className: 'w-[145px] whitespace-nowrap',
+            className: 'min-w-[155px] whitespace-nowrap',
             render: (row) => {
                 const rawAmt = typeof row.raw_amount === 'number'
                     ? Math.abs(row.raw_amount)
@@ -63,14 +63,18 @@ export function getTransactionColumns({ copiedRef, handleCopy }: GetTransactionC
                 return (
                     <div
                         className="flex flex-col min-h-[22px] justify-center py-0.5"
-                        title={`Gross: €${grossFormatted} | Platform Charge: -€${fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} | Net Payout: €${netFormatted}`}
+                        title={`Gross: €${grossFormatted} | Platform Charge: -€${fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} | Net Credited: €${netFormatted}`}
                     >
                         <span className="text-[13px] font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight whitespace-nowrap">
-                            €{grossFormatted} <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{cur}</span>
+                            +€{netFormatted} <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{cur}</span>
                         </span>
-                        {fee > 0 && (
+                        {fee > 0 ? (
                             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight mt-0.5 whitespace-nowrap">
-                                -€{fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{feePercent > 0 ? ` (${feePercent}% platform charge)` : ' (platform charge)'}
+                                Gross €{grossFormatted} • -€{fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{feePercent > 0 ? ` (${feePercent}% platform charge)` : ' (platform charge)'}
+                            </span>
+                        ) : (
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight mt-0.5 whitespace-nowrap">
+                                Net Credited
                             </span>
                         )}
                     </div>

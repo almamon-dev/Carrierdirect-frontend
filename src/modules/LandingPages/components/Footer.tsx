@@ -1,11 +1,20 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AllImages } from "@/components/AllPhotos/AllImages";
+import { useLandingSettings } from "./useLandingSettings";
+import { useLandingCMS } from "./useLandingCMS";
 
 export default function Footer() {
+  const landingSettings = useLandingSettings();
+  const { getSection } = useLandingCMS();
+  const cmsFooter = getSection("footer");
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const settings = { pay_later_system_enabled: true };
+
+  const footerLogo = (cmsFooter?.content?.logo_image && typeof cmsFooter.content.logo_image === "string" && cmsFooter.content.logo_image.trim() !== "")
+    ? cmsFooter.content.logo_image.trim()
+    : AllImages.Logo;
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     if (pathname === "/") {
@@ -47,18 +56,28 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-2">
             <Link to="/" onClick={scrollToTop} className="inline-block mb-4">
               <img
-                src={AllImages.Logo}
-                alt="GetItMoving Logo"
+                src={footerLogo}
+                alt={`${landingSettings.site_name || "Carrier Direct"} Logo`}
                 className="h-8 w-auto object-contain brightness-0 invert opacity-90"
               />
             </Link>
-            <p className="text-white/50 text-xs leading-relaxed mb-5 max-w-[260px]">
+            <p className="text-white/50 text-xs leading-relaxed mb-3 max-w-[260px]">
               The smarter way to connect shippers with verified carriers. Fast, Reliable, Secure.
             </p>
+            {landingSettings.company_phone && (
+              <p className="text-white/40 text-[11px] mb-1">
+                <span className="text-white/60 font-medium">Support:</span> {landingSettings.company_phone}
+              </p>
+            )}
+            {landingSettings.company_email && (
+              <p className="text-white/40 text-[11px]">
+                <span className="text-white/60 font-medium">Email:</span> {landingSettings.company_email}
+              </p>
+            )}
           </div>
 
           <div className="col-span-1">
-            <h3 className="text-white text-[11px] font-bold  tracking-[0.2em] mb-4">Company</h3>
+            <h3 className="text-white text-[11px] font-bold tracking-[0.2em] mb-4">Company</h3>
             <ul className="space-y-2.5">
               {["About Us", "Careers", "Contact Us", "News"].map((label, i) => (
                 <li key={i}>
@@ -74,7 +93,7 @@ export default function Footer() {
           </div>
 
           <div className="col-span-1">
-            <h3 className="text-white text-[11px] font-bold  tracking-[0.2em] mb-4">Platform</h3>
+            <h3 className="text-white text-[11px] font-bold tracking-[0.2em] mb-4">Platform</h3>
             <ul className="space-y-2.5">
               {[
                 { label: "Features", sectionId: "features" },
@@ -106,7 +125,7 @@ export default function Footer() {
           </div>
 
           <div className="col-span-1">
-            <h3 className="text-white text-[11px] font-bold  tracking-[0.2em] mb-4">Legal</h3>
+            <h3 className="text-white text-[11px] font-bold tracking-[0.2em] mb-4">Legal</h3>
             <ul className="space-y-2.5">
               {[
                 { label: "Terms & Conditions", href: "/terms-and-conditions" },
@@ -129,7 +148,7 @@ export default function Footer() {
 
         <div className="border-t border-white/10 pt-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-[11px]">
-            © {new Date().getFullYear()} GetItMoving. All rights reserved.
+            © {new Date().getFullYear()} {landingSettings.site_name || "Carrier Direct"}. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1.5 text-white/40 text-[11px]">

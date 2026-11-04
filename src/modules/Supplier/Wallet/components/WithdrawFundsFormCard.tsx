@@ -26,6 +26,7 @@ interface WithdrawFundsFormCardProps {
     availableBalance: number;
     stripeAccount: any;
     isStripeConnected: boolean;
+    payoutFeePercent?: number;
     numAmount: number;
     isBelowMin: boolean;
     isOverBalance: boolean;
@@ -55,6 +56,7 @@ export function WithdrawFundsFormCard({
     availableBalance,
     stripeAccount,
     isStripeConnected,
+    payoutFeePercent = 0,
     numAmount,
     isBelowMin,
     isOverBalance,
@@ -123,28 +125,39 @@ export function WithdrawFundsFormCard({
             </div>
 
             {/* Action Submit Button */}
-            <div className="pt-1 flex flex-col sm:flex-row items-center justify-between gap-2.5">
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    10% platform processing fee applies • Processed within 24h
-                </span>
-                <Button
-                    type="submit"
-                    disabled={isSubmitting || !isValidAmount || !agreedTerms || availableBalance < MIN_WITHDRAWAL_AMOUNT}
-                    className="w-full sm:w-auto h-8 px-5 text-xs font-bold text-white bg-[#ea580c] hover:bg-[#c2410c] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs rounded-[4px]"
-                >
-                    {isSubmitting ? (
-                        <>
-                            <Loader2 size={13} className="animate-spin" />
-                            <span>Submitting Request...</span>
-                        </>
-                    ) : (
-                        <>
-                            <ArrowUpRight size={14} />
-                            <span>Request Withdrawal (€{(numAmount * 0.90).toFixed(2)} Net)</span>
-                        </>
-                    )}
-                </Button>
-            </div>
+            {(() => {
+                const feeAmount = payoutFeePercent > 0 ? Number(((numAmount * payoutFeePercent) / 100).toFixed(2)) : 0;
+                const netDisbursement = Math.max(0, Number((numAmount - feeAmount).toFixed(2)));
+
+                return (
+                    <div className="pt-1 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {payoutFeePercent > 0
+                                ? `${payoutFeePercent}% platform processing fee applies • Processed within 24h`
+                                : `0% fee standard payout • Processed within 24h`}
+                        </span>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !isValidAmount || !agreedTerms || availableBalance < MIN_WITHDRAWAL_AMOUNT}
+                            className="w-full sm:w-auto h-8 px-5 text-xs font-bold text-white bg-[#ea580c] hover:bg-[#c2410c] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs rounded-[4px]"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={13} className="animate-spin" />
+                                    <span>Submitting Request...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <ArrowUpRight size={14} />
+                                    <span>
+                                        Request Withdrawal (€{netDisbursement.toFixed(2)} Net{payoutFeePercent > 0 ? ` after ${payoutFeePercent}% fee` : ''})
+                                    </span>
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                );
+            })()}
         </form>
     );
 }

@@ -61,32 +61,28 @@ export const getOrderColumns = (
                     0
                 );
 
-                // Base freight / quotation amount without platform charge
-                let baseAmtVal = Number(row.subtotal ?? row.base_amount ?? row.base_price ?? 0);
-                if (!baseAmtVal || isNaN(baseAmtVal) || baseAmtVal <= 0) {
-                    const rawVal = Number(row.amount_raw ?? row.gross_amount ?? row.total_amount ?? 0);
-                    if (rawVal > 0) {
-                        baseAmtVal = platformFee > 0 && rawVal > platformFee ? rawVal - platformFee : rawVal;
-                    }
-                }
+                const totalAmt = Number(
+                    row.total_amount ??
+                    row.gross_amount ??
+                    row.amount_raw ??
+                    (row.amount ? parseFloat(String(row.amount).replace(/[^0-9.]/g, '')) : 0)
+                );
+                const quoteAmt = Number(
+                    (row as any).quote_amount ??
+                    row.subtotal ??
+                    (row as any).quote?.amount ??
+                    totalAmt
+                );
 
-                let formattedAmt = '€0.00 EUR';
-                if (!isNaN(baseAmtVal) && baseAmtVal > 0) {
-                    formattedAmt = `€${baseAmtVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
-                } else if (row.subtotal_formatted) {
-                    formattedAmt = row.subtotal_formatted.includes('EUR') ? row.subtotal_formatted : `${row.subtotal_formatted} EUR`;
-                } else if (row.base_amount_formatted) {
-                    formattedAmt = row.base_amount_formatted.includes('EUR') ? row.base_amount_formatted : `${row.base_amount_formatted} EUR`;
-                } else if (row.amount) {
-                    formattedAmt = String(row.amount).includes('EUR') ? String(row.amount) : `${row.amount} EUR`;
-                }
+                const displayAmt = totalAmt > 0 ? totalAmt : (quoteAmt > 0 ? quoteAmt : Number(row.base_amount ?? 0));
+                const formattedAmt = `€${displayAmt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
 
                 return (
                     <div className="flex flex-col min-h-[22px] justify-center py-0.5">
                         <span className="text-[13px] font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
                             {formattedAmt}
                         </span>
-                        {platformFee > 0 && (
+                        {platformFee > 0 && totalAmt > quoteAmt && (
                             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight mt-0.5 whitespace-nowrap">
                                 +€{platformFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{platformPercent > 0 ? ` (${platformPercent}% platform charge)` : ' (platform charge)'}
                             </span>

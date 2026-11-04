@@ -33,6 +33,31 @@ export interface OrderDriverInfo {
     email?: string;
     plate: string;
     avatar?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    currentLocation?: string;
+    lastUpdatedHuman?: string;
+}
+
+export interface ProductLocationDetails {
+    stage: 'at_pickup' | 'in_transit' | 'delivered';
+    statusLabel: string;
+    currentAddress: string;
+    currentCity: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    hasLiveGps: boolean;
+    updatedAt?: string;
+    updatedHuman: string;
+}
+
+export interface OrderProductItem {
+    id: number | string;
+    itemType: string;
+    quantity: number;
+    dimensions?: string | null;
+    weight?: number | null;
+    weightFormatted?: string | null;
 }
 
 export interface OrderSupplierDetails {
@@ -100,10 +125,17 @@ export interface NormalizedCustomerOrder {
     route: string;
     distance: string;
     distanceKm?: number | null;
+    estimatedDurationMinutes?: number | null;
     pickupLat?: number | null;
     pickupLng?: number | null;
     deliveryLat?: number | null;
     deliveryLng?: number | null;
+    driverLat?: number | null;
+    driverLng?: number | null;
+    driverCurrentLocation?: string;
+    driverLocationUpdatedHuman?: string;
+    productLocation: ProductLocationDetails;
+    productItems: OrderProductItem[];
     estArrival: string;
     vehicle: OrderVehicleInfo;
     driver?: OrderDriverInfo;
@@ -117,6 +149,9 @@ export interface NormalizedCustomerOrder {
     reference?: string;
     instructions?: string;
     loadType?: string;
+    createdAt?: string;
+    trackingHistory?: any[];
+    updates?: any[];
 }
 
 export interface TimelineItem {

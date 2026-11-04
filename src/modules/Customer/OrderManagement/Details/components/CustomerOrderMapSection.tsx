@@ -6,9 +6,11 @@ import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
 interface CustomerOrderMapSectionProps {
     order: NormalizedCustomerOrder;
     timeline?: any[];
+    isRefreshing?: boolean;
+    onRefreshLive?: () => void;
 }
 
-export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = ({ order, timeline }) => {
+export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = ({ order }) => {
     const fromCity = order.pickup.city || 'Origin';
     const toCity = order.delivery.city || 'Destination';
     const pickupLat = order.pickupLat ?? order.pickup?.lat;
@@ -16,76 +18,62 @@ export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = (
     const deliveryLat = order.deliveryLat ?? order.delivery?.lat;
     const deliveryLng = order.deliveryLng ?? order.delivery?.lng;
 
+    const productLoc = order.productLocation || {
+        stage: 'at_pickup' as const,
+        statusLabel: 'At Pickup Facility',
+        currentAddress: order.pickup.address || fromCity,
+        currentCity: fromCity,
+        hasLiveGps: false,
+        updatedHuman: 'Just now',
+    };
+
     const {
         mapContainerRef,
         mapLoaded,
         mapError,
-        hasExactCoordinates,
         googleMapsUrl,
         embedMapSrc,
+        liveDistanceText,
     } = useCustomerOrderMap({
         pickupLat,
         pickupLng,
         deliveryLat,
         deliveryLng,
+        driverLat: order.driverLat,
+        driverLng: order.driverLng,
         fromCity,
         toCity,
         pickupAddress: order.pickup.address,
         deliveryAddress: order.delivery.address,
+        productStage: productLoc.stage,
+        productStatusLabel: productLoc.statusLabel,
+        productCurrentAddress: productLoc.currentAddress,
+        cargoSummary: order.vehicle?.goodsType !== '-' ? order.vehicle.goodsType : order.loadType,
+        driverName: order.driver?.name,
+        vehiclePlate: order.driver?.plate || order.vehicle?.number,
+        updatedHuman: productLoc.updatedHuman,
     });
 
-    const milestoneSteps = [
-        {
-            id: 1,
-            label: 'Order Booked',
-            completed: Boolean(timeline?.[0]?.completed && !timeline?.[0]?.active),
-            active: Boolean(timeline?.[0]?.active),
-        },
-        {
-            id: 2,
-            label: 'Driver Assigned',
-            completed: Boolean(timeline?.[1]?.completed && !timeline?.[1]?.active),
-            active: Boolean(timeline?.[1]?.active),
-        },
-        {
-            id: 3,
-            label: 'Goods Picked Up',
-            completed: Boolean(timeline?.[2]?.completed && !timeline?.[2]?.active),
-            active: Boolean(timeline?.[2]?.active),
-        },
-        {
-            id: 4,
-            label: 'In Transit',
-            completed: Boolean(timeline?.[3]?.completed && !timeline?.[3]?.active),
-            active: Boolean(timeline?.[3]?.active),
-        },
-        {
-            id: 5,
-            label: 'Delivered',
-            completed: Boolean(
-                timeline?.[6]?.completed ||
-                timeline?.[5]?.completed ||
-                (timeline?.[4]?.completed && !timeline?.some((t) => t.active))
-            ),
-            active: Boolean(timeline?.[4]?.active || (timeline?.[5]?.active && !timeline?.[6]?.completed)),
-        },
-    ];
+    const displayDistance =
+        order.distance && order.distance !== '—' && order.distance !== '-'
+            ? order.distance
+            : liveDistanceText || '';
 
     return (
         <div className="w-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs overflow-hidden font-sans">
-            {/* Top Subheader with Live Status Bar & Actions */}
-            <div className="px-3.5 py-2.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+            {/* Clean Top Subheader */}
+            <div className="px-3.5 py-2.5 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                     <span className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                        <span>Live Route & GPS Corridor:</span>
+                        <span>Route:</span>
                         <span className="text-[#ff4a1f]">{fromCity}</span>
                         <ArrowRight size={12} className="text-slate-400" />
                         <span className="text-[#ff4a1f]">{toCity}</span>
                     </span>
-                    {order.distance && (
-                        <span className="text-slate-400 text-[11px] hidden sm:inline">
-                            • {order.distance}
+                    {displayDistance && (
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">
+                            ({displayDistance})
                         </span>
                     )}
                 </div>
@@ -94,7 +82,7 @@ export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = (
                     href={googleMapsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900 px-2 py-0.5 rounded"
+                    className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                 >
                     <Navigation size={11} />
                     <span>Open in Google Maps</span>
@@ -103,16 +91,17 @@ export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = (
             </div>
 
             {/* Map Canvas */}
-            <div className="relative w-full h-[260px] sm:h-[300px] bg-slate-100 dark:bg-slate-900">
-                {hasExactCoordinates && !mapError && (
-                    <div ref={mapContainerRef} className="w-full h-full" />
-                )}
+            <div className="relative w-full h-[240px] sm:h-[260px] bg-slate-100 dark:bg-slate-900">
+                <div
+                    ref={mapContainerRef}
+                    className={`w-full h-full ${mapLoaded && !mapError ? 'block' : 'hidden'}`}
+                />
 
-                {(!hasExactCoordinates || !mapLoaded || mapError) && (
+                {(!mapLoaded || mapError) && (
                     <iframe
                         src={embedMapSrc}
                         title={`Route from ${fromCity} to ${toCity}`}
-                        className="w-full h-full border-0 grayscale-[20%] contrast-[105%]"
+                        className="w-full h-full border-0 contrast-[105%]"
                         loading="lazy"
                     />
                 )}

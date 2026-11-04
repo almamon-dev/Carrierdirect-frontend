@@ -86,7 +86,7 @@ export const filterAndSortBids = ({
                     q.supplier_rating ??
                     q.supplier?.rating ??
                     q.raw?.rating ??
-                    5.0
+                    0.0
                 ));
                 return r >= minRating;
             });

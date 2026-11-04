@@ -5,9 +5,13 @@ import { FileText, Clock, ShieldCheck, HelpCircle } from 'lucide-react';
 interface WithdrawFundsSummarySideProps {
     numAmount: number;
     method: 'stripe' | 'bank';
+    payoutFeePercent?: number;
 }
 
-export function WithdrawFundsSummarySide({ numAmount, method }: WithdrawFundsSummarySideProps) {
+export function WithdrawFundsSummarySide({ numAmount, method, payoutFeePercent = 0 }: WithdrawFundsSummarySideProps) {
+    const feeAmount = payoutFeePercent > 0 ? Number(((numAmount * payoutFeePercent) / 100).toFixed(2)) : 0;
+    const netDisbursement = Math.max(0, Number((numAmount - feeAmount).toFixed(2)));
+
     return (
         <div className="lg:col-span-5 space-y-3">
             {/* 1. Live Payout Summary Card */}
@@ -18,7 +22,7 @@ export function WithdrawFundsSummarySide({ numAmount, method }: WithdrawFundsSum
                         <span>Payout Disbursement Summary</span>
                     </h3>
                     <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 rounded-[3px]">
-                        0% Fee (Free Payout)
+                        {payoutFeePercent > 0 ? `${payoutFeePercent}% Fee` : '0% Fee (Free Payout)'}
                     </span>
                 </div>
 
@@ -29,7 +33,9 @@ export function WithdrawFundsSummarySide({ numAmount, method }: WithdrawFundsSum
                     </div>
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 text-[11.5px]">
                         <span>Platform Processing Fee:</span>
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">€0.00 (Free)</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                            {payoutFeePercent > 0 ? `€${feeAmount.toFixed(2)} (${payoutFeePercent}%)` : '€0.00 (Free)'}
+                        </span>
                     </div>
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 text-[11.5px]">
                         <span>Disbursement Method:</span>
@@ -39,7 +45,7 @@ export function WithdrawFundsSummarySide({ numAmount, method }: WithdrawFundsSum
                     </div>
                     <div className="pt-1.5 border-t border-orange-200/60 dark:border-orange-900/40 flex items-center justify-between">
                         <span className="font-bold text-xs text-slate-900 dark:text-white">Net Disbursement:</span>
-                        <span className="text-base font-bold text-[#ea580c]">€{numAmount.toFixed(2)}</span>
+                        <span className="text-base font-bold text-[#ea580c]">€{netDisbursement.toFixed(2)}</span>
                     </div>
                 </div>
 
@@ -47,6 +53,12 @@ export function WithdrawFundsSummarySide({ numAmount, method }: WithdrawFundsSum
                     <Clock size={12} className="text-[#ea580c] shrink-0" />
                     <span>Estimated transfer arrival: <strong>1–2 business days</strong></span>
                 </div>
+
+                {payoutFeePercent === 0 && (
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight pt-0.5">
+                        💡 Standard payout is 100% free. Platform commission (10%) was already deducted on order completion into your available balance.
+                    </div>
+                )}
             </div>
 
             {/* 2. Comprehensive Withdrawal Terms & Conditions Card */}
@@ -62,7 +74,12 @@ export function WithdrawFundsSummarySide({ numAmount, method }: WithdrawFundsSum
                     <li className="flex items-start gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c] mt-1 shrink-0"></span>
                         <div>
-                            <strong className="text-slate-800 dark:text-slate-200">Free Standard Payout:</strong> 0% fee is deducted from your withdrawal (100% of your earnings are disbursed directly to your bank account).
+                            <strong className="text-slate-800 dark:text-slate-200">
+                                {payoutFeePercent > 0 ? `${payoutFeePercent}% Payout Fee:` : 'Free Standard Payout:'}
+                            </strong>{' '}
+                            {payoutFeePercent > 0
+                                ? `${payoutFeePercent}% fee is deducted from your withdrawal upon disbursement.`
+                                : '0% fee is deducted from your withdrawal (100% of your earnings are disbursed; platform commission was already deducted at order completion).'}
                         </div>
                     </li>
                     <li className="flex items-start gap-1.5">

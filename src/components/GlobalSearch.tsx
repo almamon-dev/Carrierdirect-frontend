@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, FileText, Package, Users, Settings, Activity, ArrowUpRight, Bell, MessageSquare } from 'lucide-react';
+import { Search, X, FileText, Package, Users, Settings, Activity, ArrowUpRight, Bell, MessageSquare, Navigation } from 'lucide-react';
 import { isDriverUser } from '@/utils/roleDashboard';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,6 +38,7 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
 
     const customerLinks = [
         { name: 'Dashboard Overview', path: '/customer/dashboard', icon: Activity },
+        { name: 'Track Shipment by Order ID', path: '/customer/orders/track', icon: Navigation },
         { name: 'My Orders', path: '/customer/orders', icon: Package },
         { name: 'Quote Requests', path: '/customer/quotes', icon: FileText },
         { name: 'Invoices & Finance', path: '/customer/finance/invoices', icon: Users },
@@ -70,10 +71,21 @@ export default function GlobalSearch({ isOpen, onClose }: { isOpen: boolean, onC
                     <input
                         autoFocus
                         type="text"
-                        placeholder="Search for orders, quotes, settings..."
+                        placeholder="Search for orders (e.g. ORD-0001), quotes, settings..."
                         className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder-slate-400 text-[13.5px]"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && query.trim() !== '') {
+                                if (isCustomer && /^(ord-|#?\d+)/i.test(query.trim())) {
+                                    navigate(`/customer/orders/track?orderId=${encodeURIComponent(query.trim())}`);
+                                    onClose();
+                                } else if (filteredLinks.length > 0) {
+                                    navigate(filteredLinks[0].path);
+                                    onClose();
+                                }
+                            }
+                        }}
                     />
                     <button
                         onClick={onClose}

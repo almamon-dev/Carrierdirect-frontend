@@ -73,15 +73,27 @@ export default function SubmitQuote() {
         quoteSubmitted?.status === 'won'
     );
 
-    const isExpired = !isWon && Boolean(
+    const isRejected = !isWon && Boolean(
+        (requestDetails as any).is_rejected ||
+        (requestDetails as any).is_lost ||
+        (requestDetails.status || '').toLowerCase() === 'rejected' ||
+        (requestDetails.status || '').toLowerCase() === 'declined' ||
+        (requestDetails.status || '').toLowerCase() === 'lost' ||
+        quoteSubmitted?.status === 'rejected' ||
+        quoteSubmitted?.status === 'declined' ||
+        quoteSubmitted?.status === 'lost' ||
+        quoteSubmitted?.is_rejected ||
+        quoteSubmitted?.is_lost
+    );
+
+    const isExpired = !isWon && !isRejected && Boolean(
         (requestDetails as any).is_expired ||
         (requestDetails.status || '').toLowerCase() === 'expired' ||
         (requestDetails.status || '').toLowerCase() === 'cancelled' ||
-        (requestDetails.status || '').toLowerCase() === 'lost' ||
         (requestDetails as any).can_submit_quote === false
     );
 
-    const isQuoted = isWon ||
+    const isQuoted = isWon || isRejected ||
         (requestDetails.status || '').toLowerCase() === 'quoted' ||
         (requestDetails.status || '').toLowerCase() === 'done' ||
         Boolean((requestDetails as any).isQuoted || (requestDetails as any).hasQuoted || quoteSubmitted);
@@ -89,12 +101,13 @@ export default function SubmitQuote() {
     const submittedAt = quoteSubmitted?.submitted_at || quoteSubmitted?.created_at || requestDetails.requestDate || '';
 
     return (
-        <div className="p-3 sm:p-5 w-full mx-auto min-h-screen font-sans antialiased space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c]">
+        <div key={slug} className="p-3 sm:p-5 w-full mx-auto min-h-screen font-sans antialiased space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c]">
             <SubmitQuoteHeader
                 requestDetails={requestDetails}
                 isFromMyQuotes={isFromMyQuotes}
                 isQuoted={isQuoted}
                 isWon={isWon}
+                isRejected={isRejected}
                 isExpired={isExpired}
                 submittedAt={submittedAt}
                 showBanner={showBanner}

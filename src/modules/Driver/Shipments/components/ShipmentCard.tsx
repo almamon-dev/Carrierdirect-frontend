@@ -46,6 +46,13 @@ export const ShipmentCard: React.FC<Props> = ({ shipment }) => {
                 </div>
             </div>
 
+            {shipment.driverType === 'subcontractor' && (
+                <div className="px-2 py-1 bg-blue-50/70 dark:bg-blue-950/30 rounded-[3px] border border-blue-200/60 dark:border-blue-900/40 text-[10.5px] text-blue-700 dark:text-blue-300 flex items-center justify-between">
+                    <span className="font-semibold">🏢 {shipment.subcontractorCompany || 'Subcontractor Carrier'}</span>
+                    <span className="text-slate-500 dark:text-slate-400 font-mono text-[10px]">{shipment.subcontractorJourneyLeg || 'Assigned Leg'}</span>
+                </div>
+            )}
+
             {/* Aligned Key : Value Rows with Highlighted Colon */}
             <div className="space-y-1.5 text-xs">
                 {/* 1. Origin (Pickup) */}

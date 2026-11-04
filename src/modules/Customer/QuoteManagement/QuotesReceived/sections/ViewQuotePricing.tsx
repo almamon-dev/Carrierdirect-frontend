@@ -34,7 +34,7 @@ export const ViewQuotePricing: React.FC<ViewQuotePricingProps> = ({
     const requesterCity = customer.city || req.pickup_city || 'Berlin, Germany';
 
     const carrierName = quote.supplier_name || supplier.company_name || supplier.name || 'Verified Carrier';
-    const carrierRating = quote.rating !== undefined && quote.rating !== null ? Number(quote.rating).toFixed(1) : (supplier.rating !== undefined && supplier.rating !== null ? Number(supplier.rating).toFixed(1) : '5.0');
+    const carrierRating = quote.rating !== undefined && quote.rating !== null ? Number(quote.rating).toFixed(1) : (supplier.rating !== undefined && supplier.rating !== null ? Number(supplier.rating).toFixed(1) : '0.0');
 
     // Pricing calculations
     const targetBudgetNum = parseFloat(String(req.budget || req.target_budget || req.price || 0).replace(/[^0-9.]/g, '')) || 0;

@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[3px] text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-60 font-sans antialiased",
+  "relative inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[3px] text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-80 font-sans antialiased text-center",
   {
     variants: {
       variant: {
@@ -17,6 +17,8 @@ const buttonVariants = cva(
           "bg-red-500 text-white shadow-sm hover:bg-red-600 active:scale-[0.99] cursor-pointer",
         outline:
           "border border-slate-200 bg-white shadow-sm hover:bg-slate-100 hover:text-slate-900 active:scale-[0.99] cursor-pointer",
+        "dark-outline":
+          "border border-white/30 bg-white/5 text-white hover:bg-white/10 hover:border-white/60 active:scale-95 cursor-pointer",
         secondary:
           "bg-slate-100 text-slate-900 shadow-sm hover:bg-slate-200 active:scale-[0.99] cursor-pointer",
         ghost: "hover:bg-slate-100 hover:text-slate-900 active:scale-[0.99] cursor-pointer",
@@ -63,14 +65,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         {...props}
       >
-        {isLoading ? (
-          <BinanceEqualizer />
-        ) : (
-          <>
-            {icon && <span className="mr-2 inline-flex shrink-0">{icon}</span>}
-            {children}
-          </>
+        {isLoading && (
+          <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <BinanceEqualizer />
+          </span>
         )}
+        <span className={cn("inline-flex items-center justify-center gap-1.5 text-center", isLoading && "invisible")}>
+          {icon && <span className="mr-2 inline-flex shrink-0">{icon}</span>}
+          {children}
+        </span>
       </button>
     )
   }

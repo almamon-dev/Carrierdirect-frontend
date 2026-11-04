@@ -51,6 +51,9 @@ export const useRepeatQuoteData = (
             budget: rawBudget,
             customerNotes: repeatData.notes || repeatData.customerNotes || '',
             internalReference: repeatData.internalReference || `REPEAT-${sourceId}`,
+            targetSupplierId: repeatData.target_supplier_id || repeatData.supplier_id || repeatData.supplier?.id || '',
+            targetSupplierName: repeatData.target_supplier_name || repeatData.supplier?.company_name || repeatData.supplier?.name || '',
+            receiveMultiple: !(repeatData.target_supplier_id || repeatData.supplier_id || repeatData.supplier?.id),
         }));
     }, [repeatData, setFormData]);
 

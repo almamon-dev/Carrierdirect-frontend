@@ -37,6 +37,7 @@ export default function WithdrawFundsPage() {
         availableBalance,
         stripeAccount,
         isStripeConnected,
+        payoutFeePercent,
         numAmount,
         isBelowMin,
         isOverBalance,
@@ -149,6 +150,7 @@ export default function WithdrawFundsPage() {
                         availableBalance={availableBalance}
                         stripeAccount={stripeAccount}
                         isStripeConnected={isStripeConnected}
+                        payoutFeePercent={payoutFeePercent}
                         numAmount={numAmount}
                         isBelowMin={isBelowMin}
                         isOverBalance={isOverBalance}
@@ -160,7 +162,11 @@ export default function WithdrawFundsPage() {
                 </div>
 
                 {/* Right Column (5 cols): Payout Summary, Terms & Conditions, and Help */}
-                <WithdrawFundsSummarySide numAmount={numAmount} method={method} />
+                <WithdrawFundsSummarySide
+                    numAmount={numAmount}
+                    method={method}
+                    payoutFeePercent={payoutFeePercent}
+                />
             </div>
         </div>
     );

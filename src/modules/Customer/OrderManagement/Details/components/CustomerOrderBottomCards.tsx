@@ -78,7 +78,7 @@ export const CustomerOrderBottomCards: React.FC<Props> = ({ order }) => {
                         <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Total Quotation Amount</span>
                         <div className="text-right">
                             <span className="text-sm font-black text-[#FF4A1F] block">
-                                {order.pricing?.quoteFormatted || order.pricing?.baseFormatted || '-'}
+                                {order.pricing?.totalFormatted || order.pricing?.quoteFormatted || order.pricing?.baseFormatted || '-'}
                             </span>
                             {order.pricing?.platformFee && order.pricing.platformFee > 0 ? (
                                 <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mt-0.5">

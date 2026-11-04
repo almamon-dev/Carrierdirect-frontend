@@ -12,6 +12,7 @@ import { encryptId } from '@/lib/encryption';
 import { exportInvoicePdf } from '@/utils/exportInvoicePdf';
 import { GPSComingSoonModal } from '@/components/modals';
 import { OrderActionsMenu } from './OrderActionsMenu';
+import { ReorderSameCarrierModal } from '@/modules/Customer/OrderManagement/components/ReorderSameCarrierModal';
 import { CustomerOrderItem } from '../types';
 
 interface OrderRowActionsProps {
@@ -28,6 +29,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [isGpsModalOpen, setIsGpsModalOpen] = useState(false);
+    const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
     const triggerRef = useRef<HTMLButtonElement>(null);
@@ -67,6 +69,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
     };
 
     const handleViewDetails = () => navigate(`/customer/orders/${encryptId(row.id)}`, { state: { orderData: row } });
+    const handleTrackOrder = () => navigate(`/customer/orders/track/${encryptId(row.id)}`);
     const handleOpenChat = () => {
         const quoteTargetId = row.quote_id || row.quote_request_id || row.id;
         navigate(`/customer/quotes/negotiation/conversation/${encryptId(quoteTargetId)}`);
@@ -112,7 +115,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 <Button
                     variant="primary"
                     size="sm"
-                    onClick={(e) => { e.stopPropagation(); setIsGpsModalOpen(true); }}
+                    onClick={(e) => { e.stopPropagation(); handleTrackOrder(); }}
                     className="h-[25px] px-2 bg-[#ff4a1f] hover:bg-[#e03e15] text-white text-[11.5px] font-semibold rounded-[3px] cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
                     title="Live Tracking"
                 >
@@ -164,14 +167,21 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
                 row={row}
                 onClose={handleClose}
                 onViewDetails={handleViewDetails}
-                onTrackOrder={() => setIsGpsModalOpen(true)}
+                onTrackOrder={handleTrackOrder}
                 onOpenChat={handleOpenChat}
                 onOpenPodReview={handleTriggerPodReview}
                 onOpenRating={() => onOpenRating({ id: String(row.id), supplier: supplierName, route: routeDisplay })}
                 onDownloadInvoice={() => { handleClose(); exportInvoicePdf(row); }}
+                onReorderSameCarrier={() => { handleClose(); setIsReorderModalOpen(true); }}
                 onRepeatOrder={() => navigate('/customer/quotes/create/new', { state: { repeatData: row } })}
                 onCopyId={handleCopyId}
                 onViewPaymentDetails={handleViewDetails}
+            />
+
+            <ReorderSameCarrierModal
+                isOpen={isReorderModalOpen}
+                onClose={() => setIsReorderModalOpen(false)}
+                order={row}
             />
 
             <GPSComingSoonModal

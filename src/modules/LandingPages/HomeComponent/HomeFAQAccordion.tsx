@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import useScrollReveal from "@/Hooks/useScrollReveal";
+import { useLandingCMS } from "../components/useLandingCMS";
 
-const items = [
+const DEFAULT_ITEMS = [
   {
     title: "When do suppliers get paid?",
     content: "Funds are released from escrow within 24-48 hours of job completion and delivery confirmation.",
@@ -25,27 +26,52 @@ const items = [
   },
   {
     title: "How do I become a carrier?",
-    content: "Register, upload compliance documents (insurance, FMCSA), and await admin approval (usually 24h).",
+    content: "Register, upload compliance documents (insurance, EU Community licence), and await admin approval (usually 24h).",
   },
 ];
 
-const halfLeft = items.slice(0, 3);
-const halfRight = items.slice(3);
-
 export default function HomeFAQAccordion() {
   const reveal = useScrollReveal();
+  const { getSection, isSectionEnabled } = useLandingCMS();
+  const cms = getSection("faq");
+
   const [openIndexLeft, setOpenIndexLeft] = useState<number | null>(null);
   const [openIndexRight, setOpenIndexRight] = useState<number | null>(null);
+
+  if (!isSectionEnabled("faq")) {
+    return null;
+  }
+
+  const badge = cms?.badge || "Support & Help";
+  const title = cms?.title || "Frequently Asked Questions";
+  const subtitle = cms?.subtitle || "Quick answers to common questions about our platform.";
+
+  const dynamicFaqs = cms?.content?.faqs;
+  const items = (Array.isArray(dynamicFaqs) && dynamicFaqs.length > 0)
+    ? dynamicFaqs.map((f: any, idx: number) => ({
+        title: f.question || DEFAULT_ITEMS[idx % DEFAULT_ITEMS.length]?.title || "FAQ Question",
+        content: f.answer || DEFAULT_ITEMS[idx % DEFAULT_ITEMS.length]?.content || "",
+      }))
+    : DEFAULT_ITEMS;
+
+  const midPoint = Math.ceil(items.length / 2);
+  const halfLeft = items.slice(0, midPoint);
+  const halfRight = items.slice(midPoint);
 
   return (
     <section id="faq" className="w-full bg-transparent pt-12 pb-4 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
+          {badge && (
+            <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-1.5 block">
+              {badge}
+            </span>
+          )}
           <h2 className="text-[#0f0400] text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Frequently Asked Questions
+            {title}
           </h2>
           <p className="text-gray-500 text-sm">
-            Quick answers to common questions about our platform.
+            {subtitle}
           </p>
         </div>
 

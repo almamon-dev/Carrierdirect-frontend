@@ -35,7 +35,7 @@ export const TrackBidIdSkeleton: React.FC = () => (
 export const TrackBidSupplierCell: React.FC<{ row: any }> = ({ row }) => {
     const name = row.supplier_name || row.supplier?.company_name || row.supplier?.name || row.carrier_name || 'Carrier';
     const avatar = row.supplier?.profile_picture || row.supplier_avatar || row.carrier_avatar;
-    const rating = row.rating !== undefined && row.rating !== null ? Number(row.rating).toFixed(1) : (row.supplier?.rating !== undefined && row.supplier?.rating !== null ? Number(row.supplier.rating).toFixed(1) : '5.0');
+    const rating = row.rating !== undefined && row.rating !== null ? Number(row.rating).toFixed(1) : (row.supplier?.rating !== undefined && row.supplier?.rating !== null ? Number(row.supplier.rating).toFixed(1) : '0.0');
 
     return (
         <div className="flex items-center gap-2 whitespace-nowrap min-w-0 min-h-[26px]" title={name}>

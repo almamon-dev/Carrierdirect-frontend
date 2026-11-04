@@ -7,6 +7,9 @@ export const buildQuoteRequestFormData = (
     allServices: Array<{ key: string }>
 ): FormData => {
     const submitData = new FormData();
+    if (formData.targetSupplierId || formData.target_supplier_id) {
+        submitData.append('target_supplier_id', String(formData.targetSupplierId || formData.target_supplier_id));
+    }
     submitData.append('request_title', formData.requestTitle || '');
     submitData.append('priority', formData.priority || 'Normal');
     submitData.append('shipment_type', formData.shipmentType || 'One Way');

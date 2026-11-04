@@ -69,7 +69,7 @@ export const computeCheckoutQuoteDetails = (rawQuote: any, stateQuote: any, req:
             ? `${rawQuote.supplier.rating} ★`
             : rawQuote?.rating
                 ? `${rawQuote.rating} ★`
-                : "5.0 ★";
+                : "0.0 ★";
 
     const extraCharges = extractCharges(rawQuote, stateQuote, req);
     const extraTotal = extraCharges.reduce((sum, c) => sum + (Number(c.amount) || 0), 0);

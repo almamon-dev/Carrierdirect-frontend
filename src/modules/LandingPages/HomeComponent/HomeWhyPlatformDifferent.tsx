@@ -2,9 +2,10 @@ import React from "react";
 import useScrollReveal from "@/Hooks/useScrollReveal";
 import { AllImages } from "@/components/AllPhotos/AllImages";
 import { Shield, BarChart2, MapPin, Lock, MessageSquare, Globe } from "lucide-react";
+import { useLandingCMS } from "../components/useLandingCMS";
 
-const features = [
-  { icon: <Shield className="w-5 h-5" />, title: "Verified Compliance", description: "All carriers are strictly FMCSA verified." },
+const DEFAULT_FEATURES = [
+  { icon: <Shield className="w-5 h-5" />, title: "Verified Compliance", description: "All carriers are strictly EU compliant and verified." },
   { icon: <BarChart2 className="w-5 h-5" />, title: "Instant Matching", description: "AI engine instantly pairs you with optimal carriers." },
   { icon: <MapPin className="w-5 h-5" />, title: "Real-time Tracking", description: "Monitor shipments live with instant notifications." },
   { icon: <Lock className="w-5 h-5" />, title: "Secure Payments", description: "Bank-grade encrypted escrow ensures safety." },
@@ -15,6 +16,30 @@ const features = [
 export default function HomeWhyPlatformDifferent() {
   const heading = useScrollReveal();
   const content = useScrollReveal();
+  const { getSection, isSectionEnabled } = useLandingCMS();
+
+  if (!isSectionEnabled("why_choose_us")) {
+    return null;
+  }
+
+  const cms = getSection("why_choose_us") || getSection("features");
+
+  const badge = cms?.badge || "Smart Platform";
+  const title = cms?.title || "Why Choose Carrier Direct? The Smart Choice";
+  const subtitle = cms?.subtitle || "We've engineered the ultimate freight matching platform, combining AI-driven logistics with uncompromising security to streamline your entire supply chain.";
+
+  const dynamicFeatures = cms?.content?.features;
+  const featuresList = (Array.isArray(dynamicFeatures) && dynamicFeatures.length > 0)
+    ? dynamicFeatures.map((f: any, i: number) => ({
+        icon: DEFAULT_FEATURES[i % DEFAULT_FEATURES.length]?.icon || <Shield className="w-5 h-5" />,
+        title: f.title || DEFAULT_FEATURES[i]?.title || "",
+        description: f.description || DEFAULT_FEATURES[i]?.description || "",
+      }))
+    : DEFAULT_FEATURES;
+
+  const sectionImage = (cms?.content?.image && typeof cms.content.image === "string" && cms.content.image.trim() !== "")
+    ? cms.content.image.trim()
+    : AllImages.HeroCard;
 
   return (
     <section id="features" className="w-full bg-transparent py-12 px-4 overflow-hidden">
@@ -24,11 +49,16 @@ export default function HomeWhyPlatformDifferent() {
           ref={heading.ref}
           className={`mb-12 text-center reveal ${heading.isVisible ? "visible" : ""}`}
         >
+          {badge && (
+            <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-2 block">
+              {badge}
+            </span>
+          )}
           <h2 className="text-[#0f0400] dark:text-slate-100 text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            Why Choose Carrierdirect?
+            {title}
           </h2>
           <p className="text-gray-500 dark:text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
-            We've engineered the ultimate freight matching platform, combining AI-driven logistics with uncompromising security to streamline your entire supply chain.
+            {subtitle}
           </p>
         </div>
 
@@ -45,14 +75,14 @@ export default function HomeWhyPlatformDifferent() {
               <span className="text-white/40 text-xs ml-3 font-mono">carrierdirect.app</span>
             </div>
             <img 
-              src={AllImages.HeroCard} 
+              src={sectionImage} 
               alt="Platform Dashboard" 
               className="w-full h-auto object-cover dark:brightness-90 dark:contrast-105" 
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
-            {features.map((f, i) => (
+            {featuresList.map((f, i) => (
               <div 
                 key={i} 
                 className="bg-white dark:bg-[#1e2329] rounded-md px-4 py-3.5 border border-gray-100 dark:border-[#2b313a] shadow-sm dark:shadow-none hover:shadow hover:border-[#ff4a1f]/30 dark:hover:border-[#ff4a1f]/50 transition-all duration-200 group flex flex-col items-start"

@@ -72,7 +72,7 @@ export function useSupplierWonQuotes() {
                         deliveryDateRaw: reqObj.delivery_date_raw || q.delivery_date_raw,
                         customer: reqObj.customer?.name || reqObj.client_name || q.customer?.name || '-',
                         customerAvatar: reqObj.customer?.profile_picture || reqObj.customer?.avatar || q.customer?.avatar || "",
-                        customerRating: reqObj.customer?.rating ?? q.customer?.rating ?? 5.0,
+                        customerRating: reqObj.customer?.rating ?? q.customer?.rating ?? 0.0,
                         pickup: pickupFormatted || "—",
                         delivery: deliveryFormatted || "—",
                         distance: resolveQuoteDistance(reqObj || q).distanceStr,

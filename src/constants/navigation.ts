@@ -3,6 +3,7 @@ import {
     ArrowLeftRight,
     ArrowUpRight,
     Bell,
+    Building2,
     Calendar,
     CheckCircle2,
     Clock,
@@ -99,6 +100,7 @@ export const navigationMap: Record<string, any[]> = {
                 { name: 'Service Areas', path: '/supplier/availability/routes', icon: Map, permission: 'fleet.track' },
                 { name: 'Drivers', path: '/supplier/availability/drivers', icon: UserCircle, permission: 'fleet.manage_drivers' },
                 { name: 'Vehicles', path: '/supplier/availability/vehicles', icon: Truck, permission: 'fleet.manage_vehicles' },
+                { name: 'Subcontractors', path: '/supplier/availability/subcontractors', icon: Building2, permission: 'fleet.view' },
             ]
         },
         { category: 'Main Menu', name: 'Team Management', path: '/supplier/team', icon: Users, permission: 'team.view' },
@@ -141,6 +143,7 @@ export const navigationMap: Record<string, any[]> = {
             icon: Package,
             items: [
                 { name: 'Orders', path: '/customer/orders', icon: Package },
+                { name: 'Track Shipment', path: '/customer/orders/track', icon: Map },
             ]
         },
         {

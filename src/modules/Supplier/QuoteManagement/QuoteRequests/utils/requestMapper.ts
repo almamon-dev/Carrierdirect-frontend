@@ -33,7 +33,7 @@ export function mapRawQuoteRequest(q: any): QuoteRequest {
         deliveryDateRaw: q.deliveryDateRaw || q.delivery_date_raw,
         customer: q.customer?.name || q.customer || q.client_name || q.user?.name || '-',
         customerAvatar: q.customerAvatar || q.customer?.profile_picture || q.user?.avatar || '',
-        customerRating: q.customerRating ?? q.customer?.rating ?? q.user?.rating ?? 5.0,
+        customerRating: q.customerRating ?? q.customer?.rating ?? q.user?.rating ?? 0.0,
         pickup: q.pickup || resolveAddress(q, 'pickup'),
         delivery: q.delivery || resolveAddress(q, 'delivery'),
         distance: resolveQuoteDistance(q).distanceStr,

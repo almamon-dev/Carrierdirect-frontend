@@ -1,8 +1,9 @@
 import React from "react";
 import { Check, X, Sparkles } from "lucide-react";
 import useScrollReveal from "@/Hooks/useScrollReveal";
+import { useLandingCMS } from "../components/useLandingCMS";
 
-const comparisons = [
+const DEFAULT_COMPARISONS = [
   {
     traditional: "Hidden Fees & Broker Markups",
     platform: "Transparent Flat-Rate Pricing",
@@ -27,6 +28,24 @@ const comparisons = [
 
 export default function ComparisonTable() {
   const reveal = useScrollReveal();
+  const { getSection, isSectionEnabled } = useLandingCMS();
+  const cms = getSection("comparison");
+
+  if (!isSectionEnabled("comparison")) {
+    return null;
+  }
+
+  const badge = cms?.badge || "Why Switch";
+  const title = cms?.title || "The Smart Choice";
+  const subtitle = cms?.subtitle || "See why modern shippers are abandoning traditional freight brokers for our completely digital platform.";
+
+  const dynamicRows = cms?.content?.rows;
+  const rowsList = (Array.isArray(dynamicRows) && dynamicRows.length > 0)
+    ? dynamicRows.map((r: any, idx: number) => ({
+        traditional: r.traditional || DEFAULT_COMPARISONS[idx % DEFAULT_COMPARISONS.length]?.traditional || "",
+        platform: r.platform || r.carrierdirect || DEFAULT_COMPARISONS[idx % DEFAULT_COMPARISONS.length]?.platform || "",
+      }))
+    : DEFAULT_COMPARISONS;
 
   return (
     <section className="w-full bg-transparent pt-12 pb-6 px-4 overflow-hidden relative">
@@ -34,14 +53,14 @@ export default function ComparisonTable() {
 
         {/* Section Title */}
         <div className="text-center mb-10">
-          <span className="text-[#ff4a1f] font-semibold tracking-wider  text-xs mb-2 block">
-            Why Switch
+          <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-2 block">
+            {badge}
           </span>
           <h2 className="text-[#0f0400] dark:text-slate-100 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
-            The Smart Choice
+            {title}
           </h2>
           <p className="text-gray-500 dark:text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
-            See why modern shippers are abandoning traditional freight brokers for our completely digital platform.
+            {subtitle}
           </p>
         </div>
 
@@ -57,11 +76,11 @@ export default function ComparisonTable() {
             <div className="px-6 py-4 bg-gray-100/70 dark:bg-[#14181f] flex items-center justify-between border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#384150]">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-                <h3 className="text-gray-600 dark:text-slate-400 font-bold text-xs  tracking-wider">
+                <h3 className="text-gray-600 dark:text-slate-400 font-bold text-xs tracking-wider">
                   Traditional Brokers
                 </h3>
               </div>
-              <span className="text-[10px] font-semibold  tracking-wider px-2 py-0.5 rounded bg-gray-200/70 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
+              <span className="text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded bg-gray-200/70 dark:bg-slate-800 text-gray-500 dark:text-slate-400">
                 Legacy
               </span>
             </div>
@@ -71,11 +90,11 @@ export default function ComparisonTable() {
               <div className="absolute inset-0 bg-gradient-to-r from-[#ff4a1f]/20 via-transparent to-[#ff4a1f]/10 pointer-events-none"></div>
               <div className="flex items-center gap-2 relative z-10">
                 <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
-                <h3 className="text-white font-bold text-xs  tracking-wider">
-                  Carrierdirect Platform
+                <h3 className="text-white font-bold text-xs tracking-wider">
+                  Carrier Direct Platform
                 </h3>
               </div>
-              <span className="relative z-10 text-[10px] font-bold  tracking-wider px-2.5 py-0.5 rounded-full bg-[#ff4a1f] text-white shadow-sm">
+              <span className="relative z-10 text-[10px] font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-[#ff4a1f] text-white shadow-sm">
                 Recommended
               </span>
             </div>
@@ -84,7 +103,7 @@ export default function ComparisonTable() {
 
           {/* Comparison Rows */}
           <div className="divide-y divide-gray-100 dark:divide-transparent">
-            {comparisons.map((row, idx) => (
+            {rowsList.map((row, idx) => (
               <div 
                 key={idx}
                 className="grid grid-cols-1 md:grid-cols-2 group hover:bg-gray-50/50 dark:hover:bg-slate-800/20 transition-colors"
@@ -100,7 +119,7 @@ export default function ComparisonTable() {
                   </span>
                 </div>
 
-                {/* Carrierdirect Side */}
+                {/* Carrier Direct Side */}
                 <div className="px-6 py-4 flex items-center gap-3 bg-white dark:bg-[#181a20] group-hover:bg-orange-50/30 dark:group-hover:bg-[#ff4a1f]/10 transition-colors">
                   <span className="w-5 h-5 rounded-full bg-[#ff4a1f]/10 dark:bg-[#ff4a1f]/20 flex items-center justify-center shrink-0 border border-[#ff4a1f]/30">
                     <Check className="w-3 h-3 text-[#ff4a1f] stroke-[3]" />

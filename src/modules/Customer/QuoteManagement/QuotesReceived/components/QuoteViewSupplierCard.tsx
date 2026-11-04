@@ -29,7 +29,7 @@ export const QuoteViewSupplierCard: React.FC<QuoteViewSupplierCardProps> = ({ qu
                     </h3>
                     <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
                         <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                            <Star size={13} className="text-amber-500 fill-amber-500" /> {quote?.rating !== undefined && quote?.rating !== null ? Number(quote.rating).toFixed(1) : (quote?.supplier?.rating !== undefined && quote?.supplier?.rating !== null ? Number(quote.supplier.rating).toFixed(1) : '5.0')} ★
+                            <Star size={13} className="text-amber-500 fill-amber-500" /> {quote?.rating !== undefined && quote?.rating !== null ? Number(quote.rating).toFixed(1) : (quote?.supplier?.rating !== undefined && quote?.supplier?.rating !== null ? Number(quote.supplier.rating).toFixed(1) : '0.0')} ★
                         </span>
                         <span>•</span>
                         <span className="font-medium text-emerald-600">{quote?.completed_orders || '150+ completed loads'}</span>

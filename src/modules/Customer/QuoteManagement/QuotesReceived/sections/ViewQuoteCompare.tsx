@@ -63,7 +63,7 @@ export const ViewQuoteCompare: React.FC<ViewQuoteCompareProps> = ({
             const routeText = origin && destination ? origin + " → " + destination : (origin || destination || "Plot 42, Gazipur Industrial Area, Dhaka");
 
             const rawAmt = sq.amount_raw || parseFloat(String(sq.amount || 0).replace(/[^0-9.]/g, "")) || 0;
-            const ratingNum = Number(sq.rating ?? sq.supplier?.rating ?? 5.0);
+            const ratingNum = Number(sq.rating ?? sq.supplier?.rating ?? 0.0);
             const transitText = sq.transit || sq.deliveryDate || sq.estimated_delivery || sq.estimated_time || sq.transit_time || "48h";
 
             return {
@@ -98,7 +98,7 @@ export const ViewQuoteCompare: React.FC<ViewQuoteCompareProps> = ({
 
     const maxRating = useMemo(() => {
         const valid = formattedQuotes.map(q => q.numericRating).filter(r => r > 0);
-        return valid.length > 0 ? Math.max(...valid) : 5.0;
+        return valid.length > 0 ? Math.max(...valid) : 0.0;
     }, [formattedQuotes]);
 
     // Apply Filter & Sorting

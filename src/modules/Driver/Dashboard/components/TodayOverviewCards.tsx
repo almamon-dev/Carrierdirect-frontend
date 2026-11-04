@@ -40,8 +40,8 @@ export const TodayOverviewCards: React.FC<Props> = ({ metrics }) => {
                 />
                 <MetricCard
                     title="Performance"
-                    description={metrics.driverRating?.subtitle || 'Top Rated Driver'}
-                    value={metrics.driverRating?.value ?? '5.00'}
+                    description={metrics.driverRating?.subtitle || 'Driver Rating'}
+                    value={metrics.driverRating?.value ?? '0.00'}
                     icon={Star}
                     colorClass="bg-amber-50 dark:bg-amber-950/40 text-amber-600"
                 />

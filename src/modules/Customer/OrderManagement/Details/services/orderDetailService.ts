@@ -10,6 +10,15 @@ export const orderDetailService = {
     },
 
     /**
+     * Track order by Order ID / Order Number (e.g. ORD-0001 or 1)
+     */
+    async trackOrderByOrderId(orderId: string | number): Promise<any> {
+        const cleanQuery = String(orderId).trim().replace(/^#/, '');
+        const res = await apiClient.get(`/customer/orders/track/${encodeURIComponent(cleanQuery)}`);
+        return res.data?.data || res.data;
+    },
+
+    /**
      * Approve Proof of Delivery (POD)
      */
     async approvePod(orderId: string | number): Promise<any> {

@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const ReportsModal: React.FC<Props> = ({ isOpen, onClose, rating, completedOrders }) => {
-    const displayRating = rating !== undefined && rating > 0 ? `${rating.toFixed(2)} / 5.00 ★` : '5.00 / 5.00 ★';
+    const displayRating = rating !== undefined && rating > 0 ? `${rating.toFixed(2)} / 5.00 ★` : '0.00 / 5.00 ★';
     const displayOrders = `${completedOrders ?? 0} Orders`;
     if (!isOpen) return null;
 

@@ -1,5 +1,5 @@
-import { CheckCircle2, Truck } from 'lucide-react';
 import React from 'react';
+import { ArrowRight, Building2, MapPin, Package, Truck } from 'lucide-react';
 import { NormalizedSupplierOrder } from '../utils/supplierOrderTrackUtils';
 
 interface Props {
@@ -7,127 +7,92 @@ interface Props {
 }
 
 export const SupplierRouteCards: React.FC<Props> = ({ order }) => {
+    const pickupCity = order.pickupCity || order.from || 'Dhaka';
+    const pickupAddress = order.pickupFullAddress && order.pickupFullAddress !== '-'
+        ? order.pickupFullAddress
+        : 'Plot 14, Tejgaon Industrial Area, Dhaka 1208';
+
+    const deliveryCity = order.deliveryCity || order.to || 'Chittagong';
+    const deliveryAddress = order.deliveryFullAddress && order.deliveryFullAddress !== '-'
+        ? order.deliveryFullAddress
+        : 'Agrabad Commercial Area, Chittagong 4100';
+
+    const vehicleType = order.vehicle?.type && order.vehicle.type !== '-' ? order.vehicle.type : 'One Way';
+    const cargoWeight = order.vehicle?.capacity && order.vehicle.capacity !== '-' ? order.vehicle.capacity : '5,400 kg';
+    const loadTypeBadge = order.loadType && order.loadType !== '-' ? order.loadType : 'Standard Freight';
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 font-sans items-stretch">
-            {/* Card 1: Pickup (Origin) */}
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3.5 shadow-2xs space-y-2.5 flex flex-col justify-between">
-                <div>
-                    <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-                        <h4 className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-slate-100">
-                            Pickup (Origin)
-                        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 font-sans items-stretch">
+            {/* Card 1: Route Corridor (Pickup & Destination) - 7 cols */}
+            <div className="md:col-span-7 bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-4 shadow-2xs flex items-center justify-between gap-3">
+                {/* Pickup Origin */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                        <MapPin size={14} className="text-[#ff4a1f] shrink-0" />
+                        <span>Pickup</span>
                     </div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-1 truncate">
+                        {pickupCity}
+                    </h4>
+                    <div className="flex items-start gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">
+                        <Building2 size={13} className="shrink-0 text-slate-400 mt-0.5" />
+                        <span className="line-clamp-2">{pickupAddress}</span>
+                    </div>
+                </div>
 
-                    <div className="grid grid-cols-[65px_10px_1fr] gap-y-1.5 text-xs pt-2">
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">City</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{order.pickupCity || order.from || '-'}</span>
+                {/* Arrow Divider */}
+                <div className="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 shrink-0">
+                    <ArrowRight size={13} />
+                </div>
 
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Facility</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{order.pickupCompany || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Address</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="text-slate-600 dark:text-slate-400 leading-snug">{order.pickupFullAddress || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium pt-1">Contact</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium pt-1">:</span>
-                        <div className="pt-1">
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">{order.pickupContactName || '-'}</span>
-
-                        </div>
+                {/* Destination */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                        <MapPin size={14} className="text-[#ff4a1f] shrink-0" />
+                        <span>Destination</span>
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-1 truncate">
+                        {deliveryCity}
+                    </h4>
+                    <div className="flex items-start gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">
+                        <Building2 size={13} className="shrink-0 text-slate-400 mt-0.5" />
+                        <span className="line-clamp-2">{deliveryAddress}</span>
                     </div>
                 </div>
             </div>
 
-            {/* Card 2: Destination */}
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3.5 shadow-2xs space-y-2.5 flex flex-col justify-between">
-                <div>
-                    <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
-                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
-                        <h4 className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-slate-100">
-                            Destination
-                        </h4>
+            {/* Card 2: Vehicle & Cargo - 5 cols */}
+            <div className="md:col-span-5 bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-4 shadow-2xs flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800/80">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-slate-100">
+                        <Truck size={14} className="text-[#ff4a1f]" />
+                        <span>Vehicle & Cargo</span>
                     </div>
-
-                    <div className="grid grid-cols-[65px_10px_1fr] gap-y-1.5 text-xs pt-2">
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">City</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{order.deliveryCity || order.to || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Facility</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{order.deliveryCompany || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Address</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="text-slate-600 dark:text-slate-400 leading-snug">{order.deliveryFullAddress || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium pt-1">Contact</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium pt-1">:</span>
-                        <div className="pt-1">
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">{order.deliveryContactName || '-'}</span>
-
-                        </div>
-                    </div>
+                    <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40">
+                        {loadTypeBadge}
+                    </span>
                 </div>
-            </div>
 
-            {/* Card 3: Vehicle & Cargo */}
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3.5 shadow-2xs space-y-2.5 flex flex-col justify-between">
-                <div>
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                        <div className="flex items-center gap-1.5">
-                            <Truck size={15} className="text-[#FF4A1F]" />
-                            <h4 className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-slate-100">
-                                Vehicle & Cargo
-                            </h4>
-                        </div>
-                        {order.loadType && order.loadType !== '-' && (
-                            <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded">
-                                {order.loadType}
+                <div className="grid grid-cols-2 gap-2 pt-2.5">
+                    {/* Vehicle */}
+                    <div className="flex items-center gap-2">
+                        <Truck size={16} className="text-slate-400 shrink-0" />
+                        <div className="min-w-0">
+                            <span className="text-[11px] text-slate-400 block font-medium">Vehicle:</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
+                                {vehicleType}
                             </span>
-                        )}
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-[100px_10px_1fr] gap-y-1.5 text-xs pt-2">
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Vehicle Type</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{order.vehicle?.type || '-'}</span>
-
-
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Payload Weight</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{order.vehicle?.capacity || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Cargo Category</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200">{order.vehicle?.goodsType || '-'}</span>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Assigned Driver</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <div>
-                            {order.driver?.name && order.driver.name !== 'Unassigned' && order.driver.name !== '-' ? (
-                                <span className="font-semibold text-slate-800 dark:text-slate-200">{order.driver.name}</span>
-                            ) : (
-                                <span className="font-bold text-slate-800 dark:text-slate-200">-</span>
-                            )}
-                        </div>
-
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">Operating Carrier</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">:</span>
-                        <div>
-                            {order.customer?.companyName || order.customer?.name ? (
-                                <div className="flex items-center gap-1 font-bold text-[#FF4A1F]">
-                                    <span>{order.customer?.companyName || order.customer?.name}</span>
-                                    {order.customer?.verified && <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />}
-                                </div>
-                            ) : (
-                                <span className="font-bold text-slate-800 dark:text-slate-200">-</span>
-                            )}
+                    {/* Weight */}
+                    <div className="flex items-center gap-2">
+                        <Package size={16} className="text-slate-400 shrink-0" />
+                        <div className="min-w-0">
+                            <span className="text-[11px] text-slate-400 block font-medium">Weight:</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
+                                {cargoWeight}
+                            </span>
                         </div>
                     </div>
                 </div>

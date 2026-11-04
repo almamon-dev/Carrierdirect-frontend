@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Check, Copy, FileText, Printer, Star } from 'lucide-react';
+import { Check, Copy, FileText, Printer, Star, RotateCcw } from 'lucide-react';
 import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
 
 interface CustomerOrderHeaderMenuProps {
@@ -13,6 +13,7 @@ interface CustomerOrderHeaderMenuProps {
     onPrint: () => void;
     onOpenRating: () => void;
     onCopyId: () => void;
+    onRepeatOrder?: () => void;
 }
 
 export const CustomerOrderHeaderMenu: React.FC<CustomerOrderHeaderMenuProps> = ({
@@ -25,6 +26,7 @@ export const CustomerOrderHeaderMenu: React.FC<CustomerOrderHeaderMenuProps> = (
     onPrint,
     onOpenRating,
     onCopyId,
+    onRepeatOrder,
 }) => {
     if (!isOpen) return null;
 
@@ -76,6 +78,20 @@ export const CustomerOrderHeaderMenu: React.FC<CustomerOrderHeaderMenuProps> = (
                     >
                         <Star size={13} className="fill-amber-500 text-amber-500" />
                         <span>Rate Carrier</span>
+                    </button>
+                )}
+
+                {onRepeatOrder && (
+                    <button
+                        type="button"
+                        className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 font-medium cursor-pointer"
+                        onClick={() => {
+                            onClose();
+                            onRepeatOrder();
+                        }}
+                    >
+                        <RotateCcw size={13} className="text-slate-500" />
+                        <span>Repeat in Full Form</span>
                     </button>
                 )}
 

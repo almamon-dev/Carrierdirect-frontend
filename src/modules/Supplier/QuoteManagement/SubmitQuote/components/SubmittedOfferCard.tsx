@@ -2,7 +2,7 @@ import Button from '@/components/ui/button';
 import apiClient from '@/lib/axios';
 import { encryptId } from '@/lib/encryption';
 import { useToastStore } from '@/stores/useToastStore';
-import { Edit3, MessageSquare, CreditCard, CheckCircle2 } from 'lucide-react';
+import { Edit3, MessageSquare, CreditCard, CheckCircle2, XCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QuoteRequest } from '../../data/quoteRequestsData';
@@ -55,6 +55,20 @@ export const SubmittedOfferCard: React.FC<SubmittedOfferCardProps> = ({
         (requestDetails as any).payment_status === 'Paid' ||
         quote.payment_status === 'Paid' ||
         ((requestDetails as any).order?.status === 'confirmed' && (requestDetails as any).order?.is_paid)
+    );
+    const isRejected = Boolean(
+        !isWon && (
+            (requestDetails as any).is_rejected ||
+            (requestDetails as any).is_lost ||
+            (requestDetails.status || '').toLowerCase() === 'rejected' ||
+            (requestDetails.status || '').toLowerCase() === 'declined' ||
+            (requestDetails.status || '').toLowerCase() === 'lost' ||
+            rawQuoteStatus === 'rejected' ||
+            rawQuoteStatus === 'declined' ||
+            rawQuoteStatus === 'lost' ||
+            quote.is_rejected ||
+            quote.is_lost
+        )
     );
     const isTerminal = ['accepted', 'booked', 'won', 'completed', 'rejected', 'declined', 'cancelled', 'lost', 'expired'].includes(rawQuoteStatus);
     const hasNegotiation = rawQuoteStatus === 'negotiating' || rawQuoteStatus === 'negotiation' || quote.revision_status === 'pending' || Boolean((requestDetails as any).hasNegotiation);
@@ -174,6 +188,11 @@ export const SubmittedOfferCard: React.FC<SubmittedOfferCardProps> = ({
                                 <span>Awaiting Payment</span>
                             </span>
                         )
+                    ) : isRejected ? (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                            <XCircle size={11} className="text-rose-600 dark:text-rose-400" />
+                            <span>Offer Rejected</span>
+                        </span>
                     ) : (
                         <span className="text-slate-600 dark:text-slate-300 font-medium text-[11.5px]">
                             Pending Acceptance

@@ -60,7 +60,7 @@ export function useSupplierLostQuotes() {
                         deliveryDateRaw: q.delivery_date_raw,
                         customer: q.customer?.name || q.quote_request?.customer?.name || q.quote_request?.client_name || '-',
                         customerAvatar: q.customer?.avatar || q.quote_request?.customer?.profile_picture || "",
-                        customerRating: q.customer?.rating ?? 5.0,
+                        customerRating: q.customer?.rating ?? 0.0,
                         pickup: (q.quote_request?.pickup_address || q.pickup_address || "—").trim(),
                         delivery: (q.quote_request?.delivery_address || q.delivery_address || "—").trim(),
                         distance: resolveQuoteDistance(q.quote_request || q).distanceStr,
