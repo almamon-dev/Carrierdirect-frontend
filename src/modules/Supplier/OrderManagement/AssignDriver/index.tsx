@@ -18,6 +18,15 @@ export default function AssignDriver() {
         setSelectedOrderId,
         selectedDriverId,
         setSelectedDriverId,
+        isRelay,
+        setIsRelay,
+        selectedLeg2DriverId,
+        setSelectedLeg2DriverId,
+        selectedLeg2Driver,
+        leg2Cost,
+        setLeg2Cost,
+        leg2Route,
+        setLeg2Route,
         dispatchNote,
         setDispatchNote,
         queueTab,
@@ -26,6 +35,22 @@ export default function AssignDriver() {
         setSearchQuery,
         selectedOrder,
         selectedDriver,
+        dispatchMode,
+        setDispatchMode,
+        subcontractorsList,
+        selectedSubcontractorId,
+        setSelectedSubcontractorId,
+        subcontractorCost,
+        setSubcontractorCost,
+        subcontractorDriverName,
+        setSubcontractorDriverName,
+        subcontractorPhone,
+        setSubcontractorPhone,
+        subcontractorPlate,
+        setSubcontractorPlate,
+        subcontractorVehicleType,
+        setSubcontractorVehicleType,
+        profitSummary,
         handleSelectOrder,
         handleDispatchSubmit,
         filteredQueue,
@@ -93,6 +118,31 @@ export default function AssignDriver() {
                     selectedDriverId={selectedDriverId}
                     selectedOrder={selectedOrder}
                     selectedDriver={selectedDriver}
+                    dispatchMode={dispatchMode}
+                    onChangeDispatchMode={setDispatchMode}
+                    subcontractorsList={subcontractorsList}
+                    selectedSubcontractorId={selectedSubcontractorId}
+                    onChangeSubcontractorId={setSelectedSubcontractorId}
+                    subcontractorCost={subcontractorCost}
+                    onChangeSubcontractorCost={setSubcontractorCost}
+                    subcontractorDriverName={subcontractorDriverName}
+                    onChangeSubcontractorDriverName={setSubcontractorDriverName}
+                    subcontractorPhone={subcontractorPhone}
+                    onChangeSubcontractorPhone={setSubcontractorPhone}
+                    subcontractorPlate={subcontractorPlate}
+                    onChangeSubcontractorPlate={setSubcontractorPlate}
+                    subcontractorVehicleType={subcontractorVehicleType}
+                    onChangeSubcontractorVehicleType={setSubcontractorVehicleType}
+                    profitSummary={profitSummary}
+                    isRelay={isRelay}
+                    onToggleRelay={setIsRelay}
+                    selectedLeg2DriverId={selectedLeg2DriverId}
+                    onSelectLeg2Driver={setSelectedLeg2DriverId}
+                    selectedLeg2Driver={selectedLeg2Driver}
+                    leg2Cost={leg2Cost}
+                    onChangeLeg2Cost={setLeg2Cost}
+                    leg2Route={leg2Route}
+                    onChangeLeg2Route={setLeg2Route}
                     dispatchNote={dispatchNote}
                     isSubmitting={isSubmitting}
                     isLoading={isLoading}
@@ -103,6 +153,8 @@ export default function AssignDriver() {
                     onClear={() => {
                         setSelectedOrderId('');
                         setSelectedDriverId('');
+                        setSelectedLeg2DriverId('');
+                        setIsRelay(false);
                         setDispatchNote('');
                     }}
                 />

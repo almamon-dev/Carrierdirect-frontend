@@ -1,11 +1,13 @@
 export type OrderFilterTab =
+    | 'all'
+    | 'active'
+    | 'pod_pending'
+    | 'completed'
+    | 'cancelled'
     | 'confirmed'
     | 'driver_assigned'
     | 'in_transit'
-    | 'delivered'
-    | 'pod_pending'
-    | 'completed'
-    | 'cancelled';
+    | 'delivered';
 
 export interface CustomerSupplierInfo {
     id?: string | number;

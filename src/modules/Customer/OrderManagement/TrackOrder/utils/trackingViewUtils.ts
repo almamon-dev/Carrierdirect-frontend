@@ -1,3 +1,4 @@
+import { calculateAirDistanceKm } from '@/utils/geoDistance';
 import { NormalizedCustomerOrder } from '../../Details/utils/customerOrderDetailsUtils';
 import { resolveDriverTrackingStage } from '../../Details/hooks/useCustomerOrderMap';
 import { ProgressStepItem } from '../components/TrackShipmentMainCard';
@@ -16,11 +17,18 @@ export const formatNiceDate = (rawDate?: string, rawTime?: string) => {
     return rawTime ? `${formattedDate}, ${rawTime}` : formattedDate;
 };
 
+export interface LiveTrackingExtraOptions {
+    liveRemainingDistanceText?: string;
+    liveRemainingDurationText?: string;
+    liveDriverAddress?: string;
+}
+
 export const computeTrackingDisplayMetrics = (
     order: NormalizedCustomerOrder | null,
     timeline: any[],
     liveDistanceText: string,
-    liveDurationText: string
+    liveDurationText: string,
+    liveOptions?: LiveTrackingExtraOptions
 ) => {
     const fromCity = order?.pickup.city || 'Origin';
     const toCity = order?.delivery.city || 'Destination';
@@ -43,11 +51,41 @@ export const computeTrackingDisplayMetrics = (
         trackingStage === 'in_transit' ||
         trackingStage === 'delivered';
 
+    // Determine if driver's GPS telemetry is fresh (< 3 minutes old)
+    const hasLiveGps = Boolean(
+        order?.driverLat !== null &&
+            order?.driverLat !== undefined &&
+            order?.driverLng !== null &&
+            order?.driverLng !== undefined &&
+            Number(order.driverLat) !== 0 &&
+            Number(order.driverLng) !== 0
+    );
+
+    const isGpsFresh = (() => {
+        if (!hasLiveGps) return false;
+        const rawUpdated = productLoc.updatedAt;
+        if (!rawUpdated) return true;
+        const updatedMs = new Date(rawUpdated).getTime();
+        if (isNaN(updatedMs)) return true;
+        const ageMinutes = (Date.now() - updatedMs) / 60000;
+        return ageMinutes <= 3.5;
+    })();
+
+    const gpsUpdatedHuman = productLoc.updatedHuman || order?.driverLocationUpdatedHuman || 'Just now';
+
     const driverLocationLabel = (() => {
-        if (order?.driverCurrentLocation && order.driverCurrentLocation.trim() !== '') {
-            return order.driverCurrentLocation;
-        }
         if (trackingStage === 'delivered') return `Delivered at ${toCity}`;
+        if (liveOptions?.liveDriverAddress && liveOptions.liveDriverAddress.trim() !== '') {
+            return liveOptions.liveDriverAddress;
+        }
+        if (order?.driverCurrentLocation && order.driverCurrentLocation.trim() !== '') {
+            const cleanDriverLoc = order.driverCurrentLocation.trim();
+            const cleanDestAddr = (order.delivery?.address || '').trim();
+            // Prevent showing destination address prematurely before delivery
+            if (cleanDriverLoc.toLowerCase() !== cleanDestAddr.toLowerCase()) {
+                return cleanDriverLoc;
+            }
+        }
         if (trackingStage === 'in_transit') return `On Route (${fromCity} → ${toCity})`;
         if (trackingStage === 'picked_up') return `Departed ${fromCity} Pickup`;
         if (trackingStage === 'heading_to_pickup') return `Going to ${fromCity} Pickup`;
@@ -73,6 +111,15 @@ export const computeTrackingDisplayMetrics = (
     })();
 
     const displayEta = (() => {
+        if (trackingStage === 'delivered') return 'Delivered';
+        if (
+            (trackingStage === 'heading_to_pickup' ||
+                trackingStage === 'picked_up' ||
+                trackingStage === 'in_transit') &&
+            liveOptions?.liveRemainingDurationText
+        ) {
+            return liveOptions.liveRemainingDurationText;
+        }
         if (liveDurationText) return liveDurationText;
         if (order?.estimatedDurationMinutes && order.estimatedDurationMinutes > 0) {
             const hrs = Math.floor(order.estimatedDurationMinutes / 60);
@@ -90,13 +137,28 @@ export const computeTrackingDisplayMetrics = (
 
     const remainingDistance = (() => {
         if (trackingStage === 'delivered') return '0 km';
+        if (liveOptions?.liveRemainingDistanceText) {
+            return liveOptions.liveRemainingDistanceText;
+        }
+        // If live driver coordinates & delivery coordinates are available, calculate real remaining distance
+        if (
+            hasLiveGps &&
+            order?.deliveryLat &&
+            order?.deliveryLng &&
+            (trackingStage === 'picked_up' || trackingStage === 'in_transit')
+        ) {
+            const airRem = calculateAirDistanceKm(
+                Number(order.driverLat),
+                Number(order.driverLng),
+                Number(order.deliveryLat),
+                Number(order.deliveryLng)
+            );
+            if (airRem && airRem > 0) {
+                const roadRem = Math.max(1, Math.round(airRem * 1.2));
+                return `${roadRem} km`;
+            }
+        }
         if (numericDistanceKm <= 0) return displayDistance;
-        if (trackingStage === 'in_transit') {
-            return `${Math.max(1, Math.round(numericDistanceKm * 0.48))} km`;
-        }
-        if (trackingStage === 'picked_up') {
-            return `${Math.max(1, Math.round(numericDistanceKm * 0.78))} km`;
-        }
         return `${Math.round(numericDistanceKm)} km`;
     })();
 
@@ -168,6 +230,9 @@ export const computeTrackingDisplayMetrics = (
         productLoc,
         trackingStage,
         isPickupCompleted,
+        hasLiveGps,
+        isGpsFresh,
+        gpsUpdatedHuman,
         driverLocationLabel,
         pickupStatusLabel,
         displayDistance,
@@ -177,3 +242,4 @@ export const computeTrackingDisplayMetrics = (
         progressSteps,
     };
 };
+

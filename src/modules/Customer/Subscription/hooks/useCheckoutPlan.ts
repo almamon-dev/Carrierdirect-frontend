@@ -3,12 +3,16 @@ import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import apiClient from "@/lib/axios";
 import { decryptId } from "@/lib/encryption";
 
-export function useCheckoutPlan() {
+export function useCheckoutPlan(userType: "customer" | "supplier" = "customer") {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { planId } = useParams<{ planId?: string }>();
   const cleanPlanId = planId ? decryptId(planId) : null;
   const planFromState = location.state?.plan;
+
+  const defaultMonthlyPrice = userType === "supplier" ? 49 : 79;
+  const defaultYearlyPrice = userType === "supplier" ? 490 : 790;
+  const defaultName = userType === "supplier" ? "Professional Carrier" : "Growth Logistics";
 
   const queryPlanId = searchParams.get("plan") || searchParams.get("plan_id") || cleanPlanId;
   const queryCycle = (searchParams.get("cycle") || searchParams.get("billing_cycle") || location.state?.billingCycle || planFromState?.cycle || "").toLowerCase();
@@ -20,9 +24,9 @@ export function useCheckoutPlan() {
       cycle: initialCycle,
     } : {
       id: queryPlanId && String(queryPlanId) !== "1" ? (isNaN(Number(queryPlanId)) ? queryPlanId : Number(queryPlanId)) : null,
-      name: planFromState?.name || "",
-      priceMonthly: planFromState?.priceMonthly || 0,
-      priceYearly: planFromState?.priceYearly || 0,
+      name: planFromState?.name || defaultName,
+      priceMonthly: planFromState?.priceMonthly || defaultMonthlyPrice,
+      priceYearly: planFromState?.priceYearly || defaultYearlyPrice,
       cycle: initialCycle,
       features: planFromState?.features || [],
     }
@@ -54,7 +58,7 @@ export function useCheckoutPlan() {
   };
 
   const planCycle: "monthly" | "yearly" = (selectedPlan?.cycle === "yearly" || queryCycle === "yearly" || queryCycle === "annual") ? "yearly" : "monthly";
-  const planPrice = planCycle === "yearly" ? Number(selectedPlan?.priceYearly || 490) : Number(selectedPlan?.priceMonthly || 49);
+  const planPrice = planCycle === "yearly" ? Number(selectedPlan?.priceYearly || defaultYearlyPrice) : Number(selectedPlan?.priceMonthly || defaultMonthlyPrice);
   const totalAmount = planPrice;
 
   const nextBillingDateText = useMemo(() => {

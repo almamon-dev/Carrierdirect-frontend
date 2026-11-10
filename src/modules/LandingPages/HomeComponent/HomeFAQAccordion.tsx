@@ -42,9 +42,9 @@ export default function HomeFAQAccordion() {
     return null;
   }
 
-  const badge = cms?.badge || "Support & Help";
-  const title = cms?.title || "Frequently Asked Questions";
-  const subtitle = cms?.subtitle || "Quick answers to common questions about our platform.";
+  const badge = cms?.badge || "FREQUENTLY ASKED QUESTIONS";
+  const title = cms?.title || "Have Questions? We've Got Answers.";
+  const viewAllLink = cms?.content?.view_all_link || "/faq";
 
   const dynamicFaqs = cms?.content?.faqs;
   const items = (Array.isArray(dynamicFaqs) && dynamicFaqs.length > 0)
@@ -59,42 +59,50 @@ export default function HomeFAQAccordion() {
   const halfRight = items.slice(midPoint);
 
   return (
-    <section id="faq" className="w-full bg-transparent pt-12 pb-4 px-4">
+    <section id="faq" className="w-full bg-transparent py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          {badge && (
-            <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-1.5 block">
-              {badge}
-            </span>
-          )}
-          <h2 className="text-[#0f0400] text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            {title}
-          </h2>
-          <p className="text-gray-500 text-sm">
-            {subtitle}
-          </p>
+        {/* Header with Title on Left and View All on Right */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 pb-3 border-b border-gray-100">
+          <div>
+            {badge && (
+              <span className="text-[#ea580c] font-bold tracking-widest text-[11px] uppercase mb-1 block">
+                {badge}
+              </span>
+            )}
+            <h2 className="text-gray-900 text-xl sm:text-2xl font-extrabold tracking-tight">
+              {title}
+            </h2>
+          </div>
+          <div>
+            <a
+              href={viewAllLink}
+              className="inline-flex items-center text-xs font-bold text-[#ea580c] hover:text-[#c2410c] hover:underline"
+            >
+              View All FAQs →
+            </a>
+          </div>
         </div>
 
         <div 
           ref={reveal.ref}
-          className={`grid grid-cols-1 md:grid-cols-2 gap-x-12 lg:gap-x-20 gap-y-2 items-start reveal ${reveal.isVisible ? "visible" : ""}`}
+          className={`grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 gap-y-1 items-start reveal ${reveal.isVisible ? "visible" : ""}`}
         >
           {/* Left Column */}
-          <div className="w-full space-y-2">
+          <div className="w-full space-y-1">
             {halfLeft.map(({ title, content }, index) => (
               <div key={index} className="border-b border-gray-200/60">
                 <button
                   type="button"
                   onClick={() => setOpenIndexLeft(openIndexLeft === index ? null : index)}
-                  className="flex w-full items-center justify-between py-4 text-left transition-all cursor-pointer gap-4 outline-none group"
+                  className="flex w-full items-center justify-between py-2.5 sm:py-3 text-left transition-all cursor-pointer gap-3 outline-none group"
                 >
-                  <h3 className="text-[#0f0400] font-semibold text-sm group-hover:text-[#ff4a1f] transition-colors">
+                  <h3 className="text-[#0f0400] font-semibold text-xs sm:text-sm group-hover:text-[#ff4a1f] transition-colors">
                     {title}
                   </h3>
-                  <Plus className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 ${openIndexLeft === index ? 'rotate-45 text-[#ff4a1f]' : ''}`} />
+                  <Plus className={`h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform duration-200 ${openIndexLeft === index ? 'rotate-45 text-[#ff4a1f]' : ''}`} />
                 </button>
                 {openIndexLeft === index && (
-                  <div className="pb-4 text-gray-500 text-xs leading-relaxed pr-6 animate-fade-in">
+                  <div className="pb-3 text-gray-500 text-xs leading-relaxed pr-6 animate-fade-in">
                     {content}
                   </div>
                 )}
@@ -103,21 +111,21 @@ export default function HomeFAQAccordion() {
           </div>
 
           {/* Right Column */}
-          <div className="w-full space-y-2">
+          <div className="w-full space-y-1">
             {halfRight.map(({ title, content }, index) => (
               <div key={index} className="border-b border-gray-200/60">
                 <button
                   type="button"
                   onClick={() => setOpenIndexRight(openIndexRight === index ? null : index)}
-                  className="flex w-full items-center justify-between py-4 text-left transition-all cursor-pointer gap-4 outline-none group"
+                  className="flex w-full items-center justify-between py-2.5 sm:py-3 text-left transition-all cursor-pointer gap-3 outline-none group"
                 >
-                  <h3 className="text-[#0f0400] font-semibold text-sm group-hover:text-[#ff4a1f] transition-colors">
+                  <h3 className="text-[#0f0400] font-semibold text-xs sm:text-sm group-hover:text-[#ff4a1f] transition-colors">
                     {title}
                   </h3>
-                  <Plus className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 ${openIndexRight === index ? 'rotate-45 text-[#ff4a1f]' : ''}`} />
+                  <Plus className={`h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform duration-200 ${openIndexRight === index ? 'rotate-45 text-[#ff4a1f]' : ''}`} />
                 </button>
                 {openIndexRight === index && (
-                  <div className="pb-4 text-gray-500 text-xs leading-relaxed pr-6 animate-fade-in">
+                  <div className="pb-3 text-gray-500 text-xs leading-relaxed pr-6 animate-fade-in">
                     {content}
                   </div>
                 )}

@@ -127,7 +127,7 @@ export default function HomeHero() {
   };
 
   return (
-    <section id="home" className="relative bg-[#0b0300] min-h-[640px] sm:min-h-[700px] lg:min-h-[760px] flex items-center overflow-hidden">
+    <section id="home" className="relative bg-[#0b0300] min-h-[500px] sm:min-h-[560px] lg:min-h-[620px] flex items-center overflow-hidden">
       
       {/* Background Image Container */}
       <div className="absolute inset-0 z-0">
@@ -150,23 +150,23 @@ export default function HomeHero() {
         />
 
         {/* Subtle Bottom Blend Gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0b0300] dark:from-[#12161c] to-transparent z-20 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0b0300] dark:from-[#12161c] to-transparent z-20 pointer-events-none" />
       </div>
 
       {/* Hero Content Container */}
-      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 pb-20 w-full">
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 pb-12 sm:pb-14 w-full">
         <div className="max-w-xl lg:max-w-2xl">
           
           {/* Badge Pill */}
           {heroBadge && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-orange-300 border border-white/10 mb-4 backdrop-blur-xs">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 text-orange-300 border border-white/10 mb-3 backdrop-blur-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f]" />
               {heroBadge}
             </div>
           )}
 
           {/* Main Headline */}
-          <h1 className="text-white text-3xl sm:text-4xl lg:text-4xl xl:text-5xl font-bold tracking-tight leading-[1.1] mb-5">
+          <h1 className="text-white text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-[1.15] mb-3 sm:mb-4">
             {heroTitle === "The Smarter Way to Ship Freight" ? (
               <>
                 The Smarter Way to{" "}
@@ -180,19 +180,19 @@ export default function HomeHero() {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-white/80 text-sm sm:text-base leading-relaxed mb-8 max-w-md font-normal">
+          <p className="text-white/80 text-xs sm:text-sm leading-relaxed mb-6 max-w-md font-normal">
             {heroSubtitle}
           </p>
 
           {/* Action Buttons: Create a Quote & Become a Supplier */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-14">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-8 sm:mb-10">
             {isLoggedIn ? (
               <Button 
                 variant="default"
-                size="lg"
+                size="sm"
                 isLoading={loadingAction === "dashboard"}
                 onClick={handleDashboardClick}
-                className="h-11 px-6 rounded-[4px] bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer"
+                className="h-9.5 px-5 rounded-[4px] bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer"
               >
                 {getUserEffectiveRole(authState.user) === "driver"
                   ? "Driver Dashboard"
@@ -206,7 +206,7 @@ export default function HomeHero() {
                   variant="default"
                   isLoading={loadingAction === "primary"}
                   onClick={(e) => handleActionClick(e, primaryBtnLink, "primary")}
-                  className="w-full sm:w-auto h-11 px-6 rounded-[4px] bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer"
+                  className="w-full sm:w-auto h-9.5 px-5 rounded-[4px] bg-[#ff4a1f] hover:bg-[#e63d15] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#ff4a1f]/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer"
                 >
                   {primaryBtnText}
                 </Button>
@@ -214,7 +214,7 @@ export default function HomeHero() {
                   variant="dark-outline"
                   isLoading={loadingAction === "secondary"}
                   onClick={(e) => handleActionClick(e, secondaryBtnLink, "secondary")}
-                  className="w-full sm:w-auto h-11 px-6 rounded-[4px] font-bold text-sm transition-all duration-200 cursor-pointer"
+                  className="w-full sm:w-auto h-9.5 px-5 rounded-[4px] font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer"
                 >
                   {secondaryBtnText}
                 </Button>
@@ -223,7 +223,7 @@ export default function HomeHero() {
           </div>
 
           {/* Bottom Badges Bar */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-white/70 text-xs font-medium pt-2">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-white/70 text-[11px] font-medium pt-1">
             {trustBadges.map((badge: any, bIdx: number) => (
               <React.Fragment key={bIdx}>
                 {bIdx > 0 && <span className="text-white/30">|</span>}

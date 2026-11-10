@@ -166,7 +166,8 @@ export const DriverDashboardSkeleton: React.FC = () => {
 
                         <div className="space-y-2 pt-0.5">
                             <Skeleton className="h-8 w-full rounded-[4px]" />
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-3 gap-1.5">
+                                <Skeleton className="h-7 w-full rounded-[4px]" />
                                 <Skeleton className="h-7 w-full rounded-[4px]" />
                                 <Skeleton className="h-7 w-full rounded-[4px]" />
                             </div>

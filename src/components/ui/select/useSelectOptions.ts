@@ -78,11 +78,17 @@ export function useSelectOptions(
         return finalOptions.filter(opt => {
             const nameStr = typeof opt.name === 'string' ? opt.name : '';
             const labelStr = typeof opt.label === 'string' ? opt.label : '';
+            const searchStr = typeof opt.searchText === 'string' ? opt.searchText : '';
+            const subtitleStr = typeof opt.subtitle === 'string' ? opt.subtitle : '';
+            const badgeStr = typeof opt.badge === 'string' ? opt.badge : '';
             const valStr = opt.value !== undefined ? String(opt.value) : '';
             const idStr = opt.id !== undefined ? String(opt.id) : '';
             return (
                 nameStr.toLowerCase().includes(q) ||
                 labelStr.toLowerCase().includes(q) ||
+                searchStr.toLowerCase().includes(q) ||
+                subtitleStr.toLowerCase().includes(q) ||
+                badgeStr.toLowerCase().includes(q) ||
                 valStr.toLowerCase().includes(q) ||
                 idStr.toLowerCase().includes(q)
             );

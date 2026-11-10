@@ -1,151 +1,210 @@
-import React from "react";
-import { Package, CheckCircle2, Sparkles, Layers } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Package,
+  Truck,
+  ClipboardList,
+  CheckCircle2,
+  Radio,
+  ShieldCheck,
+  Navigation,
+  Wallet,
+  Sparkles,
+} from "lucide-react";
 import useScrollReveal from "@/Hooks/useScrollReveal";
 import { useLandingCMS } from "../components/useLandingCMS";
+import SummaryCard from "@/components/cards/summary-card";
 
 export default function HowItWorks() {
   const reveal = useScrollReveal();
   const { getSection, isSectionEnabled } = useLandingCMS();
   const cms = getSection("how_it_works");
 
+  const [activeWorkflow, setActiveWorkflow] = useState<"customer" | "supplier">("customer");
+
   if (!isSectionEnabled("how_it_works")) {
     return null;
   }
 
-  const badge = cms?.badge || "Simple 3-Step Process";
-  const title = cms?.title || "How It Works";
-  const subtitle = cms?.subtitle || "Direct connection between shippers and verified carriers in three seamless steps.";
+  const badge = cms?.badge || "HOW IT WORKS";
+  const title = cms?.title || "A Simple, End-to-End Workflow";
+  const subtitle =
+    cms?.subtitle ||
+    "From quote to delivery — manage freight seamlessly with dedicated workflows for shippers and carriers.";
 
-  const step1Title = cms?.content?.steps?.[0]?.title || "Submit A Quote Request";
-  const step1Desc = cms?.content?.steps?.[0]?.description || "Client enters route (Country → Country / City → City), pickup date, pallets, weight, and dimensions.";
+  const defaultCustomerSteps = [
+    {
+      step_number: 1,
+      title: "Request a Freight Quote",
+      description: "Submit shipment specifications, cargo requirements, origin, and destination to get instant digital pricing or competitive live carrier bids within minutes.",
+      highlight: "Instant AI & Custom RFQs",
+      icon: ClipboardList,
+    },
+    {
+      step_number: 2,
+      title: "Compare & Book Carrier",
+      description: "Review verified carrier credentials, insurance ratings, and equipment specifications. Confirm your booking with guaranteed escrow protection.",
+      highlight: "Verified Carriers & Escrow",
+      icon: CheckCircle2,
+    },
+    {
+      step_number: 3,
+      title: "Live GPS Tracking",
+      description: "Monitor shipment transit progress with continuous live route telemetry, automatic milestone status updates, and direct in-app carrier chat.",
+      highlight: "Live GPS & Milestone Alerts",
+      icon: Radio,
+    },
+    {
+      step_number: 4,
+      title: "Receive POD & Confirm",
+      description: "Driver captures electronic receiver signature and photo proof of delivery (POD) on site to instantly verify and securely release payment.",
+      highlight: "Instant Digital POD & Release",
+      icon: ShieldCheck,
+    },
+  ];
 
-  const step2Title = cms?.content?.steps?.[1]?.title || "Smart Matching";
-  const step2Desc = cms?.content?.steps?.[1]?.description || "The system automatically matches your shipment to a trusted pickup date availability and capacity.";
+  const defaultSupplierSteps = [
+    {
+      step_number: 1,
+      title: "Browse Loads & Submit Bids",
+      description: "Browse hundreds of verified freight loads matching your vehicle capacity, lane preferences, and quote with flexible pricing and instant notifications.",
+      highlight: "Daily High-Value Freight Leads",
+      icon: Package,
+    },
+    {
+      step_number: 2,
+      title: "Assign Vehicle & Dispatch",
+      description: "Allocate available fleet vehicles and dispatch jobs to your drivers in seconds with automated digital trip manifests and cargo instructions.",
+      highlight: "One-Click Fleet Dispatch",
+      icon: Truck,
+    },
+    {
+      step_number: 3,
+      title: "Driver App Live Navigation",
+      description: "Drivers receive jobs on mobile, navigate with truck-optimized Google Maps routing, and report real-time progress milestones on the road.",
+      highlight: "Driver App Live GPS Routing",
+      icon: Navigation,
+    },
+    {
+      step_number: 4,
+      title: "Upload POD & Fast Payout",
+      description: "Upload digital POD and recipient signature in one click to complete deliveries and receive guaranteed escrow payouts directly in 24-48 hours.",
+      highlight: "Fast Automated Escrow Payout",
+      icon: Wallet,
+    },
+  ];
 
-  const step3Title = cms?.content?.steps?.[2]?.title || "Receive Real Quotes";
-  const step3Desc = cms?.content?.steps?.[2]?.description || "Suppliers review the request, submit final prices, and client compares & accepts the best option.";
+  const customerSteps =
+    Array.isArray(cms?.content?.customer_steps) && cms.content.customer_steps.length > 0
+      ? cms.content.customer_steps
+      : Array.isArray(cms?.content?.steps) && cms.content.steps.length > 0
+        ? cms.content.steps
+        : defaultCustomerSteps;
+
+  const supplierSteps =
+    Array.isArray(cms?.content?.supplier_steps) && cms.content.supplier_steps.length > 0
+      ? cms.content.supplier_steps
+      : defaultSupplierSteps;
+
+  const currentSteps = activeWorkflow === "customer" ? customerSteps : supplierSteps;
 
   return (
-    <section 
-      id="how-it-works" 
-      className="relative bg-[#fafaf9] py-12 md:py-16 px-4 overflow-hidden"
-      style={{
-        backgroundImage: `linear-gradient(to right, rgba(255, 74, 31, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 74, 31, 0.04) 1px, transparent 1px)`,
-        backgroundSize: `32px 32px`,
-      }}
+    <section
+      id="how-it-works"
+      className="relative bg-transparent py-8 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
     >
-      <div className="max-w-5xl mx-auto relative z-10">
-        
+      <div className="max-w-7xl mx-auto">
         {/* Title Header */}
-        <div className="text-center mb-8 md:mb-10 max-w-2xl mx-auto">
+        <div className="text-center mb-8 sm:mb-10 max-w-2xl mx-auto">
           {badge && (
-            <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-2 block">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-50 text-[#ea580c] border border-orange-200/70 mb-3 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c] animate-pulse" />
               {badge}
             </span>
           )}
-          <h2 className="text-[#0f0400] text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+          <h2 className="text-gray-900 text-2xl sm:text-3xl font-extrabold tracking-tight mb-2.5">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
+            <p className="text-gray-500 text-xs sm:text-sm leading-relaxed mb-6">
               {subtitle}
             </p>
           )}
+
+          {/* Workflow Switcher (Shippers vs Carriers) - Exact style matching Pricing section */}
+          <div className="inline-flex bg-white dark:bg-[#1e2329] rounded-full p-1 shadow-2xs dark:shadow-none border border-gray-200 dark:border-[#2b313a] mb-4">
+            <button
+              type="button"
+              onClick={() => setActiveWorkflow("customer")}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer ${
+                activeWorkflow === "customer"
+                  ? "bg-[#0f0400] dark:bg-[#ff4a1f] text-white shadow-xs"
+                  : "text-gray-500 dark:text-slate-400 hover:text-[#0f0400] dark:hover:text-white"
+              }`}
+            >
+              For Shippers
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveWorkflow("supplier")}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer ${
+                activeWorkflow === "supplier"
+                  ? "bg-[#0f0400] dark:bg-[#ff4a1f] text-white shadow-xs"
+                  : "text-gray-500 dark:text-slate-400 hover:text-[#0f0400] dark:hover:text-white"
+              }`}
+            >
+              For Carriers
+            </button>
+          </div>
         </div>
 
-        {/* Central Connected Diagram Area */}
-        <div ref={reveal.ref} className={`relative reveal ${reveal.isVisible ? "visible" : ""}`}>
-          
-          {/* Top Central Hub Icon Badge */}
-          <div className="flex justify-center mb-6 relative z-20">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#ff4a1f] to-[#ff7e5f] p-0.5 shadow-md shadow-[#ff4a1f]/20 flex items-center justify-center">
-              <div className="w-full h-full rounded-full bg-[#ff4a1f] border border-white/50 flex items-center justify-center">
-                <Layers className="text-white w-6 h-6" />
-              </div>
-            </div>
-          </div>
+        {/* 4 Connected Step Cards Grid (Rendered using SummaryCard) */}
+        <div
+          ref={reveal.ref}
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 relative reveal ${
+            reveal.isVisible ? "visible" : ""
+          }`}
+        >
+          {currentSteps.map((step: any, idx: number) => {
+            const rawTitle = step.title || `Step ${idx + 1}`;
+            const cleanTitle = rawTitle.replace(/^\d+[\.\s-]+/, "");
+            const defaultStep =
+              activeWorkflow === "customer"
+                ? defaultCustomerSteps[idx % defaultCustomerSteps.length]
+                : defaultSupplierSteps[idx % defaultSupplierSteps.length];
+            const highlight = step.highlight || defaultStep.highlight;
+            const description =
+              step.description && step.description.trim().length >= 60
+                ? step.description
+                : defaultStep.description;
 
-          {/* SVG Connecting Tree Lines (Desktop Only) */}
-          <div className="hidden md:block absolute inset-0 pointer-events-none z-0">
-            <svg className="w-full h-full" viewBox="0 0 1000 380" fill="none">
-              {/* Left Branch */}
-              <path 
-                d="M 500 35 L 500 55 Q 500 90 250 90 L 250 130" 
-                stroke="#ff4a1f" 
-                strokeWidth="1.5" 
-                strokeOpacity="0.25" 
-                fill="none" 
+            return (
+              <SummaryCard
+                key={`${activeWorkflow}_${idx}`}
+                title={cleanTitle}
+                description={description}
+                highlight={highlight}
+                icon={
+                  step.icon ||
+                  (activeWorkflow === "customer"
+                    ? defaultCustomerSteps[idx % defaultCustomerSteps.length].icon
+                    : defaultSupplierSteps[idx % defaultSupplierSteps.length].icon)
+                }
               />
-              {/* Right Branch */}
-              <path 
-                d="M 500 35 L 500 55 Q 500 90 750 90 L 750 130" 
-                stroke="#ff4a1f" 
-                strokeWidth="1.5" 
-                strokeOpacity="0.25" 
-                fill="none" 
-              />
-              {/* Center Down Branch */}
-              <path 
-                d="M 500 35 L 500 240" 
-                stroke="#ff4a1f" 
-                strokeWidth="1.5" 
-                strokeOpacity="0.25" 
-                fill="none" 
-              />
-            </svg>
-          </div>
-
-          {/* Top Row: 2 Cards (Submit A Quote & Smart Matching) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-6 md:mb-8 relative z-10">
-            
-            {/* Card 1: Submit A Quote Request */}
-            <div className="relative bg-gradient-to-l from-[#FFF2ED] via-white to-white rounded-2xl p-5 sm:p-6 shadow-md shadow-orange-950/5 border border-orange-100/80 md:text-right flex flex-col items-center md:items-end justify-center group hover:-translate-y-0.5 transition-all duration-200">
-              {/* Floating Badge Icon */}
-              <div className="mb-3 w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff4a1f] to-[#ff7a57] text-white flex items-center justify-center shadow-sm shadow-[#ff4a1f]/20 border border-white">
-                <Package className="w-5 h-5" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-[#0f0400] mb-1.5">
-                {step1Title}
-              </h3>
-              <p className="text-slate-500 text-xs sm:text-sm leading-normal max-w-sm">
-                {step1Desc}
-              </p>
-            </div>
-
-            {/* Card 2: Smart Matching */}
-            <div className="relative bg-gradient-to-r from-[#FFF2ED] via-white to-white rounded-2xl p-5 sm:p-6 shadow-md shadow-orange-950/5 border border-orange-100/80 md:text-left flex flex-col items-center md:items-start justify-center group hover:-translate-y-0.5 transition-all duration-200">
-              {/* Floating Badge Icon */}
-              <div className="mb-3 w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff4a1f] to-[#ff7a57] text-white flex items-center justify-center shadow-sm shadow-[#ff4a1f]/20 border border-white">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-[#0f0400] mb-1.5">
-                {step2Title}
-              </h3>
-              <p className="text-slate-500 text-xs sm:text-sm leading-normal max-w-sm">
-                {step2Desc}
-              </p>
-            </div>
-
-          </div>
-
-          {/* Bottom Row: 1 Centered Card (Receive Real Quotes) */}
-          <div className="flex justify-center relative z-10">
-            <div className="w-full md:w-6/12 bg-gradient-to-b from-[#FFF2ED] via-white to-white rounded-2xl p-5 sm:p-6 shadow-md shadow-orange-950/5 border border-orange-100/80 text-center flex flex-col items-center justify-center group hover:-translate-y-0.5 transition-all duration-200">
-              {/* Floating Badge Icon */}
-              <div className="mb-3 w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff4a1f] to-[#ff7a57] text-white flex items-center justify-center shadow-sm shadow-[#ff4a1f]/20 border border-white">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-[#0f0400] mb-1.5">
-                {step3Title}
-              </h3>
-              <p className="text-slate-500 text-xs sm:text-sm leading-normal max-w-sm">
-                {step3Desc}
-              </p>
-            </div>
-          </div>
-
+            );
+          })}
         </div>
 
+        {/* Bottom Trust Micro-Bar */}
+        <div className="mt-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-50 border border-gray-200/70 text-xs font-medium text-gray-600 shadow-2xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#ea580c]" />
+            {activeWorkflow === "customer" ? (
+              <span>Average quote-to-dispatch turnaround: <strong className="text-gray-900 font-bold">under 15 minutes</strong> across European corridors</span>
+            ) : (
+              <span>Over <strong className="text-gray-900 font-bold">€2.5M+</strong> in loads completed with guaranteed escrow payouts in 24-48 hours</span>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );

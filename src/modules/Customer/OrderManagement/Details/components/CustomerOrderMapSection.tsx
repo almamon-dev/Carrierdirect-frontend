@@ -1,4 +1,4 @@
-import { ArrowRight, ExternalLink, Navigation } from 'lucide-react';
+import { ArrowRight, Crosshair, ExternalLink, LocateFixed, Navigation } from 'lucide-react';
 import React from 'react';
 import useCustomerOrderMap from '../hooks/useCustomerOrderMap';
 import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
@@ -34,6 +34,8 @@ export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = (
         googleMapsUrl,
         embedMapSrc,
         liveDistanceText,
+        focusOnProduct,
+        fitFullRoute,
     } = useCustomerOrderMap({
         pickupLat,
         pickupLng,
@@ -45,6 +47,7 @@ export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = (
         toCity,
         pickupAddress: order.pickup.address,
         deliveryAddress: order.delivery.address,
+        rawStatus: order.rawStatus,
         productStage: productLoc.stage,
         productStatusLabel: productLoc.statusLabel,
         productCurrentAddress: productLoc.currentAddress,
@@ -78,20 +81,38 @@ export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = (
                     )}
                 </div>
 
-                <a
-                    href={googleMapsUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                >
-                    <Navigation size={11} />
-                    <span>Open in Google Maps</span>
-                    <ExternalLink size={10} />
-                </a>
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={focusOnProduct}
+                        className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#1A73E8] hover:underline cursor-pointer"
+                    >
+                        <Crosshair size={11} />
+                        <span>Focus Driver</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={fitFullRoute}
+                        className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-slate-600 dark:text-slate-300 hover:underline cursor-pointer"
+                    >
+                        <LocateFixed size={11} />
+                        <span>Center Route</span>
+                    </button>
+                    <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    >
+                        <Navigation size={11} />
+                        <span>Open in Google Maps</span>
+                        <ExternalLink size={10} />
+                    </a>
+                </div>
             </div>
 
-            {/* Map Canvas */}
-            <div className="relative w-full h-[240px] sm:h-[260px] bg-slate-100 dark:bg-slate-900">
+            {/* Ultra-Clean Map Canvas */}
+            <div className="relative w-full h-[270px] sm:h-[310px] bg-slate-100 dark:bg-slate-900">
                 <div
                     ref={mapContainerRef}
                     className={`w-full h-full ${mapLoaded && !mapError ? 'block' : 'hidden'}`}
@@ -111,3 +132,4 @@ export const CustomerOrderMapSection: React.FC<CustomerOrderMapSectionProps> = (
 };
 
 export default CustomerOrderMapSection;
+

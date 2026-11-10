@@ -50,7 +50,7 @@ export const QuotesReceivedSupplierCell: React.FC<{ row: any }> = ({ row }) => {
           {name.charAt(0).toUpperCase()}
         </div>
       )}
-      <span className="font-bold text-slate-900 dark:text-slate-100 text-[13px] whitespace-nowrap">
+      <span className="font-bold text-slate-900 dark:text-slate-100 text-[12px] whitespace-nowrap">
         {name}
       </span>
     </div>
@@ -65,7 +65,7 @@ export const QuotesReceivedAddressCell: React.FC<{ address?: string; row?: any; 
   const displayAddr = row ? formatStandardAddress(row, type) : formatStandardAddress(address);
   return (
     <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={displayAddr}>
-      <span className="font-semibold text-slate-800 dark:text-slate-200 text-[12.5px] whitespace-nowrap block leading-normal">
+      <span className="font-semibold text-slate-800 dark:text-slate-200 text-[12px] whitespace-nowrap block leading-normal">
         {displayAddr}
       </span>
     </div>
@@ -74,7 +74,7 @@ export const QuotesReceivedAddressCell: React.FC<{ address?: string; row?: any; 
 
 export const QuotesReceivedVehicleCell: React.FC<{ vehicle: string }> = ({ vehicle }) => (
   <div className="flex items-center min-h-[26px]" title={vehicle}>
-    <span className="text-[12.5px] text-slate-800 dark:text-slate-200 font-semibold whitespace-nowrap">
+    <span className="text-[12px] text-slate-800 dark:text-slate-200 font-semibold whitespace-nowrap">
       {vehicle || 'Covered Van (20ft)'}
     </span>
   </div>
@@ -87,7 +87,7 @@ export const QuotesReceivedTransitCell: React.FC<{ transit?: string; time?: stri
   const displayTransit = transit || time || '48h';
   return (
     <div className="flex items-center justify-center min-h-[26px]" title={displayTransit}>
-      <span className="text-[12.5px] text-slate-700 dark:text-slate-200 font-bold whitespace-nowrap">
+      <span className="text-[12px] text-slate-700 dark:text-slate-200 font-bold whitespace-nowrap">
         {displayTransit}
       </span>
     </div>
@@ -120,7 +120,7 @@ export const QuotesReceivedAmountCell: React.FC<{ row?: any; amount?: any }> = (
   if (isNegotiable) {
     return (
       <div className="flex items-center min-h-[26px]">
-        <span className="whitespace-nowrap font-bold text-[12.5px] text-slate-500 dark:text-slate-400">
+        <span className="whitespace-nowrap font-bold text-[12px] text-slate-500 dark:text-slate-400">
           Negotiable
         </span>
       </div>
@@ -133,7 +133,7 @@ export const QuotesReceivedAmountCell: React.FC<{ row?: any; amount?: any }> = (
 
   return (
     <div className="flex items-center min-h-[26px]">
-      <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap text-[13px]">
+      <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap text-[12.5px]">
         {formattedNum} <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">EUR</span>
       </span>
     </div>
@@ -152,7 +152,7 @@ export const QuotesReceivedDateCell: React.FC<{ row?: any; date?: any }> = ({ ro
 
   return (
     <div className="flex items-center justify-center min-h-[26px]">
-      <span className="whitespace-nowrap text-[12.5px] text-slate-700 dark:text-slate-300 font-semibold leading-none">
+      <span className="whitespace-nowrap text-[12px] text-slate-700 dark:text-slate-300 font-medium leading-none">
         {formatDisplayDate(dateVal)}
       </span>
     </div>

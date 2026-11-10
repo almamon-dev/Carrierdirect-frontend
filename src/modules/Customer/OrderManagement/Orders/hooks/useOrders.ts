@@ -12,7 +12,7 @@ export const useOrders = () => {
     const [actionMessage, setActionMessage] = useState<string | null>(null);
 
     // Filter states
-    const [activeTab, setActiveTab] = useState<OrderFilterTab>('confirmed');
+    const [activeTab, setActiveTab] = useState<OrderFilterTab>('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [paymentFilter, setPaymentFilter] = useState('all');
     const [startDate, setStartDate] = useState('');

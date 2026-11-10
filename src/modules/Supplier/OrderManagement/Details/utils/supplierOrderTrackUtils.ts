@@ -40,6 +40,9 @@ export interface NormalizedSupplierOrder {
         email: string;
         driverType?: 'internal' | 'subcontractor';
         subcontractorCompany?: string;
+        journeyLeg?: string;
+        vehiclePlate?: string;
+        vehicleType?: string;
     };
     customer: {
         id?: number | string;
@@ -94,6 +97,22 @@ export interface NormalizedSupplierOrder {
     date?: string;
     trackingHistory?: any[];
     updates?: any[];
+    is_relay?: boolean;
+    current_active_leg?: number;
+    subcontractor_company?: string;
+    subcontractor_journey_leg?: string;
+    subcontractor_cost?: number;
+    leg2_driver_name?: string;
+    leg2_driver_phone?: string;
+    leg2_driver_email?: string;
+    leg2_vehicle_plate?: string;
+    leg2_vehicle_type?: string;
+    leg2_driver_type?: 'internal' | 'subcontractor';
+    leg2_subcontractor_company?: string;
+    leg2_journey_leg?: string;
+    leg2_cost?: number;
+    legs?: any[];
+    raw?: any;
 }
 
 export const buildSupplierOrderDetails = (
@@ -106,8 +125,10 @@ export const buildSupplierOrderDetails = (
         phone: string;
         email?: string;
         plate: string;
+        vehicle_type?: string;
         driverType?: 'internal' | 'subcontractor';
         subcontractorCompany?: string;
+        journeyLeg?: string;
     } | null
 ): NormalizedSupplierOrder => {
     const rawId = foundOrder?.id || id || '1';
@@ -184,6 +205,9 @@ export const buildSupplierOrderDetails = (
             email: driverEmail,
             driverType: assignedDriver?.driverType || (foundOrder?.driver_type as any) || (foundOrder?.subcontractor ? 'subcontractor' : 'internal'),
             subcontractorCompany: assignedDriver?.subcontractorCompany || foundOrder?.subcontractor_company || foundOrder?.subcontractor?.name || undefined,
+            journeyLeg: assignedDriver?.journeyLeg || foundOrder?.subcontractor_journey_leg || foundOrder?.journey_leg || undefined,
+            vehiclePlate: vehiclePlate,
+            vehicleType: assignedDriver?.vehicle_type || foundOrder?.vehicle_type || vehicleType,
         },
         customer: {
             id: foundOrder?.client?.id || foundOrder?.customer?.id,
@@ -225,6 +249,26 @@ export const buildSupplierOrderDetails = (
         serviceType: foundOrder?.service_type || foundOrder?.quote_request?.service_type || (distanceFormatted !== '-' ? `${distanceFormatted} Direct Transit` : '-'),
         reference: foundOrder?.internal_reference || foundOrder?.reference || foundOrder?.quote_request?.internal_reference || formattedId,
         loadType,
+        is_relay: Boolean(foundOrder?.is_relay || foundOrder?.raw?.is_relay),
+        current_active_leg: foundOrder?.current_active_leg || 1,
+        subcontractor_company: foundOrder?.subcontractor_company || '',
+        subcontractor_journey_leg: foundOrder?.subcontractor_journey_leg || '',
+        subcontractor_cost: foundOrder?.subcontractor_cost ? Number(foundOrder.subcontractor_cost) : (foundOrder?.subcontractor_costs_sum ? Number(foundOrder.subcontractor_costs_sum) : undefined),
+        leg2_driver_name: foundOrder?.leg2_driver?.name || foundOrder?.leg2_driver_name || '',
+        leg2_driver_phone: foundOrder?.leg2_driver?.phone || foundOrder?.leg2_driver_phone || '',
+        leg2_driver_email: foundOrder?.leg2_driver?.email || foundOrder?.leg2_driver_email || '',
+        leg2_vehicle_plate: foundOrder?.leg2_driver?.vehicle_plate || foundOrder?.leg2_vehicle_plate || '',
+        leg2_vehicle_type: foundOrder?.leg2_driver?.vehicle_type || foundOrder?.leg2_vehicle_type || '',
+        leg2_driver_type: foundOrder?.leg2_driver?.driver_type || foundOrder?.leg2_driver_type || 'internal',
+        leg2_subcontractor_company: foundOrder?.leg2_driver?.subcontractor_company || foundOrder?.leg2_subcontractor_company || '',
+        leg2_journey_leg: foundOrder?.leg2_driver?.journey_leg || foundOrder?.leg2_journey_leg || '',
+        leg2_cost: foundOrder?.leg2_driver?.cost ?? foundOrder?.leg2_cost ?? 0,
+        legs: Array.isArray(foundOrder?.legs)
+            ? foundOrder.legs
+            : (typeof foundOrder?.legs === 'string'
+                ? (() => { try { return JSON.parse(foundOrder.legs); } catch { return []; } })()
+                : []),
+        raw: foundOrder,
     };
 };
 

@@ -25,12 +25,12 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
                     <button
                         type="button"
                         onClick={() => navigate(`/supplier/quotes/requests/${encryptId(rawId)}`)}
-                        className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[13.5px] tracking-tight transition-colors leading-none"
+                        className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[12.5px] tracking-tight transition-colors leading-none"
                     >
                         {reqText}
                     </button>
                     {rawDate && (
-                        <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 leading-none whitespace-nowrap">
+                        <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 leading-none whitespace-nowrap">
                             {formatDisplayDate(rawDate)}
                         </span>
                     )}
@@ -63,7 +63,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
                         {row.customer ? row.customer.charAt(0).toUpperCase() : 'C'}
                     </div>
                 )}
-                <span className="font-semibold text-slate-800 dark:text-slate-200 text-[13px] truncate block max-w-full leading-normal">
+                <span className="font-semibold text-slate-800 dark:text-slate-200 text-[12px] truncate block max-w-full leading-normal">
                     {row.customer}
                 </span>
             </div>
@@ -100,7 +100,7 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
             if (isNegotiable) {
                 return (
                     <div className="flex items-center min-h-[26px]">
-                        <span className="whitespace-nowrap font-semibold text-[13px] text-slate-500 dark:text-slate-400">
+                        <span className="whitespace-nowrap font-semibold text-[12px] text-slate-500 dark:text-slate-400">
                             Negotiable
                         </span>
                     </div>
@@ -111,8 +111,8 @@ export const getLostQuoteColumns = (navigate: (path: string) => void): Column<Lo
 
             return (
                 <div className="flex items-center min-h-[26px]">
-                    <span className="font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap text-[13.5px]">
-                        {formattedNum} <span className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">EUR</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap text-[12.5px]">
+                        {formattedNum} <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">EUR</span>
                     </span>
                 </div>
             );

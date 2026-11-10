@@ -48,7 +48,9 @@ export const renderSelectedDisplay = (
     // 1. Exact match by id or value
     let selected = finalOptions.find(opt => 
         String(opt.id) === normStr || 
-        String(opt.value) === normStr
+        String(opt.value) === normStr ||
+        (opt.rawId && String(opt.rawId) === normStr) ||
+        (opt.order_id && String(opt.order_id) === normStr)
     );
 
     // 2. Case-insensitive match on id, value, key, name, or label
@@ -56,6 +58,8 @@ export const renderSelectedDisplay = (
         selected = finalOptions.find(opt => 
             String(opt.id).toLowerCase().trim() === normLower || 
             String(opt.value).toLowerCase().trim() === normLower ||
+            (opt.rawId && String(opt.rawId).toLowerCase().trim() === normLower) ||
+            (opt.order_id && String(opt.order_id).toLowerCase().trim() === normLower) ||
             (opt.key && String(opt.key).toLowerCase().trim() === normLower) ||
             (opt.name && String(opt.name).toLowerCase().trim() === normLower) ||
             (opt.label && String(opt.label).toLowerCase().trim() === normLower)
@@ -102,9 +106,18 @@ export const renderSelectedDisplay = (
                     </span>
                 ) : null
             )}
-            <span className="truncate">
-                {typeof (selected.name || selected.label) === 'string' ? (selected.name || selected.label) : (selected.name || selected.label)}
+            <span className="truncate font-medium text-slate-800 dark:text-slate-100">
+                {selected.selectedLabel || (typeof (selected.name || selected.label) === 'string' ? (selected.name || selected.label) : (selected.name || selected.label))}
             </span>
+            {selected.badge && (
+                <span className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded shrink-0 ${
+                    selected.badgeColor === 'subcontractor'
+                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/50'
+                        : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50'
+                }`}>
+                    {selected.badge}
+                </span>
+            )}
         </div>
     );
 };

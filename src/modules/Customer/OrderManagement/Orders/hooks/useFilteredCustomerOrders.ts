@@ -64,14 +64,24 @@ export const useFilteredCustomerOrders = ({
                 statusLabel.includes('review')
             );
 
-            // 1. Tab filter (Exact 7 status tabs)
-            if (activeTab === 'confirmed' && !isConfirmed) return false;
-            if (activeTab === 'driver_assigned' && !isDriverAssigned) return false;
-            if (activeTab === 'in_transit' && !isInTransit) return false;
-            if (activeTab === 'delivered' && !isDelivered) return false;
-            if (activeTab === 'pod_pending' && !isPodPending) return false;
-            if (activeTab === 'completed' && !isCompleted) return false;
-            if (activeTab === 'cancelled' && !isCancelled) return false;
+            // 1. Tab filter (Streamlined 4 core tabs + legacy support)
+            if (activeTab === 'all') {
+                // Return all orders
+            } else if (activeTab === 'active') {
+                // Active ongoing freight (Booked, Driver Assigned, In Transit)
+                if (!isConfirmed && !isDriverAssigned && !isInTransit) return false;
+            } else if (activeTab === 'pod_pending') {
+                // Action needed (POD review / awaiting acceptance)
+                if (!isPodPending) return false;
+            } else if (activeTab === 'completed') {
+                // Completed or Delivered freight
+                if (!isCompleted && !isDelivered) return false;
+            } else if (activeTab === 'cancelled') {
+                if (!isCancelled) return false;
+            } else if (activeTab === 'confirmed' && !isConfirmed) return false;
+            else if (activeTab === 'driver_assigned' && !isDriverAssigned) return false;
+            else if (activeTab === 'in_transit' && !isInTransit) return false;
+            else if (activeTab === 'delivered' && !isDelivered) return false;
 
             // 2. Status filter dropdown
             if (statusFilter && statusFilter !== 'all') {

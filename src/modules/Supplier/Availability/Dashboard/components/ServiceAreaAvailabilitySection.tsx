@@ -17,7 +17,7 @@ interface ServiceAreaAvailabilitySectionProps {
 export function ServiceAreaAvailabilitySection(props: ServiceAreaAvailabilitySectionProps) {
     // If not passed explicitly from parent, fetch data through useAvailabilityDashboardData
     const hasPropsData = props.serviceAreas !== undefined;
-    const hookData = useAvailabilityDashboardData();
+    const hookData = useAvailabilityDashboardData(!hasPropsData);
 
     const serviceAreas = hasPropsData ? (props.serviceAreas || []) : hookData.serviceAreas;
     const coverageMap = hasPropsData ? props.coverageMap : hookData.coverageMap;

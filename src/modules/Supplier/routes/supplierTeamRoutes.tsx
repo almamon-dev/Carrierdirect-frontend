@@ -6,6 +6,7 @@ import Messages from '../Messages';
 
 const TeamManagement = lazy(() => import('../TeamManagement'));
 const TeamMemberProfilePage = lazy(() => import('../TeamManagement/TeamMemberProfilePage'));
+const SubcontractorsPage = lazy(() => import('../Subcontractors'));
 const Settings = lazy(() => import('../Settings'));
 
 export const supplierTeamRoutes: RouteObject[] = [
@@ -14,6 +15,14 @@ export const supplierTeamRoutes: RouteObject[] = [
         element: (
             <PermissionGuard requiredPermission="team.view">
                 <TeamManagement />
+            </PermissionGuard>
+        ),
+    },
+    { 
+        path: 'team/subcontractors', 
+        element: (
+            <PermissionGuard requiredPermissions={['team.view', 'fleet.view']}>
+                <SubcontractorsPage />
             </PermissionGuard>
         ),
     },

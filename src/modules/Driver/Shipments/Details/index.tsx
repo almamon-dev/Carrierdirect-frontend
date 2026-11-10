@@ -1,22 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { encryptId, decryptId } from '@/lib/encryption';
-import { Truck, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { decryptId, encryptId } from '@/lib/encryption';
+import { ArrowLeft, CheckCircle2, Truck } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { requireDriverCompliance } from '../../Compliance';
 import { driverApi } from '../../services/driverApi';
 import { ShipmentItem, ShipmentStatus } from '../../types';
-import { requireDriverCompliance } from '../../Compliance';
 
-import { DriverShipmentHeader } from './components/DriverShipmentHeader';
-import { DriverShipmentMapSection } from './components/DriverShipmentMapSection';
-import { DriverShipmentLocationsCard } from './components/DriverShipmentLocationsCard';
-import { DriverShipmentCargoSpecsCard } from './components/DriverShipmentCargoSpecsCard';
-import { DriverShipmentActionCard } from './components/DriverShipmentActionCard';
-import { DriverShipmentSidebarTimeline } from './components/DriverShipmentSidebarTimeline';
-import { DriverShipmentDetailsSkeleton } from './components/DriverShipmentDetailsSkeleton';
-import { PODUploadModal } from './components/PODUploadModal';
-import { CustomerRatingModal } from './components/CustomerRatingModal';
 import { GPSComingSoonModal } from '@/components/modals';
 import { echo } from '@/lib/echo';
+import { CustomerRatingModal } from './components/CustomerRatingModal';
+import { DriverShipmentActionCard } from './components/DriverShipmentActionCard';
+import { DriverShipmentCargoSpecsCard } from './components/DriverShipmentCargoSpecsCard';
+import { DriverShipmentDetailsSkeleton } from './components/DriverShipmentDetailsSkeleton';
+import { DriverShipmentHeader } from './components/DriverShipmentHeader';
+import { DriverShipmentMapSection } from './components/DriverShipmentMapSection';
+import { DriverShipmentSidebarTimeline } from './components/DriverShipmentSidebarTimeline';
+import { PODUploadModal } from './components/PODUploadModal';
 
 export default function DriverShipmentDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -32,8 +31,8 @@ export default function DriverShipmentDetailPage() {
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
     const decryptedRawId = decryptId(id);
-    const cleanId = decryptedRawId 
-        ? String(decryptedRawId).replace(/^ORD-0*/i, '') 
+    const cleanId = decryptedRawId
+        ? String(decryptedRawId).replace(/^ORD-0*/i, '')
         : (id ? String(id).replace(/^ORD-0*/i, '') : '1');
 
     // Obfuscate URL: If accessed via unencrypted ID (e.g. /driver/shipments/1), silently encrypt
@@ -152,12 +151,10 @@ export default function DriverShipmentDetailPage() {
         setTimeout(() => setActionMessage(null), 5000);
     };
 
-    
+
     const handleOpenGPS = (dest?: string) => {
-        requireDriverCompliance(() => {
-            setGpsDestination(dest || (shipment ? `${shipment.consignee.address}, ${shipment.consignee.city}` : undefined));
-            setIsGPSOpen(true);
-        }, 'Live GPS Navigation');
+        const sid = shipment?.id || cleanId || id || 'ord-10002';
+        navigate(`/driver/navigation/${sid}`);
     };
 
     const handleUpdateMilestone = async (nextStatus: ShipmentStatus) => {
@@ -230,11 +227,8 @@ export default function DriverShipmentDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-start">
                 {/* Left Column (8 cols) */}
                 <div className="lg:col-span-8 flex flex-col gap-2.5">
-                    {/* Live Corridor Map & Visual Progress Stepper */}
+                    {/* Live Corridor Google Map View */}
                     <DriverShipmentMapSection shipment={shipment} />
-
-                    {/* Facility Pickup & Delivery Location Card (Clean 2-Column Split, NO footer buttons) */}
-                    <DriverShipmentLocationsCard shipment={shipment} />
 
                     {/* Vehicle & Cargo Specs Card */}
                     <DriverShipmentCargoSpecsCard

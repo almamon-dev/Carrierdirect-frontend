@@ -32,7 +32,7 @@ export const getCustomerWonQuoteColumns = (navigate: (path: string) => void): Co
                             e.stopPropagation();
                             navigate(`/customer/quotes/received/view/${encryptId(rawId)}`);
                         }}
-                        className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[13px] tracking-tight transition-colors leading-none"
+                        className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[12.5px] tracking-tight transition-colors leading-none"
                     >
                         {quoteText}
                     </button>
@@ -43,7 +43,7 @@ export const getCustomerWonQuoteColumns = (navigate: (path: string) => void): Co
                                 e.stopPropagation();
                                 if (rawReq) navigate(`/customer/quotes/create/view/${rawReq}`);
                             }}
-                            className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 hover:text-[#ff4a1f] hover:underline text-left mt-1 leading-none whitespace-nowrap cursor-pointer"
+                            className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 hover:text-[#ff4a1f] hover:underline text-left mt-0.5 leading-none whitespace-nowrap cursor-pointer"
                         >
                             {reqText}
                         </button>

@@ -1,196 +1,185 @@
-import useCustomerOrderMap from '@/modules/Customer/OrderManagement/Details/hooks/useCustomerOrderMap';
-import { ArrowRight, Navigation } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ArrowRight, Navigation, ExternalLink, Route } from 'lucide-react';
 import { ShipmentItem, ShipmentStatus } from '../../../types';
-import { DriverShipmentStepper } from './DriverShipmentStepper';
+import { DriverGoogleMapView } from '@/modules/Driver/components/DriverGoogleMapView';
+import { extractCoordinatesFromAddress } from '@/utils/knownCoordinates';
+import { geocodeAddressWithGooglePlaces } from '@/utils/googlePlacesGeocoding';
+import { calculateAirDistanceKm } from '@/utils/geoDistance';
+import { useDriverLiveLocation } from '@/modules/Driver/hooks/useDriverLiveLocation';
 
 interface Props {
     shipment: ShipmentItem;
 }
 
 export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
-    const [selectedRoute, setSelectedRoute] = useState<'fastest' | 'toll_free' | 'eco'>('fastest');
+    const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
+    const [routesList, setRoutesList] = useState<any[]>([]);
+    const [resolvedOrigin, setResolvedOrigin] = useState<[number, number] | null>(null);
+    const [resolvedDest, setResolvedDest] = useState<[number, number] | null>(null);
 
-    const fromCity = shipment.shipper.city || 'Origin';
-    const toCity = shipment.consignee.city || 'Destination';
+    const fromCity = (shipment.shipper.city && shipment.shipper.city !== '-') ? shipment.shipper.city : 'Gazipur';
+    const toCity = (shipment.consignee.city && shipment.consignee.city !== '-') ? shipment.consignee.city : 'Dhaka';
+
+    const pickupAddress = (shipment.shipper.address && shipment.shipper.address !== '-')
+        ? shipment.shipper.address
+        : `${fromCity} Industrial Area, Gazipur`;
+
+    const deliveryAddress = (shipment.consignee.address && shipment.consignee.address !== '-')
+        ? shipment.consignee.address
+        : `${toCity} Commercial Center, Dhanmondi`;
 
     const status: ShipmentStatus = shipment.status;
-    const isCompleted = status === 'completed';
+    const isCompleted = status === 'completed' || status === 'delivered';
 
-    let currentStepNum = 1;
-    let isDelivered = false;
+    // Dynamic Geocoding via Google Places API
+    useEffect(() => {
+        let isCancelled = false;
 
-    if (status === 'completed' || status === 'delivered') {
-        currentStepNum = 4;
-        isDelivered = true;
-    } else if (status === 'at_delivery') {
-        currentStepNum = 4;
-    } else if (status === 'in_transit') {
-        currentStepNum = 3;
-    } else if (status === 'at_pickup') {
-        currentStepNum = 2;
-    } else if (status === 'assigned' || status === 'accepted') {
-        currentStepNum = 1;
-    }
+        geocodeAddressWithGooglePlaces(pickupAddress, fromCity).then((coords) => {
+            if (!isCancelled && coords) setResolvedOrigin(coords);
+        });
 
-    const findHistoryTime = (keywords: string[]) => {
-        if (!shipment.history || !Array.isArray(shipment.history)) return null;
-        for (const item of shipment.history) {
-            const itemStatus = String(item.status || item.title || '').toLowerCase();
-            if (keywords.some(k => itemStatus.includes(k))) {
-                if (item.time) return item.time;
-                if ((item as any).created_at) {
-                    return new Date((item as any).created_at).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true,
-                    });
-                }
-            }
-        }
-        return null;
-    };
+        geocodeAddressWithGooglePlaces(deliveryAddress, toCity).then((coords) => {
+            if (!isCancelled && coords) setResolvedDest(coords);
+        });
 
-    const assignedTime = findHistoryTime(['assigned', 'confirmed']) || (shipment.createdAt ? new Date(shipment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Scheduled');
-    const pickupTime = findHistoryTime(['pickup', 'picked_up', 'loaded']) || (shipment.shipper.pickupDate || 'Scheduled');
-    const transitTime = findHistoryTime(['in_transit']) || 'In Transit';
-    const deliveryTime = findHistoryTime(['delivered', 'completed']) || (shipment.consignee.deliveryDate || 'Completed');
-
-    const steps = [
-        {
-            id: 1,
-            label: 'Assigned',
-            subLabel: 'Driver assigned',
-            time: assignedTime,
-            completed: currentStepNum > 1 || isDelivered,
-            active: currentStepNum === 1 && !isDelivered,
-        },
-        {
-            id: 2,
-            label: 'Pickup',
-            subLabel: 'Goods picked up',
-            time: (currentStepNum > 2 || isDelivered) ? pickupTime : (currentStepNum === 2 ? 'In Progress' : 'Pending'),
-            completed: currentStepNum > 2 || isDelivered,
-            active: currentStepNum === 2 && !isDelivered,
-        },
-        {
-            id: 3,
-            label: 'In Transit',
-            subLabel: 'On the way to destination',
-            time: (currentStepNum > 3 || isDelivered) ? transitTime : 'Live',
-            completed: currentStepNum > 3 || isDelivered,
-            active: currentStepNum === 3 && !isDelivered,
-            isLive: currentStepNum === 3 && !isDelivered,
-        },
-        {
-            id: 4,
-            label: isCompleted ? 'Completed' : 'Delivered',
-            subLabel: isCompleted ? 'Delivery completed & verified' : (isDelivered ? 'Goods delivered' : 'Pending'),
-            time: isDelivered ? deliveryTime : 'Pending',
-            completed: isDelivered,
-            active: currentStepNum === 4 && !isDelivered,
-        },
-    ];
+        return () => {
+            isCancelled = true;
+        };
+    }, [pickupAddress, deliveryAddress, fromCity, toCity]);
 
     const pickupLat = shipment.route?.originCoords?.lat;
     const pickupLng = shipment.route?.originCoords?.lng;
     const deliveryLat = shipment.route?.destinationCoords?.lat;
     const deliveryLng = shipment.route?.destinationCoords?.lng;
 
-    const routeIndex = selectedRoute === 'fastest' ? 0 : (selectedRoute === 'toll_free' ? 1 : 2);
+    const defaultOriginCoords =
+        extractCoordinatesFromAddress(pickupAddress) ||
+        extractCoordinatesFromAddress(fromCity) ||
+        [23.8981, 90.3972];
 
-    const {
-        mapContainerRef,
-        mapLoaded,
-        mapError,
-        hasExactCoordinates,
-        googleMapsUrl,
-        embedMapSrc,
-    } = useCustomerOrderMap({
-        pickupLat,
-        pickupLng,
-        deliveryLat,
-        deliveryLng,
-        fromCity,
-        toCity,
-        pickupAddress: shipment.shipper.address || fromCity,
-        deliveryAddress: shipment.consignee.address || toCity,
-        selectedRouteIndex: routeIndex,
+    const defaultDestCoords =
+        extractCoordinatesFromAddress(deliveryAddress) ||
+        extractCoordinatesFromAddress(toCity) ||
+        [23.7534, 90.3698];
+
+    const originCoords: [number, number] = resolvedOrigin || [
+        pickupLat && !isNaN(Number(pickupLat)) && Number(pickupLat) !== 0
+            ? Number(pickupLat)
+            : defaultOriginCoords[0],
+        pickupLng && !isNaN(Number(pickupLng)) && Number(pickupLng) !== 0
+            ? Number(pickupLng)
+            : defaultOriginCoords[1],
+    ];
+
+    const destCoords: [number, number] = resolvedDest || [
+        deliveryLat && !isNaN(Number(deliveryLat)) && Number(deliveryLat) !== 0
+            ? Number(deliveryLat)
+            : defaultDestCoords[0],
+        deliveryLng && !isNaN(Number(deliveryLng)) && Number(deliveryLng) !== 0
+            ? Number(deliveryLng)
+            : defaultDestCoords[1],
+    ];
+
+    // Fallback corridor waypoint between pickup and delivery
+    const corridorFallback = useMemo<[number, number]>(() => {
+        return [
+            originCoords[0] + (destCoords[0] - originCoords[0]) * 0.42,
+            originCoords[1] + (destCoords[1] - originCoords[1]) * 0.42,
+        ];
+    }, [originCoords, destCoords]);
+
+    // Live Driver Location tracking (Browser GPS + Backend API last known)
+    const { driverCoords, locateMe, isLocating, isLiveGPS } = useDriverLiveLocation({
+        activeOrderId: shipment.id || shipment.orderNumber,
+        fallbackCoords: corridorFallback,
+        enableWatch: true,
     });
 
-    const displayDistance = selectedRoute === 'fastest'
-        ? shipment.route.distanceKm
-        : selectedRoute === 'toll_free'
-            ? ((parseFloat(String(shipment.route.distanceKm)) || 25) + 14).toFixed(1)
-            : shipment.route.distanceKm;
+    // Distance calculation
+    const airKm = calculateAirDistanceKm(originCoords[0], originCoords[1], destCoords[0], destCoords[1]);
+    const activeRouteDistance = routesList[selectedRouteIndex]?.distance;
+    const displayDistance =
+        activeRouteDistance ||
+        (shipment.route?.distanceFormatted &&
+        shipment.route.distanceFormatted !== '-' &&
+        shipment.route.distanceFormatted !== '—'
+            ? shipment.route.distanceFormatted
+            : (airKm ? `${(airKm * 1.25).toFixed(1)} km` : '28.40 km'));
 
-    const displayDuration = selectedRoute === 'fastest'
-        ? shipment.route.estimatedDuration
-        : selectedRoute === 'toll_free'
-            ? '38m (Toll Free)'
-            : '32m (Eco Haul)';
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originCoords[0]},${originCoords[1]}&destination=${destCoords[0]},${destCoords[1]}&travelmode=driving`;
 
     return (
         <div className="w-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs overflow-hidden font-sans">
-            {/* Top Subheader with Corridor Info */}
-            <div className="px-3.5 py-2.5 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+            {/* Top Subheader with Live GPS Status, Distance Badge & Open in Google Maps */}
+            <div className="px-3.5 py-2.5 bg-white dark:bg-[#1e2329] border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div className="flex items-center gap-2">
-                    <span className="flex h-2 w-2 relative">
+                    <span className="flex h-2.5 w-2.5 relative">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                     </span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200">
-                        {isCompleted ? 'Completed Route Overview' : 'Live Shipment Tracking & Corridors'}
+                    <span className="font-extrabold text-xs text-slate-900 dark:text-slate-100">
+                        {isCompleted ? 'Completed Route' : 'Live Corridor'}
                     </span>
-                    <span className="text-slate-300 dark:text-slate-700">•</span>
-                    <span className="text-slate-500 dark:text-slate-400 font-medium">
-                        {isCompleted ? 'Route Finalized' : 'GPS Signal Active'}
+                    <span className="text-slate-400 dark:text-slate-500 font-normal">
+                        • {isLiveGPS ? 'GPS Active' : 'GPS Tracking'}
                     </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium text-xs">
-                    <span className="flex items-center gap-1.5 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 shadow-2xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {/* Route Corridor City Pill */}
+                    <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-[4px] border border-slate-200/80 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shadow-2xs">
                         <Navigation size={11} className="text-[#FF4A1F]" />
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{shipment.shipper.city}</span>
+                        <span>{fromCity}</span>
                         <ArrowRight size={10} className="text-slate-400" />
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{shipment.consignee.city}</span>
+                        <span>{toCity}</span>
                     </span>
-                </div>
-            </div>
-            {/* Map Frame with Interactive Auto-Bounds Zoom */}
-            <div className="w-full h-[240px] sm:h-[280px] relative overflow-hidden bg-slate-100 dark:bg-[#15191e]">
 
-                {hasExactCoordinates && !mapError && (
-                    <div ref={mapContainerRef} className="w-full h-full" />
-                )}
+                    {/* Distance Badge */}
+                    <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-[4px] border border-slate-200/80 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shadow-2xs">
+                        <Route size={13} className="text-slate-600 dark:text-slate-400 shrink-0" />
+                        <span>{displayDistance}</span>
+                    </span>
 
-                {(!hasExactCoordinates || !mapLoaded || mapError) && (
-                    <iframe
-                        title="Driver Live Route"
-                        src={embedMapSrc}
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0, filter: 'opacity(0.92)' }}
-                        loading="lazy"
-                    />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent pointer-events-none" />
-
-                {/* Floating Corridor Distance badge & Google Maps Navigation */}
-                <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between gap-2 flex-wrap pointer-events-none">
-                    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs px-2.5 py-1 rounded-md border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-2 text-[11px] pointer-events-auto">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <span className="text-slate-700 dark:text-slate-200 font-medium">
-                            Transit Corridor: <strong className="text-slate-900 dark:text-white font-bold">{displayDistance} km</strong>
-                        </span>
-                    </div>
+                    {/* Open in Maps Link */}
+                    <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#ff4a1f] px-2.5 py-1 rounded-[4px] border border-[#ff4a1f]/35 hover:border-[#ff4a1f] shadow-2xs text-xs font-bold transition-all"
+                        title="Open Live Route in Google Maps"
+                    >
+                        <span>Open in Maps</span>
+                        <ExternalLink size={12} />
+                    </a>
                 </div>
             </div>
 
-            {/* Clean 4-Stage Stepper Progress Bar */}
-            <DriverShipmentStepper steps={steps} />
+            {/* Google Map View with Custom Markers, Real Highway Polyline, Clean Route Selector, and Rounded Navigation CTA */}
+            <div className="w-full relative bg-slate-50 dark:bg-[#15191e] p-2 sm:p-2.5">
+                <DriverGoogleMapView
+                    originCoords={originCoords}
+                    destCoords={destCoords}
+                    driverCoords={driverCoords}
+                    originTitle={fromCity}
+                    originAddress={pickupAddress}
+                    destTitle={toCity}
+                    destAddress={deliveryAddress}
+                    selectedRouteIndex={selectedRouteIndex}
+                    onRouteChange={(idx) => setSelectedRouteIndex(idx)}
+                    onRoutesLoaded={(rts) => setRoutesList(rts)}
+                    height="300px"
+                    showFloatingCard={true}
+                    showRouteSummaryCards={true}
+                    showStartNavigationButton={true}
+                    onStartNavigation={() => {
+                        const sid = shipment.id || shipment.orderNumber || '1';
+                        window.location.href = `/driver/navigation/${sid}`;
+                    }}
+                    onLocateMe={locateMe}
+                    isLocating={isLocating}
+                />
+            </div>
         </div>
     );
 };

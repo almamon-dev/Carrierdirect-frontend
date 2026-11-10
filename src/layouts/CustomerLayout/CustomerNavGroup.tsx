@@ -7,6 +7,19 @@ const getSidebarItemBadge = (_path: string) => null;
 export const isSubItemActive = (subPath: string, currentPath: string, currentHash?: string) => {
     const fullPath = currentHash ? `${currentPath}${currentHash}` : currentPath;
     if (fullPath === subPath || currentPath === subPath) return true;
+
+    // Disambiguate /customer/orders vs /customer/orders/track to prevent both showing active
+    if (subPath === '/customer/orders') {
+        if (currentPath.startsWith('/customer/orders/track')) {
+            return false;
+        }
+        return currentPath === '/customer/orders' || currentPath.startsWith('/customer/orders/');
+    }
+
+    if (subPath === '/customer/orders/track') {
+        return currentPath === '/customer/orders/track' || currentPath.startsWith('/customer/orders/track/');
+    }
+
     if (subPath !== '/' && (fullPath.startsWith(subPath) || currentPath.startsWith(subPath))) return true;
 
     // Customer quotes sub-routes

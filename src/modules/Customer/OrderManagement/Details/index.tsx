@@ -11,11 +11,13 @@ import CustomerOrderPODAction from './components/CustomerOrderPODAction';
 import TrackShipmentMainCard from '../TrackOrder/components/TrackShipmentMainCard';
 import TrackShipmentBottomCards from '../TrackOrder/components/TrackShipmentBottomCards';
 import { computeTrackingDisplayMetrics } from '../TrackOrder/utils/trackingViewUtils';
+import { CustomerOrderDetailsSkeleton } from './components/CustomerOrderDetailsSkeleton';
 
 export default function CustomerOrderDetailPage() {
     const {
         order,
         timeline,
+        isLoading,
         actionMessage,
         isRatingOpen,
         setIsRatingOpen,
@@ -89,7 +91,11 @@ export default function CustomerOrderDetailPage() {
         embedMapSrc,
         liveDistanceText,
         liveDurationText,
+        liveRemainingDistanceText,
+        liveRemainingDurationText,
+        liveDriverAddress,
         focusOnProduct,
+        fitFullRoute,
     } = useCustomerOrderMap({
         pickupLat: order.pickupLat ?? order.pickup?.lat,
         pickupLng: order.pickupLng ?? order.pickup?.lng,
@@ -119,8 +125,19 @@ export default function CustomerOrderDetailPage() {
         driverLocationLabel,
         pickupStatusLabel,
         isPickupCompleted,
+        hasLiveGps,
+        isGpsFresh,
+        gpsUpdatedHuman,
         progressSteps,
-    } = computeTrackingDisplayMetrics(order, timeline, liveDistanceText, liveDurationText);
+    } = computeTrackingDisplayMetrics(order, timeline, liveDistanceText, liveDurationText, {
+        liveRemainingDistanceText,
+        liveRemainingDurationText,
+        liveDriverAddress,
+    });
+
+    if (isLoading) {
+        return <CustomerOrderDetailsSkeleton />;
+    }
 
     return (
         <div className="p-2.5 sm:p-4 w-full flex flex-col min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] pb-8 space-y-3 text-slate-800 dark:text-slate-200 antialiased">
@@ -149,6 +166,9 @@ export default function CustomerOrderDetailPage() {
                 driverLocationLabel={driverLocationLabel}
                 pickupStatusLabel={pickupStatusLabel}
                 isPickupCompleted={isPickupCompleted}
+                hasLiveGps={hasLiveGps}
+                isGpsFresh={isGpsFresh}
+                gpsUpdatedHuman={gpsUpdatedHuman}
                 progressSteps={progressSteps}
                 mapContainerRef={mapContainerRef}
                 mapLoaded={mapLoaded}
@@ -156,6 +176,7 @@ export default function CustomerOrderDetailPage() {
                 mapType={mapType}
                 onChangeMapType={setMapType}
                 onFocusDriver={focusOnProduct}
+                onFitRoute={fitFullRoute}
                 embedMapSrc={embedMapSrc}
                 googleMapsUrl={googleMapsUrl}
                 headerActions={

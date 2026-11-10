@@ -1,26 +1,24 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import DataTable from '@/components/tables/data-table';
+import EmptyState from '@/components/tables/empty-state';
+import Button from '@/components/ui/button';
+import Select from '@/components/ui/select';
+import apiClient from '@/lib/axios';
+import { useToastStore } from '@/stores/useToastStore';
 import {
     Building2,
     Plus,
     RefreshCw,
-    Truck,
     RotateCcw,
-    CheckCircle2,
-    Users,
-    UserPlus,
+    Truck
 } from 'lucide-react';
-import apiClient from '@/lib/axios';
-import DataTable from '@/components/tables/data-table';
-import Button from '@/components/ui/button';
-import Select from '@/components/ui/select';
-import EmptyState from '@/components/tables/empty-state';
-import { Subcontractor, SubcontractorDriver } from './types';
-import SubcontractorModal from './components/SubcontractorModal';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import SubcontractorDriverModal from './components/SubcontractorDriverModal';
-import { SubcontractorRowActions } from './components/SubcontractorRowActions';
 import { SubcontractorDriverRowActions } from './components/SubcontractorDriverRowActions';
+import SubcontractorModal from './components/SubcontractorModal';
+import { SubcontractorRowActions } from './components/SubcontractorRowActions';
 import { getSubcontractorColumns } from './components/subcontractorColumns';
 import { getSubcontractorDriverColumns } from './components/subcontractorDriverColumns';
+import { Subcontractor, SubcontractorDriver } from './types';
 
 type SubcontractorNavTab = 'contractors' | 'drivers';
 
@@ -45,12 +43,7 @@ export default function SubcontractorsManagement() {
     const [driverModalSub, setDriverModalSub] = useState<Subcontractor | null>(null);
     const [editingDriver, setEditingDriver] = useState<SubcontractorDriver | null>(null);
 
-    const [actionMessage, setActionMessage] = useState<string | null>(null);
-
-    const showNotification = (msg: string) => {
-        setActionMessage(msg);
-        setTimeout(() => setActionMessage(null), 3000);
-    };
+    const showToast = useToastStore((state) => state.showToast);
 
     const fetchSubcontractors = useCallback(async () => {
         try {
@@ -189,10 +182,10 @@ export default function SubcontractorsManagement() {
     const handleSaveSubcontractor = async (data: Partial<Subcontractor>) => {
         if (editingSub?.id) {
             await apiClient.put(`/supplier/subcontractors/${editingSub.id}`, data);
-            showNotification(`Updated ${data.name || 'subcontractor'}`);
+            showToast(`Updated ${data.name || 'subcontractor'} successfully!`, 'success');
         } else {
             await apiClient.post('/supplier/subcontractors', data);
-            showNotification(`Added ${data.name || 'new subcontractor'}`);
+            showToast(`Added ${data.name || 'new subcontractor'} successfully!`, 'success');
         }
         await fetchSubcontractors();
     };
@@ -203,11 +196,11 @@ export default function SubcontractorsManagement() {
         }
         try {
             await apiClient.delete(`/supplier/subcontractors/${sub.id}`);
-            showNotification(`Deleted ${sub.name}`);
+            showToast(`Deleted ${sub.name} successfully.`, 'success');
             await fetchSubcontractors();
         } catch {
             setSubcontractors((prev) => prev.filter((item) => item.id !== sub.id));
-            showNotification(`Deleted ${sub.name}`);
+            showToast(`Deleted ${sub.name} successfully.`, 'success');
         }
     };
 
@@ -239,10 +232,10 @@ export default function SubcontractorsManagement() {
     const handleSaveDriver = async (subId: number | string, data: Partial<SubcontractorDriver>) => {
         if (editingDriver?.id) {
             await apiClient.put(`/supplier/subcontractors/${subId}/drivers/${editingDriver.id}`, data);
-            showNotification(`Updated driver ${data.name}`);
+            showToast(`Updated driver ${data.name} successfully!`, 'success');
         } else {
             await apiClient.post(`/supplier/subcontractors/${subId}/drivers`, data);
-            showNotification(`Added driver ${data.name}`);
+            showToast(`Added driver ${data.name} successfully!`, 'success');
         }
         await fetchSubcontractors();
     };
@@ -253,7 +246,7 @@ export default function SubcontractorsManagement() {
         }
         try {
             await apiClient.delete(`/supplier/subcontractors/${driver.subcontractor_id}/drivers/${driver.id}`);
-            showNotification(`Removed driver ${driver.name}`);
+            showToast(`Removed driver ${driver.name} successfully.`, 'success');
             await fetchSubcontractors();
         } catch {
             setSubcontractors((prev) =>
@@ -268,7 +261,33 @@ export default function SubcontractorsManagement() {
                     return s;
                 })
             );
-            showNotification(`Removed driver ${driver.name}`);
+            showToast(`Removed driver ${driver.name} successfully.`, 'success');
+        }
+    };
+
+    const handleToggleDriverStatus = async (driver: SubcontractorDriver) => {
+        const nextStatus = driver.status === 'active' ? 'inactive' : 'active';
+        try {
+            await apiClient.put(`/supplier/subcontractors/${driver.subcontractor_id}/drivers/${driver.id}`, {
+                status: nextStatus,
+            });
+            showToast(`Driver ${driver.name} is now ${nextStatus === 'active' ? 'Active' : 'Inactive'}.`, 'success');
+            await fetchSubcontractors();
+        } catch {
+            setSubcontractors((prev) =>
+                prev.map((s) => {
+                    if (s.id === driver.subcontractor_id) {
+                        return {
+                            ...s,
+                            drivers: (s.drivers || []).map((d) =>
+                                d.id === driver.id ? { ...d, status: nextStatus } : d
+                            ),
+                        };
+                    }
+                    return s;
+                })
+            );
+            showToast(`Driver ${driver.name} is now ${nextStatus === 'active' ? 'Active' : 'Inactive'}.`, 'success');
         }
     };
 
@@ -290,6 +309,7 @@ export default function SubcontractorsManagement() {
             getSubcontractorDriverColumns({
                 subcontractorsMap,
                 onEdit: handleOpenEditDriver,
+                onToggleStatus: handleToggleDriverStatus,
             }),
         [subcontractorsMap]
     );
@@ -300,21 +320,19 @@ export default function SubcontractorsManagement() {
             <button
                 type="button"
                 onClick={() => setActiveTab('contractors')}
-                className={`flex items-center gap-2 pb-3 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${
-                    activeTab === 'contractors'
+                className={`flex items-center gap-2 pb-3 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${activeTab === 'contractors'
                         ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                         : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
+                    }`}
             >
                 <span className={`text-[14px] ${activeTab === 'contractors' ? 'font-bold text-[#ff4a1f]' : 'font-medium'}`}>
-                    Contractor Companies
+                    Companies
                 </span>
                 <span
-                    className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
-                        activeTab === 'contractors'
+                    className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${activeTab === 'contractors'
                             ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                    }`}
+                        }`}
                 >
                     {subcontractors.length}
                 </span>
@@ -323,21 +341,19 @@ export default function SubcontractorsManagement() {
             <button
                 type="button"
                 onClick={() => setActiveTab('drivers')}
-                className={`flex items-center gap-2 pb-3 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${
-                    activeTab === 'drivers'
+                className={`flex items-center gap-2 pb-3 border-b transition-colors whitespace-nowrap cursor-pointer px-1 ${activeTab === 'drivers'
                         ? 'border-[#ff4a1f] text-[#ff4a1f] dark:border-[#ff4a1f] dark:text-[#ff4a1f]'
                         : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
+                    }`}
             >
                 <span className={`text-[14px] ${activeTab === 'drivers' ? 'font-bold text-[#ff4a1f]' : 'font-medium'}`}>
-                    Contractor Drivers
+                    Drivers
                 </span>
                 <span
-                    className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
-                        activeTab === 'drivers'
+                    className={`text-[12px] font-semibold px-2 py-0.5 rounded-full transition-colors ${activeTab === 'drivers'
                             ? 'bg-orange-50 dark:bg-[#ff4a1f]/20 text-[#ff4a1f] dark:text-orange-400'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                    }`}
+                        }`}
                 >
                     {allDrivers.length}
                 </span>
@@ -397,7 +413,7 @@ export default function SubcontractorsManagement() {
                         onChange={(val) => setDriverSubFilter(typeof val === 'object' && val?.target ? val.target.value : (val?.id ?? val?.value ?? val))}
                         showSearch={false}
                         options={[
-                            { id: 'all', name: 'All Contractor Companies' },
+                            { id: 'all', name: 'All Companies' },
                             ...subcontractors.map((s) => ({
                                 id: String(s.id),
                                 name: s.name,
@@ -445,14 +461,6 @@ export default function SubcontractorsManagement() {
 
     return (
         <div className="pt-3 sm:pt-4 px-4 md:px-6 pb-12 w-full mx-auto space-y-4 min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c]">
-            {/* Top Notification */}
-            {actionMessage && (
-                <div className="p-2.5 px-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-[4px] text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200 shadow-2xs">
-                    <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                    <span>{actionMessage}</span>
-                </div>
-            )}
-
             {/* Header Title & Actions matching Team Management */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -474,17 +482,6 @@ export default function SubcontractorsManagement() {
                         <RefreshCw size={13} className={`text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </Button>
-
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 shadow-2xs rounded-[4px]"
-                        onClick={() => handleOpenAddDriver(null)}
-                    >
-                        <UserPlus size={14} className="text-blue-600" />
-                        <span>Add Driver</span>
-                    </Button>
-
                     <Button
                         variant="primary"
                         size="sm"
@@ -545,15 +542,16 @@ export default function SubcontractorsManagement() {
                         columns={driverColumns}
                         data={filteredDrivers}
                         compact={true}
-                        searchPlaceholder="Search drivers by name, phone, truck plate, license..."
+                        searchPlaceholder="Search drivers by name, email, phone, license..."
                         hideViewToggle={true}
                         tableLayout="fixed"
-                        tableClassName="min-w-[1080px]"
+                        tableClassName="min-w-[1050px]"
                         actions={(row: SubcontractorDriver) => (
                             <SubcontractorDriverRowActions
                                 driver={row}
                                 onEdit={handleOpenEditDriver}
                                 onDelete={handleDeleteDriver}
+                                onToggleStatus={handleToggleDriverStatus}
                             />
                         )}
                         actionsColumnClassName="w-[70px] min-w-[70px] text-right pr-3"
@@ -563,7 +561,7 @@ export default function SubcontractorsManagement() {
                         emptyState={
                             <EmptyState
                                 icon={Truck}
-                                title="No Contractor Drivers Found"
+                                title="No Drivers Found"
                                 description="There are currently no drivers registered under your contractors matching the filter. Click Add Driver to register a driver under a subcontractor."
                             />
                         }

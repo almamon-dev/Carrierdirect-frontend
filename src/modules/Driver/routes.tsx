@@ -7,12 +7,15 @@ const ShipmentDetails = lazy(() => import('./Shipments/Details'));
 const DriverChat = lazy(() => import('./Chat'));
 const DriverNotifications = lazy(() => import('./Notifications'));
 const DriverProfile = lazy(() => import('./Profile'));
+const DriverLiveNavigation = lazy(() => import('./LiveNavigation'));
 
 export const driverRoutes: RouteObject[] = [
     { index: true, element: <Navigate to="/driver/dashboard" replace /> },
     { path: 'dashboard', element: <DriverDashboard /> },
     { path: 'shipments', element: <DriverShipments /> },
     { path: 'shipments/:id', element: <ShipmentDetails /> },
+    { path: 'navigation/:id', element: <DriverLiveNavigation /> },
+    { path: 'navigation', element: <DriverLiveNavigation /> },
     { path: 'chat', element: <DriverChat /> },
     { path: 'chat/:partnerId', element: <DriverChat /> },
     { path: 'chat/:partnerId/:sessionKey', element: <DriverChat /> },

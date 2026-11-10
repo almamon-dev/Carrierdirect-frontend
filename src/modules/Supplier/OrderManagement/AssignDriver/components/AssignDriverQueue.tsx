@@ -1,8 +1,8 @@
-import React from 'react';
-import { Package, MapPin, ArrowRight, Clock, Search } from 'lucide-react';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import Input from '@/components/ui/input';
 import { formatDisplayDate } from '@/lib/utils';
+import { ArrowRight, Clock, MapPin, Package, Search } from 'lucide-react';
+import React from 'react';
 import { SupplierOrderItem } from '../../ActiveJobs/types';
 import { checkHasRealDriver } from '../../ActiveJobs/utils/orderMapper';
 
@@ -30,7 +30,7 @@ export const AssignDriverQueue: React.FC<AssignDriverQueueProps> = ({
     onSelectOrder,
 }) => {
     return (
-        <div className="lg:col-span-6 bg-white dark:bg-[#1e2329] rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs p-4 md:p-5 space-y-4 font-sans">
+        <div className="lg:col-span-5 bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200 dark:border-slate-800 shadow-2xs p-4 md:p-5 space-y-4 font-sans">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
                     <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">Shipments Dispatch Queue</h2>
@@ -41,18 +41,16 @@ export const AssignDriverQueue: React.FC<AssignDriverQueueProps> = ({
                     <button
                         type="button"
                         onClick={() => onTabChange('pending')}
-                        className={`px-3 py-1 rounded-[3px] text-[11px] font-semibold cursor-pointer transition-colors ${
-                            queueTab === 'pending' ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                        }`}
+                        className={`px-3 py-1 rounded-[3px] text-[11px] font-semibold cursor-pointer transition-colors ${queueTab === 'pending' ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                            }`}
                     >
                         Driver Pending ({pendingCount})
                     </button>
                     <button
                         type="button"
                         onClick={() => onTabChange('assigned')}
-                        className={`px-3 py-1 rounded-[3px] text-[11px] font-semibold cursor-pointer transition-colors ${
-                            queueTab === 'assigned' ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                        }`}
+                        className={`px-3 py-1 rounded-[3px] text-[11px] font-semibold cursor-pointer transition-colors ${queueTab === 'assigned' ? 'bg-white dark:bg-[#1e2329] text-[#ff4a1f] shadow-2xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                            }`}
                     >
                         Assigned ({assignedCount})
                     </button>
@@ -94,11 +92,10 @@ export const AssignDriverQueue: React.FC<AssignDriverQueueProps> = ({
                             <div
                                 key={item.id}
                                 onClick={() => onSelectOrder(String(item.id))}
-                                className={`p-3 rounded-[4px] border transition-all cursor-pointer text-xs ${
-                                    isSelected
+                                className={`p-3 rounded-[4px] border transition-all cursor-pointer text-xs ${isSelected
                                         ? 'border-[#ff4a1f] bg-orange-50/50 dark:bg-[#ff4a1f]/10 shadow-xs'
                                         : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-[#12161c]'
-                                }`}
+                                    }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
                                     <div className="flex items-center gap-2">
@@ -135,9 +132,8 @@ export const AssignDriverQueue: React.FC<AssignDriverQueueProps> = ({
                                     <button
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); onSelectOrder(String(item.id)); }}
-                                        className={`text-[11px] font-bold flex items-center gap-1 hover:underline cursor-pointer ${
-                                            isSelected ? 'text-[#ff4a1f]' : 'text-slate-600 dark:text-slate-400'
-                                        }`}
+                                        className={`text-[11px] font-bold flex items-center gap-1 hover:underline cursor-pointer ${isSelected ? 'text-[#ff4a1f]' : 'text-slate-600 dark:text-slate-400'
+                                            }`}
                                     >
                                         <span>{isAssigned && hasRealDriver ? 'Reassign Driver' : 'Assign This Job'}</span>
                                     </button>

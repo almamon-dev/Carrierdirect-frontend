@@ -7,6 +7,7 @@ import {
     Clock,
     Copy,
     Crosshair,
+    LocateFixed,
     MapPin,
     Maximize2,
     Navigation,
@@ -35,6 +36,9 @@ interface TrackShipmentMainCardProps {
     driverLocationLabel?: string;
     pickupStatusLabel?: string;
     isPickupCompleted?: boolean;
+    hasLiveGps?: boolean;
+    isGpsFresh?: boolean;
+    gpsUpdatedHuman?: string;
     progressSteps: ProgressStepItem[];
     mapContainerRef: React.RefObject<HTMLDivElement | null>;
     mapLoaded: boolean;
@@ -42,6 +46,7 @@ interface TrackShipmentMainCardProps {
     mapType: 'roadmap' | 'satellite';
     onChangeMapType: (type: 'roadmap' | 'satellite') => void;
     onFocusDriver?: () => void;
+    onFitRoute?: () => void;
     embedMapSrc: string;
     googleMapsUrl: string;
     headerActions?: React.ReactNode;
@@ -58,11 +63,15 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
     driverLocationLabel,
     pickupStatusLabel,
     isPickupCompleted = false,
+    hasLiveGps = false,
+    isGpsFresh = false,
+    gpsUpdatedHuman = 'Just now',
     progressSteps,
     mapContainerRef,
     mapType,
     onChangeMapType,
     onFocusDriver,
+    onFitRoute,
     googleMapsUrl,
     headerActions,
 }) => {
@@ -78,6 +87,12 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
         driverLocationLabel ||
         order.productLocation?.currentAddress ||
         `${fromCity} → ${toCity}`;
+
+    const isCompletedStage =
+        order.rawStatus === 'completed' ||
+        order.rawStatus === 'delivered' ||
+        order.rawStatus === 'pod_uploaded' ||
+        order.rawStatus === 'pod_accepted';
 
     return (
         <div className="w-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-4 shadow-2xs space-y-4 font-sans">
@@ -106,6 +121,34 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                                         <Copy size={13.5} />
                                     )}
                                 </button>
+                                {!isCompletedStage && (
+                                    <span
+                                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-bold border ${
+                                            hasLiveGps && isGpsFresh
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                                                : hasLiveGps
+                                                ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                                                : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`w-1.5 h-1.5 rounded-full ${
+                                                hasLiveGps && isGpsFresh
+                                                    ? 'bg-emerald-500 animate-pulse'
+                                                    : hasLiveGps
+                                                    ? 'bg-amber-500'
+                                                    : 'bg-slate-400'
+                                            }`}
+                                        />
+                                        <span>
+                                            {hasLiveGps && isGpsFresh
+                                                ? `GPS Live • ${gpsUpdatedHuman}`
+                                                : hasLiveGps
+                                                ? `GPS Offline • Last seen ${gpsUpdatedHuman}`
+                                                : 'GPS Offline • Awaiting Signal'}
+                                        </span>
+                                    </span>
+                                )}
                             </div>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
@@ -143,7 +186,7 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                                     Driver Location
                                 </p>
                                 <p
-                                    className="text-xs font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 truncate max-w-[150px]"
+                                    className="text-xs font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 truncate max-w-[155px]"
                                     title={resolvedDriverLoc}
                                 >
                                     {resolvedDriverLoc}
@@ -204,51 +247,63 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                 </div>
             </div>
 
-            {/* Body Row: Left Map (8 cols) + Right Shipment Progress (4 cols) */}
+            {/* Body Row: Left Clean Map (8 cols) + Right Shipment Progress (4 cols) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-                {/* Left: Interactive Route & Live Driver Map */}
+                {/* Left: Ultra-Clean Interactive Route & Live Driver Map */}
                 <div className="lg:col-span-8 flex flex-col">
-                    <div className="relative w-full h-[330px] sm:h-[370px] rounded-[4px] overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 z-0">
+                    <div className="relative w-full h-[340px] sm:h-[380px] rounded-[4px] overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 z-0">
                         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
-                        {/* Top-Left Route / Satellite Switcher Pill */}
-                        <div className="absolute top-3 left-3 z-[400] bg-white dark:bg-[#181c22] border border-slate-200 dark:border-slate-700 rounded-[4px] p-0.5 shadow-sm flex items-center text-xs font-bold">
-                            <button
-                                type="button"
-                                onClick={() => onChangeMapType('roadmap')}
-                                className={`px-2.5 py-1 rounded-[3px] flex items-center gap-1.5 cursor-pointer transition-colors ${
-                                    mapType === 'roadmap'
-                                        ? 'bg-orange-50 text-[#ff4a1f] dark:bg-[#ff4a1f]/20'
-                                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
-                                }`}
-                            >
-                                <Route size={12} />
-                                <span>Route</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => onChangeMapType('satellite')}
-                                className={`px-2.5 py-1 rounded-[3px] cursor-pointer transition-colors ${
-                                    mapType === 'satellite'
-                                        ? 'bg-orange-50 text-[#ff4a1f] dark:bg-[#ff4a1f]/20'
-                                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
-                                }`}
-                            >
-                                Satellite
-                            </button>
+                        {/* Top-Left Compact Map / Satellite Switcher */}
+                        <div className="absolute top-3 left-3 z-[400] flex items-center gap-2">
+                            <div className="bg-white/95 dark:bg-[#181c22]/95 backdrop-blur-xs border border-slate-200 dark:border-slate-700 rounded-[4px] p-0.5 shadow-sm flex items-center text-xs font-bold">
+                                <button
+                                    type="button"
+                                    onClick={() => onChangeMapType('roadmap')}
+                                    className={`px-2.5 py-1 rounded-[3px] flex items-center gap-1.5 cursor-pointer transition-colors ${
+                                        mapType === 'roadmap'
+                                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                                    }`}
+                                >
+                                    <Route size={12} />
+                                    <span>Map</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => onChangeMapType('satellite')}
+                                    className={`px-2.5 py-1 rounded-[3px] cursor-pointer transition-colors ${
+                                        mapType === 'satellite'
+                                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                                    }`}
+                                >
+                                    Satellite
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Top-Right Locate Driver & Open in Google Maps Buttons */}
+                        {/* Top-Right Compact Controls: Driver Focus | Fit Full Route | Open in Google Maps */}
                         <div className="absolute top-3 right-3 z-[400] flex items-center gap-1.5">
                             {onFocusDriver && (
                                 <button
                                     type="button"
                                     onClick={onFocusDriver}
-                                    title="Focus on Driver Current Location"
-                                    className="h-8 px-2.5 bg-white dark:bg-[#181c22] hover:bg-slate-50 border border-slate-200 dark:border-slate-700 rounded-[4px] shadow-sm flex items-center gap-1.5 text-xs font-bold text-[#ff4a1f] cursor-pointer"
+                                    title="Focus on Driver Live Position"
+                                    className="h-8 px-2.5 bg-white/95 dark:bg-[#181c22]/95 hover:bg-white border border-slate-200 dark:border-slate-700 rounded-[4px] shadow-sm flex items-center gap-1.5 text-xs font-bold text-[#1A73E8] cursor-pointer transition-colors"
                                 >
                                     <Crosshair size={13} />
                                     <span>Driver</span>
+                                </button>
+                            )}
+                            {onFitRoute && (
+                                <button
+                                    type="button"
+                                    onClick={onFitRoute}
+                                    title="Center Full Route"
+                                    className="w-8 h-8 bg-white/95 dark:bg-[#181c22]/95 hover:bg-white border border-slate-200 dark:border-slate-700 rounded-[4px] shadow-sm flex items-center justify-center text-slate-700 dark:text-slate-200 cursor-pointer transition-colors"
+                                >
+                                    <LocateFixed size={14} />
                                 </button>
                             )}
                             <a
@@ -256,20 +311,28 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                                 target="_blank"
                                 rel="noreferrer"
                                 title="Open Full Route in Google Maps"
-                                className="w-8 h-8 bg-white dark:bg-[#181c22] hover:bg-slate-50 border border-slate-200 dark:border-slate-700 rounded-[4px] shadow-sm flex items-center justify-center text-slate-700 dark:text-slate-200 cursor-pointer"
+                                className="w-8 h-8 bg-white/95 dark:bg-[#181c22]/95 hover:bg-white border border-slate-200 dark:border-slate-700 rounded-[4px] shadow-sm flex items-center justify-center text-slate-700 dark:text-slate-200 cursor-pointer transition-colors"
                             >
                                 <Maximize2 size={14} />
                             </a>
                         </div>
 
-                        {/* Bottom-Left Driver Live Location & Legend Bar */}
+                        {/* Bottom-Left Compact Live Driver Bar */}
                         <div className="absolute bottom-3 left-3 z-[400] flex flex-wrap items-center gap-2 pointer-events-none">
                             <div className="bg-white/95 dark:bg-[#181c22]/95 backdrop-blur-xs border border-slate-200 dark:border-slate-700 rounded-[4px] px-2.5 py-1.5 shadow-sm flex items-center gap-2 text-xs">
-                                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
+                                <span
+                                    className={`w-2 h-2 rounded-full shrink-0 ${
+                                        isCompletedStage
+                                            ? 'bg-emerald-500'
+                                            : hasLiveGps && isGpsFresh
+                                            ? 'bg-[#1A73E8] animate-pulse'
+                                            : 'bg-[#F97316]'
+                                    }`}
+                                />
                                 <span className="text-slate-500 dark:text-slate-400 font-semibold">
-                                    Driver Now:
+                                    {isCompletedStage ? 'Delivered:' : 'Driver Now:'}
                                 </span>
-                                <span className="font-extrabold text-slate-900 dark:text-white">
+                                <span className="font-extrabold text-slate-900 dark:text-white truncate max-w-[220px] sm:max-w-[320px]">
                                     {resolvedDriverLoc}
                                 </span>
                             </div>
@@ -351,3 +414,4 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
 };
 
 export default TrackShipmentMainCard;
+

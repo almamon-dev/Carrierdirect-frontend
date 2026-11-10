@@ -7,11 +7,11 @@ import { useCheckoutCardForm } from "./useCheckoutCardForm";
 import { useCheckoutOperations } from "./useCheckoutOperations";
 import { fetchCustomerCheckoutPlan } from "../utils/checkoutPlanFetcher";
 
-export function useCheckoutState() {
+export function useCheckoutState(userType: "customer" | "supplier" = "customer") {
   const navigate = useNavigate();
   const showToast = useToastStore((state) => state.showToast);
 
-  const planState = useCheckoutPlan();
+  const planState = useCheckoutPlan(userType);
   const [paymentTab, setPaymentTab] = useState<"saved_card" | "new_card">("saved_card");
   const cardForm = useCheckoutCardForm(paymentTab);
 
@@ -50,10 +50,10 @@ export function useCheckoutState() {
 
   const resolvePlanDetails = useCallback(async () => {
     const targetKey = planState.queryPlanId || planState.planFromState?.id;
-    const plan = await fetchCustomerCheckoutPlan(targetKey, planState.planFromState, planState.queryCycle);
+    const plan = await fetchCustomerCheckoutPlan(targetKey, planState.planFromState, planState.queryCycle, userType);
     if (plan) planState.setSelectedPlan(plan);
     return plan;
-  }, [planState]);
+  }, [planState, userType]);
 
   useEffect(() => {
     let isMounted = true;
@@ -77,7 +77,7 @@ export function useCheckoutState() {
 
             if ((currentId && targetId && currentId === targetId) || (currentName && targetName && currentName === targetName)) {
               showToast(`You are already actively subscribed to the ${statusData?.plan_name || planState.selectedPlan?.name} plan.`, "info");
-              navigate("/customer/subscription", { replace: true });
+              navigate(`/${userType}/subscription`, { replace: true });
               return;
             }
           }
@@ -88,7 +88,7 @@ export function useCheckoutState() {
     };
     initializeCheckout();
     return () => { isMounted = false; };
-  }, [planState.queryPlanId, planState.queryCycle]);
+  }, [planState.queryPlanId, planState.queryCycle, userType]);
 
   const operations = useCheckoutOperations({
     planState,
@@ -106,6 +106,7 @@ export function useCheckoutState() {
     setIsDownloadingInvoice,
     successData,
     navigate,
+    userType,
   });
 
   return {

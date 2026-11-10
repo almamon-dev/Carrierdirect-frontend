@@ -6,7 +6,7 @@ export const initialDashboardMetrics = {
     },
     tripsCompleted: {
         value: '0 Orders',
-        subtitle: '0 scheduled',
+        subtitle: '0 active orders',
         count: 0,
     },
     distance: {

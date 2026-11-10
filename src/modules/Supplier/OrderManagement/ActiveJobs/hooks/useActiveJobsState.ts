@@ -9,16 +9,25 @@ export const isOrderCompleted = (job: SupplierOrder): boolean => {
     const isPodApproved = ps === 'confirmed' || ps === 'approved' || ps === 'accepted';
     return (
         st === 'completed' ||
+        st === 'delivered' ||
         st === 'pod accepted' ||
         st === 'pod_accepted' ||
+        st === 'pod uploaded' ||
+        st === 'pod_uploaded' ||
+        st === 'cancelled' ||
         rawSt === 'completed' ||
+        rawSt === 'delivered' ||
         rawSt === 'pod accepted' ||
         rawSt === 'pod_accepted' ||
+        rawSt === 'pod uploaded' ||
+        rawSt === 'pod_uploaded' ||
+        rawSt === 'cancelled' ||
         isPodApproved
     );
 };
 
 export const isOrderInTransit = (job: SupplierOrder): boolean => {
+    if (isOrderCompleted(job)) return false;
     const st = String(job.status || '').toLowerCase().trim();
     const rawSt = String((job as any).status_raw || '').toLowerCase().trim();
     return (
@@ -28,16 +37,12 @@ export const isOrderInTransit = (job: SupplierOrder): boolean => {
         st === 'on_the_way' ||
         st === 'in_progress' ||
         st === 'arrived' ||
-        st === 'delivered' ||
-        st === 'pod_uploaded' ||
         rawSt === 'in transit' ||
         rawSt === 'in_transit' ||
         rawSt === 'picked_up' ||
         rawSt === 'on_the_way' ||
         rawSt === 'in_progress' ||
-        rawSt === 'arrived' ||
-        rawSt === 'delivered' ||
-        rawSt === 'pod_uploaded'
+        rawSt === 'arrived'
     );
 };
 

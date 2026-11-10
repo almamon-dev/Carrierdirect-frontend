@@ -3,10 +3,11 @@ import apiClient from "@/lib/axios";
 export async function fetchCustomerCheckoutPlan(
   targetPlanKey: string | number | null | undefined,
   planFromState: any,
-  queryCycle: string
+  queryCycle: string,
+  userType: "customer" | "supplier" = "customer"
 ) {
   try {
-    const res: any = await apiClient.get(`/subscription/plans?user_type=customer`);
+    const res: any = await apiClient.get(`/subscription/plans?user_type=${userType}`);
     const rawPlans = Array.isArray(res?.data)
       ? res.data
       : (Array.isArray(res?.data?.data)
@@ -45,7 +46,8 @@ export async function fetchCustomerCheckoutPlan(
           (p.name || "").replace(/\s*\((Monthly|Yearly|Annual)\)/i, "").trim().toLowerCase() === baseName
         );
 
-        const monthlyPrice = Number(monthlyVariant?.price ?? matched.price ?? 79);
+        const defaultPrice = userType === "supplier" ? 49 : 79;
+        const monthlyPrice = Number(monthlyVariant?.price ?? matched.price ?? defaultPrice);
         const yearlyPrice = Number(yearlyVariant?.price ?? (monthlyPrice * 10));
         const determinedCycle: "monthly" | "yearly" = (matched.billing_period === "annual" || matched.billing_period === "yearly")
           ? "yearly"
@@ -73,3 +75,5 @@ export async function fetchCustomerCheckoutPlan(
   }
   return null;
 }
+
+export const fetchCheckoutPlan = fetchCustomerCheckoutPlan;

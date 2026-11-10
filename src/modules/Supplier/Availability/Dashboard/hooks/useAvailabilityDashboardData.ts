@@ -23,8 +23,8 @@ export interface DashboardMetrics {
     this_week_jobs: { total: number; confirmed: number };
 }
 
-export function useAvailabilityDashboardData() {
-    const [isLoading, setIsLoading] = useState(true);
+export function useAvailabilityDashboardData(enabled: boolean = true) {
+    const [isLoading, setIsLoading] = useState(enabled);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [metrics, setMetrics] = useState<DashboardMetrics>({
         service_areas: { total: 0, active: 0 },
@@ -179,8 +179,10 @@ export function useAvailabilityDashboardData() {
     }, []);
 
     useEffect(() => {
-        fetchDashboardData();
-    }, [fetchDashboardData]);
+        if (enabled) {
+            fetchDashboardData();
+        }
+    }, [fetchDashboardData, enabled]);
 
     return {
         isLoading,

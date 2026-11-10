@@ -5,6 +5,7 @@ import { Crosshair } from 'lucide-react';
 import Skeleton from '@/components/ui/skeleton';
 import { ServiceAreaSummary, CoverageMapData } from '../types/coverage.types';
 import { getCoordinatesForArea } from '../utils/coverageCoordinates';
+import { getGoogleMapsApiKey } from '@/components/googlePlacesService';
 
 interface CoverageLeafletMapProps {
     serviceAreas?: ServiceAreaSummary[];
@@ -37,12 +38,27 @@ export function CoverageLeafletMap({
     const mapInstanceRef = useRef<L.Map | null>(null);
     const targetCenterRef = useRef<L.LatLngTuple>([51.1657, 10.4515]);
     const targetZoomRef = useRef<number>(6);
-    const [, setIsMapMounted] = useState(false);
+    const [isTilesLoaded, setIsTilesLoaded] = useState(false);
+    const [backendApiKey, setBackendApiKey] = useState<string | null>(null);
+
+    // Fetch official Google Maps API key from backend config
+    useEffect(() => {
+        let isMounted = true;
+        getGoogleMapsApiKey().then((k) => {
+            if (isMounted && k) {
+                setBackendApiKey(k);
+            }
+        });
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const activeAreasCount = totalNodesCount ?? serviceAreas.filter((a) => a.active).length;
 
     useEffect(() => {
         if (isLoading || !mapContainerRef.current) return;
+        setIsTilesLoaded(false);
 
         if (mapInstanceRef.current) {
             mapInstanceRef.current.remove();
@@ -96,20 +112,31 @@ export function CoverageLeafletMap({
             worldCopyJump: true,
         });
 
-        // Map tile layer
-        const effectiveKey = coverageMap?.google_maps_key || apiKey || (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY;
-        const tileUrl = effectiveKey
+        // Map tile layer: standard Google Maps road layer
+        // Strictly avoid tile.openstreetmap.org (403 block) and cartocdn (API key watermark)
+        const effectiveKey = coverageMap?.google_maps_key || apiKey || backendApiKey || (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY;
+        const googleTileUrl = effectiveKey
             ? `https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${effectiveKey}`
-            : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            : 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
 
-        const tileLayer = L.tileLayer(tileUrl, {
-            maxZoom: 18,
-            subdomains: effectiveKey ? ['0', '1', '2', '3'] : ['a', 'b', 'c'],
-            attribution: effectiveKey ? '© Google' : '© OpenStreetMap contributors',
+        const tileLayer = L.tileLayer(googleTileUrl, {
+            maxZoom: 19,
+            subdomains: ['0', '1', '2', '3'],
+            attribution: '© Google Maps',
         }).addTo(map);
 
         tileLayer.on('load', () => {
-            setIsMapMounted(true);
+            setIsTilesLoaded(true);
+        });
+
+        // Fail-safe retry if any tile fails to load
+        tileLayer.on('tileerror', (event: any) => {
+            const tile = event?.tile as HTMLImageElement;
+            const coords = event?.coords;
+            if (tile && coords && !tile.dataset.retried) {
+                tile.dataset.retried = 'true';
+                tile.src = `https://mt1.google.com/vt/lyrs=m&x=${coords.x}&y=${coords.y}&z=${coords.z}`;
+            }
         });
 
         // Helper to construct custom teardrop map pin matching mockup
@@ -228,8 +255,8 @@ export function CoverageLeafletMap({
             if (!autoFitBounds) {
                 map.setView(center, zoom, { animate: false });
             }
-            setIsMapMounted(true);
-        }, 200);
+            setIsTilesLoaded(true);
+        }, 300);
 
         return () => {
             clearTimeout(timer);
@@ -280,6 +307,16 @@ export function CoverageLeafletMap({
 
             {/* Leaflet Map Target */}
             <div ref={mapContainerRef} className="w-full h-full z-10" />
+
+            {/* Soft Loading Overlay while map tiles initialize */}
+            {!isTilesLoaded && (
+                <div className="absolute inset-0 z-[350] flex items-center justify-center bg-slate-50/70 dark:bg-slate-900/70 backdrop-blur-[1px] transition-opacity duration-300 pointer-events-none">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-white dark:bg-[#18202a] border border-slate-200 dark:border-slate-800 shadow-sm text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        <span className="w-2.5 h-2.5 rounded-full border-2 border-[#ff4a1f] border-t-transparent animate-spin" />
+                        <span>Loading Coverage Map...</span>
+                    </div>
+                </div>
+            )}
 
             {/* Top-Left Floating Badge: dynamic Active Operational Areas */}
             <div className="absolute top-3 left-3 z-[400] bg-white/95 dark:bg-[#18202a]/95 backdrop-blur-xs px-3 py-1.5 rounded-[4px] border border-slate-200/90 dark:border-slate-700 shadow-2xs flex items-center gap-2 pointer-events-none">

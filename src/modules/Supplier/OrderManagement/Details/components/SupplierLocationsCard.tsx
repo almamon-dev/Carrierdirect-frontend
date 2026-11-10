@@ -7,8 +7,20 @@ interface SupplierLocationsCardProps {
 }
 
 export const SupplierLocationsCard: React.FC<SupplierLocationsCardProps> = ({ order }) => {
-    const pickupAddress = order.pickupFullAddress || `${order.from} Cargo Hub, Terminal 1`;
-    const deliveryAddress = order.deliveryFullAddress || `${order.to} Logistics Center, Receiving Dock 4`;
+    const fromCity = (order.from && order.from !== '-') ? order.from : 'Gazipur';
+    const toCity = (order.to && order.to !== '-') ? order.to : 'Dhaka';
+
+    const pickupAddress = (order.pickupFullAddress && order.pickupFullAddress !== '-')
+        ? order.pickupFullAddress
+        : (order.pickup_address && order.pickup_address !== '-'
+            ? order.pickup_address
+            : `${fromCity} Cargo Hub, Terminal 1`);
+
+    const deliveryAddress = (order.deliveryFullAddress && order.deliveryFullAddress !== '-')
+        ? order.deliveryFullAddress
+        : (order.delivery_address && order.delivery_address !== '-'
+            ? order.delivery_address
+            : `${toCity} Logistics Center, Receiving Dock 4`);
 
     return (
         <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs overflow-hidden font-sans">
@@ -46,7 +58,7 @@ export const SupplierLocationsCard: React.FC<SupplierLocationsCardProps> = ({ or
                         <div>
                             <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                                 <Building size={13} className="text-slate-400 shrink-0" />
-                                <span>{order.from} Facility</span>
+                                <span>{fromCity} Facility</span>
                             </h4>
                             <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                                 {pickupAddress}
@@ -88,7 +100,7 @@ export const SupplierLocationsCard: React.FC<SupplierLocationsCardProps> = ({ or
                         <div>
                             <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                                 <Warehouse size={13} className="text-slate-400 shrink-0" />
-                                <span>{order.to} Facility</span>
+                                <span>{toCity} Facility</span>
                             </h4>
                             <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                                 {deliveryAddress}

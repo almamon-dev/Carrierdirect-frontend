@@ -25,10 +25,10 @@ interface SidebarProps {
 const navigationMap: Record<string, any[]> = {
     driver: [
         { category: 'Main Menu', name: 'Dashboard', path: '/driver/dashboard', icon: LayoutDashboard },
-        { category: 'Main Menu', name: 'Shipments', path: '/driver/shipments', icon: Truck },
+        { category: 'Main Menu', name: 'My Shipments', path: '/driver/shipments', icon: Truck },
         { category: 'Main Menu', name: 'Live Chat', path: '/driver/chat', icon: MessageSquare },
         { category: 'Main Menu', name: 'Notifications', path: '/driver/notifications', icon: Bell },
-        { category: 'Account & Settings', name: 'Driver Profile', path: '/driver/profile', icon: UserCircle },
+        { category: 'Main Menu', name: 'Driver Profile', path: '/driver/profile', icon: UserCircle },
     ]
 };
 
@@ -40,10 +40,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
     const navItems = navigationMap[currentModule] || [
         { category: 'Main Menu', name: 'Dashboard', path: '/driver/dashboard', icon: LayoutDashboard },
-        { category: 'Main Menu', name: 'Shipments', path: '/driver/shipments', icon: Truck },
+        { category: 'Main Menu', name: 'My Shipments', path: '/driver/shipments', icon: Truck },
         { category: 'Main Menu', name: 'Live Chat', path: '/driver/chat', icon: MessageSquare },
         { category: 'Main Menu', name: 'Notifications', path: '/driver/notifications', icon: Bell },
-        { category: 'Account & Settings', name: 'Driver Profile', path: '/driver/profile', icon: UserCircle },
+        { category: 'Main Menu', name: 'Driver Profile', path: '/driver/profile', icon: UserCircle },
     ];
 
     const handleLogout = () => {
@@ -148,6 +148,26 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     );
                 })}
             </div>
+
+            {/* On the Road / Update Profile Card */}
+            {isOpen && (
+                <div className="p-3.5 mx-3 mb-2 bg-[#FFF7F4] dark:bg-[#1a1c22] border border-[#FFE6DE] dark:border-[#382622] rounded-[4px] text-center space-y-2">
+                    <div className="w-10 h-10 mx-auto rounded-full bg-orange-100 dark:bg-orange-950/60 flex items-center justify-center text-[#FF4A1F]">
+                        <Truck size={20} />
+                    </div>
+                    <div>
+                        <h4 className="text-[12px] font-bold text-slate-800 dark:text-slate-100">On the Road?</h4>
+                        <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5">Keep your profile up to date.</p>
+                    </div>
+                    <Link
+                        to="/driver/profile"
+                        onClick={() => { if (window.innerWidth < 1024) onClose?.(); }}
+                        className="block w-full py-1.5 px-3 bg-[#FF4A1F] hover:bg-[#E03E15] text-white text-[11px] font-bold rounded-[4px] shadow-2xs transition-colors"
+                    >
+                        Update Profile
+                    </Link>
+                </div>
+            )}
 
             <div className="p-4 border-t border-gray-100 dark:border-slate-800 shrink-0 space-y-2">
                 <button

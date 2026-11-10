@@ -23,7 +23,7 @@ export const useFilteredSupplierOrders = ({
     return useMemo(() => {
         return orders.filter((order) => {
             const rawStatus = String(order.status_raw || order.status || '').toLowerCase().trim();
-            const isDelivered = rawStatus === 'delivered' || rawStatus === 'pod_uploaded';
+            const isDelivered = rawStatus === 'delivered' || rawStatus === 'completed' || rawStatus === 'pod_uploaded' || rawStatus === 'pod_accepted' || rawStatus === 'cancelled';
             const isInTransit = rawStatus === 'in_transit' || rawStatus === 'picked_up' || rawStatus === 'on_the_way' || rawStatus === 'in_progress';
             const isDriverAssigned = rawStatus === 'driver_assigned' || rawStatus === 'assigned';
             const isConfirmed = rawStatus === 'confirmed' || rawStatus === 'booked' || rawStatus === 'pending' || rawStatus === 'scheduled';

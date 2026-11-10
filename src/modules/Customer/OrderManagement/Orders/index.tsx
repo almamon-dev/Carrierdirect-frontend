@@ -125,7 +125,7 @@ export default function CustomerOrdersPage() {
                         onResetFilters={handleResetFilters}
                     />
                 }
-                searchPlaceholder="Search by Order ID, description, customer email, or amount..."
+                searchPlaceholder="Search by Order ID, route, carrier, driver, or amount..."
                 compact={true}
                 isLoading={isLoading || isRefreshing}
                 onRowClick={(row) =>

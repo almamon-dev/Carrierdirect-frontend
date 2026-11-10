@@ -1,5 +1,4 @@
-import React from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface TablePaginationProps {
     total: number;
@@ -44,7 +43,7 @@ export default function TablePagination({
     const defaultOptions = isGrid ? [12, 24, 36, 48, 96] : [10, 15, 30, 50, 100];
     const options = perPageOptions || defaultOptions;
     const resolvedItemLabel = itemLabel || (isGrid ? 'items' : 'entries');
-    const resolvedPerPageLabel = perPageLabel || (isGrid ? 'Cards per page:' : 'Rows per page:');
+    const resolvedPerPageLabel = perPageLabel || (isGrid ? 'Cards per page:' : '');
 
     const containerClasses = isGrid
         ? `flex items-center justify-between gap-2 px-3 py-2 bg-white dark:bg-[#12161c] rounded-[3px] border border-[#ebebeb] dark:border-slate-800 shadow-none font-sans ${className}`

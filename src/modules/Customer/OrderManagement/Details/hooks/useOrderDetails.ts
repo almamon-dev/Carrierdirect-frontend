@@ -8,6 +8,9 @@ import {
     buildCustomerOrderTimeline,
 } from '../utils/customerOrderDetailsUtils';
 import { NormalizedCustomerOrder, TimelineItem } from '../types/orderDetail.types';
+import useOrderRealtimeTracking, {
+    DriverLocationBroadcastPayload,
+} from './useOrderRealtimeTracking';
 
 export const useOrderDetails = () => {
     const { id } = useParams<{ id: string }>();
@@ -69,16 +72,50 @@ export const useOrderDetails = () => {
         fetchDetail(false);
     }, [fetchDetail]);
 
-    // Auto-poll live GPS & order status every 15s while shipment is active
-    useEffect(() => {
-        const statusRaw = (apiOrder?.status_raw || apiOrder?.status || '').toLowerCase();
-        if (statusRaw === 'completed' || statusRaw === 'cancelled') return;
+    const handleRealtimeLocationUpdate = useCallback(
+        (payload: DriverLocationBroadcastPayload) => {
+            setApiOrder((prev: any) => {
+                if (!prev) return prev;
+                if (
+                    prev.driver?.id &&
+                    payload.driver_id &&
+                    Number(prev.driver.id) !== Number(payload.driver_id)
+                ) {
+                    fetchDetail(true);
+                    return prev;
+                }
+                return {
+                    ...prev,
+                    driver_lat: payload.latitude,
+                    driver_lng: payload.longitude,
+                    driver_accuracy: payload.accuracy,
+                    driver_speed: payload.speed,
+                    driver_heading: payload.heading,
+                    driver_location_updated_at: payload.recorded_at,
+                    driver_location_updated_human: 'Live now',
+                    status_raw: payload.shipment_status || prev.status_raw,
+                    product_location: {
+                        ...(prev.product_location || {}),
+                        latitude: payload.latitude,
+                        longitude: payload.longitude,
+                        has_live_gps: true,
+                        updated_at: payload.recorded_at,
+                        updated_human: 'Live now',
+                    },
+                };
+            });
+        },
+        [fetchDetail]
+    );
 
-        const interval = setInterval(() => {
-            fetchDetail(true);
-        }, 15000);
-        return () => clearInterval(interval);
-    }, [apiOrder?.status_raw, apiOrder?.status, fetchDetail]);
+    // Subscribe to real-time Reverb WebSocket (`orders.{orderId}.tracking`) with fallback polling only when WS is offline
+    useOrderRealtimeTracking({
+        orderId: apiOrder?.id || cleanId,
+        rawStatus: apiOrder?.status_raw || apiOrder?.status,
+        onLocationUpdate: handleRealtimeLocationUpdate,
+        onResyncRequired: () => fetchDetail(true),
+        fallbackPollIntervalMs: 20000,
+    });
 
     const handleRefreshLive = useCallback(() => {
         fetchDetail(true);

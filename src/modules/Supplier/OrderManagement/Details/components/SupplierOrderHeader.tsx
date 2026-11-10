@@ -1,6 +1,6 @@
 import { StatusBadge } from '@/components/common/StatusBadge';
 import Button from '@/components/ui/button';
-import { ArrowLeft, Box, MessageSquare, MoreVertical, RefreshCw } from 'lucide-react';
+import { MessageSquare, MoreVertical, RefreshCw } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NormalizedSupplierOrder } from '../utils/supplierOrderTrackUtils';
@@ -97,21 +97,6 @@ export const SupplierOrderHeader: React.FC<SupplierOrderHeaderProps> = ({
         <div className="flex flex-col gap-1.5 pb-0.5 font-sans">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
                 <div className="flex items-center gap-2.5 flex-wrap">
-                    {/* Left arrow Back button */}
-                    <button
-                        type="button"
-                        onClick={() => navigate('/supplier/orders')}
-                        className="w-8.5 h-8.5 rounded-[4px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e2329] flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer shadow-2xs shrink-0 transition-colors"
-                        title="Back to Orders"
-                    >
-                        <ArrowLeft size={16} />
-                    </button>
-
-                    {/* Order icon (package / box inside rounded orange container) */}
-                    <div className="w-8.5 h-8.5 rounded-[4px] bg-[#fff5f2] dark:bg-[#2a1c18] border border-[#ffd5cc] dark:border-[#52291d] flex items-center justify-center text-[#ff4a1f] shrink-0 shadow-2xs">
-                        <Box size={18} />
-                    </div>
-
                     {/* Title: Order #ORD-... */}
                     <h1 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-1">
                         <span>Order</span>

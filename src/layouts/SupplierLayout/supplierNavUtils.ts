@@ -12,6 +12,29 @@ export const isSubItemActive = (
         return currentPath === '/supplier/wallet' || currentPath === '/supplier/wallet/overview';
     }
 
+    if (
+        subPath === '/supplier/team/subcontractors' ||
+        subPath === '/supplier/subcontractors' ||
+        subPath === '/supplier/availability/subcontractors'
+    ) {
+        return (
+            currentPath.startsWith('/supplier/team/subcontractors') ||
+            currentPath.startsWith('/supplier/subcontractors') ||
+            currentPath.startsWith('/supplier/availability/subcontractors')
+        );
+    }
+
+    if (subPath === '/supplier/team') {
+        if (
+            currentPath.startsWith('/supplier/team/subcontractors') ||
+            currentPath.startsWith('/supplier/subcontractors') ||
+            currentPath.startsWith('/supplier/availability/subcontractors')
+        ) {
+            return false;
+        }
+        return currentPath === '/supplier/team' || currentPath.startsWith('/supplier/team');
+    }
+
     const isFromMyQuotes =
         currentPath.startsWith('/supplier/quotes/my-quotes') ||
         locationState?.from === 'my-quotes' ||

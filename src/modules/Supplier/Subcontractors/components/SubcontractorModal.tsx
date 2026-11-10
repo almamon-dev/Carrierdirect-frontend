@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Building2, Phone, Mail, FileText, MapPin, Hash, Check } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
@@ -88,10 +89,13 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-3 pt-3 sm:pt-5 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+    return createPortal(
+        <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+            onClick={onClose}
+        >
             <div
-                className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-2.5rem)] font-sans my-0"
+                className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] font-sans my-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -294,7 +298,8 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

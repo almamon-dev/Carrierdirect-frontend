@@ -36,7 +36,7 @@ export const OrderRowActions: React.FC<OrderRowActionsProps> = ({
 
     const rawStatus = String(row?.status_raw || row?.status || '').toLowerCase().trim();
     const isCompleted = rawStatus === 'completed' || rawStatus === 'pod accepted' || rawStatus === 'pod_accepted';
-    const isTransit = !isCompleted && (rawStatus.includes('transit') || rawStatus.includes('progress') || rawStatus.includes('confirmed') || rawStatus.includes('picked') || rawStatus.includes('driver'));
+    const isTransit = !isCompleted && (rawStatus.includes('transit') || rawStatus.includes('progress') || rawStatus.includes('confirmed') || rawStatus.includes('picked') || rawStatus.includes('driver') || rawStatus.includes('assigned') || rawStatus.includes('dispatched'));
     const rawPod = String(row?.pod_status || (row as any)?.pod?.status || '').toLowerCase().trim();
     const hasPodDoc = Boolean(
         row?.proof_of_delivery || (row as any)?.proof || (row as any)?.pod_url || (row as any)?.pod_file || (row as any)?.pod_document_url || (row as any)?.signature || (row as any)?.pod?.file_url || (row as any)?.pod?.is_uploaded

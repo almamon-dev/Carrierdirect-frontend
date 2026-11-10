@@ -14,7 +14,7 @@ class ApiClient {
     constructor() {
         let base = API_CONFIG.baseURL || '';
         if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-            if (!base || base.includes('ngrok')) {
+            if (!base || base.includes('ngrok') || base.includes('cloudflare') || base.includes('trycloudflare')) {
                 base = 'http://localhost:8000/api';
             }
         }
@@ -56,7 +56,7 @@ class ApiClient {
         const config: RequestInit = {
             method: 'GET',
             headers: computedHeaders,
-            body,
+            body: (body && !(body instanceof FormData) && typeof body === 'object') ? JSON.stringify(body) : body,
             ...customConfig,
         };
 
@@ -109,33 +109,54 @@ class ApiClient {
         return this.request<T>(endpoint, { method: 'GET', params, headers: resolvedHeaders, silent: isSilent });
     }
 
-    public post<T = any>(endpoint: string, body?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
+    public post<T = any>(endpoint: string, body?: any, headersOrOptions?: any) {
         const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
-        const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
+        let resolvedHeaders: HeadersInit | undefined = undefined;
+        let isSilent = false;
+        if (headersOrOptions && typeof headersOrOptions === 'object') {
+            if ('silent' in headersOrOptions) isSilent = Boolean(headersOrOptions.silent);
+            if ('headers' in headersOrOptions) resolvedHeaders = headersOrOptions.headers;
+            else if (!('silent' in headersOrOptions)) resolvedHeaders = headersOrOptions as HeadersInit;
+        }
         return this.request<T>(endpoint, {
             method: 'POST',
             body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
             headers: resolvedHeaders,
+            silent: isSilent,
         });
     }
 
-    public put<T = any>(endpoint: string, body?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
+    public put<T = any>(endpoint: string, body?: any, headersOrOptions?: any) {
         const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
-        const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
+        let resolvedHeaders: HeadersInit | undefined = undefined;
+        let isSilent = false;
+        if (headersOrOptions && typeof headersOrOptions === 'object') {
+            if ('silent' in headersOrOptions) isSilent = Boolean(headersOrOptions.silent);
+            if ('headers' in headersOrOptions) resolvedHeaders = headersOrOptions.headers;
+            else if (!('silent' in headersOrOptions)) resolvedHeaders = headersOrOptions as HeadersInit;
+        }
         return this.request<T>(endpoint, {
             method: 'PUT',
             body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
             headers: resolvedHeaders,
+            silent: isSilent,
         });
     }
 
-    public patch<T = any>(endpoint: string, body?: any, headers?: HeadersInit | { headers?: HeadersInit }) {
+    public patch<T = any>(endpoint: string, body?: any, headersOrOptions?: any) {
         const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
-        const resolvedHeaders = (headers && typeof headers === 'object' && 'headers' in headers) ? (headers as any).headers : headers;
+        let resolvedHeaders: HeadersInit | undefined = undefined;
+        let isSilent = false;
+        if (headersOrOptions && typeof headersOrOptions === 'object') {
+            if ('silent' in headersOrOptions) isSilent = Boolean(headersOrOptions.silent);
+            if ('headers' in headersOrOptions) resolvedHeaders = headersOrOptions.headers;
+            else if (!('silent' in headersOrOptions)) resolvedHeaders = headersOrOptions as HeadersInit;
+        }
         return this.request<T>(endpoint, {
             method: 'PATCH',
             body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
             headers: resolvedHeaders,
+            silent: isSilent,
         });
     }
 

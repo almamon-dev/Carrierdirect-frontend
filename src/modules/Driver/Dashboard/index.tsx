@@ -3,15 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { TodayOverviewCards } from './components/TodayOverviewCards';
 import { DriverDashboardSkeleton } from './components/DriverDashboardSkeleton';
 import { DriverDashboardHeader } from './components/DriverDashboardHeader';
-import { ActiveShipmentCard } from './components/ActiveShipmentCard';
-import { TodayScheduleSection } from './components/TodayScheduleSection';
+import { MyShipmentsSection } from './components/MyShipmentsSection';
+import { DriverRouteMapCard } from './components/DriverRouteMapCard';
 import { DriverVerificationBanner } from './components/DriverVerificationBanner';
 import { AssignedVehicleSupportCard } from './components/AssignedVehicleSupportCard';
 import { DriverDashboardModals } from './components/DriverDashboardModals';
 import { requireDriverCompliance, useDriverCompliance } from '../Compliance';
-import { driverApi } from '../services/driverApi';
+import { driverApi, driverShipmentService } from '../services/driverApi';
 import { TOKEN_CONFIG } from '@/config/auth';
 import { initialDashboardMetrics } from './data/dashboardData';
+import { ShipmentItem } from '../types';
 
 function getAuthUser() {
     try {
@@ -33,7 +34,7 @@ export default function DriverDashboard() {
 
     const [metrics, setMetrics] = useState(initialDashboardMetrics);
     const [activeShipment, setActiveShipment] = useState<any>(null);
-    const [scheduleList, setScheduleList] = useState<any[]>([]);
+    const [allShipments, setAllShipments] = useState<ShipmentItem[]>([]);
     const [driverInfo, setDriverInfo] = useState({ vehiclePlate: '231-D-45892', vehicleType: 'Volvo FH16 750 Globetrotter' });
     const [isLoading, setIsLoading] = useState(true);
 
@@ -45,15 +46,32 @@ export default function DriverDashboard() {
 
     const loadDashboard = async () => {
         try {
-            const data = await driverApi.getDashboardData();
+            const [data, shipments] = await Promise.all([
+                driverApi.getDashboardData(),
+                driverShipmentService.getShipments(),
+            ]);
+
             if (data) {
                 if (data.metrics) setMetrics(data.metrics);
-                setActiveShipment(data.activeShipment);
-                setScheduleList(data.scheduleList || []);
+                if (data.activeShipment) setActiveShipment(data.activeShipment);
                 if (data.driverInfo) setDriverInfo(data.driverInfo);
+            }
+
+            if (shipments && Array.isArray(shipments) && shipments.length > 0) {
+                setAllShipments(shipments);
+                if (!data?.activeShipment) {
+                    setActiveShipment(shipments[0]);
+                }
+            } else {
+                setAllShipments([]);
+                if (!data?.activeShipment) {
+                    setActiveShipment(null);
+                }
             }
         } catch (err) {
             console.error('Failed to load driver dashboard data:', err);
+            setAllShipments([]);
+            setActiveShipment(null);
         } finally {
             setIsLoading(false);
         }
@@ -73,12 +91,16 @@ export default function DriverDashboard() {
         }
     };
 
+    const effectiveShipments = allShipments;
+    const effectiveActiveShipment = activeShipment || effectiveShipments[0] || null;
+
+    const handleSelectShipment = (shipment: ShipmentItem) => {
+        setActiveShipment(shipment);
+    };
+
     const handleOpenLiveGPS = (dest?: any) => {
-        requireDriverCompliance(() => {
-            const finalDest = typeof dest === 'string' && dest.trim() ? dest.trim() : (activeShipment?.destination?.address || 'Gazipur, Bangladesh');
-            setGpsDestination(finalDest);
-            setIsGPSOpen(true);
-        }, 'Live GPS Navigation');
+        const shipmentId = effectiveActiveShipment?.id || 'active';
+        navigate(`/driver/navigation/${shipmentId}`);
     };
 
     const handleOpenBOL = () => {
@@ -94,10 +116,11 @@ export default function DriverDashboard() {
     };
 
     const authUser = getAuthUser();
-    const driverName = authUser?.name || 'Commercial Driver';
+    const driverName = authUser?.name || 'Billy Smith';
 
     return (
         <div className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
+            {/* Top Driver Header */}
             <DriverDashboardHeader
                 driverName={driverName}
                 isVerified={isVerified}
@@ -106,6 +129,7 @@ export default function DriverDashboard() {
                 onRefresh={handleRefreshStatus}
             />
 
+            {/* Compliance Banner */}
             <DriverVerificationBanner
                 isVerified={isVerified}
                 verificationStatus={verificationStatus}
@@ -118,30 +142,41 @@ export default function DriverDashboard() {
             {isLoading ? (
                 <DriverDashboardSkeleton />
             ) : (
+                /* Main 2-Column Dashboard Grid matching Mockup */
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-start">
-                    <div className="lg:col-span-7 space-y-3.5 sm:space-y-4">
+                    {/* Left Column (Mockup Left: Today's Overview + My Shipments) */}
+                    <div className="lg:col-span-7 xl:col-span-8 space-y-3.5 sm:space-y-4">
                         <TodayOverviewCards metrics={metrics} />
-                        <ActiveShipmentCard
-                            shipment={activeShipment}
-                            onOpenBOL={handleOpenBOL}
-                            onOpenGPS={() => handleOpenLiveGPS(activeShipment?.destination?.address)}
+
+                        <MyShipmentsSection
+                            allShipments={effectiveShipments}
+                            activeShipmentId={effectiveActiveShipment?.id}
+                            onSelectShipment={handleSelectShipment}
+                            onOpenGPS={handleOpenLiveGPS}
                         />
                     </div>
 
-                    <div className="lg:col-span-5 space-y-3.5 sm:space-y-4">
-                        <TodayScheduleSection scheduleList={scheduleList} />
+                    {/* Right Column (Mockup Right: Live Route Map + Assigned Vehicle & Equipment) */}
+                    <div className="lg:col-span-5 xl:col-span-4 space-y-3.5 sm:space-y-4">
+                        <DriverRouteMapCard
+                            activeShipment={effectiveActiveShipment}
+                            onOpenGPS={() => handleOpenLiveGPS(effectiveActiveShipment?.consignee?.address || effectiveActiveShipment?.delivery_address)}
+                        />
+
                         <AssignedVehicleSupportCard
                             driverInfo={driverInfo}
                             onOpenSupport={() => setIsSupportOpen(true)}
+                            onOpenReports={handleOpenReports}
                         />
                     </div>
                 </div>
             )}
 
+            {/* Modals: Live GPS, BOL, Reports, Support */}
             <DriverDashboardModals
                 isBOLOpen={isBOLOpen}
                 setIsBOLOpen={setIsBOLOpen}
-                activeShipment={activeShipment}
+                activeShipment={effectiveActiveShipment}
                 isReportsOpen={isReportsOpen}
                 setIsReportsOpen={setIsReportsOpen}
                 driverRating={metrics?.driverRating?.rating}

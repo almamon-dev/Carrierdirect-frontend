@@ -9,6 +9,9 @@ export interface FleetDriverItem {
     role: string;
     status: string;
     email?: string;
+    driverType?: 'internal' | 'subcontractor';
+    subcontractorCompany?: string;
+    subcontractorId?: string | number;
 }
 
 export interface FleetVehicleItem {

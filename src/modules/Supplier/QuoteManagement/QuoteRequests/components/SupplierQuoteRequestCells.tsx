@@ -14,7 +14,7 @@ export const SupplierRequestIdCell: React.FC<{ row: QuoteRequest; onNavigate: (p
             <button
                 type="button"
                 onClick={() => onNavigate(`/supplier/quotes/requests/${encryptId(rawId)}`)}
-                className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[13.5px] tracking-tight transition-colors leading-none"
+                className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[12.5px] tracking-tight transition-colors leading-none"
             >
                 {reqText}
             </button>
@@ -38,7 +38,7 @@ export const SupplierCustomerCell: React.FC<{ row: QuoteRequest }> = ({ row }) =
                     {name ? name.charAt(0).toUpperCase() : 'C'}
                 </div>
             )}
-            <span className="font-semibold text-slate-900 dark:text-slate-100 text-[13px] truncate block max-w-full leading-normal">
+            <span className="font-semibold text-slate-900 dark:text-slate-100 text-[12px] truncate block max-w-full leading-normal">
                 {name}
             </span>
         </div>
@@ -49,7 +49,7 @@ export const SupplierAddressCell: React.FC<{ address?: string; row?: any; type?:
     const displayAddr = row ? formatStandardAddress(row, type) : formatStandardAddress(address);
     return (
         <div className="flex items-center min-w-0 w-full overflow-hidden pr-1 min-h-[26px]" title={displayAddr}>
-            <span className="font-medium text-slate-700 dark:text-slate-300 text-[13px] truncate block max-w-full leading-normal">
+            <span className="font-medium text-slate-700 dark:text-slate-300 text-[12px] truncate block max-w-full leading-normal">
                 {displayAddr}
             </span>
         </div>
@@ -63,10 +63,10 @@ export const SupplierDistanceCell: React.FC<{ distance: string }> = ({ distance 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
             <span
-                className="whitespace-nowrap text-slate-700 dark:text-slate-200 text-[13px] font-medium leading-none inline-flex items-center justify-center gap-1.5"
+                className="whitespace-nowrap text-slate-700 dark:text-slate-200 text-[12px] font-medium leading-none inline-flex items-center justify-center gap-1.5"
                 title={isAir ? `Air Flight Distance: ${cleanDist}` : `Road Distance: ${cleanDist}`}
             >
-                {isAir && <Plane size={12} className="shrink-0 text-sky-500" />}
+                {isAir && <Plane size={11} className="shrink-0 text-sky-500" />}
                 <span>{cleanDist}</span>
             </span>
         </div>
@@ -81,7 +81,7 @@ export const SupplierBudgetCell: React.FC<{ budget: string | number }> = ({ budg
     if (isNegotiable) {
         return (
             <div className="flex items-center min-h-[26px]">
-                <span className="whitespace-nowrap font-semibold text-[13px] text-slate-500 dark:text-slate-400">
+                <span className="whitespace-nowrap font-semibold text-[12px] text-slate-500 dark:text-slate-400">
                     Negotiable
                 </span>
             </div>
@@ -92,8 +92,8 @@ export const SupplierBudgetCell: React.FC<{ budget: string | number }> = ({ budg
 
     return (
         <div className="flex items-center min-h-[26px]">
-            <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap text-[13.5px]">
-                {formattedNum} <span className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">EUR</span>
+            <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap text-[12.5px]">
+                {formattedNum} <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">EUR</span>
             </span>
         </div>
     );
@@ -102,11 +102,10 @@ export const SupplierBudgetCell: React.FC<{ budget: string | number }> = ({ budg
 export const SupplierPriorityBadgeCell: React.FC<{ priority: string }> = ({ priority }) => {
     const p = (priority || '').toLowerCase().trim();
     const isActionRequired = p === 'urgent' || p === 'high';
-    const category = isActionRequired ? 'action_required' : 'neutral';
 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
-            <span className={`inline-flex items-center justify-center px-[10px] py-[4px] text-[12px] font-semibold leading-none rounded-[2px] whitespace-nowrap ${
+            <span className={`inline-flex items-center justify-center px-[8px] py-[3px] text-[11px] font-semibold leading-none rounded-[4px] whitespace-nowrap ${
                 isActionRequired ? 'bg-[#F5D0AD] text-[#8A4210]' : 'bg-[#D8DCE3] text-[#374151]'
             }`}>
                 {priority || 'Standard'}
@@ -124,7 +123,7 @@ export const SupplierDateCell: React.FC<{ row: QuoteRequest }> = ({ row }) => {
 
     return (
         <div className="flex items-center justify-center min-h-[26px]">
-            <span className="whitespace-nowrap text-[13px] text-slate-600 dark:text-slate-400 font-medium leading-none">
+            <span className="whitespace-nowrap text-[12px] text-slate-600 dark:text-slate-400 font-medium leading-none">
                 {dateVal}
             </span>
         </div>

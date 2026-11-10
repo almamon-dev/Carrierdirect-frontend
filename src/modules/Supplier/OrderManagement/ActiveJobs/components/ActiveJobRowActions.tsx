@@ -59,7 +59,7 @@ export const ActiveJobRowActions: React.FC<ActiveJobRowActionsProps> = ({
                 <button
                     type="button"
                     onClick={() => navigate('/supplier/orders/assign-driver', { state: { selectedOrder: row } })}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[3px] transition-all cursor-pointer whitespace-nowrap active:scale-95 bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-2xs font-bold"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[4px] transition-all cursor-pointer whitespace-nowrap active:scale-95 bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-2xs font-bold"
                     title={hasDriver ? 'Reassign Driver & Vehicle' : 'Assign Driver & Vehicle'}
                 >
                     <UserCheck size={12} className="text-white shrink-0" />
@@ -70,7 +70,7 @@ export const ActiveJobRowActions: React.FC<ActiveJobRowActionsProps> = ({
             <button
                 type="button"
                 onClick={handleToggle}
-                className="h-7 w-7 p-0 flex items-center justify-center rounded-[3px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="h-7 w-7 p-0 flex items-center justify-center rounded-[4px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="More actions"
             >
                 <MoreVertical size={15} />

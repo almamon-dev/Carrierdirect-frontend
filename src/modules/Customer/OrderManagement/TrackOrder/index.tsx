@@ -10,11 +10,15 @@ import {
     buildNormalizedCustomerOrder,
 } from '../Details/utils/customerOrderDetailsUtils';
 import useCustomerOrderMap from '../Details/hooks/useCustomerOrderMap';
+import useOrderRealtimeTracking, {
+    DriverLocationBroadcastPayload,
+} from '../Details/hooks/useOrderRealtimeTracking';
 
 import TrackShipmentEmptyState from './components/TrackShipmentEmptyState';
 import TrackShipmentMainCard from './components/TrackShipmentMainCard';
 import TrackShipmentBottomCards from './components/TrackShipmentBottomCards';
 import { computeTrackingDisplayMetrics } from './utils/trackingViewUtils';
+import { CustomerOrderDetailsSkeleton } from '../Details/components/CustomerOrderDetailsSkeleton';
 
 export default function CustomerTrackOrderPage() {
     const navigate = useNavigate();
@@ -113,20 +117,63 @@ export default function CustomerTrackOrderPage() {
         }
     }, [initialRawId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    useEffect(() => {
+    const handleRealtimeLocationUpdate = useCallback(
+        (payload: DriverLocationBroadcastPayload) => {
+            setTrackedApiOrder((prev: any) => {
+                if (!prev) return prev;
+                // If driver changed (reassignment), trigger full REST sync
+                if (
+                    prev.driver?.id &&
+                    payload.driver_id &&
+                    Number(prev.driver.id) !== Number(payload.driver_id)
+                ) {
+                    const targetId = prev.order_number || prev.order_id || prev.id;
+                    if (targetId) {
+                        handleSearchOrder(String(targetId), true);
+                    }
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    driver_lat: payload.latitude,
+                    driver_lng: payload.longitude,
+                    driver_accuracy: payload.accuracy,
+                    driver_speed: payload.speed,
+                    driver_heading: payload.heading,
+                    driver_location_updated_at: payload.recorded_at,
+                    driver_location_updated_human: 'Live now',
+                    status_raw: payload.shipment_status || prev.status_raw,
+                    product_location: {
+                        ...(prev.product_location || {}),
+                        latitude: payload.latitude,
+                        longitude: payload.longitude,
+                        has_live_gps: true,
+                        updated_at: payload.recorded_at,
+                        updated_human: 'Live now',
+                    },
+                };
+            });
+        },
+        [handleSearchOrder]
+    );
+
+    const handleRealtimeResync = useCallback(() => {
         if (!trackedApiOrder) return;
-        const statusRaw = String(trackedApiOrder.status_raw || trackedApiOrder.status || '').toLowerCase();
-        if (statusRaw === 'completed' || statusRaw === 'cancelled') return;
-
-        const timer = setInterval(() => {
-            const targetId = trackedApiOrder.order_number || trackedApiOrder.order_id || trackedApiOrder.id;
-            if (targetId) {
-                handleSearchOrder(String(targetId), true);
-            }
-        }, 15000);
-
-        return () => clearInterval(timer);
+        const targetId =
+            trackedApiOrder.order_number || trackedApiOrder.order_id || trackedApiOrder.id;
+        if (targetId) {
+            handleSearchOrder(String(targetId), true);
+        }
     }, [trackedApiOrder, handleSearchOrder]);
+
+    useOrderRealtimeTracking({
+        orderId: trackedApiOrder?.id,
+        rawStatus: trackedApiOrder?.status_raw || trackedApiOrder?.status,
+        onLocationUpdate: handleRealtimeLocationUpdate,
+        onResyncRequired: handleRealtimeResync,
+        fallbackPollIntervalMs: 20000,
+    });
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -168,7 +215,11 @@ export default function CustomerTrackOrderPage() {
         embedMapSrc,
         liveDistanceText,
         liveDurationText,
+        liveRemainingDistanceText,
+        liveRemainingDurationText,
+        liveDriverAddress,
         focusOnProduct,
+        fitFullRoute,
     } = useCustomerOrderMap({
         pickupLat: normalizedOrder?.pickupLat ?? normalizedOrder?.pickup?.lat,
         pickupLng: normalizedOrder?.pickupLng ?? normalizedOrder?.pickup?.lng,
@@ -201,12 +252,27 @@ export default function CustomerTrackOrderPage() {
         driverLocationLabel,
         pickupStatusLabel,
         isPickupCompleted,
+        hasLiveGps,
+        isGpsFresh,
+        gpsUpdatedHuman,
         progressSteps,
-    } = computeTrackingDisplayMetrics(normalizedOrder, timeline, liveDistanceText, liveDurationText);
+    } = computeTrackingDisplayMetrics(
+        normalizedOrder,
+        timeline,
+        liveDistanceText,
+        liveDurationText,
+        {
+            liveRemainingDistanceText,
+            liveRemainingDurationText,
+            liveDriverAddress,
+        }
+    );
 
     return (
         <div className="p-2.5 sm:p-4 w-full flex flex-col min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] pb-8 space-y-3 text-slate-800 dark:text-slate-200 antialiased">
-            {!normalizedOrder ? (
+            {isSearching && !normalizedOrder ? (
+                <CustomerOrderDetailsSkeleton />
+            ) : !normalizedOrder ? (
                 <TrackShipmentEmptyState
                     searchInput={searchInput}
                     onSearchInputChange={setSearchInput}
@@ -235,6 +301,9 @@ export default function CustomerTrackOrderPage() {
                         driverLocationLabel={driverLocationLabel}
                         pickupStatusLabel={pickupStatusLabel}
                         isPickupCompleted={isPickupCompleted}
+                        hasLiveGps={hasLiveGps}
+                        isGpsFresh={isGpsFresh}
+                        gpsUpdatedHuman={gpsUpdatedHuman}
                         progressSteps={progressSteps}
                         mapContainerRef={mapContainerRef}
                         mapLoaded={mapLoaded}
@@ -242,6 +311,7 @@ export default function CustomerTrackOrderPage() {
                         mapType={mapType}
                         onChangeMapType={setMapType}
                         onFocusDriver={focusOnProduct}
+                        onFitRoute={fitFullRoute}
                         embedMapSrc={embedMapSrc}
                         googleMapsUrl={googleMapsUrl}
                     />

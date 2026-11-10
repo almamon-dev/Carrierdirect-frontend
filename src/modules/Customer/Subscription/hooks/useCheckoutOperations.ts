@@ -18,6 +18,7 @@ interface UseCheckoutOperationsProps {
   setIsDownloadingInvoice: (val: boolean) => void;
   successData: any;
   navigate: (url: string) => void;
+  userType?: "customer" | "supplier";
 }
 
 export function useCheckoutOperations({
@@ -36,6 +37,7 @@ export function useCheckoutOperations({
   setIsDownloadingInvoice,
   successData,
   navigate,
+  userType = "customer",
 }: UseCheckoutOperationsProps) {
   const showToast = useToastStore((state) => state.showToast);
 
@@ -162,10 +164,10 @@ export function useCheckoutOperations({
         showToast("Downloading tax invoice...", "info");
         return;
       }
-      navigate("/customer/subscription?tab=history");
+      navigate(`/${userType}/subscription?tab=history`);
     } catch (err) {
       console.warn("Tax invoice download failed:", err);
-      navigate("/customer/subscription?tab=history");
+      navigate(`/${userType}/subscription?tab=history`);
     } finally {
       setIsDownloadingInvoice(false);
     }

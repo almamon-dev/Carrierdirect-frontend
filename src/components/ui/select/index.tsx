@@ -54,7 +54,14 @@ export default function Select({
         }
         const normLower = String(normalizedValue ?? "").toLowerCase().trim();
         const optLower = String(optId ?? "").toLowerCase().trim();
-        return normLower !== "" && normLower === optLower;
+        if (normLower === "" || optLower === "") return false;
+        if (normLower === optLower) return true;
+        const matchedOpt = finalOptions.find(o => String(o.id ?? o.value).toLowerCase().trim() === optLower);
+        if (matchedOpt) {
+            if (matchedOpt.rawId && String(matchedOpt.rawId).toLowerCase().trim() === normLower) return true;
+            if (matchedOpt.order_id && String(matchedOpt.order_id).toLowerCase().trim() === normLower) return true;
+        }
+        return false;
     };
 
     const handleSelectOption = (option: SelectOption) => {
@@ -104,9 +111,10 @@ export default function Select({
             const spaceAbove = rect.top;
 
             const count = finalOptions.length || 1;
-            const itemHeight = size === 'sm' ? 32 : 36;
+            const hasSubtitles = finalOptions.some(o => Boolean(o.subtitle));
+            const itemHeight = hasSubtitles ? 46 : (size === 'sm' ? 32 : 36);
             const searchHeight = shouldShowSearch ? 45 : 0;
-            const estimatedHeight = Math.min(240, count * itemHeight + searchHeight + 10);
+            const estimatedHeight = Math.min(300, count * itemHeight + searchHeight + 10);
 
             let placement: 'down' | 'up' = 'down';
             if (direction === 'up') {
@@ -131,10 +139,10 @@ export default function Select({
 
             if (placement === 'up') {
                 bottom = Math.max(8, window.innerHeight - rect.top + 4);
-                maxHeight = Math.min(240, Math.max(100, spaceAbove - 16));
+                maxHeight = Math.min(300, Math.max(100, spaceAbove - 16));
             } else {
                 top = rect.bottom + 4;
-                maxHeight = Math.min(240, Math.max(100, spaceBelow - 16));
+                maxHeight = Math.min(300, Math.max(100, spaceBelow - 16));
             }
 
             const width = size === "sm" ? Math.max(rect.width, 100) : Math.max(140, rect.width);

@@ -20,7 +20,7 @@ export const TrackShipmentEmptyState: React.FC<TrackShipmentEmptyStateProps> = (
     errorMessage,
 }) => {
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs w-full min-h-[76vh] flex flex-col items-center justify-center p-6 sm:p-10 font-sans">
+        <div className="w-full min-h-[76vh] flex flex-col items-center justify-center p-6 sm:p-10 font-sans">
             <div className="w-full max-w-xl mx-auto text-center space-y-5">
                 {/* Map + Route + Pin Illustration */}
                 <div className="mx-auto w-28 h-24 flex items-center justify-center">
@@ -64,7 +64,7 @@ export const TrackShipmentEmptyState: React.FC<TrackShipmentEmptyStateProps> = (
                 {/* System-Matched Search Bar */}
                 <form
                     onSubmit={onSubmit}
-                    className="bg-slate-50 dark:bg-[#14181f] border border-slate-200 dark:border-slate-800 rounded-[4px] p-1.5 shadow-2xs flex items-center gap-2 max-w-lg mx-auto"
+                    className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-1.5 shadow-2xs flex items-center gap-2 max-w-lg mx-auto"
                 >
                     <div className="relative flex-1 flex items-center">
                         <Search size={15} className="ml-2.5 text-slate-400 shrink-0 pointer-events-none" />

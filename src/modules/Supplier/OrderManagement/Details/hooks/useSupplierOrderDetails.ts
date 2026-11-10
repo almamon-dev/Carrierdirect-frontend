@@ -23,8 +23,10 @@ export const useSupplierOrderDetails = () => {
         phone: string;
         email?: string;
         plate: string;
+        vehicle_type?: string;
         driverType?: 'internal' | 'subcontractor';
         subcontractorCompany?: string;
+        journeyLeg?: string;
     } | null>(null);
     const [isPodUploaded, setIsPodUploaded] = useState<boolean>(false);
 
@@ -46,31 +48,34 @@ export const useSupplierOrderDetails = () => {
         }
     }, [paramId, cleanId, navigate, location.state]);
 
+    const refetch = useCallback(async () => {
+        if (!cleanId) return;
+        try {
+            const res = await apiClient.get(`/supplier/orders/${cleanId}`);
+            const data = res.data?.data || res.data;
+            if (data) {
+                setApiOrder(data);
+                if (data.status === 'completed' || data.status === 'pod_accepted' || data.pod_status === 'confirmed') {
+                    setIsPodUploaded(true);
+                }
+            }
+        } catch (err) {
+            console.warn('Could not fetch supplier order details from API:', err);
+        }
+    }, [cleanId]);
+
     useEffect(() => {
         let isMounted = true;
         if (cleanId) {
             setIsLoading(!apiOrder);
-            apiClient
-                .get(`/supplier/orders/${cleanId}`)
-                .then((res) => {
-                    const data = res.data?.data || res.data;
-                    if (!isMounted || !data) return;
-                    setApiOrder(data);
-                    if (data.status === 'completed' || data.status === 'pod_accepted' || data.pod_status === 'confirmed') {
-                        setIsPodUploaded(true);
-                    }
-                })
-                .catch((err) => {
-                    console.warn('Could not fetch supplier order details from API:', err);
-                })
-                .finally(() => {
-                    if (isMounted) setIsLoading(false);
-                });
+            refetch().finally(() => {
+                if (isMounted) setIsLoading(false);
+            });
         }
         return () => {
             isMounted = false;
         };
-    }, [cleanId]);
+    }, [cleanId, refetch]);
 
     const isPodAccepted = apiOrder?.status === 'completed' || statusOverride === 'completed';
 
@@ -193,6 +198,8 @@ export const useSupplierOrderDetails = () => {
         handleDownloadInvoice,
         handlePrint,
         handleOpenChat,
+        refetch,
+        setAssignedDriverOverride,
     };
 };
 

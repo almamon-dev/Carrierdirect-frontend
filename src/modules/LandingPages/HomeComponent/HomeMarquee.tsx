@@ -42,7 +42,7 @@ const HomeMarquee = () => {
     : DEFAULT_BRANDS;
 
   return (
-    <div className="py-6 bg-white dark:bg-[#12161c] border-y border-slate-200 dark:border-slate-800 overflow-hidden">
+    <div className="py-6 bg-transparent overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-around flex-wrap gap-8 opacity-75 dark:opacity-90">
         {brandList.map((brand) => (
           <img

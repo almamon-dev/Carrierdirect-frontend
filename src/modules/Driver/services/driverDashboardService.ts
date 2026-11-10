@@ -52,7 +52,7 @@ export const driverDashboardService = {
                         value: `${tripsCount} ${tripsCount === 1 ? 'Order' : 'Orders'}`,
                         subtitle: deliveredCount > 0
                             ? `${deliveredCount} completed • ${activeShipmentsCount} active`
-                            : (tripsCount > 0 ? `${activeShipmentsCount} in progress today` : '0 scheduled today'),
+                            : (tripsCount > 0 ? `${activeShipmentsCount} active dispatch` : '0 active orders'),
                         count: tripsCount,
                     },
                     distance: {
@@ -73,26 +73,16 @@ export const driverDashboardService = {
                 let activeShipment = null;
                 if (activeShipmentItem) {
                     activeShipment = {
-                        id: activeShipmentItem.id,
-                        orderNumber: activeShipmentItem.orderNumber,
+                        ...activeShipmentItem,
                         cargoTag: activeShipmentItem.cargo?.freightType || activeShipmentItem.cargo?.palletType || '-',
-                        status: activeShipmentItem.status === 'in_transit' ? 'IN TRANSIT' :
-                            activeShipmentItem.status === 'at_pickup' ? 'AT PICKUP DOCK' :
-                                activeShipmentItem.status === 'at_delivery' ? 'AT CONSIGNEE DOCK' :
-                                    activeShipmentItem.status === 'delivered' ? 'DELIVERED' : 'ASSIGNED',
                         origin: {
                             name: activeShipmentItem.shipper?.company || activeShipmentItem.shipper?.name || '',
-                            address: activeShipmentItem.shipper?.address ? `${activeShipmentItem.shipper.address}, ${activeShipmentItem.shipper.city || ''}` : '',
+                            address: activeShipmentItem.shipper?.address ? `${activeShipmentItem.shipper.address}, ${activeShipmentItem.shipper.city || ''}` : activeShipmentItem.pickup_address,
                         },
                         destination: {
                             name: activeShipmentItem.consignee?.company || activeShipmentItem.consignee?.name || '',
-                            address: activeShipmentItem.consignee?.address ? `${activeShipmentItem.consignee.address}, ${activeShipmentItem.consignee.city || ''}` : '',
+                            address: activeShipmentItem.consignee?.address ? `${activeShipmentItem.consignee.address}, ${activeShipmentItem.consignee.city || ''}` : activeShipmentItem.delivery_address,
                         },
-                        cargo: {
-                            type: activeShipmentItem.cargo?.freightType || '',
-                            weight: `${activeShipmentItem.cargo?.weightKg || 0} kg`,
-                            tempControlled: activeShipmentItem.cargo?.temperatureControlled || undefined,
-                        }
                     };
                 }
 

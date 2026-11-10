@@ -50,10 +50,10 @@ export const StandardRouteCell: React.FC<StandardRouteCellProps> = ({
 
     return (
         <div className="flex flex-col justify-center min-w-0 max-w-full overflow-hidden pr-2 min-h-[30px]" title={displayRoute}>
-            <div className="flex items-center gap-1.5 min-w-0 max-w-full text-[13.5px] font-semibold text-slate-900 dark:text-slate-100 leading-snug">
+            <div className="flex items-center gap-1.5 min-w-0 max-w-full text-[12.5px] font-semibold text-slate-900 dark:text-slate-100 leading-snug">
                 <span className="truncate" title={fromPart}>{fromPart}</span>
                 <span
-                    className="text-[#ff4a1f] dark:text-[#ff4a1f] font-black shrink-0 text-[15.5px] select-none leading-none mx-0.5 inline-flex items-center tracking-normal font-bold"
+                    className="text-[#ff4a1f] dark:text-[#ff4a1f] font-black shrink-0 text-[13.5px] select-none leading-none mx-0.5 inline-flex items-center tracking-normal font-bold"
                     aria-hidden="true"
                 >
                     ⇆
@@ -61,10 +61,10 @@ export const StandardRouteCell: React.FC<StandardRouteCellProps> = ({
                 <span className="truncate" title={toPart}>{toPart}</span>
             </div>
             {hasSubInfo && (
-                <div className="flex items-center gap-1.5 text-[12px] text-slate-500 dark:text-slate-400 font-normal truncate mt-0.5 leading-tight">
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-normal truncate mt-0.5 leading-tight">
                     {cleanDistance && (
                         <span className="inline-flex items-center gap-1 shrink-0 text-slate-600 dark:text-slate-300 font-medium">
-                            <MapPin size={11.5} className="text-[#ff4a1f] shrink-0" />
+                            <MapPin size={11} className="text-[#ff4a1f] shrink-0" />
                             <span>{cleanDistance}</span>
                         </span>
                     )}

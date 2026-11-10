@@ -1,4 +1,5 @@
 import { ShipmentItem, ShipmentStatus } from '../types';
+import { extractCoordinatesFromAddress } from '@/utils/knownCoordinates';
 
 function extractPodData(raw: any) {
     const podRaw =
@@ -163,12 +164,12 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
             currentLat: raw.route?.currentLat,
             currentLng: raw.route?.currentLng,
             originCoords: {
-                lat: raw.pickup_lat ?? raw.route?.origin_coords?.lat ?? raw.route?.originCoords?.lat ?? 23.7881199,
-                lng: raw.pickup_lng ?? raw.route?.origin_coords?.lng ?? raw.route?.originCoords?.lng ?? 90.3736584,
+                lat: raw.pickup_lat ?? raw.route?.origin_coords?.lat ?? raw.route?.originCoords?.lat ?? (extractCoordinatesFromAddress(pickupAddress)?.[0] || extractCoordinatesFromAddress(pickupCity)?.[0] || 23.8981),
+                lng: raw.pickup_lng ?? raw.route?.origin_coords?.lng ?? raw.route?.originCoords?.lng ?? (extractCoordinatesFromAddress(pickupAddress)?.[1] || extractCoordinatesFromAddress(pickupCity)?.[1] || 90.3972),
             },
             destinationCoords: {
-                lat: raw.delivery_lat ?? raw.route?.destination_coords?.lat ?? raw.route?.destinationCoords?.lat ?? 24.2602295,
-                lng: raw.delivery_lng ?? raw.route?.destination_coords?.lng ?? raw.route?.destinationCoords?.lng ?? 90.6422041,
+                lat: raw.delivery_lat ?? raw.route?.destination_coords?.lat ?? raw.route?.destinationCoords?.lat ?? (extractCoordinatesFromAddress(deliveryAddress)?.[0] || extractCoordinatesFromAddress(deliveryCity)?.[0] || 23.7534),
+                lng: raw.delivery_lng ?? raw.route?.destination_coords?.lng ?? raw.route?.destinationCoords?.lng ?? (extractCoordinatesFromAddress(deliveryAddress)?.[1] || extractCoordinatesFromAddress(deliveryCity)?.[1] || 90.3698),
             },
         },
         payout: {

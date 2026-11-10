@@ -21,6 +21,7 @@ import Brand6 from '@/assets/Images/Brand6.png';
 import Brand7 from '@/assets/Images/Brand7.png';
 import bd from '@/assets/Images/bd.png';
 import us from '@/assets/Images/us.png';
+import white_freight_truck from '@/assets/Images/white_freight_truck.png';
 
 export const AllImages = {
   Logo,
@@ -46,4 +47,5 @@ export const AllImages = {
   Brand7,
   bd,
   us,
+  white_freight_truck,
 };

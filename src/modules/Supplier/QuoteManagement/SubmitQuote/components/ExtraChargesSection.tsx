@@ -109,17 +109,18 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
             </div>
             
             {extraCharges.length > 0 && (
-                <div className="space-y-2 mb-2">
+                <div className="space-y-2.5 mb-2">
                     {extraCharges.map((charge, idx) => (
-                        <div key={idx} className="flex flex-col gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800/80 last:border-0 last:pb-0">
+                        <div key={idx} className="pb-2.5 border-b border-slate-100 dark:border-slate-800/80 last:border-0 last:pb-0">
                             <div className="flex items-center gap-2">
                                 <div className="flex-1 min-w-0">
                                     <Select
+                                        size="sm"
                                         value={charge.type}
                                         onChange={(e) => handleUpdateCharge(idx, 'type', typeof e === 'object' ? (e.target?.value ?? e.value) : e)}
                                         options={selectOptions}
                                         showSearch={false}
-                                        className="text-xs !h-7.5 py-0 rounded-[3px]"
+                                        placeholder="Select charge type..."
                                     />
                                 </div>
                                 <div className="w-24 shrink-0">
@@ -127,7 +128,7 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
                                         type="number" 
                                         placeholder="0.00" 
                                         icon={<span className="text-slate-400 text-xs font-medium">€</span>}
-                                        className="text-xs !h-7.5 font-medium rounded-[3px]"
+                                        className="text-xs !h-[30px] font-medium rounded-[4px]"
                                         value={charge.amount}
                                         onChange={(e) => handleUpdateCharge(idx, 'amount', e.target.value)}
                                     />
@@ -135,19 +136,25 @@ export const ExtraChargesSection: React.FC<ExtraChargesSectionProps> = ({
                                 <button 
                                     type="button" 
                                     onClick={() => handleRemoveCharge(idx)}
-                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-[3px] transition-colors cursor-pointer shrink-0"
+                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-[4px] transition-colors cursor-pointer shrink-0"
                                     title="Remove charge"
                                 >
                                     <Trash2 size={13} />
                                 </button>
                             </div>
                             {charge.type === 'Custom' && (
-                                <Input
-                                    placeholder="Custom charge name (e.g. Parking Fee)"
-                                    className="text-xs !h-7 rounded-[3px] w-full"
-                                    value={charge.customName}
-                                    onChange={(e) => handleUpdateCharge(idx, 'customName', e.target.value)}
-                                />
+                                <div className="flex items-center gap-2 mt-2">
+                                    <div className="flex-1 min-w-0">
+                                        <Input
+                                            placeholder="Custom charge name (e.g. Parking Fee)"
+                                            className="text-xs !h-[30px] rounded-[4px]"
+                                            value={charge.customName}
+                                            onChange={(e) => handleUpdateCharge(idx, 'customName', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="w-24 shrink-0" aria-hidden="true" />
+                                    <div className="w-7 shrink-0" aria-hidden="true" />
+                                </div>
                             )}
                         </div>
                     ))}

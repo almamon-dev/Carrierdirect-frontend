@@ -6,6 +6,11 @@ export interface SelectOption {
     value?: string | number;
     name?: string | React.ReactNode;
     label?: string | React.ReactNode;
+    selectedLabel?: string;
+    subtitle?: string | React.ReactNode;
+    badge?: string;
+    badgeColor?: 'fleet' | 'subcontractor' | 'neutral';
+    searchText?: string;
     image?: string;
     icon?: LucideIcon | React.ElementType | React.ReactNode;
     [key: string]: any;

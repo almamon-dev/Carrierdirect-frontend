@@ -141,8 +141,19 @@ export default function DriverLayout() {
         navigate('/web/login');
     };
 
+    const isNavigationRoute = location.pathname.includes('/navigation');
     const isUnverifiedBlocked = !isLoading && !isVerified && location.pathname !== '/driver/profile';
     const showLockModal = isUnverifiedBlocked || isLockPromptOpen;
+
+    if (isNavigationRoute) {
+        return (
+            <div className="w-screen h-screen overflow-hidden bg-slate-950">
+                <React.Suspense fallback={<RouteLoadingFallback />}>
+                    <Outlet />
+                </React.Suspense>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen bg-[#f8fafc] dark:bg-[#12161c] overflow-hidden">

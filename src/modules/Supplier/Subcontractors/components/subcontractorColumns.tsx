@@ -1,7 +1,6 @@
-import React from 'react';
-import { Column } from '@/components/tables/data-table';
 import { StatusBadge } from '@/components/common/StatusBadge';
-import { Building2, Users } from 'lucide-react';
+import { Column } from '@/components/tables/data-table';
+import { Users } from 'lucide-react';
 import { Subcontractor } from '../types';
 
 interface GetSubcontractorColumnsProps {
@@ -32,7 +31,7 @@ export function getSubcontractorColumns({
             className: 'w-[220px] min-w-[220px]',
             render: (row) => (
                 <div className="flex items-center gap-2.5 whitespace-nowrap min-w-0 min-h-[26px]">
-                    <div className="w-6.5 h-6.5 rounded-[4px] bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] border border-orange-200/80 dark:border-orange-800/80 flex items-center justify-center text-[10.5px] font-extrabold shrink-0 shadow-2xs">
+                    <div className="w-6 h-6 min-w-6 min-h-6 aspect-square rounded-full bg-orange-50 dark:bg-orange-950/40 text-[#ff4a1f] border border-orange-200/80 dark:border-orange-800/80 flex items-center justify-center text-[10.5px] font-extrabold shrink-0 shadow-2xs">
                         {row.name ? row.name.charAt(0).toUpperCase() : 'C'}
                     </div>
                     <button

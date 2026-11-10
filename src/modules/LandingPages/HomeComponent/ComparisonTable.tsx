@@ -48,18 +48,18 @@ export default function ComparisonTable() {
     : DEFAULT_COMPARISONS;
 
   return (
-    <section className="w-full bg-transparent pt-12 pb-6 px-4 overflow-hidden relative">
+    <section className="w-full bg-transparent pt-8 pb-5 px-4 overflow-hidden relative">
       <div className="relative max-w-7xl mx-auto">
 
         {/* Section Title */}
-        <div className="text-center mb-10">
-          <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-2 block">
+        <div className="text-center mb-6">
+          <span className="text-[#ff4a1f] font-semibold tracking-wider text-[10px] uppercase mb-1.5 block">
             {badge}
           </span>
-          <h2 className="text-[#0f0400] dark:text-slate-100 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3">
+          <h2 className="text-[#0f0400] dark:text-slate-100 text-xl sm:text-2xl font-extrabold tracking-tight mb-2">
             {title}
           </h2>
-          <p className="text-gray-500 dark:text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
+          <p className="text-gray-500 dark:text-slate-400 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
             {subtitle}
           </p>
         </div>
@@ -67,13 +67,13 @@ export default function ComparisonTable() {
         {/* Comparison Matrix Container */}
         <div 
           ref={reveal.ref}
-          className={`rounded-2xl border border-gray-200 dark:border-[#384150] bg-white dark:bg-[#181a20] shadow-xl dark:shadow-none overflow-hidden reveal ${reveal.isVisible ? "visible" : ""}`}
+          className={`rounded-xl border border-gray-200 dark:border-[#384150] bg-white dark:bg-[#181a20] shadow-md dark:shadow-none overflow-hidden reveal ${reveal.isVisible ? "visible" : ""}`}
         >
           {/* Header Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 border-b border-gray-200 dark:border-[#384150]">
             
             {/* Left Header */}
-            <div className="px-6 py-4 bg-gray-100/70 dark:bg-[#14181f] flex items-center justify-between border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#384150]">
+            <div className="px-4 sm:px-6 py-3 bg-gray-100/70 dark:bg-[#14181f] flex items-center justify-between border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#384150]">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-gray-400"></span>
                 <h3 className="text-gray-600 dark:text-slate-400 font-bold text-xs tracking-wider">
@@ -86,15 +86,15 @@ export default function ComparisonTable() {
             </div>
 
             {/* Right Header */}
-            <div className="px-6 py-4 bg-[#0f0400] dark:bg-[#1c2128] flex items-center justify-between relative overflow-hidden">
+            <div className="px-4 sm:px-6 py-3 bg-[#0f0400] dark:bg-[#1c2128] flex items-center justify-between relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-[#ff4a1f]/20 via-transparent to-[#ff4a1f]/10 pointer-events-none"></div>
               <div className="flex items-center gap-2 relative z-10">
-                <Sparkles className="w-4 h-4 text-[#ff4a1f]" />
+                <Sparkles className="w-3.5 h-3.5 text-[#ff4a1f]" />
                 <h3 className="text-white font-bold text-xs tracking-wider">
                   Carrier Direct Platform
                 </h3>
               </div>
-              <span className="relative z-10 text-[10px] font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-[#ff4a1f] text-white shadow-sm">
+              <span className="relative z-10 text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#ff4a1f] text-white shadow-xs">
                 Recommended
               </span>
             </div>
@@ -110,9 +110,9 @@ export default function ComparisonTable() {
               >
                 
                 {/* Traditional Side */}
-                <div className="px-6 py-4 flex items-center gap-3 bg-gray-50/40 dark:bg-[#14181f]/40 md:border-r border-gray-200 dark:border-[#384150]">
-                  <span className="w-5 h-5 rounded-full bg-gray-200/80 dark:bg-red-500/10 flex items-center justify-center shrink-0 border border-transparent dark:border-red-500/20">
-                    <X className="w-3 h-3 text-gray-500 dark:text-red-400 stroke-[3]" />
+                <div className="px-4 sm:px-6 py-2.5 sm:py-3 flex items-center gap-2.5 bg-gray-50/40 dark:bg-[#14181f]/40 md:border-r border-gray-200 dark:border-[#384150]">
+                  <span className="w-4 h-4 rounded-full bg-gray-200/80 dark:bg-red-500/10 flex items-center justify-center shrink-0 border border-transparent dark:border-red-500/20">
+                    <X className="w-2.5 h-2.5 text-gray-500 dark:text-red-400 stroke-[3]" />
                   </span>
                   <span className="text-gray-500 dark:text-slate-400 text-xs font-medium">
                     {row.traditional}
@@ -120,9 +120,9 @@ export default function ComparisonTable() {
                 </div>
 
                 {/* Carrier Direct Side */}
-                <div className="px-6 py-4 flex items-center gap-3 bg-white dark:bg-[#181a20] group-hover:bg-orange-50/30 dark:group-hover:bg-[#ff4a1f]/10 transition-colors">
-                  <span className="w-5 h-5 rounded-full bg-[#ff4a1f]/10 dark:bg-[#ff4a1f]/20 flex items-center justify-center shrink-0 border border-[#ff4a1f]/30">
-                    <Check className="w-3 h-3 text-[#ff4a1f] stroke-[3]" />
+                <div className="px-4 sm:px-6 py-2.5 sm:py-3 flex items-center gap-2.5 bg-white dark:bg-[#181a20] group-hover:bg-orange-50/30 dark:group-hover:bg-[#ff4a1f]/10 transition-colors">
+                  <span className="w-4 h-4 rounded-full bg-[#ff4a1f]/10 dark:bg-[#ff4a1f]/20 flex items-center justify-center shrink-0 border border-[#ff4a1f]/30">
+                    <Check className="w-2.5 h-2.5 text-[#ff4a1f] stroke-[3]" />
                   </span>
                   <span className="text-[#0f0400] dark:text-white text-xs font-bold">
                     {row.platform}

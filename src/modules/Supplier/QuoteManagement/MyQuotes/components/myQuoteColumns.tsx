@@ -43,15 +43,15 @@ export const getMyQuoteColumns = ({ onNavigate }: MyQuoteColumnsOptions): Column
                     <button
                         type="button"
                         onClick={() => onNavigate(`/supplier/quotes/my-quotes/${encryptId(rawQuoteId)}`, { from: 'my-quotes' })}
-                        className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[13.5px] tracking-tight transition-colors leading-none"
+                        className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#ff4a1f] dark:hover:text-[#ff4a1f] text-left whitespace-nowrap cursor-pointer text-[12.5px] tracking-tight transition-colors leading-none"
                     >
                         {quoteText}
                     </button>
-                    <div className="flex items-center gap-1 mt-1 leading-none">
+                    <div className="flex items-center gap-1 mt-0.5 leading-none">
                         <button
                             type="button"
                             onClick={() => onNavigate(`/supplier/quotes/requests/${encryptId(rawReqId)}`)}
-                            className="text-[11px] font-semibold text-slate-500 hover:text-[#ff4a1f] dark:text-slate-400 dark:hover:text-[#ff4a1f] whitespace-nowrap cursor-pointer"
+                            className="text-[10.5px] font-semibold text-slate-500 hover:text-[#ff4a1f] dark:text-slate-400 dark:hover:text-[#ff4a1f] whitespace-nowrap cursor-pointer"
                         >
                             {reqText}
                         </button>
@@ -84,7 +84,7 @@ export const getMyQuoteColumns = ({ onNavigate }: MyQuoteColumnsOptions): Column
                         {row.customer ? row.customer.charAt(0).toUpperCase() : 'C'}
                     </div>
                 )}
-                <span className="font-semibold text-slate-900 dark:text-slate-100 text-[13px] truncate">
+                <span className="font-semibold text-slate-900 dark:text-slate-100 text-[12px] truncate">
                     {row.customer}
                 </span>
             </div>
@@ -107,12 +107,12 @@ export const getMyQuoteColumns = ({ onNavigate }: MyQuoteColumnsOptions): Column
             return (
                 <div className="flex flex-col justify-center min-h-[26px]">
                     {offerVal ? (
-                        <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap text-[13.5px] leading-tight">
+                        <span className="font-bold text-slate-900 dark:text-white whitespace-nowrap text-[12.5px] leading-tight">
                             €{Number(offerVal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
                             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">EUR</span>
                         </span>
                     ) : (
-                        <span className="whitespace-nowrap font-semibold text-[13px] text-slate-500 dark:text-slate-400">
+                        <span className="whitespace-nowrap font-semibold text-[12px] text-slate-500 dark:text-slate-400">
                             {row.budget || 'Negotiable'}
                         </span>
                     )}

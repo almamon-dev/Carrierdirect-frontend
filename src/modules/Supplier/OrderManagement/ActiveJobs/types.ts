@@ -94,5 +94,22 @@ export interface SupplierOrderItem {
     pod_file_name?: string;
     pod_uploaded_at?: string;
     is_rated?: boolean;
+    is_relay?: boolean;
+    current_active_leg?: number;
+    driver_type?: 'internal' | 'subcontractor';
+    subcontractor_company?: string;
+    subcontractor_journey_leg?: string;
+    leg2_driver_id?: string | number;
+    leg2_driver_name?: string;
+    leg2_driver_phone?: string;
+    leg2_driver_email?: string;
+    leg2_vehicle_plate?: string;
+    leg2_vehicle_type?: string;
+    leg2_driver_type?: 'internal' | 'subcontractor';
+    leg2_subcontractor_company?: string;
+    leg2_journey_leg?: string;
+    leg2_cost?: number;
+    legs?: any[];
+    raw?: any;
     timeline?: any[];
 }
