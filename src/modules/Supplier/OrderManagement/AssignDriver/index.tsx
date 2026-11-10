@@ -1,61 +1,34 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Package, FileCheck, ArrowLeft } from 'lucide-react';
+import { RefreshCw, Package, FileCheck } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { useAssignDriverData } from './hooks/useAssignDriverData';
 import { DriverDispatchForm } from './components/DriverDispatchForm';
-import { AssignDriverQueue } from './components/AssignDriverQueue';
+import { DispatchSummaryPanel } from './components/DispatchSummaryPanel';
 
 export default function AssignDriver() {
     const navigate = useNavigate();
     const {
         orders,
         fleetDrivers,
+        fleetVehicles,
+        subcontractorsList,
         isLoading,
         isRefreshing,
         isSubmitting,
         selectedOrderId,
-        setSelectedOrderId,
-        selectedDriverId,
-        setSelectedDriverId,
+        selectedOrder,
         isRelay,
-        setIsRelay,
-        selectedLeg2DriverId,
-        setSelectedLeg2DriverId,
-        selectedLeg2Driver,
-        leg2Cost,
-        setLeg2Cost,
-        leg2Route,
-        setLeg2Route,
+        handleToggleRelay,
+        pickupLeg,
+        deliveryLeg,
+        updatePickupLeg,
+        updateDeliveryLeg,
         dispatchNote,
         setDispatchNote,
-        queueTab,
-        setQueueTab,
-        searchQuery,
-        setSearchQuery,
-        selectedOrder,
-        selectedDriver,
-        dispatchMode,
-        setDispatchMode,
-        subcontractorsList,
-        selectedSubcontractorId,
-        setSelectedSubcontractorId,
-        subcontractorCost,
-        setSubcontractorCost,
-        subcontractorDriverName,
-        setSubcontractorDriverName,
-        subcontractorPhone,
-        setSubcontractorPhone,
-        subcontractorPlate,
-        setSubcontractorPlate,
-        subcontractorVehicleType,
-        setSubcontractorVehicleType,
-        profitSummary,
+        financialSummary,
         handleSelectOrder,
         handleDispatchSubmit,
-        filteredQueue,
-        pendingCount,
-        assignedCount,
         fetchData,
     } = useAssignDriverData();
 
@@ -63,16 +36,13 @@ export default function AssignDriver() {
         <div className="p-4 md:p-6 w-full mx-auto min-h-screen font-sans antialiased bg-[#f8fafc] dark:bg-[#12161c] space-y-5">
             {/* Page Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-
-                    <div>
-                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-0.5">
-                            Assign Driver & Dispatch
-                        </h1>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            Select an active shipment and allocate a driver from your fleet team to begin delivery.
-                        </p>
-                    </div>
+                <div>
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight mb-0.5">
+                        Assign Driver &amp; Dispatch
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        Select an active shipment and allocate In-House Drivers or Subcontractor Partners per leg.
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
@@ -83,7 +53,14 @@ export default function AssignDriver() {
                         disabled={isRefreshing || isLoading}
                         className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-white dark:bg-[#1e2329] border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                     >
-                        <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-[#ff4a1f]' : 'text-slate-500'} />
+                        <RefreshCw
+                            size={13}
+                            className={
+                                isRefreshing
+                                    ? 'animate-spin text-[#ff4a1f]'
+                                    : 'text-slate-500'
+                            }
+                        />
                         <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
                     </Button>
 
@@ -109,66 +86,39 @@ export default function AssignDriver() {
                 </div>
             </div>
 
-            {/* Main Content Workspace */}
+            {/* Main 2-Column Workspace */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                 <DriverDispatchForm
                     orders={orders}
                     fleetDrivers={fleetDrivers}
-                    selectedOrderId={selectedOrderId}
-                    selectedDriverId={selectedDriverId}
-                    selectedOrder={selectedOrder}
-                    selectedDriver={selectedDriver}
-                    dispatchMode={dispatchMode}
-                    onChangeDispatchMode={setDispatchMode}
+                    fleetVehicles={fleetVehicles}
                     subcontractorsList={subcontractorsList}
-                    selectedSubcontractorId={selectedSubcontractorId}
-                    onChangeSubcontractorId={setSelectedSubcontractorId}
-                    subcontractorCost={subcontractorCost}
-                    onChangeSubcontractorCost={setSubcontractorCost}
-                    subcontractorDriverName={subcontractorDriverName}
-                    onChangeSubcontractorDriverName={setSubcontractorDriverName}
-                    subcontractorPhone={subcontractorPhone}
-                    onChangeSubcontractorPhone={setSubcontractorPhone}
-                    subcontractorPlate={subcontractorPlate}
-                    onChangeSubcontractorPlate={setSubcontractorPlate}
-                    subcontractorVehicleType={subcontractorVehicleType}
-                    onChangeSubcontractorVehicleType={setSubcontractorVehicleType}
-                    profitSummary={profitSummary}
+                    selectedOrderId={selectedOrderId}
+                    selectedOrder={selectedOrder}
                     isRelay={isRelay}
-                    onToggleRelay={setIsRelay}
-                    selectedLeg2DriverId={selectedLeg2DriverId}
-                    onSelectLeg2Driver={setSelectedLeg2DriverId}
-                    selectedLeg2Driver={selectedLeg2Driver}
-                    leg2Cost={leg2Cost}
-                    onChangeLeg2Cost={setLeg2Cost}
-                    leg2Route={leg2Route}
-                    onChangeLeg2Route={setLeg2Route}
+                    onToggleRelay={handleToggleRelay}
+                    pickupLeg={pickupLeg}
+                    deliveryLeg={deliveryLeg}
+                    onUpdatePickupLeg={updatePickupLeg}
+                    onUpdateDeliveryLeg={updateDeliveryLeg}
                     dispatchNote={dispatchNote}
-                    isSubmitting={isSubmitting}
+                    onChangeDispatchNote={setDispatchNote}
                     isLoading={isLoading}
                     onSelectOrder={handleSelectOrder}
-                    onSelectDriver={setSelectedDriverId}
-                    onChangeDispatchNote={setDispatchNote}
                     onSubmit={handleDispatchSubmit}
-                    onClear={() => {
-                        setSelectedOrderId('');
-                        setSelectedDriverId('');
-                        setSelectedLeg2DriverId('');
-                        setIsRelay(false);
-                        setDispatchNote('');
-                    }}
                 />
 
-                <AssignDriverQueue
-                    queueTab={queueTab}
-                    onTabChange={setQueueTab}
-                    pendingCount={pendingCount}
-                    assignedCount={assignedCount}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    filteredQueue={filteredQueue}
+                <DispatchSummaryPanel
+                    selectedOrder={selectedOrder}
+                    isRelay={isRelay}
+                    pickupLeg={pickupLeg}
+                    deliveryLeg={deliveryLeg}
+                    fleetDrivers={fleetDrivers}
+                    fleetVehicles={fleetVehicles}
+                    subcontractorsList={subcontractorsList}
+                    financialSummary={financialSummary}
+                    isSubmitting={isSubmitting}
                     selectedOrderId={selectedOrderId}
-                    onSelectOrder={handleSelectOrder}
                 />
             </div>
         </div>

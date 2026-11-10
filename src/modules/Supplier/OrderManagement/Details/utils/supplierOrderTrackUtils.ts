@@ -112,6 +112,8 @@ export interface NormalizedSupplierOrder {
     leg2_journey_leg?: string;
     leg2_cost?: number;
     legs?: any[];
+    shipment_legs?: any[];
+    dispatch_financial_summary?: any;
     raw?: any;
 }
 
@@ -268,6 +270,8 @@ export const buildSupplierOrderDetails = (
             : (typeof foundOrder?.legs === 'string'
                 ? (() => { try { return JSON.parse(foundOrder.legs); } catch { return []; } })()
                 : []),
+        shipment_legs: Array.isArray(foundOrder?.shipment_legs) ? foundOrder.shipment_legs : [],
+        dispatch_financial_summary: foundOrder?.dispatch_financial_summary,
         raw: foundOrder,
     };
 };

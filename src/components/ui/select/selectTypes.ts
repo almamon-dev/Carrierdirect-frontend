@@ -13,6 +13,7 @@ export interface SelectOption {
     searchText?: string;
     image?: string;
     icon?: LucideIcon | React.ElementType | React.ReactNode;
+    disabled?: boolean;
     [key: string]: any;
 }
 

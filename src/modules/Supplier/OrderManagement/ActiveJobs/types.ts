@@ -110,6 +110,15 @@ export interface SupplierOrderItem {
     leg2_journey_leg?: string;
     leg2_cost?: number;
     legs?: any[];
+    shipment_legs?: any[];
+    dispatch_financial_summary?: {
+        customer_price: number;
+        pickup_subcontractor_cost: number;
+        delivery_subcontractor_cost: number;
+        total_subcontractor_cost: number;
+        net_profit: number;
+        profit_margin_percent: number;
+    };
     raw?: any;
     timeline?: any[];
 }

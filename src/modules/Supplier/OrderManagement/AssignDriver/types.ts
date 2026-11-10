@@ -1,13 +1,21 @@
+export type ExecutionMode = 'in_house' | 'subcontractor';
+export type LegType = 'pickup' | 'delivery';
+
 export interface FleetDriverItem {
     id: string;
     rawId: string | number;
+    user_id?: number;
     name: string;
     phone: string;
     license: string;
     vehiclePlate: string;
     vehicleType: string;
+    vehicleId?: string;
     role: string;
     status: string;
+    availabilityStatus: 'Available' | 'On Job' | 'Unavailable';
+    dutyStatus?: string;
+    userStatus?: string;
     email?: string;
     driverType?: 'internal' | 'subcontractor';
     subcontractorCompany?: string;
@@ -21,7 +29,62 @@ export interface FleetVehicleItem {
     registration_no: string;
     capacity: string;
     capacity_kg?: number;
-    status: 'Available' | 'On Job' | 'Unavailable';
+    status: 'Active' | 'Available' | 'On Job' | 'Maintenance' | 'Inactive' | 'Unavailable';
     assigned_driver?: string;
     driver_id?: number | string;
+    current_order_id?: number | string;
+    current_order_number?: string;
+}
+
+export interface LegAssignmentState {
+    legNumber: 1 | 2;
+    legType: LegType;
+    executionMode: ExecutionMode;
+    driverId: string;
+    vehicleId: string;
+    subcontractorId: string;
+    subcontractorCompany: string;
+    subcontractorDriverId: string;
+    subcontractorDriverName: string;
+    subcontractorDriverPhone: string;
+    subcontractorDriverEmail: string;
+    subcontractorVehiclePlate: string;
+    subcontractorVehicleType: string;
+    subcontractorCost: string;
+    journeyLeg: string;
+    status?: string;
+}
+
+export interface DispatchFinancialSummary {
+    customerPrice: number;
+    pickupSubcontractorCost: number;
+    deliverySubcontractorCost: number;
+    totalSubcontractorCost: number;
+    netProfit: number;
+    profitMarginPercent: number;
+    isProfitable: boolean;
+}
+
+export interface ShipmentLegApiItem {
+    id?: number;
+    shipment_id?: number;
+    leg_number: number;
+    leg_type: LegType;
+    execution_mode: ExecutionMode;
+    driver_id?: number | null;
+    driver_name?: string | null;
+    driver_phone?: string | null;
+    driver_email?: string | null;
+    vehicle_id?: string | null;
+    vehicle_plate?: string | null;
+    vehicle_type?: string | null;
+    subcontractor_id?: number | null;
+    subcontractor_company?: string | null;
+    subcontractor_driver_name?: string | null;
+    subcontractor_driver_phone?: string | null;
+    subcontractor_vehicle_plate?: string | null;
+    subcontractor_cost?: number;
+    journey_leg?: string | null;
+    notes?: string | null;
+    status?: string;
 }

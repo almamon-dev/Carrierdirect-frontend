@@ -464,7 +464,7 @@ export const useAssignDriverModal = ({
                 driverType,
                 subcontractorCompany: driverType === 'subcontractor' ? subcontractorCompany.trim() : undefined,
                 subcontractorId: driverType === 'subcontractor' && selectedSubcontractorId !== 'custom' ? selectedSubcontractorId : undefined,
-                subcontractorCost: driverType === 'subcontractor' && subcontractorCost ? parseFloat(subcontractorCost) : undefined,
+                subcontractorCost: driverType === 'subcontractor' && subcontractorCost ? Math.max(0, parseFloat(subcontractorCost)) : 0,
                 journeyLeg: journeyLeg.trim() || (isRelay ? 'Leg 1: Pickup to Transit Hub' : 'Full Route'),
 
                 // 2-Driver Relay Fields
@@ -478,7 +478,7 @@ export const useAssignDriverModal = ({
                 leg2SubcontractorCompany: isRelay && leg2DriverType === 'subcontractor' ? leg2SubcontractorCompany.trim() : undefined,
                 leg2SubcontractorId: isRelay && leg2DriverType === 'subcontractor' && leg2SelectedSubcontractorId !== 'custom' ? leg2SelectedSubcontractorId : undefined,
                 leg2JourneyLeg: isRelay ? (leg2JourneyLeg.trim() || 'Leg 2: Transit Hub to Delivery') : undefined,
-                leg2Cost: isRelay && leg2Cost ? parseFloat(leg2Cost) : undefined,
+                leg2Cost: isRelay && leg2DriverType === 'subcontractor' && leg2Cost ? Math.max(0, parseFloat(leg2Cost)) : 0,
 
                 // Multi-Legs (3+ Drivers)
                 legs: isRelay ? allLegs : undefined,

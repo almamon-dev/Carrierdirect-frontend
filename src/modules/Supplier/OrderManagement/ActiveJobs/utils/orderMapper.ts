@@ -168,6 +168,8 @@ export const mapApiToSupplierOrderItem = (o: any): SupplierOrderItem => {
         leg2_journey_leg: o?.leg2_driver?.journey_leg || o?.leg2_journey_leg || '',
         leg2_cost: o?.leg2_driver?.cost ?? o?.leg2_cost ?? 0,
         legs: o?.legs || [],
+        shipment_legs: o?.shipment_legs || [],
+        dispatch_financial_summary: o?.dispatch_financial_summary,
         raw: o,
         timeline: trackingObj.history || o?.timeline || [],
     };

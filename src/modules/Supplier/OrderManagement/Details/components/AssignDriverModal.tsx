@@ -4,6 +4,7 @@ import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Select from '@/components/ui/select';
 import FormLabel from '@/components/ui/label';
+import Switch from '@/components/ui/switch';
 import {
     UserCheck,
     Truck,
@@ -188,101 +189,103 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                 </div>
 
                 <form onSubmit={handleSubmit} className="px-5 pb-5 space-y-4">
-                    {/* 1. Main Execution Strategy: 2 Big Visual Cards */}
+                    {/* 1. Main Execution Strategy: Only shown when Relay is OFF; when Relay is ON each leg chooses independently */}
                     <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold tracking-wider text-slate-500 dark:text-slate-400">
-                                Who is delivering this order?
-                            </span>
-                            <span className="text-[11px] text-slate-500">
-                                {driverType === 'internal' ? 'In-House Fleet' : 'Outsourced Partner'}
-                            </span>
-                        </div>
+                        {!isRelay && (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold tracking-wider text-slate-500 dark:text-slate-400">
+                                        Who is delivering this order?
+                                    </span>
+                                    <span className="text-[11px] text-slate-500">
+                                        {driverType === 'internal' ? 'In-House Fleet' : 'Outsourced Partner'}
+                                    </span>
+                                </div>
 
-                        <div className="grid grid-cols-2 gap-2.5">
-                            {/* Card 1: Own Fleet Driver */}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setDriverType('internal');
-                                }}
-                                className={`p-3 rounded-[6px] border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
-                                    driverType === 'internal'
-                                        ? 'border-[#ff4a1f] bg-orange-50/40 dark:bg-orange-950/20 ring-1 ring-[#ff4a1f]/30'
-                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#14181f]'
-                                }`}
-                            >
-                                <div className={`w-8 h-8 rounded-[4px] flex items-center justify-center shrink-0 mt-0.5 ${
-                                    driverType === 'internal'
-                                        ? 'bg-[#ff4a1f] text-white shadow-xs'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                                }`}>
-                                    <Truck size={17} />
-                                </div>
-                                <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                                            My Own Driver
-                                        </span>
-                                        {driverType === 'internal' && (
-                                            <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f]"></span>
-                                        )}
-                                    </div>
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                                        Company fleet driver & vehicles
-                                    </p>
-                                </div>
-                            </button>
+                                <div className="grid grid-cols-2 gap-2.5">
+                                    {/* Card 1: Own Fleet Driver */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setDriverType('internal');
+                                        }}
+                                        className={`p-3 rounded-[6px] border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
+                                            driverType === 'internal'
+                                                ? 'border-[#ff4a1f] bg-orange-50/40 dark:bg-orange-950/20 ring-1 ring-[#ff4a1f]/30'
+                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#14181f]'
+                                        }`}
+                                    >
+                                        <div className={`w-8 h-8 rounded-[4px] flex items-center justify-center shrink-0 mt-0.5 ${
+                                            driverType === 'internal'
+                                                ? 'bg-[#ff4a1f] text-white shadow-xs'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                        }`}>
+                                            <Truck size={17} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                                                    My Own Driver
+                                                </span>
+                                                {driverType === 'internal' && (
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f]"></span>
+                                                )}
+                                            </div>
+                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                                                Company fleet driver & vehicles
+                                            </p>
+                                        </div>
+                                    </button>
 
-                            {/* Card 2: Subcontractor Partner */}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setDriverType('subcontractor');
-                                }}
-                                className={`p-3 rounded-[6px] border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
-                                    driverType === 'subcontractor'
-                                        ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/20 ring-1 ring-blue-600/30'
-                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#14181f]'
-                                }`}
-                            >
-                                <div className={`w-8 h-8 rounded-[4px] flex items-center justify-center shrink-0 mt-0.5 ${
-                                    driverType === 'subcontractor'
-                                        ? 'bg-blue-600 text-white shadow-xs'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                                }`}>
-                                    <Building2 size={17} />
+                                    {/* Card 2: Subcontractor Partner */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setDriverType('subcontractor');
+                                        }}
+                                        className={`p-3 rounded-[6px] border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
+                                            driverType === 'subcontractor'
+                                                ? 'border-[#ff4a1f] bg-orange-50/40 dark:bg-orange-950/20 ring-1 ring-[#ff4a1f]/30'
+                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#14181f]'
+                                        }`}
+                                    >
+                                        <div className={`w-8 h-8 rounded-[4px] flex items-center justify-center shrink-0 mt-0.5 ${
+                                            driverType === 'subcontractor'
+                                                ? 'bg-[#ff4a1f] text-white shadow-xs'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                        }`}>
+                                            <Building2 size={17} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                                                    Subcontractor Partner
+                                                </span>
+                                                {driverType === 'subcontractor' && (
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f]"></span>
+                                                )}
+                                            </div>
+                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                                                Outsource to external carrier
+                                            </p>
+                                        </div>
+                                    </button>
                                 </div>
-                                <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                                            Subcontractor Partner
-                                        </span>
-                                        {driverType === 'subcontractor' && (
-                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                                        )}
-                                    </div>
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                                        Outsource to external carrier
-                                    </p>
-                                </div>
-                            </button>
-                        </div>
+                            </>
+                        )}
 
-                        {/* Optional Multi-Driver Relay Toggle */}
-                        <div className="pt-1.5 flex items-center justify-between">
-                            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                <input
-                                    type="checkbox"
+                        {/* Optional Multi-Driver Relay Switch */}
+                        <div className="pt-1.5 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                <Switch
                                     checked={isRelay}
-                                    onChange={(e) => handleToggleRelay(e.target.checked)}
-                                    className="accent-[#ff4a1f] w-3.5 h-3.5 rounded-[3px] cursor-pointer"
+                                    onCheckedChange={handleToggleRelay}
                                 />
-                                <span>Split into Multi-Driver Relay (2+ Drivers for different journey segments)</span>
-                            </label>
+                                <span>Multi-Driver Relay Dispatch (Independent Pickup & Delivery Legs)</span>
+                            </div>
                             {isRelay && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 rounded">
-                                    {2 + additionalLegs.length} Drivers Active
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-orange-100 text-[#ff4a1f] dark:bg-orange-950 dark:text-orange-300 rounded">
+                                    {2 + additionalLegs.length} Legs Active
                                 </span>
                             )}
                         </div>

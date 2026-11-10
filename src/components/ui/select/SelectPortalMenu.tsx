@@ -89,6 +89,7 @@ export const SelectPortalMenu: React.FC<SelectPortalMenuProps> = ({
                             {filteredOptions.map((option, idx) => {
                                 const optId = option.id !== undefined ? option.id : option.value;
                                 const isPlaceholder = optId === '' || optId === undefined || optId === null;
+                                const isDisabled = Boolean(option.disabled);
                                 const active = !isPlaceholder && isSelected(optId);
 
                                 if (isPlaceholder) {
@@ -106,13 +107,19 @@ export const SelectPortalMenu: React.FC<SelectPortalMenuProps> = ({
                                 return (
                                     <div
                                         key={idx}
-                                        onClick={() => onSelectOption(option)}
+                                        onClick={() => {
+                                            if (isDisabled) return;
+                                            onSelectOption(option);
+                                        }}
+                                        aria-disabled={isDisabled}
                                         className={cn(
-                                            "cursor-pointer select-none border-b border-slate-100/60 dark:border-slate-800/40 last:border-0 flex items-center justify-between transition-colors",
+                                            "select-none border-b border-slate-100/60 dark:border-slate-800/40 last:border-0 flex items-center justify-between transition-colors",
                                             option.subtitle ? "py-2 px-3" : (size === "sm" ? "py-1.5 px-2.5 text-xs" : "py-2 px-3 text-[12.5px]"),
-                                            active 
-                                                ? "bg-orange-50/70 dark:bg-[#ff4a1f]/15" 
-                                                : "hover:bg-slate-50 dark:hover:bg-slate-800/70"
+                                            isDisabled
+                                                ? "opacity-50 cursor-not-allowed bg-slate-50/50 dark:bg-slate-900/30"
+                                                : active
+                                                    ? "cursor-pointer bg-orange-50/70 dark:bg-[#ff4a1f]/15"
+                                                    : "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/70"
                                         )}
                                     >
                                         <div className="flex items-start gap-2.5 min-w-0 flex-1">

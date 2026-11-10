@@ -3,28 +3,184 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import apiClient from '@/lib/axios';
 import { toast } from '@/hooks/use-toast';
 import { SupplierOrderItem } from '../../ActiveJobs/types';
-import { mapApiToSupplierOrderItem, checkHasRealDriver } from '../../ActiveJobs/utils/orderMapper';
-import { FleetDriverItem } from '../types';
+import {
+    mapApiToSupplierOrderItem,
+    checkHasRealDriver,
+} from '../../ActiveJobs/utils/orderMapper';
+import {
+    FleetDriverItem,
+    FleetVehicleItem,
+    LegAssignmentState,
+    ShipmentLegApiItem,
+} from '../types';
+import {
+    buildLegApiPayload,
+    calculateDispatchFinancials,
+    createDefaultLegState,
+    validateLegAssignment,
+} from '../utils/dispatchHelpers';
 
 const matchOrder = (o: SupplierOrderItem, id: string) =>
-    String(o.id) === id || String(o.order_id) === id || String(o.order_no) === id || String(o.slug) === id || (o.rawId && String(o.rawId) === id);
+    String(o.id) === id ||
+    String(o.order_id) === id ||
+    String(o.order_no) === id ||
+    String(o.slug) === id ||
+    (o.rawId && String(o.rawId) === id);
 
-const cleanPlateText = (val?: string, fallback = '212-C-8492') => {
-    if (!val || !val.trim()) return fallback;
-    const trimmed = val.trim();
-    if (/adipisicing|exped|lorem|ipsum|consectetur|officia|laborum|volup|explicabo/i.test(trimmed) || trimmed.length > 14) {
-        return fallback;
-    }
-    return trimmed;
-};
+const hydrateLegFromOrder = (
+    order: SupplierOrderItem,
+    legNumber: 1 | 2,
+    drivers: FleetDriverItem[],
+    vehicles: FleetVehicleItem[],
+    subs: any[]
+): LegAssignmentState => {
+    const legType = legNumber === 1 ? 'pickup' : 'delivery';
+    const fromCity = order.pickup_city || 'Origin';
+    const toCity = order.delivery_city || 'Destination';
+    const defaultRoute =
+        legNumber === 1
+            ? order.is_relay
+                ? `${fromCity} → Transit Hub`
+                : `${fromCity} → ${toCity}`
+            : `Transit Hub → ${toCity}`;
 
-const cleanDriverName = (val?: string, fallback = "Liam O'Connor") => {
-    if (!val || !val.trim()) return fallback;
-    const trimmed = val.trim();
-    if (/necessitatibus|consectetur|adipisicing|dolor|explicabo|lorem|ipsum|volup/i.test(trimmed)) {
-        return fallback;
+    const apiLegs: ShipmentLegApiItem[] =
+        (Array.isArray(order.shipment_legs) && order.shipment_legs.length > 0
+            ? order.shipment_legs
+            : Array.isArray((order.raw as any)?.shipment_legs)
+            ? (order.raw as any).shipment_legs
+            : []) || [];
+
+    const apiLeg = apiLegs.find((l) => Number(l.leg_number) === legNumber);
+
+    if (apiLeg) {
+        const mode = apiLeg.execution_mode === 'subcontractor' ? 'subcontractor' : 'in_house';
+        let resolvedVehicleId = apiLeg.vehicle_id ? String(apiLeg.vehicle_id) : '';
+        if (!resolvedVehicleId && mode === 'in_house' && apiLeg.vehicle_plate) {
+            const norm = apiLeg.vehicle_plate.replace(/[\s-]/g, '').toUpperCase();
+            const foundVeh = vehicles.find(
+                (v) => v.registration_no?.replace(/[\s-]/g, '').toUpperCase() === norm
+            );
+            if (foundVeh) resolvedVehicleId = String(foundVeh.id);
+        }
+
+        let resolvedSubId = apiLeg.subcontractor_id ? String(apiLeg.subcontractor_id) : '';
+        if (!resolvedSubId && mode === 'subcontractor' && apiLeg.subcontractor_company) {
+            const foundSub = subs.find(
+                (s) => s.name?.toLowerCase() === apiLeg.subcontractor_company?.toLowerCase()
+            );
+            resolvedSubId = foundSub ? String(foundSub.id) : 'custom';
+        }
+
+        return {
+            legNumber,
+            legType,
+            executionMode: mode,
+            driverId: apiLeg.driver_id ? String(apiLeg.driver_id) : '',
+            vehicleId: resolvedVehicleId,
+            subcontractorId: resolvedSubId,
+            subcontractorCompany: apiLeg.subcontractor_company || '',
+            subcontractorDriverId: 'custom',
+            subcontractorDriverName: apiLeg.subcontractor_driver_name || '',
+            subcontractorDriverPhone: apiLeg.subcontractor_driver_phone || '',
+            subcontractorDriverEmail: '',
+            subcontractorVehiclePlate: apiLeg.subcontractor_vehicle_plate || '',
+            subcontractorVehicleType: apiLeg.vehicle_type || 'Curtainsider 40ft',
+            subcontractorCost:
+                mode === 'subcontractor' && apiLeg.subcontractor_cost !== undefined
+                    ? String(apiLeg.subcontractor_cost)
+                    : '',
+            journeyLeg: apiLeg.journey_leg || defaultRoute,
+            status: apiLeg.status || 'pending',
+        };
     }
-    return trimmed;
+
+    // Legacy fallback if order has no shipment_legs yet
+    if (legNumber === 1) {
+        const isSub = order.driver_type === 'subcontractor';
+        const matchedDriver = order.driver_id
+            ? drivers.find((d) => String(d.rawId) === String(order.driver_id))
+            : drivers.find(
+                  (d) =>
+                      order.driver_name &&
+                      d.name.toLowerCase() === order.driver_name.toLowerCase()
+              );
+        const normPlate = (order.vehicle_plate || '').replace(/[\s-]/g, '').toUpperCase();
+        const matchedVehicle = normPlate
+            ? vehicles.find(
+                  (v) => v.registration_no?.replace(/[\s-]/g, '').toUpperCase() === normPlate
+              )
+            : undefined;
+        const foundSub = order.subcontractor_company
+            ? subs.find(
+                  (s) =>
+                      s.name?.toLowerCase() === order.subcontractor_company?.toLowerCase()
+              )
+            : undefined;
+
+        return {
+            legNumber: 1,
+            legType: 'pickup',
+            executionMode: isSub ? 'subcontractor' : 'in_house',
+            driverId: !isSub && matchedDriver ? String(matchedDriver.rawId) : '',
+            vehicleId: !isSub && matchedVehicle ? String(matchedVehicle.id) : '',
+            subcontractorId: isSub ? (foundSub ? String(foundSub.id) : 'custom') : '',
+            subcontractorCompany: isSub ? order.subcontractor_company || '' : '',
+            subcontractorDriverId: 'custom',
+            subcontractorDriverName: isSub ? order.driver_name || '' : '',
+            subcontractorDriverPhone: isSub ? order.driver_phone || '' : '',
+            subcontractorDriverEmail: isSub ? order.driver_email || '' : '',
+            subcontractorVehiclePlate: isSub ? order.vehicle_plate || '' : '',
+            subcontractorVehicleType: order.vehicle_type || 'Curtainsider 40ft',
+            subcontractorCost: isSub
+                ? String((order.raw as any)?.subcontractor_cost ?? '')
+                : '',
+            journeyLeg: order.subcontractor_journey_leg || defaultRoute,
+            status: 'pending',
+        };
+    }
+
+    // Leg 2 legacy fallback
+    const isLeg2Sub = order.leg2_driver_type === 'subcontractor';
+    const matchedDriver2 = order.leg2_driver_id
+        ? drivers.find((d) => String(d.rawId) === String(order.leg2_driver_id))
+        : drivers.find(
+              (d) =>
+                  order.leg2_driver_name &&
+                  d.name.toLowerCase() === order.leg2_driver_name.toLowerCase()
+          );
+    const normPlate2 = (order.leg2_vehicle_plate || '').replace(/[\s-]/g, '').toUpperCase();
+    const matchedVehicle2 = normPlate2
+        ? vehicles.find(
+              (v) => v.registration_no?.replace(/[\s-]/g, '').toUpperCase() === normPlate2
+          )
+        : undefined;
+    const foundSub2 = order.leg2_subcontractor_company
+        ? subs.find(
+              (s) =>
+                  s.name?.toLowerCase() ===
+                  order.leg2_subcontractor_company?.toLowerCase()
+          )
+        : undefined;
+
+    return {
+        legNumber: 2,
+        legType: 'delivery',
+        executionMode: isLeg2Sub ? 'subcontractor' : 'in_house',
+        driverId: !isLeg2Sub && matchedDriver2 ? String(matchedDriver2.rawId) : '',
+        vehicleId: !isLeg2Sub && matchedVehicle2 ? String(matchedVehicle2.id) : '',
+        subcontractorId: isLeg2Sub ? (foundSub2 ? String(foundSub2.id) : 'custom') : '',
+        subcontractorCompany: isLeg2Sub ? order.leg2_subcontractor_company || '' : '',
+        subcontractorDriverId: 'custom',
+        subcontractorDriverName: isLeg2Sub ? order.leg2_driver_name || '' : '',
+        subcontractorDriverPhone: isLeg2Sub ? order.leg2_driver_phone || '' : '',
+        subcontractorDriverEmail: isLeg2Sub ? order.leg2_driver_email || '' : '',
+        subcontractorVehiclePlate: isLeg2Sub ? order.leg2_vehicle_plate || '' : '',
+        subcontractorVehicleType: order.leg2_vehicle_type || 'Curtainsider 40ft',
+        subcontractorCost: isLeg2Sub && order.leg2_cost ? String(order.leg2_cost) : '',
+        journeyLeg: order.leg2_journey_leg || defaultRoute,
+        status: 'pending',
+    };
 };
 
 export const useAssignDriverData = () => {
@@ -32,298 +188,434 @@ export const useAssignDriverData = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState<SupplierOrderItem[]>([]);
     const [fleetDrivers, setFleetDrivers] = useState<FleetDriverItem[]>([]);
+    const [fleetVehicles, setFleetVehicles] = useState<FleetVehicleItem[]>([]);
+    const [subcontractorsList, setSubcontractorsList] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    // Relay / 2-Driver Dispatch Mode
-    const [isRelay, setIsRelay] = useState<boolean>(false);
-    const [selectedLeg2DriverId, setSelectedLeg2DriverId] = useState<string>('');
-    const [leg2Cost, setLeg2Cost] = useState<string>('350');
-    const [leg2Route, setLeg2Route] = useState<string>('Transit Hub → Final Delivery');
-
     const [selectedOrderId, setSelectedOrderId] = useState<string>(() => {
-        const stateOrder = location.state?.selectedOrder || location.state?.orderData || location.state?.order;
-        return stateOrder ? String(stateOrder.id || stateOrder.order_id || stateOrder.order_no || stateOrder.slug || '') : '';
+        const stateOrder =
+            location.state?.selectedOrder ||
+            location.state?.orderData ||
+            location.state?.order;
+        return stateOrder
+            ? String(
+                  stateOrder.id ||
+                      stateOrder.order_id ||
+                      stateOrder.order_no ||
+                      stateOrder.slug ||
+                      ''
+              )
+            : '';
     });
-    const [selectedDriverId, setSelectedDriverId] = useState<string>('');
-    const [dispatchNote, setDispatchNote] = useState<string>('');
 
-    // Execution Mode: In-House Fleet vs Subcontractor Partner
-    const [dispatchMode, setDispatchMode] = useState<'internal' | 'subcontractor'>('internal');
-    const [subcontractorsList, setSubcontractorsList] = useState<any[]>([]);
-    const [selectedSubcontractorId, setSelectedSubcontractorId] = useState<string>('');
-    const [subcontractorCost, setSubcontractorCost] = useState<string>('450');
-    const [subcontractorDriverName, setSubcontractorDriverName] = useState<string>('');
-    const [subcontractorPhone, setSubcontractorPhone] = useState<string>('');
-    const [subcontractorPlate, setSubcontractorPlate] = useState<string>('');
-    const [subcontractorVehicleType, setSubcontractorVehicleType] = useState<string>('Standard Fleet');
+    const [isRelay, setIsRelay] = useState<boolean>(false);
+    const [pickupLeg, setPickupLeg] = useState<LegAssignmentState>(() =>
+        createDefaultLegState(1, 'pickup', 'Full Journey')
+    );
+    const [deliveryLeg, setDeliveryLeg] = useState<LegAssignmentState>(() =>
+        createDefaultLegState(2, 'delivery', 'Transit Hub → Final Delivery')
+    );
+    const [dispatchNote, setDispatchNote] = useState<string>('');
 
     const [queueTab, setQueueTab] = useState<'pending' | 'assigned'>('pending');
     const [searchQuery, setSearchQuery] = useState<string>('');
 
-    const fetchData = useCallback(async (refresh = false) => {
-        if (refresh) setIsRefreshing(true);
-        else setIsLoading(true);
+    const fetchData = useCallback(
+        async (refresh = false) => {
+            if (refresh) setIsRefreshing(true);
+            else setIsLoading(true);
 
-        try {
-            const [ordersRes, teamRes, subsRes] = await Promise.allSettled([
-                apiClient.get('/supplier/orders', { params: { tab: 'active', per_page: 100 } }),
-                apiClient.get('/supplier/team/members?status=active&per_page=100'),
-                apiClient.get('/supplier/subcontractors'),
-            ]);
+            try {
+                const [ordersRes, driversRes, vehiclesRes, subsRes] =
+                    await Promise.allSettled([
+                        apiClient.get('/supplier/orders', {
+                            params: { tab: 'active', per_page: 100 },
+                        }),
+                        apiClient.get('/supplier/availability/drivers'),
+                        apiClient.get('/supplier/availability/vehicles'),
+                        apiClient.get('/supplier/subcontractors'),
+                    ]);
 
-            let mappedOrders: SupplierOrderItem[] = [];
-            if (ordersRes.status === 'fulfilled') {
-                const val = ordersRes.value;
-                const rawList = (Array.isArray(val?.data?.orders) && val.data.orders) ||
-                    (Array.isArray(val?.data?.data?.orders) && val.data.data.orders) ||
-                    (Array.isArray(val?.data?.data) && val.data.data) ||
-                    (Array.isArray(val?.orders) && val.orders) ||
-                    (Array.isArray(val?.data) && val.data) || [];
+                let mappedOrders: SupplierOrderItem[] = [];
+                if (ordersRes.status === 'fulfilled') {
+                    const val = ordersRes.value;
+                    const rawList =
+                        (Array.isArray(val?.data?.orders) && val.data.orders) ||
+                        (Array.isArray(val?.data?.data?.orders) &&
+                            val.data.data.orders) ||
+                        (Array.isArray(val?.data?.data) && val.data.data) ||
+                        (Array.isArray(val?.orders) && val.orders) ||
+                        (Array.isArray(val?.data) && val.data) ||
+                        [];
 
-                mappedOrders = rawList.map(mapApiToSupplierOrderItem);
-                const stateOrder = location.state?.selectedOrder || location.state?.orderData || location.state?.order;
-                if (stateOrder) {
-                    const targetId = String(stateOrder.id || stateOrder.order_id || stateOrder.order_no || stateOrder.slug || '');
-                    if (!mappedOrders.some(o => matchOrder(o, targetId))) {
-                        mappedOrders.unshift(mapApiToSupplierOrderItem(stateOrder));
-                    }
-                    setSelectedOrderId(prev => prev || targetId);
-                }
-                setOrders(mappedOrders);
-            }
-
-            let allLoadedDrivers: FleetDriverItem[] = [];
-
-            // 1. In-House Fleet Drivers
-            if (teamRes.status === 'fulfilled') {
-                const rawMembers = teamRes.value.data?.data?.data || teamRes.value.data?.data || teamRes.value.data || [];
-                if (Array.isArray(rawMembers)) {
-                    const activeMembers = rawMembers.filter((m: any) => {
-                        const st = String(m.status || m.user_status || 'active').toLowerCase().trim();
-                        return st === 'active' || st === 'active & ready' || st === 'available';
-                    });
-
-                    const inHouseDrivers: FleetDriverItem[] = activeMembers.map((m: any, idx: number) => ({
-                        id: `inhouse_${m.id || idx}`,
-                        rawId: m.id || idx,
-                        name: m.name || m.user?.name || `Driver ${m.id || idx + 1}`,
-                        phone: m.phone || m.user?.phone || '—',
-                        license: m.license || m.driving_license || m.license_number || 'DL-8839-BD',
-                        vehiclePlate: cleanPlateText(m.vehicle_plate || m.vehicle_number || m.plate, 'GB-24-TRK'),
-                        vehicleType: m.vehicle_type || m.vehicle || 'Standard Fleet',
-                        role: 'In-House Fleet',
-                        status: m.status || 'Active',
-                        email: m.email || m.user?.email || '',
-                        driverType: 'internal',
-                    }));
-                    allLoadedDrivers.push(...inHouseDrivers);
-                }
-            }
-
-            // 2. Subcontractor Drivers
-            if (subsRes.status === 'fulfilled') {
-                const subs = subsRes.value.data?.data || subsRes.value.data || [];
-                if (Array.isArray(subs)) {
-                    setSubcontractorsList(subs);
-                    if (subs.length > 0) {
-                        setSelectedSubcontractorId(prev => prev || String(subs[0].id));
-                        const d1 = subs[0].drivers?.[0];
-                        setSubcontractorDriverName(prev => prev || cleanDriverName(d1?.name || subs[0].contact_name));
-                        setSubcontractorPhone(prev => prev || (d1?.phone || subs[0].phone || '+353 21 450 7821'));
-                        setSubcontractorPlate(prev => prev || cleanPlateText(d1?.vehicle_plate));
-                        setSubcontractorVehicleType(prev => prev || (d1?.vehicle_type || 'Curtainsider 40ft'));
-                    }
-                    subs.forEach((sub: any) => {
-                        const sDrivers = sub.drivers || [];
-                        if (Array.isArray(sDrivers)) {
-                            sDrivers.forEach((sd: any) => {
-                                allLoadedDrivers.push({
-                                    id: `sub_${sub.id}_${sd.id}`,
-                                    rawId: sd.id,
-                                    name: cleanDriverName(sd.name, 'Subcontractor Driver'),
-                                    phone: sd.phone || '—',
-                                    license: sd.driver_license_number && !/explicabo|lorem/i.test(sd.driver_license_number) ? sd.driver_license_number : 'DL-IRL-998',
-                                    vehiclePlate: cleanPlateText(sd.vehicle_plate, '212-C-8492'),
-                                    vehicleType: sd.vehicle_type && !/commodo|volup/i.test(sd.vehicle_type) ? sd.vehicle_type : 'Curtainsider 40ft',
-                                    role: `${sub.name} (Subcontractor)`,
-                                    status: sd.status || 'Active',
-                                    email: sd.email || '',
-                                    driverType: 'subcontractor',
-                                    subcontractorCompany: sub.name,
-                                    subcontractorId: sub.id,
-                                });
-                            });
+                    mappedOrders = rawList.map(mapApiToSupplierOrderItem);
+                    const stateOrder =
+                        location.state?.selectedOrder ||
+                        location.state?.orderData ||
+                        location.state?.order;
+                    if (stateOrder) {
+                        const targetId = String(
+                            stateOrder.id ||
+                                stateOrder.order_id ||
+                                stateOrder.order_no ||
+                                stateOrder.slug ||
+                                ''
+                        );
+                        if (!mappedOrders.some((o) => matchOrder(o, targetId))) {
+                            mappedOrders.unshift(
+                                mapApiToSupplierOrderItem(stateOrder)
+                            );
                         }
-                    });
+                        setSelectedOrderId((prev) => prev || targetId);
+                    }
+                    setOrders(mappedOrders);
                 }
-            }
 
-            setFleetDrivers(allLoadedDrivers);
-
-            // Auto-select driver if selected order already has one
-            const stateOrder = location.state?.selectedOrder || location.state?.orderData || location.state?.order;
-            const targetId = stateOrder ? String(stateOrder.id || stateOrder.order_id || stateOrder.order_no || stateOrder.slug || '') : '';
-            if (targetId && mappedOrders.length > 0 && allLoadedDrivers.length > 0) {
-                const target = mappedOrders.find(o => matchOrder(o, targetId));
-                if (target) {
-                    if (target.is_relay || target.leg2_driver_name) {
-                        setIsRelay(true);
-                    }
-                    const dName = target.driver_name || (typeof target.driver === 'string' ? target.driver : (target.driver as any)?.name) || '';
-                    if (dName) {
-                        const matched = allLoadedDrivers.find(d => d.name.toLowerCase() === dName.toLowerCase());
-                        if (matched) {
-                            setSelectedDriverId(prev => prev || matched.id);
-                        }
-                    }
-                    if (target.leg2_driver_name) {
-                        const matched2 = allLoadedDrivers.find(d => d.name.toLowerCase() === target.leg2_driver_name?.toLowerCase());
-                        if (matched2) {
-                            setSelectedLeg2DriverId(prev => prev || matched2.id);
-                        }
+                let loadedDrivers: FleetDriverItem[] = [];
+                if (driversRes.status === 'fulfilled') {
+                    const rawDrivers =
+                        driversRes.value.data?.data?.drivers ||
+                        driversRes.value.data?.drivers ||
+                        driversRes.value.data?.data ||
+                        [];
+                    if (Array.isArray(rawDrivers)) {
+                        loadedDrivers = rawDrivers.map((d: any, idx: number) => {
+                            const statusNorm = String(d.status || 'Available');
+                            const avail: 'Available' | 'On Job' | 'Unavailable' =
+                                statusNorm === 'On Job'
+                                    ? 'On Job'
+                                    : statusNorm === 'Unavailable'
+                                    ? 'Unavailable'
+                                    : 'Available';
+                            return {
+                                id: `inhouse_${d.user_id || d.id || idx}`,
+                                rawId: d.user_id || d.id || idx,
+                                user_id: d.user_id || Number(d.id),
+                                name: d.name || `Driver ${idx + 1}`,
+                                phone: d.phone || '—',
+                                license: d.license || 'DL-VERIFIED',
+                                vehiclePlate:
+                                    d.vehicle?.registration_no ||
+                                    d.vehicle?.plate ||
+                                    '',
+                                vehicleType: d.vehicle?.type || 'Standard Fleet',
+                                role: d.role || 'In-House Fleet',
+                                status: statusNorm,
+                                availabilityStatus: avail,
+                                dutyStatus: d.duty_status,
+                                userStatus: d.user_status,
+                                email: d.email || '',
+                                driverType: 'internal',
+                            };
+                        });
                     }
                 }
+                setFleetDrivers(loadedDrivers);
+
+                let loadedVehicles: FleetVehicleItem[] = [];
+                if (vehiclesRes.status === 'fulfilled') {
+                    const rawVehicles =
+                        vehiclesRes.value.data?.data?.vehicles ||
+                        vehiclesRes.value.data?.vehicles ||
+                        vehiclesRes.value.data?.data ||
+                        [];
+                    if (Array.isArray(rawVehicles)) {
+                        loadedVehicles = rawVehicles.map((v: any) => ({
+                            id: String(v.id),
+                            name: v.name || 'Fleet Vehicle',
+                            type: v.type || 'Van',
+                            registration_no: v.registration_no || v.plate || '',
+                            capacity: v.capacity || '',
+                            capacity_kg: v.capacity_kg,
+                            status: v.status || 'Active',
+                            assigned_driver: v.assigned_driver,
+                            driver_id: v.driver_id,
+                            current_order_id: v.current_order_id,
+                            current_order_number: v.current_order_number,
+                        }));
+                    }
+                }
+                setFleetVehicles(loadedVehicles);
+
+                let loadedSubs: any[] = [];
+                if (subsRes.status === 'fulfilled') {
+                    const subs =
+                        subsRes.value.data?.data || subsRes.value.data || [];
+                    if (Array.isArray(subs)) {
+                        loadedSubs = subs;
+                        setSubcontractorsList(subs);
+                    }
+                }
+
+                // Hydrate legs if order came via location.state
+                const stateOrder =
+                    location.state?.selectedOrder ||
+                    location.state?.orderData ||
+                    location.state?.order;
+                const targetId = stateOrder
+                    ? String(
+                          stateOrder.id ||
+                              stateOrder.order_id ||
+                              stateOrder.order_no ||
+                              stateOrder.slug ||
+                              ''
+                      )
+                    : '';
+                if (targetId && mappedOrders.length > 0) {
+                    const target = mappedOrders.find((o) =>
+                        matchOrder(o, targetId)
+                    );
+                    if (target) {
+                        const relayActive = Boolean(
+                            target.is_relay ||
+                                target.leg2_driver_name ||
+                                (Array.isArray(target.shipment_legs) &&
+                                    target.shipment_legs.length > 1)
+                        );
+                        setIsRelay(relayActive);
+                        setPickupLeg(
+                            hydrateLegFromOrder(
+                                target,
+                                1,
+                                loadedDrivers,
+                                loadedVehicles,
+                                loadedSubs
+                            )
+                        );
+                        setDeliveryLeg(
+                            hydrateLegFromOrder(
+                                target,
+                                2,
+                                loadedDrivers,
+                                loadedVehicles,
+                                loadedSubs
+                            )
+                        );
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching dispatch data:', err);
+            } finally {
+                setIsLoading(false);
+                setIsRefreshing(false);
             }
-        } catch (err) {
-            console.error('Error fetching data:', err);
-        } finally {
-            setIsLoading(false);
-            setIsRefreshing(false);
-        }
-    }, [location.state]);
+        },
+        [location.state]
+    );
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
+    const selectedOrder = useMemo(() => {
+        if (!selectedOrderId) return null;
+        return orders.find((o) => matchOrder(o, selectedOrderId)) || null;
+    }, [orders, selectedOrderId]);
+
     const handleSelectOrder = (idVal: string) => {
         setSelectedOrderId(idVal);
-        const target = orders.find(o => matchOrder(o, idVal));
-        if (target) {
-            if (target.is_relay || target.leg2_driver_name) {
-                setIsRelay(true);
-            }
-            const dName = target.driver_name || (typeof target.driver === 'string' ? target.driver : (target.driver as any)?.name) || '';
-            const matched = fleetDrivers.find(d => d.name.toLowerCase() === dName.toLowerCase());
-            if (matched) setSelectedDriverId(matched.id);
+        if (!idVal) {
+            setIsRelay(false);
+            setPickupLeg(createDefaultLegState(1, 'pickup', 'Full Journey'));
+            setDeliveryLeg(
+                createDefaultLegState(
+                    2,
+                    'delivery',
+                    'Transit Hub → Final Delivery'
+                )
+            );
+            return;
+        }
 
-            if (target.leg2_driver_name) {
-                const matched2 = fleetDrivers.find(d => d.name.toLowerCase() === target.leg2_driver_name?.toLowerCase());
-                if (matched2) setSelectedLeg2DriverId(matched2.id);
-            }
+        const target = orders.find((o) => matchOrder(o, idVal));
+        if (target) {
+            const relayActive = Boolean(
+                target.is_relay ||
+                    target.leg2_driver_name ||
+                    (Array.isArray(target.shipment_legs) &&
+                        target.shipment_legs.length > 1)
+            );
+            setIsRelay(relayActive);
+            setPickupLeg(
+                hydrateLegFromOrder(
+                    target,
+                    1,
+                    fleetDrivers,
+                    fleetVehicles,
+                    subcontractorsList
+                )
+            );
+            setDeliveryLeg(
+                hydrateLegFromOrder(
+                    target,
+                    2,
+                    fleetDrivers,
+                    fleetVehicles,
+                    subcontractorsList
+                )
+            );
         }
     };
 
-    const selectedOrder = useMemo(() => {
-        if (!selectedOrderId) return null;
-        return orders.find(o => matchOrder(o, selectedOrderId)) || null;
-    }, [orders, selectedOrderId]);
+    const handleToggleRelay = (relay: boolean) => {
+        setIsRelay(relay);
+        const fromCity = selectedOrder?.pickup_city || 'Origin';
+        const toCity = selectedOrder?.delivery_city || 'Destination';
+        setPickupLeg((prev) => ({
+            ...prev,
+            journeyLeg: relay
+                ? prev.journeyLeg === `${fromCity} → ${toCity}` ||
+                  prev.journeyLeg === 'Full Journey'
+                    ? `${fromCity} → Transit Hub`
+                    : prev.journeyLeg
+                : `${fromCity} → ${toCity}`,
+        }));
+        if (relay) {
+            setDeliveryLeg((prev) => ({
+                ...prev,
+                journeyLeg:
+                    prev.journeyLeg && prev.journeyLeg !== 'Transit Hub → Final Delivery'
+                        ? prev.journeyLeg
+                        : `Transit Hub → ${toCity}`,
+            }));
+        }
+    };
 
-    const selectedDriver = useMemo(() => {
-        if (!selectedDriverId) return null;
-        return fleetDrivers.find(d => d.id === selectedDriverId) || null;
-    }, [fleetDrivers, selectedDriverId]);
+    const updatePickupLeg = (updates: Partial<LegAssignmentState>) => {
+        setPickupLeg((prev) => ({ ...prev, ...updates }));
+    };
 
-    const selectedLeg2Driver = useMemo(() => {
-        if (!selectedLeg2DriverId) return null;
-        return fleetDrivers.find(d => d.id === selectedLeg2DriverId) || null;
-    }, [fleetDrivers, selectedLeg2DriverId]);
+    const updateDeliveryLeg = (updates: Partial<LegAssignmentState>) => {
+        setDeliveryLeg((prev) => ({ ...prev, ...updates }));
+    };
 
     const customerPriceNum = useMemo(() => {
-        if (!selectedOrder) return 1000;
-        const raw = String(selectedOrder.agreed_price || (selectedOrder as any).price || '0').replace(/[^0-9.]/g, '');
-        return parseFloat(raw) || 1000;
+        if (!selectedOrder) return 0;
+        if (
+            typeof selectedOrder.amount_raw === 'number' &&
+            !Number.isNaN(selectedOrder.amount_raw) &&
+            selectedOrder.amount_raw > 0
+        ) {
+            return selectedOrder.amount_raw;
+        }
+        const raw = String(
+            selectedOrder.agreed_price || selectedOrder.total_amount || '0'
+        ).replace(/[^0-9.]/g, '');
+        return parseFloat(raw) || 0;
     }, [selectedOrder]);
 
-    const profitSummary = useMemo(() => {
-        const cost = parseFloat(subcontractorCost) || 0;
-        const profit = customerPriceNum - cost;
-        const margin = customerPriceNum > 0 ? (profit / customerPriceNum) * 100 : 0;
-        return {
-            customerPrice: customerPriceNum,
-            cost,
-            profit,
-            margin: margin.toFixed(1),
-            isProfitable: profit > 0,
-        };
-    }, [customerPriceNum, subcontractorCost]);
+    const financialSummary = useMemo(
+        () =>
+            calculateDispatchFinancials(
+                customerPriceNum,
+                isRelay,
+                pickupLeg,
+                deliveryLeg
+            ),
+        [customerPriceNum, isRelay, pickupLeg, deliveryLeg]
+    );
+
+    const handleClear = () => {
+        setSelectedOrderId('');
+        setIsRelay(false);
+        setPickupLeg(createDefaultLegState(1, 'pickup', 'Full Journey'));
+        setDeliveryLeg(
+            createDefaultLegState(2, 'delivery', 'Transit Hub → Final Delivery')
+        );
+        setDispatchNote('');
+    };
 
     const handleDispatchSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedOrder) {
-            toast({ title: "Select a Job", description: "Please select an active job first.", variant: "destructive" });
+            toast({
+                title: 'Select a Shipment',
+                description: 'Please select an active shipment first.',
+                variant: 'destructive',
+            });
             return;
         }
 
-        const isSub = dispatchMode === 'subcontractor';
-        if (isSub && !selectedSubcontractorId && !subcontractorDriverName) {
-            toast({ title: "Subcontractor Required", description: "Please enter subcontractor details.", variant: "destructive" });
+        const leg1Error = validateLegAssignment(
+            pickupLeg,
+            isRelay ? 'Pickup Assignment (Leg 1)' : 'Dispatch Assignment',
+            fleetDrivers,
+            fleetVehicles
+        );
+        if (leg1Error) {
+            toast({
+                title: 'Validation Error',
+                description: leg1Error,
+                variant: 'destructive',
+            });
             return;
         }
-        if (!isSub && !selectedDriver) {
-            toast({ title: "Driver 1 Required", description: "Please select Leg 1 driver.", variant: "destructive" });
-            return;
-        }
-        if (isRelay && !selectedLeg2Driver) {
-            toast({ title: "Driver 2 Required", description: "Please select Leg 2 driver for relay dispatch.", variant: "destructive" });
-            return;
+
+        if (isRelay) {
+            const leg2Error = validateLegAssignment(
+                deliveryLeg,
+                'Delivery Assignment (Leg 2)',
+                fleetDrivers,
+                fleetVehicles
+            );
+            if (leg2Error) {
+                toast({
+                    title: 'Validation Error',
+                    description: leg2Error,
+                    variant: 'destructive',
+                });
+                return;
+            }
         }
 
         setIsSubmitting(true);
         try {
-            const cleanId = String(selectedOrder.rawId || selectedOrder.id || selectedOrder.order_id || '1');
-            const subObj = subcontractorsList.find(s => String(s.id) === String(selectedSubcontractorId));
-            const subCompany = subObj?.name || 'Subcontractor Partner';
-            const costVal = isSub && subcontractorCost ? parseFloat(subcontractorCost) : undefined;
-            
-            const payload: any = {
+            const cleanId = String(
+                selectedOrder.rawId ||
+                    selectedOrder.id ||
+                    selectedOrder.order_id
+            );
+
+            const payload: Record<string, any> = {
                 is_relay: isRelay,
-                name: isSub ? (subcontractorDriverName || `${subCompany} Driver`) : selectedDriver!.name,
-                phone: isSub ? (subcontractorPhone || '—') : selectedDriver!.phone,
-                email: isSub ? undefined : (selectedDriver!.email || undefined),
-                plate: isSub ? (subcontractorPlate || 'DE-TR-8821') : (selectedDriver!.vehiclePlate || 'DE-TR-8821'),
-                vehicle_type: isSub ? (subcontractorVehicleType || 'Standard Fleet') : (selectedDriver!.vehicleType || 'Standard Fleet'),
-                driver_type: isSub ? 'subcontractor' : 'internal',
-                subcontractor_company: isSub ? subCompany : undefined,
-                subcontractor_id: isSub ? selectedSubcontractorId : undefined,
-                subcontractor_cost: costVal,
-                journey_leg: isRelay ? 'Leg 1: Pickup to Transit Hub' : 'Full Journey Route',
+                dispatch_note: dispatchNote.trim() || undefined,
+                pickup_leg: buildLegApiPayload(pickupLeg),
             };
 
-            if (isRelay && selectedLeg2Driver) {
-                payload.leg2_driver_name = selectedLeg2Driver.name;
-                payload.leg2_driver_phone = selectedLeg2Driver.phone;
-                payload.leg2_driver_email = selectedLeg2Driver.email || undefined;
-                payload.leg2_vehicle_plate = selectedLeg2Driver.vehiclePlate || 'GB-24-TRK';
-                payload.leg2_vehicle_type = selectedLeg2Driver.vehicleType || 'Standard Fleet';
-                payload.leg2_driver_type = selectedLeg2Driver.driverType || 'internal';
-                payload.leg2_subcontractor_company = selectedLeg2Driver.subcontractorCompany;
-                payload.leg2_subcontractor_id = selectedLeg2Driver.subcontractorId;
-                payload.leg2_journey_leg = leg2Route || 'Transit Hub → Final Delivery';
-                payload.leg2_cost = leg2Cost ? parseFloat(leg2Cost) : undefined;
+            if (isRelay) {
+                payload.delivery_leg = buildLegApiPayload(deliveryLeg);
             }
 
-            await apiClient.post(`/supplier/orders/${cleanId}/assign-driver`, payload);
+            await apiClient.post(
+                `/supplier/orders/${cleanId}/assign-driver`,
+                payload
+            );
 
             toast({
-                title: isRelay ? "2-Driver Relay Dispatched!" : isSub ? "Subcontractor Dispatched!" : "Driver Assigned & Dispatched!",
+                title: isRelay
+                    ? 'Multi-Leg Relay Dispatched!'
+                    : 'Shipment Dispatched!',
                 description: isRelay
-                    ? `Relay allocated to job #${selectedOrder.order_id || cleanId}.`
-                    : isSub
-                    ? `${subCompany} (${subcontractorDriverName}) allocated with €${costVal || 0} cost.`
-                    : `${selectedDriver?.name} allocated to job #${selectedOrder.order_id || cleanId}.`
+                    ? `Pickup (Leg 1) and Delivery (Leg 2) allocated for #${
+                          selectedOrder.order_id || cleanId
+                      }.`
+                    : `Driver allocated for #${
+                          selectedOrder.order_id || cleanId
+                      }.`,
             });
 
             setDispatchNote('');
             navigate('/supplier/orders/active-jobs');
         } catch (err: any) {
-            console.error('Error dispatching driver:', err);
+            console.error('Error dispatching shipment:', err);
             toast({
-                title: "Dispatch Failed",
-                description: err?.response?.data?.message || "Failed to update driver assignment.",
-                variant: "destructive"
+                title: 'Dispatch Failed',
+                description:
+                    err?.response?.data?.message ||
+                    'Failed to update dispatch assignment.',
+                variant: 'destructive',
             });
         } finally {
             setIsSubmitting(false);
@@ -331,74 +623,70 @@ export const useAssignDriverData = () => {
     };
 
     const isAssignedCheck = (o: SupplierOrderItem) => {
-        const rawStatus = (o.status_raw || o.status || 'confirmed').toLowerCase().trim();
+        const rawStatus = (o.status_raw || o.status || 'confirmed')
+            .toLowerCase()
+            .trim();
         const hasRealDriver = checkHasRealDriver(o);
-        return rawStatus === 'in_transit' || rawStatus === 'picked_up' || rawStatus === 'driver_assigned' || hasRealDriver;
+        return (
+            rawStatus === 'in_transit' ||
+            rawStatus === 'picked_up' ||
+            rawStatus === 'driver_assigned' ||
+            hasRealDriver
+        );
     };
 
-    const pendingOrders = useMemo(() => orders.filter(o => !isAssignedCheck(o)), [orders]);
-    const assignedOrders = useMemo(() => orders.filter(o => isAssignedCheck(o)), [orders]);
+    const pendingOrders = useMemo(
+        () => orders.filter((o) => !isAssignedCheck(o)),
+        [orders]
+    );
+    const assignedOrders = useMemo(
+        () => orders.filter((o) => isAssignedCheck(o)),
+        [orders]
+    );
 
     const filteredQueue = useMemo(() => {
         const base = queueTab === 'pending' ? pendingOrders : assignedOrders;
         if (!searchQuery) return base;
         const q = searchQuery.toLowerCase();
-        return base.filter(o =>
-            (o.order_id && o.order_id.toLowerCase().includes(q)) ||
-            (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
-            (o.pickup_city && o.pickup_city.toLowerCase().includes(q)) ||
-            (o.delivery_city && o.delivery_city.toLowerCase().includes(q))
+        return base.filter(
+            (o) =>
+                (o.order_id && o.order_id.toLowerCase().includes(q)) ||
+                (o.customer_name &&
+                    o.customer_name.toLowerCase().includes(q)) ||
+                (o.pickup_city && o.pickup_city.toLowerCase().includes(q)) ||
+                (o.delivery_city && o.delivery_city.toLowerCase().includes(q))
         );
     }, [queueTab, pendingOrders, assignedOrders, searchQuery]);
 
     return {
         orders,
         fleetDrivers,
+        fleetVehicles,
+        subcontractorsList,
         isLoading,
         isRefreshing,
         isSubmitting,
         selectedOrderId,
-        setSelectedOrderId,
-        selectedDriverId,
-        setSelectedDriverId,
+        selectedOrder,
         isRelay,
-        setIsRelay,
-        selectedLeg2DriverId,
-        setSelectedLeg2DriverId,
-        selectedLeg2Driver,
-        leg2Cost,
-        setLeg2Cost,
-        leg2Route,
-        setLeg2Route,
+        handleToggleRelay,
+        pickupLeg,
+        deliveryLeg,
+        updatePickupLeg,
+        updateDeliveryLeg,
         dispatchNote,
         setDispatchNote,
+        financialSummary,
         queueTab,
         setQueueTab,
         searchQuery,
         setSearchQuery,
-        selectedOrder,
-        selectedDriver,
-        dispatchMode,
-        setDispatchMode,
-        subcontractorsList,
-        selectedSubcontractorId,
-        setSelectedSubcontractorId,
-        subcontractorCost,
-        setSubcontractorCost,
-        subcontractorDriverName,
-        setSubcontractorDriverName,
-        subcontractorPhone,
-        setSubcontractorPhone,
-        subcontractorPlate,
-        setSubcontractorPlate,
-        subcontractorVehicleType,
-        setSubcontractorVehicleType,
-        profitSummary,
-        handleSelectOrder,
-        handleDispatchSubmit,
         filteredQueue,
         pendingCount: pendingOrders.length,
         assignedCount: assignedOrders.length,
+        handleSelectOrder,
+        handleDispatchSubmit,
+        handleClear,
         fetchData,
     };
 };

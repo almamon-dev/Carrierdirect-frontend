@@ -128,6 +128,14 @@ export default function OrderDetails() {
         if (assignedDriverInfo?.legs && Array.isArray(assignedDriverInfo.legs) && assignedDriverInfo.legs.length > 0) {
             return assignedDriverInfo.legs;
         }
+        if (Array.isArray(order.shipment_legs) && order.shipment_legs.length > 0) {
+            return order.shipment_legs.map((l: any) => ({
+                ...l,
+                driver_type: l.execution_mode === 'subcontractor' ? 'subcontractor' : 'internal',
+                cost: l.subcontractor_cost ?? 0,
+                title: l.leg_type === 'pickup' ? 'Pickup / Collection' : 'Delivery / Final Mile',
+            }));
+        }
         if (order.legs && Array.isArray(order.legs) && order.legs.length > 0) {
             return order.legs;
         }
@@ -186,6 +194,27 @@ export default function OrderDetails() {
             legs: assignedDriverInfo?.legs || order.legs || [],
         };
     }, [effectiveDriver, isRelay, assignedDriverInfo, order, effectiveVehiclePlate]);
+
+    const handleLegStatusChange = async (legNumber: number, newStatus: string) => {
+        try {
+            await apiClient.patch(`/supplier/orders/${cleanId}/legs/${legNumber}/status`, {
+                status: newStatus,
+            });
+            toast({
+                title: `Leg ${legNumber} Updated`,
+                description: `Leg ${legNumber} status changed to ${newStatus.replace('_', ' ')}.`,
+            });
+            if (refetch) {
+                await refetch();
+            }
+        } catch (err: any) {
+            toast({
+                title: 'Update Failed',
+                description: err?.response?.data?.message || 'Could not update leg status.',
+                variant: 'destructive',
+            });
+        }
+    };
 
     const handleSaveDriver = async (driverData: any) => {
         try {
@@ -546,7 +575,7 @@ export default function OrderDetails() {
                                                 </span>
                                             </div>
 
-                                            {isSub && legCost && (
+                                            {isSub && legCost !== undefined && legCost !== null && Number(legCost) > 0 && (
                                                 <div className="pt-1.5 border-t border-dashed border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-[11px]">
                                                     <span className="text-slate-500">Agreed Cost:</span>
                                                     <strong className="text-blue-700 dark:text-blue-300 font-bold">
@@ -554,6 +583,23 @@ export default function OrderDetails() {
                                                     </strong>
                                                 </div>
                                             )}
+
+                                            <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-2 text-[11px]">
+                                                <span className="text-slate-500">Leg Status:</span>
+                                                <select
+                                                    value={leg.status || 'assigned'}
+                                                    onChange={(e) => handleLegStatusChange(legNumber, e.target.value)}
+                                                    className="h-7 px-2 text-[11px] font-semibold bg-white dark:bg-[#12161c] border border-slate-300 dark:border-slate-700 rounded text-slate-800 dark:text-slate-200"
+                                                >
+                                                    <option value="pending">Pending</option>
+                                                    <option value="assigned">Assigned</option>
+                                                    <option value="in_progress">In Progress</option>
+                                                    <option value="picked_up">Picked Up</option>
+                                                    <option value="in_transit">In Transit</option>
+                                                    <option value="completed">Completed</option>
+                                                    <option value="cancelled">Cancelled</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     );
                                 })}
