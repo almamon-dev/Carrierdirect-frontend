@@ -1,110 +1,143 @@
 import React from 'react';
-import { CheckCircle2, MapPin, Truck, PackageCheck, FileCheck, ArrowRight } from 'lucide-react';
-import { ShipmentStatus } from '../../../types';
+import { CheckCircle2, MapPin, Truck, PackageCheck, FileCheck, ArrowRight, ShieldCheck } from 'lucide-react';
+import { ShipmentItem, ShipmentStatus } from '../../../types';
 
 interface Props {
+    shipment?: ShipmentItem;
     status: ShipmentStatus;
     onUpdateStatus: (nextStatus: ShipmentStatus) => void;
     onOpenPOD: () => void;
+    onOpenHandover?: () => void;
+    onOpenAcceptHandover?: () => void;
 }
 
 interface Step {
-    key: ShipmentStatus;
+    key: string;
     title: string;
     desc: string;
     icon: React.ElementType;
 }
 
-const STEPS: Step[] = [
-    { key: 'assigned', title: 'Assigned', desc: 'Freight load assigned to truck', icon: Truck },
-    { key: 'at_pickup', title: 'At Pickup', desc: 'Arrived at shipper warehouse', icon: MapPin },
-    { key: 'in_transit', title: 'In Transit', desc: 'Loaded & rolling on highway', icon: PackageCheck },
-    { key: 'at_delivery', title: 'At Delivery', desc: 'Arrived at consignee dock', icon: MapPin },
-    { key: 'delivered', title: 'Delivered', desc: 'POD uploaded & signed off', icon: FileCheck },
-];
+export const MilestoneStepper: React.FC<Props> = ({
+    shipment,
+    status,
+    onUpdateStatus,
+    onOpenPOD,
+    onOpenHandover,
+    onOpenAcceptHandover,
+}) => {
+    const isRelay = Boolean(shipment?.isRelay);
+    const isLeg2 = Boolean(shipment?.isDeliveryOnly);
+    const hubLocation = shipment?.hubLocation || 'Transit Hub';
+    const handover = shipment?.handover;
 
-export const MilestoneStepper: React.FC<Props> = ({ status, onUpdateStatus, onOpenPOD }) => {
-    const getStepIndex = (s: ShipmentStatus) => {
-        switch (s) {
-            case 'assigned':
-            case 'accepted':
-                return 0;
-            case 'at_pickup':
-                return 1;
-            case 'in_transit':
-                return 2;
-            case 'at_delivery':
-                return 3;
-            case 'delivered':
-            case 'completed':
-                return 4;
-            default:
-                return 0;
+    // Build steps dynamically based on relay role
+    let steps: Step[] = [];
+    let currentIndex = 0;
+
+    if (isRelay && !isLeg2) {
+        // Leg 1 Driver Steps
+        steps = [
+            { key: 'assigned', title: '1. Assigned', desc: 'Leg 1 corridor allocated', icon: Truck },
+            { key: 'picked_up', title: '2. Picked Up', desc: 'Cargo loaded at origin', icon: PackageCheck },
+            { key: 'in_transit', title: '3. En Route to Hub', desc: `Rolling to ${hubLocation}`, icon: Truck },
+            { key: 'handover_completed', title: '4. Handover', desc: 'Transferred to Driver 2', icon: ShieldCheck },
+        ];
+
+        if (status === 'assigned' || status === 'accepted') {
+            currentIndex = 0;
+        } else if (status === 'at_pickup' || status === 'picked_up') {
+            currentIndex = 1;
+        } else if (status === 'in_transit') {
+            currentIndex = 2;
+        } else if (status === 'at_hub' || status === 'handover_pending') {
+            currentIndex = 2; // Arrived at hub / initiating handover
+        } else if (handover?.status === 'accepted' || status === 'completed' || status === 'delivered') {
+            currentIndex = 4; // Complete
         }
-    };
+    } else if (isRelay && isLeg2) {
+        // Leg 2 Driver Steps
+        steps = [
+            { key: 'assigned', title: '1. Assigned', desc: 'Leg 2 delivery allocated', icon: Truck },
+            { key: 'handover_accepted', title: '2. Cargo Received', desc: 'Accepted from Driver 1', icon: ShieldCheck },
+            { key: 'in_transit', title: '3. Final Transit', desc: 'En route to consignee', icon: Truck },
+            { key: 'at_delivery', title: '4. At Delivery', desc: 'Arrived at delivery dock', icon: MapPin },
+            { key: 'delivered', title: '5. Delivered', desc: 'POD uploaded & signed off', icon: FileCheck },
+        ];
 
-    const currentIndex = getStepIndex(status);
+        const isAccepted = handover?.status === 'accepted' || status === 'handover_accepted';
+        if (status === 'delivered' || status === 'completed') {
+            currentIndex = 4;
+        } else if (status === 'at_delivery') {
+            currentIndex = 3;
+        } else if (status === 'in_transit' && isAccepted) {
+            currentIndex = 2;
+        } else if (isAccepted) {
+            currentIndex = 1;
+        } else {
+            currentIndex = 0; // Awaiting cargo
+        }
+    } else {
+        // Single Driver Standard Steps
+        steps = [
+            { key: 'assigned', title: '1. Assigned', desc: 'Freight load assigned to truck', icon: Truck },
+            { key: 'picked_up', title: '2. Picked Up', desc: 'Loaded at origin facility', icon: PackageCheck },
+            { key: 'in_transit', title: '3. In Transit', desc: 'Rolling on highway corridor', icon: Truck },
+            { key: 'at_delivery', title: '4. At Delivery', desc: 'Arrived at consignee dock', icon: MapPin },
+            { key: 'delivered', title: '5. Delivered', desc: 'POD uploaded & signed off', icon: FileCheck },
+        ];
 
-    const getNextAction = () => {
         switch (status) {
             case 'assigned':
             case 'accepted':
-                return {
-                    label: 'Mark Arrived at Pickup',
-                    action: () => onUpdateStatus('at_pickup'),
-                    color: 'bg-indigo-600 hover:bg-indigo-700',
-                };
+                currentIndex = 0;
+                break;
             case 'at_pickup':
-                return {
-                    label: 'Cargo Loaded ➔ Start Transit',
-                    action: () => onUpdateStatus('in_transit'),
-                    color: 'bg-blue-600 hover:bg-blue-700',
-                };
+            case 'picked_up':
+                currentIndex = 1;
+                break;
             case 'in_transit':
-                return {
-                    label: 'Mark Arrived at Delivery',
-                    action: () => onUpdateStatus('at_delivery'),
-                    color: 'bg-purple-600 hover:bg-purple-700',
-                };
+                currentIndex = 2;
+                break;
             case 'at_delivery':
-                return {
-                    label: 'Upload POD & Complete Delivery',
-                    action: () => onOpenPOD(),
-                    color: 'bg-emerald-600 hover:bg-emerald-700',
-                };
+                currentIndex = 3;
+                break;
             case 'delivered':
             case 'completed':
-                return null;
+                currentIndex = 4;
+                break;
             default:
-                return null;
+                currentIndex = 0;
         }
-    };
-
-    const nextAction = getNextAction();
+    }
 
     return (
-        <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200/90 dark:border-slate-800 p-3.5 sm:p-4 shadow-2xs space-y-3.5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200/90 dark:border-slate-800 p-3.5 sm:p-4 shadow-2xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div>
-                    <h2 className="text-[13px] font-bold text-slate-900 dark:text-white">Delivery Milestones & Progress</h2>
-                    <p className="text-[11px] text-slate-500">Track and update delivery checkpoints</p>
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                            Journey Milestones
+                        </h2>
+                        {isRelay && (
+                            <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-orange-100 dark:bg-orange-950 text-[#FF4A1F] border border-orange-200 dark:border-orange-800">
+                                {isLeg2 ? 'Leg 2 • Final Delivery' : 'Leg 1 • Pickup & Hub Transfer'}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                        {isRelay
+                            ? isLeg2
+                                ? `Receive cargo at ${hubLocation} and complete final delivery to customer`
+                                : `Pick up from origin and hand over cargo to Driver 2 at ${hubLocation}`
+                            : 'Direct single-driver delivery from origin to final destination'}
+                    </p>
                 </div>
-
-                {nextAction && (
-                    <button
-                        type="button"
-                        onClick={nextAction.action}
-                        className={`px-3 py-1.5 text-white rounded-[4px] text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-98 cursor-pointer ${nextAction.color}`}
-                    >
-                        <span>{nextAction.label}</span>
-                        <ArrowRight size={13} />
-                    </button>
-                )}
             </div>
 
-            {/* Steps bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                {STEPS.map((step, idx) => {
+            {/* Stepper Grid */}
+            <div className={`grid grid-cols-2 ${steps.length === 4 ? 'sm:grid-cols-4' : 'sm:grid-cols-5'} gap-2`}>
+                {steps.map((step, idx) => {
                     const isPassed = idx < currentIndex;
                     const isCurrent = idx === currentIndex;
                     const Icon = step.icon;

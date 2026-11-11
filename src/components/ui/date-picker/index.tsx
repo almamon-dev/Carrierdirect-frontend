@@ -94,12 +94,12 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
                         <div className="relative flex items-center w-full">
                             <input
                                 ref={ref}
-                                type="text"
                                 id={inputId}
                                 name={name}
                                 value={stringValue}
                                 onChange={(e) => triggerChange(e.target.value)}
                                 onClick={() => !disabled && !readOnly && setIsOpen(true)}
+                                onFocus={() => !disabled && !readOnly && setIsOpen(true)}
                                 placeholder={placeholder}
                                 disabled={disabled}
                                 readOnly={readOnly}
@@ -112,6 +112,7 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
                                     className
                                 )}
                                 {...props}
+                                type="text"
                             />
 
                             <Popover.Trigger asChild>

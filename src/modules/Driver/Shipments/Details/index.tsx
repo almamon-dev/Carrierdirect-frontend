@@ -1,7 +1,8 @@
 import { decryptId, encryptId } from '@/lib/encryption';
-import { ArrowLeft, CheckCircle2, Truck } from 'lucide-react';
+import { ArrowLeft, Truck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useToastStore } from '@/stores/useToastStore';
 import { requireDriverCompliance } from '../../Compliance';
 import { driverApi } from '../../services/driverApi';
 import { ShipmentItem, ShipmentStatus } from '../../types';
@@ -14,7 +15,9 @@ import { DriverShipmentCargoSpecsCard } from './components/DriverShipmentCargoSp
 import { DriverShipmentDetailsSkeleton } from './components/DriverShipmentDetailsSkeleton';
 import { DriverShipmentHeader } from './components/DriverShipmentHeader';
 import { DriverShipmentMapSection } from './components/DriverShipmentMapSection';
-import { DriverShipmentSidebarTimeline } from './components/DriverShipmentSidebarTimeline';
+import { DriverShipmentTimelineSection } from './components/DriverShipmentTimelineSection';
+import { HandoverModal } from './components/HandoverModal';
+import { AcceptHandoverModal } from './components/AcceptHandoverModal';
 import { PODUploadModal } from './components/PODUploadModal';
 
 export default function DriverShipmentDetailPage() {
@@ -25,10 +28,12 @@ export default function DriverShipmentDetailPage() {
     const [shipment, setShipment] = useState<ShipmentItem | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isPODOpen, setIsPODOpen] = useState(false);
+    const [isHandoverOpen, setIsHandoverOpen] = useState(false);
+    const [isAcceptHandoverOpen, setIsAcceptHandoverOpen] = useState(false);
     const [isGPSOpen, setIsGPSOpen] = useState(false);
     const [gpsDestination, setGpsDestination] = useState<string | undefined>(undefined);
-    const [actionMessage, setActionMessage] = useState<string | null>(null);
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const { showToast } = useToastStore();
 
     const decryptedRawId = decryptId(id);
     const cleanId = decryptedRawId
@@ -75,17 +80,12 @@ export default function DriverShipmentDetailPage() {
                 (shipment && eventOrderNumber === shipment.orderNumber)
             ) {
                 loadShipment();
-                if (data.action === "delivery_accepted" || data.status === "completed" || data.type === "delivery_accepted") {
-                    setActionMessage("Customer has approved Proof of Delivery! Shipment completed successfully.");
-                    setTimeout(() => setActionMessage(null), 6000);
-                }
             }
         };
 
         const handleCustomEvent = (e: any) => handleRealtimeUpdate(e.detail);
 
         window.addEventListener("driver-shipment-updated", handleCustomEvent);
-        window.addEventListener("order-status-updated", handleCustomEvent);
 
         let orderChannel: any = null;
         if (targetId) {
@@ -104,13 +104,12 @@ export default function DriverShipmentDetailPage() {
 
         return () => {
             window.removeEventListener("driver-shipment-updated", handleCustomEvent);
-            window.removeEventListener("order-status-updated", handleCustomEvent);
             if (orderChannel) {
                 orderChannel.stopListening(".ShipmentStatusUpdated");
                 orderChannel.stopListening("ShipmentStatusUpdated");
             }
         };
-    }, [cleanId, id, shipment?.orderNumber]);
+    }, [cleanId, id]);
 
     useEffect(() => {
         if (!shipment || shipment.status !== 'completed') return;
@@ -147,10 +146,8 @@ export default function DriverShipmentDetailPage() {
         await driverApi.submitCustomerReview(sid, data);
         localStorage.setItem(`driver_rated_${sid}`, 'true');
         setIsRatingModalOpen(false);
-        setActionMessage('Thank you! Your facility and customer review has been submitted.');
-        setTimeout(() => setActionMessage(null), 5000);
+        showToast('Thank you! Your facility and customer review has been submitted.', 'success');
     };
-
 
     const handleOpenGPS = (dest?: string) => {
         const sid = shipment?.id || cleanId || id || 'ord-10002';
@@ -162,8 +159,7 @@ export default function DriverShipmentDetailPage() {
             if (!shipment) return;
             const updated = await driverApi.updateShipmentMilestone(shipment.id, nextStatus);
             setShipment(updated);
-            setActionMessage(`Shipment milestone successfully updated to "${nextStatus.replace('_', ' ')}"!`);
-            setTimeout(() => setActionMessage(null), 4500);
+            showToast(`Shipment milestone updated to "${nextStatus.replace('_', ' ')}"`, 'success');
         }, 'Update Delivery Milestone');
     };
 
@@ -178,8 +174,31 @@ export default function DriverShipmentDetailPage() {
         const updated = await driverApi.submitPOD(shipment.id, podData);
         setShipment(updated);
         setIsPODOpen(false);
-        setActionMessage('Proof of Delivery (POD) confirmed and saved successfully!');
-        setTimeout(() => setActionMessage(null), 5000);
+        showToast('Proof of Delivery (POD) confirmed and saved successfully!', 'success');
+    };
+
+    const handleInitiateHandover = async (data: any) => {
+        if (!shipment) return;
+        const updated = await driverApi.initiateHandover(shipment.id, data);
+        setShipment(updated);
+        setIsHandoverOpen(false);
+        showToast('Handover initiated successfully! Handover OTP code generated.', 'success');
+    };
+
+    const handleAcceptHandover = async (data: any) => {
+        if (!shipment) return;
+        const updated = await driverApi.acceptHandover(shipment.id, data);
+        setShipment(updated);
+        setIsAcceptHandoverOpen(false);
+        showToast('Cargo handover accepted successfully! Final transit is active.', 'success');
+    };
+
+    const handleRejectHandover = async (reason: string) => {
+        if (!shipment) return;
+        const updated = await driverApi.rejectHandover(shipment.id, { reason });
+        setShipment(updated);
+        setIsAcceptHandoverOpen(false);
+        showToast('Cargo handover has been rejected.', 'info');
     };
 
     if (isLoading) {
@@ -209,15 +228,7 @@ export default function DriverShipmentDetailPage() {
 
     return (
         <div className="p-2.5 sm:p-4 w-full flex flex-col min-h-screen font-sans bg-[#f8fafc] dark:bg-[#12161c] pb-8 space-y-2.5 text-slate-800 dark:text-slate-200 antialiased">
-            {/* Top Action Notification Banner */}
-            {actionMessage && (
-                <div className="p-2.5 px-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200 shadow-2xs">
-                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                    <span>{actionMessage}</span>
-                </div>
-            )}
-
-            {/* Top Full-Width Minimal Header Bar with Live GPS Tracking */}
+            {/* Top Full-Width Minimal Header Bar with Live GPS Tracking & Copy ID */}
             <DriverShipmentHeader
                 shipment={shipment}
                 onOpenGPS={() => handleOpenGPS(shipment ? `${shipment.consignee.address}, ${shipment.consignee.city}` : undefined)}
@@ -225,29 +236,31 @@ export default function DriverShipmentDetailPage() {
 
             {/* Main 12-Column Responsive Dashboard Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-start">
-                {/* Left Column (8 cols) */}
-                <div className="lg:col-span-8 flex flex-col gap-2.5">
-                    {/* Live Corridor Google Map View */}
+                {/* Left Column (7 cols): Map + Route Options + Cargo & Equipment */}
+                <div className="lg:col-span-7 flex flex-col gap-2.5">
+                    {/* Live Tracking Map View */}
                     <DriverShipmentMapSection shipment={shipment} />
 
-                    {/* Vehicle & Cargo Specs Card */}
+                    {/* Route Options & Cargo Manifest Specifications Card */}
                     <DriverShipmentCargoSpecsCard
                         cargo={shipment.cargo}
                         route={shipment.route}
                     />
                 </div>
 
-                {/* Right Column (4 cols) */}
-                <div className="lg:col-span-4 flex flex-col gap-2.5">
-                    {/* Milestone Action & Delivery Sign-Off Card */}
+                {/* Right Column (5 cols): Current Operation + Unified Shipment Timeline */}
+                <div className="lg:col-span-5 flex flex-col gap-2.5">
+                    {/* Current Operation Card */}
                     <DriverShipmentActionCard
                         shipment={shipment}
                         onUpdateStatus={handleUpdateMilestone}
                         onOpenPOD={handleOpenPOD}
+                        onOpenHandover={() => setIsHandoverOpen(true)}
+                        onOpenAcceptHandover={() => setIsAcceptHandoverOpen(true)}
                     />
 
-                    {/* Activity Log & Direct Dispatch Contacts Card */}
-                    <DriverShipmentSidebarTimeline shipment={shipment} />
+                    {/* Unified Shipment Timeline Card (Single Driver / Multi-Driver) */}
+                    <DriverShipmentTimelineSection shipment={shipment} />
                 </div>
             </div>
 
@@ -257,6 +270,23 @@ export default function DriverShipmentDetailPage() {
                 orderNumber={shipment.orderNumber}
                 onClose={() => setIsPODOpen(false)}
                 onSubmitPOD={handlePODSubmit}
+            />
+
+            {/* Relay Handover Modal for Leg 1 Driver */}
+            <HandoverModal
+                isOpen={isHandoverOpen}
+                shipment={shipment}
+                onClose={() => setIsHandoverOpen(false)}
+                onInitiateHandover={handleInitiateHandover}
+            />
+
+            {/* Relay Accept Handover Modal for Leg 2 Driver */}
+            <AcceptHandoverModal
+                isOpen={isAcceptHandoverOpen}
+                shipment={shipment}
+                onClose={() => setIsAcceptHandoverOpen(false)}
+                onAcceptHandover={handleAcceptHandover}
+                onRejectHandover={handleRejectHandover}
             />
 
             {/* GPS Coming Soon Modal */}

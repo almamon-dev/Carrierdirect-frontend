@@ -184,8 +184,8 @@ export const AssignVehicleFormFields: React.FC<AssignVehicleFormFieldsProps> = (
                             required
                             placeholder="e.g. UK-AB12CD"
                             value={vehiclePlate}
-                            onChange={(e) => setVehiclePlate(e.target.value.toUpperCase())}
-                            className="text-xs h-9 mt-1 rounded-[4px] font-mono uppercase tracking-wider"
+                            onChange={(e) => setVehiclePlate(e.target.value)}
+                            className="text-xs h-9 mt-1 rounded-[4px] font-mono tracking-wider"
                             disabled={disabled}
                         />
                     </div>

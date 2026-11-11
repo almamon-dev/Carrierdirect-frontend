@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreVertical, ArrowUpRight, Truck, MapPin } from 'lucide-react';
-import Button from '@/components/ui/button';
+import { MoreVertical, Truck, Eye } from 'lucide-react';
 import { DriverItem } from '../types/driverAvailability.types';
 import { DriverActionsDropdown } from './DriverActionsDropdown';
 
@@ -9,6 +8,10 @@ interface DriverRowActionsProps {
     row: DriverItem;
     onAssignVehicle: (driver: DriverItem) => void;
     onAssignServiceArea: (driver: DriverItem) => void;
+    onDutyStatusChange?: (driver: DriverItem, newDutyStatus: 'online' | 'offline' | 'break') => void;
+    onAccountStatusChange?: (driver: DriverItem, newAccountStatus: 'active' | 'disabled' | 'blocked') => void;
+    onViewHistory?: (driver: DriverItem) => void;
+    onViewActiveJob?: (driver: DriverItem) => void;
     onStatusChange?: (driver: DriverItem, newStatus: 'Available' | 'On Job' | 'Unavailable') => void;
     onRemoveVehicle?: (driver: DriverItem) => void;
     onRemoveServiceArea?: (driver: DriverItem) => void;
@@ -18,7 +21,10 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
     row,
     onAssignVehicle,
     onAssignServiceArea,
-    onStatusChange,
+    onDutyStatusChange,
+    onAccountStatusChange,
+    onViewHistory,
+    onViewActiveJob,
     onRemoveVehicle,
     onRemoveServiceArea,
 }) => {
@@ -35,8 +41,8 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
             setIsOpen(false);
         } else {
             const rect = e.currentTarget.getBoundingClientRect();
-            const menuWidth = 224;
-            const menuHeight = 280;
+            const menuWidth = 230;
+            const menuHeight = 310;
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
@@ -66,67 +72,57 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
         };
     }, [isOpen, handleClose]);
 
-    const hasVehicle = Boolean(row.assignedVehicle || row.vehicle?.plate);
-    const hasArea = Boolean(
-        row.assignedServiceArea ||
-        row.service_area_id ||
-        (Array.isArray(row.service_area_ids) && row.service_area_ids.length > 0) ||
-        (Array.isArray(row.service_areas) && row.service_areas.length > 0)
-    );
+    const isOnJob = row.job_status === 'on_job' || Boolean(row.active_assignment?.order_id) || row.status === 'On Job';
+    const isAvailable = !isOnJob && (row.status === 'Available' || row.job_status === 'available');
 
     return (
-        <div className="relative flex items-center justify-end gap-1.5 w-full min-h-[26px]">
-            {row.status === 'On Job' ? (
+        <div className="relative flex items-center justify-end gap-1.5 w-full min-h-[28px]">
+            {isOnJob ? (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (onViewActiveJob) {
+                            onViewActiveJob(row);
+                        } else {
+                            const orderId = row.active_assignment?.order_id || row.active_assignment?.order_number?.replace(/\D/g, '') || '';
+                            navigate(orderId ? `/supplier/orders/details/${orderId}` : '/supplier/orders/active-jobs');
+                        }
+                    }}
+                    className="h-7 px-2.5 rounded-[4px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1f26] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                    title="View active shipment dispatch"
+                >
+                    <Eye size={13} className="text-slate-500 dark:text-slate-400" />
+                    <span>View</span>
+                </button>
+            ) : (
                 <button
                     type="button"
                     onClick={(e) => {
                         e.stopPropagation();
                         navigate('/supplier/orders');
                     }}
-                    className="text-xs font-semibold text-[#f97316] hover:underline cursor-pointer flex items-center gap-0.5 shrink-0 mr-0.5"
-                    title="View active driver orders"
+                    className="h-7 px-2.5 rounded-[4px] border border-orange-200 dark:border-orange-800/60 bg-orange-50/50 dark:bg-orange-950/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-[#ff4a1f] font-semibold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                    title="Assign to shipment"
                 >
-                    <span>Orders</span>
-                    <ArrowUpRight size={12} />
-                </button>
-            ) : !hasVehicle ? (
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onAssignVehicle(row);
-                    }}
-                    className="h-6 px-2 text-[11px] font-semibold text-[#ff4a1f] hover:bg-orange-50 dark:hover:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 rounded-[3px] flex items-center gap-1 transition-colors cursor-pointer shrink-0"
-                    title="Quick assign vehicle"
-                >
-                    <Truck size={11} />
+                    <Truck size={13} className="text-[#ff4a1f]" />
                     <span>Assign</span>
                 </button>
-            ) : !hasArea ? (
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onAssignServiceArea(row);
-                    }}
-                    className="h-6 px-2 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-[3px] flex items-center gap-1 transition-colors cursor-pointer shrink-0"
-                    title="Quick assign service area"
-                >
-                    <MapPin size={11} />
-                    <span>Area</span>
-                </button>
-            ) : null}
+            )}
 
-            <Button
+            <button
                 ref={triggerRef}
-                variant="ghost"
-                size="sm"
-                className="h-[26px] w-[26px] p-0 rounded-[3px] text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                type="button"
                 onClick={handleToggle}
-                title="Driver Actions"
+                className={`h-7 w-7 rounded-[4px] border transition-colors cursor-pointer flex items-center justify-center shrink-0 ${
+                    isOpen
+                        ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100'
+                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1f26] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+                title="More Actions"
             >
                 <MoreVertical size={14} />
-            </Button>
+            </button>
 
             <DriverActionsDropdown
                 isOpen={isOpen}
@@ -135,7 +131,9 @@ export const DriverRowActions: React.FC<DriverRowActionsProps> = ({
                 onClose={handleClose}
                 onAssignVehicle={onAssignVehicle}
                 onAssignServiceArea={onAssignServiceArea}
-                onStatusChange={onStatusChange}
+                onDutyStatusChange={onDutyStatusChange}
+                onAccountStatusChange={onAccountStatusChange}
+                onViewHistory={onViewHistory}
                 onRemoveVehicle={onRemoveVehicle}
                 onRemoveServiceArea={onRemoveServiceArea}
             />

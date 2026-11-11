@@ -155,11 +155,15 @@ export const SelectPortalMenu: React.FC<SelectPortalMenuProps> = ({
                                                     {option.badge && (
                                                         <span className={cn(
                                                             "text-[9.5px] font-semibold px-1.5 py-0.5 rounded tracking-wide shrink-0",
-                                                            option.badgeColor === 'subcontractor'
-                                                                ? "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/50"
-                                                                : option.badgeColor === 'fleet'
-                                                                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50"
-                                                                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200/60"
+                                                            option.badgeColor === 'success' || option.badgeColor === 'fleet'
+                                                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/60"
+                                                                : option.badgeColor === 'info' || option.badgeColor === 'subcontractor'
+                                                                    ? "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/50"
+                                                                    : option.badgeColor === 'warning'
+                                                                        ? "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/50"
+                                                                        : option.badgeColor === 'danger'
+                                                                            ? "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/50"
+                                                                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200/60"
                                                         )}>
                                                             {option.badge}
                                                         </span>

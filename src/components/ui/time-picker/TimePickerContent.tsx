@@ -35,7 +35,9 @@ export const TimePickerContent: React.FC<TimePickerContentProps> = ({
                 align={align}
                 side="bottom"
                 sideOffset={4}
-                className="z-50 w-[280px] rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-[#1a1f26] p-3 shadow-xl shadow-slate-900/10 text-slate-800 dark:text-slate-100 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 duration-150"
+                style={{ zIndex: 999999 }}
+                className="z-[999999] w-[280px] rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-[#1a1f26] p-3 shadow-xl shadow-slate-900/10 text-slate-800 dark:text-slate-100 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 duration-150"
+                onClick={(e) => e.stopPropagation()}
             >
                 {/* Header / Preview */}
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">

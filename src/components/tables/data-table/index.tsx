@@ -36,6 +36,9 @@ export default function DataTable<T extends Record<string, any>>(props: DataTabl
     selectable = true,
     hideFilter = false,
     banner,
+    onRefresh,
+    isRefreshing,
+    hideColumnToggle = false,
   } = props;
 
   const showCheckbox = selectable && !hideCheckbox;
@@ -75,6 +78,9 @@ export default function DataTable<T extends Record<string, any>>(props: DataTabl
           isWrapCells={state.isWrapCells}
           handleToggleWrapCells={state.handleToggleWrapCells}
           filterContent={filterContent}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
+          hideColumnToggle={hideColumnToggle}
         />
 
         {state.paginatedData.length === 0 && !isLoading ? (

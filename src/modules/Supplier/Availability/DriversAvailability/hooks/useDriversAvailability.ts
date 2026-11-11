@@ -10,8 +10,9 @@ export function useDriversAvailability() {
     const showToast = useToastStore((state) => state.showToast);
 
     const initialTab = (searchParams.get('tab') as DriverFilterStatus) || 'All';
+    const validTabs: DriverFilterStatus[] = ['All', 'Available', 'On Job', 'On Break', 'Offline', 'Blocked', 'Unavailable'];
     const [filterStatus, setFilterStatusState] = useState<DriverFilterStatus>(
-        ['All', 'Available', 'On Job', 'Unavailable'].includes(initialTab) ? initialTab : 'All'
+        validTabs.includes(initialTab) ? initialTab : 'All'
     );
 
     const setFilterStatus = (tab: DriverFilterStatus) => {
@@ -33,6 +34,9 @@ export function useDriversAvailability() {
         available: 0,
         unavailable: 0,
         on_job: 0,
+        break: 0,
+        offline: 0,
+        blocked: 0,
     });
 
     // Detailed filter drawer state
@@ -42,13 +46,17 @@ export function useDriversAvailability() {
 
     const [vehicleModalDriver, setVehicleModalDriver] = useState<DriverItem | null>(null);
     const [serviceAreaModalDriver, setServiceAreaModalDriver] = useState<DriverItem | null>(null);
+    const [historyModalDriver, setHistoryModalDriver] = useState<DriverItem | null>(null);
 
     const computeCounts = useCallback((list: DriverItem[]) => {
         return {
             all: list.length,
             available: list.filter((d) => d.status === 'Available').length,
             on_job: list.filter((d) => d.status === 'On Job').length,
-            unavailable: list.filter((d) => d.status === 'Unavailable').length,
+            break: list.filter((d) => d.status === 'On Break' || d.duty_status === 'break').length,
+            offline: list.filter((d) => d.status === 'Offline' || d.duty_status === 'offline').length,
+            blocked: list.filter((d) => ['Blocked', 'Disabled'].includes(d.status) || ['blocked', 'disabled'].includes(String(d.account_status))).length,
+            unavailable: list.filter((d) => ['Offline', 'On Break', 'Disabled', 'Blocked', 'Unavailable'].includes(d.status)).length,
         };
     }, []);
 
@@ -136,41 +144,73 @@ export function useDriversAvailability() {
         });
     };
 
-    const handleStatusChange = async (driver: DriverItem, newStatus: 'Available' | 'On Job' | 'Unavailable') => {
-        const prevStatus = driver.status;
-        setDrivers((prev) => {
-            const next = prev.map((d) => (d.id === driver.id ? { ...d, status: newStatus } : d));
-            setCounts(computeCounts(next));
-            return next;
-        });
-
+    const handleDutyStatusChange = async (driver: DriverItem, newDutyStatus: 'online' | 'offline' | 'break') => {
         try {
-            const res = await apiClient.post(`/supplier/availability/drivers/${driver.id}/status`, {
-                status: newStatus,
+            const res = await apiClient.patch(`/supplier/availability/drivers/${driver.id}/duty-status`, {
+                duty_status: newDutyStatus,
             });
-            const isSuccess = res?.success ?? res?.data?.success ?? true;
-            const updatedDriver = res?.data?.data || res?.data || res;
+            const isSuccess = res?.data?.success ?? true;
+            const updated = res?.data?.data?.driver || res?.data?.data || res?.data;
 
-            if (isSuccess && updatedDriver?.id) {
-                showToast(`Status updated to ${newStatus} for ${driver.name || 'Driver'}`, 'success');
-                handleDriverUpdated(updatedDriver);
-            } else {
-                setDrivers((prev) => {
-                    const next = prev.map((d) => (d.id === driver.id ? { ...d, status: prevStatus } : d));
-                    setCounts(computeCounts(next));
-                    return next;
+            if (isSuccess && updated) {
+                const formattedDuty = newDutyStatus === 'online' ? 'Online' : newDutyStatus === 'break' ? 'On Break' : 'Offline';
+                showToast(`Duty status updated to ${formattedDuty} for ${driver.name || 'Driver'}`, 'success');
+                handleDriverUpdated({
+                    ...driver,
+                    duty_status: newDutyStatus,
+                    status: newDutyStatus === 'online' ? (driver.job_status === 'on_job' ? 'On Job' : 'Available') : newDutyStatus === 'break' ? 'On Break' : 'Offline',
+                    ...updated,
                 });
-                showToast(res?.message || res?.data?.message || 'Failed to update status', 'error');
+            } else {
+                showToast(res?.data?.message || 'Failed to update duty status', 'error');
             }
         } catch (err: any) {
-            setDrivers((prev) => {
-                const next = prev.map((d) => (d.id === driver.id ? { ...d, status: prevStatus } : d));
-                setCounts(computeCounts(next));
-                return next;
-            });
-            console.error('Status change error:', err);
-            showToast('Failed to update status on server.', 'error');
+            console.error('Duty status update error:', err);
+            const msg = err.response?.data?.message || err.message || 'Failed to update duty status';
+            showToast(msg, 'error');
         }
+    };
+
+    const handleAccountStatusChange = async (driver: DriverItem, newAccountStatus: 'active' | 'disabled' | 'blocked') => {
+        const actionLabel = newAccountStatus === 'active' ? 'reactivate' : newAccountStatus === 'blocked' ? 'block' : 'disable';
+        if (!window.confirm(`Are you sure you want to ${actionLabel} the account for ${driver.name || 'this driver'}?`)) {
+            return;
+        }
+
+        try {
+            const res = await apiClient.patch(`/supplier/availability/drivers/${driver.id}/account-status`, {
+                account_status: newAccountStatus,
+                reason: `Account ${actionLabel}d via Supplier Dashboard`,
+            });
+            const isSuccess = res?.data?.success ?? true;
+            const updated = res?.data?.data?.driver || res?.data?.data || res?.data;
+
+            if (isSuccess && updated) {
+                showToast(`Account successfully ${actionLabel}d for ${driver.name || 'Driver'}`, 'success');
+                handleDriverUpdated({
+                    ...driver,
+                    account_status: newAccountStatus,
+                    status: newAccountStatus === 'active' ? (driver.duty_status === 'online' ? (driver.job_status === 'on_job' ? 'On Job' : 'Available') : 'Offline') : (newAccountStatus === 'blocked' ? 'Blocked' : 'Disabled'),
+                    ...updated,
+                });
+            } else {
+                showToast(res?.data?.message || 'Failed to update account status', 'error');
+            }
+        } catch (err: any) {
+            console.error('Account status update error:', err);
+            const msg = err.response?.data?.message || err.message || 'Failed to update account status';
+            showToast(msg, 'error');
+        }
+    };
+
+    const handleStatusChange = async (driver: DriverItem, newStatus: 'Available' | 'On Job' | 'Unavailable') => {
+        if (newStatus === 'On Job') {
+            showToast('Job Status is system-controlled by active shipment assignments.', 'info');
+            return;
+        }
+
+        const dutyTarget: 'online' | 'offline' = newStatus === 'Available' ? 'online' : 'offline';
+        await handleDutyStatusChange(driver, dutyTarget);
     };
 
     const handleRemoveVehicle = async (driver: DriverItem) => {
@@ -226,8 +266,20 @@ export function useDriversAvailability() {
     const filteredDrivers = useMemo(() => {
         return drivers.filter((d) => {
             // 1. Tab filter
-            if (filterStatus !== 'All' && d.status !== filterStatus) {
-                return false;
+            if (filterStatus === 'Available') {
+                if (d.status !== 'Available') return false;
+            } else if (filterStatus === 'On Job') {
+                if (d.status !== 'On Job') return false;
+            } else if (filterStatus === 'On Break') {
+                if (d.status !== 'On Break' && d.duty_status !== 'break') return false;
+            } else if (filterStatus === 'Offline') {
+                if (d.status !== 'Offline' && d.duty_status !== 'offline') return false;
+            } else if (filterStatus === 'Blocked') {
+                const isBlocked = ['Blocked', 'Disabled'].includes(d.status) || ['blocked', 'disabled'].includes(String(d.account_status));
+                if (!isBlocked) return false;
+            } else if (filterStatus === 'Unavailable') {
+                const isUnavail = ['Offline', 'On Break', 'Disabled', 'Blocked', 'Unavailable'].includes(d.status);
+                if (!isUnavail) return false;
             }
 
             // 2. Extra status filter from drawer
@@ -269,7 +321,11 @@ export function useDriversAvailability() {
         setVehicleModalDriver,
         serviceAreaModalDriver,
         setServiceAreaModalDriver,
+        historyModalDriver,
+        setHistoryModalDriver,
         handleDriverUpdated,
+        handleDutyStatusChange,
+        handleAccountStatusChange,
         handleStatusChange,
         handleRemoveVehicle,
         handleRemoveServiceArea,

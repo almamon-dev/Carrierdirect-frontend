@@ -38,13 +38,13 @@ export function useDriverShipments() {
     const filteredShipments = useMemo(() => {
         return shipments.filter((item) => {
             // Tab filter
-            if (activeTab === 'active' && item.status !== 'in_transit' && item.status !== 'at_pickup' && item.status !== 'at_delivery') {
+            if (activeTab === 'active' && !['in_transit', 'at_pickup', 'at_delivery', 'picked_up', 'at_hub', 'handover_pending', 'handover_accepted'].includes(item.status)) {
                 return false;
             }
-            if (activeTab === 'assigned' && item.status !== 'assigned' && item.status !== 'accepted') {
+            if (activeTab === 'assigned' && !['assigned', 'accepted'].includes(item.status)) {
                 return false;
             }
-            if (activeTab === 'delivered' && item.status !== 'delivered') {
+            if (activeTab === 'delivered' && !['delivered', 'completed'].includes(item.status)) {
                 return false;
             }
 

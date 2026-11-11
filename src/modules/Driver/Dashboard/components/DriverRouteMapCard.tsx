@@ -15,39 +15,55 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
     activeShipment,
     onOpenGPS,
 }) => {
-    const originCity =
-        activeShipment?.shipper?.city ||
-        activeShipment?.pickup_city ||
-        activeShipment?.pickup?.city ||
-        activeShipment?.origin?.name ||
-        'Gazipur';
+    const isValidActiveShipment = Boolean(
+        activeShipment &&
+        (activeShipment.id || activeShipment.orderNumber || activeShipment.order_no) &&
+        !['delivered', 'completed', 'cancelled', 'canceled'].includes(activeShipment.status)
+    );
 
-    const destCity =
-        activeShipment?.consignee?.city ||
-        activeShipment?.delivery_city ||
-        activeShipment?.delivery?.city ||
-        activeShipment?.destination?.name ||
-        'Dhaka';
+    const originCity = isValidActiveShipment
+        ? (activeShipment?.shipper?.city ||
+           activeShipment?.pickup_city ||
+           activeShipment?.pickup?.city ||
+           activeShipment?.origin?.name ||
+           '')
+        : '';
 
-    const pickupAddress =
-        activeShipment?.shipper?.address ||
-        activeShipment?.pickup_address ||
-        activeShipment?.pickup?.address ||
-        activeShipment?.origin?.address ||
-        `${originCity} Industrial Area`;
+    const destCity = isValidActiveShipment
+        ? (activeShipment?.consignee?.city ||
+           activeShipment?.delivery_city ||
+           activeShipment?.delivery?.city ||
+           activeShipment?.destination?.name ||
+           '')
+        : '';
 
-    const deliveryAddress =
-        activeShipment?.consignee?.address ||
-        activeShipment?.delivery_address ||
-        activeShipment?.delivery?.address ||
-        activeShipment?.destination?.address ||
-        `${destCity} Commercial Center`;
+    const pickupAddress = isValidActiveShipment
+        ? (activeShipment?.shipper?.address ||
+           activeShipment?.pickup_address ||
+           activeShipment?.pickup?.address ||
+           activeShipment?.origin?.address ||
+           originCity)
+        : '';
+
+    const deliveryAddress = isValidActiveShipment
+        ? (activeShipment?.consignee?.address ||
+           activeShipment?.delivery_address ||
+           activeShipment?.delivery?.address ||
+           activeShipment?.destination?.address ||
+           destCity)
+        : '';
 
     const [resolvedOrigin, setResolvedOrigin] = useState<[number, number] | null>(null);
     const [resolvedDest, setResolvedDest] = useState<[number, number] | null>(null);
 
     // Resolve Origin Coordinates with Google Places dynamic geocoding
     useEffect(() => {
+        if (!isValidActiveShipment || (!pickupAddress && !originCity)) {
+            setResolvedOrigin(null);
+            setResolvedDest(null);
+            return;
+        }
+
         let isCancelled = false;
 
         geocodeAddressWithGooglePlaces(pickupAddress, originCity).then((coords) => {
@@ -65,10 +81,11 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
         return () => {
             isCancelled = true;
         };
-    }, [pickupAddress, deliveryAddress, originCity, destCity]);
+    }, [isValidActiveShipment, pickupAddress, deliveryAddress, originCity, destCity]);
 
     // Local synchronous fallback coordinates
     const fallbackOriginCoords = useMemo<[number, number]>(() => {
+        if (!isValidActiveShipment) return [0, 0];
         const fromAddr = extractCoordinatesFromAddress(pickupAddress) || extractCoordinatesFromAddress(originCity);
         if (fromAddr) return fromAddr;
         const routeCoords = activeShipment?.route?.originCoords;
@@ -82,9 +99,10 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
             return [Number(activeShipment.pickup_lat), Number(activeShipment.pickup_lng)];
         }
         return [23.8981, 90.3972]; // Tongi / Gazipur default
-    }, [activeShipment, pickupAddress, originCity]);
+    }, [isValidActiveShipment, activeShipment, pickupAddress, originCity]);
 
     const fallbackDestCoords = useMemo<[number, number]>(() => {
+        if (!isValidActiveShipment) return [0, 0];
         const fromAddr = extractCoordinatesFromAddress(deliveryAddress) || extractCoordinatesFromAddress(destCity);
         if (fromAddr) return fromAddr;
         const routeCoords = activeShipment?.route?.destinationCoords;
@@ -98,10 +116,36 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
             return [Number(activeShipment.delivery_lat), Number(activeShipment.delivery_lng)];
         }
         return [23.7534, 90.3698]; // Dhanmondi / Dhaka default
-    }, [activeShipment, deliveryAddress, destCity]);
+    }, [isValidActiveShipment, activeShipment, deliveryAddress, destCity]);
 
     const originCoords: [number, number] = resolvedOrigin || fallbackOriginCoords;
     const destCoords: [number, number] = resolvedDest || fallbackDestCoords;
+
+    if (!isValidActiveShipment) {
+        return (
+            <div className="bg-white dark:bg-[#1e2329] rounded-[4px] border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden font-sans">
+                <div className="px-3.5 py-2.5 bg-white dark:bg-[#1e2329] border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span className="font-extrabold text-[12.5px] text-slate-900 dark:text-slate-100">
+                        Route Corridor
+                    </span>
+                    <span className="text-slate-400 dark:text-slate-500 font-medium text-[11px]">
+                        Standby
+                    </span>
+                </div>
+                <div className="h-[270px] flex flex-col items-center justify-center p-6 text-center bg-slate-50 dark:bg-[#15191e]">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-2">
+                        <Route size={22} />
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        No Active Corridor
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 max-w-[220px]">
+                        You currently have no active shipment assigned. Route corridor and live GPS tracking will activate upon shipment dispatch.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     // Active Corridor waypoint fallback
     const corridorFallback = useMemo<[number, number]>(() => {

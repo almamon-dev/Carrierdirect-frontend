@@ -35,6 +35,10 @@ export const driverApi = {
     submitPOD: driverShipmentService.submitPOD.bind(driverShipmentService),
     checkCustomerReview: driverShipmentService.checkCustomerReview.bind(driverShipmentService),
     submitCustomerReview: driverShipmentService.submitCustomerReview.bind(driverShipmentService),
+    initiateHandover: driverShipmentService.initiateHandover.bind(driverShipmentService),
+    acceptHandover: driverShipmentService.acceptHandover.bind(driverShipmentService),
+    rejectHandover: driverShipmentService.rejectHandover.bind(driverShipmentService),
+    getHandoverDetails: driverShipmentService.getHandoverDetails.bind(driverShipmentService),
 
     // Chat
     getConversations: driverChatNotificationService.getConversations.bind(driverChatNotificationService),

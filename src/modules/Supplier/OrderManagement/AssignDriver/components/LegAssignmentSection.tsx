@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Input from '@/components/ui/input';
 import Select, { SelectOption } from '@/components/ui/select';
+import Switch from '@/components/ui/switch';
 import {
     ExecutionMode,
     FleetDriverItem,
@@ -87,37 +88,92 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
         [selectedSubcontractor]
     );
 
-    const driverOptions: SelectOption[] = useMemo(
-        () =>
-            fleetDrivers.map((d) => ({
+    const driverOptions: SelectOption[] = useMemo(() => {
+        return fleetDrivers.map((d) => {
+            const isBlocked = d.account_status === 'blocked' || d.userStatus === 'blocked';
+            const isDisabled = d.account_status === 'disabled' || d.userStatus === 'disabled';
+            const isOnJob = d.job_status === 'on_job' || Boolean(d.active_assignment?.order_id);
+            const isOnBreak = d.duty_status === 'break';
+            const isOffline = d.duty_status === 'offline';
+            const isEligible = typeof d.is_eligible === 'boolean'
+                ? d.is_eligible
+                : (!isBlocked && !isDisabled && !isOnJob && !isOnBreak && !isOffline);
+
+            let badge = 'Available';
+            let badgeColor: 'success' | 'info' | 'warning' | 'danger' | 'neutral' = 'success';
+
+            if (isBlocked) {
+                badge = 'Blocked';
+                badgeColor = 'danger';
+            } else if (isDisabled) {
+                badge = 'Disabled';
+                badgeColor = 'danger';
+            } else if (isOnJob) {
+                const orderRef = d.active_assignment?.order_number || (d.active_assignment?.order_id ? `#ORD-${d.active_assignment.order_id}` : null);
+                badge = orderRef ? `On Job • ${orderRef}` : 'On Job';
+                badgeColor = 'info';
+            } else if (isOnBreak) {
+                badge = 'On Break';
+                badgeColor = 'warning';
+            } else if (isOffline) {
+                badge = 'Offline';
+                badgeColor = 'neutral';
+            } else if (isEligible) {
+                badge = 'Available';
+                badgeColor = 'success';
+            } else {
+                badge = d.status || 'Unavailable';
+                badgeColor = 'neutral';
+            }
+
+            let subtitle = '';
+            if (isEligible) {
+                subtitle = [
+                    d.phone && d.phone !== '—' ? d.phone : null,
+                    d.vehiclePlate ? `Truck: ${d.vehiclePlate}` : null,
+                ].filter(Boolean).join(' • ') || 'Ready for dispatch';
+            } else {
+                subtitle = d.disqualification_reason || (
+                    isBlocked ? 'Account blocked' :
+                    isDisabled ? 'Account disabled' :
+                    isOnJob ? `Assigned to ${d.active_assignment?.order_number || 'another order'}` :
+                    isOnBreak ? 'Driver is on break' :
+                    isOffline ? 'Driver is offline' :
+                    'Not eligible for assignment'
+                );
+            }
+
+            return {
                 id: String(d.rawId),
                 name: d.name,
-                subtitle: `${d.availabilityStatus}${d.phone && d.phone !== '—' ? ` • ${d.phone}` : ''}`,
-                badge: d.availabilityStatus,
-                badgeColor:
-                    d.availabilityStatus === 'Unavailable' ? 'neutral' : 'fleet',
-                disabled: isDriverUnavailable(d),
-            })),
-        [fleetDrivers]
-    );
+                subtitle,
+                badge,
+                badgeColor,
+                disabled: !isEligible,
+            };
+        });
+    }, [fleetDrivers]);
 
     const vehicleOptions: SelectOption[] = useMemo(
-        () =>
-            fleetVehicles.map((v) => {
+        () => [
+            { id: '', name: 'No Vehicle / Assign Later' },
+            ...fleetVehicles.map((v) => {
                 const statusLabel = v.current_order_number
                     ? `On Job ${v.current_order_number}`
                     : v.status;
                 const unavailable = isVehicleUnavailable(v);
+                const badgeColor: 'neutral' | 'fleet' = unavailable ? 'neutral' : 'fleet';
                 return {
                     id: String(v.id),
                     name: `${v.registration_no} — ${v.name}`,
                     selectedLabel: `${v.registration_no} (${v.name})`,
                     subtitle: `${v.type} • ${statusLabel}`,
                     badge: statusLabel,
-                    badgeColor: unavailable ? 'neutral' : 'fleet',
+                    badgeColor,
                     disabled: unavailable,
                 };
             }),
+        ],
         [fleetVehicles]
     );
 
@@ -171,21 +227,18 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
                 String(d.rawId) === driverRawId ||
                 String(d.id) === driverRawId
         );
-        let nextVehicleId = legState.vehicleId;
+        let nextVehicleId = '';
 
         if (found) {
-            const matchedVehicle =
-                fleetVehicles.find(
-                    (v) =>
-                        !isVehicleUnavailable(v) &&
-                        ((v.driver_id && String(v.driver_id) === String(found.rawId)) ||
-                            (found.vehiclePlate &&
-                                v.registration_no?.replace(/[\s-]/g, '').toUpperCase() ===
-                                    found.vehiclePlate.replace(/[\s-]/g, '').toUpperCase()))
-                ) ||
-                (!nextVehicleId
-                    ? fleetVehicles.find((v) => !isVehicleUnavailable(v))
-                    : undefined);
+            // Only auto-select vehicle if this driver actually has an assigned vehicle in the fleet
+            const matchedVehicle = fleetVehicles.find(
+                (v) =>
+                    !isVehicleUnavailable(v) &&
+                    ((v.driver_id && String(v.driver_id) === String(found.rawId)) ||
+                        (found.vehiclePlate &&
+                            v.registration_no?.replace(/[\s-]/g, '').toUpperCase() ===
+                                found.vehiclePlate.replace(/[\s-]/g, '').toUpperCase()))
+            );
 
             if (matchedVehicle) {
                 nextVehicleId = String(matchedVehicle.id);
@@ -243,7 +296,7 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
 
     return (
         <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#191e24]">
-            {/* Clean header with segmented switch */}
+            {/* Clean header with toggle switch */}
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="min-w-0">
                     <h3 className="text-[13px] font-bold text-slate-900 dark:text-slate-100 truncate">
@@ -254,26 +307,34 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
                     </p>
                 </div>
 
-                <div className="inline-flex p-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 self-start sm:self-center shrink-0">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 self-start sm:self-center shrink-0">
                     <button
                         type="button"
                         onClick={() => handleModeChange('in_house')}
-                        className={`px-2.5 py-1 rounded text-[11px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${
                             legState.executionMode === 'in_house'
-                                ? 'bg-[#ff4a1f] text-white'
-                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                                ? 'text-[#ff4a1f]'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                         }`}
                     >
                         <Truck size={12} />
                         <span>In-House Driver</span>
                     </button>
+
+                    <Switch
+                        checked={legState.executionMode === 'subcontractor'}
+                        onCheckedChange={(checked) =>
+                            handleModeChange(checked ? 'subcontractor' : 'in_house')
+                        }
+                    />
+
                     <button
                         type="button"
                         onClick={() => handleModeChange('subcontractor')}
-                        className={`px-2.5 py-1 rounded text-[11px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${
                             legState.executionMode === 'subcontractor'
-                                ? 'bg-[#ff4a1f] text-white'
-                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                                ? 'text-[#ff4a1f]'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                         }`}
                     >
                         <Building2 size={12} />
@@ -293,7 +354,7 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
                                 </span>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                                 <div className="flex flex-col gap-1 w-full">
                                     <FieldLabel label="Driver" required />
                                     <Select
@@ -304,20 +365,40 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
                                         placeholder="Select driver"
                                         options={driverOptions}
                                     />
+                                    {selectedDriver ? (
+                                        <div className="flex items-center gap-2 mt-1 px-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-200">
+                                                <Phone size={11} className="text-slate-400" />
+                                                {selectedDriver.phone && selectedDriver.phone !== '—'
+                                                    ? selectedDriver.phone
+                                                    : 'No phone on profile'}
+                                            </span>
+                                            <span>•</span>
+                                            <span
+                                                className={`font-medium ${
+                                                    selectedDriver.duty_status === 'online'
+                                                        ? 'text-emerald-600 dark:text-emerald-400'
+                                                        : selectedDriver.duty_status === 'break'
+                                                        ? 'text-amber-600 dark:text-amber-400'
+                                                        : 'text-slate-500'
+                                                }`}
+                                            >
+                                                {selectedDriver.duty_status === 'online'
+                                                    ? '● Online'
+                                                    : selectedDriver.duty_status === 'break'
+                                                    ? '● On Break'
+                                                    : selectedDriver.status || 'Active'}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 px-1">
+                                            Select an available fleet driver
+                                        </p>
+                                    )}
                                 </div>
 
-                                <Input
-                                    label="Phone Number"
-                                    icon={<Phone size={13} />}
-                                    type="text"
-                                    value={selectedDriver?.phone || ''}
-                                    placeholder="Auto-filled if available"
-                                    readOnly
-                                    disabled
-                                />
-
                                 <div className="flex flex-col gap-1 w-full">
-                                    <FieldLabel label="Company Vehicle" required />
+                                    <FieldLabel label="Company Vehicle (Optional)" />
                                     <Select
                                         size="md"
                                         icon={Truck}
@@ -329,9 +410,34 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
                                                 ),
                                             })
                                         }
-                                        placeholder="Select vehicle"
+                                        placeholder="Select vehicle (Optional)"
                                         options={vehicleOptions}
                                     />
+                                    {selectedVehicle ? (
+                                        <div className="flex items-center gap-2 mt-1 px-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                            <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                                                {selectedVehicle.registration_no}
+                                            </span>
+                                            <span>•</span>
+                                            <span>{selectedVehicle.type}</span>
+                                            <span>•</span>
+                                            <span
+                                                className={`font-semibold ${
+                                                    selectedVehicle.status === 'Active'
+                                                        ? 'text-emerald-600 dark:text-emerald-400'
+                                                        : 'text-amber-600 dark:text-amber-400'
+                                                }`}
+                                            >
+                                                {selectedVehicle.status}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 px-1">
+                                            {selectedDriver
+                                                ? 'No vehicle assigned to driver • Select from fleet if needed'
+                                                : 'Auto-allocates if driver has assigned truck'}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         )}

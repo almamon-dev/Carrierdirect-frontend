@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Select from '@/components/ui/select';
+import { SelectOption } from '@/components/ui/select/selectTypes';
 import FormLabel from '@/components/ui/label';
 import Switch from '@/components/ui/switch';
 import {
@@ -153,6 +154,81 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
         };
     }, [customerRevenue, driverType, subcontractorCost, isRelay, leg2DriverType, leg2Cost, additionalLegs]);
 
+    const inHouseDriverOptions: SelectOption[] = useMemo(() => {
+        const opts: SelectOption[] = teamDrivers.map((d: any) => {
+            const isBlocked = d.account_status === 'blocked' || d.user_status === 'blocked';
+            const isDisabled = d.account_status === 'disabled' || d.user_status === 'disabled';
+            const isOnJob = d.job_status === 'on_job' || Boolean(d.active_assignment?.order_id);
+            const isOnBreak = d.duty_status === 'break';
+            const isOffline = d.duty_status === 'offline';
+            const isEligible = typeof d.is_eligible === 'boolean'
+                ? d.is_eligible
+                : (!isBlocked && !isDisabled && !isOnJob && !isOnBreak && !isOffline);
+
+            let badge = 'Available';
+            let badgeColor: 'success' | 'info' | 'warning' | 'danger' | 'neutral' = 'success';
+
+            if (isBlocked) {
+                badge = 'Blocked';
+                badgeColor = 'danger';
+            } else if (isDisabled) {
+                badge = 'Disabled';
+                badgeColor = 'danger';
+            } else if (isOnJob) {
+                const orderRef = d.active_assignment?.order_number || (d.active_assignment?.order_id ? `#ORD-${d.active_assignment.order_id}` : null);
+                badge = orderRef ? `On Job • ${orderRef}` : 'On Job';
+                badgeColor = 'info';
+            } else if (isOnBreak) {
+                badge = 'On Break';
+                badgeColor = 'warning';
+            } else if (isOffline) {
+                badge = 'Offline';
+                badgeColor = 'neutral';
+            } else if (isEligible) {
+                badge = 'Available';
+                badgeColor = 'success';
+            } else {
+                badge = d.status || 'Unavailable';
+                badgeColor = 'neutral';
+            }
+
+            let subtitle = '';
+            if (isEligible) {
+                const plate = d.vehicle?.plate || d.vehicle?.registration_no || d.vehicle_plate;
+                subtitle = [
+                    d.phone && d.phone !== '—' ? d.phone : null,
+                    plate ? `Truck: ${plate}` : null,
+                ].filter(Boolean).join(' • ') || 'Ready for assignment';
+            } else {
+                subtitle = d.disqualification_reason || (
+                    isBlocked ? 'Account blocked' :
+                    isDisabled ? 'Account disabled' :
+                    isOnJob ? `Assigned to ${d.active_assignment?.order_number || 'another order'}` :
+                    isOnBreak ? 'Driver is on break' :
+                    isOffline ? 'Driver is offline' :
+                    'Not eligible for dispatch'
+                );
+            }
+
+            return {
+                id: String(d.id),
+                name: d.name,
+                subtitle,
+                badge,
+                badgeColor,
+                disabled: !isEligible,
+            };
+        });
+
+        opts.unshift({
+            id: 'custom',
+            name: '-- Select In-House Driver --',
+            subtitle: 'Choose an eligible company driver',
+        });
+
+        return opts;
+    }, [teamDrivers]);
+
     if (!isOpen) return null;
 
     return createPortal(
@@ -190,88 +266,55 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
 
                 <form onSubmit={handleSubmit} className="px-5 pb-5 space-y-4">
                     {/* 1. Main Execution Strategy: Only shown when Relay is OFF; when Relay is ON each leg chooses independently */}
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                         {!isRelay && (
-                            <>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold tracking-wider text-slate-500 dark:text-slate-400">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-[6px] bg-slate-50 dark:bg-[#14181f] border border-slate-200 dark:border-slate-800">
+                                <div>
+                                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
                                         Who is delivering this order?
                                     </span>
-                                    <span className="text-[11px] text-slate-500">
-                                        {driverType === 'internal' ? 'In-House Fleet' : 'Outsourced Partner'}
+                                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                        {driverType === 'internal'
+                                            ? 'Company fleet driver & vehicle'
+                                            : 'Outsourced to external subcontractor partner'}
                                     </span>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-2.5">
-                                    {/* Card 1: Own Fleet Driver */}
+                                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 self-start sm:self-center shrink-0 shadow-2xs">
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setDriverType('internal');
-                                        }}
-                                        className={`p-3 rounded-[6px] border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
+                                        onClick={() => setDriverType('internal')}
+                                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${
                                             driverType === 'internal'
-                                                ? 'border-[#ff4a1f] bg-orange-50/40 dark:bg-orange-950/20 ring-1 ring-[#ff4a1f]/30'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#14181f]'
+                                                ? 'text-[#ff4a1f]'
+                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                                         }`}
                                     >
-                                        <div className={`w-8 h-8 rounded-[4px] flex items-center justify-center shrink-0 mt-0.5 ${
-                                            driverType === 'internal'
-                                                ? 'bg-[#ff4a1f] text-white shadow-xs'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                                        }`}>
-                                            <Truck size={17} />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                                                    My Own Driver
-                                                </span>
-                                                {driverType === 'internal' && (
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f]"></span>
-                                                )}
-                                            </div>
-                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                                                Company fleet driver & vehicles
-                                            </p>
-                                        </div>
+                                        <Truck size={12} />
+                                        <span>In-House Driver</span>
                                     </button>
 
-                                    {/* Card 2: Subcontractor Partner */}
+                                    <Switch
+                                        checked={driverType === 'subcontractor'}
+                                        onCheckedChange={(checked) =>
+                                            setDriverType(checked ? 'subcontractor' : 'internal')
+                                        }
+                                    />
+
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setDriverType('subcontractor');
-                                        }}
-                                        className={`p-3 rounded-[6px] border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
+                                        onClick={() => setDriverType('subcontractor')}
+                                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${
                                             driverType === 'subcontractor'
-                                                ? 'border-[#ff4a1f] bg-orange-50/40 dark:bg-orange-950/20 ring-1 ring-[#ff4a1f]/30'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-[#14181f]'
+                                                ? 'text-[#ff4a1f]'
+                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                                         }`}
                                     >
-                                        <div className={`w-8 h-8 rounded-[4px] flex items-center justify-center shrink-0 mt-0.5 ${
-                                            driverType === 'subcontractor'
-                                                ? 'bg-[#ff4a1f] text-white shadow-xs'
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                                        }`}>
-                                            <Building2 size={17} />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                                                    Subcontractor Partner
-                                                </span>
-                                                {driverType === 'subcontractor' && (
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a1f]"></span>
-                                                )}
-                                            </div>
-                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                                                Outsource to external carrier
-                                            </p>
-                                        </div>
+                                        <Building2 size={12} />
+                                        <span>Subcontractor</span>
                                     </button>
                                 </div>
-                            </>
+                            </div>
                         )}
 
                         {/* Optional Multi-Driver Relay Switch */}
@@ -335,19 +378,14 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                                 </span>
                                             )}
                                         </div>
-                                        <select
+                                        <Select
+                                            size="sm"
+                                            icon={User}
                                             value={selectedTeamMember}
-                                            onChange={(e) => handleTeamMemberChange(e.target.value)}
-                                            className="w-full h-9 px-2.5 text-xs font-semibold bg-white dark:bg-[#14181f] border border-slate-300 dark:border-slate-700 rounded-[4px] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#ff4a1f]"
-                                        >
-                                            <option value="custom">-- Select Registered Fleet Driver --</option>
-                                            {teamDrivers.map((m: any) => (
-                                                <option key={m.id} value={String(m.id)}>
-                                                    {m.name} {m.phone ? `(${m.phone})` : ''} — {m.vehicle_plate || 'Fleet Truck'}
-                                                </option>
-                                            ))}
-                                            <option value="custom">+ Enter Driver Manually</option>
-                                        </select>
+                                            onChange={(val: any) => handleTeamMemberChange(val?.id || val?.value || val || 'custom')}
+                                            placeholder="Select In-House Driver"
+                                            options={inHouseDriverOptions}
+                                        />
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -380,14 +418,13 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div className="space-y-1">
                                             <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                                Assigned Truck Reg Plate *
+                                                Assigned Truck Reg Plate (Optional)
                                             </FormLabel>
                                             <Input
                                                 type="text"
                                                 value={vehiclePlate}
                                                 onChange={(e) => setVehiclePlate(e.target.value)}
                                                 placeholder="e.g. 08-D-12345"
-                                                required
                                             />
                                         </div>
                                         <div className="space-y-1">
@@ -513,7 +550,7 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
 
                                         <div className="space-y-1">
                                             <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                                Subcontractor Truck Plate *
+                                                Subcontractor Truck Plate (Optional)
                                             </FormLabel>
                                             <Input
                                                 type="text"
@@ -521,7 +558,6 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                                 onChange={(e) => setVehiclePlate(e.target.value)}
                                                 placeholder="e.g. 08-D-99881"
                                                 className="font-mono font-bold"
-                                                required
                                             />
                                         </div>
                                     </div>
@@ -577,19 +613,43 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                                 {/* Leg 1 */}
                                 <div className="p-3.5 rounded-[6px] border border-blue-200 dark:border-blue-900 bg-blue-50/20 dark:bg-blue-950/10 space-y-2.5">
-                                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 dark:border-slate-800">
+                                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
                                         <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                                             <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                            Leg 1: Pickup / Collection
+                                            Leg 1: Pickup
                                         </span>
-                                        <select
-                                            value={driverType}
-                                            onChange={(e) => setDriverType(e.target.value as any)}
-                                            className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-white dark:bg-[#1e2329] border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200"
-                                        >
-                                            <option value="internal">In-House Fleet</option>
-                                            <option value="subcontractor">Subcontractor</option>
-                                        </select>
+                                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 shrink-0 shadow-2xs">
+                                            <button
+                                                type="button"
+                                                onClick={() => setDriverType('internal')}
+                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${
+                                                    driverType === 'internal'
+                                                        ? 'text-[#ff4a1f]'
+                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                                                }`}
+                                            >
+                                                <Truck size={11} />
+                                                <span>In-House</span>
+                                            </button>
+                                            <Switch
+                                                checked={driverType === 'subcontractor'}
+                                                onCheckedChange={(checked) =>
+                                                    setDriverType(checked ? 'subcontractor' : 'internal')
+                                                }
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setDriverType('subcontractor')}
+                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${
+                                                    driverType === 'subcontractor'
+                                                        ? 'text-[#ff4a1f]'
+                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                                                }`}
+                                            >
+                                                <Building2 size={11} />
+                                                <span>Subcontractor</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {driverType === 'internal' ? (
@@ -675,19 +735,43 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
 
                                 {/* Leg 2 */}
                                 <div className="p-3.5 rounded-[6px] border border-purple-200 dark:border-purple-900 bg-purple-50/20 dark:bg-purple-950/10 space-y-2.5">
-                                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 dark:border-slate-800">
+                                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
                                         <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                                             <div className="w-2 h-2 rounded-full bg-purple-500" />
-                                            Leg 2: Delivery / Final Mile
+                                            Leg 2: Delivery
                                         </span>
-                                        <select
-                                            value={leg2DriverType}
-                                            onChange={(e) => setLeg2DriverType(e.target.value as any)}
-                                            className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-white dark:bg-[#1e2329] border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200"
-                                        >
-                                            <option value="subcontractor">Subcontractor</option>
-                                            <option value="internal">In-House Fleet</option>
-                                        </select>
+                                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-700 shrink-0 shadow-2xs">
+                                            <button
+                                                type="button"
+                                                onClick={() => setLeg2DriverType('internal')}
+                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${
+                                                    leg2DriverType === 'internal'
+                                                        ? 'text-[#ff4a1f]'
+                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                                                }`}
+                                            >
+                                                <Truck size={11} />
+                                                <span>In-House</span>
+                                            </button>
+                                            <Switch
+                                                checked={leg2DriverType === 'subcontractor'}
+                                                onCheckedChange={(checked) =>
+                                                    setLeg2DriverType(checked ? 'subcontractor' : 'internal')
+                                                }
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setLeg2DriverType('subcontractor')}
+                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${
+                                                    leg2DriverType === 'subcontractor'
+                                                        ? 'text-[#ff4a1f]'
+                                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                                                }`}
+                                            >
+                                                <Building2 size={11} />
+                                                <span>Subcontractor</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {leg2DriverType === 'subcontractor' ? (
@@ -714,16 +798,14 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                             )}
                                         </div>
                                     ) : (
-                                        <select
+                                        <Select
+                                            size="sm"
+                                            icon={User}
                                             value={leg2SelectedTeamMember}
-                                            onChange={(e) => handleLeg2TeamMemberChange(e.target.value)}
-                                            className="w-full h-8 px-2 text-xs font-semibold bg-white dark:bg-[#14181f] border border-slate-300 dark:border-slate-700 rounded text-slate-900 dark:text-slate-100"
-                                        >
-                                            <option value="custom">-- Select Team Driver --</option>
-                                            {teamDrivers.map((m: any) => (
-                                                <option key={m.id} value={String(m.id)}>{m.name} ({m.phone})</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val: any) => handleLeg2TeamMemberChange(val?.id || val?.value || val || 'custom')}
+                                            placeholder="Select In-House Driver"
+                                            options={inHouseDriverOptions}
+                                        />
                                     )}
 
                                     <Input
@@ -756,9 +838,8 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                             type="text"
                                             value={leg2VehiclePlate}
                                             onChange={(e) => setLeg2VehiclePlate(e.target.value)}
-                                            placeholder="Leg 2 Truck Plate"
+                                            placeholder="Leg 2 Truck Plate (Optional)"
                                             className="font-mono font-bold"
-                                            required
                                         />
                                         {leg2DriverType === 'subcontractor' && (
                                             <Input

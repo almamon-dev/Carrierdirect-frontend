@@ -35,13 +35,25 @@ export const createDefaultLegState = (
 
 export const isDriverUnavailable = (driver?: FleetDriverItem | null): boolean => {
     if (!driver) return false;
+    if (typeof driver.is_eligible === 'boolean') {
+        return !driver.is_eligible;
+    }
     const status = String(driver.availabilityStatus || driver.status || '').toLowerCase();
-    const userStatus = String(driver.userStatus || '').toLowerCase();
+    const accountStatus = String(driver.account_status || driver.userStatus || '').toLowerCase();
+    const dutyStatus = String(driver.duty_status || '').toLowerCase();
+    const jobStatus = String(driver.job_status || '').toLowerCase();
+
     return (
+        jobStatus === 'on_job' ||
+        dutyStatus === 'offline' ||
+        dutyStatus === 'break' ||
         status === 'unavailable' ||
-        userStatus === 'blocked' ||
-        userStatus === 'disabled' ||
-        userStatus === 'suspended'
+        status === 'on job' ||
+        status === 'offline' ||
+        status === 'on break' ||
+        accountStatus === 'blocked' ||
+        accountStatus === 'disabled' ||
+        accountStatus === 'suspended'
     );
 };
 
@@ -104,17 +116,14 @@ export const validateLegAssignment = (
             return `${legLabel}: Selected company driver was not found.`;
         }
         if (isDriverUnavailable(driver)) {
-            return `${legLabel}: Driver ${driver.name} is currently unavailable.`;
+            const reason = driver.disqualification_reason || `Driver ${driver.name} is currently unavailable for dispatch.`;
+            return `${legLabel}: ${reason}`;
         }
-        if (!leg.vehicleId) {
-            return `${legLabel}: Please select an available company vehicle.`;
-        }
-        const vehicle = fleetVehicles.find((v) => String(v.id) === String(leg.vehicleId));
-        if (!vehicle) {
-            return `${legLabel}: Selected company vehicle was not found.`;
-        }
-        if (isVehicleUnavailable(vehicle)) {
-            return `${legLabel}: Vehicle ${vehicle.registration_no} is ${vehicle.status} and unavailable.`;
+        if (leg.vehicleId) {
+            const vehicle = fleetVehicles.find((v) => String(v.id) === String(leg.vehicleId));
+            if (vehicle && isVehicleUnavailable(vehicle)) {
+                return `${legLabel}: Vehicle ${vehicle.registration_no} is ${vehicle.status} and unavailable.`;
+            }
         }
         return null;
     }

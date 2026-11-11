@@ -6,10 +6,12 @@ export const driverShipmentService = {
     async getShipments(): Promise<ShipmentItem[]> {
         try {
             const res = await apiClient.get('/driver/shipments');
+            const dataObj = res.data?.data || res.data || res;
             const rawList =
+                dataObj?.shipments ||
                 res.data?.shipments ||
                 res.shipments ||
-                res.data?.data?.shipments ||
+                (Array.isArray(dataObj) ? dataObj : null) ||
                 (Array.isArray(res.data) ? res.data : null) ||
                 (Array.isArray(res) ? res : null);
 
@@ -40,7 +42,11 @@ export const driverShipmentService = {
             assigned: 'assigned',
             accepted: 'in_progress',
             at_pickup: 'picked_up',
+            picked_up: 'picked_up',
             in_transit: 'in_transit',
+            at_hub: 'at_hub',
+            handover_pending: 'handover_pending',
+            handover_accepted: 'handover_accepted',
             at_delivery: 'arrived',
             delivered: 'delivered',
             cancelled: 'cancelled',
@@ -124,6 +130,53 @@ export const driverShipmentService = {
         } catch (err) {
             console.error('Failed to submit customer review', err);
             return false;
+        }
+    },
+
+    async initiateHandover(
+        id: string,
+        data: {
+            hub_location?: string;
+            cargo_condition: string;
+            cargo_condition_notes?: string;
+            photos?: string[];
+            notes?: string;
+        }
+    ): Promise<ShipmentItem> {
+        const res = await apiClient.post('/driver/shipments/' + id + '/handover', data);
+        const raw = res.data?.data?.shipment || res.data?.shipment || res.data?.data || res.data;
+        return mapBackendShipmentToShipmentItem(raw);
+    },
+
+    async acceptHandover(
+        id: string,
+        data: {
+            otp_code?: string;
+            notes?: string;
+        }
+    ): Promise<ShipmentItem> {
+        const res = await apiClient.post('/driver/shipments/' + id + '/handover/accept', data);
+        const raw = res.data?.data?.shipment || res.data?.shipment || res.data?.data || res.data;
+        return mapBackendShipmentToShipmentItem(raw);
+    },
+
+    async rejectHandover(
+        id: string,
+        data: {
+            reason: string;
+        }
+    ): Promise<ShipmentItem> {
+        const res = await apiClient.post('/driver/shipments/' + id + '/handover/reject', data);
+        const raw = res.data?.data?.shipment || res.data?.shipment || res.data?.data || res.data;
+        return mapBackendShipmentToShipmentItem(raw);
+    },
+
+    async getHandoverDetails(id: string): Promise<any> {
+        try {
+            const res = await apiClient.get('/driver/shipments/' + id + '/handover');
+            return res.data?.data ?? res.data ?? null;
+        } catch {
+            return null;
         }
     },
 };

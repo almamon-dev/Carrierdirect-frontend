@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MoreVertical, Edit2, Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2, CheckCircle2, XCircle, FileText } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { SubcontractorDriver } from '../types';
 
@@ -9,6 +9,7 @@ interface SubcontractorDriverRowActionsProps {
     onEdit: (driver: SubcontractorDriver) => void;
     onDelete: (driver: SubcontractorDriver) => void;
     onToggleStatus?: (driver: SubcontractorDriver) => void;
+    onViewCompliance?: (driver: SubcontractorDriver) => void;
 }
 
 export const SubcontractorDriverRowActions: React.FC<SubcontractorDriverRowActionsProps> = ({
@@ -16,6 +17,7 @@ export const SubcontractorDriverRowActions: React.FC<SubcontractorDriverRowActio
     onEdit,
     onDelete,
     onToggleStatus,
+    onViewCompliance,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -89,6 +91,20 @@ export const SubcontractorDriverRowActions: React.FC<SubcontractorDriverRowActio
                                 <Edit2 size={13} className="text-slate-500" />
                                 <span>Edit Driver</span>
                             </button>
+
+                            {onViewCompliance && (
+                                <button
+                                    type="button"
+                                    className="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 font-medium cursor-pointer"
+                                    onClick={() => {
+                                        handleClose();
+                                        onViewCompliance(driver);
+                                    }}
+                                >
+                                    <FileText size={13} className="text-emerald-600" />
+                                    <span>View Document</span>
+                                </button>
+                            )}
 
                             {onToggleStatus && (
                                 <button

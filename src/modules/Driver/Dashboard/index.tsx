@@ -60,7 +60,8 @@ export default function DriverDashboard() {
             if (shipments && Array.isArray(shipments) && shipments.length > 0) {
                 setAllShipments(shipments);
                 if (!data?.activeShipment) {
-                    setActiveShipment(shipments[0]);
+                    const firstActive = shipments.find(s => !['delivered', 'completed', 'cancelled', 'canceled'].includes(s.status));
+                    setActiveShipment(firstActive || null);
                 }
             } else {
                 setAllShipments([]);
@@ -92,7 +93,12 @@ export default function DriverDashboard() {
     };
 
     const effectiveShipments = allShipments;
-    const effectiveActiveShipment = activeShipment || effectiveShipments[0] || null;
+    const activeShipmentsList = effectiveShipments.filter(s =>
+        !['delivered', 'completed', 'cancelled', 'canceled'].includes(s.status)
+    );
+    const effectiveActiveShipment = (activeShipment && !['delivered', 'completed', 'cancelled', 'canceled'].includes(activeShipment.status))
+        ? activeShipment
+        : (activeShipmentsList.length > 0 ? activeShipmentsList[0] : null);
 
     const handleSelectShipment = (shipment: ShipmentItem) => {
         setActiveShipment(shipment);

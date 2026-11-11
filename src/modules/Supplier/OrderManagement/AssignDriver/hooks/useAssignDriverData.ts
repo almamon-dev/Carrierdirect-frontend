@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import apiClient from '@/lib/axios';
 import { toast } from '@/hooks/use-toast';
+import apiClient from '@/lib/axios';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { SupplierOrderItem } from '../../ActiveJobs/types';
 import {
-    mapApiToSupplierOrderItem,
     checkHasRealDriver,
+    mapApiToSupplierOrderItem,
 } from '../../ActiveJobs/utils/orderMapper';
 import {
     FleetDriverItem,
@@ -35,8 +35,8 @@ const hydrateLegFromOrder = (
     subs: any[]
 ): LegAssignmentState => {
     const legType = legNumber === 1 ? 'pickup' : 'delivery';
-    const fromCity = order.pickup_city || 'Origin';
-    const toCity = order.delivery_city || 'Destination';
+    const fromCity = order.pickup_city || '';
+    const toCity = order.delivery_city || '';
     const defaultRoute =
         legNumber === 1
             ? order.is_relay
@@ -48,8 +48,8 @@ const hydrateLegFromOrder = (
         (Array.isArray(order.shipment_legs) && order.shipment_legs.length > 0
             ? order.shipment_legs
             : Array.isArray((order.raw as any)?.shipment_legs)
-            ? (order.raw as any).shipment_legs
-            : []) || [];
+                ? (order.raw as any).shipment_legs
+                : []) || [];
 
     const apiLeg = apiLegs.find((l) => Number(l.leg_number) === legNumber);
 
@@ -85,7 +85,7 @@ const hydrateLegFromOrder = (
             subcontractorDriverPhone: apiLeg.subcontractor_driver_phone || '',
             subcontractorDriverEmail: '',
             subcontractorVehiclePlate: apiLeg.subcontractor_vehicle_plate || '',
-            subcontractorVehicleType: apiLeg.vehicle_type || 'Curtainsider 40ft',
+            subcontractorVehicleType: apiLeg.vehicle_type || '',
             subcontractorCost:
                 mode === 'subcontractor' && apiLeg.subcontractor_cost !== undefined
                     ? String(apiLeg.subcontractor_cost)
@@ -101,21 +101,21 @@ const hydrateLegFromOrder = (
         const matchedDriver = order.driver_id
             ? drivers.find((d) => String(d.rawId) === String(order.driver_id))
             : drivers.find(
-                  (d) =>
-                      order.driver_name &&
-                      d.name.toLowerCase() === order.driver_name.toLowerCase()
-              );
+                (d) =>
+                    order.driver_name &&
+                    d.name.toLowerCase() === order.driver_name.toLowerCase()
+            );
         const normPlate = (order.vehicle_plate || '').replace(/[\s-]/g, '').toUpperCase();
         const matchedVehicle = normPlate
             ? vehicles.find(
-                  (v) => v.registration_no?.replace(/[\s-]/g, '').toUpperCase() === normPlate
-              )
+                (v) => v.registration_no?.replace(/[\s-]/g, '').toUpperCase() === normPlate
+            )
             : undefined;
         const foundSub = order.subcontractor_company
             ? subs.find(
-                  (s) =>
-                      s.name?.toLowerCase() === order.subcontractor_company?.toLowerCase()
-              )
+                (s) =>
+                    s.name?.toLowerCase() === order.subcontractor_company?.toLowerCase()
+            )
             : undefined;
 
         return {
@@ -131,7 +131,7 @@ const hydrateLegFromOrder = (
             subcontractorDriverPhone: isSub ? order.driver_phone || '' : '',
             subcontractorDriverEmail: isSub ? order.driver_email || '' : '',
             subcontractorVehiclePlate: isSub ? order.vehicle_plate || '' : '',
-            subcontractorVehicleType: order.vehicle_type || 'Curtainsider 40ft',
+            subcontractorVehicleType: order.vehicle_type || '',
             subcontractorCost: isSub
                 ? String((order.raw as any)?.subcontractor_cost ?? '')
                 : '',
@@ -145,22 +145,22 @@ const hydrateLegFromOrder = (
     const matchedDriver2 = order.leg2_driver_id
         ? drivers.find((d) => String(d.rawId) === String(order.leg2_driver_id))
         : drivers.find(
-              (d) =>
-                  order.leg2_driver_name &&
-                  d.name.toLowerCase() === order.leg2_driver_name.toLowerCase()
-          );
+            (d) =>
+                order.leg2_driver_name &&
+                d.name.toLowerCase() === order.leg2_driver_name.toLowerCase()
+        );
     const normPlate2 = (order.leg2_vehicle_plate || '').replace(/[\s-]/g, '').toUpperCase();
     const matchedVehicle2 = normPlate2
         ? vehicles.find(
-              (v) => v.registration_no?.replace(/[\s-]/g, '').toUpperCase() === normPlate2
-          )
+            (v) => v.registration_no?.replace(/[\s-]/g, '').toUpperCase() === normPlate2
+        )
         : undefined;
     const foundSub2 = order.leg2_subcontractor_company
         ? subs.find(
-              (s) =>
-                  s.name?.toLowerCase() ===
-                  order.leg2_subcontractor_company?.toLowerCase()
-          )
+            (s) =>
+                s.name?.toLowerCase() ===
+                order.leg2_subcontractor_company?.toLowerCase()
+        )
         : undefined;
 
     return {
@@ -201,12 +201,12 @@ export const useAssignDriverData = () => {
             location.state?.order;
         return stateOrder
             ? String(
-                  stateOrder.id ||
-                      stateOrder.order_id ||
-                      stateOrder.order_no ||
-                      stateOrder.slug ||
-                      ''
-              )
+                stateOrder.id ||
+                stateOrder.order_id ||
+                stateOrder.order_no ||
+                stateOrder.slug ||
+                ''
+            )
             : '';
     });
 
@@ -258,10 +258,10 @@ export const useAssignDriverData = () => {
                     if (stateOrder) {
                         const targetId = String(
                             stateOrder.id ||
-                                stateOrder.order_id ||
-                                stateOrder.order_no ||
-                                stateOrder.slug ||
-                                ''
+                            stateOrder.order_id ||
+                            stateOrder.order_no ||
+                            stateOrder.slug ||
+                            ''
                         );
                         if (!mappedOrders.some((o) => matchOrder(o, targetId))) {
                             mappedOrders.unshift(
@@ -283,12 +283,7 @@ export const useAssignDriverData = () => {
                     if (Array.isArray(rawDrivers)) {
                         loadedDrivers = rawDrivers.map((d: any, idx: number) => {
                             const statusNorm = String(d.status || 'Available');
-                            const avail: 'Available' | 'On Job' | 'Unavailable' =
-                                statusNorm === 'On Job'
-                                    ? 'On Job'
-                                    : statusNorm === 'Unavailable'
-                                    ? 'Unavailable'
-                                    : 'Available';
+                            const avail = statusNorm;
                             return {
                                 id: `inhouse_${d.user_id || d.id || idx}`,
                                 rawId: d.user_id || d.id || idx,
@@ -304,8 +299,14 @@ export const useAssignDriverData = () => {
                                 role: d.role || 'In-House Fleet',
                                 status: statusNorm,
                                 availabilityStatus: avail,
+                                account_status: d.account_status || 'active',
+                                duty_status: d.duty_status || 'online',
+                                job_status: d.job_status || (statusNorm === 'On Job' ? 'on_job' : 'available'),
+                                is_eligible: typeof d.is_eligible === 'boolean' ? d.is_eligible : (statusNorm === 'Available'),
+                                disqualification_reason: d.disqualification_reason || null,
+                                active_assignment: d.active_assignment || null,
                                 dutyStatus: d.duty_status,
-                                userStatus: d.user_status,
+                                userStatus: d.account_status || d.user_status,
                                 email: d.email || '',
                                 driverType: 'internal',
                             };
@@ -356,12 +357,12 @@ export const useAssignDriverData = () => {
                     location.state?.order;
                 const targetId = stateOrder
                     ? String(
-                          stateOrder.id ||
-                              stateOrder.order_id ||
-                              stateOrder.order_no ||
-                              stateOrder.slug ||
-                              ''
-                      )
+                        stateOrder.id ||
+                        stateOrder.order_id ||
+                        stateOrder.order_no ||
+                        stateOrder.slug ||
+                        ''
+                    )
                     : '';
                 if (targetId && mappedOrders.length > 0) {
                     const target = mappedOrders.find((o) =>
@@ -370,9 +371,9 @@ export const useAssignDriverData = () => {
                     if (target) {
                         const relayActive = Boolean(
                             target.is_relay ||
-                                target.leg2_driver_name ||
-                                (Array.isArray(target.shipment_legs) &&
-                                    target.shipment_legs.length > 1)
+                            target.leg2_driver_name ||
+                            (Array.isArray(target.shipment_legs) &&
+                                target.shipment_legs.length > 1)
                         );
                         setIsRelay(relayActive);
                         setPickupLeg(
@@ -433,9 +434,9 @@ export const useAssignDriverData = () => {
         if (target) {
             const relayActive = Boolean(
                 target.is_relay ||
-                    target.leg2_driver_name ||
-                    (Array.isArray(target.shipment_legs) &&
-                        target.shipment_legs.length > 1)
+                target.leg2_driver_name ||
+                (Array.isArray(target.shipment_legs) &&
+                    target.shipment_legs.length > 1)
             );
             setIsRelay(relayActive);
             setPickupLeg(
@@ -467,7 +468,7 @@ export const useAssignDriverData = () => {
             ...prev,
             journeyLeg: relay
                 ? prev.journeyLeg === `${fromCity} → ${toCity}` ||
-                  prev.journeyLeg === 'Full Journey'
+                    prev.journeyLeg === 'Full Journey'
                     ? `${fromCity} → Transit Hub`
                     : prev.journeyLeg
                 : `${fromCity} → ${toCity}`,
@@ -574,8 +575,8 @@ export const useAssignDriverData = () => {
         try {
             const cleanId = String(
                 selectedOrder.rawId ||
-                    selectedOrder.id ||
-                    selectedOrder.order_id
+                selectedOrder.id ||
+                selectedOrder.order_id
             );
 
             const payload: Record<string, any> = {
@@ -598,12 +599,10 @@ export const useAssignDriverData = () => {
                     ? 'Multi-Leg Relay Dispatched!'
                     : 'Shipment Dispatched!',
                 description: isRelay
-                    ? `Pickup (Leg 1) and Delivery (Leg 2) allocated for #${
-                          selectedOrder.order_id || cleanId
-                      }.`
-                    : `Driver allocated for #${
-                          selectedOrder.order_id || cleanId
-                      }.`,
+                    ? `Pickup (Leg 1) and Delivery (Leg 2) allocated for #${selectedOrder.order_id || cleanId
+                    }.`
+                    : `Driver allocated for #${selectedOrder.order_id || cleanId
+                    }.`,
             });
 
             setDispatchNote('');

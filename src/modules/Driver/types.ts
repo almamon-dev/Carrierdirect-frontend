@@ -1,6 +1,20 @@
-import { ShipmentStatus, ShipmentMilestone, ShipmentItem } from './types/shipmentTypes';
+import {
+    ShipmentStatus,
+    ShipmentMilestone,
+    ShipmentItem,
+    RelayLegInfo,
+    PartnerDriverInfo,
+    ShipmentHandoverInfo,
+} from './types/shipmentTypes';
 
-export type { ShipmentStatus, ShipmentMilestone, ShipmentItem };
+export type {
+    ShipmentStatus,
+    ShipmentMilestone,
+    ShipmentItem,
+    RelayLegInfo,
+    PartnerDriverInfo,
+    ShipmentHandoverInfo,
+};
 
 export interface DriverProfile {
     id: string | number;

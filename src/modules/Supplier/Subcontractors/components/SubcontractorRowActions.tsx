@@ -1,5 +1,5 @@
 import Button from '@/components/ui/button';
-import { Edit2, MoreVertical, Plus, Trash2, Users } from 'lucide-react';
+import { Edit2, MoreVertical, Plus, Trash2, Users, FileText } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Subcontractor } from '../types';
@@ -10,6 +10,7 @@ interface SubcontractorRowActionsProps {
     onAddDriver: (sub: Subcontractor) => void;
     onEdit: (sub: Subcontractor) => void;
     onDelete: (sub: Subcontractor) => void;
+    onViewCompliance?: (sub: Subcontractor) => void;
 }
 
 export const SubcontractorRowActions: React.FC<SubcontractorRowActionsProps> = ({
@@ -18,6 +19,7 @@ export const SubcontractorRowActions: React.FC<SubcontractorRowActionsProps> = (
     onAddDriver,
     onEdit,
     onDelete,
+    onViewCompliance,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -89,6 +91,20 @@ export const SubcontractorRowActions: React.FC<SubcontractorRowActionsProps> = (
                                 <Users size={13} className="text-blue-600" />
                                 <span>View Drivers</span>
                             </button>
+
+                            {onViewCompliance && (
+                                <button
+                                    type="button"
+                                    className="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 font-medium cursor-pointer"
+                                    onClick={() => {
+                                        handleClose();
+                                        onViewCompliance(subcontractor);
+                                    }}
+                                >
+                                    <FileText size={13} className="text-emerald-600" />
+                                    <span>View Document</span>
+                                </button>
+                            )}
 
                             <button
                                 type="button"

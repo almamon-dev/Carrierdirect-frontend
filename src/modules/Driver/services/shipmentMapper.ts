@@ -44,13 +44,21 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
         status = 'assigned';
     } else if (rawStatus === 'accepted') {
         status = 'accepted';
-    } else if (rawStatus === 'in_progress' || rawStatus === 'picked_up') {
+    } else if (rawStatus === 'at_pickup') {
         status = 'at_pickup';
+    } else if (rawStatus === 'picked_up' || rawStatus === 'in_progress') {
+        status = 'picked_up';
     } else if (rawStatus === 'in_transit') {
         status = 'in_transit';
-    } else if (rawStatus === 'arrived') {
+    } else if (rawStatus === 'at_hub') {
+        status = 'at_hub';
+    } else if (rawStatus === 'handover_pending') {
+        status = 'handover_pending';
+    } else if (rawStatus === 'handover_accepted') {
+        status = 'handover_accepted';
+    } else if (rawStatus === 'at_delivery' || rawStatus === 'arrived') {
         status = 'at_delivery';
-    } else if (rawStatus === 'cancelled') {
+    } else if (rawStatus === 'cancelled' || rawStatus === 'canceled' || rawStatus === 'rejected') {
         status = 'cancelled';
     }
 
@@ -81,8 +89,6 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
 
     const distanceKm = raw.route?.distance_km ?? raw.route?.distanceKm ?? (raw.distance_km ? Number(raw.distance_km) : 0);
     const estimatedDuration = raw.pickup?.time || raw.route?.estimatedDuration || '4h 30m';
-    const driverEarnings = raw.payout?.driverEarnings ?? raw.payout?.driver_earnings ?? (raw.quote?.total_amount ? Number(raw.quote.total_amount) : 450);
-    const fuelSurcharge = raw.payout?.fuelSurcharge ?? raw.payout?.fuel_surcharge ?? 50;
 
     return {
         id: String(raw.id),
@@ -172,12 +178,15 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
                 lng: raw.delivery_lng ?? raw.route?.destination_coords?.lng ?? raw.route?.destinationCoords?.lng ?? (extractCoordinatesFromAddress(deliveryAddress)?.[1] || extractCoordinatesFromAddress(deliveryCity)?.[1] || 90.3698),
             },
         },
-        payout: {
-            driverEarnings,
-            fuelSurcharge,
-            bonus: raw.payout?.bonus,
-            currency: raw.payout?.currency || '€',
-        },
+        isRelay: Boolean(raw.is_relay),
+        currentActiveLeg: raw.current_active_leg ? Number(raw.current_active_leg) : 1,
+        isDeliveryOnly: Boolean(raw.is_delivery_only),
+        assignedLeg: raw.assigned_leg || null,
+        driverLegNumber: raw.driver_leg_number ? Number(raw.driver_leg_number) : 1,
+        hubLocation: raw.hub_location || 'Transit Hub',
+        partnerDriver: raw.partner_driver || null,
+        handover: raw.handover || null,
+        relayLegs: raw.relay_legs || [],
         history: Array.isArray(raw.tracking?.history) ? raw.tracking.history : (Array.isArray(raw.history) ? raw.history : undefined),
         driver: raw.driver ? {
             name: raw.driver.name || '',

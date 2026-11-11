@@ -13,7 +13,22 @@ export interface FleetDriverItem {
     vehicleId?: string;
     role: string;
     status: string;
-    availabilityStatus: 'Available' | 'On Job' | 'Unavailable';
+    availabilityStatus: 'Available' | 'On Job' | 'Unavailable' | string;
+    account_status?: 'active' | 'disabled' | 'blocked' | string;
+    duty_status?: 'online' | 'offline' | 'break' | string;
+    job_status?: 'available' | 'on_job' | string;
+    is_eligible?: boolean;
+    disqualification_reason?: string | null;
+    active_assignment?: {
+        order_id?: number | null;
+        order_number?: string | null;
+        shipment_id?: number | null;
+        tracking_number?: string | null;
+        leg_id?: number | null;
+        leg_number?: number | null;
+        leg_type?: string | null;
+        assignment_type?: string | null;
+    } | null;
     dutyStatus?: string;
     userStatus?: string;
     email?: string;

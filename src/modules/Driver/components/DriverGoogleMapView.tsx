@@ -1070,15 +1070,15 @@ export const DriverGoogleMapView: React.FC<DriverGoogleMapViewProps> = ({
                         })}
                     </div>
 
-                    {/* Start Navigation CTA (Fully Rounded Pill Button) */}
+                    {/* Start Navigation CTA (Clean standard height & rounded corners matching theme) */}
                     {showStartNavigationButton && (
                         <div className="pt-0.5">
                             <button
                                 type="button"
                                 onClick={handleDefaultNavigation}
-                                className="w-full h-10.5 rounded-full bg-[#FF5722] hover:bg-[#E03E15] active:scale-[0.99] text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                className="w-full h-9 sm:h-9.5 rounded-[6px] bg-[#FF5722] hover:bg-[#E03E15] active:scale-[0.99] text-white font-bold text-xs sm:text-[13px] shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                             >
-                                <Navigation size={15} className="rotate-45" />
+                                <Navigation size={14} className="rotate-45" />
                                 <span>Start Navigation</span>
                             </button>
                         </div>

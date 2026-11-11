@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Truck, CheckCircle2, ShieldCheck, ArrowRight, FileCheck, Eye, ExternalLink, X, FileText } from 'lucide-react';
+import { Truck, CheckCircle2, ShieldCheck, ArrowRight, FileCheck, Eye, X, FileText, User, Phone, MapPin, GitFork, Globe } from 'lucide-react';
 import { ShipmentItem, ShipmentStatus } from '../../../types';
 import { requireDriverCompliance } from '../../../Compliance';
 import { getStatusDisplay } from '../utils/statusDisplayConfig';
-import { DriverShipmentNextActionBox } from './DriverShipmentNextActionBox';
+import { ViewLegsModal } from './ViewLegsModal';
 
 interface Props {
     shipment: ShipmentItem;
     onUpdateStatus: (nextStatus: ShipmentStatus) => void;
     onOpenPOD: () => void;
     onOpenGPS?: () => void;
+    onOpenHandover?: () => void;
+    onOpenAcceptHandover?: () => void;
 }
 
 export const DriverShipmentActionCard: React.FC<Props> = ({
@@ -17,254 +19,280 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
     onUpdateStatus,
     onOpenPOD,
     onOpenGPS,
+    onOpenHandover,
+    onOpenAcceptHandover,
 }) => {
     const status = shipment.status;
-    const isDeliveredOrCompleted = status === 'delivered' || status === 'completed';
-    const displayPod = shipment.podData || (isDeliveredOrCompleted ? {
-        receiverName: shipment.consignee.name || shipment.consignee.company || 'Consignee Receiver',
-        uploadedAt: shipment.updatedAt || shipment.createdAt,
-        signatureUrl: undefined,
-        documentPhotos: [],
-        notes: '',
-    } : undefined);
+    const isRelay = Boolean(shipment.isRelay);
+    const isLeg1 = isRelay && !shipment.isDeliveryOnly;
+    const isLeg2 = isRelay && Boolean(shipment.isDeliveryOnly);
+
+    const [isViewLegsOpen, setIsViewLegsOpen] = useState(false);
     const [viewDocUrl, setViewDocUrl] = useState<string | null>(null);
 
-    const fromCity = shipment.shipper.city || 'Origin';
-    const toCity = shipment.consignee.city || 'Destination';
-
-    const pickupLat = shipment.route?.originCoords?.lat;
-    const pickupLng = shipment.route?.originCoords?.lng;
-    const deliveryLat = shipment.route?.destinationCoords?.lat;
-    const deliveryLng = shipment.route?.destinationCoords?.lng;
-
-    const hasExactCoords = Boolean(
-        pickupLat !== undefined && pickupLat !== null && !isNaN(Number(pickupLat)) &&
-        pickupLng !== undefined && pickupLng !== null && !isNaN(Number(pickupLng)) &&
-        deliveryLat !== undefined && deliveryLat !== null && !isNaN(Number(deliveryLat)) &&
-        deliveryLng !== undefined && deliveryLng !== null && !isNaN(Number(deliveryLng))
-    );
-
-    const googleMapsUrl = hasExactCoords
-        ? `https://www.google.com/maps/dir/?api=1&origin=${pickupLat},${pickupLng}&destination=${deliveryLat},${deliveryLng}&travelmode=driving`
-        : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(shipment.shipper.address || shipment.shipper.city)}&destination=${encodeURIComponent(shipment.consignee.address || shipment.consignee.city)}&travelmode=driving`;
+    const fromCity = shipment.shipper.city || 'Dhaka';
+    const toCity = shipment.consignee.city || 'Chattogram';
+    const hubLocation = shipment.hubLocation || 'Transit Hub';
 
     const statusConfig = getStatusDisplay(shipment);
 
-    const handlePrimaryAction = () => {
-        if (statusConfig.actionType === 'pickup') {
-            requireDriverCompliance(() => onUpdateStatus('at_pickup'), 'Confirm Goods Picked Up');
-        } else if (statusConfig.actionType === 'transit') {
-            requireDriverCompliance(() => onUpdateStatus('in_transit'), 'Start Highway Transit');
-        } else if (statusConfig.actionType === 'navigate') {
-            if (onOpenGPS) {
-                onOpenGPS();
+    // Resolve active driver for current operation
+    const activeDriverName = isRelay
+        ? (isLeg1
+            ? (shipment.driver?.name || 'Liam O\'Connor')
+            : (shipment.driver?.name || 'Driver 2'))
+        : (shipment.driver?.name || 'John Mathew');
+
+    const activeDriverPhone = isRelay
+        ? (isLeg1
+            ? (shipment.driver?.phone || '+353 87 111 2222')
+            : (shipment.driver?.phone || '+353 87 333 4444'))
+        : (shipment.driver?.phone || '+353 87 555 6666');
+
+    const activeDriverSubtitle = isRelay
+        ? (isLeg1 ? 'Driver - Leg 1' : 'Driver - Leg 2')
+        : 'Driver (Single Trip)';
+
+    // Operation heading & corridor
+    let operationTitle = 'In Transit';
+    let operationCorridor = `${fromCity} ➔ ${toCity} (Full Trip)`;
+
+    if (isRelay) {
+        if (isLeg1) {
+            if (status === 'at_hub' || status === 'handover_pending') {
+                operationTitle = 'At Transit Hub';
+                operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
+            } else if (status === 'picked_up' || status === 'at_pickup') {
+                operationTitle = 'Goods Picked Up';
+                operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
             } else {
-                window.open(googleMapsUrl, '_blank');
+                operationTitle = 'In Transit to Hub';
+                operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
             }
+        } else {
+            // Leg 2
+            if (shipment.handover?.status === 'pending_acceptance' || status === 'handover_pending') {
+                operationTitle = 'Handover Ready at Hub';
+                operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
+            } else if (status === 'at_delivery') {
+                operationTitle = 'Arrived at Delivery Point';
+                operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
+            } else {
+                operationTitle = 'In Transit to Delivery';
+                operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
+            }
+        }
+    } else {
+        if (status === 'at_delivery') {
+            operationTitle = 'Arrived at Destination';
+        } else if (status === 'delivered') {
+            operationTitle = 'Delivered (POD Pending)';
+        } else if (status === 'completed') {
+            operationTitle = 'Shipment Completed';
+        } else if (status === 'picked_up' || status === 'at_pickup') {
+            operationTitle = 'Goods Picked Up';
+        }
+    }
+
+    // Next Action text
+    let nextActionTitle = 'Deliver to Consignee';
+    let nextActionEta = '05:21 PM';
+
+    if (isRelay) {
+        if (isLeg1) {
+            nextActionTitle = `Handover to Driver 2 at ${hubLocation}`;
+            nextActionEta = '02:30 PM';
+        } else {
+            if (shipment.handover?.status === 'pending_acceptance' || status === 'handover_pending') {
+                nextActionTitle = `Accept Cargo Handover from Driver 1`;
+                nextActionEta = 'Now at Hub';
+            } else {
+                nextActionTitle = 'Deliver to Consignee';
+                nextActionEta = '05:21 PM';
+            }
+        }
+    }
+
+    // Primary Button Label & Handler using statusConfig
+    const handleActionClick = () => {
+        if (statusConfig.actionType === 'pickup') {
+            requireDriverCompliance(() => onUpdateStatus('picked_up'), 'Confirm Goods Picked Up');
+        } else if (statusConfig.actionType === 'transit') {
+            requireDriverCompliance(() => onUpdateStatus('in_transit'), 'Start Transit');
+        } else if (statusConfig.actionType === 'at_hub') {
+            requireDriverCompliance(() => onUpdateStatus('at_hub'), 'Confirm Arrival at Hub');
+        } else if (statusConfig.actionType === 'handover') {
+            if (onOpenHandover) onOpenHandover();
+        } else if (statusConfig.actionType === 'accept_handover') {
+            if (onOpenAcceptHandover) onOpenAcceptHandover();
+        } else if (statusConfig.actionType === 'at_delivery') {
+            requireDriverCompliance(() => onUpdateStatus('at_delivery'), 'Arrived at Destination');
         } else if (statusConfig.actionType === 'pod') {
-            requireDriverCompliance(() => onOpenPOD(), 'Upload Proof of Delivery');
+            requireDriverCompliance(() => onOpenPOD(), 'Upload POD & Complete');
+        } else {
+            // Default step transitions
+            if (isRelay && isLeg1) {
+                if (status === 'assigned' || status === 'accepted') {
+                    requireDriverCompliance(() => onUpdateStatus('picked_up'), 'Confirm Goods Picked Up');
+                } else if (status === 'picked_up' || status === 'at_pickup') {
+                    requireDriverCompliance(() => onUpdateStatus('in_transit'), 'Start Transit to Hub');
+                } else if (status === 'in_transit') {
+                    requireDriverCompliance(() => onUpdateStatus('at_hub'), 'Confirm Arrival at Hub');
+                } else if (status === 'at_hub' || status === 'handover_pending') {
+                    if (onOpenHandover) onOpenHandover();
+                }
+            } else if (isRelay && !isLeg1) {
+                if (status === 'handover_pending' || status === 'at_hub') {
+                    if (onOpenAcceptHandover) onOpenAcceptHandover();
+                } else if (status === 'handover_accepted') {
+                    requireDriverCompliance(() => onUpdateStatus('in_transit'), 'Start Transit to Delivery');
+                } else if (status === 'in_transit') {
+                    requireDriverCompliance(() => onUpdateStatus('at_delivery'), 'Arrived at Destination');
+                } else if (status === 'at_delivery') {
+                    requireDriverCompliance(() => onOpenPOD(), 'Upload Proof of Delivery');
+                }
+            } else {
+                if (status === 'assigned' || status === 'accepted') {
+                    requireDriverCompliance(() => onUpdateStatus('picked_up'), 'Confirm Goods Picked Up');
+                } else if (status === 'picked_up' || status === 'at_pickup') {
+                    requireDriverCompliance(() => onUpdateStatus('in_transit'), 'Start Transit');
+                } else if (status === 'in_transit') {
+                    requireDriverCompliance(() => onUpdateStatus('at_delivery'), 'Arrived at Destination');
+                } else if (status === 'at_delivery') {
+                    requireDriverCompliance(() => onOpenPOD(), 'Upload Proof of Delivery');
+                }
+            }
         }
     };
 
+    let buttonText = statusConfig.buttonLabel || (
+        isRelay
+            ? (statusConfig.actionType === 'handover'
+                ? 'Initiate Handover at Hub'
+                : (statusConfig.actionType === 'accept_handover'
+                    ? 'Accept Handover & Cargo'
+                    : 'Update Status'))
+            : (status === 'at_delivery'
+                ? 'Upload POD & Complete Delivery'
+                : 'Update Delivery Status')
+    );
+
+    if (status === 'delivered') {
+        buttonText = 'Awaiting Customer Verification';
+    } else if (status === 'completed') {
+        buttonText = 'Delivery Completed & Approved';
+    }
+
     return (
-        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs font-sans overflow-hidden">
-            {/* Header with Live Badge */}
-            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-[#15191e]/50">
+        <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[6px] shadow-xs font-sans overflow-hidden">
+            {/* 1. Header: Current Operation & Active badge */}
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#1e2329]">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                    Current Status
+                    Current Operation
                 </h3>
-                {status === 'in_transit' ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[2px] text-[11px] font-bold bg-orange-50 dark:bg-orange-950/50 text-[#FF4A1F] border border-orange-200 dark:border-orange-900/60 shadow-2xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF4A1F] animate-pulse" />
-                        Live
-                    </span>
-                ) : status === 'delivered' ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[2px] text-[11px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                        Awaiting Review
-                    </span>
-                ) : status === 'completed' ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[2px] text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                        <CheckCircle2 size={11} />
-                        Completed
-                    </span>
-                ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[2px] text-[11px] font-bold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                        Active
-                    </span>
-                )}
+                <span className="px-2.5 py-0.5 rounded-[4px] text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
+                    Active
+                </span>
             </div>
 
-            {/* Status Visual and Corridor */}
-            <div className="p-4 space-y-4">
-                <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-[4px] bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/40 flex items-center justify-center text-[#FF4A1F] shrink-0 shadow-2xs">
-                        <Truck size={24} />
+            <div className="p-4 space-y-3.5">
+                {/* 2. Soft Tinted Subheader Box (Orange) */}
+                <div className="p-3.5 bg-orange-50/70 dark:bg-orange-950/20 border border-orange-100/80 dark:border-orange-900/40 rounded-[6px] flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-[6px] bg-orange-100 dark:bg-orange-950/50 text-[#FF4A1F] flex items-center justify-center shrink-0 border border-orange-200/60 dark:border-orange-800/40">
+                        <Truck size={20} />
                     </div>
                     <div>
-                        <h2 className={`text-xl font-extrabold tracking-tight ${statusConfig.color}`}>
-                            {statusConfig.label}
-                        </h2>
-                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mt-0.5">
-                            <span>{fromCity}</span>
-                            <ArrowRight size={11} className="text-slate-400" />
-                            <span>{toCity}</span>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                            {operationTitle}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                            {operationCorridor}
                         </p>
                     </div>
                 </div>
 
-                {/* Next Action Box */}
-                <DriverShipmentNextActionBox
-                    status={status}
-                    statusConfig={statusConfig}
-                    handlePrimaryAction={handlePrimaryAction}
-                    onOpenPOD={onOpenPOD}
-                />
-
-                {/* POD Summary if present */}
-                {displayPod && (
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs">
-                        <div className="flex items-center justify-between pb-1">
-                            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                                <FileCheck size={13} /> Proof of Delivery (POD) Sign-Off
-                            </span>
-                            <span className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                                Verified
-                            </span>
+                {/* 3. Driver Row Card */}
+                <div className="p-3 bg-white dark:bg-[#161a22] border border-slate-200/90 dark:border-slate-800 rounded-[6px] flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-bold shrink-0">
+                            <User size={16} />
                         </div>
-
-                        <div className="grid grid-cols-[110px_14px_1fr] items-start min-w-0">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">Signed By</span>
-                            <span className="text-[#FF4A1F] font-bold text-center">:</span>
-                            <span className="font-bold text-slate-900 dark:text-slate-100">{displayPod.receiverName || shipment.consignee.name || shipment.consignee.company || 'Consignee Receiver'}</span>
-                        </div>
-                        <div className="grid grid-cols-[110px_14px_1fr] items-start min-w-0">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">Time & Date</span>
-                            <span className="text-[#FF4A1F] font-bold text-center">:</span>
-                            <span className="font-medium text-slate-700 dark:text-slate-300">
-                                {displayPod.uploadedAt ? new Date(displayPod.uploadedAt).toLocaleString() : '-'}
-                            </span>
-                        </div>
-
-                        {/* Signature Preview */}
-                        {displayPod.signatureUrl && (
-                            <div className="mt-1.5 p-2 bg-slate-50 dark:bg-slate-900/60 rounded border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <img
-                                        src={displayPod.signatureUrl}
-                                        alt="Receiver Signature"
-                                        className="h-8 max-w-[120px] object-contain border border-slate-200 dark:border-slate-700 rounded bg-white px-1"
-                                    />
-                                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
-                                        E-Signature
-                                    </span>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setViewDocUrl(displayPod.signatureUrl!)}
-                                    className="px-2 py-1 text-[10.5px] font-semibold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded flex items-center gap-1 cursor-pointer transition-colors"
-                                >
-                                    <Eye size={12} />
-                                    <span>View</span>
-                                </button>
+                        <div>
+                            <div className="text-xs font-bold text-slate-900 dark:text-white">
+                                {activeDriverName}
                             </div>
-                        )}
-
-                        {/* Attached Cargo / Paper BOL Photo Preview */}
-                        {displayPod.documentPhotos && displayPod.documentPhotos[0] && (() => {
-                            const docUrl = displayPod.documentPhotos[0];
-                            const isPdfDoc = String(docUrl).toLowerCase().includes('.pdf');
-                            return (
-                                <div className="mt-1.5 p-2 bg-slate-50 dark:bg-slate-900/60 rounded border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        {isPdfDoc ? (
-                                            <div className="w-9 h-9 rounded bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex flex-col items-center justify-center shrink-0 text-rose-600 dark:text-rose-400">
-                                                <FileText size={15} />
-                                                <span className="text-[8px] font-black uppercase tracking-tighter leading-none mt-0.5">PDF</span>
-                                            </div>
-                                        ) : (
-                                            <img
-                                                src={docUrl}
-                                                alt="Paper BOL"
-                                                className="w-9 h-9 object-cover rounded border border-slate-200 dark:border-slate-700 shrink-0"
-                                            />
-                                        )}
-                                        <div className="min-w-0">
-                                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
-                                                Signed Paper BOL / Cargo Photo
-                                            </p>
-                                            <p className="text-[10px] text-slate-400">Attached Delivery Proof ({isPdfDoc ? 'PDF Document' : 'Photo'})</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setViewDocUrl(docUrl)}
-                                        className="px-2 py-1 text-[10.5px] font-semibold text-[#FF4A1F] hover:bg-orange-50 dark:hover:bg-orange-950/30 rounded flex items-center gap-1 cursor-pointer transition-colors shrink-0"
-                                    >
-                                        <Eye size={12} />
-                                        <span>{isPdfDoc ? 'View PDF' : 'View Photo'}</span>
-                                    </button>
-                                </div>
-                            );
-                        })()}
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                                {activeDriverSubtitle}
+                            </div>
+                        </div>
                     </div>
-                )}
 
-                {/* Document / Photo View Lightbox */}
-                {viewDocUrl && (
-                    <div
-                        className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
-                        onClick={() => setViewDocUrl(null)}
-                    >
-                        <div
-                            className="relative max-w-4xl max-h-[90vh] bg-[#12161c] rounded-[4px] border border-slate-800 overflow-hidden flex flex-col shadow-2xl"
-                            onClick={(e) => e.stopPropagation()}
+                    <div className="flex items-center gap-1.5">
+                        {/* Call Driver Button */}
+                        <a
+                            href={`tel:${activeDriverPhone}`}
+                            className="px-2.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-[4px] text-[11px] font-semibold flex items-center gap-1 transition-colors shadow-2xs"
                         >
-                            <div className="px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-white">
-                                <span className="text-xs font-bold flex items-center gap-2">
-                                    <FileCheck size={15} className="text-emerald-500" />
-                                    Proof of Delivery Sign-Off Document
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={() => setViewDocUrl(null)}
-                                    className="p-1 text-slate-400 hover:text-white rounded cursor-pointer"
-                                >
-                                    <X size={18} />
-                                </button>
-                            </div>
-                            <div className="p-3 flex-1 overflow-auto flex items-center justify-center max-h-[calc(90vh-50px)] w-full">
-                                {String(viewDocUrl).toLowerCase().includes('.pdf') ? (
-                                    <iframe
-                                        src={viewDocUrl}
-                                        title="POD PDF Document"
-                                        className="w-[85vw] max-w-3xl h-[75vh] rounded bg-white border-0"
-                                    />
-                                ) : (
-                                    <img
-                                        src={viewDocUrl}
-                                        alt="POD Document"
-                                        className="max-w-full max-h-[80vh] object-contain rounded"
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+                            <Phone size={12} className="text-[#FF4A1F]" />
+                            <span>{isRelay ? 'Call' : 'Call Driver'}</span>
+                        </a>
 
-            {/* Compliance Footer */}
-            <div className="px-4 py-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#15191e]/50 text-xs">
-                <div className="flex items-center justify-between">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 text-[11px]">
-                        <ShieldCheck size={13} className="text-emerald-600" />
-                        <span>Driver Compliance</span>
+                        {/* View Legs Button for Multi-Driver */}
+                        {isRelay && (
+                            <button
+                                type="button"
+                                onClick={() => setIsViewLegsOpen(true)}
+                                className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 rounded-[4px] text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                            >
+                                <GitFork size={12} />
+                                <span>View Legs</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* 4. Next Action Box */}
+                <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Next Action
                     </span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">
-                        Verified Active
-                    </span>
+                    <div className="flex items-center gap-2 text-xs">
+                        <div className="w-5 h-5 rounded-[4px] bg-orange-100 dark:bg-orange-950/50 text-[#FF4A1F] flex items-center justify-center shrink-0">
+                            <MapPin size={11} />
+                        </div>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                            {nextActionTitle}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-medium">
+                            (ETA: {nextActionEta})
+                        </span>
+                    </div>
+                </div>
+
+                {/* 5. Prominent Action Button */}
+                <div className="pt-1">
+                    <button
+                        type="button"
+                        onClick={handleActionClick}
+                        disabled={status === 'delivered' || status === 'completed'}
+                        className={`w-full h-9.5 px-4 rounded-[6px] text-xs font-bold text-white flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer ${
+                            status === 'delivered' || status === 'completed'
+                                ? 'bg-emerald-600 opacity-90 cursor-default'
+                                : 'bg-[#4338ca] hover:bg-[#3730a3] active:scale-99'
+                        }`}
+                    >
+                        <Globe size={14} />
+                        <span>{buttonText}</span>
+                    </button>
                 </div>
             </div>
+
+            {/* View Legs Modal */}
+            <ViewLegsModal
+                isOpen={isViewLegsOpen}
+                shipment={shipment}
+                onClose={() => setIsViewLegsOpen(false)}
+            />
         </div>
     );
 };

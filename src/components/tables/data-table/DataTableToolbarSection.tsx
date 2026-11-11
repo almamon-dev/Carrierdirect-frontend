@@ -1,4 +1,5 @@
 import React from 'react';
+import { RotateCw } from 'lucide-react';
 import TableToolbar from '@/components/tables/table-toolbar';
 import TableSearch from '@/components/tables/table-search';
 import TableFilter from '@/components/tables/table-filter';
@@ -30,6 +31,9 @@ interface DataTableToolbarSectionProps<T = any> {
   handleToggleWrapCells: (val: boolean) => void;
   filterContent?: React.ReactNode;
   banner?: React.ReactNode;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+  hideColumnToggle?: boolean;
 }
 
 export function DataTableToolbarSection<T = any>({
@@ -56,6 +60,9 @@ export function DataTableToolbarSection<T = any>({
   isWrapCells,
   handleToggleWrapCells,
   filterContent,
+  onRefresh,
+  isRefreshing,
+  hideColumnToggle,
 }: DataTableToolbarSectionProps<T>) {
   return (
     <>
@@ -106,14 +113,27 @@ export function DataTableToolbarSection<T = any>({
               hideViewToggle={hideViewToggle}
             />
 
-            <TableColumnToggle
-              columns={currentColumns}
-              visibleColumns={visibleColumns}
-              onToggleColumn={toggleColumn}
-              onResetColumns={handleResetColumns}
-              wrapCells={isWrapCells}
-              onToggleWrapCells={handleToggleWrapCells}
-            />
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={onRefresh}
+                className="h-[32px] w-[32px] flex items-center justify-center rounded-[3px] border border-slate-200/80 dark:border-slate-700/60 bg-white dark:bg-[#1e2329] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-900 transition-all cursor-pointer"
+                title="Refresh table"
+              >
+                <RotateCw size={14} className={isRefreshing ? "animate-spin text-[#ff4a1f]" : "text-slate-600 dark:text-slate-300"} />
+              </button>
+            )}
+
+            {!hideColumnToggle && (
+              <TableColumnToggle
+                columns={currentColumns}
+                visibleColumns={visibleColumns}
+                onToggleColumn={toggleColumn}
+                onResetColumns={handleResetColumns}
+                wrapCells={isWrapCells}
+                onToggleWrapCells={handleToggleWrapCells}
+              />
+            )}
           </div>
         </TableToolbar>
       )}

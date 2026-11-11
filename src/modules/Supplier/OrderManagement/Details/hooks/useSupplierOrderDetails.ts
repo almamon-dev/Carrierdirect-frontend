@@ -35,11 +35,7 @@ export const useSupplierOrderDetails = () => {
     const [actionMessage, setActionMessage] = useState<string | null>(null);
 
     const decryptedRawId = decryptId(paramId);
-    const cleanId = decryptedRawId
-        ? String(decryptedRawId).replace(/^ORD-0*/i, '')
-        : paramId
-          ? String(paramId).replace(/^ORD-0*/i, '')
-          : '1';
+    const cleanId = decryptedRawId || paramId || '1';
 
     useEffect(() => {
         if (paramId && !paramId.startsWith('enc_') && !paramId.startsWith('sec_') && !paramId.startsWith('q_')) {

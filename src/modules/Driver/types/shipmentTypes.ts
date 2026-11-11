@@ -2,11 +2,54 @@ export type ShipmentStatus =
     | 'assigned'
     | 'accepted'
     | 'at_pickup'
+    | 'picked_up'
     | 'in_transit'
+    | 'at_hub'
+    | 'handover_pending'
+    | 'handover_accepted'
     | 'at_delivery'
     | 'delivered'
     | 'completed'
     | 'cancelled';
+
+export interface ShipmentHandoverInfo {
+    id: number;
+    status: 'pending_acceptance' | 'accepted' | 'rejected' | 'cancelled';
+    hub_location: string;
+    cargo_condition: string;
+    cargo_condition_notes?: string;
+    photos?: string[];
+    otp_code?: string;
+    driver_from_name?: string;
+    driver_from_phone?: string;
+    driver_to_name?: string;
+    driver_to_phone?: string;
+    handover_at?: string;
+    accepted_at?: string;
+    rejection_reason?: string;
+    notes?: string;
+}
+
+export interface PartnerDriverInfo {
+    leg_number: number;
+    driver_name: string;
+    driver_phone: string;
+    vehicle_plate: string;
+    vehicle_type: string;
+    company: string;
+}
+
+export interface RelayLegInfo {
+    leg_number: number;
+    leg_type: string;
+    journey_leg: string;
+    status: string;
+    execution_mode: string;
+    driver_name?: string;
+    driver_phone?: string;
+    vehicle_plate?: string;
+    vehicle_type?: string;
+}
 
 export interface ShipmentMilestone {
     key: ShipmentStatus;
@@ -86,12 +129,27 @@ export interface ShipmentItem {
         originCoords: { lat: number; lng: number };
         destinationCoords: { lat: number; lng: number };
     };
-    payout: {
-        driverEarnings: number;
-        fuelSurcharge: number;
+    payout?: {
+        driverEarnings?: number;
+        fuelSurcharge?: number;
         bonus?: number;
-        currency: string;
+        currency?: string;
     };
+    isRelay?: boolean;
+    currentActiveLeg?: number;
+    isDeliveryOnly?: boolean;
+    assignedLeg?: {
+        leg_number: number;
+        leg_type: string;
+        execution_mode: string;
+        journey_leg: string;
+        status: string;
+    } | null;
+    driverLegNumber?: number;
+    hubLocation?: string;
+    partnerDriver?: PartnerDriverInfo | null;
+    handover?: ShipmentHandoverInfo | null;
+    relayLegs?: RelayLegInfo[];
     history?: Array<{
         status: string;
         title: string;

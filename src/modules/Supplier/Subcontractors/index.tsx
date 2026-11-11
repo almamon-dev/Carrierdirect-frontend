@@ -16,6 +16,7 @@ import SubcontractorDriverModal from './components/SubcontractorDriverModal';
 import { SubcontractorDriverRowActions } from './components/SubcontractorDriverRowActions';
 import SubcontractorModal from './components/SubcontractorModal';
 import { SubcontractorRowActions } from './components/SubcontractorRowActions';
+import { SubcontractorComplianceModal } from './components/SubcontractorComplianceModal';
 import { getSubcontractorColumns } from './components/subcontractorColumns';
 import { getSubcontractorDriverColumns } from './components/subcontractorDriverColumns';
 import { Subcontractor, SubcontractorDriver } from './types';
@@ -42,6 +43,11 @@ export default function SubcontractorsManagement() {
     const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
     const [driverModalSub, setDriverModalSub] = useState<Subcontractor | null>(null);
     const [editingDriver, setEditingDriver] = useState<SubcontractorDriver | null>(null);
+
+    // Compliance Modal
+    const [isComplianceModalOpen, setIsComplianceModalOpen] = useState(false);
+    const [complianceModalSub, setComplianceModalSub] = useState<Subcontractor | null>(null);
+    const [complianceModalDriver, setComplianceModalDriver] = useState<SubcontractorDriver | null>(null);
 
     const showToast = useToastStore((state) => state.showToast);
 
@@ -209,6 +215,42 @@ export default function SubcontractorsManagement() {
         setActiveTab('drivers');
     };
 
+    const handleVerifySubcontractor = async (sub: Subcontractor, action: 'verify' | 'reject', reason?: string) => {
+        try {
+            await apiClient.post(`/supplier/subcontractors/${sub.id}/verify-compliance`, {
+                action,
+                rejection_reason: reason,
+            });
+            showToast(
+                action === 'verify'
+                    ? `Verified compliance for ${sub.name}!`
+                    : `Rejected compliance for ${sub.name}.`,
+                action === 'verify' ? 'success' : 'info'
+            );
+            await fetchSubcontractors();
+        } catch (err: any) {
+            showToast(err?.response?.data?.message || 'Failed to update compliance verification.', 'error');
+        }
+    };
+
+    const handleVerifyDriver = async (driver: SubcontractorDriver, action: 'verify' | 'reject', reason?: string) => {
+        try {
+            await apiClient.post(`/supplier/subcontractors/${driver.subcontractor_id}/drivers/${driver.id}/verify-compliance`, {
+                action,
+                rejection_reason: reason,
+            });
+            showToast(
+                action === 'verify'
+                    ? `Verified compliance for driver ${driver.name}!`
+                    : `Rejected compliance for driver ${driver.name}.`,
+                action === 'verify' ? 'success' : 'info'
+            );
+            await fetchSubcontractors();
+        } catch (err: any) {
+            showToast(err?.response?.data?.message || 'Failed to update compliance verification.', 'error');
+        }
+    };
+
     // Driver Handlers
     const handleOpenAddDriver = (sub?: Subcontractor | null) => {
         const targetSub = sub || (subcontractors.length > 0 ? subcontractors[0] : null);
@@ -291,6 +333,18 @@ export default function SubcontractorsManagement() {
         }
     };
 
+    const handleOpenSubCompliance = (sub: Subcontractor) => {
+        setComplianceModalSub(sub);
+        setComplianceModalDriver(null);
+        setIsComplianceModalOpen(true);
+    };
+
+    const handleOpenDriverCompliance = (driver: SubcontractorDriver) => {
+        setComplianceModalDriver(driver);
+        setComplianceModalSub(null);
+        setIsComplianceModalOpen(true);
+    };
+
     // Table Columns
     const subcontractorColumns = useMemo(
         () =>
@@ -300,6 +354,8 @@ export default function SubcontractorsManagement() {
                     setEditingSub(sub);
                     setIsSubModalOpen(true);
                 },
+                onVerify: (sub, action) => handleVerifySubcontractor(sub, action),
+                onViewCompliance: handleOpenSubCompliance,
             }),
         []
     );
@@ -310,6 +366,8 @@ export default function SubcontractorsManagement() {
                 subcontractorsMap,
                 onEdit: handleOpenEditDriver,
                 onToggleStatus: handleToggleDriverStatus,
+                onVerify: (driver, action) => handleVerifyDriver(driver, action),
+                onViewCompliance: handleOpenDriverCompliance,
             }),
         [subcontractorsMap]
     );
@@ -512,6 +570,7 @@ export default function SubcontractorsManagement() {
                             <SubcontractorRowActions
                                 subcontractor={row}
                                 onViewDrivers={handleViewDriversForSub}
+                                onViewCompliance={handleOpenSubCompliance}
                                 onAddDriver={handleOpenAddDriver}
                                 onEdit={(sub) => {
                                     setEditingSub(sub);
@@ -552,6 +611,7 @@ export default function SubcontractorsManagement() {
                                 onEdit={handleOpenEditDriver}
                                 onDelete={handleDeleteDriver}
                                 onToggleStatus={handleToggleDriverStatus}
+                                onViewCompliance={handleOpenDriverCompliance}
                             />
                         )}
                         actionsColumnClassName="w-[70px] min-w-[70px] text-right pr-3"
@@ -584,6 +644,21 @@ export default function SubcontractorsManagement() {
                 subcontractor={driverModalSub}
                 driver={editingDriver}
                 onSave={handleSaveDriver}
+            />
+
+            {/* Subcontractor / Driver Compliance & Documents Modal */}
+            <SubcontractorComplianceModal
+                isOpen={isComplianceModalOpen}
+                onClose={() => setIsComplianceModalOpen(false)}
+                subcontractor={complianceModalSub}
+                driver={complianceModalDriver}
+                onVerify={async (target, action, reason) => {
+                    if ('drivers' in target || !('subcontractor_id' in target)) {
+                        await handleVerifySubcontractor(target as Subcontractor, action, reason);
+                    } else {
+                        await handleVerifyDriver(target as SubcontractorDriver, action, reason);
+                    }
+                }}
             />
         </div>
     );

@@ -9,7 +9,7 @@ export interface SelectOption {
     selectedLabel?: string;
     subtitle?: string | React.ReactNode;
     badge?: string;
-    badgeColor?: 'fleet' | 'subcontractor' | 'neutral';
+    badgeColor?: 'fleet' | 'subcontractor' | 'neutral' | 'success' | 'info' | 'warning' | 'danger';
     searchText?: string;
     image?: string;
     icon?: LucideIcon | React.ElementType | React.ReactNode;

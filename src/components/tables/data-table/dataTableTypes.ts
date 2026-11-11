@@ -44,4 +44,7 @@ export interface DataTableProps<T = any> {
   selectable?: boolean;
   hideFilter?: boolean;
   banner?: React.ReactNode;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+  hideColumnToggle?: boolean;
 }

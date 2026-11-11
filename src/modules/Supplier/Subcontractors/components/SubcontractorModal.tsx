@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Building2, Phone, Mail, FileText, MapPin, Hash, Check } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import FormLabel from '@/components/ui/label';
+import { Building2, Check, FileText, Hash, Mail, MapPin, Phone, ShieldCheck, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Subcontractor } from '../types';
 
 interface SubcontractorModalProps {
     isOpen: boolean;
     onClose: () => void;
     subcontractor?: Subcontractor | null;
-    onSave: (data: Partial<Subcontractor>) => Promise<void>;
+    onSave: (data: any) => Promise<void>;
 }
 
 export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
@@ -30,6 +30,13 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
     const [address, setAddress] = useState('');
     const [status, setStatus] = useState<'active' | 'inactive'>('active');
     const [notes, setNotes] = useState('');
+
+    // Compliance fields
+    const [insuranceExpiry, setInsuranceExpiry] = useState('');
+    const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
+    const [licenseExpiry, setLicenseExpiry] = useState('');
+    const [licenseFile, setLicenseFile] = useState<File | null>(null);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +51,10 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
             setAddress(subcontractor.address || '');
             setStatus(subcontractor.status || 'active');
             setNotes(subcontractor.notes || '');
+            setInsuranceExpiry(subcontractor.insurance_expiry_date ? String(subcontractor.insurance_expiry_date).split('T')[0] : '');
+            setLicenseExpiry(subcontractor.operating_license_expiry_date ? String(subcontractor.operating_license_expiry_date).split('T')[0] : '');
+            setInsuranceFile(null);
+            setLicenseFile(null);
         } else {
             setName('');
             setContactName('');
@@ -54,6 +65,10 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
             setAddress('');
             setStatus('active');
             setNotes('');
+            setInsuranceExpiry('');
+            setLicenseExpiry('');
+            setInsuranceFile(null);
+            setLicenseFile(null);
         }
         setError(null);
     }, [subcontractor, isOpen]);
@@ -67,20 +82,46 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
             return;
         }
 
+        // On creation, require Insurance & Operating License compliance documents
+        if (!isEdit && !insuranceFile) {
+            setError('Insurance Certificate file is required for new subcontractor registration.');
+            return;
+        }
+        if (!isEdit && !insuranceExpiry) {
+            setError('Insurance Certificate expiry date is required.');
+            return;
+        }
+        if (!isEdit && !licenseFile) {
+            setError('Operating Licence file is required for new subcontractor registration.');
+            return;
+        }
+        if (!isEdit && !licenseExpiry) {
+            setError('Operating Licence expiry date is required.');
+            return;
+        }
+
         try {
             setIsSubmitting(true);
             setError(null);
-            await onSave({
-                name: name.trim(),
-                contact_name: contactName.trim() || undefined,
-                phone: phone.trim() || undefined,
-                email: email.trim() || undefined,
-                vat_number: vatNumber.trim() || undefined,
-                company_registration: registration.trim() || undefined,
-                address: address.trim() || undefined,
-                status,
-                notes: notes.trim() || undefined,
-            });
+
+            const formData = new FormData();
+            formData.append('name', name.trim());
+            if (contactName.trim()) formData.append('contact_name', contactName.trim());
+            if (phone.trim()) formData.append('phone', phone.trim());
+            if (email.trim()) formData.append('email', email.trim());
+            if (vatNumber.trim()) formData.append('vat_number', vatNumber.trim());
+            if (registration.trim()) formData.append('company_registration', registration.trim());
+            if (address.trim()) formData.append('address', address.trim());
+            formData.append('status', status);
+            if (notes.trim()) formData.append('notes', notes.trim());
+
+            if (insuranceExpiry) formData.append('insurance_expiry_date', insuranceExpiry);
+            if (insuranceFile) formData.append('insurance_certificate_file', insuranceFile);
+
+            if (licenseExpiry) formData.append('operating_license_expiry_date', licenseExpiry);
+            if (licenseFile) formData.append('operating_license_file', licenseFile);
+
+            await onSave(formData);
             onClose();
         } catch (err: any) {
             setError(err?.response?.data?.message || 'Failed to save subcontractor.');
@@ -95,7 +136,7 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
             onClick={onClose}
         >
             <div
-                className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] font-sans my-auto"
+                className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] font-sans my-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -256,6 +297,110 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
                                 onChange={(e) => setAddress(e.target.value)}
                                 className="h-8.5 text-xs rounded-[4px]"
                             />
+                        </div>
+
+                        {/* COMPLIANCE DOCUMENTS SECTION */}
+                        <div className="p-3 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/60 rounded-[4px] space-y-3">
+                            <div className="flex items-center gap-1.5 text-amber-900 dark:text-amber-300 font-bold text-xs">
+                                <ShieldCheck size={14} className="text-[#ff4a1f]" />
+                                <span>Required Compliance Documents</span>
+                            </div>
+
+                            {/* 1. Insurance Certificate */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                        Insurance Certificate {!isEdit && <span className="text-rose-500">*</span>}
+                                    </FormLabel>
+                                    {subcontractor?.insurance_status && (
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${subcontractor.insurance_status === 'verified'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : (subcontractor.insurance_status === 'expired' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')
+                                            }`}>
+                                            {subcontractor.insurance_status.toUpperCase()}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div className="relative">
+                                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                                            Document {!isEdit && <span className="text-rose-500">*</span>}
+                                        </label>
+                                        <input
+                                            type="file"
+                                            id="insurance_file"
+                                            disabled={isSubmitting}
+                                            accept=".pdf,.png,.jpg,.jpeg,.webp"
+                                            onChange={(e) => setInsuranceFile(e.target.files?.[0] || null)}
+                                            className="text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded-[3px] file:border-0 file:text-[11px] file:font-semibold file:bg-white dark:file:bg-slate-800 file:text-slate-700 dark:file:text-slate-200 hover:file:bg-slate-100 w-full cursor-pointer border border-slate-300 dark:border-slate-700 rounded-[4px] p-1 bg-white dark:bg-[#1e2329]"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                                            Expiry Date {!isEdit && <span className="text-rose-500">*</span>}
+                                        </label>
+                                        <Input
+                                            type="date"
+                                            disabled={isSubmitting}
+                                            value={insuranceExpiry}
+                                            onChange={(e) => setInsuranceExpiry(e.target.value)}
+                                            className="h-8 text-xs rounded-[4px]"
+                                            title="Insurance Expiry Date"
+                                            placeholder="YYYY-MM-DD"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 2. Operating Licence */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                        Operating Licence {!isEdit && <span className="text-rose-500">*</span>}
+                                    </FormLabel>
+                                    {subcontractor?.operating_license_status && (
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${subcontractor.operating_license_status === 'verified'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : (subcontractor.operating_license_status === 'expired' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')
+                                            }`}>
+                                            {subcontractor.operating_license_status.toUpperCase()}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div className="relative">
+                                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                                            Licence Document {!isEdit && <span className="text-rose-500">*</span>}
+                                        </label>
+                                        <input
+                                            type="file"
+                                            id="license_file"
+                                            disabled={isSubmitting}
+                                            accept=".pdf,.png,.jpg,.jpeg,.webp"
+                                            onChange={(e) => setLicenseFile(e.target.files?.[0] || null)}
+                                            className="text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded-[3px] file:border-0 file:text-[11px] file:font-semibold file:bg-white dark:file:bg-slate-800 file:text-slate-700 dark:file:text-slate-200 hover:file:bg-slate-100 w-full cursor-pointer border border-slate-300 dark:border-slate-700 rounded-[4px] p-1 bg-white dark:bg-[#1e2329]"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                                            Expiry Date {!isEdit && <span className="text-rose-500">*</span>}
+                                        </label>
+                                        <Input
+                                            type="date"
+                                            disabled={isSubmitting}
+                                            value={licenseExpiry}
+                                            onChange={(e) => setLicenseExpiry(e.target.value)}
+                                            className="h-8 text-xs rounded-[4px]"
+                                            title="Operating Licence Expiry Date"
+                                            placeholder="YYYY-MM-DD"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p className="text-[10.5px] text-slate-500 dark:text-slate-400">
+                                🔔 Automated reminders will be sent to the subcontractor <strong>7 days</strong> and <strong>3 days</strong> prior to document expiration.
+                            </p>
                         </div>
 
                         <div className="space-y-1">

@@ -196,16 +196,27 @@ export const useAssignDriverModal = ({
         async function fetchTeamAndSubcontractors() {
             setIsLoadingTeam(true);
             try {
-                const [teamRes, subsRes] = await Promise.allSettled([
-                    apiClient.get('/supplier/team/members?status=active&per_page=100'),
+                const [driversRes, subsRes] = await Promise.allSettled([
+                    apiClient.get('/supplier/availability/drivers'),
                     apiClient.get('/supplier/subcontractors'),
                 ]);
 
-                if (teamRes.status === 'fulfilled') {
-                    const members = teamRes.value.data?.data || teamRes.value.data || [];
-                    if (Array.isArray(members)) {
-                        const activeOnly = members.filter((m: any) => !m.status || String(m.status).toLowerCase() === 'active');
-                        setTeamDrivers(activeOnly);
+                if (driversRes.status === 'fulfilled') {
+                    const rawDrivers =
+                        driversRes.value.data?.data?.drivers ||
+                        driversRes.value.data?.drivers ||
+                        driversRes.value.data?.data ||
+                        [];
+                    if (Array.isArray(rawDrivers) && rawDrivers.length > 0) {
+                        setTeamDrivers(rawDrivers);
+                    } else {
+                        // Fallback to active team members
+                        const teamRes = await apiClient.get('/supplier/team/members?status=active&per_page=100');
+                        const members = teamRes.data?.data || teamRes.data || [];
+                        if (Array.isArray(members)) {
+                            const activeOnly = members.filter((m: any) => !m.status || String(m.status).toLowerCase() === 'active');
+                            setTeamDrivers(activeOnly);
+                        }
                     }
                 }
 
@@ -325,12 +336,13 @@ export const useAssignDriverModal = ({
             setDriverPhone('');
             setDriverEmail('');
         } else {
-            const member = teamDrivers.find((m) => String(m.id) === String(memberId));
+            const member = teamDrivers.find((m) => String(m.id) === String(memberId) || String(m.user_id) === String(memberId));
             if (member) {
                 setDriverName(member.name || member.user?.name || '');
                 setDriverPhone(member.phone || member.user?.phone || '');
                 setDriverEmail(member.email || member.user?.email || '');
-                if (member.vehicle_plate) setVehiclePlate(member.vehicle_plate);
+                const plate = member.vehicle?.registration_no || member.vehicle?.plate || member.vehicle_plate;
+                if (plate) setVehiclePlate(plate);
             }
         }
     };
@@ -385,12 +397,13 @@ export const useAssignDriverModal = ({
             setLeg2DriverPhone('');
             setLeg2DriverEmail('');
         } else {
-            const member = teamDrivers.find((m) => String(m.id) === String(memberId));
+            const member = teamDrivers.find((m) => String(m.id) === String(memberId) || String(m.user_id) === String(memberId));
             if (member) {
                 setLeg2DriverName(member.name || member.user?.name || '');
                 setLeg2DriverPhone(member.phone || member.user?.phone || '');
                 setLeg2DriverEmail(member.email || member.user?.email || '');
-                if (member.vehicle_plate) setLeg2VehiclePlate(member.vehicle_plate);
+                const plate = member.vehicle?.registration_no || member.vehicle?.plate || member.vehicle_plate;
+                if (plate) setLeg2VehiclePlate(plate);
             }
         }
     };
