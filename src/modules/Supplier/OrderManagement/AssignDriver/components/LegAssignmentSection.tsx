@@ -188,11 +188,41 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
     );
 
     const subDriverOptions: SelectOption[] = useMemo(() => {
-        const opts: SelectOption[] = registeredSubDrivers.map((sd: any) => ({
-            id: String(sd.id),
-            name: sd.name,
-            subtitle: [sd.phone, sd.vehicle_plate].filter(Boolean).join(' • '),
-        }));
+        const opts: SelectOption[] = registeredSubDrivers.map((sd: any) => {
+            const isExpired =
+                sd.license_status === 'expired' || sd.insurance_status === 'expired';
+            const isInactive = sd.status === 'inactive';
+            const isVerified = Boolean(sd.is_verified) && !isExpired;
+            const isEligible = isVerified && !isInactive;
+
+            let badge = 'Verified';
+            let badgeColor: 'success' | 'warning' | 'danger' | 'neutral' = 'success';
+            if (isExpired) {
+                badge = 'Expired';
+                badgeColor = 'danger';
+            } else if (!isVerified) {
+                badge = 'Pending';
+                badgeColor = 'warning';
+            } else if (isInactive) {
+                badge = 'Inactive';
+                badgeColor = 'neutral';
+            }
+
+            return {
+                id: String(sd.id),
+                name: sd.name,
+                subtitle: isEligible
+                    ? [sd.phone, sd.vehicle_plate].filter(Boolean).join(' • ')
+                    : isExpired
+                        ? 'Compliance documents expired'
+                        : !isVerified
+                            ? 'Compliance not verified'
+                            : 'Driver is inactive',
+                badge,
+                badgeColor,
+                disabled: !isEligible,
+            };
+        });
 
         if (
             legState.subcontractorDriverId === 'custom' &&
@@ -256,19 +286,16 @@ export const LegAssignmentSection: React.FC<LegAssignmentSectionProps> = ({
         const sub = subcontractorsList.find((s) => String(s.id) === subId);
         if (!sub) return;
 
-        const firstDriver =
-            Array.isArray(sub.drivers) && sub.drivers.length > 0
-                ? sub.drivers[0]
-                : null;
+        // Do not auto-select a driver; the user must pick one explicitly.
         onChange({
             subcontractorId: String(sub.id),
             subcontractorCompany: sub.name || '',
-            subcontractorDriverId: firstDriver ? String(firstDriver.id) : '',
-            subcontractorDriverName: firstDriver?.name || '',
-            subcontractorDriverPhone: firstDriver?.phone || sub.phone || '',
-            subcontractorDriverEmail: firstDriver?.email || sub.email || '',
-            subcontractorVehiclePlate: firstDriver?.vehicle_plate || '',
-            subcontractorVehicleType: firstDriver?.vehicle_type || 'Curtainsider 40ft',
+            subcontractorDriverId: '',
+            subcontractorDriverName: '',
+            subcontractorDriverPhone: '',
+            subcontractorDriverEmail: '',
+            subcontractorVehiclePlate: '',
+            subcontractorVehicleType: '',
         });
     };
 

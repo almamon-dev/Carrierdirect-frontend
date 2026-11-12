@@ -34,6 +34,8 @@ import SupplierPODAction from './components/SupplierPODAction';
 import SupplierTimelineSection from './components/SupplierTimelineSection';
 import { SupplierOrderDetailsSkeleton } from './components/SupplierOrderDetailsSkeleton';
 import { useSupplierOrderDetails } from './hooks/useSupplierOrderDetails';
+import SupplierDocumentsTab from './components/SupplierDocumentsTab';
+import { formatLocationName, formatVehiclePlate } from './utils/supplierOrderTrackUtils';
 
 export type SupplierOrderDetailsTab =
     | 'overview'
@@ -111,46 +113,60 @@ export default function OrderDetails() {
         return order.driver;
     }, [assignedDriverInfo, order.driver]);
 
-    const effectiveVehiclePlate =
+    const effectiveVehiclePlate = formatVehiclePlate(
         assignedDriverInfo?.plate ||
         order.driver?.vehiclePlate ||
-        (order.vehicle?.number && order.vehicle.number !== '-' ? order.vehicle.number : '') ||
-        'GB-24-TRK';
+        (order.vehicle?.number && order.vehicle.number !== '-' ? order.vehicle.number : null)
+    );
 
     const getDriverInitials = (name?: string) => {
-        if (!name || name === '-' || name === 'Unassigned') return 'DR';
+        if (!name || name === '-' || name === 'Unassigned' || name.toLowerCase().includes('not assigned')) return 'DR';
         const parts = name.trim().split(/\s+/);
         if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     };
 
     const dynamicLegs = useMemo(() => {
+        const resolvedHub = (() => {
+            const raw = (order as any)?.hub_location || (order as any)?.hubLocation || (order as any)?.handover?.hub_location;
+            if (raw && !raw.toLowerCase().includes('transit hub')) return raw;
+            const l2 = order.leg2_journey_leg || assignedDriverInfo?.leg2JourneyLeg;
+            if (l2) {
+                const parts = l2.split(/➔|→|->/);
+                if (parts.length > 1 && parts[0].trim() && !parts[0].toLowerCase().includes('transit hub')) return parts[0].trim();
+            }
+            const l1 = order.subcontractor_journey_leg || assignedDriverInfo?.journeyLeg;
+            if (l1) {
+                const parts = l1.split(/➔|→|->/);
+                if (parts.length > 1 && parts[1].trim() && !parts[1].toLowerCase().includes('transit hub')) return parts[1].trim();
+            }
+            return 'Intermediate Hub';
+        })();
+
+        let legsData: any[] = [];
         if (assignedDriverInfo?.legs && Array.isArray(assignedDriverInfo.legs) && assignedDriverInfo.legs.length > 0) {
-            return assignedDriverInfo.legs;
-        }
-        if (Array.isArray(order.shipment_legs) && order.shipment_legs.length > 0) {
-            return order.shipment_legs.map((l: any) => ({
+            legsData = assignedDriverInfo.legs;
+        } else if (Array.isArray(order.shipment_legs) && order.shipment_legs.length > 0) {
+            legsData = order.shipment_legs.map((l: any) => ({
                 ...l,
                 driver_type: l.execution_mode === 'subcontractor' ? 'subcontractor' : 'internal',
                 cost: l.subcontractor_cost ?? 0,
                 title: l.leg_type === 'pickup' ? 'Pickup / Collection' : 'Delivery / Final Mile',
             }));
-        }
-        if (order.legs && Array.isArray(order.legs) && order.legs.length > 0) {
-            return order.legs;
-        }
-        if (isRelay) {
-            return [
+        } else if (order.legs && Array.isArray(order.legs) && order.legs.length > 0) {
+            legsData = order.legs;
+        } else if (isRelay) {
+            legsData = [
                 {
                     leg_number: 1,
                     title: 'Leg 1: Pickup / Collection',
                     driver_type: effectiveDriver.driverType || 'internal',
                     subcontractor_company: effectiveDriver.subcontractorCompany,
-                    journey_leg: assignedDriverInfo?.journeyLeg || order.subcontractor_journey_leg || 'Origin → Transit Hub',
-                    driver_name: effectiveDriver.name !== '-' ? effectiveDriver.name : 'Driver 1',
-                    driver_phone: effectiveDriver.phone || '—',
+                    journey_leg: assignedDriverInfo?.journeyLeg || order.subcontractor_journey_leg || `Origin → ${resolvedHub}`,
+                    driver_name: effectiveDriver.name !== '-' ? effectiveDriver.name : '',
+                    driver_phone: effectiveDriver.phone || '',
                     driver_email: effectiveDriver.email || '',
-                    vehicle_plate: effectiveVehiclePlate !== '-' ? effectiveVehiclePlate : 'GB-24-TRK',
+                    vehicle_plate: effectiveVehiclePlate !== 'Not Assigned' ? effectiveVehiclePlate : '',
                     vehicle_type: order.vehicle?.type || 'Standard Fleet',
                 },
                 {
@@ -158,17 +174,31 @@ export default function OrderDetails() {
                     title: 'Leg 2: Delivery / Final Mile',
                     driver_type: assignedDriverInfo?.leg2DriverType || order.leg2_driver_type || 'subcontractor',
                     subcontractor_company: assignedDriverInfo?.leg2SubcontractorCompany || order.leg2_subcontractor_company,
-                    journey_leg: assignedDriverInfo?.leg2JourneyLeg || order.leg2_journey_leg || 'Transit Hub → Destination',
-                    driver_name: assignedDriverInfo?.leg2DriverName || order.leg2_driver_name || 'Driver 2',
-                    driver_phone: assignedDriverInfo?.leg2DriverPhone || order.leg2_driver_phone || '—',
+                    journey_leg: assignedDriverInfo?.leg2JourneyLeg || order.leg2_journey_leg || `${resolvedHub} → Destination`,
+                    driver_name: assignedDriverInfo?.leg2DriverName || order.leg2_driver_name || '',
+                    driver_phone: assignedDriverInfo?.leg2DriverPhone || order.leg2_driver_phone || '',
                     driver_email: assignedDriverInfo?.leg2DriverEmail || order.leg2_driver_email || '',
-                    vehicle_plate: assignedDriverInfo?.leg2VehiclePlate || order.leg2_vehicle_plate || 'GB-24-TRK',
+                    vehicle_plate: assignedDriverInfo?.leg2VehiclePlate || order.leg2_vehicle_plate || '',
                     vehicle_type: assignedDriverInfo?.leg2VehicleType || order.leg2_vehicle_type || 'Standard Fleet',
                     cost: assignedDriverInfo?.leg2Cost ?? order.leg2_cost,
                 },
             ];
         }
-        return [];
+
+        return legsData.map((l: any, i: number) => {
+            let jLeg = l.journey_leg || '';
+            if (jLeg.includes('Transit Hub') || jLeg.includes('transit hub')) {
+                jLeg = jLeg.replace(/Transit Hub|transit hub/g, resolvedHub);
+            }
+            return {
+                ...l,
+                journey_leg: formatLocationName(jLeg),
+                vehicle_plate: formatVehiclePlate(l.vehicle_plate),
+                driver_name: l.driver_name && l.driver_name !== '-' && l.driver_name.trim() !== ''
+                    ? l.driver_name
+                    : `Driver ${l.leg_number || i + 1} (Not Assigned)`,
+            };
+        });
     }, [order, assignedDriverInfo, effectiveDriver, effectiveVehiclePlate, isRelay]);
 
     const modalCurrentDriver = useMemo(() => {
@@ -400,7 +430,7 @@ export default function OrderDetails() {
                                 compact={true}
                             />
 
-                            <SupplierTimelineSection timeline={timeline} />
+                            <SupplierTimelineSection order={order} />
                         </div>
                     </div>
                 </>
@@ -499,29 +529,27 @@ export default function OrderDetails() {
                                     const initials = getDriverInitials(legDriverName);
                                     const legPlate = leg.vehicle_plate || '—';
                                     const legType = leg.vehicle_type || 'Standard Fleet';
-                                    const legSegment = leg.journey_leg || (idx === 0 ? 'Pickup ➔ Transit Hub' : 'Transit Hub ➔ Final Delivery');
+                                    const legSegment = leg.journey_leg || (idx === 0 ? `Pickup ➔ ${order?.deliveryCity || order?.to || 'Intermediate Hub'}` : `Intermediate Hub ➔ ${order?.deliveryCity || order?.to || 'Final Delivery'}`);
                                     const legCost = leg.cost || leg.agreed_cost;
 
                                     return (
                                         <div
                                             key={leg.id || `leg_${idx}`}
-                                            className={`p-3.5 rounded-[4px] border space-y-2.5 transition-all ${
-                                                idx === 0
-                                                    ? 'border-blue-200 dark:border-blue-900 bg-blue-50/30 dark:bg-blue-950/20'
-                                                    : idx === 1
-                                                        ? 'border-purple-200 dark:border-purple-900 bg-purple-50/30 dark:bg-purple-950/20'
-                                                        : 'border-emerald-200 dark:border-emerald-900 bg-emerald-50/30 dark:bg-emerald-950/20'
-                                            }`}
+                                            className={`p-3.5 rounded-[4px] border space-y-2.5 transition-all ${idx === 0
+                                                ? 'border-blue-200 dark:border-blue-900 bg-blue-50/30 dark:bg-blue-950/20'
+                                                : idx === 1
+                                                    ? 'border-purple-200 dark:border-purple-900 bg-purple-50/30 dark:bg-purple-950/20'
+                                                    : 'border-emerald-200 dark:border-emerald-900 bg-emerald-50/30 dark:bg-emerald-950/20'
+                                                }`}
                                         >
                                             <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800">
                                                 <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1">
                                                     Leg {legNumber}: {leg.title || (idx === 0 ? 'Pickup / Collection' : 'Delivery / Final Mile')}
                                                 </span>
-                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                                    isSub
-                                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                                                        : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                                }`}>
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSub
+                                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                                                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                                    }`}>
                                                     {isSub ? (leg.subcontractor_company || 'Subcontractor') : 'In-House Fleet'}
                                                 </span>
                                             </div>
@@ -531,11 +559,11 @@ export default function OrderDetails() {
                                                 <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs text-slate-800 dark:text-slate-200 shrink-0 shadow-2xs">
                                                     {initials}
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words leading-tight">
                                                         {legDriverName}
                                                     </p>
-                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 break-words mt-0.5">
                                                         {isSub ? (leg.subcontractor_company || 'Subcontractor Driver') : 'Fleet Driver'}
                                                     </p>
                                                 </div>
@@ -543,7 +571,7 @@ export default function OrderDetails() {
 
                                             <div className="space-y-1 text-slate-600 dark:text-slate-400 pt-1 text-[11.5px]">
                                                 {leg.driver_phone && leg.driver_phone !== '—' && (
-                                                    <p className="flex items-center gap-1.5">
+                                                    <p className="flex items-center gap-1.5 flex-wrap">
                                                         <Phone size={12} className="text-slate-400 shrink-0" />
                                                         <span>Phone:</span>
                                                         <a href={`tel:${leg.driver_phone}`} className="font-semibold text-slate-800 dark:text-slate-200 hover:text-[#ff4a1f] hover:underline">
@@ -552,25 +580,27 @@ export default function OrderDetails() {
                                                     </p>
                                                 )}
                                                 {leg.driver_email && (
-                                                    <p className="flex items-center gap-1.5 truncate">
+                                                    <p className="flex items-center gap-1.5 flex-wrap">
                                                         <Mail size={12} className="text-slate-400 shrink-0" />
                                                         <span>Email:</span>
-                                                        <a href={`mailto:${leg.driver_email}`} className="font-semibold text-slate-800 dark:text-slate-200 hover:text-[#ff4a1f] hover:underline truncate">
+                                                        <a href={`mailto:${leg.driver_email}`} className="font-semibold text-slate-800 dark:text-slate-200 hover:text-[#ff4a1f] hover:underline break-all">
                                                             {leg.driver_email}
                                                         </a>
                                                     </p>
                                                 )}
-                                                <p className="flex items-center gap-1.5">
+                                                <p className="flex items-center gap-1.5 flex-wrap">
                                                     <Truck size={12} className="text-slate-400 shrink-0" />
                                                     <span>Truck:</span>
-                                                    <strong className="font-mono text-slate-800 dark:text-slate-200">{legPlate}</strong>
+                                                    <strong className={`font-mono ${legPlate === 'Not Assigned' ? 'text-slate-400 dark:text-slate-500 font-normal italic' : 'text-slate-800 dark:text-slate-200'}`}>
+                                                        {legPlate}
+                                                    </strong>
                                                     {legType && <span className="text-slate-500">({legType})</span>}
                                                 </p>
                                             </div>
 
-                                            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
-                                                <span className="text-slate-500">Segment:</span>
-                                                <span className="font-semibold text-slate-800 dark:text-slate-200 truncate ml-1 text-right">
+                                            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80 flex items-start justify-between text-[11px] gap-2">
+                                                <span className="text-slate-500 shrink-0">Segment:</span>
+                                                <span className="font-semibold text-slate-800 dark:text-slate-200 break-words text-right min-w-0">
                                                     {legSegment}
                                                 </span>
                                             </div>
@@ -651,11 +681,10 @@ export default function OrderDetails() {
                                 </div>
 
                                 {/* LIVE PROFIT MARGIN TRACKER BAR */}
-                                <div className={`p-3.5 rounded-[4px] border ${
-                                    subcontractorProfit.isProfitable
-                                        ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800'
-                                        : 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800'
-                                } flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs`}>
+                                <div className={`p-3.5 rounded-[4px] border ${subcontractorProfit.isProfitable
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800'
+                                    : 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800'
+                                    } flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs`}>
                                     <div className="space-y-0.5">
                                         <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                             <TrendingUp size={15} className={subcontractorProfit.isProfitable ? 'text-emerald-600' : 'text-rose-500'} />
@@ -675,11 +704,10 @@ export default function OrderDetails() {
                                                 {subcontractorProfit.profit >= 0 ? '+' : ''}€{subcontractorProfit.profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                             </div>
                                         </div>
-                                        <span className={`px-2.5 py-1 rounded-[4px] text-xs font-extrabold ${
-                                            subcontractorProfit.isProfitable
-                                                ? 'bg-emerald-600 text-white'
-                                                : 'bg-rose-600 text-white'
-                                        }`}>
+                                        <span className={`px-2.5 py-1 rounded-[4px] text-xs font-extrabold ${subcontractorProfit.isProfitable
+                                            ? 'bg-emerald-600 text-white'
+                                            : 'bg-rose-600 text-white'
+                                            }`}>
                                             {subcontractorProfit.margin}%
                                         </span>
                                     </div>
@@ -689,28 +717,28 @@ export default function OrderDetails() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 pt-1 text-xs">
                                     <div className="p-2.5 rounded-[4px] bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1">
                                         <span className="text-[10px] font-bold text-slate-400 block">Assigned Driver</span>
-                                        <span className="font-bold text-slate-800 dark:text-slate-100 block truncate">
+                                        <span className="font-bold text-slate-800 dark:text-slate-100 block break-words leading-tight">
                                             {effectiveDriver.name || 'External Driver'}
                                         </span>
                                     </div>
                                     <div className="p-2.5 rounded-[4px] bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1">
                                         <span className="text-[10px] font-bold text-slate-400 block">Driver Contact</span>
                                         {effectiveDriver.phone ? (
-                                            <a href={`tel:${effectiveDriver.phone}`} className="font-bold text-slate-800 dark:text-slate-100 hover:text-[#ff4a1f] hover:underline block truncate">
+                                            <a href={`tel:${effectiveDriver.phone}`} className="font-bold text-slate-800 dark:text-slate-100 hover:text-[#ff4a1f] hover:underline block break-all">
                                                 {effectiveDriver.phone}
                                             </a>
-                                        ) : <span className="text-slate-400">—</span>}
+                                        ) : <span className="text-slate-400">Not provided</span>}
                                     </div>
                                     <div className="p-2.5 rounded-[4px] bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1">
                                         <span className="text-[10px] font-bold text-slate-400 block">Assigned Vehicle</span>
-                                        <span className="font-mono font-bold text-slate-800 dark:text-slate-100 block truncate">
-                                            {effectiveVehiclePlate || '212-C-8492'}
+                                        <span className={`font-mono block break-words ${effectiveVehiclePlate === 'Not Assigned' ? 'text-slate-400 dark:text-slate-500 font-normal italic' : 'font-bold text-slate-800 dark:text-slate-100'}`}>
+                                            {effectiveVehiclePlate}
                                         </span>
                                     </div>
                                     <div className="p-2.5 rounded-[4px] bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1">
                                         <span className="text-[10px] font-bold text-slate-400 block">Corridor Leg</span>
-                                        <span className="font-bold text-slate-800 dark:text-slate-100 truncate block">
-                                            {assignedDriverInfo?.journeyLeg || order.subcontractor_journey_leg || `${order.from || 'Origin'} ➔ ${order.to || 'Destination'}`}
+                                        <span className="font-bold text-slate-800 dark:text-slate-100 break-words block">
+                                            {formatLocationName(assignedDriverInfo?.journeyLeg || order.subcontractor_journey_leg || `${order.from || 'Origin'} ➔ ${order.to || 'Destination'}`)}
                                         </span>
                                     </div>
                                 </div>
@@ -734,11 +762,11 @@ export default function OrderDetails() {
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#ff4a1f] to-orange-400 text-white font-bold text-sm flex items-center justify-center shadow-2xs shrink-0">
                                         {getDriverInitials(effectiveDriver?.name)}
                                     </div>
-                                    <div className="min-w-0">
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words leading-tight">
                                             {effectiveDriver?.name}
                                         </h4>
-                                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                                             Company Fleet Driver
                                         </p>
                                     </div>
@@ -746,7 +774,7 @@ export default function OrderDetails() {
 
                                 <div className="space-y-1.5 text-slate-600 dark:text-slate-400 text-[11.5px] pt-1">
                                     {effectiveDriver?.phone ? (
-                                        <p className="flex items-center gap-2">
+                                        <p className="flex items-center gap-2 flex-wrap">
                                             <Phone size={13} className="text-slate-400 shrink-0" />
                                             <span className="text-slate-500">Phone:</span>
                                             <a href={`tel:${effectiveDriver.phone}`} className="font-semibold text-slate-800 dark:text-slate-200 hover:text-[#ff4a1f] hover:underline">
@@ -760,19 +788,19 @@ export default function OrderDetails() {
                                         </p>
                                     )}
                                     {effectiveDriver?.email ? (
-                                        <p className="flex items-center gap-2 truncate">
+                                        <p className="flex items-center gap-2 flex-wrap">
                                             <Mail size={13} className="text-slate-400 shrink-0" />
                                             <span className="text-slate-500">Email:</span>
-                                            <a href={`mailto:${effectiveDriver.email}`} className="font-semibold text-slate-800 dark:text-slate-200 hover:text-[#ff4a1f] hover:underline truncate">
+                                            <a href={`mailto:${effectiveDriver.email}`} className="font-semibold text-slate-800 dark:text-slate-200 hover:text-[#ff4a1f] hover:underline break-all">
                                                 {effectiveDriver.email}
                                             </a>
                                         </p>
                                     ) : null}
-                                    <p className="flex items-center gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700">
-                                        <Route size={13} className="text-slate-400 shrink-0" />
-                                        <span className="text-slate-500">Journey Scope:</span>
-                                        <strong className="text-slate-800 dark:text-slate-200 truncate">
-                                            {assignedDriverInfo?.journeyLeg || order.subcontractor_journey_leg || effectiveDriver?.journeyLeg || `${order.from || 'Origin'} ➔ ${order.to || 'Destination'}`}
+                                    <p className="flex items-start gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700">
+                                        <Route size={13} className="text-slate-400 shrink-0 mt-0.5" />
+                                        <span className="text-slate-500 shrink-0">Journey Scope:</span>
+                                        <strong className="text-slate-800 dark:text-slate-200 break-words min-w-0 flex-1">
+                                            {formatLocationName(assignedDriverInfo?.journeyLeg || order.subcontractor_journey_leg || effectiveDriver?.journeyLeg || `${order.from || 'Origin'} ➔ ${order.to || 'Destination'}`)}
                                         </strong>
                                     </p>
                                 </div>
@@ -791,14 +819,14 @@ export default function OrderDetails() {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-[4px] bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
+                                    <div className="w-10 h-10 rounded-[4px] bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 shadow-2xs">
                                         <Truck size={18} />
                                     </div>
-                                    <div className="min-w-0">
-                                        <h4 className="text-sm font-mono font-bold text-slate-900 dark:text-slate-100 tracking-wide">
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className={`text-sm font-mono tracking-wide ${effectiveVehiclePlate === 'Not Assigned' ? 'text-slate-400 dark:text-slate-500 font-normal italic' : 'font-bold text-slate-900 dark:text-slate-100'}`}>
                                             {effectiveVehiclePlate}
                                         </h4>
-                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 break-words mt-0.5">
                                             {order.vehicle?.type || effectiveDriver?.vehicleType || 'Standard Fleet'}
                                         </p>
                                     </div>
@@ -833,16 +861,14 @@ export default function OrderDetails() {
                 </div>
             )}
 
-            {/* TAB CONTENT: 5. DOCUMENTS */}
+            {/* TAB CONTENT: 3. DOCUMENTS */}
             {activeTab === 'documents' && (
-                <div className="space-y-3">
-                    <SupplierPODAction
-                        order={order}
-                        onUploadPOD={() => setShowUploadModal(true)}
-                        onAssignDriver={handleNavigateAssignDriver}
-                    />
-                    <SupplierBottomCards order={order} />
-                </div>
+                <SupplierDocumentsTab
+                    order={order}
+                    onUploadPOD={() => setShowUploadModal(true)}
+                    onUploadSubcontractorInvoice={() => setShowSubcontractorInvoiceModal(true)}
+                    onDownloadInvoice={handleDownloadInvoice}
+                />
             )}
 
             {/* Assign Driver Modal (Supports In-House and External Subcontractor) */}

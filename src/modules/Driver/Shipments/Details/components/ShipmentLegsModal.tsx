@@ -17,7 +17,9 @@ export const ShipmentLegsModal: React.FC<ShipmentLegsModalProps> = ({
 
     const fromCity = shipment.shipper?.city || 'Dhaka';
     const toCity = shipment.consignee?.city || 'Chattogram';
-    const hubLocation = shipment.hubLocation || 'Transit Hub';
+    const hubLocation = (shipment.hubLocation && !shipment.hubLocation.toLowerCase().includes('transit hub'))
+        ? shipment.hubLocation
+        : 'Intermediate Hub';
 
     const legs: RelayLegInfo[] = (shipment.relayLegs && shipment.relayLegs.length > 0)
         ? shipment.relayLegs

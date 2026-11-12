@@ -34,11 +34,10 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
 
     let status: ShipmentStatus = 'assigned';
     const rawStatus = String(raw.status || '').toLowerCase();
-    const podStatus = String(raw.pod_status || raw.tracking?.pod_status || '').toLowerCase();
 
-    if (rawStatus === 'completed' || podStatus === 'confirmed' || podStatus === 'approved') {
+    if (rawStatus === 'completed') {
         status = 'completed';
-    } else if (rawStatus === 'delivered' || podStatus === 'pending' || podStatus === 'awaiting') {
+    } else if (rawStatus === 'delivered') {
         status = 'delivered';
     } else if (rawStatus === 'driver_assigned' || rawStatus === 'assigned') {
         status = 'assigned';
@@ -60,6 +59,8 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
         status = 'at_delivery';
     } else if (rawStatus === 'cancelled' || rawStatus === 'canceled' || rawStatus === 'rejected') {
         status = 'cancelled';
+    } else {
+        status = (rawStatus as ShipmentStatus) || 'assigned';
     }
 
     const orderNumber = raw.order_number || raw.orderNumber || raw.order_no || `ORD-${raw.id}`;
@@ -95,6 +96,7 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
         orderNumber,
         trackingNumber,
         status,
+        orderStatus: String(raw.order_status || raw.orderStatus || raw.status || '').toLowerCase(),
         priority: raw.priority || "Standard",
         pickup_address: pickupAddress,
         delivery_address: deliveryAddress,
@@ -183,10 +185,54 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
         isDeliveryOnly: Boolean(raw.is_delivery_only),
         assignedLeg: raw.assigned_leg || null,
         driverLegNumber: raw.driver_leg_number ? Number(raw.driver_leg_number) : 1,
-        hubLocation: raw.hub_location || 'Transit Hub',
+        hubLocation: (() => {
+            if (raw.hub_location && !raw.hub_location.toLowerCase().includes('transit hub')) {
+                return raw.hub_location;
+            }
+            if (raw.handover?.hub_location && !raw.handover.hub_location.toLowerCase().includes('transit hub')) {
+                return raw.handover.hub_location;
+            }
+            const legs = raw.relay_legs || raw.shipment_legs || raw.legs || [];
+            if (Array.isArray(legs) && legs.length > 1) {
+                const l2Route = legs[1]?.journey_leg || legs[1]?.journeyLeg;
+                if (l2Route) {
+                    const parts = l2Route.split(/➔|→|->/);
+                    if (parts.length > 1 && parts[0].trim() && !parts[0].toLowerCase().includes('transit hub')) {
+                        return parts[0].trim();
+                    }
+                }
+                const l1Route = legs[0]?.journey_leg || legs[0]?.journeyLeg;
+                if (l1Route) {
+                    const parts = l1Route.split(/➔|→|->/);
+                    if (parts.length > 1 && parts[1].trim() && !parts[1].toLowerCase().includes('transit hub')) {
+                        return parts[1].trim();
+                    }
+                }
+            }
+            if (raw.subcontractor_journey_leg) {
+                const parts = raw.subcontractor_journey_leg.split(/➔|→|->/);
+                if (parts.length > 1 && parts[1].trim() && !parts[1].toLowerCase().includes('transit hub')) {
+                    return parts[1].trim();
+                }
+            }
+            if (raw.leg2_journey_leg) {
+                const parts = raw.leg2_journey_leg.split(/➔|→|->/);
+                if (parts.length > 1 && parts[0].trim() && !parts[0].toLowerCase().includes('transit hub')) {
+                    return parts[0].trim();
+                }
+            }
+            return raw.hub_location || 'Intermediate Hub';
+        })(),
         partnerDriver: raw.partner_driver || null,
         handover: raw.handover || null,
-        relayLegs: raw.relay_legs || [],
+        relayLegs: (raw.relay_legs || []).map((leg: any) => {
+            const hub = raw.hub_location || 'Intermediate Hub';
+            let j = leg.journey_leg || '';
+            if (j.includes('Transit Hub') || j.includes('transit hub')) {
+                j = j.replace(/Transit Hub|transit hub/g, hub);
+            }
+            return { ...leg, journey_leg: j };
+        }),
         history: Array.isArray(raw.tracking?.history) ? raw.tracking.history : (Array.isArray(raw.history) ? raw.history : undefined),
         driver: raw.driver ? {
             name: raw.driver.name || '',
@@ -194,7 +240,7 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
             vehiclePlate: raw.driver.vehicle_plate || '',
             vehicleType: raw.driver.vehicle_type || '',
         } : undefined,
-        podStatus: podStatus || undefined,
+        podStatus: raw.pod_status || raw.tracking?.pod_status || undefined,
         podData: extractPodData(raw),
         driverType: raw.driver_type || raw.driver?.driver_type || (raw.subcontractor_company ? 'subcontractor' : 'internal'),
         subcontractorCompany: raw.subcontractor_company || raw.driver?.subcontractor_company,

@@ -42,20 +42,20 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
                 className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3.5 shadow-2xs flex items-center justify-between cursor-pointer hover:border-slate-300 dark:hover:border-slate-700 transition-all font-sans group"
                 title="Shipper Profile & Chat"
             >
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold text-sm flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
                         {custName.charAt(0).toUpperCase()}
                     </div>
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-[#ff4a1f] transition-colors">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 break-words group-hover:text-[#ff4a1f] transition-colors leading-tight">
                                 {custName}
                             </h3>
                             {customer?.verified !== false && (
                                 <CheckCircle2 size={16} className="text-white fill-emerald-500 shrink-0" />
                             )}
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-normal mt-0.5">
                             Verified Corporate Shipper
                         </p>
                     </div>
@@ -79,8 +79,8 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-1">
-                        <h3 className="text-xs sm:text-[13.5px] font-bold text-slate-900 dark:text-slate-100 truncate">
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                        <h3 className="text-xs sm:text-[13.5px] font-bold text-slate-900 dark:text-slate-100 break-words">
                             {custName}
                         </h3>
                         {customer?.verified !== false && (
@@ -90,14 +90,14 @@ export const SupplierCustomerProfile: React.FC<SupplierCustomerProfileProps> = (
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-medium flex-wrap">
                         <span>Verified Corporate Shipper</span>
                         {customer?.location && (
                             <>
                                 <span>•</span>
-                                <span className="flex items-center gap-0.5 text-slate-600 dark:text-slate-300 font-semibold truncate" title={customer.location}>
+                                <span className="flex items-center gap-0.5 text-slate-600 dark:text-slate-300 font-semibold break-words" title={customer.location}>
                                     <MapPin size={10} className="text-blue-500 shrink-0" />
-                                    <span className="truncate">{customer.location}</span>
+                                    <span>{customer.location}</span>
                                 </span>
                             </>
                         )}

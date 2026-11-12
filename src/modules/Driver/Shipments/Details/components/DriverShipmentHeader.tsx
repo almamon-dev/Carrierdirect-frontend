@@ -34,6 +34,8 @@ export const DriverShipmentHeader: React.FC<Props> = ({ shipment, onOpenGPS }) =
         }, 'Live GPS Navigation & Location Tracking');
     };
 
+    const isLeg1Done = Boolean(shipment.isRelay) && !Boolean(shipment.isDeliveryOnly) && (shipment.status === 'completed' || shipment.handover?.status === 'accepted');
+
     return (
         <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 font-sans pb-1">
             {/* Left: Back Link + Order ID + Tracking Badge + Status */}
@@ -57,7 +59,10 @@ export const DriverShipmentHeader: React.FC<Props> = ({ shipment, onOpenGPS }) =
                     {shipment.trackingNumber}
                 </span>
 
-                <ShipmentStatusBadge status={shipment.status} />
+                <ShipmentStatusBadge
+                    status={shipment.status}
+                    label={isLeg1Done ? 'Leg 1 Completed' : undefined}
+                />
 
                 {shipment.driverType === 'subcontractor' && (
                     <span className="inline-flex items-center gap-1 font-sans text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-[3px] border border-blue-200 dark:border-blue-900">

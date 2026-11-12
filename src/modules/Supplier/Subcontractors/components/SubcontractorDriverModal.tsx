@@ -137,7 +137,7 @@ export const SubcontractorDriverModal: React.FC<SubcontractorDriverModalProps> =
             onClick={onClose}
         >
             <div
-                className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] font-sans my-auto"
+                className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] font-sans my-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -274,11 +274,10 @@ export const SubcontractorDriverModal: React.FC<SubcontractorDriverModalProps> =
                                         Driving Licence {!isEdit && <span className="text-rose-500">*</span>}
                                     </FormLabel>
                                     {driver?.license_status && (
-                                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
-                                            driver.license_status === 'verified'
-                                                ? 'bg-emerald-100 text-emerald-700'
-                                                : (driver.license_status === 'expired' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')
-                                        }`}>
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${driver.license_status === 'verified'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : (driver.license_status === 'expired' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')
+                                            }`}>
                                             {driver.license_status.toUpperCase()}
                                         </span>
                                     )}

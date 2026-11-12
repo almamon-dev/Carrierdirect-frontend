@@ -68,8 +68,15 @@ export const OrderPODModal: React.FC<OrderPODModalProps> = ({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 animate-in fade-in duration-150 font-sans">
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-[#1e2329] rounded-[8px] max-w-md w-full p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-3 font-sans">
+        <div
+            className="fixed inset-0 z-[999999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150 font-sans"
+            onClick={onClose}
+        >
+            <form
+                onSubmit={handleSubmit}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-[#1e2329] rounded-[8px] max-w-md w-full p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-3 font-sans my-auto max-h-[calc(100vh-2rem)] overflow-y-auto"
+            >
                 {/* Compact Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
                     <div className="flex items-center gap-2">

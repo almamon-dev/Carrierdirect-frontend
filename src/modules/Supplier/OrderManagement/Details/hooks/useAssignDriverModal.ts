@@ -417,14 +417,34 @@ export const useAssignDriverModal = ({
 
         // Prepare full legs array (supporting 2, 3, 4, 5... unlimited drivers)
         const allLegs: any[] = [];
+        const fromName = pickupCity && pickupCity !== '-' ? pickupCity : 'Origin';
+        const toName = deliveryCity && deliveryCity !== '-' ? deliveryCity : 'Destination';
+        let effectiveLeg1Route = journeyLeg.trim() || (isRelay ? `${fromName} → Intermediate Hub` : 'Full Route');
+        let effectiveLeg2Route = leg2JourneyLeg.trim() || (isRelay ? `Intermediate Hub → ${toName}` : '');
+
         if (isRelay) {
+            let customHub: string | null = null;
+            if (effectiveLeg2Route && !effectiveLeg2Route.toLowerCase().includes('transit hub')) {
+                const p2 = effectiveLeg2Route.split(/➔|→|->/);
+                if (p2.length > 1 && p2[0].trim()) customHub = p2[0].trim();
+            }
+            if (!customHub && effectiveLeg1Route && !effectiveLeg1Route.toLowerCase().includes('transit hub')) {
+                const p1 = effectiveLeg1Route.split(/➔|→|->/);
+                if (p1.length > 1 && p1[1].trim()) customHub = p1[1].trim();
+            }
+
+            if (customHub) {
+                effectiveLeg1Route = effectiveLeg1Route.replace(/Transit Hub|transit hub/g, customHub);
+                effectiveLeg2Route = effectiveLeg2Route.replace(/Transit Hub|transit hub/g, customHub);
+            }
+
             allLegs.push({
                 leg_number: 1,
                 title: 'Leg 1 (Pickup / Collection)',
                 driver_type: driverType,
                 subcontractor_company: driverType === 'subcontractor' ? subcontractorCompany : undefined,
                 subcontractor_id: driverType === 'subcontractor' && selectedSubcontractorId !== 'custom' ? selectedSubcontractorId : undefined,
-                journey_leg: journeyLeg.trim() || 'Origin → Transit Hub',
+                journey_leg: effectiveLeg1Route,
                 driver_name: finalName,
                 driver_phone: finalPhone,
                 driver_email: finalEmail,
@@ -439,7 +459,7 @@ export const useAssignDriverModal = ({
                 driver_type: leg2DriverType,
                 subcontractor_company: leg2DriverType === 'subcontractor' ? leg2SubcontractorCompany : undefined,
                 subcontractor_id: leg2DriverType === 'subcontractor' && leg2SelectedSubcontractorId !== 'custom' ? leg2SelectedSubcontractorId : undefined,
-                journey_leg: leg2JourneyLeg.trim() || 'Transit Hub → Intermediate Depot',
+                journey_leg: effectiveLeg2Route,
                 driver_name: leg2DriverName.trim() || '-',
                 driver_phone: leg2DriverPhone.trim(),
                 driver_email: leg2DriverEmail.trim(),
@@ -478,7 +498,7 @@ export const useAssignDriverModal = ({
                 subcontractorCompany: driverType === 'subcontractor' ? subcontractorCompany.trim() : undefined,
                 subcontractorId: driverType === 'subcontractor' && selectedSubcontractorId !== 'custom' ? selectedSubcontractorId : undefined,
                 subcontractorCost: driverType === 'subcontractor' && subcontractorCost ? Math.max(0, parseFloat(subcontractorCost)) : 0,
-                journeyLeg: journeyLeg.trim() || (isRelay ? 'Leg 1: Pickup to Transit Hub' : 'Full Route'),
+                journeyLeg: effectiveLeg1Route,
 
                 // 2-Driver Relay Fields
                 isRelay,
@@ -490,7 +510,7 @@ export const useAssignDriverModal = ({
                 leg2DriverType: isRelay ? leg2DriverType : undefined,
                 leg2SubcontractorCompany: isRelay && leg2DriverType === 'subcontractor' ? leg2SubcontractorCompany.trim() : undefined,
                 leg2SubcontractorId: isRelay && leg2DriverType === 'subcontractor' && leg2SelectedSubcontractorId !== 'custom' ? leg2SelectedSubcontractorId : undefined,
-                leg2JourneyLeg: isRelay ? (leg2JourneyLeg.trim() || 'Leg 2: Transit Hub to Delivery') : undefined,
+                leg2JourneyLeg: isRelay ? effectiveLeg2Route : undefined,
                 leg2Cost: isRelay && leg2DriverType === 'subcontractor' && leg2Cost ? Math.max(0, parseFloat(leg2Cost)) : 0,
 
                 // Multi-Legs (3+ Drivers)

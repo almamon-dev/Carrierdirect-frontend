@@ -49,6 +49,8 @@ export interface RelayLegInfo {
     driver_phone?: string;
     vehicle_plate?: string;
     vehicle_type?: string;
+    assigned_at?: string;
+    completed_at?: string;
 }
 
 export interface ShipmentMilestone {
@@ -65,6 +67,7 @@ export interface ShipmentItem {
     orderNumber: string;
     trackingNumber: string;
     status: ShipmentStatus;
+    orderStatus?: string;
     priority: 'Standard' | 'Urgent' | 'High Value';
     driverType?: 'internal' | 'subcontractor';
     subcontractorCompany?: string;

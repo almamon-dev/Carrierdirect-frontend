@@ -13,7 +13,9 @@ export const ViewLegsModal: React.FC<ViewLegsModalProps> = ({ isOpen, shipment, 
 
     const fromCity = shipment.shipper.city || 'Origin';
     const toCity = shipment.consignee.city || 'Destination';
-    const hubLocation = shipment.hubLocation || 'Transit Hub';
+    const hubLocation = (shipment.hubLocation && !shipment.hubLocation.toLowerCase().includes('transit hub'))
+        ? shipment.hubLocation
+        : 'Intermediate Hub';
     const relayLegs = shipment.relayLegs || [];
     const handover = shipment.handover;
 
@@ -101,7 +103,7 @@ export const ViewLegsModal: React.FC<ViewLegsModalProps> = ({ isOpen, shipment, 
                                     1
                                 </span>
                                 <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                                    Leg 1: Pickup ➔ Transit Hub
+                                    Leg 1: Pickup ➔ {hubLocation}
                                 </h4>
                             </div>
                             <span className="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
@@ -170,7 +172,7 @@ export const ViewLegsModal: React.FC<ViewLegsModalProps> = ({ isOpen, shipment, 
                                     2
                                 </span>
                                 <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                                    Leg 2: Transit Hub ➔ Final Consignee
+                                    Leg 2: {hubLocation} ➔ Final Consignee
                                 </h4>
                             </div>
                             <span className="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">

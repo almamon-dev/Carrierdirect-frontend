@@ -32,26 +32,39 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
 
     const fromCity = shipment.shipper.city || 'Dhaka';
     const toCity = shipment.consignee.city || 'Chattogram';
-    const hubLocation = shipment.hubLocation || 'Transit Hub';
+    const hubLocation = (shipment.hubLocation && !shipment.hubLocation.toLowerCase().includes('transit hub'))
+        ? shipment.hubLocation
+        : 'Intermediate Hub';
 
     const statusConfig = getStatusDisplay(shipment);
 
     // Resolve active driver for current operation
+    const leg1 = shipment.relayLegs?.find(l => l.leg_number === 1);
+    const leg2 = shipment.relayLegs?.find(l => l.leg_number === 2);
+
+    const leg1DriverName = leg1?.driver_name 
+        || (shipment.isDeliveryOnly ? shipment.partnerDriver?.driver_name : shipment.driver?.name) 
+        || 'Driver 1';
+
+    const leg2DriverName = leg2?.driver_name 
+        || (shipment.isDeliveryOnly ? shipment.driver?.name : shipment.partnerDriver?.driver_name) 
+        || 'Driver 2';
+
     const activeDriverName = isRelay
-        ? (isLeg1
-            ? (shipment.driver?.name || 'Liam O\'Connor')
-            : (shipment.driver?.name || 'Driver 2'))
-        : (shipment.driver?.name || 'John Mathew');
+        ? (isLeg1 ? leg1DriverName : leg2DriverName)
+        : (shipment.driver?.name || 'Driver');
 
     const activeDriverPhone = isRelay
         ? (isLeg1
-            ? (shipment.driver?.phone || '+353 87 111 2222')
-            : (shipment.driver?.phone || '+353 87 333 4444'))
-        : (shipment.driver?.phone || '+353 87 555 6666');
+            ? (leg1?.driver_phone || shipment.driver?.phone || '—')
+            : (leg2?.driver_phone || shipment.partnerDriver?.driver_phone || '—'))
+        : (shipment.driver?.phone || '—');
 
     const activeDriverSubtitle = isRelay
         ? (isLeg1 ? 'Driver - Leg 1' : 'Driver - Leg 2')
         : 'Driver (Single Trip)';
+
+    const isLeg1Done = isRelay && isLeg1 && (status === 'completed' || shipment.handover?.status === 'accepted');
 
     // Operation heading & corridor
     let operationTitle = 'In Transit';
@@ -59,20 +72,23 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
 
     if (isRelay) {
         if (isLeg1) {
-            if (status === 'at_hub' || status === 'handover_pending') {
-                operationTitle = 'At Transit Hub';
+            if (isLeg1Done) {
+                operationTitle = 'Leg 1 Completed';
+                operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation} (Completed)`;
+            } else if (status === 'at_hub' || status === 'handover_pending') {
+                operationTitle = `At ${hubLocation} Hub`;
                 operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
             } else if (status === 'picked_up' || status === 'at_pickup') {
                 operationTitle = 'Goods Picked Up';
                 operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
             } else {
-                operationTitle = 'In Transit to Hub';
+                operationTitle = `In Transit to ${hubLocation}`;
                 operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
             }
         } else {
             // Leg 2
             if (shipment.handover?.status === 'pending_acceptance' || status === 'handover_pending') {
-                operationTitle = 'Handover Ready at Hub';
+                operationTitle = `Handover Ready at ${hubLocation}`;
                 operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
             } else if (status === 'at_delivery') {
                 operationTitle = 'Arrived at Delivery Point';
@@ -100,8 +116,13 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
 
     if (isRelay) {
         if (isLeg1) {
-            nextActionTitle = `Handover to Driver 2 at ${hubLocation}`;
-            nextActionEta = '02:30 PM';
+            if (isLeg1Done) {
+                nextActionTitle = 'Cargo Handed Over to Driver 2';
+                nextActionEta = 'Completed';
+            } else {
+                nextActionTitle = `Handover to Driver 2 at ${hubLocation}`;
+                nextActionEta = '02:30 PM';
+            }
         } else {
             if (shipment.handover?.status === 'pending_acceptance' || status === 'handover_pending') {
                 nextActionTitle = `Accept Cargo Handover from Driver 1`;
@@ -115,6 +136,10 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
 
     // Primary Button Label & Handler using statusConfig
     const handleActionClick = () => {
+        if (isLeg1Done || statusConfig.isActionDisabled || statusConfig.actionType === 'none') {
+            return;
+        }
+
         if (statusConfig.actionType === 'pickup') {
             requireDriverCompliance(() => onUpdateStatus('picked_up'), 'Confirm Goods Picked Up');
         } else if (statusConfig.actionType === 'transit') {
@@ -165,34 +190,48 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
         }
     };
 
-    let buttonText = statusConfig.buttonLabel || (
-        isRelay
-            ? (statusConfig.actionType === 'handover'
-                ? 'Initiate Handover at Hub'
-                : (statusConfig.actionType === 'accept_handover'
-                    ? 'Accept Handover & Cargo'
-                    : 'Update Status'))
-            : (status === 'at_delivery'
-                ? 'Upload POD & Complete Delivery'
-                : 'Update Delivery Status')
-    );
+    const isButtonDisabled = isLeg1Done || Boolean(statusConfig.isActionDisabled) || status === 'delivered' || status === 'completed';
+
+    let buttonText = isLeg1Done
+        ? 'Leg 1 Completed • Handed Over'
+        : (statusConfig.buttonLabel || (
+            isRelay
+                ? (statusConfig.actionType === 'handover'
+                    ? 'Initiate Handover at Hub'
+                    : (statusConfig.actionType === 'accept_handover'
+                        ? 'Accept Handover & Cargo'
+                        : 'Update Status'))
+                : (status === 'at_delivery'
+                    ? 'Upload POD & Complete Delivery'
+                    : 'Update Delivery Status')
+        ));
 
     if (status === 'delivered') {
         buttonText = 'Awaiting Customer Verification';
     } else if (status === 'completed') {
-        buttonText = 'Delivery Completed & Approved';
+        buttonText = isRelay && isLeg1 ? 'Leg 1 Completed • Handed Over' : 'Delivery Completed & Approved';
     }
+
+    const buttonBgClass = isButtonDisabled
+        ? (statusConfig.buttonColor || 'bg-emerald-600 opacity-90 cursor-default')
+        : (statusConfig.buttonColor || 'bg-[#4338ca] hover:bg-[#3730a3] active:scale-99');
 
     return (
         <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[6px] shadow-xs font-sans overflow-hidden">
-            {/* 1. Header: Current Operation & Active badge */}
+            {/* 1. Header: Current Operation & Active/Completed badge */}
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#1e2329]">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                     Current Operation
                 </h3>
-                <span className="px-2.5 py-0.5 rounded-[4px] text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
-                    Active
-                </span>
+                {isLeg1Done || status === 'completed' || status === 'delivered' ? (
+                    <span className="px-2.5 py-0.5 rounded-[4px] text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
+                        {isLeg1Done ? 'Leg 1 Completed' : (status === 'delivered' ? 'Delivered' : 'Completed')}
+                    </span>
+                ) : (
+                    <span className="px-2.5 py-0.5 rounded-[4px] text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60">
+                        Active
+                    </span>
+                )}
             </div>
 
             <div className="p-4 space-y-3.5">
@@ -228,15 +267,6 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        {/* Call Driver Button */}
-                        <a
-                            href={`tel:${activeDriverPhone}`}
-                            className="px-2.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-[4px] text-[11px] font-semibold flex items-center gap-1 transition-colors shadow-2xs"
-                        >
-                            <Phone size={12} className="text-[#FF4A1F]" />
-                            <span>{isRelay ? 'Call' : 'Call Driver'}</span>
-                        </a>
-
                         {/* View Legs Button for Multi-Driver */}
                         {isRelay && (
                             <button
@@ -274,12 +304,8 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
                     <button
                         type="button"
                         onClick={handleActionClick}
-                        disabled={status === 'delivered' || status === 'completed'}
-                        className={`w-full h-9.5 px-4 rounded-[6px] text-xs font-bold text-white flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer ${
-                            status === 'delivered' || status === 'completed'
-                                ? 'bg-emerald-600 opacity-90 cursor-default'
-                                : 'bg-[#4338ca] hover:bg-[#3730a3] active:scale-99'
-                        }`}
+                        disabled={isButtonDisabled}
+                        className={`w-full h-9.5 px-4 rounded-[6px] text-xs font-bold text-white flex items-center justify-center gap-2 shadow-xs transition-all ${isButtonDisabled ? 'cursor-default pointer-events-none opacity-90' : 'cursor-pointer'} ${buttonBgClass}`}
                     >
                         <Globe size={14} />
                         <span>{buttonText}</span>

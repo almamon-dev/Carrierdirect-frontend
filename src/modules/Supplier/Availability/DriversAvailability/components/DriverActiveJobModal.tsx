@@ -30,11 +30,12 @@ export const DriverActiveJobModal: React.FC<DriverActiveJobModalProps> = ({
     const orderId = assignment?.order_id || assignment?.order_number?.replace(/\D/g, '') || '10002';
     const orderNumber = assignment?.order_number || (assignment?.order_id ? `ORD-2026-${assignment.order_id}` : 'ORD-2026-10002');
     const legNum = assignment?.leg_number || 1;
-    const legLabel = assignment?.leg_type === 'pickup'
-        ? 'Leg 1: Pickup to Transit Hub'
-        : assignment?.leg_type === 'delivery'
-        ? 'Leg 2: Transit Hub to Delivery'
-        : `Leg ${legNum}: Active Transport`;
+    const legLabel = (assignment as any)?.journey_leg
+        || (assignment?.leg_type === 'pickup'
+            ? 'Leg 1: Pickup Leg'
+            : assignment?.leg_type === 'delivery'
+            ? 'Leg 2: Delivery Leg'
+            : `Leg ${legNum}: Active Transport`);
 
     const vehiclePlate = driver.vehicle?.plate || driver.assignedVehicle || 'UK-AB1209';
     const vehicleName = driver.vehicle?.name || 'Mercedes Sprinter';

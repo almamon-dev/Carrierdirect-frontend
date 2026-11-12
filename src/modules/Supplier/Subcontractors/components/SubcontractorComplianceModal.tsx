@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
     X,
     ShieldCheck,
@@ -166,7 +167,7 @@ export const SubcontractorComplianceModal: React.FC<SubcontractorComplianceModal
         }
     };
 
-    return (
+    return createPortal(
         <div
             className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 font-sans"
             onClick={onClose}
@@ -442,7 +443,8 @@ export const SubcontractorComplianceModal: React.FC<SubcontractorComplianceModal
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

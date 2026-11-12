@@ -129,7 +129,11 @@ export const DriverDispatchForm: React.FC<DriverDispatchFormProps> = ({
                     ) : (
                         <Select
                             size="md"
-                            value={selectedOrderId}
+                            value={
+                                selectedOrder
+                                    ? String(selectedOrder.id || selectedOrder.order_id)
+                                    : ''
+                            }
                             onChange={(val) => {
                                 const idVal =
                                     typeof val === 'object' && val?.target

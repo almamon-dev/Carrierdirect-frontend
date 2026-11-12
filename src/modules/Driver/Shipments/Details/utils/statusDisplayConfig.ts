@@ -18,7 +18,9 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
     const toCity = shipment.consignee.city || 'Destination';
     const isRelay = Boolean(shipment.isRelay);
     const isLeg2 = Boolean(shipment.isDeliveryOnly);
-    const hubLocation = shipment.hubLocation || 'Transit Hub';
+    const hubLocation = (shipment.hubLocation && !shipment.hubLocation.toLowerCase().includes('transit hub'))
+        ? shipment.hubLocation
+        : 'Intermediate Hub';
     const partnerName = shipment.partnerDriver?.driver_name || (isLeg2 ? 'Leg 1 Driver' : 'Leg 2 Driver');
     const handover = shipment.handover;
 
@@ -26,16 +28,17 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
     // 1. RELAY WORKFLOW – DRIVER 1 (Leg 1: Pickup to Hub)
     // ==========================================
     if (isRelay && !isLeg2) {
-        if (handover && (handover.status === 'accepted' || status === 'completed')) {
+        if ((handover && handover.status === 'accepted') || status === 'completed') {
             return {
                 label: 'Leg 1 Completed • Handed Over',
                 color: 'text-emerald-600 dark:text-emerald-400',
                 nextActionTitle: 'Cargo Handed Over to Driver 2',
                 nextActionDesc: `Cargo successfully received by ${partnerName} at ${hubLocation}. Leg 1 duty is completed.`,
                 eta: 'Completed',
-                buttonLabel: '',
-                buttonColor: '',
+                buttonLabel: 'Leg 1 Completed • Handed Over',
+                buttonColor: 'bg-emerald-600 opacity-90 cursor-default',
                 actionType: 'none',
+                isActionDisabled: true,
             };
         }
 
@@ -56,7 +59,7 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
             case 'assigned':
             case 'accepted':
                 return {
-                    label: 'Assigned (Leg 1: Pickup ➔ Hub)',
+                    label: `Assigned (Leg 1: Pickup ➔ ${hubLocation})`,
                     color: 'text-indigo-600 dark:text-indigo-400',
                     nextActionTitle: 'Pickup at consignor facility',
                     nextActionDesc: `Proceed to ${shipment.shipper.address || fromCity} for loading`,
@@ -73,42 +76,43 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
                     nextActionTitle: `Depart towards ${hubLocation}`,
                     nextActionDesc: `Cargo loaded. Depart on transit corridor to ${hubLocation}`,
                     eta: 'Ready to depart',
-                    buttonLabel: 'Depart • Start Transit to Hub',
+                    buttonLabel: `Depart • Start Transit to ${hubLocation}`,
                     buttonColor: 'bg-blue-600 hover:bg-blue-700',
                     actionType: 'transit',
                 };
             case 'in_transit':
                 return {
-                    label: 'In Transit to Hub',
+                    label: `In Transit to ${hubLocation}`,
                     color: 'text-[#FF4A1F]',
                     nextActionTitle: `Arrive at Hub: ${hubLocation}`,
                     nextActionDesc: `Deliver cargo to relay point for handover to ${partnerName}`,
-                    eta: 'Transit to Hub',
-                    buttonLabel: 'Confirm Arrival at Hub',
+                    eta: `Transit to ${hubLocation}`,
+                    buttonLabel: `Confirm Arrival at ${hubLocation}`,
                     buttonColor: 'bg-amber-600 hover:bg-amber-700',
                     actionType: 'at_hub',
                 };
             case 'at_hub':
                 return {
-                    label: 'Arrived at Transit Hub',
+                    label: `Arrived at ${hubLocation} Hub`,
                     color: 'text-purple-600 dark:text-purple-400',
                     nextActionTitle: `Handover Cargo to ${partnerName}`,
                     nextActionDesc: 'Upload cargo condition photos, generate OTP code, and transfer load.',
-                    eta: 'At Hub',
+                    eta: `At ${hubLocation}`,
                     buttonLabel: 'Handover Shipment to Driver 2',
                     buttonColor: 'bg-violet-600 hover:bg-violet-700',
                     actionType: 'handover',
                 };
             default:
                 return {
-                    label: 'Leg 1 Completed',
+                    label: 'Leg 1 Completed • Handed Over',
                     color: 'text-emerald-600 dark:text-emerald-400',
                     nextActionTitle: 'Leg 1 Finished',
-                    nextActionDesc: 'Handover completed.',
-                    eta: 'Done',
-                    buttonLabel: '',
-                    buttonColor: '',
+                    nextActionDesc: 'Cargo successfully handed over to Driver 2.',
+                    eta: 'Completed',
+                    buttonLabel: 'Leg 1 Completed • Handed Over',
+                    buttonColor: 'bg-emerald-600 opacity-90 cursor-default',
                     actionType: 'none',
+                    isActionDisabled: true,
                 };
         }
     }

@@ -128,7 +128,7 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
                         <ArrowRight size={10} className="text-slate-400" />
                         {shipment.isRelay && (
                             <>
-                                <span className="text-violet-600 dark:text-violet-400 font-semibold">{shipment.hubLocation || 'Transit Hub'}</span>
+                                <span className="text-violet-600 dark:text-violet-400 font-semibold">{shipment.hubLocation || 'Intermediate Hub'}</span>
                                 <ArrowRight size={10} className="text-slate-400" />
                             </>
                         )}

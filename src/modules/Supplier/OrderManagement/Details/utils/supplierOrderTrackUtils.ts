@@ -113,9 +113,51 @@ export interface NormalizedSupplierOrder {
     leg2_cost?: number;
     legs?: any[];
     shipment_legs?: any[];
+    documents?: Array<{
+        id: string;
+        name: string;
+        file_name?: string;
+        type: string;
+        type_label: string;
+        file_url?: string | null;
+        uploaded_at?: string;
+        uploaded_by?: string;
+        status?: string;
+        status_label?: string;
+        can_preview?: boolean;
+        can_download?: boolean;
+    }>;
+    subcontractor_costs?: any[];
     dispatch_financial_summary?: any;
     raw?: any;
 }
+
+export const formatLocationName = (text?: string | null): string => {
+    if (!text) return '';
+    return text
+        .replace(/\bcummila\b/gi, 'Cumilla')
+        .replace(/\bcomilla\b/gi, 'Cumilla')
+        .replace(/\bchittagong\b/gi, 'Chittagong')
+        .replace(/\bdhaka\b/gi, 'Dhaka')
+        .replace(/\bgazipur\b/gi, 'Gazipur')
+        .replace(/\bsavar\b/gi, 'Savar');
+};
+
+export const formatVehiclePlate = (plate?: string | null): string => {
+    if (
+        !plate ||
+        plate.trim() === '' ||
+        plate.trim() === '-' ||
+        plate.trim() === '—' ||
+        plate.toLowerCase() === 'unassigned' ||
+        plate.toLowerCase() === 'not assigned' ||
+        plate === 'GB-24-TRK' ||
+        plate === '212-C-8492'
+    ) {
+        return 'Not Assigned';
+    }
+    return plate.trim();
+};
 
 export const buildSupplierOrderDetails = (
     id: string | undefined,
@@ -271,6 +313,8 @@ export const buildSupplierOrderDetails = (
                 ? (() => { try { return JSON.parse(foundOrder.legs); } catch { return []; } })()
                 : []),
         shipment_legs: Array.isArray(foundOrder?.shipment_legs) ? foundOrder.shipment_legs : [],
+        documents: Array.isArray(foundOrder?.documents) ? foundOrder.documents : [],
+        subcontractor_costs: Array.isArray(foundOrder?.subcontractor_costs) ? foundOrder.subcontractor_costs : [],
         dispatch_financial_summary: foundOrder?.dispatch_financial_summary,
         raw: foundOrder,
     };

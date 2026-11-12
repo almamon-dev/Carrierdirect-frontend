@@ -196,9 +196,7 @@ export const useAssignDriverData = () => {
 
     const [selectedOrderId, setSelectedOrderId] = useState<string>(() => {
         const stateOrder =
-            location.state?.selectedOrder ||
-            location.state?.orderData ||
-            location.state?.order;
+            null as any; // auto-selection from navigation state disabled; user must pick an order
         return stateOrder
             ? String(
                 stateOrder.id ||
@@ -252,9 +250,7 @@ export const useAssignDriverData = () => {
 
                     mappedOrders = rawList.map(mapApiToSupplierOrderItem);
                     const stateOrder =
-                        location.state?.selectedOrder ||
-                        location.state?.orderData ||
-                        location.state?.order;
+                        null as any; // auto-selection from navigation state disabled; user must pick an order
                     if (stateOrder) {
                         const targetId = String(
                             stateOrder.id ||
@@ -352,9 +348,7 @@ export const useAssignDriverData = () => {
 
                 // Hydrate legs if order came via location.state
                 const stateOrder =
-                    location.state?.selectedOrder ||
-                    location.state?.orderData ||
-                    location.state?.order;
+                    null as any; // auto-selection from navigation state disabled; user must pick an order
                 const targetId = stateOrder
                     ? String(
                         stateOrder.id ||
@@ -579,14 +573,34 @@ export const useAssignDriverData = () => {
                 selectedOrder.order_id
             );
 
+            let pLeg = { ...pickupLeg };
+            let dLeg = { ...deliveryLeg };
+            if (isRelay) {
+                let customHub: string | null = null;
+                const dRoute = dLeg.journeyLeg || '';
+                const pRoute = pLeg.journeyLeg || '';
+                if (dRoute && !dRoute.toLowerCase().includes('transit hub')) {
+                    const p2 = dRoute.split(/➔|→|->/);
+                    if (p2.length > 1 && p2[0].trim()) customHub = p2[0].trim();
+                }
+                if (!customHub && pRoute && !pRoute.toLowerCase().includes('transit hub')) {
+                    const p1 = pRoute.split(/➔|→|->/);
+                    if (p1.length > 1 && p1[1].trim()) customHub = p1[1].trim();
+                }
+                if (customHub) {
+                    pLeg.journeyLeg = pLeg.journeyLeg.replace(/Transit Hub|transit hub/g, customHub);
+                    dLeg.journeyLeg = dLeg.journeyLeg.replace(/Transit Hub|transit hub/g, customHub);
+                }
+            }
+
             const payload: Record<string, any> = {
                 is_relay: isRelay,
                 dispatch_note: dispatchNote.trim() || undefined,
-                pickup_leg: buildLegApiPayload(pickupLeg),
+                pickup_leg: buildLegApiPayload(pLeg),
             };
 
             if (isRelay) {
-                payload.delivery_leg = buildLegApiPayload(deliveryLeg);
+                payload.delivery_leg = buildLegApiPayload(dLeg);
             }
 
             await apiClient.post(

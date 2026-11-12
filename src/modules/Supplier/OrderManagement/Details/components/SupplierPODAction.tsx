@@ -114,10 +114,38 @@ export const SupplierPODAction: React.FC<SupplierPODActionProps> = ({
         );
     }
 
-    // State 4: Shipment in Transit (Driver Assigned, Picked Up, In Transit)
+    // State 4: Shipment in Transit or Dispatched (Driver Assigned, Picked Up, In Transit)
     const isReadyForPod = rawStatus === 'arrived' || rawStatus === 'delivered' || rawStatus === 'destination reached';
 
     if (!isReadyForPod) {
+        // Business rule: Do not show "Shipment In Progress" when all assigned legs are still in Assigned status.
+        const isAssignedOnly =
+            rawStatus === 'driver_assigned' ||
+            rawStatus === 'assigned' ||
+            rawStatus === 'confirmed' ||
+            rawStatus === 'scheduled';
+
+        const isPickedUp =
+            rawStatus === 'picked_up' ||
+            rawStatus === 'goods picked up' ||
+            rawStatus === 'cargo loaded';
+
+        const activeLegNum = Number(order.current_active_leg) || 1;
+        const currentLegDriverName =
+            activeLegNum === 2 && order.leg2_driver_name
+                ? order.leg2_driver_name
+                : (order.driver?.name && order.driver.name !== '-' ? order.driver.name : 'Assigned Driver');
+
+        const title = isAssignedOnly
+            ? 'Driver Dispatched • Awaiting Pickup'
+            : isPickedUp
+                ? 'Cargo Picked Up • In Transit'
+                : 'Shipment In Transit';
+
+        const description = isAssignedOnly
+            ? `Driver ${currentLegDriverName} has been assigned and dispatched. Awaiting initial cargo collection at ${order.from || 'pickup facility'}.`
+            : `Driver ${currentLegDriverName} is executing haulage for leg ${activeLegNum}. Update shipment status as milestones are reached.`;
+
         return (
             <SupplierPODStateCard
                 bgColor="bg-blue-50/80 dark:bg-blue-950/30"
@@ -125,9 +153,9 @@ export const SupplierPODAction: React.FC<SupplierPODActionProps> = ({
                 iconBg="bg-blue-100 dark:bg-blue-900/50"
                 iconColor="text-blue-600 dark:text-blue-400"
                 icon={<Truck size={14} />}
-                title="Shipment In Progress"
+                title={title}
                 titleColor="text-blue-900 dark:text-blue-300"
-                description={`Driver ${order.driver?.name || 'assigned'} is executing the haulage. Update shipment status as milestones are reached.`}
+                description={description}
                 descColor="text-blue-800/90 dark:text-blue-400"
             >
                 {onOpenStatusModal && (

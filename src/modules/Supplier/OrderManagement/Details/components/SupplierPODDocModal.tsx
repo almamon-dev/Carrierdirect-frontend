@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { FileText, X, ExternalLink } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { NormalizedSupplierOrder } from '../utils/supplierOrderTrackUtils';
@@ -16,9 +17,15 @@ export const SupplierPODDocModal: React.FC<SupplierPODDocModalProps> = ({ order,
         ? fileUrl.split('/').pop() || ('CarrierDirect_Signed_POD_' + order.id + '.pdf')
         : 'CarrierDirect_Signed_POD_' + order.id + '.pdf';
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    return createPortal(
+        <div
+            className="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 font-sans"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] my-auto font-sans"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-2">
                         <FileText size={17} className="text-[#ff4a1f]" />
@@ -89,7 +96,8 @@ export const SupplierPODDocModal: React.FC<SupplierPODDocModalProps> = ({ order,
                     </Button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

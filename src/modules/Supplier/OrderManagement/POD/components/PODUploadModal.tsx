@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Upload } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Select from '@/components/ui/select';
@@ -81,11 +82,15 @@ export const PODUploadModal: React.FC<PODUploadModalProps> = ({
         else setErrorMsg('Failed to upload POD document. Please try again.');
     };
 
-    return (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-100 font-sans">
+    return createPortal(
+        <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto z-[999999] animate-in fade-in duration-100 font-sans"
+            onClick={onClose}
+        >
             <form
                 onSubmit={handleSubmit}
-                className="bg-white dark:bg-[#1e2329] rounded-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 shadow-2xl space-y-4 text-left"
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-[#1e2329] rounded-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 shadow-2xl space-y-4 text-left my-auto max-h-[calc(100vh-2rem)] overflow-y-auto"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -172,7 +177,8 @@ export const PODUploadModal: React.FC<PODUploadModalProps> = ({
                     </Button>
                 </div>
             </form>
-        </div>
+        </div>,
+        document.body
     );
 };
 

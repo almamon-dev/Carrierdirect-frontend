@@ -135,18 +135,6 @@ export function getSubcontractorDriverColumns({
             },
         },
         {
-            id: 'license',
-            label: 'License No',
-            className: 'w-[10%] min-w-[110px]',
-            render: (row) => (
-                <div className="flex items-center min-w-0 min-h-[26px]">
-                    <span className="font-mono text-slate-600 dark:text-slate-400 text-xs truncate">
-                        {row.driver_license_number || '—'}
-                    </span>
-                </div>
-            ),
-        },
-        {
             id: 'status',
             label: 'Status',
             className: 'w-[8%] min-w-[85px] text-center',

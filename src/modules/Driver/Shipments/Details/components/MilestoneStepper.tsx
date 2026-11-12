@@ -28,7 +28,9 @@ export const MilestoneStepper: React.FC<Props> = ({
 }) => {
     const isRelay = Boolean(shipment?.isRelay);
     const isLeg2 = Boolean(shipment?.isDeliveryOnly);
-    const hubLocation = shipment?.hubLocation || 'Transit Hub';
+    const hubLocation = (shipment?.hubLocation && !shipment.hubLocation.toLowerCase().includes('transit hub'))
+        ? shipment.hubLocation
+        : 'Intermediate Hub';
     const handover = shipment?.handover;
 
     // Build steps dynamically based on relay role

@@ -41,7 +41,12 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
         d1.getDate() === d2.getDate();
 
     const parseDate = (item: ShipmentItem): Date | null => {
-        const raw = item.shipper?.pickupDate || (item as any).pickup_date || (item as any).pickup?.date;
+        const raw =
+            (item as any).pickup?.raw_date ||
+            (item as any).pickup_date ||
+            (item as any).pickup?.date ||
+            item.shipper?.pickupDate ||
+            (item as any).date;
         if (!raw) return null;
         const parsed = new Date(raw);
         return isNaN(parsed.getTime()) ? null : parsed;
@@ -92,6 +97,15 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
         }
         return false;
     });
+
+    // Auto switch to Tomorrow or Upcoming if Today has 0 items but another tab has shipments
+    React.useEffect(() => {
+        if (todayShipments.length === 0 && tomorrowShipments.length > 0 && activeTab === 0) {
+            setActiveTab(1);
+        } else if (todayShipments.length === 0 && tomorrowShipments.length === 0 && upcomingShipments.length > 0 && activeTab === 0) {
+            setActiveTab(2);
+        }
+    }, [todayShipments.length, tomorrowShipments.length, upcomingShipments.length, activeTab]);
 
     // Effective list for current tab
     let currentList: ShipmentItem[] = [];

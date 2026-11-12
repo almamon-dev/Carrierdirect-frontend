@@ -50,6 +50,7 @@ export interface DriverGoogleMapViewProps {
     recenterTrigger?: number;
     height?: string | number;
     className?: string;
+    borderless?: boolean;
 }
 
 export const DriverGoogleMapView: React.FC<DriverGoogleMapViewProps> = ({
@@ -77,6 +78,7 @@ export const DriverGoogleMapView: React.FC<DriverGoogleMapViewProps> = ({
     recenterTrigger,
     height = '320px',
     className = '',
+    borderless = false,
 }) => {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
@@ -942,10 +944,10 @@ export const DriverGoogleMapView: React.FC<DriverGoogleMapViewProps> = ({
                     visibility: visible !important;
                 }
             `}</style>
-            {/* Embedded Google Map Frame with 5px radius */}
+            {/* Embedded Google Map Frame */}
             <div
                 style={!isFullHeight ? { height: explicitHeight, minHeight: explicitHeight } : undefined}
-                className={`w-full relative rounded-[5px] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs bg-slate-100 dark:bg-slate-900 ${isFullHeight ? 'h-full flex-1' : ''
+                className={`w-full relative ${borderless ? 'overflow-hidden' : 'rounded-[5px] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs'} bg-slate-100 dark:bg-slate-900 ${isFullHeight ? 'h-full flex-1' : ''
                     }`}
             >
                 {/* 1. Leaflet Map Element */}

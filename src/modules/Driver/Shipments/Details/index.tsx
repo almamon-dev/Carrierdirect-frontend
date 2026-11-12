@@ -185,6 +185,14 @@ export default function DriverShipmentDetailPage() {
         showToast('Handover initiated successfully! Handover OTP code generated.', 'success');
     };
 
+    const handleCancelHandover = async () => {
+        if (!shipment) return;
+        const updated = await driverApi.cancelHandover(shipment.id);
+        setShipment(updated);
+        setIsHandoverOpen(false);
+        showToast('Handover cancelled. Shipment returned to in-transit status.', 'info');
+    };
+
     const handleAcceptHandover = async (data: any) => {
         if (!shipment) return;
         const updated = await driverApi.acceptHandover(shipment.id, data);
@@ -278,6 +286,7 @@ export default function DriverShipmentDetailPage() {
                 shipment={shipment}
                 onClose={() => setIsHandoverOpen(false)}
                 onInitiateHandover={handleInitiateHandover}
+                onCancelHandover={handleCancelHandover}
             />
 
             {/* Relay Accept Handover Modal for Leg 2 Driver */}

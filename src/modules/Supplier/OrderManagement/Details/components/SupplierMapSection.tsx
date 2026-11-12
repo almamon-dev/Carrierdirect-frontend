@@ -1,6 +1,8 @@
 import React from 'react';
 import { ExternalLink, Route, ArrowUpDown } from 'lucide-react';
 import { useSupplierOrderMap } from '../hooks/useSupplierOrderMap';
+import { formatLocationName } from '../utils/supplierOrderTrackUtils';
+import DriverGoogleMapView from '@/modules/Driver/components/DriverGoogleMapView';
 
 interface SupplierMapSectionProps {
     order: {
@@ -14,6 +16,10 @@ interface SupplierMapSectionProps {
         pickup_lng?: number | null;
         delivery_lat?: number | null;
         delivery_lng?: number | null;
+        driver_lat?: number | null;
+        driver_lng?: number | null;
+        driverLat?: number | null;
+        driverLng?: number | null;
         distance?: string;
         distance_km?: number | null;
         [key: string]: any;
@@ -22,28 +28,31 @@ interface SupplierMapSectionProps {
 }
 
 export const SupplierMapSection: React.FC<SupplierMapSectionProps> = ({ order }) => {
-    const fromCity = (order.from && order.from !== '-') ? order.from : 'Gazipur';
-    const toCity = (order.to && order.to !== '-') ? order.to : 'Dhaka';
+    const rawFrom = (order.from && order.from !== '-') ? order.from : 'Gazipur';
+    const rawTo = (order.to && order.to !== '-') ? order.to : 'Dhaka';
+    const fromCity = formatLocationName(rawFrom);
+    const toCity = formatLocationName(rawTo);
 
-    const pickupAddress = (order.pickupFullAddress && order.pickupFullAddress !== '-')
+    const rawPickup = (order.pickupFullAddress && order.pickupFullAddress !== '-')
         ? order.pickupFullAddress
         : (order.pickup_address && order.pickup_address !== '-'
             ? order.pickup_address
             : `${fromCity} Cargo Hub, Terminal 1`);
 
-    const deliveryAddress = (order.deliveryFullAddress && order.deliveryFullAddress !== '-')
+    const rawDelivery = (order.deliveryFullAddress && order.deliveryFullAddress !== '-')
         ? order.deliveryFullAddress
         : (order.delivery_address && order.delivery_address !== '-'
             ? order.delivery_address
             : `${toCity} Logistics Center, Receiving Dock 4`);
 
+    const pickupAddress = formatLocationName(rawPickup);
+    const deliveryAddress = formatLocationName(rawDelivery);
+
     const {
-        mapContainerRef,
-        mapLoaded,
-        mapError,
         distanceFormatted,
         googleMapsUrl,
-        embedMapSrc,
+        originCoords,
+        destCoords,
     } = useSupplierOrderMap({
         order,
         pickupAddressOverride: pickupAddress,
@@ -53,6 +62,15 @@ export const SupplierMapSection: React.FC<SupplierMapSectionProps> = ({ order })
     const displayDistance = distanceFormatted !== '-' && distanceFormatted !== '—'
         ? distanceFormatted
         : (order.distance || '28.40 km');
+
+    const driverCoords: [number, number] | null = (() => {
+        const dLat = order.driver_lat ?? order.driverLat;
+        const dLng = order.driver_lng ?? order.driverLng;
+        if (dLat && dLng && !isNaN(Number(dLat)) && !isNaN(Number(dLng)) && Number(dLat) !== 0) {
+            return [Number(dLat), Number(dLng)];
+        }
+        return null;
+    })();
 
     return (
         <div className="w-full bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs overflow-hidden font-sans">
@@ -85,8 +103,8 @@ export const SupplierMapSection: React.FC<SupplierMapSectionProps> = ({ order })
 
             {/* Map Frame with Floating Location Overlay Card */}
             <div className="w-full h-[260px] sm:h-[300px] relative overflow-hidden bg-slate-100 dark:bg-[#15191e]">
-                {/* Floating Location Overlay Card matching reference design */}
-                <div className="absolute top-3 left-3 z-[10] bg-white/95 dark:bg-[#1e2329]/95 backdrop-blur-xs border border-slate-200/90 dark:border-slate-700/80 rounded-lg shadow-md p-2.5 sm:p-3 max-w-[320px] sm:max-w-[420px] pointer-events-auto">
+                {/* Floating Location Overlay Card */}
+                <div className="absolute top-3 left-3 z-[800] bg-white/95 dark:bg-[#1e2329]/95 backdrop-blur-xs border border-slate-200/90 dark:border-slate-700/80 rounded-lg shadow-md p-2.5 sm:p-3 max-w-[320px] sm:max-w-[420px] pointer-events-auto">
                     <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
                             {/* Pickup Location */}
@@ -126,21 +144,20 @@ export const SupplierMapSection: React.FC<SupplierMapSectionProps> = ({ order })
                     </div>
                 </div>
 
-                <div
-                    ref={mapContainerRef}
-                    className={`w-full h-full ${mapLoaded && !mapError ? 'block' : 'hidden'}`}
+                <DriverGoogleMapView
+                    originCoords={originCoords}
+                    destCoords={destCoords}
+                    driverCoords={driverCoords}
+                    originTitle={fromCity}
+                    originAddress={pickupAddress}
+                    destTitle={toCity}
+                    destAddress={deliveryAddress}
+                    height="100%"
+                    borderless={true}
+                    showFloatingCard={false}
+                    showRouteSummaryCards={false}
+                    showStartNavigationButton={false}
                 />
-
-                {(!mapLoaded || mapError) && (
-                    <iframe
-                        title="Shipment Route Corridor"
-                        src={embedMapSrc}
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        loading="lazy"
-                    />
-                )}
             </div>
         </div>
     );

@@ -47,7 +47,7 @@ export const driverShipmentService = {
             at_hub: 'at_hub',
             handover_pending: 'handover_pending',
             handover_accepted: 'handover_accepted',
-            at_delivery: 'arrived',
+            at_delivery: 'at_delivery',
             delivered: 'delivered',
             cancelled: 'cancelled',
         };
@@ -144,6 +144,12 @@ export const driverShipmentService = {
         }
     ): Promise<ShipmentItem> {
         const res = await apiClient.post('/driver/shipments/' + id + '/handover', data);
+        const raw = res.data?.data?.shipment || res.data?.shipment || res.data?.data || res.data;
+        return mapBackendShipmentToShipmentItem(raw);
+    },
+
+    async cancelHandover(id: string): Promise<ShipmentItem> {
+        const res = await apiClient.post('/driver/shipments/' + id + '/handover/cancel');
         const raw = res.data?.data?.shipment || res.data?.shipment || res.data?.data || res.data;
         return mapBackendShipmentToShipmentItem(raw);
     },

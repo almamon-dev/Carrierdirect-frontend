@@ -144,9 +144,10 @@ export const DriverAssignmentCell: React.FC<{
     const isOnJob = driver.job_status === 'on_job' || Boolean(driver.active_assignment?.order_id);
     const orderNumber = driver.active_assignment?.order_number || (driver.active_assignment?.order_id ? `ORD-2026-${driver.active_assignment.order_id}` : 'ORD-2026-10002');
     const legNum = driver.active_assignment?.leg_number || 1;
-    const legRoute = driver.active_assignment?.leg_type
-        ? `Leg ${legNum}: ${driver.active_assignment.leg_type === 'pickup' ? 'Pickup to Transit Hub' : 'Transit Hub to Delivery'}`
-        : 'Leg 1: Manchester → Leeds';
+    const legRoute = (driver.active_assignment as any)?.journey_leg
+        || (driver.active_assignment?.leg_type
+            ? `Leg ${legNum}: ${driver.active_assignment.leg_type === 'pickup' ? 'Pickup Leg' : 'Delivery Leg'}`
+            : 'Active Assignment');
 
     if (isOnJob) {
         const targetId = driver.active_assignment?.order_id || driver.active_assignment?.order_number?.replace(/\D/g, '') || '10002';

@@ -22,7 +22,9 @@ export const ShipmentTimeline: React.FC<Props> = ({ shipment }) => {
 
     const fromCity = shipment.shipper?.city || 'Dhaka';
     const toCity = shipment.consignee?.city || 'Chattogram';
-    const hubLocation = shipment.hubLocation || 'Transit Hub';
+    const hubLocation = (shipment.hubLocation && !shipment.hubLocation.toLowerCase().includes('transit hub'))
+        ? shipment.hubLocation
+        : 'Intermediate Hub';
 
     const driver1Name = shipment.isDeliveryOnly
         ? (shipment.partnerDriver?.driver_name || 'Liam O\'Connor')
@@ -65,7 +67,11 @@ export const ShipmentTimeline: React.FC<Props> = ({ shipment }) => {
     const orderConfirmedDate = findHistoryTime(['confirmed', 'order']) || formatTimestamp(shipment.createdAt, 'Nov 10, 04:00 PM');
     const driverAssignedDate = findHistoryTime(['assigned', 'allocat']) || 'Nov 11, 12:00 AM';
     const pickupDateStr = findHistoryTime(['pickup', 'picked_up', 'collect']) || (shipment.shipper?.pickupDate ? formatTimestamp(shipment.shipper.pickupDate, 'Nov 11, 01:30 PM') : 'Nov 11, 01:30 PM');
-    const deliveryDateStr = findHistoryTime(['delivered', 'completed', 'pod']) || (shipment.consignee?.deliveryDate ? formatTimestamp(shipment.consignee.deliveryDate, 'Nov 11, 05:21 PM') : 'Nov 11, 05:21 PM');
+    const deliveryDateStr = findHistoryTime(['delivered', 'pod_uploaded', 'proof of delivery'])
+        || (shipment.podData?.uploadedAt ? formatTimestamp(shipment.podData.uploadedAt) : undefined)
+        || findHistoryTime(['delivered', 'completed'])
+        || (shipment.consignee?.deliveryDate ? formatTimestamp(shipment.consignee.deliveryDate, 'Nov 11, 05:21 PM') : 'Nov 11, 05:21 PM');
+    const podApprovedDateStr = findHistoryTime(['approved', 'pod approved', 'pod accepted', 'completed', 'paid']) || undefined;
 
     const isDelivered = status === 'delivered' || status === 'completed';
     const isFailed = status === 'cancelled';
@@ -115,10 +121,17 @@ export const ShipmentTimeline: React.FC<Props> = ({ shipment }) => {
             },
             {
                 id: 'sd-5',
-                title: 'Delivered',
-                description: 'Final delivery to the consignee and POD confirmation.',
+                title: 'Cargo Delivered',
+                description: 'Goods delivered to consignee and Proof of Delivery (POD) submitted by driver.',
                 status: isDelivered ? 'completed' : (status === 'at_delivery' ? 'in_progress' : 'pending'),
                 dateText: isDelivered ? deliveryDateStr : undefined,
+            },
+            {
+                id: 'sd-6',
+                title: 'Customer POD Approval',
+                description: 'Customer reviews and approves Proof of Delivery (POD), releasing payment and closing the shipment.',
+                status: status === 'completed' ? 'completed' : (status === 'delivered' ? 'in_progress' : 'pending'),
+                dateText: status === 'completed' ? podApprovedDateStr : undefined,
             },
         ];
     } else {
@@ -153,6 +166,15 @@ export const ShipmentTimeline: React.FC<Props> = ({ shipment }) => {
 
         const activeLeg = shipment.currentActiveLeg || 1;
         const isHandoverAccepted = handover?.status === 'accepted' || status === 'handover_accepted' || activeLeg > 1;
+        const isMultiLegDelivered = legs[legs.length - 1]?.status === 'delivered' || legs[legs.length - 1]?.status === 'completed';
+        const isRealDriver = (name?: string) => Boolean(name && name !== '-' && !name.toLowerCase().startsWith('driver '));
+
+        // Milestone timestamps (from backend history / handover record)
+        const leg1ArrivedDate = findHistoryTime(['at_hub', 'arrived at', 'handover initiated'])
+            || (handover?.handover_at ? formatTimestamp(handover.handover_at) : undefined);
+        const handoverAcceptedDate = handover?.accepted_at
+            ? formatTimestamp(handover.accepted_at)
+            : (findHistoryTime(['handover accepted', 'accepted']) || (handover?.handover_at ? formatTimestamp(handover.handover_at) : undefined));
 
         // Step 1: Order Confirmed
         timelineSteps.push({
@@ -163,44 +185,54 @@ export const ShipmentTimeline: React.FC<Props> = ({ shipment }) => {
             dateText: orderConfirmedDate,
         });
 
-        // Generate entries for each leg dynamically
+        // PHASE 1: Driver assignments (all legs are dispatched upfront by the supplier)
         legs.forEach((leg, index) => {
             const legNum = leg.leg_number || index + 1;
             const isFirstLeg = index === 0;
             const isLastLeg = index === legs.length - 1;
 
-            const legDriver = leg.driver_name && leg.driver_name !== '-'
-                ? leg.driver_name
+            const legDriver = isRealDriver(leg.driver_name)
+                ? leg.driver_name!
                 : (legNum === 1 ? driver1Name : (legNum === 2 ? driver2Name : `Driver ${legNum}`));
 
-            const legRoute = leg.journey_leg || (isFirstLeg ? `${fromCity} ➔ ${hubLocation}` : (isLastLeg ? `${hubLocation} ➔ ${toCity}` : `Hub ${index} ➔ Hub ${index + 1}`));
+            let legRoute = leg.journey_leg || (isFirstLeg ? `${fromCity} ➔ ${hubLocation}` : (isLastLeg ? `${hubLocation} ➔ ${toCity}` : `Hub ${index} ➔ Hub ${index + 1}`));
+            if (legRoute.includes('Transit Hub') || legRoute.includes('transit hub')) {
+                legRoute = legRoute.replace(/Transit Hub|transit hub/g, hubLocation);
+            }
 
-            // Sub-step A: Driver Assignment
-            // A leg's driver is "assigned" only if that leg is already active or past
-            const isDriverAssigned = legNum < activeLeg
-                || (legNum === activeLeg && leg.status !== 'pending' && leg.driver_name && leg.driver_name !== '-')
-                || (legNum <= activeLeg && isHandoverAccepted);
-            
-            // Show actual driver name in title if available, otherwise fallback
-            const hasSpecificDriverName = legDriver && !legDriver.toLowerCase().startsWith('driver ');
-            const assignTitle = hasSpecificDriverName
+            const isDriverAssigned = isRealDriver(legDriver);
+            const assignTitle = isDriverAssigned
                 ? `${legDriver} Assigned (Leg ${legNum})`
                 : `Driver Assigned (Leg ${legNum})`;
-            const assignDesc = isDriverAssigned
-                ? `${legDriver} assigned for ${legRoute}.`
-                : `Assign driver for ${legRoute}.`;
+            let assignDesc = `Assign driver for ${legRoute}.`;
+            if (isDriverAssigned) {
+                assignDesc = isFirstLeg || legNum <= activeLeg
+                    ? `${legDriver} assigned for ${legRoute}.`
+                    : `${legDriver} scheduled for ${legRoute}. (Activates after handover)`;
+            }
+
+            const legAssignedDate = leg.assigned_at
+                ? formatTimestamp(leg.assigned_at)
+                : driverAssignedDate;
 
             timelineSteps.push({
                 id: `md-leg-${legNum}-driver`,
                 title: assignTitle,
                 description: assignDesc,
                 status: isDriverAssigned ? 'completed' : 'pending',
-                dateText: isDriverAssigned && legNum === 1 ? driverAssignedDate : undefined,
+                dateText: isDriverAssigned ? legAssignedDate : undefined,
                 driverName: legDriver,
                 legNumber: legNum,
             });
+        });
 
-            // Sub-step B: Pickup (Only on Leg 1)
+        // PHASE 2: Physical movement (Pickup → Transit → Handover → Transit → Delivered)
+        legs.forEach((leg, index) => {
+            const legNum = leg.leg_number || index + 1;
+            const isFirstLeg = index === 0;
+            const isLastLeg = index === legs.length - 1;
+
+            // Pickup (Only on Leg 1)
             if (isFirstLeg) {
                 const isLeg1PickedUp = activeLeg > 1 || ['picked_up', 'in_transit', 'at_hub', 'handover_pending', 'handover_accepted', 'at_delivery', 'delivered', 'completed'].includes(status);
                 timelineSteps.push({
@@ -214,65 +246,91 @@ export const ShipmentTimeline: React.FC<Props> = ({ shipment }) => {
                 });
             }
 
-            // Sub-step C: In Transit to Destination/Hub
+            // In Transit to Hub / Delivery
             const enRouteTitle = isLastLeg
                 ? `In Transit to Delivery (Leg ${legNum})`
-                : `In Transit to Hub (Leg ${legNum})`;
+                : `In Transit to ${hubLocation} (Leg ${legNum})`;
             const enRouteDesc = isLastLeg
                 ? 'Goods will be transported to the final destination.'
-                : 'Goods are in transit to the hub.';
+                : `Goods are in transit to ${hubLocation}.`;
 
+            const currentLegStatus = leg.status || (legNum < activeLeg ? 'completed' : (legNum === activeLeg ? 'in_transit' : 'pending'));
             let enRouteStatus: 'completed' | 'in_progress' | 'pending' = 'pending';
-            if (legNum < activeLeg || isDelivered) {
+
+            if (legNum < activeLeg || currentLegStatus === 'completed' || isMultiLegDelivered) {
                 enRouteStatus = 'completed';
             } else if (legNum === activeLeg) {
-                if (status === 'in_transit' || status === 'picked_up') {
+                if (['at_delivery', 'delivered'].includes(currentLegStatus)) {
+                    enRouteStatus = 'completed';
+                } else if (['in_transit', 'picked_up', 'handover_accepted'].includes(currentLegStatus) || (legNum === 2 && (status === 'in_transit' || status === 'handover_accepted'))) {
                     enRouteStatus = 'in_progress';
-                } else if (['at_hub', 'handover_pending', 'handover_accepted', 'at_delivery', 'delivered', 'completed'].includes(status)) {
+                } else if (['at_hub', 'handover_pending'].includes(currentLegStatus)) {
                     enRouteStatus = 'completed';
                 }
             }
+
+            const enRouteDate = enRouteStatus === 'completed'
+                ? (isLastLeg ? findHistoryTime(['at_delivery', 'arrived']) : leg1ArrivedDate) || undefined
+                : undefined;
 
             timelineSteps.push({
                 id: `md-leg-${legNum}-enroute`,
                 title: enRouteTitle,
                 description: enRouteDesc,
                 status: enRouteStatus,
+                dateText: enRouteDate,
                 legNumber: legNum,
             });
 
-            // Sub-step D: Handover (Only between legs, not on last leg)
+            // Handover (Only between legs)
             if (!isLastLeg) {
                 const nextDriverName = legs[index + 1]?.driver_name || `Driver ${legNum + 1}`;
-                const handoverTitle = `Handover at ${hubLocation}`;
-                const handoverDesc = `Goods will be handed over to ${nextDriverName}.`;
 
                 let handoverStatus: 'completed' | 'in_progress' | 'pending' = 'pending';
-                if (legNum < activeLeg || isHandoverAccepted || isDelivered) {
+                if (legNum < activeLeg || isHandoverAccepted || isMultiLegDelivered) {
                     handoverStatus = 'completed';
-                } else if (legNum === activeLeg) {
-                    if (status === 'at_hub' || status === 'handover_pending') {
-                        handoverStatus = 'in_progress';
-                    }
+                } else if (legNum === activeLeg && (status === 'at_hub' || status === 'handover_pending')) {
+                    handoverStatus = 'in_progress';
                 }
 
                 timelineSteps.push({
                     id: `md-leg-${legNum}-handover`,
-                    title: handoverTitle,
-                    description: handoverDesc,
+                    title: `Handover at ${hubLocation}`,
+                    description: handoverStatus === 'completed'
+                        ? `Goods handed over to ${nextDriverName} (OTP verified).`
+                        : handoverStatus === 'in_progress'
+                            ? `Awaiting OTP verification by ${nextDriverName}.`
+                            : `Goods will be handed over to ${nextDriverName}.`,
                     status: handoverStatus,
+                    dateText: handoverStatus === 'completed' ? (handoverAcceptedDate || undefined) : undefined,
                     legNumber: legNum,
                 });
             }
         });
 
-        // Final Step: Delivered
+        // Final Steps: Cargo Delivered & Customer POD Approval
+        const lastLeg = legs[legs.length - 1];
+        const lastLegStatus = lastLeg?.status;
+        const isPodApproved = shipment.podStatus === 'approved' || shipment.podStatus === 'confirmed';
+        const isOverallOrderCompleted = (shipment.orderStatus === 'completed' || isPodApproved) && lastLegStatus !== 'in_transit' && lastLegStatus !== 'pending';
+
+        const isFinalLegDelivered = isOverallOrderCompleted || lastLegStatus === 'delivered' || (lastLegStatus === 'completed' && activeLeg === legs.length) || isMultiLegDelivered;
+        const isFinalLegAtDelivery = !isFinalLegDelivered && (lastLegStatus === 'at_delivery' || (activeLeg === legs.length && status === 'at_delivery'));
+
         timelineSteps.push({
             id: 'md-delivered',
-            title: 'Delivered',
-            description: 'Final delivery to the consignee and POD confirmation.',
-            status: isDelivered ? 'completed' : (status === 'at_delivery' && activeLeg === legs.length ? 'in_progress' : 'pending'),
-            dateText: isDelivered ? deliveryDateStr : undefined,
+            title: 'Cargo Delivered',
+            description: 'Goods delivered to consignee and Proof of Delivery (POD) submitted by driver.',
+            status: isFinalLegDelivered ? 'completed' : (isFinalLegAtDelivery ? 'in_progress' : 'pending'),
+            dateText: isFinalLegDelivered ? deliveryDateStr : undefined,
+        });
+
+        timelineSteps.push({
+            id: 'md-pod-approval',
+            title: 'Customer POD Approval',
+            description: 'Customer reviews and approves Proof of Delivery (POD), releasing payment and closing the shipment.',
+            status: isOverallOrderCompleted ? 'completed' : (isFinalLegDelivered ? 'in_progress' : 'pending'),
+            dateText: isOverallOrderCompleted ? podApprovedDateStr : undefined,
         });
     }
 
@@ -376,6 +434,10 @@ export const ShipmentTimeline: React.FC<Props> = ({ shipment }) => {
                                             ) : isError ? (
                                                 <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300">
                                                     Exception
+                                                </span>
+                                            ) : isCompleted ? (
+                                                <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                                    Completed
                                                 </span>
                                             ) : (
                                                 <span className="px-2 py-0.5 text-[10px] font-semibold rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">

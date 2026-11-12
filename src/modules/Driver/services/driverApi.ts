@@ -36,6 +36,7 @@ export const driverApi = {
     checkCustomerReview: driverShipmentService.checkCustomerReview.bind(driverShipmentService),
     submitCustomerReview: driverShipmentService.submitCustomerReview.bind(driverShipmentService),
     initiateHandover: driverShipmentService.initiateHandover.bind(driverShipmentService),
+    cancelHandover: driverShipmentService.cancelHandover.bind(driverShipmentService),
     acceptHandover: driverShipmentService.acceptHandover.bind(driverShipmentService),
     rejectHandover: driverShipmentService.rejectHandover.bind(driverShipmentService),
     getHandoverDetails: driverShipmentService.getHandoverDetails.bind(driverShipmentService),
