@@ -30,8 +30,8 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
     const [isViewLegsOpen, setIsViewLegsOpen] = useState(false);
     const [viewDocUrl, setViewDocUrl] = useState<string | null>(null);
 
-    const fromCity = shipment.shipper.city || 'Dhaka';
-    const toCity = shipment.consignee.city || 'Chattogram';
+    const fromCity = shipment.shipper?.city || 'Dhaka';
+    const toCity = shipment.consignee?.city || 'Chattogram';
     const hubLocation = (shipment.hubLocation && !shipment.hubLocation.toLowerCase().includes('transit hub'))
         ? shipment.hubLocation
         : 'Intermediate Hub';
@@ -42,12 +42,12 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
     const leg1 = shipment.relayLegs?.find(l => l.leg_number === 1);
     const leg2 = shipment.relayLegs?.find(l => l.leg_number === 2);
 
-    const leg1DriverName = leg1?.driver_name 
-        || (shipment.isDeliveryOnly ? shipment.partnerDriver?.driver_name : shipment.driver?.name) 
+    const leg1DriverName = leg1?.driver_name
+        || (shipment.isDeliveryOnly ? shipment.partnerDriver?.driver_name : shipment.driver?.name)
         || 'Driver 1';
 
-    const leg2DriverName = leg2?.driver_name 
-        || (shipment.isDeliveryOnly ? shipment.driver?.name : shipment.partnerDriver?.driver_name) 
+    const leg2DriverName = leg2?.driver_name
+        || (shipment.isDeliveryOnly ? shipment.driver?.name : shipment.partnerDriver?.driver_name)
         || 'Driver 2';
 
     const activeDriverName = isRelay
@@ -93,6 +93,9 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
             } else if (status === 'at_delivery') {
                 operationTitle = 'Arrived at Delivery Point';
                 operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
+            } else if (status === 'delivered' || status === 'completed') {
+                operationTitle = status === 'completed' ? 'Delivery Completed & Approved' : 'Delivered • Awaiting Customer Approval';
+                operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity} (Completed)`;
             } else {
                 operationTitle = 'In Transit to Delivery';
                 operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
@@ -102,9 +105,9 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
         if (status === 'at_delivery') {
             operationTitle = 'Arrived at Destination';
         } else if (status === 'delivered') {
-            operationTitle = 'Delivered (POD Pending)';
+            operationTitle = 'Delivered • Awaiting Customer Approval';
         } else if (status === 'completed') {
-            operationTitle = 'Shipment Completed';
+            operationTitle = 'Delivery Completed & Approved';
         } else if (status === 'picked_up' || status === 'at_pickup') {
             operationTitle = 'Goods Picked Up';
         }
@@ -127,10 +130,30 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
             if (shipment.handover?.status === 'pending_acceptance' || status === 'handover_pending') {
                 nextActionTitle = `Accept Cargo Handover from Driver 1`;
                 nextActionEta = 'Now at Hub';
+            } else if (status === 'at_delivery') {
+                nextActionTitle = 'Upload POD & Complete Delivery';
+                nextActionEta = 'Dock ready';
+            } else if (status === 'delivered') {
+                nextActionTitle = 'Awaiting Customer POD Verification';
+                nextActionEta = 'Under Review';
+            } else if (status === 'completed') {
+                nextActionTitle = 'Order Completed & Payment Settled';
+                nextActionEta = 'Completed';
             } else {
                 nextActionTitle = 'Deliver to Consignee';
                 nextActionEta = '05:21 PM';
             }
+        }
+    } else {
+        if (status === 'at_delivery') {
+            nextActionTitle = 'Upload POD & Complete Delivery';
+            nextActionEta = 'Dock ready';
+        } else if (status === 'delivered') {
+            nextActionTitle = 'Awaiting Customer POD Verification';
+            nextActionEta = 'Under Review';
+        } else if (status === 'completed') {
+            nextActionTitle = 'Order Completed & Payment Settled';
+            nextActionEta = 'Completed';
         }
     }
 

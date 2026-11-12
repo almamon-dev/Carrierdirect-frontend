@@ -422,7 +422,7 @@ export const ShipmentTimeline: React.FC<Props> = ({ shipment }) => {
 
                                         {/* Status Pill or Timestamp on Right */}
                                         <div className="shrink-0 text-right">
-                                            {step.dateText ? (
+                                            {isCompleted && step.dateText ? (
                                                 <span className="text-[10.5px] font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1">
                                                     <Calendar size={11} className="text-slate-400" />
                                                     <span>{step.dateText}</span>
