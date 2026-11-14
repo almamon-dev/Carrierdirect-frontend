@@ -152,6 +152,28 @@ export interface NormalizedCustomerOrder {
     createdAt?: string;
     trackingHistory?: any[];
     updates?: any[];
+    rawMilestoneStatus?: string;
+    isRelay?: boolean;
+    currentActiveLeg?: number;
+    hubLocation?: string;
+    handover?: {
+        status?: string;
+        hub_location?: string;
+        handover_at?: string;
+        accepted_at?: string;
+    } | null;
+    shipmentLegs?: Array<{
+        leg_number: number;
+        leg_type?: string;
+        journey_leg?: string;
+        driver_name?: string;
+        driver_phone?: string;
+        vehicle_plate?: string;
+        vehicle_type?: string;
+        status?: string;
+        assigned_at?: string;
+        completed_at?: string;
+    }>;
 }
 
 export interface TimelineItem {

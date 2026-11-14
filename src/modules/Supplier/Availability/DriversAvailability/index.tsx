@@ -105,7 +105,7 @@ export default function DriversAvailability() {
                         counts={counts}
                     />
                 }
-                searchPlaceholder="Search driver by name, phone or ID..."
+                searchPlaceholder="Search driver by name, phone or email..."
                 compact={true}
                 hideViewToggle={true}
                 hideColumnToggle={true}

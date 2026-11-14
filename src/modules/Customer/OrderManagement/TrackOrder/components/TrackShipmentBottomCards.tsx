@@ -91,10 +91,15 @@ export const TrackShipmentBottomCards: React.FC<TrackShipmentBottomCardsProps> =
                         </span>
 
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Driver</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">
-                            {order.driver?.name && order.driver.name !== '-' && order.driver.name !== 'Unassigned'
-                                ? order.driver.name
-                                : 'Carrier Assigning'}
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 break-words [overflow-wrap:anywhere]">
+                            {order.isRelay && Array.isArray(order.shipmentLegs) && order.shipmentLegs.length > 1
+                                ? order.shipmentLegs
+                                      .filter((leg) => leg.driver_name && leg.driver_name !== '-' && leg.driver_name !== 'Unassigned')
+                                      .map((leg) => `Leg ${leg.leg_number}: ${leg.driver_name}`)
+                                      .join(' • ') || 'Carrier Assigning'
+                                : order.driver?.name && order.driver.name !== '-' && order.driver.name !== 'Unassigned'
+                                    ? order.driver.name
+                                    : 'Carrier Assigning'}
                         </span>
 
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Cargo Type</span>

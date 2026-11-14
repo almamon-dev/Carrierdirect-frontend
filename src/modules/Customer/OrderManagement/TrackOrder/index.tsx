@@ -144,6 +144,7 @@ export default function CustomerTrackOrderPage() {
                     driver_location_updated_at: payload.recorded_at,
                     driver_location_updated_human: 'Live now',
                     status_raw: payload.shipment_status || prev.status_raw,
+                    raw_milestone_status: payload.shipment_status || prev.raw_milestone_status,
                     product_location: {
                         ...(prev.product_location || {}),
                         latitude: payload.latitude,

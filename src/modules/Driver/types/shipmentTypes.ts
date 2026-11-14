@@ -67,6 +67,7 @@ export interface ShipmentItem {
     orderNumber: string;
     trackingNumber: string;
     status: ShipmentStatus;
+    rawMilestoneStatus?: string;
     orderStatus?: string;
     priority: 'Standard' | 'Urgent' | 'High Value';
     driverType?: 'internal' | 'subcontractor';

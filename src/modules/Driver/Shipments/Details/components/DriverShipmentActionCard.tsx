@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import { Truck, CheckCircle2, ShieldCheck, ArrowRight, FileCheck, Eye, X, FileText, User, Phone, MapPin, GitFork, Globe } from 'lucide-react';
 import { ShipmentItem, ShipmentStatus } from '../../../types';
 import { requireDriverCompliance } from '../../../Compliance';
-import { getStatusDisplay } from '../utils/statusDisplayConfig';
+import {
+    getStatusDisplay,
+    isRelayHandoverAccepted,
+    isRelayHandoverPending,
+    isRelayLeg1HandoverCompleted,
+} from '../utils/statusDisplayConfig';
 import { ViewLegsModal } from './ViewLegsModal';
 
 interface Props {
@@ -64,7 +69,9 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
         ? (isLeg1 ? 'Driver - Leg 1' : 'Driver - Leg 2')
         : 'Driver (Single Trip)';
 
-    const isLeg1Done = isRelay && isLeg1 && (status === 'completed' || shipment.handover?.status === 'accepted');
+    const isLeg1Done = isRelayLeg1HandoverCompleted(shipment);
+    const isHandoverPending = isRelayHandoverPending(shipment);
+    const isHandoverAccepted = isRelayHandoverAccepted(shipment);
 
     // Operation heading & corridor
     let operationTitle = 'In Transit';
@@ -75,11 +82,14 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
             if (isLeg1Done) {
                 operationTitle = 'Leg 1 Completed';
                 operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation} (Completed)`;
-            } else if (status === 'at_hub' || status === 'handover_pending') {
+            } else if (status === 'at_hub' || isHandoverPending) {
                 operationTitle = `At ${hubLocation} Hub`;
                 operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
             } else if (status === 'picked_up' || status === 'at_pickup') {
                 operationTitle = 'Goods Picked Up';
+                operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
+            } else if (status === 'assigned' || status === 'accepted') {
+                operationTitle = 'Assigned • Ready for Pickup';
                 operationCorridor = `Leg 1 of 2: ${fromCity} ➔ ${hubLocation}`;
             } else {
                 operationTitle = `In Transit to ${hubLocation}`;
@@ -87,7 +97,7 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
             }
         } else {
             // Leg 2
-            if (shipment.handover?.status === 'pending_acceptance' || status === 'handover_pending') {
+            if (isHandoverPending) {
                 operationTitle = `Handover Ready at ${hubLocation}`;
                 operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
             } else if (status === 'at_delivery') {
@@ -96,13 +106,21 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
             } else if (status === 'delivered' || status === 'completed') {
                 operationTitle = status === 'completed' ? 'Delivery Completed & Approved' : 'Delivered • Awaiting Customer Approval';
                 operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity} (Completed)`;
+            } else if (!isHandoverAccepted) {
+                operationTitle = `Scheduled • Awaiting ${hubLocation} Handover`;
+                operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
+            } else if (status === 'handover_accepted') {
+                operationTitle = 'Handover Accepted • Ready to Depart';
+                operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
             } else {
                 operationTitle = 'In Transit to Delivery';
                 operationCorridor = `Leg 2 of 2: ${hubLocation} ➔ ${toCity}`;
             }
         }
     } else {
-        if (status === 'at_delivery') {
+        if (status === 'assigned' || status === 'accepted') {
+            operationTitle = 'Assigned • Ready for Pickup';
+        } else if (status === 'at_delivery') {
             operationTitle = 'Arrived at Destination';
         } else if (status === 'delivered') {
             operationTitle = 'Delivered • Awaiting Customer Approval';
@@ -113,49 +131,9 @@ export const DriverShipmentActionCard: React.FC<Props> = ({
         }
     }
 
-    // Next Action text
-    let nextActionTitle = 'Deliver to Consignee';
-    let nextActionEta = '05:21 PM';
-
-    if (isRelay) {
-        if (isLeg1) {
-            if (isLeg1Done) {
-                nextActionTitle = 'Cargo Handed Over to Driver 2';
-                nextActionEta = 'Completed';
-            } else {
-                nextActionTitle = `Handover to Driver 2 at ${hubLocation}`;
-                nextActionEta = '02:30 PM';
-            }
-        } else {
-            if (shipment.handover?.status === 'pending_acceptance' || status === 'handover_pending') {
-                nextActionTitle = `Accept Cargo Handover from Driver 1`;
-                nextActionEta = 'Now at Hub';
-            } else if (status === 'at_delivery') {
-                nextActionTitle = 'Upload POD & Complete Delivery';
-                nextActionEta = 'Dock ready';
-            } else if (status === 'delivered') {
-                nextActionTitle = 'Awaiting Customer POD Verification';
-                nextActionEta = 'Under Review';
-            } else if (status === 'completed') {
-                nextActionTitle = 'Order Completed & Payment Settled';
-                nextActionEta = 'Completed';
-            } else {
-                nextActionTitle = 'Deliver to Consignee';
-                nextActionEta = '05:21 PM';
-            }
-        }
-    } else {
-        if (status === 'at_delivery') {
-            nextActionTitle = 'Upload POD & Complete Delivery';
-            nextActionEta = 'Dock ready';
-        } else if (status === 'delivered') {
-            nextActionTitle = 'Awaiting Customer POD Verification';
-            nextActionEta = 'Under Review';
-        } else if (status === 'completed') {
-            nextActionTitle = 'Order Completed & Payment Settled';
-            nextActionEta = 'Completed';
-        }
-    }
+    // Next Action text derived directly from statusConfig to avoid state drift
+    const nextActionTitle = statusConfig.nextActionTitle;
+    const nextActionEta = statusConfig.eta;
 
     // Primary Button Label & Handler using statusConfig
     const handleActionClick = () => {

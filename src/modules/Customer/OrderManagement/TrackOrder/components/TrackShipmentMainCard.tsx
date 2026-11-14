@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { NormalizedCustomerOrder } from '../../Details/utils/customerOrderDetailsUtils';
+import { UnifiedShipmentTimeline } from '@/components/shared/ShipmentTimeline/UnifiedShipmentTimeline';
+import type { UnifiedTimelineInput } from '@/components/shared/ShipmentTimeline/buildUnifiedTimeline';
 
 export interface ProgressStepItem {
     id: string;
@@ -39,7 +41,7 @@ interface TrackShipmentMainCardProps {
     hasLiveGps?: boolean;
     isGpsFresh?: boolean;
     gpsUpdatedHuman?: string;
-    progressSteps: ProgressStepItem[];
+    progressSteps?: ProgressStepItem[];
     mapContainerRef: React.RefObject<HTMLDivElement | null>;
     mapLoaded: boolean;
     mapError: boolean;
@@ -50,6 +52,53 @@ interface TrackShipmentMainCardProps {
     embedMapSrc: string;
     googleMapsUrl: string;
     headerActions?: React.ReactNode;
+}
+
+export function buildCustomerTimelineInput(
+    order: NormalizedCustomerOrder,
+    fromCity: string,
+    toCity: string
+): UnifiedTimelineInput {
+    return {
+        status: order.rawStatus,
+        rawMilestoneStatus: order.rawMilestoneStatus || order.rawStatus,
+        podStatus: order.pod?.isAccepted ? 'confirmed' : order.pod?.isAvailable ? 'pending' : undefined,
+        isRelay: Boolean(order.isRelay),
+        currentActiveLeg: Number(order.currentActiveLeg ?? 1),
+        hubLocation: order.hubLocation,
+        driverName: order.driver?.name,
+        pickupCity: fromCity || order.pickup?.city,
+        deliveryCity: toCity || order.delivery?.city,
+        createdAt: order.createdAt,
+        podUploadedAt: order.pod?.uploadedAt,
+        handover: order.handover
+            ? {
+                  status: order.handover.status,
+                  hubLocation: order.handover.hub_location,
+                  handoverAt: order.handover.handover_at,
+                  acceptedAt: order.handover.accepted_at,
+              }
+            : null,
+        legs: (order.shipmentLegs || []).map((leg, idx) => ({
+            legNumber: Number(leg.leg_number ?? idx + 1),
+            legType: leg.leg_type,
+            journeyLeg: leg.journey_leg,
+            driverName: leg.driver_name,
+            driverPhone: leg.driver_phone,
+            vehiclePlate: leg.vehicle_plate,
+            status: leg.status,
+            assignedAt: leg.assigned_at,
+            completedAt: leg.completed_at,
+        })),
+        history: (order.trackingHistory || order.updates || []).map((item: any) => ({
+            status: item.status,
+            title: item.title,
+            description: item.description,
+            date: item.date,
+            rawDate: item.raw_date,
+            createdAt: item.created_at,
+        })),
+    };
 }
 
 export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
@@ -66,7 +115,7 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
     hasLiveGps = false,
     isGpsFresh = false,
     gpsUpdatedHuman = 'Just now',
-    progressSteps,
+    progressSteps: _progressSteps,
     mapContainerRef,
     mapType,
     onChangeMapType,
@@ -251,7 +300,7 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
                 {/* Left: Ultra-Clean Interactive Route & Live Driver Map */}
                 <div className="lg:col-span-8 flex flex-col">
-                    <div className="relative w-full h-[340px] sm:h-[380px] rounded-[4px] overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 z-0">
+                    <div className="relative w-full h-[340px] sm:h-[380px] lg:h-full lg:min-h-[420px] rounded-[4px] overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 z-0">
                         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
                         {/* Top-Left Compact Map / Satellite Switcher */}
@@ -340,73 +389,13 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                     </div>
                 </div>
 
-                {/* Right: Shipment Progress Card */}
+                {/* Right: Unified Shipment Timeline */}
                 <div className="lg:col-span-4 flex flex-col">
-                    <div className="border border-slate-200/90 dark:border-slate-800 rounded-[4px] p-4 flex-1 flex flex-col justify-between bg-white dark:bg-[#1e2329]">
-                        <div>
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
-                                    Shipment Progress
-                                </h3>
-                                <span className="text-[11px] font-bold text-[#ff4a1f]">
-                                    {order.status}
-                                </span>
-                            </div>
-
-                            <div className="relative space-y-3">
-                                <div className="absolute left-[11px] top-3 bottom-3 w-[2px] bg-slate-200 dark:bg-slate-700 z-0" />
-
-                                {progressSteps.map((step) => {
-                                    const isDone = step.completed && !step.active;
-                                    const isCurrent = step.active;
-
-                                    return (
-                                        <div
-                                            key={step.id}
-                                            className={`relative z-10 flex items-start gap-3 transition-all ${
-                                                isCurrent
-                                                    ? 'bg-orange-50/90 dark:bg-[#ff4a1f]/10 rounded-[4px] p-2 -ml-2'
-                                                    : 'py-0.5'
-                                            }`}
-                                        >
-                                            <div className="shrink-0 mt-0.5">
-                                                {isDone ? (
-                                                    <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-2xs">
-                                                        <Check size={13} strokeWidth={3} />
-                                                    </div>
-                                                ) : isCurrent ? (
-                                                    <div className="w-6 h-6 rounded-full bg-[#ff4a1f] text-white flex items-center justify-center shadow-2xs">
-                                                        <Truck size={12} />
-                                                    </div>
-                                                ) : (
-                                                    <div className="w-6 h-6 rounded-full bg-white dark:bg-[#1e2329] border-2 border-slate-300 dark:border-slate-700" />
-                                                )}
-                                            </div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <p
-                                                    className={`text-xs sm:text-[13px] leading-snug ${
-                                                        isCurrent
-                                                            ? 'font-extrabold text-slate-900 dark:text-white'
-                                                            : isDone
-                                                            ? 'font-bold text-slate-900 dark:text-slate-100'
-                                                            : 'font-medium text-slate-400 dark:text-slate-500'
-                                                    }`}
-                                                >
-                                                    {step.title}
-                                                </p>
-                                                {step.time && (isDone || isCurrent) && (
-                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                                                        {step.time}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
+                    <UnifiedShipmentTimeline
+                        compact
+                        data={buildCustomerTimelineInput(order, fromCity, toCity)}
+                        className="flex-1 rounded-[4px]"
+                    />
                 </div>
             </div>
         </div>

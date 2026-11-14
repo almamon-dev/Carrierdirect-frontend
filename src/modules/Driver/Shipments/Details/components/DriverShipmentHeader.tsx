@@ -5,6 +5,7 @@ import { ShipmentItem } from '../../../types';
 import { ShipmentStatusBadge } from '../../components/ShipmentStatusBadge';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { requireDriverCompliance } from '../../../Compliance';
+import { isRelayLeg1HandoverCompleted } from '../utils/statusDisplayConfig';
 
 interface Props {
     shipment: ShipmentItem;
@@ -34,7 +35,7 @@ export const DriverShipmentHeader: React.FC<Props> = ({ shipment, onOpenGPS }) =
         }, 'Live GPS Navigation & Location Tracking');
     };
 
-    const isLeg1Done = Boolean(shipment.isRelay) && !Boolean(shipment.isDeliveryOnly) && (shipment.status === 'completed' || shipment.handover?.status === 'accepted');
+    const isLeg1Done = isRelayLeg1HandoverCompleted(shipment);
 
     return (
         <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 font-sans pb-1">

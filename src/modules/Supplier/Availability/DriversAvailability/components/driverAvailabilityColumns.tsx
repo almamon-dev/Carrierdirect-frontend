@@ -24,25 +24,10 @@ export function getDriverAvailabilityColumns({
 }: GetDriverColumnsProps): Column<DriverItem>[] {
     return [
         {
-            id: 'index',
-            label: '#',
-            className: 'w-[44px] min-w-[44px] text-slate-400 font-mono text-xs text-center',
-            render: (row, index) => (
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    {(index !== undefined ? index + 1 : (row as any).id) || 1}
-                </span>
-            ),
-            skeleton: () => (
-                <div className="flex items-center justify-center min-h-[26px]">
-                    <Skeleton className="h-3.5 w-4 rounded" />
-                </div>
-            ),
-        },
-        {
             id: 'name',
             label: 'Driver',
             sortable: true,
-            className: 'w-[16%] min-w-[150px]',
+            className: 'w-[18%] min-w-[160px]',
             render: (driver) => <DriverNameCell driver={driver} onNavigate={navigate} />,
             skeleton: () => (
                 <div className="flex items-center gap-2.5 min-h-[26px]">
@@ -55,7 +40,7 @@ export function getDriverAvailabilityColumns({
             id: 'contact',
             label: 'Contact',
             sortable: false,
-            className: 'w-[18%] min-w-[170px]',
+            className: 'w-[20%] min-w-[180px]',
             render: (driver) => <DriverContactCell driver={driver} />,
             skeleton: () => (
                 <div className="flex flex-col gap-1 min-h-[26px] justify-center">
@@ -68,7 +53,7 @@ export function getDriverAvailabilityColumns({
             id: 'assignedServiceArea',
             label: 'Assigned Areas',
             sortable: true,
-            className: 'w-[15%] min-w-[130px]',
+            className: 'w-[16%] min-w-[140px]',
             render: (driver) => (
                 <DriverAreaCell
                     driver={driver}
@@ -85,7 +70,7 @@ export function getDriverAvailabilityColumns({
             id: 'current_assignment',
             label: 'Current Assignment',
             sortable: false,
-            className: 'w-[25%] min-w-[210px]',
+            className: 'w-[24%] min-w-[210px]',
             render: (driver) => (
                 <DriverAssignmentCell
                     driver={driver}
@@ -102,7 +87,7 @@ export function getDriverAvailabilityColumns({
             id: 'duty_status',
             label: 'Duty Status',
             sortable: true,
-            className: 'w-[12%] min-w-[100px] text-center',
+            className: 'w-[11%] min-w-[100px] text-center',
             render: (driver) => <DriverDutyStatusCell driver={driver} />,
             skeleton: () => (
                 <div className="flex items-center justify-center min-h-[26px]">
@@ -114,7 +99,7 @@ export function getDriverAvailabilityColumns({
             id: 'job_status',
             label: 'Job Status',
             sortable: true,
-            className: 'w-[12%] min-w-[100px] text-center',
+            className: 'w-[11%] min-w-[100px] text-center',
             render: (driver) => <DriverJobStatusCell driver={driver} />,
             skeleton: () => (
                 <div className="flex items-center justify-center min-h-[26px]">

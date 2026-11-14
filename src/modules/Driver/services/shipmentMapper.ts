@@ -96,6 +96,7 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
         orderNumber,
         trackingNumber,
         status,
+        rawMilestoneStatus: raw.raw_milestone_status ? String(raw.raw_milestone_status).toLowerCase() : undefined,
         orderStatus: String(raw.order_status || raw.orderStatus || raw.status || '').toLowerCase(),
         priority: raw.priority || "Standard",
         pickup_address: pickupAddress,

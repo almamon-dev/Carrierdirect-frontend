@@ -30,8 +30,6 @@ export const DriverNameCell: React.FC<{
     const colorIdx = Math.abs((Number(driver.id) || displayName.charCodeAt(0) || 0) % AVATAR_PALETTE.length);
     const colorClass = AVATAR_PALETTE[colorIdx];
 
-    const empId = driver.employee_id || (driver.id ? `EMP-${String(driver.id).padStart(4, '0')}` : null);
-
     return (
         <div className="flex items-center gap-2.5 min-w-0">
             <div className={`w-8 h-8 rounded-full ${colorClass} flex items-center justify-center text-xs font-bold shrink-0 shadow-2xs`}>
@@ -45,11 +43,6 @@ export const DriverNameCell: React.FC<{
                 >
                     {displayName}
                 </span>
-                {empId && (
-                    <span className="text-[11px] text-slate-400 font-mono mt-0.5">
-                        {empId}
-                    </span>
-                )}
             </div>
         </div>
     );

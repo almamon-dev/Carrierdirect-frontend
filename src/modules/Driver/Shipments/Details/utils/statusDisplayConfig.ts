@@ -12,6 +12,52 @@ export interface StatusDisplayConfig {
     isActionDisabled?: boolean;
 }
 
+const PRE_HUB_LEG1_STATUSES: ReadonlyArray<string> = [
+    'assigned',
+    'accepted',
+    'at_pickup',
+    'picked_up',
+    'in_transit',
+];
+
+/** Returns true when a relay shipment's handover is actively pending Leg 2 acceptance. */
+export function isRelayHandoverPending(shipment: ShipmentItem): boolean {
+    if (!shipment.isRelay) return false;
+    const leg1Status = shipment.relayLegs?.find(l => l.leg_number === 1)?.status;
+    if (shipment.status === 'handover_pending' || leg1Status === 'handover_pending') {
+        return true;
+    }
+    const effectiveLeg1Status = leg1Status || shipment.status;
+    return (
+        shipment.handover?.status === 'pending_acceptance'
+        && (shipment.currentActiveLeg || 1) <= 1
+        && !PRE_HUB_LEG1_STATUSES.includes(effectiveLeg1Status)
+    );
+}
+
+/** Returns true only when the relay cargo handover has genuinely been accepted. */
+export function isRelayHandoverAccepted(shipment: ShipmentItem): boolean {
+    if (!shipment.isRelay) return false;
+    const activeLeg = shipment.currentActiveLeg || 1;
+    const leg1Status = shipment.relayLegs?.find(l => l.leg_number === 1)?.status;
+    if (activeLeg > 1 || shipment.status === 'handover_accepted' || leg1Status === 'completed') {
+        return true;
+    }
+    const effectiveLeg1Status = leg1Status || shipment.status;
+    return (
+        shipment.handover?.status === 'accepted'
+        && !PRE_HUB_LEG1_STATUSES.includes(effectiveLeg1Status)
+        && effectiveLeg1Status !== 'at_hub'
+    );
+}
+
+/** Returns true only when Leg 1 of a relay shipment has completed its handover to Leg 2. */
+export function isRelayLeg1HandoverCompleted(shipment: ShipmentItem): boolean {
+    if (!shipment.isRelay || shipment.isDeliveryOnly) return false;
+    if (shipment.status === 'completed') return true;
+    return isRelayHandoverAccepted(shipment);
+}
+
 export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
     const status: ShipmentStatus = shipment.status;
     const fromCity = shipment.shipper.city || 'Origin';
@@ -28,7 +74,7 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
     // 1. RELAY WORKFLOW – DRIVER 1 (Leg 1: Pickup to Hub)
     // ==========================================
     if (isRelay && !isLeg2) {
-        if ((handover && handover.status === 'accepted') || status === 'completed') {
+        if (isRelayLeg1HandoverCompleted(shipment)) {
             return {
                 label: 'Leg 1 Completed • Handed Over',
                 color: 'text-emerald-600 dark:text-emerald-400',
@@ -42,7 +88,7 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
             };
         }
 
-        if (handover && handover.status === 'pending_acceptance' || status === 'handover_pending') {
+        if (isRelayHandoverPending(shipment)) {
             return {
                 label: 'Handover Pending Acceptance',
                 color: 'text-violet-600 dark:text-violet-400',
@@ -161,7 +207,7 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
         }
 
         // Check if handover is pending acceptance from Driver 1
-        if (handover && handover.status === 'pending_acceptance' || status === 'handover_pending') {
+        if (isRelayHandoverPending(shipment)) {
             return {
                 label: 'Handover Ready at Hub',
                 color: 'text-amber-600 dark:text-amber-400',
@@ -175,8 +221,8 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
         }
 
         // Check if handover is already accepted, ready to roll
-        const isHandoverAccepted = handover?.status === 'accepted' || status === 'handover_accepted';
-        if (isHandoverAccepted && status !== 'in_transit') {
+        const handoverAccepted = isRelayHandoverAccepted(shipment);
+        if (handoverAccepted && status !== 'in_transit') {
             return {
                 label: 'Handover Accepted • Ready to Depart',
                 color: 'text-blue-600 dark:text-blue-400',
@@ -189,7 +235,7 @@ export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
             };
         }
 
-        if (status === 'in_transit' && (isHandoverAccepted || shipment.currentActiveLeg === 2)) {
+        if (status === 'in_transit' && handoverAccepted) {
             return {
                 label: 'In Transit to Destination',
                 color: 'text-[#FF4A1F]',
