@@ -119,6 +119,7 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
             zip: raw.pickup?.zip || raw.shipper?.zip || "",
             country: raw.pickup?.country || raw.pickup_country || raw.shipper?.country || "",
             date: pickupDate,
+            raw_date: raw.pickup?.raw_date || raw.pickup_date || "",
             time: pickupTimeWindow,
         },
         delivery: {

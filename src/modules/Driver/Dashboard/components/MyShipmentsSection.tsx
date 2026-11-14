@@ -52,21 +52,47 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
         return isNaN(parsed.getTime()) ? null : parsed;
     };
 
-    // Filter shipments into Today, Tomorrow, Upcoming (matching Flutter Driver App filtering logic)
+    // Filter shipments into Today, Tomorrow, Upcoming (matching Driver App schedule filtering)
     const todayShipments = allShipments.filter((item) => {
+        const s = (item.status || '').toLowerCase();
+        // Exclude delivered, completed, cancelled, rejected orders from active dispatch tabs
+        if (['delivered', 'completed', 'pod_uploaded', 'cancelled', 'rejected'].includes(s)) {
+            return false;
+        }
+
         const d = parseDate(item);
         if (d && isSameDate(d, now)) return true;
         const dateStr = `${item.shipper?.pickupDate || ''} ${(item as any).date || ''}`.toLowerCase();
         if (dateStr.includes('today')) return true;
+
         // In-progress driving trips are actively underway, so they are always in Today
-        const s = (item.status || '').toLowerCase();
         if (['in_transit', 'picked_up', 'at_pickup', 'at_delivery', 'in_progress', 'active'].includes(s)) {
             return true;
         }
+
+        // Active/assigned shipments that are due today or overdue (scheduled for today or earlier)
+        if (['driver_assigned', 'assigned', 'scheduled', 'pending', 'confirmed'].includes(s)) {
+            if (d) {
+                const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                if (d <= endOfToday) return true;
+            } else {
+                // If date is unparseable but status is active/assigned, keep in Today so driver sees assignment
+                return true;
+            }
+        }
+
         return false;
     });
 
     const tomorrowShipments = allShipments.filter((item) => {
+        const s = (item.status || '').toLowerCase();
+        if (['delivered', 'completed', 'pod_uploaded', 'cancelled', 'rejected'].includes(s)) {
+            return false;
+        }
+
+        // Exclude items already categorized into Today
+        if (todayShipments.some((t) => t.id === item.id)) return false;
+
         const d = parseDate(item);
         if (d && isSameDate(d, tomorrow)) return true;
         const dateStr = `${item.shipper?.pickupDate || ''} ${(item as any).date || ''}`.toLowerCase();
@@ -88,24 +114,15 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
 
         const d = parseDate(item);
         if (d) {
-            const tomorrowEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 59);
-            if (d > tomorrowEnd) return true;
+            const endOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 59);
+            if (d > endOfTomorrow) return true;
         }
-        // Scheduled/assigned loads that haven't started transit yet belong to Upcoming
+        // Scheduled/assigned loads with future dates
         if (['driver_assigned', 'assigned', 'scheduled', 'pending', 'confirmed'].includes(s)) {
             return true;
         }
         return false;
     });
-
-    // Auto switch to Tomorrow or Upcoming if Today has 0 items but another tab has shipments
-    React.useEffect(() => {
-        if (todayShipments.length === 0 && tomorrowShipments.length > 0 && activeTab === 0) {
-            setActiveTab(1);
-        } else if (todayShipments.length === 0 && tomorrowShipments.length === 0 && upcomingShipments.length > 0 && activeTab === 0) {
-            setActiveTab(2);
-        }
-    }, [todayShipments.length, tomorrowShipments.length, upcomingShipments.length, activeTab]);
 
     // Effective list for current tab
     let currentList: ShipmentItem[] = [];
