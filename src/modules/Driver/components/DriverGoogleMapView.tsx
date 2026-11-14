@@ -937,6 +937,8 @@ export const DriverGoogleMapView: React.FC<DriverGoogleMapViewProps> = ({
                     width: 100% !important;
                     height: 100% !important;
                     background-color: #e5e7eb !important;
+                    z-index: 0 !important;
+                    isolation: isolate !important;
                 }
                 .leaflet-container img.leaflet-tile {
                     max-width: none !important;
@@ -947,13 +949,13 @@ export const DriverGoogleMapView: React.FC<DriverGoogleMapViewProps> = ({
             {/* Embedded Google Map Frame */}
             <div
                 style={!isFullHeight ? { height: explicitHeight, minHeight: explicitHeight } : undefined}
-                className={`w-full relative ${borderless ? 'overflow-hidden' : 'rounded-[5px] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs'} bg-slate-100 dark:bg-slate-900 ${isFullHeight ? 'h-full flex-1' : ''
+                className={`w-full relative isolate z-0 ${borderless ? 'overflow-hidden' : 'rounded-[5px] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs'} bg-slate-100 dark:bg-slate-900 ${isFullHeight ? 'h-full flex-1' : ''
                     }`}
             >
                 {/* 1. Leaflet Map Element */}
                 <div
                     ref={mapContainerRef}
-                    className="w-full h-full absolute inset-0"
+                    className="w-full h-full absolute inset-0 isolate z-0"
                 />
 
                 {/* 2. Modern Map Skeleton Placeholder (NO circular spinner/procession) */}

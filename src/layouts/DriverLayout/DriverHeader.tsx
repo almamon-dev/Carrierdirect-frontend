@@ -51,7 +51,7 @@ export const DriverHeader: React.FC<DriverHeaderProps> = ({
 }) => {
     return (
         <header
-            className={`h-16 bg-white dark:bg-[#12161c] flex items-center justify-between px-4 sm:px-6 z-40 relative shrink-0 transition-all duration-300 ${
+            className={`h-16 bg-white dark:bg-[#12161c] flex items-center justify-between px-4 sm:px-6 z-50 relative shrink-0 transition-all duration-300 ${
                 isScrolled
                     ? 'border-b border-slate-200 dark:border-slate-800 shadow-sm'
                     : 'border-b border-transparent shadow-none'

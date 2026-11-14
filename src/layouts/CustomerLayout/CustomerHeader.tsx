@@ -37,7 +37,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
     initials
 }) => {
     return (
-        <header className="h-16 bg-white/95 dark:bg-[#12161c]/95 backdrop-blur-xs border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between px-4 sm:px-5 z-30 shrink-0 transition-colors">
+        <header className="h-16 bg-white/95 dark:bg-[#12161c]/95 backdrop-blur-xs border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between px-4 sm:px-5 z-50 relative shrink-0 transition-colors">
             <div className="flex items-center gap-3 sm:gap-3.5">
                 <button
                     type="button"

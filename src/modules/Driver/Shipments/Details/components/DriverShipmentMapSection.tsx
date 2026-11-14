@@ -164,7 +164,7 @@ export const DriverShipmentMapSection: React.FC<Props> = ({ shipment }) => {
             </div>
 
             {/* Google Map View with Custom Markers, Real Highway Polyline, Clean Route Selector, and Rounded Navigation CTA */}
-            <div className="w-full relative bg-slate-50 dark:bg-[#15191e] p-2 sm:p-2.5">
+            <div className="w-full relative bg-slate-50 dark:bg-[#15191e] p-2 sm:p-2.5 isolate z-0">
                 <DriverGoogleMapView
                     originCoords={originCoords}
                     destCoords={destCoords}

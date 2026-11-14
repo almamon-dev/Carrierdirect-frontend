@@ -159,7 +159,7 @@ export default function DriverLayout() {
         <div className="flex h-screen bg-[#f8fafc] dark:bg-[#12161c] overflow-hidden">
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-20 lg:hidden"
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[55] lg:hidden"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
