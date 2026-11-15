@@ -1,32 +1,22 @@
-import React, { useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
+import FormLabel from '@/components/ui/label';
 import Select from '@/components/ui/select';
 import { SelectOption } from '@/components/ui/select/selectTypes';
-import FormLabel from '@/components/ui/label';
 import Switch from '@/components/ui/switch';
 import {
-    UserCheck,
-    Truck,
-    Phone,
-    User,
-    Mail,
-    X,
-    Loader2,
-    ShieldCheck,
-    Building2,
-    Route,
     ArrowRight,
-    Split,
-    Euro,
+    Building2,
     CheckCircle2,
-    Plus,
-    Trash2,
-    TrendingUp,
-    AlertCircle
+    Loader2,
+    Route,
+    Truck,
+    User,
+    UserCheck,
+    X,
 } from 'lucide-react';
-import { useAssignDriverModal, AssignDriverData } from '../hooks/useAssignDriverModal';
+import React, { useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { AssignDriverData, useAssignDriverModal } from '../hooks/useAssignDriverModal';
 
 interface AssignDriverModalProps {
     isOpen: boolean;
@@ -202,11 +192,11 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
             } else {
                 subtitle = d.disqualification_reason || (
                     isBlocked ? 'Account blocked' :
-                    isDisabled ? 'Account disabled' :
-                    isOnJob ? `Assigned to ${d.active_assignment?.order_number || 'another order'}` :
-                    isOnBreak ? 'Driver is on break' :
-                    isOffline ? 'Driver is offline' :
-                    'Not eligible for dispatch'
+                        isDisabled ? 'Account disabled' :
+                            isOnJob ? `Assigned to ${d.active_assignment?.order_number || 'another order'}` :
+                                isOnBreak ? 'Driver is on break' :
+                                    isOffline ? 'Driver is offline' :
+                                        'Not eligible for dispatch'
                 );
             }
 
@@ -218,6 +208,14 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                 badgeColor,
                 disabled: !isEligible,
             };
+        });
+
+        opts.unshift({
+            id: 'pending',
+            name: '⏳ Awaiting Driver Assignment (Assign Later)',
+            subtitle: 'Dispatch Leg 1 now and assign final delivery driver later',
+            badge: 'Pending',
+            badgeColor: 'warning',
         });
 
         opts.unshift({
@@ -233,9 +231,8 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
 
     return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 md:p-4 animate-in fade-in duration-150 font-sans">
-            <div className={`bg-white dark:bg-[#1e2329] rounded-[8px] w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 max-h-[94vh] overflow-y-auto ${
-                isRelay ? 'max-w-4xl' : 'max-w-xl'
-            }`}>
+            <div className={`bg-white dark:bg-[#1e2329] rounded-[8px] w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 max-h-[94vh] overflow-y-auto ${isRelay ? 'max-w-4xl' : 'max-w-xl'
+                }`}>
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-5 pt-4 pb-3 sticky top-0 bg-white dark:bg-[#1e2329] z-10">
                     <div className="flex items-center gap-2.5">
@@ -284,11 +281,10 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                     <button
                                         type="button"
                                         onClick={() => setDriverType('internal')}
-                                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${
-                                            driverType === 'internal'
+                                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${driverType === 'internal'
                                                 ? 'text-[#ff4a1f]'
                                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                                        }`}
+                                            }`}
                                     >
                                         <Truck size={12} />
                                         <span>In-House Driver</span>
@@ -304,11 +300,10 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                     <button
                                         type="button"
                                         onClick={() => setDriverType('subcontractor')}
-                                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${
-                                            driverType === 'subcontractor'
+                                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${driverType === 'subcontractor'
                                                 ? 'text-[#ff4a1f]'
                                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                                        }`}
+                                            }`}
                                     >
                                         <Building2 size={12} />
                                         <span>Subcontractor</span>
@@ -622,11 +617,10 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => setDriverType('internal')}
-                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${
-                                                    driverType === 'internal'
+                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${driverType === 'internal'
                                                         ? 'text-[#ff4a1f]'
                                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
-                                                }`}
+                                                    }`}
                                             >
                                                 <Truck size={11} />
                                                 <span>In-House</span>
@@ -640,11 +634,10 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => setDriverType('subcontractor')}
-                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${
-                                                    driverType === 'subcontractor'
+                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${driverType === 'subcontractor'
                                                         ? 'text-[#ff4a1f]'
                                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
-                                                }`}
+                                                    }`}
                                             >
                                                 <Building2 size={11} />
                                                 <span>Subcontractor</span>
@@ -744,11 +737,10 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => setLeg2DriverType('internal')}
-                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${
-                                                    leg2DriverType === 'internal'
+                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${leg2DriverType === 'internal'
                                                         ? 'text-[#ff4a1f]'
                                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
-                                                }`}
+                                                    }`}
                                             >
                                                 <Truck size={11} />
                                                 <span>In-House</span>
@@ -762,11 +754,10 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={() => setLeg2DriverType('subcontractor')}
-                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${
-                                                    leg2DriverType === 'subcontractor'
+                                                className={`flex items-center gap-1 text-[10.5px] font-bold transition-colors cursor-pointer ${leg2DriverType === 'subcontractor'
                                                         ? 'text-[#ff4a1f]'
                                                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
-                                                }`}
+                                                    }`}
                                             >
                                                 <Building2 size={11} />
                                                 <span>Subcontractor</span>
@@ -816,41 +807,50 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                                         required
                                     />
 
-                                    <div className="grid grid-cols-2 gap-1.5">
-                                        <Input
-                                            type="text"
-                                            value={leg2DriverName}
-                                            onChange={(e) => setLeg2DriverName(e.target.value)}
-                                            placeholder="Leg 2 Driver"
-                                            required
-                                        />
-                                        <Input
-                                            type="text"
-                                            value={leg2DriverPhone}
-                                            onChange={(e) => setLeg2DriverPhone(e.target.value)}
-                                            placeholder="Leg 2 Phone"
-                                            required
-                                        />
-                                    </div>
+                                    {(() => {
+                                        const isLeg2Pending = leg2SelectedTeamMember === 'pending' || leg2DriverName.toLowerCase().includes('awaiting');
+                                        return (
+                                            <>
+                                                <div className="grid grid-cols-2 gap-1.5">
+                                                    <Input
+                                                        type="text"
+                                                        value={leg2DriverName}
+                                                        onChange={(e) => setLeg2DriverName(e.target.value)}
+                                                        placeholder="Leg 2 Driver"
+                                                        required={!isLeg2Pending}
+                                                        readOnly={isLeg2Pending}
+                                                        className={isLeg2Pending ? 'bg-amber-50/60 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300 font-semibold' : ''}
+                                                    />
+                                                    <Input
+                                                        type="text"
+                                                        value={leg2DriverPhone}
+                                                        onChange={(e) => setLeg2DriverPhone(e.target.value)}
+                                                        placeholder={isLeg2Pending ? 'Phone (Optional)' : 'Leg 2 Phone'}
+                                                        required={!isLeg2Pending}
+                                                    />
+                                                </div>
 
-                                    <div className={`grid ${leg2DriverType === 'subcontractor' ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5`}>
-                                        <Input
-                                            type="text"
-                                            value={leg2VehiclePlate}
-                                            onChange={(e) => setLeg2VehiclePlate(e.target.value)}
-                                            placeholder="Leg 2 Truck Plate (Optional)"
-                                            className="font-mono font-bold"
-                                        />
-                                        {leg2DriverType === 'subcontractor' && (
-                                            <Input
-                                                type="number"
-                                                value={leg2Cost}
-                                                onChange={(e) => setLeg2Cost(e.target.value)}
-                                                placeholder="Leg 2 Cost (€)"
-                                                required
-                                            />
-                                        )}
-                                    </div>
+                                                <div className={`grid ${leg2DriverType === 'subcontractor' ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5`}>
+                                                    <Input
+                                                        type="text"
+                                                        value={leg2VehiclePlate}
+                                                        onChange={(e) => setLeg2VehiclePlate(e.target.value)}
+                                                        placeholder="Leg 2 Truck Plate (Optional)"
+                                                        className="font-mono font-bold"
+                                                    />
+                                                    {leg2DriverType === 'subcontractor' && (
+                                                        <Input
+                                                            type="number"
+                                                            value={leg2Cost}
+                                                            onChange={(e) => setLeg2Cost(e.target.value)}
+                                                            placeholder="Leg 2 Cost (€)"
+                                                            required={!isLeg2Pending}
+                                                        />
+                                                    )}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 

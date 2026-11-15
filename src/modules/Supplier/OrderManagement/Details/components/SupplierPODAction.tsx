@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, CheckCircle2, Upload, Eye, UserPlus, RefreshCw, Truck } from 'lucide-react';
+import { FileText, CheckCircle2, Upload, Eye, UserPlus, RefreshCw, Truck, AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { NormalizedSupplierOrder } from '../utils/supplierOrderTrackUtils';
 import SupplierPODDocModal from './SupplierPODDocModal';
@@ -56,6 +56,47 @@ export const SupplierPODAction: React.FC<SupplierPODActionProps> = ({
                     >
                         <Eye size={12} /><span>View Verified POD</span>
                     </Button>
+                </SupplierPODStateCard>
+                {isOpenPreviewModal && <SupplierPODDocModal order={order} onClose={() => setIsOpenPreviewModal(false)} />}
+            </>
+        );
+    }
+
+    // State 1.5: POD Rejected / Replacement Requested by Customer
+    const isPodRejected = order.podStatus === 'Rejected' || Boolean(order.pod_replacement_requested);
+    if (isPodRejected) {
+        return (
+            <>
+                <SupplierPODStateCard
+                    bgColor="bg-rose-50/80 dark:bg-rose-950/30" borderColor="border-rose-200 dark:border-rose-800/80"
+                    iconBg="bg-rose-100 dark:bg-rose-900/50" iconColor="text-rose-600 dark:text-rose-400"
+                    icon={<AlertTriangle size={15} />} title="Replacement POD Requested" titleColor="text-rose-900 dark:text-rose-300"
+                    description="The customer rejected the previous delivery note. Review reason and submit a replacement POD to release escrow payout."
+                    descColor="text-rose-800/90 dark:text-rose-400"
+                    badge={<span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shrink-0">Replacement Needed</span>}
+                >
+                    {order.pod_rejection_reason && (
+                        <div className="p-2 mb-2 rounded bg-white/80 dark:bg-[#12161c]/80 border border-rose-200 dark:border-rose-900/60 text-[11px] text-rose-900 dark:text-rose-200">
+                            <span className="font-semibold text-rose-700 dark:text-rose-400">Customer feedback: </span>
+                            <span>{order.pod_rejection_reason}</span>
+                        </div>
+                    )}
+                    <div className="flex items-center gap-2 pt-1">
+                        {order.podFileUrl && (
+                            <Button
+                                variant="outline" size="sm" onClick={() => setIsOpenPreviewModal(true)}
+                                className="flex-1 h-8 text-xs font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 bg-white dark:bg-[#1e2329] cursor-pointer flex items-center justify-center gap-1.5"
+                            >
+                                <Eye size={12} /><span>View Prior POD</span>
+                            </Button>
+                        )}
+                        <Button
+                            variant="primary" size="sm" onClick={triggerUpload}
+                            className="flex-1 h-8 text-xs font-bold bg-[#ff4a1f] hover:bg-[#e03e15] text-white cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                        >
+                            <Upload size={12} /><span>Upload Replacement POD</span>
+                        </Button>
+                    </div>
                 </SupplierPODStateCard>
                 {isOpenPreviewModal && <SupplierPODDocModal order={order} onClose={() => setIsOpenPreviewModal(false)} />}
             </>

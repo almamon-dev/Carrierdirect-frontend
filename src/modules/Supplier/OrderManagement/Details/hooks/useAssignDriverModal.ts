@@ -392,7 +392,12 @@ export const useAssignDriverModal = ({
 
     const handleLeg2TeamMemberChange = (memberId: string) => {
         setLeg2SelectedTeamMember(memberId);
-        if (memberId === 'custom') {
+        if (memberId === 'pending') {
+            setLeg2DriverName('Awaiting Driver Assignment');
+            setLeg2DriverPhone('');
+            setLeg2DriverEmail('');
+            setLeg2VehiclePlate('Pending Assignment');
+        } else if (memberId === 'custom') {
             setLeg2DriverName('');
             setLeg2DriverPhone('');
             setLeg2DriverEmail('');
@@ -453,17 +458,18 @@ export const useAssignDriverModal = ({
                 cost: driverType === 'subcontractor' && subcontractorCost ? parseFloat(subcontractorCost) : undefined,
             });
 
+            const isLeg2Pending = leg2SelectedTeamMember === 'pending' || leg2DriverName.toLowerCase().includes('awaiting');
             allLegs.push({
                 leg_number: 2,
                 title: 'Leg 2 (Intermediate Handover)',
-                driver_type: leg2DriverType,
-                subcontractor_company: leg2DriverType === 'subcontractor' ? leg2SubcontractorCompany : undefined,
-                subcontractor_id: leg2DriverType === 'subcontractor' && leg2SelectedSubcontractorId !== 'custom' ? leg2SelectedSubcontractorId : undefined,
+                driver_type: isLeg2Pending ? 'pending' : leg2DriverType,
+                subcontractor_company: (!isLeg2Pending && leg2DriverType === 'subcontractor') ? leg2SubcontractorCompany : undefined,
+                subcontractor_id: (!isLeg2Pending && leg2DriverType === 'subcontractor' && leg2SelectedSubcontractorId !== 'custom') ? leg2SelectedSubcontractorId : undefined,
                 journey_leg: effectiveLeg2Route,
-                driver_name: leg2DriverName.trim() || '-',
-                driver_phone: leg2DriverPhone.trim(),
-                driver_email: leg2DriverEmail.trim(),
-                vehicle_plate: leg2VehiclePlate.trim() || 'GB-24-TRK',
+                driver_name: isLeg2Pending ? 'Awaiting Driver Assignment' : (leg2DriverName.trim() || '-'),
+                driver_phone: isLeg2Pending ? '' : leg2DriverPhone.trim(),
+                driver_email: isLeg2Pending ? '' : leg2DriverEmail.trim(),
+                vehicle_plate: isLeg2Pending ? '' : (leg2VehiclePlate.trim() || 'GB-24-TRK'),
                 vehicle_type: leg2VehicleType,
                 cost: leg2Cost ? parseFloat(leg2Cost) : undefined,
             });

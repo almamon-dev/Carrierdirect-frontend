@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Check, ShieldCheck, Clock, ExternalLink } from 'lucide-react';
+import { FileText, Check, ShieldCheck, Clock, ExternalLink, AlertTriangle, AlertCircle } from 'lucide-react';
 import Button from '@/components/ui/button';
 import { NormalizedCustomerOrder } from '../utils/customerOrderDetailsUtils';
 import CustomerOrderPODReviewModal from './CustomerOrderPODReviewModal';
@@ -7,11 +7,13 @@ import CustomerOrderPODReviewModal from './CustomerOrderPODReviewModal';
 interface CustomerOrderPODActionProps {
     order: NormalizedCustomerOrder;
     onApprovePOD: () => Promise<void>;
+    onRejectPOD?: (reason: string) => Promise<void>;
 }
 
 export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
     order,
     onApprovePOD,
+    onRejectPOD,
 }) => {
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,6 +25,19 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
             setIsOpenModal(false);
         } catch (err) {
             console.error('Failed to approve POD:', err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleReject = async (reason: string) => {
+        if (!onRejectPOD) return;
+        setIsSubmitting(true);
+        try {
+            await onRejectPOD(reason);
+            setIsOpenModal(false);
+        } catch (err) {
+            console.error('Failed to reject POD:', err);
         } finally {
             setIsSubmitting(false);
         }
@@ -67,7 +82,51 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
         );
     }
 
-    // State 2: POD Uploaded & Ready for Customer Review/Approval
+    // State 2: POD Rejected / Replacement Requested
+    if (order.pod.isRejected || order.pod.replacementRequested) {
+        return (
+            <div className="bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/80 rounded-[4px] p-3 sm:p-3.5 shadow-2xs font-sans">
+                <div className="flex items-start gap-2.5 text-rose-800 dark:text-rose-300">
+                    <AlertTriangle size={17} className="text-rose-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-xs sm:text-[13px] font-bold leading-tight">
+                                Proof of Delivery Rejected • Replacement Requested
+                            </h4>
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded">
+                                On Hold
+                            </span>
+                        </div>
+                        <p className="text-[11px] text-rose-700 dark:text-rose-400 leading-snug">
+                            You requested a replacement Proof of Delivery from the carrier. Escrow payout remains safely held until a valid replacement is approved.
+                        </p>
+                        {order.pod.rejectionReason && (
+                            <div className="p-2 rounded bg-white/70 dark:bg-[#12161c]/70 border border-rose-200/80 dark:border-rose-900/60 text-[11px] text-rose-900 dark:text-rose-200">
+                                <span className="font-semibold text-rose-700 dark:text-rose-400">Reason reported: </span>
+                                <span>{order.pod.rejectionReason}</span>
+                            </div>
+                        )}
+                        {order.pod.fileUrl && (
+                            <div className="pt-0.5">
+                                <a
+                                    href={order.pod.fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 dark:text-rose-400 hover:underline"
+                                >
+                                    <FileText size={11} />
+                                    <span>View Previously Uploaded Document</span>
+                                    <ExternalLink size={10} />
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // State 3: POD Uploaded & Ready for Customer Review/Approval
     if (order.pod.isAvailable) {
         const uploadedAt = order.pod.uploadedAt || '';
 
@@ -122,12 +181,13 @@ export const CustomerOrderPODAction: React.FC<CustomerOrderPODActionProps> = ({
                     isSubmitting={isSubmitting}
                     onClose={() => setIsOpenModal(false)}
                     onAccept={handleAccept}
+                    onReject={handleReject}
                 />
             </>
         );
     }
 
-    // State 3: Pending Carrier Delivery
+    // State 4: Pending Carrier Delivery
     return (
         <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3 shadow-2xs font-sans">
             <div className="flex items-start gap-2.5 text-slate-600 dark:text-slate-400">

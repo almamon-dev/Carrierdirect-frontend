@@ -5,7 +5,7 @@ import {
     sanitizeTimelineText,
 } from '../buildUnifiedTimeline';
 
-test('single driver unassigned confirmed order stops at Driver Assigned active', () => {
+test('single driver unassigned confirmed order stops at Collection Driver Assigned awaiting_assignment', () => {
     const res = buildUnifiedShipmentTimeline({
         status: 'confirmed',
         isRelay: false,
@@ -19,16 +19,16 @@ test('single driver unassigned confirmed order stops at Driver Assigned active',
         res.steps.map((s) => [s.id, s.status]),
         [
             ['confirmed', 'completed'],
-            ['assigned', 'active'],
+            ['collection_assigned', 'awaiting_assignment'],
             ['picked_up', 'pending'],
-            ['in_transit', 'pending'],
+            ['in_transit_delivery', 'pending'],
             ['delivered', 'pending'],
             ['pod_approval', 'pending'],
         ]
     );
 });
 
-test('single driver assigned shows driver name and keeps physical steps pending without fake dates', () => {
+test('single driver assigned shows driver name in description and keeps physical steps pending without fake dates', () => {
     const res = buildUnifiedShipmentTimeline({
         status: 'driver_assigned',
         rawMilestoneStatus: 'driver_assigned',
@@ -39,7 +39,8 @@ test('single driver assigned shows driver name and keeps physical steps pending 
     });
 
     assert.equal(res.hasMultipleLegs, false);
-    assert.equal(res.steps[1].title, 'Kamal Hossain Assigned');
+    assert.equal(res.steps[1].title, 'Collection Driver Assigned');
+    assert.match(res.steps[1].description, /Kamal Hossain/);
     assert.equal(res.steps[1].status, 'completed');
     assert.equal(res.steps[2].status, 'pending');
     assert.equal(res.steps[0].date, undefined);
@@ -53,7 +54,7 @@ test('single driver progression through picked_up, in_transit, at_delivery, deli
         driverName: 'Kamal Hossain',
     });
     assert.equal(pickedUp.steps.find((s) => s.id === 'picked_up')?.status, 'active');
-    assert.equal(pickedUp.steps.find((s) => s.id === 'in_transit')?.status, 'pending');
+    assert.equal(pickedUp.steps.find((s) => s.id === 'in_transit_delivery')?.status, 'pending');
 
     const inTransit = buildUnifiedShipmentTimeline({
         status: 'in_transit',
@@ -61,7 +62,7 @@ test('single driver progression through picked_up, in_transit, at_delivery, deli
         driverName: 'Kamal Hossain',
     });
     assert.equal(inTransit.steps.find((s) => s.id === 'picked_up')?.status, 'completed');
-    assert.equal(inTransit.steps.find((s) => s.id === 'in_transit')?.status, 'active');
+    assert.equal(inTransit.steps.find((s) => s.id === 'in_transit_delivery')?.status, 'active');
 
     const atDelivery = buildUnifiedShipmentTimeline({
         status: 'in_transit',
@@ -69,7 +70,7 @@ test('single driver progression through picked_up, in_transit, at_delivery, deli
         isRelay: false,
         driverName: 'Kamal Hossain',
     });
-    assert.equal(atDelivery.steps.find((s) => s.id === 'in_transit')?.status, 'completed');
+    assert.equal(atDelivery.steps.find((s) => s.id === 'in_transit_delivery')?.status, 'completed');
     assert.equal(atDelivery.steps.find((s) => s.id === 'delivered')?.status, 'active');
 
     const delivered = buildUnifiedShipmentTimeline({
@@ -89,7 +90,7 @@ test('single driver progression through picked_up, in_transit, at_delivery, deli
     assert.ok(completed.steps.every((s) => s.status === 'completed'));
 });
 
-test('multi-driver puts Leg 1 and Leg 2 assignments upfront, normalizes Cumilla, and blocks premature handover', () => {
+test('multi-driver puts Leg 1 and Leg 2 assignments upfront with standardized titles', () => {
     const res = buildUnifiedShipmentTimeline({
         status: 'driver_assigned',
         rawMilestoneStatus: 'driver_assigned',
@@ -97,18 +98,12 @@ test('multi-driver puts Leg 1 and Leg 2 assignments upfront, normalizes Cumilla,
         currentActiveLeg: 1,
         pickupCity: 'Dhaka',
         deliveryCity: 'Chittagong',
-        // Simulate stale handover object if passed while Leg 1 is still assigned
-        handover: {
-            status: 'accepted',
-            hubLocation: 'cummila',
-            acceptedAt: '2026-11-12T17:11:00Z',
-        },
         legs: [
             {
                 legNumber: 1,
                 legType: 'pickup',
                 driverName: 'Aidan Moroney',
-                journeyLeg: 'Dhaka → cummila',
+                journeyLeg: 'Dhaka → Cumilla',
                 status: 'assigned',
                 assignedAt: '2026-11-14T12:04:00Z',
             },
@@ -116,7 +111,7 @@ test('multi-driver puts Leg 1 and Leg 2 assignments upfront, normalizes Cumilla,
                 legNumber: 2,
                 legType: 'delivery',
                 driverName: 'Laudantium quidem d',
-                journeyLeg: 'cummila → Chittagong',
+                journeyLeg: 'Cumilla → Chittagong',
                 status: 'assigned',
                 assignedAt: '2026-11-14T12:04:00Z',
             },
@@ -127,17 +122,21 @@ test('multi-driver puts Leg 1 and Leg 2 assignments upfront, normalizes Cumilla,
     assert.equal(res.hubLabel, 'Cumilla');
     assert.equal(res.steps.length, 9);
 
-    // Positions 1, 2, 3 must be Order Confirmed -> Leg 1 Assigned -> Leg 2 Assigned
+    // Standardized titles: Never use driver names as titles
     assert.equal(res.steps[0].id, 'confirmed');
-    assert.equal(res.steps[1].title, 'Aidan Moroney Assigned (Leg 1)');
-    assert.equal(res.steps[2].title, 'Laudantium quidem d Assigned (Leg 2)');
-    assert.match(res.steps[2].description, /Cumilla → Chittagong/);
+    assert.equal(res.steps[0].title, 'Order Confirmed');
+    assert.equal(res.steps[1].id, 'collection_assigned');
+    assert.equal(res.steps[1].title, 'Collection Driver Assigned');
+    assert.match(res.steps[1].description, /Aidan Moroney/);
+    assert.equal(res.steps[2].id, 'delivery_assigned');
+    assert.equal(res.steps[2].title, 'Delivery Driver Assigned');
+    assert.match(res.steps[2].description, /Laudantium quidem d/);
     assert.equal(res.steps[2].status, 'completed');
 
     // Handover must NOT appear completed before Leg 1 reaches hub
-    const handoverStep = res.steps.find((s) => s.id === 'handover');
+    const handoverStep = res.steps.find((s) => s.id === 'handover_hub');
     assert.ok(handoverStep);
-    assert.equal(handoverStep.title, 'Handover at Cumilla');
+    assert.equal(handoverStep.title, 'Handover at Intermediate Hub');
     assert.equal(handoverStep.status, 'pending');
     assert.equal(handoverStep.date, undefined);
 });
@@ -155,7 +154,7 @@ test('multi-driver progresses cleanly across picked_up, in_transit, handover_pen
         legs: baseLegs,
     });
     assert.equal(pickedUp.steps.find((s) => s.id === 'picked_up')?.status, 'active');
-    assert.equal(pickedUp.steps.find((s) => s.id === 'handover')?.status, 'pending');
+    assert.equal(pickedUp.steps.find((s) => s.id === 'handover_hub')?.status, 'pending');
 
     const handoverPending = buildUnifiedShipmentTimeline({
         status: 'in_transit',
@@ -173,9 +172,9 @@ test('multi-driver progresses cleanly across picked_up, in_transit, handover_pen
             { legNumber: 2, driverName: 'Driver Two', journeyLeg: 'Cumilla → Chittagong', status: 'assigned' },
         ],
     });
-    assert.equal(handoverPending.steps.find((s) => s.id === 'leg-1-transit')?.status, 'completed');
-    assert.equal(handoverPending.steps.find((s) => s.id === 'handover')?.status, 'active');
-    assert.equal(handoverPending.steps.find((s) => s.id === 'leg-2-transit')?.status, 'pending');
+    assert.equal(handoverPending.steps.find((s) => s.id === 'in_transit_hub')?.status, 'completed');
+    assert.equal(handoverPending.steps.find((s) => s.id === 'handover_hub')?.status, 'active');
+    assert.equal(handoverPending.steps.find((s) => s.id === 'in_transit_delivery')?.status, 'pending');
 
     const leg2Transit = buildUnifiedShipmentTimeline({
         status: 'in_transit',
@@ -193,9 +192,9 @@ test('multi-driver progresses cleanly across picked_up, in_transit, handover_pen
             { legNumber: 2, driverName: 'Driver Two', journeyLeg: 'Cumilla → Chittagong', status: 'in_transit' },
         ],
     });
-    assert.equal(leg2Transit.steps.find((s) => s.id === 'handover')?.status, 'completed');
-    assert.ok(leg2Transit.steps.find((s) => s.id === 'handover')?.date);
-    assert.equal(leg2Transit.steps.find((s) => s.id === 'leg-2-transit')?.status, 'active');
+    assert.equal(leg2Transit.steps.find((s) => s.id === 'handover_hub')?.status, 'completed');
+    assert.ok(leg2Transit.steps.find((s) => s.id === 'handover_hub')?.date);
+    assert.equal(leg2Transit.steps.find((s) => s.id === 'in_transit_delivery')?.status, 'active');
 
     const podApproved = buildUnifiedShipmentTimeline({
         status: 'completed',

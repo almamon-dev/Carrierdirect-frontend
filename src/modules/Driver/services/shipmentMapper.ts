@@ -109,6 +109,8 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
         delivery_state: raw.delivery?.state || raw.delivery_state || raw.consignee?.state || "",
         pickup_zip: raw.pickup?.zip || raw.pickup_zip || raw.shipper?.zip || "",
         delivery_zip: raw.delivery?.zip || raw.delivery_zip || raw.consignee?.zip || "",
+        pickup_date: raw.pickup_date || raw.pickup?.raw_date || "",
+        delivery_date: raw.delivery_date || raw.delivery?.raw_date || "",
         pickupAddress: pickupAddress,
         deliveryAddress: deliveryAddress,
         from: pickupAddress,
@@ -130,6 +132,7 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
             zip: raw.delivery?.zip || raw.consignee?.zip || "",
             country: raw.delivery?.country || raw.delivery_country || raw.consignee?.country || "",
             date: deliveryDate,
+            raw_date: raw.delivery?.raw_date || raw.delivery_date || "",
             time: deliveryTimeWindow,
         },
         shipper: {

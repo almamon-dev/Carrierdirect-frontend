@@ -62,7 +62,12 @@ export function buildCustomerTimelineInput(
     return {
         status: order.rawStatus,
         rawMilestoneStatus: order.rawMilestoneStatus || order.rawStatus,
-        podStatus: order.pod?.isAccepted ? 'confirmed' : order.pod?.isAvailable ? 'pending' : undefined,
+        podStatus: order.pod?.status || (order.pod?.isAccepted ? 'confirmed' : order.pod?.isRejected ? 'rejected' : order.pod?.isAvailable ? 'pending' : undefined),
+        podAcceptedAt: order.pod?.acceptedAt,
+        podRejectedAt: order.pod?.rejectedAt,
+        podRejectionReason: order.pod?.rejectionReason,
+        podReplacementRequested: order.pod?.replacementRequested,
+        podHistory: order.pod?.podHistory,
         isRelay: Boolean(order.isRelay),
         currentActiveLeg: Number(order.currentActiveLeg ?? 1),
         hubLocation: order.hubLocation,

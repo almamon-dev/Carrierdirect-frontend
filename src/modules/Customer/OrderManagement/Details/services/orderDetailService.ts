@@ -27,6 +27,14 @@ export const orderDetailService = {
     },
 
     /**
+     * Reject Proof of Delivery (POD) and request replacement from carrier
+     */
+    async rejectPod(orderId: string | number, note: string): Promise<any> {
+        const res = await apiClient.post(`/customer/orders/${orderId}/pod-reject`, { note });
+        return res.data;
+    },
+
+    /**
      * Submit carrier rating and review
      */
     async submitReview(orderId: string | number, reviewData: any): Promise<any> {

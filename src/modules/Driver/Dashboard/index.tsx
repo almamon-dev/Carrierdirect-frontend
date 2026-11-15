@@ -93,12 +93,15 @@ export default function DriverDashboard() {
     };
 
     const effectiveShipments = allShipments;
-    const activeShipmentsList = effectiveShipments.filter(s =>
-        !['delivered', 'completed', 'cancelled', 'canceled'].includes(s.status)
+    const nonCancelledShipments = effectiveShipments.filter(s =>
+        !['cancelled', 'canceled'].includes(s.status)
     );
-    const effectiveActiveShipment = (activeShipment && !['delivered', 'completed', 'cancelled', 'canceled'].includes(activeShipment.status))
+    const activeShipmentsList = nonCancelledShipments.filter(s =>
+        !['delivered', 'completed'].includes(s.status)
+    );
+    const effectiveActiveShipment = (activeShipment && !['cancelled', 'canceled'].includes(activeShipment.status))
         ? activeShipment
-        : (activeShipmentsList.length > 0 ? activeShipmentsList[0] : null);
+        : (activeShipmentsList.length > 0 ? activeShipmentsList[0] : (nonCancelledShipments.length > 0 ? nonCancelledShipments[0] : null));
 
     const handleSelectShipment = (shipment: ShipmentItem) => {
         setActiveShipment(shipment);

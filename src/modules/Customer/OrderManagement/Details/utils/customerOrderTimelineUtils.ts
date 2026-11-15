@@ -109,7 +109,7 @@ export const buildCustomerOrderTimeline = (order: NormalizedCustomerOrder): Time
     return [
         {
             id: 1,
-            status: "Order Confirmed & Booked",
+            status: "Order Confirmed",
             time: getTimeForStep(
                 ["confirmed", "booked", "pending", "payment"],
                 currentStep > 1 || isAllCompleted,
@@ -121,23 +121,25 @@ export const buildCustomerOrderTimeline = (order: NormalizedCustomerOrder): Time
             completed: currentStep > 1 || isAllCompleted,
             active: currentStep === 1,
             location: `${order.pickup.city} Logistics Registry`,
-            description: "Quotation accepted and carrier booking confirmed in Escrow.",
+            description: "Shipment order created and confirmed by customer.",
         },
         {
             id: 2,
-            status: order.driver ? "Driver & Fleet Assigned" : "Driver Assignment",
+            status: "Collection Driver Assigned",
             time: getTimeForStep(
                 ["driver_assigned", "driver", "assigned", "dispatched"],
                 currentStep > 2 || isAllCompleted,
                 currentStep === 2,
                 driverFallbackTime,
                 "In Progress",
-                order.driver ? "Assigned" : "Pending Carrier"
+                order.driver ? "Assigned" : "Awaiting Assignment"
             ),
             completed: currentStep > 2 || isAllCompleted,
             active: currentStep === 2,
             location: order.driver ? `${order.driver.name} (${order.vehicle.number})` : "",
-            description: order.driver ? `Assigned driver ${order.driver.name} with vehicle plate ${order.vehicle.number}` : "",
+            description: order.driver
+                ? `${order.driver.name} assigned to deliver shipment from ${order.pickup.city} to ${order.delivery.city}.`
+                : `Waiting for carrier to assign driver for ${order.pickup.city} → ${order.delivery.city}.`,
         },
         {
             id: 3,
@@ -157,7 +159,7 @@ export const buildCustomerOrderTimeline = (order: NormalizedCustomerOrder): Time
         },
         {
             id: 4,
-            status: "In Transit on Route",
+            status: "In Transit to Final Destination",
             time: getTimeForStep(
                 ["in_transit", "transit", "on the way"],
                 currentStep > 4 || isAllCompleted,
@@ -169,11 +171,11 @@ export const buildCustomerOrderTimeline = (order: NormalizedCustomerOrder): Time
             completed: currentStep > 4 || isAllCompleted,
             active: currentStep === 4,
             location: `Highway Route: ${order.pickup.city} ➔ ${order.delivery.city}`,
-            description: "Live GPS tracked on designated corridor.",
+            description: "Live GPS tracked on designated corridor to destination.",
         },
         {
             id: 5,
-            status: "Arrived at Destination",
+            status: "Delivered & POD Submitted",
             time: getTimeForStep(
                 ["arrived", "destination reached", "delivered"],
                 currentStep > 5 || isAllCompleted,
@@ -185,11 +187,11 @@ export const buildCustomerOrderTimeline = (order: NormalizedCustomerOrder): Time
             completed: currentStep > 5 || isAllCompleted,
             active: currentStep === 5,
             location: order.delivery.address,
-            description: "Vehicle arrived at recipient unloading dock.",
+            description: "Goods delivered to consignee and signed Proof of Delivery (POD) submitted.",
         },
         {
             id: 6,
-            status: isPodAccepted || isAllCompleted ? "POD Verified & Approved" : "Review & Accept POD",
+            status: "POD Review & Approval",
             time: getTimeForStep(
                 ["completed", "pod accepted", "pod verified", "pod review", "delivered"],
                 isPodAccepted || isAllCompleted,
@@ -202,8 +204,8 @@ export const buildCustomerOrderTimeline = (order: NormalizedCustomerOrder): Time
             active: currentStep === 6 && !isPodAccepted,
             location: "Customer Verification",
             description: (isPodAccepted || isAllCompleted)
-                ? "Proof of delivery verified and Escrow payment settled."
-                : "Signed delivery receipt uploaded by driver for customer approval.",
+                ? "Proof of Delivery verified and escrow payment released to carrier."
+                : "Customer reviews Proof of Delivery to verify cargo condition and release payment.",
         },
         {
             id: 7,

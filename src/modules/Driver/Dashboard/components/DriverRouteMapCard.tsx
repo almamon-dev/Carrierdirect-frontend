@@ -18,8 +18,9 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
     const isValidActiveShipment = Boolean(
         activeShipment &&
         (activeShipment.id || activeShipment.orderNumber || activeShipment.order_no) &&
-        !['delivered', 'completed', 'cancelled', 'canceled'].includes(activeShipment.status)
+        !['cancelled', 'canceled'].includes(activeShipment.status)
     );
+    const isCompleted = ['delivered', 'completed'].includes(activeShipment?.status);
 
     const originCity = isValidActiveShipment
         ? (activeShipment?.shipper?.city ||
@@ -64,58 +65,74 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
             return;
         }
 
+        const bOriginLat = activeShipment?.route?.originCoords?.lat ?? activeShipment?.route?.origin_coords?.lat ?? activeShipment?.pickup_lat;
+        const bOriginLng = activeShipment?.route?.originCoords?.lng ?? activeShipment?.route?.origin_coords?.lng ?? activeShipment?.pickup_lng;
+        const bDestLat = activeShipment?.route?.destinationCoords?.lat ?? activeShipment?.route?.destination_coords?.lat ?? activeShipment?.delivery_lat;
+        const bDestLng = activeShipment?.route?.destinationCoords?.lng ?? activeShipment?.route?.destination_coords?.lng ?? activeShipment?.delivery_lng;
+
+        if (bOriginLat && bOriginLng && Number(bOriginLat) !== 0) {
+            setResolvedOrigin([Number(bOriginLat), Number(bOriginLng)]);
+        }
+        if (bDestLat && bDestLng && Number(bDestLat) !== 0) {
+            setResolvedDest([Number(bDestLat), Number(bDestLng)]);
+        }
+
         let isCancelled = false;
 
-        geocodeAddressWithGooglePlaces(pickupAddress, originCity).then((coords) => {
-            if (!isCancelled && coords) {
-                setResolvedOrigin(coords);
-            }
-        });
+        if (!bOriginLat || Number(bOriginLat) === 0) {
+            geocodeAddressWithGooglePlaces(pickupAddress, originCity).then((coords) => {
+                if (!isCancelled && coords) {
+                    setResolvedOrigin(coords);
+                }
+            });
+        }
 
-        geocodeAddressWithGooglePlaces(deliveryAddress, destCity).then((coords) => {
-            if (!isCancelled && coords) {
-                setResolvedDest(coords);
-            }
-        });
+        if (!bDestLat || Number(bDestLat) === 0) {
+            geocodeAddressWithGooglePlaces(deliveryAddress, destCity).then((coords) => {
+                if (!isCancelled && coords) {
+                    setResolvedDest(coords);
+                }
+            });
+        }
 
         return () => {
             isCancelled = true;
         };
-    }, [isValidActiveShipment, pickupAddress, deliveryAddress, originCity, destCity]);
+    }, [isValidActiveShipment, pickupAddress, deliveryAddress, originCity, destCity, activeShipment]);
 
     // Local synchronous fallback coordinates
     const fallbackOriginCoords = useMemo<[number, number]>(() => {
         if (!isValidActiveShipment) return [0, 0];
-        const fromAddr = extractCoordinatesFromAddress(pickupAddress) || extractCoordinatesFromAddress(originCity);
-        if (fromAddr) return fromAddr;
-        const routeCoords = activeShipment?.route?.originCoords;
+        const routeCoords = activeShipment?.route?.originCoords || activeShipment?.route?.origin_coords;
         if (
             routeCoords?.lat && routeCoords?.lng &&
             !isNaN(Number(routeCoords.lat)) && Number(routeCoords.lat) !== 0
         ) {
             return [Number(routeCoords.lat), Number(routeCoords.lng)];
         }
-        if (activeShipment?.pickup_lat && activeShipment?.pickup_lng) {
+        if (activeShipment?.pickup_lat && activeShipment?.pickup_lng && Number(activeShipment.pickup_lat) !== 0) {
             return [Number(activeShipment.pickup_lat), Number(activeShipment.pickup_lng)];
         }
-        return [23.8981, 90.3972]; // Tongi / Gazipur default
+        const fromAddr = extractCoordinatesFromAddress(pickupAddress) || extractCoordinatesFromAddress(originCity);
+        if (fromAddr) return fromAddr;
+        return [23.4607, 91.1809]; // Transit Hub midpoint
     }, [isValidActiveShipment, activeShipment, pickupAddress, originCity]);
 
     const fallbackDestCoords = useMemo<[number, number]>(() => {
         if (!isValidActiveShipment) return [0, 0];
-        const fromAddr = extractCoordinatesFromAddress(deliveryAddress) || extractCoordinatesFromAddress(destCity);
-        if (fromAddr) return fromAddr;
-        const routeCoords = activeShipment?.route?.destinationCoords;
+        const routeCoords = activeShipment?.route?.destinationCoords || activeShipment?.route?.destination_coords;
         if (
             routeCoords?.lat && routeCoords?.lng &&
             !isNaN(Number(routeCoords.lat)) && Number(routeCoords.lat) !== 0
         ) {
             return [Number(routeCoords.lat), Number(routeCoords.lng)];
         }
-        if (activeShipment?.delivery_lat && activeShipment?.delivery_lng) {
+        if (activeShipment?.delivery_lat && activeShipment?.delivery_lng && Number(activeShipment.delivery_lat) !== 0) {
             return [Number(activeShipment.delivery_lat), Number(activeShipment.delivery_lng)];
         }
-        return [23.7534, 90.3698]; // Dhanmondi / Dhaka default
+        const fromAddr = extractCoordinatesFromAddress(deliveryAddress) || extractCoordinatesFromAddress(destCity);
+        if (fromAddr) return fromAddr;
+        return [22.3243, 91.8142]; // Chittagong default
     }, [isValidActiveShipment, activeShipment, deliveryAddress, destCity]);
 
     const originCoords: [number, number] = resolvedOrigin || fallbackOriginCoords;
@@ -176,15 +193,19 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
             {/* Header: Live GPS Status, Corridor Pill, Distance Badge & Open in Google Maps */}
             <div className="px-3.5 py-2.5 bg-white dark:bg-[#1e2329] border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="flex h-2 w-2 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
+                    {isCompleted ? (
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0" />
+                    ) : (
+                        <span className="flex h-2 w-2 relative shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                    )}
                     <span className="font-extrabold text-[12.5px] text-slate-900 dark:text-slate-100 truncate">
                         Route Corridor
                     </span>
                     <span className="text-slate-400 dark:text-slate-500 font-medium">
-                        • {isRealLocationFix ? 'Real GPS Active' : (isLiveGPS ? 'Live GPS Active' : 'GPS Tracking')}
+                        • {isCompleted ? 'Leg Completed' : (isRealLocationFix ? 'Real GPS Active' : (isLiveGPS ? 'Live GPS Active' : 'GPS Tracking'))}
                     </span>
                 </div>
 

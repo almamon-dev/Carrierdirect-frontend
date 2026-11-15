@@ -153,6 +153,18 @@ export const useOrderDetails = () => {
         setTimeout(() => setActionMessage(null), 5000);
     }, [cleanId]);
 
+    const handleRejectPOD = useCallback(async (reason: string) => {
+        try {
+            await orderDetailService.rejectPod(cleanId, reason);
+        } catch (err) {
+            console.warn('API pod rejection fallback triggered:', err);
+        }
+        setIsPodAccepted(false);
+        setActionMessage('Proof of Delivery rejected. Replacement requested from the carrier.');
+        fetchDetail(true);
+        setTimeout(() => setActionMessage(null), 5000);
+    }, [cleanId, fetchDetail]);
+
     const handleRatingSubmit = useCallback(async (ratingData: any) => {
         try {
             await orderDetailService.submitReview(cleanId, ratingData);
@@ -179,6 +191,7 @@ export const useOrderDetails = () => {
         handlePrint,
         handleOpenChat,
         handleApprovePOD,
+        handleRejectPOD,
         handleRatingSubmit,
         handleRefreshLive,
     };

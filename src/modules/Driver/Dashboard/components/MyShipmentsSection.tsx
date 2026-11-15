@@ -30,6 +30,7 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
 }) => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<0 | 1 | 2>(0); // 0 = Today, 1 = Tomorrow, 2 = Upcoming
+    const [userSelectedTab, setUserSelectedTab] = useState(false);
 
     const now = new Date();
     const tomorrow = new Date();
@@ -41,43 +42,72 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
         d1.getDate() === d2.getDate();
 
     const parseDate = (item: ShipmentItem): Date | null => {
-        const raw =
-            (item as any).pickup?.raw_date ||
-            (item as any).pickup_date ||
-            (item as any).pickup?.date ||
-            item.shipper?.pickupDate ||
-            (item as any).date;
-        if (!raw) return null;
-        const parsed = new Date(raw);
-        return isNaN(parsed.getTime()) ? null : parsed;
+        const candidates = [
+            (item as any).pickup?.raw_date,
+            (item as any).pickup_date,
+            (item as any).pickup?.date,
+            item.shipper?.pickupDate,
+            (item as any).delivery?.raw_date,
+            (item as any).delivery_date,
+            (item as any).delivery?.date,
+            item.consignee?.deliveryDate,
+            (item as any).date,
+        ];
+
+        for (const raw of candidates) {
+            if (!raw || typeof raw !== 'string') continue;
+            const str = raw.trim();
+            const lower = str.toLowerCase();
+            if (['scheduled', 'upcoming', 'pending', 'tbd', 'asap', 'today', 'tomorrow'].includes(lower)) {
+                continue;
+            }
+
+            // ISO / YYYY-MM-DD format -> parse as local noon to prevent timezone date shifting
+            if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+                const datePart = str.split('T')[0];
+                const [y, m, d] = datePart.split('-').map(Number);
+                const dt = new Date(y, m - 1, d, 12, 0, 0);
+                if (!isNaN(dt.getTime())) return dt;
+            }
+
+            // DD Mon YYYY format (e.g., "16 Nov 2026")
+            const parts = str.split(' ');
+            if (parts.length >= 3 && /^\d{1,2}$/.test(parts[0]) && /^\d{4}$/.test(parts[2])) {
+                const dt = new Date(`${parts[0]} ${parts[1]} ${parts[2]} 12:00:00`);
+                if (!isNaN(dt.getTime())) return dt;
+            }
+
+            const parsed = new Date(str);
+            if (!isNaN(parsed.getTime())) {
+                return parsed;
+            }
+        }
+        return null;
     };
 
     // Filter shipments into Today, Tomorrow, Upcoming (matching Driver App schedule filtering)
     const todayShipments = allShipments.filter((item) => {
         const s = (item.status || '').toLowerCase();
-        // Exclude delivered, completed, cancelled, rejected orders from active dispatch tabs
-        if (['delivered', 'completed', 'pod_uploaded', 'cancelled', 'rejected'].includes(s)) {
+        // Exclude cancelled or rejected orders
+        if (['cancelled', 'rejected', 'canceled'].includes(s)) {
             return false;
         }
 
         const d = parseDate(item);
         if (d && isSameDate(d, now)) return true;
-        const dateStr = `${item.shipper?.pickupDate || ''} ${(item as any).date || ''}`.toLowerCase();
+        const dateStr = `${item.shipper?.pickupDate || ''} ${(item as any).pickup?.date || ''} ${(item as any).date || ''}`.toLowerCase();
         if (dateStr.includes('today')) return true;
 
         // In-progress driving trips are actively underway, so they are always in Today
-        if (['in_transit', 'picked_up', 'at_pickup', 'at_delivery', 'in_progress', 'active'].includes(s)) {
+        if (['in_transit', 'picked_up', 'at_pickup', 'at_delivery', 'at_hub', 'handover_pending', 'handover_accepted', 'in_progress', 'active'].includes(s)) {
             return true;
         }
 
         // Active/assigned shipments that are due today or overdue (scheduled for today or earlier)
         if (['driver_assigned', 'assigned', 'scheduled', 'pending', 'confirmed'].includes(s)) {
             if (d) {
-                const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
                 if (d <= endOfToday) return true;
-            } else {
-                // If date is unparseable but status is active/assigned, keep in Today so driver sees assignment
-                return true;
             }
         }
 
@@ -86,7 +116,7 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
 
     const tomorrowShipments = allShipments.filter((item) => {
         const s = (item.status || '').toLowerCase();
-        if (['delivered', 'completed', 'pod_uploaded', 'cancelled', 'rejected'].includes(s)) {
+        if (['cancelled', 'rejected', 'canceled'].includes(s)) {
             return false;
         }
 
@@ -95,7 +125,7 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
 
         const d = parseDate(item);
         if (d && isSameDate(d, tomorrow)) return true;
-        const dateStr = `${item.shipper?.pickupDate || ''} ${(item as any).date || ''}`.toLowerCase();
+        const dateStr = `${item.shipper?.pickupDate || ''} ${(item as any).delivery?.date || ''} ${(item as any).date || ''}`.toLowerCase();
         if (dateStr.includes('tomorrow')) return true;
         return false;
     });
@@ -107,22 +137,35 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
         if (inToday || inTomorrow) return false;
 
         const s = (item.status || '').toLowerCase();
-        // Exclude completed, delivered, or cancelled orders
-        if (['delivered', 'completed', 'pod_uploaded', 'cancelled', 'rejected'].includes(s)) {
+        // Exclude cancelled or rejected orders
+        if (['cancelled', 'rejected', 'canceled'].includes(s)) {
             return false;
         }
 
         const d = parseDate(item);
         if (d) {
-            const endOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 59);
+            const endOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 59, 999);
             if (d > endOfTomorrow) return true;
         }
-        // Scheduled/assigned loads with future dates
+        // Scheduled/assigned loads with future or unspecified dates
         if (['driver_assigned', 'assigned', 'scheduled', 'pending', 'confirmed'].includes(s)) {
             return true;
         }
         return false;
     });
+
+    // Auto-select tab with active shipments on initial load if Today has none
+    React.useEffect(() => {
+        if (!userSelectedTab) {
+            if (todayShipments.length > 0) {
+                setActiveTab(0);
+            } else if (tomorrowShipments.length > 0) {
+                setActiveTab(1);
+            } else if (upcomingShipments.length > 0) {
+                setActiveTab(2);
+            }
+        }
+    }, [todayShipments.length, tomorrowShipments.length, upcomingShipments.length, userSelectedTab]);
 
     // Effective list for current tab
     let currentList: ShipmentItem[] = [];
@@ -144,6 +187,7 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
     const effectiveExpandedId = expandedId || (activeShipmentId ? String(activeShipmentId) : (currentList.length > 0 ? currentList[0].id : null));
 
     const handleTabSwitch = (newTab: 0 | 1 | 2) => {
+        setUserSelectedTab(true);
         setActiveTab(newTab);
         let targetList: ShipmentItem[] = [];
         if (newTab === 0) {
@@ -170,19 +214,43 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
 
     const renderStatusBadge = (status: string) => {
         const s = (status || '').toLowerCase();
+        if (s === 'completed' || s.includes('complete')) {
+            return (
+                <span className="px-2 py-0.5 text-[11px] font-bold bg-[#ECFDF5] dark:bg-emerald-950/60 text-[#059669] dark:text-emerald-400 rounded-[4px] border border-emerald-200/80 dark:border-emerald-900/60 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>Completed</span>
+                </span>
+            );
+        }
+        if (s === 'delivered') {
+            return (
+                <span className="px-2 py-0.5 text-[11px] font-bold bg-[#ECFDF5] dark:bg-emerald-950/60 text-[#059669] dark:text-emerald-400 rounded-[4px] border border-emerald-200/80 dark:border-emerald-900/60 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>Delivered</span>
+                </span>
+            );
+        }
+        if (s === 'at_delivery') {
+            return (
+                <span className="px-2 py-0.5 text-[11px] font-bold bg-[#EFF6FF] dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 rounded-[4px] border border-blue-200/80 dark:border-blue-900/60 flex items-center gap-1">
+                    <MapPin size={11} />
+                    <span>At Delivery</span>
+                </span>
+            );
+        }
+        if (s.includes('hub') || s.includes('handover')) {
+            return (
+                <span className="px-2 py-0.5 text-[11px] font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 rounded-[4px] border border-purple-200/80 dark:border-purple-900/60 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                    <span>Transit Hub</span>
+                </span>
+            );
+        }
         if (s.includes('transit') || s.includes('picked') || s.includes('progress')) {
             return (
                 <span className="px-2 py-0.5 text-[11px] font-bold bg-[#EBF5FF] dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 rounded-[4px] border border-blue-200/80 dark:border-blue-900/60 flex items-center gap-1">
                     <Truck size={12} />
                     <span>Picked up</span>
-                </span>
-            );
-        }
-        if (s.includes('deliver') || s.includes('complete')) {
-            return (
-                <span className="px-2 py-0.5 text-[11px] font-bold bg-[#ECFDF5] dark:bg-emerald-950/60 text-[#059669] dark:text-emerald-400 rounded-[4px] border border-emerald-200/80 dark:border-emerald-900/60 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>Delivered</span>
                 </span>
             );
         }

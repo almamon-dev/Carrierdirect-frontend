@@ -96,8 +96,27 @@ export interface OrderPricingDetails {
 }
 
 export interface OrderPodDetails {
+    status?: string;
     isAvailable: boolean;
     isAccepted: boolean;
+    isRejected?: boolean;
+    rejectionReason?: string;
+    rejectedAt?: string;
+    acceptedAt?: string;
+    replacementRequested?: boolean;
+    podHistory?: Array<{
+        version: number;
+        file_url?: string;
+        receiver_name?: string;
+        uploaded_at?: string;
+        uploaded_by_type?: string;
+        uploaded_by_name?: string;
+        status?: string;
+        rejection_reason?: string;
+        rejected_at?: string;
+        accepted_at?: string;
+        note?: string;
+    }>;
     fileUrl?: string;
     fileName?: string;
     signatureUrl?: string;

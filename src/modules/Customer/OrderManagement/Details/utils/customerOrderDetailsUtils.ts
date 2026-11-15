@@ -165,6 +165,7 @@ export const buildNormalizedCustomerOrder = (
 
     // POD Info
     const rawPod = String(foundOrder?.pod_status || foundOrder?.tracking?.pod_status || '').toLowerCase().trim();
+    const isPodRejected = rawPod === 'rejected' || Boolean(foundOrder?.pod_replacement_requested);
     const hasPodDoc = Boolean(
         foundOrder?.proof_of_delivery || foundOrder?.pod?.file_url || foundOrder?.pod?.proof ||
         foundOrder?.pod_url || foundOrder?.pod_file || foundOrder?.pod_document_url ||
@@ -172,12 +173,14 @@ export const buildNormalizedCustomerOrder = (
     );
 
     const isPodAcceptedCalculated = Boolean(
-        isPodAccepted || rawStatus === 'completed' || rawStatus === 'pod_accepted' ||
-        rawPod === 'confirmed' || rawPod === 'accepted' || rawPod === 'approved'
+        !isPodRejected && (
+            isPodAccepted || rawStatus === 'completed' || rawStatus === 'pod_accepted' ||
+            rawPod === 'confirmed' || rawPod === 'accepted' || rawPod === 'approved'
+        )
     );
 
     const isDeliveredStage = rawStatus === 'delivered' || rawStatus === 'pod_uploaded' || rawStatus === 'pod_review';
-    const isPodAvailable = !isPodAcceptedCalculated && (hasPodDoc || isDeliveredStage);
+    const isPodAvailable = !isPodAcceptedCalculated && !isPodRejected && (hasPodDoc || isDeliveredStage);
 
     return {
         id: formattedId,
@@ -283,8 +286,15 @@ export const buildNormalizedCustomerOrder = (
         },
         pricing: pricing,
         pod: {
+            status: rawPod,
             isAvailable: isPodAvailable,
             isAccepted: isPodAcceptedCalculated,
+            isRejected: isPodRejected,
+            rejectionReason: foundOrder?.pod_rejection_reason || foundOrder?.pod?.rejection_reason || '',
+            rejectedAt: foundOrder?.pod_rejected_at || '',
+            acceptedAt: foundOrder?.pod_accepted_at || '',
+            replacementRequested: Boolean(foundOrder?.pod_replacement_requested),
+            podHistory: Array.isArray(foundOrder?.pod_history) ? foundOrder.pod_history : [],
             fileUrl: foundOrder?.pod_document_url || foundOrder?.proof_of_delivery || foundOrder?.pod?.file_url || foundOrder?.pod_url || '',
             fileName: foundOrder?.pod_file_name || 'POD_Receipt.pdf',
             signatureUrl: foundOrder?.signature || foundOrder?.pod_signature || foundOrder?.pod?.signature || '',

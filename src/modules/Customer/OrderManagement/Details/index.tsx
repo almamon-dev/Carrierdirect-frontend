@@ -26,6 +26,7 @@ export default function CustomerOrderDetailPage() {
         handlePrint,
         handleOpenChat,
         handleApprovePOD,
+        handleRejectPOD,
         handleRatingSubmit,
     } = useOrderDetails();
 
@@ -149,9 +150,13 @@ export default function CustomerOrderDetailPage() {
                 </div>
             )}
 
-            {/* POD Review / Approval Banner (Shown when POD is uploaded or approved) */}
-            {(order.pod.isAvailable || order.pod.isAccepted) && (
-                <CustomerOrderPODAction order={order} onApprovePOD={handleApprovePOD} />
+            {/* POD Review / Approval / Rejected Banner (Shown when POD is uploaded, approved, or rejected) */}
+            {(order.pod.isAvailable || order.pod.isAccepted || order.pod.isRejected || order.pod.replacementRequested) && (
+                <CustomerOrderPODAction
+                    order={order}
+                    onApprovePOD={handleApprovePOD}
+                    onRejectPOD={handleRejectPOD}
+                />
             )}
 
             {/* Main Unified Card (Header + 4 Metrics + Map + Shipment Progress) */}

@@ -82,6 +82,10 @@ export interface NormalizedSupplierOrder {
     podUploaded: boolean;
     podStatus: string;
     podFileUrl: string;
+    pod_rejection_reason?: string;
+    pod_rejected_at?: string;
+    pod_replacement_requested?: boolean;
+    pod_history?: any[];
     instructions?: string;
     pickupCompany?: string;
     deliveryCompany?: string;
@@ -279,9 +283,13 @@ export const buildSupplierOrderDetails = (
             escrowGuaranteed: true
         },
         payment: { status: paymentStatusLabel, isPaid, isPayLater, isEscrow, escrowGuaranteed: true },
-        podUploaded: isPodAccepted || foundOrder?.pod_status === 'Approved' || foundOrder?.pod_status === 'Pending Review' || foundOrder?.podStatus === 'Approved' || rawStatus === 'delivered' || rawStatus === 'pod_uploaded',
-        podStatus: foundOrder?.pod_status || foundOrder?.podStatus || (isPodAccepted ? 'Approved' : ((rawStatus === 'delivered' || rawStatus === 'pod_uploaded') ? 'Pending Review' : 'Not Uploaded')),
+        podUploaded: !Boolean(foundOrder?.pod_status === 'rejected' || foundOrder?.pod_replacement_requested) && (isPodAccepted || foundOrder?.pod_status === 'Approved' || foundOrder?.pod_status === 'Pending Review' || foundOrder?.podStatus === 'Approved' || rawStatus === 'delivered' || rawStatus === 'pod_uploaded'),
+        podStatus: (foundOrder?.pod_status === 'rejected' || foundOrder?.pod_replacement_requested) ? 'Rejected' : (foundOrder?.pod_status || foundOrder?.podStatus || (isPodAccepted ? 'Approved' : ((rawStatus === 'delivered' || rawStatus === 'pod_uploaded') ? 'Pending Review' : 'Not Uploaded'))),
         podFileUrl: foundOrder?.tracking?.proof || foundOrder?.pod_document_url || foundOrder?.podFileUrl || foundOrder?.proof_of_delivery || '',
+        pod_rejection_reason: foundOrder?.pod_rejection_reason || '',
+        pod_rejected_at: foundOrder?.pod_rejected_at || '',
+        pod_replacement_requested: Boolean(foundOrder?.pod_replacement_requested),
+        pod_history: Array.isArray(foundOrder?.pod_history) ? foundOrder.pod_history : [],
         instructions: foundOrder?.shipping?.instructions || foundOrder?.instructions || foundOrder?.special_instructions || foundOrder?.pickup_instructions || '-',
         pickupCompany: foundOrder?.pickup_company || foundOrder?.quote_request?.pickup_company || '-',
         deliveryCompany: foundOrder?.delivery_company || foundOrder?.quote_request?.delivery_company || '-',

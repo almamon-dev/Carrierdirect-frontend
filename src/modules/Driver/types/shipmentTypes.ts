@@ -75,6 +75,8 @@ export interface ShipmentItem {
     subcontractorJourneyLeg?: string;
     pickup_address?: string;
     delivery_address?: string;
+    pickup_date?: string;
+    delivery_date?: string;
     pickup_city?: string;
     delivery_city?: string;
     pickup_country?: string;
