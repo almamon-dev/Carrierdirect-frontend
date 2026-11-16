@@ -1,5 +1,5 @@
+import { AlertCircle, Calendar, Check, Clock, GitFork } from 'lucide-react';
 import React from 'react';
-import { Calendar, Check, GitFork, AlertCircle, Clock } from 'lucide-react';
 import {
     buildUnifiedShipmentTimeline,
     UnifiedTimelineInput,
@@ -119,7 +119,7 @@ export const UnifiedShipmentTimeline: React.FC<UnifiedShipmentTimelineProps> = (
 
     return (
         <div
-            className={`bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden flex flex-col font-sans ${className}`}
+            className={`bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-2xs font-sans overflow-hidden ${className}`}
         >
             {/* Header: Clean, standardized enterprise style without clutter badges */}
             <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
@@ -147,8 +147,7 @@ export const UnifiedShipmentTimeline: React.FC<UnifiedShipmentTimelineProps> = (
                         return (
                             <div
                                 key={step.id}
-                                className={`relative transition-colors ${
-                                    isActive
+                                className={`relative transition-colors ${isActive
                                         ? 'bg-orange-50/70 dark:bg-orange-950/20 border border-orange-200/80 dark:border-orange-800/50 rounded-lg px-2.5 py-2.5 my-1'
                                         : isException
                                             ? 'bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-800/50 rounded-lg px-2.5 py-2.5 my-1'
@@ -157,7 +156,7 @@ export const UnifiedShipmentTimeline: React.FC<UnifiedShipmentTimelineProps> = (
                                                 : compact
                                                     ? 'px-2.5 py-1.5'
                                                     : 'px-2.5 py-2'
-                                }`}
+                                    }`}
                             >
                                 <div className="flex items-start gap-3">
                                     {/* Left Indicator Column: Icon and Continuous Vertical Line */}
@@ -181,29 +180,27 @@ export const UnifiedShipmentTimeline: React.FC<UnifiedShipmentTimelineProps> = (
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <p
-                                                    className={`text-xs font-bold leading-snug break-words [overflow-wrap:anywhere] ${
-                                                        isActive
+                                                    className={`text-xs font-bold leading-snug break-words [overflow-wrap:anywhere] ${isActive
                                                             ? 'text-orange-950 dark:text-orange-200'
                                                             : isException
                                                                 ? 'text-rose-950 dark:text-rose-200'
                                                                 : isPending
                                                                     ? 'text-slate-500 dark:text-slate-400'
                                                                     : 'text-slate-900 dark:text-slate-100'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {step.title}
                                                 </p>
                                             </div>
                                             <p
-                                                className={`text-[11.5px] mt-0.5 leading-snug break-words [overflow-wrap:anywhere] ${
-                                                    isActive
+                                                className={`text-[11.5px] mt-0.5 leading-snug break-words [overflow-wrap:anywhere] ${isActive
                                                         ? 'text-slate-600 dark:text-slate-300 font-medium'
                                                         : isException
                                                             ? 'text-rose-700/90 dark:text-rose-300 font-medium'
                                                             : isPending
                                                                 ? 'text-slate-400 dark:text-slate-500'
                                                                 : 'text-slate-500 dark:text-slate-400'
-                                                }`}
+                                                    }`}
                                             >
                                                 {step.description}
                                             </p>

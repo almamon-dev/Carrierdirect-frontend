@@ -194,25 +194,25 @@ export default function PricingSection() {
       : defaultFallback;
 
   return (
-    <section id="pricing" className="w-full bg-transparent pt-8 pb-5 px-4 overflow-hidden">
+    <section id="pricing" className="w-full bg-transparent py-5 sm:py-7 px-4 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div
           ref={heading.ref}
-          className={`text-center max-w-3xl mx-auto mb-6 reveal ${heading.isVisible ? "visible" : ""
+          className={`text-center max-w-3xl mx-auto mb-4 sm:mb-5 reveal ${heading.isVisible ? "visible" : ""
             }`}
         >
-          <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-1.5 block">
+          <span className="text-[#ff4a1f] font-semibold tracking-wider text-xs mb-1 block">
             {badge}
           </span>
-          <h2 className="text-[#0f0400] dark:text-slate-100 text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+          <h2 className="text-[#0f0400] dark:text-slate-100 text-xl sm:text-2xl font-extrabold tracking-tight mb-1.5">
             {title}
           </h2>
-          <p className="text-gray-500 dark:text-slate-400 text-xs sm:text-sm mb-5">
+          <p className="text-gray-500 dark:text-slate-400 text-xs sm:text-sm mb-3.5">
             {subtitle}
           </p>
 
           {/* User Type Switcher (Shippers vs Carriers) */}
-          <div className="inline-flex bg-white dark:bg-[#1e2329] rounded-full p-1 shadow-2xs dark:shadow-none border border-gray-200 dark:border-[#2b313a] mb-4">
+          <div className="inline-flex bg-white dark:bg-[#1e2329] rounded-full p-1 shadow-2xs dark:shadow-none border border-gray-200 dark:border-[#2b313a] mb-3">
             <button
               onClick={() => setActiveRole("customer")}
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer ${activeRole === "customer"

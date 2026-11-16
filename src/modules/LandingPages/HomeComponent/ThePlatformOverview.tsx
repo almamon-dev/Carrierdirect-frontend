@@ -76,17 +76,17 @@ export default function ThePlatformOverview() {
   return (
     <section
       id="the-platform"
-      className="relative bg-transparent py-8 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden select-none"
+      className="relative bg-transparent py-5 sm:py-7 px-4 sm:px-6 lg:px-8 overflow-hidden select-none"
     >
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
+        <div className="text-center max-w-3xl mx-auto mb-5 sm:mb-6">
           {badge && (
-            <span className="text-[#ea580c] font-bold text-[11px] uppercase tracking-widest mb-1.5 inline-block">
+            <span className="text-[#ea580c] font-bold text-[11px] uppercase tracking-widest mb-1 inline-block">
               {badge}
             </span>
           )}
-          <h2 className="text-gray-900 text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+          <h2 className="text-gray-900 text-xl sm:text-2xl font-extrabold tracking-tight mb-1.5">
             {title}
           </h2>
           {subtitle && (
@@ -99,7 +99,7 @@ export default function ThePlatformOverview() {
         {/* Main Mockup & Features Grid */}
         <div
           ref={reveal.ref}
-          className={`grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal ${
+          className={`grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-center reveal ${
             reveal.isVisible ? "visible" : ""
           }`}
         >
@@ -110,12 +110,12 @@ export default function ThePlatformOverview() {
                 <img
                   src={getAssetUrl(platformImage)}
                   alt="CarrierDirect Platform Preview"
-                  className="w-full h-auto max-h-[440px] object-contain"
+                  className="w-full h-auto max-h-[380px] object-contain"
                 />
               </div>
             ) : (
-              <div className="w-full max-w-xl h-64 sm:h-80 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-6 text-center">
-                <Monitor className="w-10 h-10 text-[#ea580c] mb-2" />
+              <div className="w-full max-w-xl h-56 sm:h-72 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-5 text-center">
+                <Monitor className="w-9 h-9 text-[#ea580c] mb-2" />
                 <p className="font-bold text-gray-700 text-sm">Platform Overview Image</p>
                 <p className="text-xs text-gray-400 mt-1">Upload a single overview image in Admin CMS</p>
               </div>
@@ -123,21 +123,21 @@ export default function ThePlatformOverview() {
           </div>
 
           {/* Right Column: 3 Feature Description Cards (4 cols on lg) */}
-          <div className="lg:col-span-4 space-y-3">
+          <div className="lg:col-span-4 space-y-2.5">
             {features.map((feature: any, idx: number) => (
               <div
                 key={idx}
-                className="p-3.5 sm:p-4 rounded-[4px] bg-white dark:bg-[#1e2329] hover:bg-orange-50/20 border border-slate-200/90 dark:border-slate-800 hover:border-[#ff4a1f]/40 shadow-2xs transition-all duration-200 group"
+                className="p-3 sm:p-3.5 rounded-[4px] bg-white dark:bg-[#1e2329] hover:bg-orange-50/20 border border-slate-200/90 dark:border-slate-800 hover:border-[#ff4a1f]/40 shadow-2xs transition-all duration-200 group"
               >
-                <div className="flex items-start gap-3.5">
-                  <div className="w-8 h-8 rounded-[4px] bg-orange-50 border border-orange-100/70 group-hover:bg-[#ff4a1f] group-hover:text-white text-[#ff4a1f] flex items-center justify-center shrink-0 transition-colors duration-200 shadow-2xs">
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-[4px] bg-orange-50 border border-orange-100/70 group-hover:bg-[#ff4a1f] group-hover:text-white text-[#ff4a1f] flex items-center justify-center shrink-0 transition-colors duration-200 shadow-2xs">
                     {renderIcon(feature.icon)}
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 dark:text-slate-100 text-sm mb-0.5 group-hover:text-[#ff4a1f] transition-colors">
+                    <h3 className="font-bold text-gray-900 dark:text-slate-100 text-xs sm:text-sm mb-0.5 group-hover:text-[#ff4a1f] transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-500 dark:text-slate-400 text-xs leading-relaxed">
+                    <p className="text-gray-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed">
                       {feature.description}
                     </p>
                   </div>

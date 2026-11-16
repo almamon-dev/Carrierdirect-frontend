@@ -54,16 +54,43 @@ export function isRelayHandoverAccepted(shipment: ShipmentItem): boolean {
 /** Returns true only when Leg 1 of a relay shipment has completed its handover to Leg 2. */
 export function isRelayLeg1HandoverCompleted(shipment: ShipmentItem): boolean {
     if (!shipment.isRelay || shipment.isDeliveryOnly) return false;
+    const leg1 = shipment.relayLegs?.find(l => l.leg_number === 1);
+    if (shipment.emergency?.is_emergency || leg1?.emergency_status === 'reported' || leg1?.status === 'reassignment_required' || leg1?.status === 'emergency_hold') {
+        return false;
+    }
     if (shipment.status === 'completed') return true;
     return isRelayHandoverAccepted(shipment);
 }
 
 export function getStatusDisplay(shipment: ShipmentItem): StatusDisplayConfig {
+    const isRelay = Boolean(shipment.isRelay);
+    const isLeg2 = Boolean(shipment.isDeliveryOnly);
+    const hasEmergency = Boolean(
+        shipment.emergency?.is_emergency ||
+        shipment.status === 'emergency_hold' ||
+        shipment.status === 'reassignment_required' ||
+        shipment.relayLegs?.some(l => (l.emergency_status === 'reported' || l.status === 'reassignment_required') && (isLeg2 ? l.leg_number === 2 : l.leg_number === 1))
+    );
+
+    if (hasEmergency) {
+        const rawReason = shipment.emergency?.emergency_reason || shipment.relayLegs?.find(l => l.emergency_status === 'reported')?.emergency_reason || 'Sick Leave';
+        const reason = rawReason.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+        return {
+            label: `Emergency Hold • ${reason}`,
+            color: 'text-red-600 dark:text-red-400',
+            nextActionTitle: 'Duty Offline • Operations Reassignment',
+            nextActionDesc: `Emergency reported (${reason}). Operations dispatch has been alerted and is reassigning this corridor. You are relieved of active driving duty.`,
+            eta: 'Duty On Hold',
+            buttonLabel: 'Duty Offline • Shift on Hold',
+            buttonColor: 'bg-slate-500 dark:bg-slate-700 opacity-90 cursor-not-allowed',
+            actionType: 'none',
+            isActionDisabled: true,
+        };
+    }
+
     const status: ShipmentStatus = shipment.status;
     const fromCity = shipment.shipper.city || 'Origin';
     const toCity = shipment.consignee.city || 'Destination';
-    const isRelay = Boolean(shipment.isRelay);
-    const isLeg2 = Boolean(shipment.isDeliveryOnly);
     const hubLocation = (shipment.hubLocation && !shipment.hubLocation.toLowerCase().includes('transit hub'))
         ? shipment.hubLocation
         : 'Intermediate Hub';

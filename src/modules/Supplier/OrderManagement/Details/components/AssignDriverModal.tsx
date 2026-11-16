@@ -15,7 +15,7 @@ import {
     X,
 } from 'lucide-react';
 import React, { useMemo } from 'react';
-import { createPortal } from 'react-dom';
+import Modal from '@/components/modals/modal';
 import { AssignDriverData, useAssignDriverModal } from '../hooks/useAssignDriverModal';
 
 interface AssignDriverModalProps {
@@ -229,105 +229,118 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
 
     if (!isOpen) return null;
 
-    return createPortal(
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 md:p-4 animate-in fade-in duration-150 font-sans">
-            <div className={`bg-white dark:bg-[#1e2329] rounded-[8px] w-full border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 max-h-[94vh] overflow-y-auto ${isRelay ? 'max-w-4xl' : 'max-w-xl'
-                }`}>
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-5 pt-4 pb-3 sticky top-0 bg-white dark:bg-[#1e2329] z-10">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 flex items-center justify-center text-[#ff4a1f]">
-                            <UserCheck size={18} />
-                        </div>
-                        <div>
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                                {isRelay ? `Multi-Driver Relay Dispatch (${2 + additionalLegs.length} Drivers)` : 'Assign Driver & Vehicle'}
-                            </h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Order Ref: <strong className="font-mono text-slate-700 dark:text-slate-300">{orderId}</strong>
-                                {customerRevenue > 0 && (
-                                    <span> • Customer Order Price: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">€{customerRevenue.toFixed(2)}</strong></span>
-                                )}
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded p-1 cursor-pointer disabled:opacity-50"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
+    const modalTitle = (
+        <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 flex items-center justify-center text-[#ff4a1f] shrink-0">
+                <UserCheck size={18} />
+            </div>
+            <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    {isRelay ? `Multi-Driver Relay Dispatch (${2 + additionalLegs.length} Drivers)` : 'Assign Driver & Vehicle'}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Order Ref: <strong className="font-mono text-slate-700 dark:text-slate-300">{orderId}</strong>
+                    {customerRevenue > 0 && (
+                        <span> • Customer Order Price: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">€{customerRevenue.toFixed(2)}</strong></span>
+                    )}
+                </p>
+            </div>
+        </div>
+    );
 
-                <form onSubmit={handleSubmit} className="px-5 pb-5 space-y-4">
-                    {/* 1. Main Execution Strategy: Only shown when Relay is OFF; when Relay is ON each leg chooses independently */}
-                    <div className="space-y-2.5">
-                        {!isRelay && (
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-[6px] bg-slate-50 dark:bg-[#14181f] border border-slate-200 dark:border-slate-800">
-                                <div>
-                                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
-                                        Who is delivering this order?
-                                    </span>
-                                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                        {driverType === 'internal'
-                                            ? 'Company fleet driver & vehicle'
-                                            : 'Outsourced to external subcontractor partner'}
-                                    </span>
-                                </div>
-
-                                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 self-start sm:self-center shrink-0 shadow-2xs">
-                                    <button
-                                        type="button"
-                                        onClick={() => setDriverType('internal')}
-                                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${driverType === 'internal'
-                                                ? 'text-[#ff4a1f]'
-                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                                            }`}
-                                    >
-                                        <Truck size={12} />
-                                        <span>In-House Driver</span>
-                                    </button>
-
-                                    <Switch
-                                        checked={driverType === 'subcontractor'}
-                                        onCheckedChange={(checked) =>
-                                            setDriverType(checked ? 'subcontractor' : 'internal')
-                                        }
-                                    />
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setDriverType('subcontractor')}
-                                        className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${driverType === 'subcontractor'
-                                                ? 'text-[#ff4a1f]'
-                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                                            }`}
-                                    >
-                                        <Building2 size={12} />
-                                        <span>Subcontractor</span>
-                                    </button>
-                                </div>
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={modalTitle}
+            className={`w-full max-h-[92vh] overflow-y-auto ${isRelay ? 'max-w-4xl' : 'max-w-xl'}`}
+            showCloseButton={!isSubmitting}
+        >
+            <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4">
+                {/* 1. Main Execution Strategy: Only shown when Relay is OFF; when Relay is ON each leg chooses independently */}
+                <div className="space-y-2.5">
+                    {!isRelay && (
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-[6px] bg-slate-50 dark:bg-[#14181f] border border-slate-200 dark:border-slate-800">
+                            <div>
+                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
+                                    Who is delivering this order?
+                                </span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                    {driverType === 'internal'
+                                        ? 'Company fleet driver & vehicle'
+                                        : 'Outsourced to external subcontractor partner'}
+                                </span>
                             </div>
-                        )}
 
-                        {/* Optional Multi-Driver Relay Switch */}
-                        <div className="pt-1.5 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 self-start sm:self-center shrink-0 shadow-2xs">
+                                <button
+                                    type="button"
+                                    onClick={() => setDriverType('internal')}
+                                    className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${driverType === 'internal'
+                                            ? 'text-[#ff4a1f]'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                                        }`}
+                                >
+                                    <Truck size={12} />
+                                    <span>In-House Driver</span>
+                                </button>
+
+                                <Switch
+                                    checked={driverType === 'subcontractor'}
+                                    onCheckedChange={(checked) =>
+                                        setDriverType(checked ? 'subcontractor' : 'internal')
+                                    }
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={() => setDriverType('subcontractor')}
+                                    className={`flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer ${driverType === 'subcontractor'
+                                            ? 'text-[#ff4a1f]'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                                        }`}
+                                >
+                                    <Building2 size={12} />
+                                    <span>Subcontractor</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Interactive Multi-Driver Relay Switch Card */}
+                    <div
+                        onClick={() => handleToggleRelay(!isRelay)}
+                        className="p-3 rounded-[6px] border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#161b22] hover:bg-slate-100/70 dark:hover:bg-[#1e2329] transition-all cursor-pointer flex items-center justify-between gap-3 select-none group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div onClick={(e) => e.stopPropagation()}>
                                 <Switch
                                     checked={isRelay}
                                     onCheckedChange={handleToggleRelay}
                                 />
-                                <span>Multi-Driver Relay Dispatch (Independent Pickup & Delivery Legs)</span>
                             </div>
-                            {isRelay && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-orange-100 text-[#ff4a1f] dark:bg-orange-950 dark:text-orange-300 rounded">
-                                    {2 + additionalLegs.length} Legs Active
+                            <div>
+                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block group-hover:text-[#ff4a1f] transition-colors">
+                                    Multi-Driver Relay Dispatch (Independent Pickup & Delivery Legs)
                                 </span>
-                            )}
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                                    {isRelay
+                                        ? `Active relay sequence with ${2 + additionalLegs.length} assigned driver legs`
+                                        : 'Single driver handles the entire journey from origin to destination'}
+                                </span>
+                            </div>
                         </div>
+                        {isRelay ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-100 text-[#ff4a1f] dark:bg-orange-950 dark:text-orange-300 rounded-[4px] border border-orange-200 dark:border-orange-900 shrink-0">
+                                {2 + additionalLegs.length} Legs Active
+                            </span>
+                        ) : (
+                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded-[4px] border border-slate-200 dark:border-slate-700 shrink-0">
+                                Single Driver
+                            </span>
+                        )}
                     </div>
+                </div>
 
                     {/* Relay Visual Flow Header (only when relay is checked) */}
                     {isRelay && (
@@ -899,9 +912,7 @@ export const AssignDriverModal: React.FC<AssignDriverModalProps> = ({
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>,
-        document.body
+        </Modal>
     );
 };
 

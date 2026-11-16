@@ -1,5 +1,6 @@
 import {
     AlertCircle,
+    AlertTriangle,
     Box,
     Building2,
     CheckCircle2,
@@ -353,6 +354,41 @@ export default function OrderDetails() {
                 onUpdateStatus={() => setShowStatusModal(true)}
             />
 
+            {/* Top-Level Emergency Alert Banner - Matching Driver Header Alert Style */}
+            {(order.has_emergency || dynamicLegs.some((l: any) => l.emergency_status === 'reported' || l.status === 'emergency_hold' || l.status === 'reassignment_required')) && (() => {
+                const emergencyLeg = dynamicLegs.find((l: any) => l.emergency_status === 'reported' || l.status === 'emergency_hold' || l.status === 'reassignment_required') || order.emergency;
+                return (
+                    <div className="p-3.5 bg-red-50/90 dark:bg-red-950/30 border border-red-200/90 dark:border-red-900/60 rounded-[4px] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                            <div className="w-6 h-6 rounded-[4px] bg-red-100 dark:bg-red-900/50 text-[#cf222e] dark:text-red-400 flex items-center justify-center shrink-0 mt-0.5">
+                                <AlertTriangle size={14} />
+                            </div>
+                            <div className="space-y-0.5 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs font-bold text-red-950 dark:text-red-100">
+                                        Driver Emergency: Reassignment Required
+                                    </span>
+                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-white dark:bg-[#1e2329] text-red-700 dark:text-red-300 rounded-[4px] border border-red-200 dark:border-red-800/80 capitalize shadow-2xs">
+                                        {emergencyLeg?.emergency_reason ? emergencyLeg.emergency_reason.replace('_', ' ') : 'Sick Leave'}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-red-800/90 dark:text-red-300/80 leading-normal">
+                                    Driver <strong className="text-red-950 dark:text-red-100 font-bold">{emergencyLeg?.driver_name || 'Assigned Driver'}</strong> reported sudden illness{emergencyLeg?.emergency_notes ? `: "${emergencyLeg.emergency_notes}"` : ''}. Replacement carrier dispatch is required.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowAssignDriverModal(true)}
+                            className="px-3.5 py-1.5 bg-white dark:bg-[#1e2329] border border-red-300 dark:border-red-800/80 hover:bg-red-50 dark:hover:bg-red-950/40 text-[#cf222e] dark:text-red-400 text-xs font-bold rounded-full shadow-2xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+                        >
+                            <AlertTriangle size={13} />
+                            <span>Reassign Driver</span>
+                        </button>
+                    </div>
+                );
+            })()}
+
             {/* Clean Tab Navigation Bar matching the reference design */}
             <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-800 overflow-x-auto text-xs font-bold pt-1">
                 <button
@@ -377,7 +413,11 @@ export default function OrderDetails() {
                 >
                     <Truck size={13} />
                     <span>Drivers</span>
-                    {hasDriver ? (
+                    {(order.has_emergency || dynamicLegs.some((l: any) => l.emergency_status === 'reported' || l.status === 'emergency_hold' || l.status === 'reassignment_required')) ? (
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-red-50 text-[#cf222e] dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-900/50">
+                            Emergency
+                        </span>
+                    ) : hasDriver ? (
                         isRelay ? (
                             <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300">
                                 Relay ({dynamicLegs.length || 2})
@@ -485,6 +525,41 @@ export default function OrderDetails() {
                         </button>
                     </div>
 
+                    {/* Emergency Alert Banner - Matching Driver Header Alert Style */}
+                    {dynamicLegs.some((l: any) => l.emergency_status === 'reported' || l.status === 'emergency_hold' || l.status === 'reassignment_required') && (() => {
+                        const emergencyLeg = dynamicLegs.find((l: any) => l.emergency_status === 'reported' || l.status === 'emergency_hold' || l.status === 'reassignment_required');
+                        return (
+                            <div className="p-3.5 bg-red-50/90 dark:bg-red-950/30 border border-red-200/90 dark:border-red-900/60 rounded-[4px] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150">
+                                <div className="flex items-start gap-2.5 min-w-0">
+                                    <div className="w-6 h-6 rounded-[4px] bg-red-100 dark:bg-red-900/50 text-[#cf222e] dark:text-red-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <AlertTriangle size={14} />
+                                    </div>
+                                    <div className="space-y-0.5 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="text-xs font-bold text-red-950 dark:text-red-100">
+                                                Driver Emergency: Reassignment Required
+                                            </span>
+                                            <span className="px-2 py-0.5 text-[10px] font-bold bg-white dark:bg-[#1e2329] text-red-700 dark:text-red-300 rounded-[4px] border border-red-200 dark:border-red-800/80 capitalize shadow-2xs">
+                                                {emergencyLeg?.emergency_reason ? emergencyLeg.emergency_reason.replace('_', ' ') : 'Sick Leave'}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-red-800/90 dark:text-red-300/80 leading-normal">
+                                            Driver <strong className="text-red-950 dark:text-red-100 font-bold">{emergencyLeg?.driver_name || 'Assigned Driver'}</strong> reported sudden illness{emergencyLeg?.emergency_notes ? `: "${emergencyLeg.emergency_notes}"` : ''}. Replacement carrier dispatch is required.
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAssignDriverModal(true)}
+                                    className="px-3.5 py-1.5 bg-white dark:bg-[#1e2329] border border-red-300 dark:border-red-800/80 hover:bg-red-50 dark:hover:bg-red-950/40 text-[#cf222e] dark:text-red-400 text-xs font-bold rounded-full shadow-2xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+                                >
+                                    <AlertTriangle size={13} />
+                                    <span>Reassign Driver</span>
+                                </button>
+                            </div>
+                        );
+                    })()}
+
                     {/* Content Section */}
                     {!hasDriver ? (
                         <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50/50 dark:bg-slate-800/20 border border-dashed border-slate-200 dark:border-slate-700 rounded-[4px] py-10 space-y-3">
@@ -531,13 +606,17 @@ export default function OrderDetails() {
                                     const legType = leg.vehicle_type || 'Standard Fleet';
                                     const legSegment = leg.journey_leg || (idx === 0 ? `Pickup ➔ ${order?.deliveryCity || order?.to || 'Intermediate Hub'}` : `Intermediate Hub ➔ ${order?.deliveryCity || order?.to || 'Final Delivery'}`);
                                     const legCost = leg.cost || leg.agreed_cost;
+                                    const isLegEmergency = leg.emergency_status === 'reported' || ['emergency_hold', 'reassignment_required'].includes(leg.status);
 
                                     return (
                                         <div
                                             key={leg.id || `leg_${idx}`}
-                                            className={`p-3.5 rounded-[4px] border space-y-2.5 transition-all ${idx === 0
-                                                ? 'border-blue-200 dark:border-blue-900 bg-blue-50/30 dark:bg-blue-950/20'
-                                                : idx === 1
+                                            className={`p-3.5 rounded-[4px] border space-y-2.5 transition-all ${
+                                                isLegEmergency
+                                                    ? 'border-red-400 dark:border-red-800 bg-red-50/40 dark:bg-red-950/30 ring-1 ring-red-400/30'
+                                                    : idx === 0
+                                                    ? 'border-blue-200 dark:border-blue-900 bg-blue-50/30 dark:bg-blue-950/20'
+                                                    : idx === 1
                                                     ? 'border-purple-200 dark:border-purple-900 bg-purple-50/30 dark:bg-purple-950/20'
                                                     : 'border-emerald-200 dark:border-emerald-900 bg-emerald-50/30 dark:bg-emerald-950/20'
                                                 }`}
@@ -546,12 +625,20 @@ export default function OrderDetails() {
                                                 <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1">
                                                     Leg {legNumber}: {leg.title || (idx === 0 ? 'Pickup / Collection' : 'Delivery / Final Mile')}
                                                 </span>
-                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSub
-                                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                                                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                                    }`}>
-                                                    {isSub ? (leg.subcontractor_company || 'Subcontractor') : 'In-House Fleet'}
-                                                </span>
+                                                <div className="flex items-center gap-1.5">
+                                                    {isLegEmergency && (
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-600 text-white flex items-center gap-1">
+                                                            <AlertTriangle size={10} />
+                                                            <span>Emergency ({leg.emergency_reason ? leg.emergency_reason.replace('_', ' ') : 'Sick'})</span>
+                                                        </span>
+                                                    )}
+                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSub
+                                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                                                        : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                                        }`}>
+                                                        {isSub ? (leg.subcontractor_company || 'Subcontractor') : 'In-House Fleet'}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             {/* Driver Profile */}

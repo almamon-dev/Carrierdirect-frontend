@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Check, Navigation } from 'lucide-react';
+import { ArrowLeft, Copy, Check, Navigation, AlertTriangle } from 'lucide-react';
 import { ShipmentItem } from '../../../types';
 import { ShipmentStatusBadge } from '../../components/ShipmentStatusBadge';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -36,34 +36,61 @@ export const DriverShipmentHeader: React.FC<Props> = ({ shipment, onOpenGPS }) =
     };
 
     const isLeg1Done = isRelayLeg1HandoverCompleted(shipment);
+    const isEmergency = Boolean(
+        shipment.emergency?.is_emergency ||
+        shipment.status === 'emergency_hold' ||
+        shipment.status === 'reassignment_required' ||
+        shipment.relayLegs?.some(l => l.emergency_status === 'reported' || l.status === 'reassignment_required')
+    );
 
     return (
-        <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 font-sans pb-1">
-            {/* Left: Back Link + Order ID + Tracking Badge + Status */}
-            <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-                <button
-                    type="button"
-                    onClick={() => navigate('/driver/shipments')}
-                    className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-[#FF4A1F] dark:hover:text-[#FF4A1F] transition-colors font-medium cursor-pointer mr-1"
-                >
-                    <ArrowLeft size={14} />
-                    <span>Back</span>
-                </button>
+        <div className="w-full flex flex-col gap-2.5 font-sans pb-1">
+            {isEmergency && (
+                <div className="w-full p-3.5 bg-red-50/90 dark:bg-red-950/30 border border-red-200/90 dark:border-red-900/60 rounded-[4px] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-6 h-6 rounded-[4px] bg-red-100 dark:bg-red-900/50 text-[#cf222e] dark:text-red-400 flex items-center justify-center shrink-0">
+                            <AlertTriangle size={14} />
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap min-w-0">
+                            <span className="text-xs font-bold text-red-950 dark:text-red-100">
+                                Shift Marked on Sick Leave / Emergency Hold
+                            </span>
+                            <span className="px-2 py-0.5 text-[10px] font-bold bg-white dark:bg-[#1e2329] text-red-700 dark:text-red-300 rounded-[4px] border border-red-200 dark:border-red-800/80 capitalize shadow-2xs">
+                                {shipment.emergency?.emergency_reason ? shipment.emergency.emergency_reason.replace('_', ' ') : 'Medical Unfit'}
+                            </span>
+                        </div>
+                    </div>
+                    <span className="text-xs text-red-800/90 dark:text-red-300/80 font-medium">
+                        Operations dispatch alerted • You are relieved of active driving duty
+                    </span>
+                </div>
+            )}
+            <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                {/* Left: Back Link + Order ID + Tracking Badge + Status */}
+                <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/driver/shipments')}
+                        className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-[#FF4A1F] dark:hover:text-[#FF4A1F] transition-colors font-medium cursor-pointer mr-1"
+                    >
+                        <ArrowLeft size={14} />
+                        <span>Back</span>
+                    </button>
 
-                <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+                    <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
 
-                <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 font-mono tracking-tight">
-                    {shipment.orderNumber}
-                </h1>
+                    <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 font-mono tracking-tight">
+                        {shipment.orderNumber}
+                    </h1>
 
-                <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1e2329] px-2 py-0.5 rounded-[2px] border border-slate-200 dark:border-slate-800 shadow-2xs">
-                    {shipment.trackingNumber}
-                </span>
+                    <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1e2329] px-2 py-0.5 rounded-[2px] border border-slate-200 dark:border-slate-800 shadow-2xs">
+                        {shipment.trackingNumber}
+                    </span>
 
-                <ShipmentStatusBadge
-                    status={shipment.status}
-                    label={isLeg1Done ? 'Leg 1 Completed' : undefined}
-                />
+                    <ShipmentStatusBadge
+                        status={shipment.status}
+                        label={isEmergency ? 'Emergency Hold' : isLeg1Done ? 'Leg 1 Completed' : undefined}
+                    />
 
                 {shipment.driverType === 'subcontractor' && (
                     <span className="inline-flex items-center gap-1 font-sans text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-[3px] border border-blue-200 dark:border-blue-900">
@@ -116,6 +143,7 @@ export const DriverShipmentHeader: React.FC<Props> = ({ shipment, onOpenGPS }) =
                     )}
                 </button>
             </div>
+        </div>
         </div>
     );
 };

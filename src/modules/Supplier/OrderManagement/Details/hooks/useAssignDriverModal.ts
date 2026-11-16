@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiClient from '@/lib/axios';
 
 export interface AdditionalLegItem {
@@ -125,9 +125,19 @@ export const useAssignDriverModal = ({
     const [subcontractorsList, setSubcontractorsList] = useState<any[]>([]);
     const [isLoadingTeam, setIsLoadingTeam] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const prevIsOpenRef = useRef(false);
 
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen) {
+            prevIsOpenRef.current = false;
+            return;
+        }
+
+        // Only initialize state when transitioning from closed to open
+        if (prevIsOpenRef.current) {
+            return;
+        }
+        prevIsOpenRef.current = true;
 
         const isCurrentRelay = Boolean(
             currentDriver?.isRelay ||

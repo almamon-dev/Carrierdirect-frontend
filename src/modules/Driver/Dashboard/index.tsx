@@ -13,6 +13,8 @@ import { driverApi, driverShipmentService } from '../services/driverApi';
 import { TOKEN_CONFIG } from '@/config/auth';
 import { initialDashboardMetrics } from './data/dashboardData';
 import { ShipmentItem } from '../types';
+import { WhatsNewModal, FeatureAnnouncementBanner } from '@/components/shared/WhatsNewModal';
+import { featureReleaseService } from '@/services/featureReleaseService';
 
 function getAuthUser() {
     try {
@@ -36,6 +38,7 @@ export default function DriverDashboard() {
     const [activeShipment, setActiveShipment] = useState<any>(null);
     const [allShipments, setAllShipments] = useState<ShipmentItem[]>([]);
     const [driverInfo, setDriverInfo] = useState({ vehiclePlate: '231-D-45892', vehicleType: 'Volvo FH16 750 Globetrotter' });
+    const [dutyStatus, setDutyStatus] = useState<string>('online');
     const [isLoading, setIsLoading] = useState(true);
 
     const [isBOLOpen, setIsBOLOpen] = useState(false);
@@ -43,6 +46,23 @@ export default function DriverDashboard() {
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [isGPSOpen, setIsGPSOpen] = useState(false);
     const [gpsDestination, setGpsDestination] = useState<string | undefined>(undefined);
+    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+        let timer: any = null;
+        featureReleaseService.getActiveAnnouncements('driver').then(res => {
+            if (isMounted && res.has_unseen) {
+                timer = setTimeout(() => {
+                    setIsWhatsNewOpen(true);
+                }, 800);
+            }
+        });
+        return () => {
+            isMounted = false;
+            if (timer) clearTimeout(timer);
+        };
+    }, []);
 
     const loadDashboard = async () => {
         try {
@@ -55,6 +75,8 @@ export default function DriverDashboard() {
                 if (data.metrics) setMetrics(data.metrics);
                 if (data.activeShipment) setActiveShipment(data.activeShipment);
                 if (data.driverInfo) setDriverInfo(data.driverInfo);
+                const duty = (data as any)?.driverInfo?.dutyStatus || (data as any)?.driverInfo?.duty_status || (data as any)?.dutyStatus || (data as any)?.duty_status;
+                if (duty) setDutyStatus(duty);
             }
 
             if (shipments && Array.isArray(shipments) && shipments.length > 0) {
@@ -129,11 +151,15 @@ export default function DriverDashboard() {
 
     return (
         <div className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
+            {/* Top Announcement Banner for New Releases */}
+            <FeatureAnnouncementBanner onOpenModal={() => setIsWhatsNewOpen(true)} />
+
             {/* Top Driver Header */}
             <DriverDashboardHeader
                 driverName={driverName}
                 isVerified={isVerified}
                 verificationStatus={verificationStatus}
+                dutyStatus={dutyStatus}
                 isRefreshing={isCheckingStatus}
                 onRefresh={handleRefreshStatus}
             />
@@ -195,6 +221,13 @@ export default function DriverDashboard() {
                 isGPSOpen={isGPSOpen}
                 setIsGPSOpen={setIsGPSOpen}
                 gpsDestination={gpsDestination}
+            />
+
+            {/* What's New & Upcoming Releases Modal */}
+            <WhatsNewModal
+                isOpen={isWhatsNewOpen}
+                onClose={() => setIsWhatsNewOpen(false)}
+                role="driver"
             />
         </div>
     );

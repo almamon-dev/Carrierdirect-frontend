@@ -158,7 +158,6 @@ export const SupplierOrderDetailsSkeleton: React.FC = () => {
                             </div>
                         </div>
                     </div>
-
                     {/* Shipment Timeline Card Skeleton */}
                     <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-4 shadow-2xs space-y-4">
                         <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -187,4 +186,3 @@ export const SupplierOrderDetailsSkeleton: React.FC = () => {
 };
 
 export default SupplierOrderDetailsSkeleton;
-

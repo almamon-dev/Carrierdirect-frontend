@@ -59,17 +59,17 @@ export default function HomeFAQAccordion() {
   const halfRight = items.slice(midPoint);
 
   return (
-    <section id="faq" className="w-full bg-transparent py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <section id="faq" className="w-full bg-transparent py-5 sm:py-7 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header with Title on Left and View All on Right */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 pb-3 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 pb-2.5 border-b border-gray-100">
           <div>
             {badge && (
-              <span className="text-[#ea580c] font-bold tracking-widest text-[11px] uppercase mb-1 block">
+              <span className="text-[#ea580c] font-bold tracking-widest text-[11px] uppercase mb-0.5 block">
                 {badge}
               </span>
             )}
-            <h2 className="text-gray-900 text-xl sm:text-2xl font-extrabold tracking-tight">
+            <h2 className="text-gray-900 text-lg sm:text-xl font-extrabold tracking-tight">
               {title}
             </h2>
           </div>

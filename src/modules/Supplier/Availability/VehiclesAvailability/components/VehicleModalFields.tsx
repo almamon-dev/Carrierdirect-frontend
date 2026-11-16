@@ -143,7 +143,7 @@ export const VehicleModalFields: React.FC<VehicleModalFieldsProps> = ({
                     <Input
                         label="Assigned Driver"
                         type="text"
-                        placeholder="e.g. John Doe (Optional)"
+                        placeholder="e.g. Assigned Driver Name (Optional)"
                         value={assignedDriver || ''}
                         onChange={(e) => setAssignedDriver(e.target.value)}
                     />

@@ -10,7 +10,9 @@ export type ShipmentStatus =
     | 'at_delivery'
     | 'delivered'
     | 'completed'
-    | 'cancelled';
+    | 'cancelled'
+    | 'emergency_hold'
+    | 'reassignment_required';
 
 export interface ShipmentHandoverInfo {
     id: number;
@@ -49,6 +51,10 @@ export interface RelayLegInfo {
     driver_phone?: string;
     vehicle_plate?: string;
     vehicle_type?: string;
+    emergency_status?: string;
+    emergency_reason?: string;
+    emergency_notes?: string;
+    emergency_reported_at?: string;
     assigned_at?: string;
     completed_at?: string;
 }
@@ -178,6 +184,13 @@ export interface ShipmentItem {
         signatureUrl?: string;
         documentPhotos?: string[];
         notes?: string;
+    };
+    emergency?: {
+        is_emergency?: boolean;
+        emergency_status?: string;
+        emergency_reason?: string;
+        emergency_notes?: string;
+        emergency_reported_at?: string;
     };
     createdAt: string;
     updatedAt: string;

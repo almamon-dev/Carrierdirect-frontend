@@ -104,7 +104,7 @@ export default function CallToAction() {
   };
 
   return (
-    <section className="w-full px-4 pt-8 pb-3 bg-transparent">
+    <section className="w-full px-4 pt-5 pb-2 bg-transparent">
       <div 
         ref={reveal.ref}
         className={`relative mx-auto max-w-7xl overflow-hidden rounded-xl bg-[#0f0400] shadow-md reveal ${reveal.isVisible ? "visible" : ""}`}
@@ -118,7 +118,7 @@ export default function CallToAction() {
 
         <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-[#ff4a1f] rounded-full mix-blend-screen filter blur-[100px] opacity-30 translate-x-1/2 -translate-y-1/2" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-6 py-6 md:px-8 md:py-7 gap-4">
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-5 py-5 md:px-7 md:py-6 gap-3.5">
 
           <div className="flex-1 text-center md:text-left">
             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/10 border border-white/10 mb-2">

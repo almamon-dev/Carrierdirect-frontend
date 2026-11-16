@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Navigation, Phone, Truck } from 'lucide-react';
+import { Clock, Navigation, Phone, Truck, AlertTriangle } from 'lucide-react';
 import { ShipmentItem } from '../../types';
 import { ShipmentStatusBadge } from './ShipmentStatusBadge';
 import { requireDriverCompliance } from '../../Compliance';
@@ -42,9 +42,22 @@ export const ShipmentCard: React.FC<Props> = ({ shipment }) => {
                 </div>
 
                 <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <ShipmentStatusBadge status={shipment.status} />
+                    <ShipmentStatusBadge
+                        status={shipment.status}
+                        label={shipment.emergency?.is_emergency ? 'Emergency Hold' : undefined}
+                    />
                 </div>
             </div>
+
+            {shipment.emergency?.is_emergency && (
+                <div className="px-2.5 py-1 bg-slate-50/70 dark:bg-[#161b22] rounded-[3px] border border-slate-200 dark:border-slate-800 border-l-[3px] border-l-[#cf222e] text-[11px] text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                    <span className="font-medium flex items-center gap-1.5 capitalize text-slate-900 dark:text-slate-100">
+                        <AlertTriangle size={12} className="text-[#cf222e]" />
+                        <span>Offline: {shipment.emergency.emergency_reason?.replace('_', ' ') || 'Sick Leave'}</span>
+                    </span>
+                    <span className="text-slate-500 dark:text-slate-400 text-[10px]">Reassigning</span>
+                </div>
+            )}
 
             {shipment.driverType === 'subcontractor' && (
                 <div className="px-2 py-1 bg-blue-50/70 dark:bg-blue-950/30 rounded-[3px] border border-blue-200/60 dark:border-blue-900/40 text-[10.5px] text-blue-700 dark:text-blue-300 flex items-center justify-between">

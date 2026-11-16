@@ -48,15 +48,15 @@ export default function ComparisonTable() {
     : DEFAULT_COMPARISONS;
 
   return (
-    <section className="w-full bg-transparent pt-8 pb-5 px-4 overflow-hidden relative">
+    <section className="w-full bg-transparent py-5 sm:py-6 px-4 overflow-hidden relative">
       <div className="relative max-w-7xl mx-auto">
 
         {/* Section Title */}
-        <div className="text-center mb-6">
-          <span className="text-[#ff4a1f] font-semibold tracking-wider text-[10px] uppercase mb-1.5 block">
+        <div className="text-center mb-4">
+          <span className="text-[#ff4a1f] font-semibold tracking-wider text-[10px] uppercase mb-1 block">
             {badge}
           </span>
-          <h2 className="text-[#0f0400] dark:text-slate-100 text-xl sm:text-2xl font-extrabold tracking-tight mb-2">
+          <h2 className="text-[#0f0400] dark:text-slate-100 text-lg sm:text-xl font-extrabold tracking-tight mb-1.5">
             {title}
           </h2>
           <p className="text-gray-500 dark:text-slate-400 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">

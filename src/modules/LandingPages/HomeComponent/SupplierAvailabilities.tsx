@@ -119,17 +119,17 @@ export default function SupplierAvailabilities() {
   const displayItems = filteredList.length > 0 ? filteredList : availabilities;
 
   return (
-    <section id="supplier-capacity" className="w-full bg-transparent pt-8 pb-5 px-4 overflow-hidden">
+    <section id="supplier-capacity" className="w-full bg-transparent py-5 sm:py-7 px-4 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         {/* Top Centered Header Matching Screenshot */}
-        <div className="text-center max-w-3xl mx-auto mb-6">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#ff4a1f]/10 text-[#ff4a1f] border border-[#ff4a1f]/20 mb-2 shadow-2xs">
+        <div className="text-center max-w-3xl mx-auto mb-4">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#ff4a1f]/10 text-[#ff4a1f] border border-[#ff4a1f]/20 mb-1.5 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-[#ff4a1f]" />
             {badge}
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
           </div>
 
-          <h2 className="text-[#0f0400] dark:text-slate-100 text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+          <h2 className="text-[#0f0400] dark:text-slate-100 text-xl sm:text-2xl font-extrabold tracking-tight mb-1.5">
             {title}
           </h2>
 
@@ -139,7 +139,7 @@ export default function SupplierAvailabilities() {
         </div>
 
         {/* Filters and Navigation Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-3">
           {/* Category Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1 w-full sm:w-auto">
             {filterTabs.map((tab) => {

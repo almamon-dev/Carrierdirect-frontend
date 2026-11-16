@@ -115,7 +115,7 @@ export const OrderPODModal: React.FC<OrderPODModalProps> = ({
                         label="Receiver / Signee Full Name *"
                         value={receiverName}
                         onChange={(e) => setReceiverName(e.target.value)}
-                        placeholder="e.g. John Doe (Consignee Supervisor)"
+                        placeholder="e.g. Mahbubur Rahman (Consignee Supervisor)"
                         icon={<User size={14} className="text-slate-400" />}
                         disabled={isSubmitting}
                         required

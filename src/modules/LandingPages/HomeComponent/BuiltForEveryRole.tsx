@@ -68,23 +68,23 @@ export default function BuiltForEveryRole() {
   };
 
   return (
-    <section className="bg-transparent py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
+    <section className="bg-transparent py-5 sm:py-7 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-[#0f172a] rounded-xl p-5 sm:p-6 lg:p-7 shadow-xl border border-gray-800">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+        <div className="bg-[#0f172a] rounded-xl p-4 sm:p-5 lg:p-6 shadow-xl border border-gray-800">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-center">
 
             {/* Left Column: Heading, Subtitle & Action Button */}
-            <div className="lg:col-span-4 space-y-3">
-              <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
+            <div className="lg:col-span-4 space-y-2.5">
+              <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-tight">
                 {title}
               </h2>
               <p className="text-gray-400 text-xs leading-relaxed max-w-sm">
                 {subtitle}
               </p>
-              <div className="pt-1">
+              <div className="pt-0.5">
                 <Link
                   to={btnLink}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold shadow-md shadow-[#ea580c]/25 transition-all hover:scale-[1.02] active:scale-95"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[4px] bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold shadow-md shadow-[#ea580c]/25 transition-all hover:scale-[1.02] active:scale-95"
                 >
                   <span>{btnText}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -94,31 +94,31 @@ export default function BuiltForEveryRole() {
 
             {/* Right Column: 4 Role Cards */}
             <div className="lg:col-span-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                 {roles.map((role: any, idx: number) => {
                   const isSelected = activeRoleKey === (role.key || `role_${idx}`);
                   return (
                     <div
                       key={role.key || idx}
                       onClick={() => setActiveRoleKey(role.key || `role_${idx}`)}
-                      className={`cursor-pointer rounded-lg p-3 sm:p-3.5 transition-all duration-200 border ${isSelected
+                      className={`cursor-pointer rounded-[4px] p-2.5 sm:p-3 transition-all duration-200 border ${isSelected
                           ? "bg-[#ea580c] border-[#ea580c] shadow-lg shadow-[#ea580c]/20 text-white"
                           : "bg-gray-900/80 hover:bg-gray-800/90 border-gray-800 text-gray-300"
                         }`}
                     >
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-1.5">
                         <div
-                          className={`w-7 h-7 rounded-md flex items-center justify-center ${isSelected ? "bg-white/20" : "bg-gray-800 border border-gray-700"
+                          className={`w-6 h-6 rounded-[4px] flex items-center justify-center ${isSelected ? "bg-white/20" : "bg-gray-800 border border-gray-700"
                             }`}
                         >
                           {renderIcon(role.icon, isSelected)}
                         </div>
-                        <h3 className="font-bold text-xs sm:text-sm tracking-tight">
+                        <h3 className="font-bold text-xs tracking-tight">
                           {role.title}
                         </h3>
                       </div>
                       <p
-                        className={`text-[11px] sm:text-xs leading-relaxed ${isSelected ? "text-white/90" : "text-gray-400"
+                        className={`text-[11px] leading-relaxed ${isSelected ? "text-white/90" : "text-gray-400"
                           }`}
                       >
                         {role.description}

@@ -67,16 +67,16 @@ export default function KeyFeaturesGrid() {
       : defaultFeatures;
 
   return (
-    <section id="features" className="bg-transparent py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <section id="features" className="bg-transparent py-5 sm:py-7 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
+        <div className="text-center max-w-3xl mx-auto mb-5 sm:mb-6">
           {badge && (
-            <span className="text-[#ea580c] font-bold text-[11px] uppercase tracking-widest mb-1.5 inline-block">
+            <span className="text-[#ea580c] font-bold text-[11px] uppercase tracking-widest mb-1 inline-block">
               {badge}
             </span>
           )}
-          <h2 className="text-gray-900 text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+          <h2 className="text-gray-900 text-xl sm:text-2xl font-extrabold tracking-tight mb-1.5">
             {title}
           </h2>
           {subtitle && (
@@ -89,7 +89,7 @@ export default function KeyFeaturesGrid() {
         {/* 8-Card Grid (4 cols on lg, 2 cols on sm) */}
         <div
           ref={reveal.ref}
-          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 reveal ${
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 reveal ${
             reveal.isVisible ? "visible" : ""
           }`}
         >

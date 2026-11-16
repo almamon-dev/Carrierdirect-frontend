@@ -117,6 +117,19 @@ export interface NormalizedSupplierOrder {
     leg2_cost?: number;
     legs?: any[];
     shipment_legs?: any[];
+    has_emergency?: boolean;
+    emergency?: {
+        is_emergency?: boolean;
+        leg_number?: number;
+        driver_id?: number;
+        driver_name?: string;
+        driver_phone?: string;
+        status?: string;
+        emergency_status?: string;
+        emergency_reason?: string;
+        emergency_notes?: string;
+        emergency_reported_at?: string;
+    } | null;
     documents?: Array<{
         id: string;
         name: string;
@@ -321,6 +334,8 @@ export const buildSupplierOrderDetails = (
                 ? (() => { try { return JSON.parse(foundOrder.legs); } catch { return []; } })()
                 : []),
         shipment_legs: Array.isArray(foundOrder?.shipment_legs) ? foundOrder.shipment_legs : [],
+        has_emergency: Boolean(foundOrder?.has_emergency || foundOrder?.emergency?.is_emergency),
+        emergency: foundOrder?.emergency || null,
         documents: Array.isArray(foundOrder?.documents) ? foundOrder.documents : [],
         subcontractor_costs: Array.isArray(foundOrder?.subcontractor_costs) ? foundOrder.subcontractor_costs : [],
         dispatch_financial_summary: foundOrder?.dispatch_financial_summary,

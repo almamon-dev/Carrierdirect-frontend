@@ -247,6 +247,13 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
         } : undefined,
         podStatus: raw.pod_status || raw.tracking?.pod_status || undefined,
         podData: extractPodData(raw),
+        emergency: raw.emergency || (raw.relay_legs?.some((l: any) => l.emergency_status === 'reported') ? {
+            is_emergency: true,
+            emergency_status: 'reported',
+            emergency_reason: raw.relay_legs?.find((l: any) => l.emergency_status === 'reported')?.emergency_reason || 'sick_leave',
+            emergency_notes: raw.relay_legs?.find((l: any) => l.emergency_status === 'reported')?.emergency_notes,
+            emergency_reported_at: raw.relay_legs?.find((l: any) => l.emergency_status === 'reported')?.emergency_reported_at,
+        } : undefined),
         driverType: raw.driver_type || raw.driver?.driver_type || (raw.subcontractor_company ? 'subcontractor' : 'internal'),
         subcontractorCompany: raw.subcontractor_company || raw.driver?.subcontractor_company,
         subcontractorJourneyLeg: raw.subcontractor_journey_leg || raw.driver?.subcontractor_journey_leg,

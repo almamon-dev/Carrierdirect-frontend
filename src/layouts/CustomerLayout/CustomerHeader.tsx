@@ -1,5 +1,6 @@
 import HeaderMessages from '@/components/HeaderMessages';
 import HeaderNotifications from '@/components/HeaderNotifications';
+import { WhatsNewTrigger } from '@/components/shared/WhatsNewModal';
 import { ChevronDown, LogOut, Search, Settings, User } from 'lucide-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -77,6 +78,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
             </div>
 
             <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5">
+                <WhatsNewTrigger role="customer" />
                 <HeaderNotifications role="customer" />
                 <HeaderMessages role="customer" />
                 <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-0.5 hidden sm:block" />

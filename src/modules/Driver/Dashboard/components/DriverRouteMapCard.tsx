@@ -20,7 +20,13 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
         (activeShipment.id || activeShipment.orderNumber || activeShipment.order_no) &&
         !['cancelled', 'canceled'].includes(activeShipment.status)
     );
-    const isCompleted = ['delivered', 'completed'].includes(activeShipment?.status);
+    const isEmergency = Boolean(
+        activeShipment?.emergency?.is_emergency ||
+        activeShipment?.assignedLeg?.status === 'reassignment_required' ||
+        activeShipment?.assignedLeg?.status === 'emergency_hold' ||
+        ['emergency_hold', 'reassignment_required'].includes(activeShipment?.status)
+    );
+    const isCompleted = !isEmergency && ['delivered', 'completed'].includes(activeShipment?.status);
 
     const originCity = isValidActiveShipment
         ? (activeShipment?.shipper?.city ||
@@ -193,7 +199,9 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
             {/* Header: Live GPS Status, Corridor Pill, Distance Badge & Open in Google Maps */}
             <div className="px-3.5 py-2.5 bg-white dark:bg-[#1e2329] border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div className="flex items-center gap-1.5 min-w-0">
-                    {isCompleted ? (
+                    {isEmergency ? (
+                        <span className="w-2 h-2 rounded-full bg-red-500 inline-block shrink-0" />
+                    ) : isCompleted ? (
                         <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0" />
                     ) : (
                         <span className="flex h-2 w-2 relative shrink-0">
@@ -205,7 +213,7 @@ export const DriverRouteMapCard: React.FC<DriverRouteMapCardProps> = ({
                         Route Corridor
                     </span>
                     <span className="text-slate-400 dark:text-slate-500 font-medium">
-                        • {isCompleted ? 'Leg Completed' : (isRealLocationFix ? 'Real GPS Active' : (isLiveGPS ? 'Live GPS Active' : 'GPS Tracking'))}
+                        • {isEmergency ? 'Shift on Hold' : isCompleted ? 'Leg Completed' : (isRealLocationFix ? 'Real GPS Active' : (isLiveGPS ? 'Live GPS Active' : 'GPS Tracking'))}
                     </span>
                 </div>
 

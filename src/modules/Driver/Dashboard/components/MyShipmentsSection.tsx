@@ -11,9 +11,12 @@ import {
     Scale,
     Boxes,
     ChevronRight,
-    ArrowRight
+    ArrowRight,
+    AlertTriangle,
+    HeartPulse,
 } from 'lucide-react';
 import { ShipmentItem } from '../../types';
+import { ReportEmergencyModal } from '../../components/ReportEmergencyModal';
 
 interface MyShipmentsSectionProps {
     allShipments: ShipmentItem[];
@@ -31,6 +34,7 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<0 | 1 | 2>(0); // 0 = Today, 1 = Tomorrow, 2 = Upcoming
     const [userSelectedTab, setUserSelectedTab] = useState(false);
+    const [emergencyShipment, setEmergencyShipment] = useState<ShipmentItem | null>(null);
 
     const now = new Date();
     const tomorrow = new Date();
@@ -212,8 +216,26 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
         return dateStr || timeStr || '';
     };
 
-    const renderStatusBadge = (status: string) => {
+    const renderStatusBadge = (status: string, item?: ShipmentItem) => {
         const s = (status || '').toLowerCase();
+        const isEmergency = Boolean(
+            item?.emergency?.is_emergency ||
+            item?.assignedLeg?.status === 'reassignment_required' ||
+            item?.assignedLeg?.status === 'emergency_hold' ||
+            s === 'reassignment_required' ||
+            s === 'emergency_hold' ||
+            s.includes('emergency')
+        );
+
+        if (isEmergency) {
+            return (
+                <span className="px-2 py-0.5 text-[11px] font-bold bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 rounded-[4px] border border-red-200/80 dark:border-red-900/60 flex items-center gap-1 shadow-2xs">
+                    <AlertTriangle size={11} className="text-[#cf222e] dark:text-red-400" />
+                    <span>Duty on Hold</span>
+                </span>
+            );
+        }
+
         if (s === 'completed' || s.includes('complete')) {
             return (
                 <span className="px-2 py-0.5 text-[11px] font-bold bg-[#ECFDF5] dark:bg-emerald-950/60 text-[#059669] dark:text-emerald-400 rounded-[4px] border border-emerald-200/80 dark:border-emerald-900/60 flex items-center gap-1">
@@ -358,6 +380,21 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
                                             : 'border-slate-200/90 dark:border-slate-800 shadow-2xs'
                                     } p-3.5 sm:p-4 space-y-3 transition-all cursor-pointer`}
                                 >
+                                    {/* Emergency Alert Banner - Matching Header Style */}
+                                    {(item.emergency?.is_emergency || item.assignedLeg?.status === 'reassignment_required' || item.status === 'emergency_hold') && (
+                                        <div className="p-3 bg-red-50/90 dark:bg-red-950/30 border border-red-200/90 dark:border-red-900/60 rounded-[4px] flex items-center justify-between text-xs text-red-800 dark:text-red-200 animate-in fade-in duration-150">
+                                            <div className="flex items-center gap-2 font-bold min-w-0">
+                                                <div className="w-5 h-5 rounded-[4px] bg-red-100 dark:bg-red-900/50 text-[#cf222e] dark:text-red-400 flex items-center justify-center shrink-0">
+                                                    <AlertTriangle size={12} />
+                                                </div>
+                                                <span className="truncate">Shift on Hold: {item.emergency?.emergency_reason ? item.emergency.emergency_reason.replace('_', ' ') : 'Sick Leave'}</span>
+                                            </div>
+                                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-[4px] bg-white dark:bg-[#1e2329] border border-red-200 dark:border-red-800/80 text-red-700 dark:text-red-300 shrink-0 shadow-2xs">
+                                                Reassignment Pending
+                                            </span>
+                                        </div>
+                                    )}
+
                                     {/* Top Row: Icon + Order Number + Date + Status Badge */}
                                     <div className="flex items-center justify-between gap-2">
                                         <div className="flex items-center gap-2.5 min-w-0">
@@ -376,7 +413,7 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
                                         </div>
 
                                         <div className="shrink-0">
-                                            {renderStatusBadge(item.status)}
+                                            {renderStatusBadge(item.status, item)}
                                         </div>
                                     </div>
 
@@ -442,12 +479,12 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons: Navigation + Details matching mockup */}
-                                    <div className="grid grid-cols-2 gap-2.5 pt-1" onClick={(e) => e.stopPropagation()}>
+                                    {/* Action Buttons: Navigation + Details + Emergency Report */}
+                                    <div className="flex items-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                                         <button
                                             type="button"
                                             onClick={() => navigate(`/driver/navigation/${item.id}`)}
-                                            className="py-2 px-3 bg-[#FF5722] hover:bg-[#E03E15] text-white rounded-[4px] text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                                            className="flex-1 py-2 px-3 bg-[#FF5722] hover:bg-[#E03E15] text-white rounded-[4px] text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                                         >
                                             <Navigation size={13} className="fill-white" />
                                             <span>Navigation</span>
@@ -456,10 +493,22 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => navigate(`/driver/shipments/${item.id}`)}
-                                            className="py-2 px-3 bg-white hover:bg-slate-50 dark:bg-[#1e2329] dark:hover:bg-[#252b33] border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
+                                            className="flex-1 py-2 px-3 bg-white hover:bg-slate-50 dark:bg-[#1e2329] dark:hover:bg-[#252b33] border border-slate-200/90 dark:border-slate-700/80 rounded-[4px] text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
                                         >
                                             <span>Details</span>
                                         </button>
+
+                                        {!item.emergency?.is_emergency && !['delivered', 'completed', 'cancelled'].includes((item.status || '').toLowerCase()) && (
+                                            <button
+                                                type="button"
+                                                title="Report Sick Leave or Vehicle Breakdown"
+                                                onClick={() => setEmergencyShipment(item)}
+                                                className="py-2 px-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-900/60 rounded-[4px] text-xs font-bold text-red-600 dark:text-red-400 flex items-center justify-center gap-1 transition-colors cursor-pointer shrink-0"
+                                            >
+                                                <HeartPulse size={13} className="text-red-500 shrink-0" />
+                                                <span className="hidden sm:inline">Sick / Emergency</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             );
@@ -495,13 +544,24 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
                                 </div>
 
                                 <div className="shrink-0">
-                                    {renderStatusBadge(item.status)}
+                                    {renderStatusBadge(item.status, item)}
                                 </div>
                             </div>
                         );
                     })}
                 </div>
             )}
+
+            {/* Report Emergency / Sick Leave Modal */}
+            <ReportEmergencyModal
+                isOpen={Boolean(emergencyShipment)}
+                shipment={emergencyShipment}
+                onClose={() => setEmergencyShipment(null)}
+                onSuccess={() => {
+                    setEmergencyShipment(null);
+                    window.location.reload();
+                }}
+            />
         </div>
     );
 };

@@ -53,6 +53,13 @@ export const ShipmentStatusBadge: React.FC<Props> = ({ status, className = '', l
                     {label || 'Cancelled'}
                 </span>
             );
+        case 'emergency_hold':
+        case 'reassignment_required':
+            return (
+                <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.failed.className} ${className}`}>
+                    {label || 'Emergency Hold'}
+                </span>
+            );
         default:
             return (
                 <span className={`${STATUS_BADGE_BASE_CLASS} ${STATUS_CATEGORY_STYLES.neutral.className} ${className} capitalize`}>

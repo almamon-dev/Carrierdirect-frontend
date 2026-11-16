@@ -110,32 +110,32 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="relative bg-transparent py-8 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      className="relative bg-transparent py-5 sm:py-7 px-4 sm:px-6 lg:px-8 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto">
         {/* Title Header */}
-        <div className="text-center mb-8 sm:mb-10 max-w-2xl mx-auto">
+        <div className="text-center mb-5 sm:mb-6 max-w-2xl mx-auto">
           {badge && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-50 text-[#ea580c] border border-orange-200/70 mb-3 shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-50 text-[#ea580c] border border-orange-200/70 mb-2 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-[#ea580c] animate-pulse" />
               {badge}
             </span>
           )}
-          <h2 className="text-gray-900 text-2xl sm:text-3xl font-extrabold tracking-tight mb-2.5">
+          <h2 className="text-gray-900 text-xl sm:text-2xl font-extrabold tracking-tight mb-1.5">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-gray-500 text-xs sm:text-sm leading-relaxed mb-6">
+            <p className="text-gray-500 text-xs sm:text-sm leading-relaxed mb-4">
               {subtitle}
             </p>
           )}
 
           {/* Workflow Switcher (Shippers vs Carriers) - Exact style matching Pricing section */}
-          <div className="inline-flex bg-white dark:bg-[#1e2329] rounded-full p-1 shadow-2xs dark:shadow-none border border-gray-200 dark:border-[#2b313a] mb-4">
+          <div className="inline-flex bg-white dark:bg-[#1e2329] rounded-full p-1 shadow-2xs dark:shadow-none border border-gray-200 dark:border-[#2b313a] mb-2">
             <button
               type="button"
               onClick={() => setActiveWorkflow("customer")}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer ${
+              className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer ${
                 activeWorkflow === "customer"
                   ? "bg-[#0f0400] dark:bg-[#ff4a1f] text-white shadow-xs"
                   : "text-gray-500 dark:text-slate-400 hover:text-[#0f0400] dark:hover:text-white"
@@ -146,7 +146,7 @@ export default function HowItWorks() {
             <button
               type="button"
               onClick={() => setActiveWorkflow("supplier")}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer ${
+              className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer ${
                 activeWorkflow === "supplier"
                   ? "bg-[#0f0400] dark:bg-[#ff4a1f] text-white shadow-xs"
                   : "text-gray-500 dark:text-slate-400 hover:text-[#0f0400] dark:hover:text-white"
@@ -160,7 +160,7 @@ export default function HowItWorks() {
         {/* 4 Connected Step Cards Grid (Rendered using SummaryCard) */}
         <div
           ref={reveal.ref}
-          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 relative reveal ${
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 relative reveal ${
             reveal.isVisible ? "visible" : ""
           }`}
         >

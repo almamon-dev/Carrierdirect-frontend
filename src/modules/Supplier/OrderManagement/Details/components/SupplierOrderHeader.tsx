@@ -107,7 +107,14 @@ export const SupplierOrderHeader: React.FC<SupplierOrderHeaderProps> = ({
 
                     {/* Status Badges */}
                     <div className="flex items-center gap-1.5 flex-wrap">
-                        <StatusBadge status={order.status} />
+                        {Boolean(order.has_emergency || order.emergency?.is_emergency || ((order.shipment_legs || order.legs || []) as any[]).some((l: any) => l.emergency_status === 'reported' || l.status === 'reassignment_required')) ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-red-50 text-[#cf222e] dark:bg-red-950/40 dark:text-red-400 border border-red-200 dark:border-red-900/60 inline-flex items-center gap-1.5 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#cf222e] inline-block" />
+                                <span>Reassignment Required</span>
+                            </span>
+                        ) : (
+                            <StatusBadge status={order.status} />
+                        )}
 
                         <StatusBadge
                             status={order.pricing?.paymentStatus || (isPaid ? 'Paid' : isPayLater ? 'Pay Later (Net-30)' : 'In Escrow')}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Truck, RefreshCw, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Truck, RefreshCw, CheckCircle2, Clock, AlertCircle, HeartPulse } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '@/components/ui/button';
 
@@ -7,6 +7,7 @@ interface DriverDashboardHeaderProps {
     driverName?: string;
     isVerified: boolean;
     verificationStatus?: string;
+    dutyStatus?: string;
     isRefreshing: boolean;
     onRefresh: () => void;
 }
@@ -15,6 +16,7 @@ export const DriverDashboardHeader: React.FC<DriverDashboardHeaderProps> = ({
     driverName,
     isVerified,
     verificationStatus,
+    dutyStatus,
     isRefreshing,
     onRefresh,
 }) => {
@@ -31,14 +33,21 @@ export const DriverDashboardHeader: React.FC<DriverDashboardHeaderProps> = ({
                         </h1>
                         <span
                             className={`px-2 py-0.5 text-[11px] font-semibold rounded-full flex items-center gap-1 ${
-                                isVerified
+                                dutyStatus === 'sick_leave'
+                                    ? 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                    : isVerified
                                     ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400'
                                     : verificationStatus === 'under_review'
                                     ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400'
                                     : 'bg-orange-100 dark:bg-orange-950/50 text-[#FF4A1F]'
                             }`}
                         >
-                            {isVerified ? (
+                            {dutyStatus === 'sick_leave' ? (
+                                <>
+                                    <HeartPulse size={12} className="text-red-500" />
+                                    <span>Sick Leave (Offline)</span>
+                                </>
+                            ) : isVerified ? (
                                 <>
                                     <CheckCircle2 size={12} />
                                     <span>Active on Duty</span>

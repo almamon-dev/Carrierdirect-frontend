@@ -154,7 +154,7 @@ export default function HomeHero() {
       </div>
 
       {/* Hero Content Container */}
-      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 pb-12 sm:pb-14 w-full">
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-10 sm:pb-12 w-full">
         <div className="max-w-xl lg:max-w-2xl">
           
           {/* Badge Pill */}
@@ -185,7 +185,7 @@ export default function HomeHero() {
           </p>
 
           {/* Action Buttons: Create a Quote & Become a Supplier */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-8 sm:mb-10">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-6 sm:mb-8">
             {isLoggedIn ? (
               <Button 
                 variant="default"

@@ -73,17 +73,17 @@ export default function DriverAppShowcase() {
   };
 
   return (
-    <section id="driver-app" className="bg-transparent py-8 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section id="driver-app" className="bg-transparent py-5 sm:py-7 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div
           ref={reveal.ref}
-          className={`grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal ${reveal.isVisible ? "visible" : ""
+          className={`grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-7 items-center reveal ${reveal.isVisible ? "visible" : ""
             }`}
         >
           {/* Left Column: Heading, Subtitle & App Store Badges */}
-          <div className="lg:col-span-4 space-y-4">
+          <div className="lg:col-span-4 space-y-3">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-tight mb-2">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight leading-tight mb-1.5">
                 <span className="text-[#ea580c] block">Driver App</span>
                 for On-the-Go Operations
               </h2>
@@ -93,7 +93,7 @@ export default function DriverAppShowcase() {
             </div>
 
             {/* Store Download Buttons */}
-            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
               {/* Google Play Store Badge */}
               <a
                 href={playStoreUrl}

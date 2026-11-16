@@ -226,11 +226,30 @@ export const getActiveJobColumns = (
         label: 'Status',
         sortable: true,
         className: 'w-[115px] min-w-[110px] text-center whitespace-nowrap',
-        render: (row) => (
-            <div className="flex items-center justify-center min-h-[26px]">
-                <StatusBadge status={row.status || 'Confirmed'} />
-            </div>
-        ),
+        render: (row) => {
+            const r = row as any;
+            const hasEmergency = Boolean(
+                r.has_emergency ||
+                r.emergency?.is_emergency ||
+                r.status === 'reassignment_required' ||
+                r.emergency_status === 'reported' ||
+                ((r.shipment_legs || r.legs || []) as any[]).some(
+                    (l: any) => l.emergency_status === 'reported' || l.status === 'reassignment_required'
+                )
+            );
+            return (
+                <div className="flex items-center justify-center min-h-[26px]">
+                    {hasEmergency ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-red-50 text-[#cf222e] dark:bg-red-950/40 dark:text-red-400 border border-red-200 dark:border-red-900/60 inline-flex items-center gap-1 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#cf222e] shrink-0" />
+                            <span>Reassign Needed</span>
+                        </span>
+                    ) : (
+                        <StatusBadge status={row.status || 'Confirmed'} />
+                    )}
+                </div>
+            );
+        },
         skeleton: () => (
             <div className="flex items-center justify-center min-h-[22px]">
                 <Skeleton className="h-5 w-18 rounded-[3px]" />

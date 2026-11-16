@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Headphones, MessageSquare, Package, MapPin, ArrowUpRight } from 'lucide-react';
-import apiClient from '@/lib/axios';
 import Button from '@/components/ui/button';
+import apiClient from '@/lib/axios';
+import { Headphones, MapPin, MessageSquare, Package } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function SupportDashboard() {
     const [orders, setOrders] = useState<any[]>([]);
@@ -28,7 +28,7 @@ export default function SupportDashboard() {
         <div className="space-y-6 pb-12">
             {/* Header */}
             <div
-    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#12161c] p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs">
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#12161c] p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 flex items-center justify-center font-bold text-xl shrink-0">
                         <Headphones size={26} />
@@ -60,7 +60,7 @@ export default function SupportDashboard() {
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div
-    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
                     <div>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Active Deliveries Monitored</p>
                         <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{activeOrders.length}</p>
@@ -71,7 +71,7 @@ export default function SupportDashboard() {
                 </div>
 
                 <div
-    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
                     <div>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Live GPS Tracking Map</p>
                         <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1.5 flex items-center gap-1.5">
@@ -85,7 +85,7 @@ export default function SupportDashboard() {
                 </div>
 
                 <div
-    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
+                    className="bg-white dark:bg-[#12161c] p-5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
                     <div>
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Support Response Rate</p>
                         <p className="text-sm font-bold text-teal-600 dark:text-teal-400 mt-1.5">&lt; 5 Minutes</p>
@@ -99,7 +99,7 @@ export default function SupportDashboard() {
             {/* Quick Links */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div
-    className="bg-white dark:bg-[#12161c] p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4">
+                    className="bg-white dark:bg-[#12161c] p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4">
                     <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
                             <MessageSquare size={17} className="text-teal-600" />
@@ -117,7 +117,7 @@ export default function SupportDashboard() {
                 </div>
 
                 <div
-    className="bg-white dark:bg-[#12161c] p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4">
+                    className="bg-white dark:bg-[#12161c] p-6 rounded-[4px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4">
                     <div>
                         <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
                             <Package size={17} className="text-blue-600" />

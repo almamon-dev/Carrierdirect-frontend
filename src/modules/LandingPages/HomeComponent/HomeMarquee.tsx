@@ -42,15 +42,15 @@ const HomeMarquee = () => {
     : DEFAULT_BRANDS;
 
   return (
-    <div className="py-6 bg-transparent overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-around flex-wrap gap-8 opacity-75 dark:opacity-90">
+    <div className="py-3 sm:py-4 bg-transparent overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 flex items-center justify-around flex-wrap gap-6 sm:gap-8 opacity-75 dark:opacity-90">
         {brandList.map((brand) => (
           <img
             key={brand.id}
             src={brand.svg}
             alt={brand.name}
             title={brand.name}
-            className="h-8 max-w-[140px] object-contain hover:scale-105 transition-transform dark:brightness-200 dark:contrast-125 dark:invert cursor-pointer"
+            className="h-6 sm:h-7 max-w-[120px] object-contain hover:scale-105 transition-transform dark:brightness-200 dark:contrast-125 dark:invert cursor-pointer"
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
         ))}

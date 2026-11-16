@@ -42,17 +42,29 @@ export const driverDashboardService = {
                 const todayComputedDist = todayDistVal > 0 ? todayDistVal : totalComputedDist;
                 const tripsCount = totalAssigned > 0 ? totalAssigned : (activeShipmentsCount + deliveredCount);
 
+                const hasEmergency = [...mappedRecent, ...mappedToday].some(
+                    s => s.emergency?.is_emergency ||
+                         s.assignedLeg?.status === 'reassignment_required' ||
+                         s.assignedLeg?.status === 'emergency_hold' ||
+                         s.status === 'emergency_hold' ||
+                         s.status === 'reassignment_required'
+                );
+
                 const metrics = {
                     activeLoads: {
                         value: `${activeShipmentsCount} ${activeShipmentsCount === 1 ? 'Load' : 'Loads'}`,
-                        subtitle: activeShipmentsCount > 0 ? `${activeShipmentsCount} in active dispatch` : 'All loads delivered',
+                        subtitle: hasEmergency
+                            ? 'Duty on emergency hold'
+                            : (activeShipmentsCount > 0 ? `${activeShipmentsCount} in active dispatch` : 'All loads delivered'),
                         count: activeShipmentsCount,
                     },
                     tripsCompleted: {
                         value: `${tripsCount} ${tripsCount === 1 ? 'Order' : 'Orders'}`,
-                        subtitle: deliveredCount > 0
-                            ? `${deliveredCount} completed • ${activeShipmentsCount} active`
-                            : (tripsCount > 0 ? `${activeShipmentsCount} active dispatch` : '0 active orders'),
+                        subtitle: hasEmergency
+                            ? 'Shift on hold • Reassigning'
+                            : (deliveredCount > 0
+                                ? `${deliveredCount} completed • ${activeShipmentsCount} active`
+                                : (tripsCount > 0 ? `${activeShipmentsCount} active dispatch` : '0 active orders')),
                         count: tripsCount,
                     },
                     distance: {

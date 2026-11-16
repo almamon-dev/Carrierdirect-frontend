@@ -2,6 +2,7 @@ import React from 'react';
 import { Search } from 'lucide-react';
 import HeaderNotifications from '@/components/HeaderNotifications';
 import HeaderMessages from '@/components/HeaderMessages';
+import { WhatsNewTrigger } from '@/components/shared/WhatsNewModal';
 import { DriverProfileMenu } from './DriverProfileMenu';
 
 interface AuthUser {
@@ -110,6 +111,7 @@ export const DriverHeader: React.FC<DriverHeaderProps> = ({
             </div>
 
             <div className="flex items-center gap-1.5 xs:gap-2.5 sm:gap-4">
+                <WhatsNewTrigger role="driver" />
                 <HeaderNotifications role="driver" />
                 <HeaderMessages role="driver" />
 

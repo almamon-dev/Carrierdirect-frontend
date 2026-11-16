@@ -197,7 +197,7 @@ export const SubcontractorModal: React.FC<SubcontractorModalProps> = ({
                                 <Input
                                     type="text"
                                     disabled={isSubmitting}
-                                    placeholder="e.g. John Doe"
+                                    placeholder="e.g. Tareq Hasan (Fleet Operations)"
                                     value={contactName}
                                     onChange={(e) => setContactName(e.target.value)}
                                     className="h-8.5 text-xs rounded-[4px]"
