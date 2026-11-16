@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { triggerGoogleSignIn } from '@/utils/googleAuth';
 
 export const CustomerRegisterSocialFooter: React.FC = () => {
     return (
@@ -17,9 +18,7 @@ export const CustomerRegisterSocialFooter: React.FC = () => {
                 <div className="mt-6">
                     <button
                         type="button"
-                        onClick={() => {
-                            window.location.href = '/auth/google';
-                        }}
+                        onClick={() => triggerGoogleSignIn('customer')}
                         className="w-full h-[42px] flex items-center justify-center px-4 border border-gray-300 rounded-md shadow-sm text-[14px] font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer"
                     >
                         <svg className="w-5 h-5 mr-2.5" viewBox="0 0 24 24">

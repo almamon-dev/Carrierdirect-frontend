@@ -15,6 +15,7 @@ import Home from '@/modules/LandingPages/Home';
 import PayLaterFacility from '@/modules/LandingPages/PayLaterFacility';
 import PrivacyPolicy from '@/modules/LandingPages/PrivacyPolicy';
 import TermsAndConditions from '@/modules/LandingPages/TermsAndConditions';
+import { AuthCallbackPage } from '@/modules/Auth/OAuth/AuthCallbackPage';
 
 const SupplierCompleteProfilePage = React.lazy(
   () => import('@/modules/Supplier/CompleteProfile/CompleteProfilePage')
@@ -44,6 +45,8 @@ export const router = createBrowserRouter([
   { path: '/pay-later-facility', element: <PayLaterFacility /> },
   { path: '/payment/success', element: <PaymentRedirect status="success" /> },
   { path: '/payment/cancel', element: <PaymentRedirect status="cancel" /> },
+  { path: '/auth/callback', element: <AuthCallbackPage /> },
+  { path: '/web/auth/callback', element: <AuthCallbackPage /> },
   { path: '/invite/accept', element: <RedirectWithQuery to="/web/invitation-accepted" /> },
   { path: '/accept-invitation', element: <RedirectWithQuery to="/web/invitation-accepted" /> },
   { path: '/login', element: <RedirectWithQuery to="/web/login" /> },

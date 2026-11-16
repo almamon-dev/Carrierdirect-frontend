@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import DemoCredentials from './DemoCredentials';
+import { triggerGoogleSignIn } from '@/utils/googleAuth';
 
 interface LoginSocialAndDemoSectionProps {
     onSelectDemo: (email: string, pass: string) => void;
@@ -24,9 +25,7 @@ export const LoginSocialAndDemoSection: React.FC<LoginSocialAndDemoSectionProps>
             {/* Google Sign-In */}
             <button
                 type="button"
-                onClick={() => {
-                    window.location.href = '/auth/google';
-                }}
+                onClick={() => triggerGoogleSignIn('customer')}
                 className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 bg-white dark:bg-[#1e2329] border border-gray-200 dark:border-[#384150] hover:border-gray-300 dark:hover:border-slate-500 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 font-semibold text-xs rounded-md transition-all shadow-2xs cursor-pointer"
             >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">

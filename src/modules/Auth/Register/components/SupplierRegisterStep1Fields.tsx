@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Input from '../../../../components/ui/input';
 import Button from '../../../../components/ui/button';
 import { SupplierFormData } from '../hooks/supplierRegisterUtils';
+import { triggerGoogleSignIn } from '@/utils/googleAuth';
 
 interface SupplierRegisterStep1FieldsProps {
     formData: SupplierFormData;
@@ -156,7 +157,8 @@ export const SupplierRegisterStep1Fields: React.FC<SupplierRegisterStep1FieldsPr
                 <div className="mt-6">
                     <button
                         type="button"
-                        className="w-full h-[42px] flex items-center justify-center px-4 border border-gray-300 rounded-md shadow-sm text-[14px] font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                        onClick={() => triggerGoogleSignIn('supplier')}
+                        className="w-full h-[42px] flex items-center justify-center px-4 border border-gray-300 rounded-md shadow-sm text-[14px] font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer"
                     >
                         <svg className="w-5 h-5 mr-2.5" viewBox="0 0 24 24">
                             <path
