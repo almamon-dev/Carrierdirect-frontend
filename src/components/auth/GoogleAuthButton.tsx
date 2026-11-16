@@ -65,3 +65,4 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
 };
 
 export default GoogleAuthButton;
+
