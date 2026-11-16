@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { TOKEN_CONFIG } from '@/config/auth';
-import { getRoleDashboardUrl, isDriverUser } from '@/utils/roleDashboard';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { saveGoogleAuthSession, resolvePostAuthPath } from '@/utils/googleAuth';
 
 export const AuthCallbackPage: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -53,55 +52,38 @@ export const AuthCallbackPage: React.FC = () => {
                 userData = { user_type: role };
             }
 
-            // 1. Save Token to localStorage (matching app's auth standard)
-            localStorage.setItem(TOKEN_CONFIG.accessTokenKey, token);
-            localStorage.setItem('carrierdirect_access_token', token);
-            localStorage.setItem('access_token', token);
-            localStorage.setItem('token', token);
-
-            // 2. Save User Data
-            if (userData) {
-                localStorage.setItem(TOKEN_CONFIG.userKey, JSON.stringify(userData));
-                localStorage.setItem('user', JSON.stringify(userData));
+            // If opened inside a popup window, relay payload back to opener cleanly
+            if (window.opener && !window.opener.closed) {
+                const payload = {
+                    type: 'CARRIERDIRECT_GOOGLE_AUTH_SUCCESS',
+                    payload: { token, role, is_profile_completed: isProfileCompleted, user: userData },
+                };
+                window.opener.postMessage(payload, '*');
+                if (typeof BroadcastChannel !== 'undefined') {
+                    const bc = new BroadcastChannel('carrierdirect_google_auth');
+                    bc.postMessage(payload);
+                    bc.close();
+                }
+                setStatus('success');
+                setTimeout(() => window.close(), 150);
+                return;
             }
 
+            saveGoogleAuthSession(token, userData);
             setStatus('success');
             toast({
                 title: 'Signed in with Google',
                 description: `Welcome${userData?.name ? ', ' + userData.name : ''}!`,
             });
 
-            // 3. Smart role-based redirection
-            const userType = userData?.user_type || role;
-            const isDriver = isDriverUser(userData);
-
+            const { path, isExternalAdmin } = resolvePostAuthPath(userData, role, isProfileCompleted);
             setTimeout(() => {
-                if (userType === 'admin') {
-                    window.location.href = '/admin/dashboard';
-                    return;
+                if (isExternalAdmin) {
+                    window.location.href = path;
+                } else {
+                    navigate(path, { replace: true });
                 }
-
-                if (isDriver) {
-                    navigate('/driver/dashboard', { replace: true });
-                    return;
-                }
-
-                if (userType === 'customer') {
-                    navigate('/customer/dashboard', { replace: true });
-                    return;
-                }
-
-                if (userType === 'supplier') {
-                    if (isProfileCompleted) {
-                        navigate(getRoleDashboardUrl(userData), { replace: true });
-                    } else {
-                        navigate('/supplier/complete-profile', { replace: true });
-                    }
-                    return;
-                }
-
-                navigate(getRoleDashboardUrl(userData) || '/customer/dashboard', { replace: true });
-            }, 800);
+            }, 600);
         } catch (err: any) {
             console.error('Google Auth callback processing failed:', err);
             setStatus('error');
@@ -171,4 +153,3 @@ export const AuthCallbackPage: React.FC = () => {
 };
 
 export default AuthCallbackPage;
-

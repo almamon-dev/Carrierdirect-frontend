@@ -12,6 +12,7 @@ export const useLoginForm = () => {
     const emailParam = searchParams.get('email') || '';
     const passwordParam = searchParams.get('password') || searchParams.get('temp_pass') || searchParams.get('pass') || '';
     const invitationToken = searchParams.get('invitation_token') || searchParams.get('token') || '';
+    const oauthErrorParam = searchParams.get('error') || '';
 
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -24,6 +25,12 @@ export const useLoginForm = () => {
     const [invitationAccepted, setInvitationAccepted] = useState(false);
 
     useAuthRedirectGuard();
+
+    useEffect(() => {
+        if (oauthErrorParam) {
+            setErrors((prev) => ({ ...prev, general: decodeURIComponent(oauthErrorParam) }));
+        }
+    }, [oauthErrorParam]);
 
     useEffect(() => {
         if (invitationToken) {
