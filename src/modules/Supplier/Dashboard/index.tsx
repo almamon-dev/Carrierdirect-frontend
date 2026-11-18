@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+
 import { ServiceAreaAvailabilitySection } from '../Availability/Dashboard/components/ServiceAreaAvailabilitySection';
 import { ActiveOrdersList } from './components/ActiveOrdersList';
 import { DashboardNotificationsList } from './components/DashboardNotificationsList';
@@ -6,28 +6,8 @@ import { MetricCardsGrid } from './components/MetricCardsGrid';
 import { RecentQuotesList } from './components/RecentQuotesList';
 import { SupplierDashboardChartsRow } from './components/SupplierDashboardChartsRow';
 import { useSupplierDashboardData } from './hooks/useSupplierDashboardData';
-import { WhatsNewModal, FeatureAnnouncementBanner } from '@/components/shared/WhatsNewModal';
-import { featureReleaseService } from '@/services/featureReleaseService';
 
 export default function SupplierDashboard() {
-    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
-
-    useEffect(() => {
-        let isMounted = true;
-        let timer: any = null;
-        featureReleaseService.getActiveAnnouncements('supplier').then(res => {
-            if (isMounted && res.has_unseen) {
-                timer = setTimeout(() => {
-                    setIsWhatsNewOpen(true);
-                }, 800);
-            }
-        });
-        return () => {
-            isMounted = false;
-            if (timer) clearTimeout(timer);
-        };
-    }, []);
-
     const {
         isLoading,
         totalEarnings,
@@ -49,9 +29,6 @@ export default function SupplierDashboard() {
 
     return (
         <div className="p-2 sm:p-2.5 md:p-3 space-y-2 sm:space-y-2.5 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
-            {/* Top Announcement Banner for New Releases */}
-            <FeatureAnnouncementBanner onOpenModal={() => setIsWhatsNewOpen(true)} />
-
             {/* Metrics Grid */}
             <MetricCardsGrid
                 totalEarnings={totalEarnings}
@@ -84,13 +61,6 @@ export default function SupplierDashboard() {
                 <ActiveOrdersList orders={displayOrders} isLoading={isLoading} />
                 <DashboardNotificationsList notifications={displayNotifications} isLoading={isLoading} />
             </div>
-
-            {/* What's New & Upcoming Releases Modal */}
-            <WhatsNewModal
-                isOpen={isWhatsNewOpen}
-                onClose={() => setIsWhatsNewOpen(false)}
-                role="supplier"
-            />
         </div>
     );
 }

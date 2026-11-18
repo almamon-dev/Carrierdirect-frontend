@@ -8,36 +8,83 @@ interface DemoAccount {
     name?: string;
     email: string;
     role?: 'customer' | 'supplier' | 'driver' | string;
+    profile?: 'developer' | 'client' | string;
+    country?: string;
     badge?: string | null;
     label?: string;
     password?: string;
 }
 
-interface DemoCredentialsData {
+interface ProfileGroupData {
+    label: string;
+    country: string;
     customers: DemoAccount[];
     suppliers: DemoAccount[];
     drivers: DemoAccount[];
+}
+
+interface ProfilesMap {
+    developer?: ProfileGroupData;
+    client?: ProfileGroupData;
 }
 
 interface DemoCredentialsProps {
     onSelect: (email: string, pass: string) => void;
 }
 
-const DEFAULT_CREDENTIALS: DemoCredentialsData = {
-    customers: [
-        { id: 2, name: 'Customer One', email: 'aidanalltrainedup@gmail.com', role: 'customer', label: 'Customer', badge: null, password: 'password' }
-    ],
-    suppliers: [
-        { id: 3, name: 'Freightmover One', email: 'freightforwarder78@gmail.com', role: 'supplier', label: 'Supplier 1', badge: '1', password: 'password' },
-        { id: 4, name: 'Carrier Two', email: 'aidan@alltrainedup.ie', role: 'supplier', label: 'Supplier 2', badge: '2', password: 'password' }
-    ],
-    drivers: [
-        { id: 5, name: 'Aidan Moroney', email: 'balbrigganconnected@gmail.com', role: 'driver', label: 'Driver', badge: null, password: 'password' }
-    ]
-};
+type ProfileFilter = 'both' | 'developer' | 'client';
+
+function flattenGroupAccounts(group?: ProfileGroupData): DemoAccount[] {
+    if (!group) return [];
+    return [
+        ...(Array.isArray(group.customers) ? group.customers : []),
+        ...(Array.isArray(group.suppliers) ? group.suppliers : []),
+        ...(Array.isArray(group.drivers) ? group.drivers : []),
+    ];
+}
+
+function buildProfilesFromFlat(data: any): ProfilesMap {
+    const all: DemoAccount[] = [
+        ...(Array.isArray(data?.customers) ? data.customers : []),
+        ...(Array.isArray(data?.suppliers) ? data.suppliers : []),
+        ...(Array.isArray(data?.drivers) ? data.drivers : []),
+    ];
+
+    const splitByProfile = (key: 'developer' | 'client', label: string, country: string): ProfileGroupData => {
+        const subset = all.filter((a) => a.profile === key);
+        return {
+            label,
+            country,
+            customers: subset.filter((a) => a.role === 'customer'),
+            suppliers: subset.filter((a) => a.role === 'supplier'),
+            drivers: subset.filter((a) => a.role === 'driver'),
+        };
+    };
+
+    const dev = splitByProfile('developer', 'Developer Testing (Bangladesh)', 'Bangladesh');
+    const cli = splitByProfile('client', 'Client UAT Testing (Ireland)', 'Ireland');
+
+    const result: ProfilesMap = {};
+    if (flattenGroupAccounts(dev).length > 0) result.developer = dev;
+    if (flattenGroupAccounts(cli).length > 0) result.client = cli;
+
+    // Legacy fallback if response had no `profile` field on accounts
+    if (!result.developer && !result.client && all.length > 0) {
+        result.client = {
+            label: 'Test Accounts',
+            country: 'Demo',
+            customers: Array.isArray(data?.customers) ? data.customers : [],
+            suppliers: Array.isArray(data?.suppliers) ? data.suppliers : [],
+            drivers: Array.isArray(data?.drivers) ? data.drivers : [],
+        };
+    }
+
+    return result;
+}
 
 export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
-    const [credentials, setCredentials] = useState<DemoCredentialsData>(DEFAULT_CREDENTIALS);
+    const [profiles, setProfiles] = useState<ProfilesMap | null>(null);
+    const [activeFilter, setActiveFilter] = useState<ProfileFilter>('both');
     const [activeEmail, setActiveEmail] = useState<string>('');
 
     useEffect(() => {
@@ -46,22 +93,21 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
             .then((res: any) => {
                 if (!isMounted) return;
                 const data = res.data?.data || res.data;
-                if (data && (data.customers || data.suppliers || data.drivers)) {
-                    setCredentials({
-                        customers: Array.isArray(data.customers) && data.customers.length > 0
-                            ? data.customers
-                            : DEFAULT_CREDENTIALS.customers,
-                        suppliers: Array.isArray(data.suppliers) && data.suppliers.length > 0
-                            ? data.suppliers
-                            : DEFAULT_CREDENTIALS.suppliers,
-                        drivers: Array.isArray(data.drivers) && data.drivers.length > 0
-                            ? data.drivers
-                            : DEFAULT_CREDENTIALS.drivers,
-                    });
+                if (!data) return;
+
+                if (data.profiles && (data.profiles.developer || data.profiles.client)) {
+                    setProfiles(data.profiles);
+                    return;
+                }
+
+                const constructed = buildProfilesFromFlat(data);
+                if (constructed.developer || constructed.client) {
+                    setProfiles(constructed);
                 }
             })
             .catch(() => {
-                // Silently keep default
+                // Disabled in production (404/403): hide widget and never expose fallback secrets
+                if (isMounted) setProfiles(null);
             });
 
         return () => {
@@ -69,13 +115,36 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
         };
     }, []);
 
-    const allAccounts: DemoAccount[] = [
-        ...credentials.customers,
-        ...credentials.suppliers,
-        ...credentials.drivers,
-    ];
+    if (!profiles) {
+        return null;
+    }
 
-    const handleSelect = (email: string, pass: string = 'password') => {
+    const groups = [
+        activeFilter === 'both' || activeFilter === 'developer'
+            ? {
+                  key: 'developer',
+                  title: `BD · ${profiles.developer?.country || 'Bangladesh'} (Developer)`,
+                  badgeClass:
+                      'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/70',
+                  accounts: flattenGroupAccounts(profiles.developer),
+              }
+            : null,
+        activeFilter === 'both' || activeFilter === 'client'
+            ? {
+                  key: 'client',
+                  title: `IE · ${profiles.client?.country || 'Ireland'} (Client)`,
+                  badgeClass:
+                      'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800/70',
+                  accounts: flattenGroupAccounts(profiles.client),
+              }
+            : null,
+    ].filter((g): g is NonNullable<typeof g> => Boolean(g && g.accounts.length > 0));
+
+    if (groups.length === 0) {
+        return null;
+    }
+
+    const handleSelect = (email: string, pass: string = '') => {
         setActiveEmail(email);
         onSelect(email, pass);
     };
@@ -86,9 +155,10 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
             return {
                 icon: <Truck size={12} />,
                 iconBg: 'bg-amber-500 text-white',
-                buttonBg: 'bg-amber-50/70 hover:bg-amber-100/80 border-amber-200/90 hover:border-amber-400 dark:bg-amber-950/25 dark:border-amber-800/60 dark:hover:border-amber-600',
-                badgeBg: 'bg-amber-500 text-white dark:bg-amber-600',
-                activeRing: 'ring-2 ring-amber-500/50 border-amber-500 dark:border-amber-500 bg-amber-100/70 dark:bg-amber-950/40',
+                buttonBg:
+                    'bg-amber-50/70 hover:bg-amber-100/80 border-amber-200/90 hover:border-amber-400 dark:bg-amber-950/25 dark:border-amber-800/60 dark:hover:border-amber-600',
+                activeRing:
+                    'ring-2 ring-amber-500/50 border-amber-500 dark:border-amber-500 bg-amber-100/70 dark:bg-amber-950/40',
                 roleTitle: 'Supplier',
             };
         }
@@ -96,70 +166,113 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
             return {
                 icon: <Navigation size={12} />,
                 iconBg: 'bg-emerald-600 text-white',
-                buttonBg: 'bg-emerald-50/70 hover:bg-emerald-100/80 border-emerald-200/90 hover:border-emerald-400 dark:bg-emerald-950/25 dark:border-emerald-800/60 dark:hover:border-emerald-600',
-                badgeBg: 'bg-emerald-600 text-white dark:bg-emerald-600',
-                activeRing: 'ring-2 ring-emerald-500/50 border-emerald-500 dark:border-emerald-500 bg-emerald-100/70 dark:bg-emerald-950/40',
+                buttonBg:
+                    'bg-emerald-50/70 hover:bg-emerald-100/80 border-emerald-200/90 hover:border-emerald-400 dark:bg-emerald-950/25 dark:border-emerald-800/60 dark:hover:border-emerald-600',
+                activeRing:
+                    'ring-2 ring-emerald-500/50 border-emerald-500 dark:border-emerald-500 bg-emerald-100/70 dark:bg-emerald-950/40',
                 roleTitle: 'Driver',
             };
         }
-        // Customer default
         return {
             icon: <User size={12} />,
             iconBg: 'bg-blue-600 text-white',
-            buttonBg: 'bg-blue-50/70 hover:bg-blue-100/80 border-blue-200/90 hover:border-blue-400 dark:bg-blue-950/25 dark:border-blue-800/60 dark:hover:border-blue-600',
-            badgeBg: 'bg-blue-600 text-white dark:bg-blue-600',
-            activeRing: 'ring-2 ring-blue-500/50 border-blue-500 dark:border-blue-500 bg-blue-100/70 dark:bg-blue-950/40',
+            buttonBg:
+                'bg-blue-50/70 hover:bg-blue-100/80 border-blue-200/90 hover:border-blue-400 dark:bg-blue-950/25 dark:border-blue-800/60 dark:hover:border-blue-600',
+            activeRing:
+                'ring-2 ring-blue-500/50 border-blue-500 dark:border-blue-500 bg-blue-100/70 dark:bg-blue-950/40',
             roleTitle: 'Customer',
         };
     };
 
     return (
         <div className="mt-4 pt-3 border-t border-dashed border-gray-200 dark:border-[#384150]">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="text-[10.5px] font-bold text-gray-500 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
-                    <Zap size={11} className="text-amber-500 fill-amber-500" /> Demo Credentials
+                    <Zap size={11} className="text-amber-500 fill-amber-500" /> Quick Test Login
                 </span>
-                <span className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">Click to fill</span>
+
+                <div className="inline-flex rounded-md bg-gray-100 dark:bg-[#232732] p-0.5 text-[10px] font-semibold">
+                    {[
+                        { id: 'both' as ProfileFilter, label: 'Both' },
+                        { id: 'developer' as ProfileFilter, label: 'Dev (BD)' },
+                        { id: 'client' as ProfileFilter, label: 'Client (IE)' },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveFilter(tab.id)}
+                            className={`px-2 py-0.5 rounded transition cursor-pointer ${
+                                activeFilter === tab.id
+                                    ? 'bg-white dark:bg-[#181a20] text-slate-900 dark:text-white shadow-xs'
+                                    : 'text-gray-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Vertical list (niche niche) with max height scroll */}
-            <div className="flex flex-col gap-1.5 max-h-[175px] overflow-y-auto pr-0.5 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
-                {allAccounts.map((acc, idx) => {
-                    const theme = getRoleTheme(acc.role);
-                    const isSelected = activeEmail === acc.email;
+            {/* Scrollable Developer (Bangladesh) & Client (Ireland) Accounts */}
+            <div className="max-h-[215px] overflow-y-auto pr-1 space-y-3 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700">
+                {groups.map((group) => (
+                    <div key={group.key} className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${group.badgeClass}`}>
+                                {group.title}
+                            </span>
+                            <span className="text-[9.5px] text-gray-400 dark:text-slate-500">
+                                Click to fill
+                            </span>
+                        </div>
 
-                    return (
-                        <button
-                            key={acc.id || idx}
-                            type="button"
-                            onClick={() => handleSelect(acc.email, acc.password || 'password')}
-                            className={`w-full h-8 sm:h-8.5 px-2.5 flex items-center justify-between rounded-[4px] border transition-all cursor-pointer text-left shadow-2xs ${theme.buttonBg} ${
-                                isSelected ? theme.activeRing : ''
-                            }`}
-                            title={`${acc.label || theme.roleTitle}: ${acc.email}${acc.name ? ' (' + acc.name + ')' : ''} • Click to fill`}
-                        >
-                            <div className="flex items-center gap-2 min-w-0">
-                                <div className={`w-5 h-5 rounded-[3px] flex items-center justify-center shrink-0 shadow-2xs ${theme.iconBg}`}>
-                                    {theme.icon}
-                                </div>
-                                <span className="text-[11.5px] font-bold text-slate-800 dark:text-slate-100 shrink-0 leading-none">
-                                    {theme.roleTitle}
-                                </span>
-                                {acc.badge && (
-                                    <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-[2px] leading-none shrink-0 shadow-2xs ${theme.badgeBg}`}>
-                                        #{acc.badge}
-                                    </span>
-                                )}
-                            </div>
+                        <div className="flex flex-col gap-1.5">
+                            {group.accounts.map((acc, idx) => {
+                                const theme = getRoleTheme(acc.role);
+                                const isSelected = activeEmail === acc.email;
 
-                            <div className="flex items-center gap-1.5 min-w-0 pl-2">
-                                <span className="text-[10.5px] text-slate-500 dark:text-slate-400 font-mono truncate">
-                                    {acc.email}
-                                </span>
-                            </div>
-                        </button>
-                    );
-                })}
+                                return (
+                                    <button
+                                        key={`${group.key}-${acc.id || acc.email}-${idx}`}
+                                        type="button"
+                                        onClick={() => handleSelect(acc.email, acc.password || '')}
+                                        className={`w-full px-2.5 py-1.5 flex items-center justify-between gap-2 rounded-[5px] border transition-all cursor-pointer text-left shadow-2xs ${theme.buttonBg} ${
+                                            isSelected ? theme.activeRing : ''
+                                        }`}
+                                        title={`${acc.label || theme.roleTitle}: ${acc.email}${acc.name ? ' (' + acc.name + ')' : ''} • Click to fill`}
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <div className={`w-5 h-5 rounded-[3px] flex items-center justify-center shrink-0 shadow-2xs ${theme.iconBg}`}>
+                                                {theme.icon}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-[11px] font-bold text-slate-800 dark:text-slate-100 leading-none shrink-0">
+                                                        {theme.roleTitle}
+                                                    </span>
+                                                    {acc.name && (
+                                                        <span className="text-[10.5px] text-slate-600 dark:text-slate-300 font-medium truncate">
+                                                            · {acc.name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5">
+                                                    {acc.email}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {acc.badge && (
+                                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/80 dark:bg-black/30 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 shrink-0">
+                                                {acc.badge}
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

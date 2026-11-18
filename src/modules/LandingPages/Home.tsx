@@ -1,25 +1,24 @@
-import React from "react";
+
 import { ScrollRestoration } from "react-router-dom";
 
-import Header from "./components/Header";
 import Footer from "./components/Footer";
+import Header from "./components/Header";
 
-import HomeHero from "./HomeComponent/HomeHero";
-import ThePlatformOverview from "./HomeComponent/ThePlatformOverview";
-import HowItWorks from "./HomeComponent/HowItWorks";
 import BuiltForEveryRole from "./HomeComponent/BuiltForEveryRole";
-import KeyFeaturesGrid from "./HomeComponent/KeyFeaturesGrid";
-import LatestFeatureReleases from "./HomeComponent/LatestFeatureReleases";
-import DriverAppShowcase from "./HomeComponent/DriverAppShowcase";
-import PricingSection from "./HomeComponent/PricingSection";
-import TrustedbyRealShippersCarriers from "./HomeComponent/TrustedbyRealShippersCarriers";
-import HomeFAQAccordion from "./HomeComponent/HomeFAQAccordion";
 import CallToAction from "./HomeComponent/CallToAction";
+import DriverAppShowcase from "./HomeComponent/DriverAppShowcase";
+import HomeFAQAccordion from "./HomeComponent/HomeFAQAccordion";
+import HomeHero from "./HomeComponent/HomeHero";
+import HowItWorks from "./HomeComponent/HowItWorks";
+import KeyFeaturesGrid from "./HomeComponent/KeyFeaturesGrid";
+import PricingSection from "./HomeComponent/PricingSection";
+import ThePlatformOverview from "./HomeComponent/ThePlatformOverview";
+import TrustedbyRealShippersCarriers from "./HomeComponent/TrustedbyRealShippersCarriers";
 
 // Optional CMS-toggleable modules
-import SupplierAvailabilities from "./HomeComponent/SupplierAvailabilities";
 import ComparisonTable from "./HomeComponent/ComparisonTable";
 import HomeMarquee from "./HomeComponent/HomeMarquee";
+import SupplierAvailabilities from "./HomeComponent/SupplierAvailabilities";
 
 export default function Home() {
   return (
@@ -51,10 +50,7 @@ export default function Home() {
       {/* 9. Live Supplier Capacity & Routes */}
       <SupplierAvailabilities />
 
-      {/* 10. Latest Feature Releases & Platform Innovations (Noticeboard) */}
-      <LatestFeatureReleases />
-
-      {/* 11. Pricing Plans */}
+      {/* 10. Pricing Plans */}
       <PricingSection />
 
       {/* 12. Comparison Table (Traditional Brokers vs CarrierDirect) */}

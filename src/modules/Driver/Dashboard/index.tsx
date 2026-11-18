@@ -13,8 +13,6 @@ import { driverApi, driverShipmentService } from '../services/driverApi';
 import { TOKEN_CONFIG } from '@/config/auth';
 import { initialDashboardMetrics } from './data/dashboardData';
 import { ShipmentItem } from '../types';
-import { WhatsNewModal, FeatureAnnouncementBanner } from '@/components/shared/WhatsNewModal';
-import { featureReleaseService } from '@/services/featureReleaseService';
 
 function getAuthUser() {
     try {
@@ -46,23 +44,6 @@ export default function DriverDashboard() {
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [isGPSOpen, setIsGPSOpen] = useState(false);
     const [gpsDestination, setGpsDestination] = useState<string | undefined>(undefined);
-    const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
-
-    useEffect(() => {
-        let isMounted = true;
-        let timer: any = null;
-        featureReleaseService.getActiveAnnouncements('driver').then(res => {
-            if (isMounted && res.has_unseen) {
-                timer = setTimeout(() => {
-                    setIsWhatsNewOpen(true);
-                }, 800);
-            }
-        });
-        return () => {
-            isMounted = false;
-            if (timer) clearTimeout(timer);
-        };
-    }, []);
 
     const loadDashboard = async () => {
         try {
@@ -151,9 +132,6 @@ export default function DriverDashboard() {
 
     return (
         <div className="p-3 sm:p-4 md:p-5 space-y-3.5 sm:space-y-4 bg-[#f8fafc] dark:bg-[#12161c] min-h-screen transition-colors duration-200">
-            {/* Top Announcement Banner for New Releases */}
-            <FeatureAnnouncementBanner onOpenModal={() => setIsWhatsNewOpen(true)} />
-
             {/* Top Driver Header */}
             <DriverDashboardHeader
                 driverName={driverName}
@@ -221,13 +199,6 @@ export default function DriverDashboard() {
                 isGPSOpen={isGPSOpen}
                 setIsGPSOpen={setIsGPSOpen}
                 gpsDestination={gpsDestination}
-            />
-
-            {/* What's New & Upcoming Releases Modal */}
-            <WhatsNewModal
-                isOpen={isWhatsNewOpen}
-                onClose={() => setIsWhatsNewOpen(false)}
-                role="driver"
             />
         </div>
     );

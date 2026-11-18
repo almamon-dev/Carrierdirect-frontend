@@ -9,7 +9,6 @@ import apiClient from '@/lib/axios';
 import { echo } from '@/lib/echo';
 import { TOKEN_CONFIG } from '@/config/auth';
 import { HeaderNotification } from './headerNotificationTypes';
-import { featureReleaseService } from '@/services/featureReleaseService';
 import {
     normalizeNotifLink,
     formatTimeAgo,
@@ -108,44 +107,13 @@ export const useHeaderNotifications = (role: 'supplier' | 'customer' | 'driver' 
     const [localNotifs, setLocalNotifs] = useState<HeaderNotification[]>([]);
     const [apiNotifs, setApiNotifs] = useState<HeaderNotification[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [hasUnseenAnnouncements, setHasUnseenAnnouncements] = useState<boolean>(() =>
-        featureReleaseService.hasUnseenAnnouncements()
-    );
-
-    useEffect(() => {
-        const unsubscribe = featureReleaseService.subscribeToReadEvents((unseen) => {
-            setHasUnseenAnnouncements(unseen);
-        });
-        return unsubscribe;
-    }, []);
 
     const notifications = useMemo(() => {
-        const announcementNotif: HeaderNotification = {
-            id: 'system-announcement-v2.1',
-            type: 'system',
-            category: 'account',
-            title: "🚀 What's New: v2.1.0 Updates Released",
-            desc: role === 'driver'
-                ? 'Driver Sick Leave / Emergency Hold & Turn-by-Turn GPS Navigation are now live!'
-                : 'Multi-Driver Relay Dispatch (2 Drivers) & Driver Emergency Management are now live!',
-            time: 'New Release',
-            timestamp: Date.now() - 3600000,
-            unread: hasUnseenAnnouncements,
-            link: role === 'driver' ? '/driver/shipments' : '/supplier/orders',
-            subCategory: 'announcement',
-        };
-
-        const storedReadIds = getStoredReadIds(role);
-        if (storedReadIds.has(String(announcementNotif.id))) {
-            announcementNotif.unread = false;
-        }
-
         return deduplicateNotifications([
-            announcementNotif,
             ...localNotifs,
             ...apiNotifs.filter(a => !localNotifs.some(l => String(l.id) === String(a.id)))
         ]);
-    }, [localNotifs, apiNotifs, role]);
+    }, [localNotifs, apiNotifs]);
 
     const fetchNotifications = useCallback(async (silent = false) => {
         if (!silent) setIsLoading(true);
