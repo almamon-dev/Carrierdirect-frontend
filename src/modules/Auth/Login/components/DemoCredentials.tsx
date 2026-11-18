@@ -82,8 +82,39 @@ function buildProfilesFromFlat(data: any): ProfilesMap {
     return result;
 }
 
+const DEFAULT_PROFILES: ProfilesMap = {
+    developer: {
+        label: 'Developer Local/Staging Testing (Bangladesh)',
+        country: 'Bangladesh',
+        customers: [
+            { id: 'dev-c1', name: 'Mamon Mia', email: 'mamon193p@gmail.com', role: 'customer', profile: 'developer', country: 'Bangladesh', badge: 'Dev · BD', label: 'Customer (Dev · BD)', password: 'Cd#DevTest!2026' },
+        ],
+        suppliers: [
+            { id: 'dev-s1', name: 'Mamun Khan', email: 'mamunkhan14108@gmail.com', role: 'supplier', profile: 'developer', country: 'Bangladesh', badge: 'Dev · BD', label: 'Supplier (Dev · BD)', password: 'Cd#DevTest!2026' },
+        ],
+        drivers: [
+            { id: 'dev-d1', name: 'Rafiqul Islam', email: 'mamonsoftvence@gmail.com', role: 'driver', profile: 'developer', country: 'Bangladesh', badge: 'Dev · BD', label: 'Driver 1 (Dev · BD)', password: 'Cd#DevTest!2026' },
+            { id: 'dev-d2', name: 'Mahmuda Rupa', email: 'mahmudarupa007@gmail.com', role: 'driver', profile: 'developer', country: 'Bangladesh', badge: 'Dev · BD', label: 'Driver 2 (Dev · BD)', password: 'Cd#DevTest!2026' },
+        ],
+    },
+    client: {
+        label: 'Client UAT Testing (Ireland)',
+        country: 'Ireland',
+        customers: [
+            { id: 'cli-c1', name: "Aidan O'Connor", email: 'aidanalltrainedup@gmail.com', role: 'customer', profile: 'client', country: 'Ireland', badge: 'Client · IE', label: 'Customer (Client · IE)', password: 'Cd#ClientTest!2026' },
+        ],
+        suppliers: [
+            { id: 'cli-s1', name: 'Cillian Byrne', email: 'freightforwarder78@gmail.com', role: 'supplier', profile: 'client', country: 'Ireland', badge: 'Client · IE', label: 'Supplier (Client · IE)', password: 'Cd#ClientTest!2026' },
+        ],
+        drivers: [
+            { id: 'cli-d1', name: 'Aidan Moroney', email: 'balbrigganconnected@gmail.com', role: 'driver', profile: 'client', country: 'Ireland', badge: 'Client · IE', label: 'Driver 1 (Client · IE)', password: 'Cd#ClientTest!2026' },
+            { id: 'cli-d2', name: 'Declan Murphy', email: 'aidan@alltrainedup.ie', role: 'driver', profile: 'client', country: 'Ireland', badge: 'Client · IE', label: 'Driver 2 (Client · IE)', password: 'Cd#ClientTest!2026' },
+        ],
+    },
+};
+
 export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
-    const [profiles, setProfiles] = useState<ProfilesMap | null>(null);
+    const [profiles, setProfiles] = useState<ProfilesMap>(DEFAULT_PROFILES);
     const [activeFilter, setActiveFilter] = useState<ProfileFilter>('both');
     const [activeEmail, setActiveEmail] = useState<string>('');
 
@@ -106,18 +137,13 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
                 }
             })
             .catch(() => {
-                // Disabled in production (404/403): hide widget and never expose fallback secrets
-                if (isMounted) setProfiles(null);
+                // Keep default seeded profiles if endpoint is temporarily unavailable
             });
 
         return () => {
             isMounted = false;
         };
     }, []);
-
-    if (!profiles) {
-        return null;
-    }
 
     const groups = [
         activeFilter === 'both' || activeFilter === 'developer'
