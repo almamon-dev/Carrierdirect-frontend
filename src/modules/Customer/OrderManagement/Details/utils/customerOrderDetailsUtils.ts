@@ -91,6 +91,10 @@ export const buildNormalizedCustomerOrder = (
     const driverLng = rawDriverLng !== undefined && rawDriverLng !== null && !isNaN(Number(rawDriverLng)) ? Number(rawDriverLng) : null;
     const driverCurrentLocation = foundOrder?.driver_current_location || foundOrder?.driver?.current_location || foundOrder?.tracking?.current_location || '';
     const driverLocationUpdatedHuman = foundOrder?.driver_location_updated_human || foundOrder?.driver?.last_location_updated_human || foundOrder?.tracking?.updated_human || 'Just now';
+    const lastLocationUpdatedAt = foundOrder?.driver_location_updated_at || foundOrder?.driver?.last_location_updated_at || foundOrder?.product_location?.updated_at;
+    const rawGpsStatus = foundOrder?.tracking_metrics?.gps_status || foundOrder?.driver?.gps_status || foundOrder?.product_location?.gps_status;
+    const isLiveGps = foundOrder?.driver?.is_live_gps ?? (rawGpsStatus === 'live' || (driverLat !== null && driverLng !== null && !foundOrder?.driver?.is_stale_gps));
+    const isStaleGps = foundOrder?.driver?.is_stale_gps ?? (rawGpsStatus === 'stale');
 
     // Product Current Location & Stage
     const prodLocObj = foundOrder?.product_location || {};
@@ -128,12 +132,12 @@ export const buildNormalizedCustomerOrder = (
     const resolvedProductLat =
         prodLocObj.latitude !== undefined && prodLocObj.latitude !== null
             ? Number(prodLocObj.latitude)
-            : (resolvedStage === 'delivered' ? deliveryLat : (driverLat ?? pickupLat));
+            : (resolvedStage === 'delivered' ? deliveryLat : (resolvedStage === 'in_transit' && driverLat ? driverLat : pickupLat));
 
     const resolvedProductLng =
         prodLocObj.longitude !== undefined && prodLocObj.longitude !== null
             ? Number(prodLocObj.longitude)
-            : (resolvedStage === 'delivered' ? deliveryLng : (driverLng ?? pickupLng));
+            : (resolvedStage === 'delivered' ? deliveryLng : (resolvedStage === 'in_transit' && driverLng ? driverLng : pickupLng));
 
     // Product / Cargo Items
     const rawItemsList = Array.isArray(foundOrder?.product_items)
@@ -246,8 +250,10 @@ export const buildNormalizedCustomerOrder = (
             currentCity: resolvedCurrentCity,
             latitude: resolvedProductLat,
             longitude: resolvedProductLng,
-            hasLiveGps: Boolean(driverLat !== null && driverLng !== null),
-            updatedAt: prodLocObj.updated_at || foundOrder?.driver_location_updated_at || foundOrder?.updated_at,
+            hasLiveGps: Boolean(driverLat !== null && driverLng !== null && isLiveGps),
+            isStaleGps: Boolean(driverLat !== null && driverLng !== null && isStaleGps),
+            gpsStatus: (rawGpsStatus as any) || (driverLat && driverLng ? (isLiveGps ? 'live' : 'stale') : 'unavailable'),
+            updatedAt: lastLocationUpdatedAt || foundOrder?.updated_at,
             updatedHuman: prodLocObj.updated_human || driverLocationUpdatedHuman,
         },
         productItems: productItems,
@@ -267,7 +273,25 @@ export const buildNormalizedCustomerOrder = (
             latitude: driverLat,
             longitude: driverLng,
             currentLocation: driverCurrentLocation,
+            lastLocationUpdatedAt: lastLocationUpdatedAt,
             lastUpdatedHuman: driverLocationUpdatedHuman,
+            isLiveGps: isLiveGps,
+            isStaleGps: isStaleGps,
+            gpsStatus: (rawGpsStatus as any) || (driverLat && driverLng ? (isLiveGps ? 'live' : 'stale') : 'unavailable'),
+        } : undefined,
+        hubLat: foundOrder?.hub_lat !== undefined && foundOrder?.hub_lat !== null ? Number(foundOrder.hub_lat) : null,
+        hubLng: foundOrder?.hub_lng !== undefined && foundOrder?.hub_lng !== null ? Number(foundOrder.hub_lng) : null,
+        nextDestination: foundOrder?.next_destination,
+        trackingMetrics: foundOrder?.tracking_metrics ? {
+            totalDistanceKm: foundOrder.tracking_metrics.total_distance_km !== undefined ? Number(foundOrder.tracking_metrics.total_distance_km) : null,
+            totalDistanceFormatted: foundOrder.tracking_metrics.total_distance_formatted,
+            distanceToNextKm: foundOrder.tracking_metrics.distance_to_next_destination_km !== undefined ? Number(foundOrder.tracking_metrics.distance_to_next_destination_km) : null,
+            distanceToNextFormatted: foundOrder.tracking_metrics.distance_to_next_destination_formatted,
+            estimatedTravelTimeMinutes: foundOrder.tracking_metrics.estimated_travel_time_minutes !== undefined ? Number(foundOrder.tracking_metrics.estimated_travel_time_minutes) : null,
+            estimatedTravelTimeFormatted: foundOrder.tracking_metrics.estimated_travel_time_formatted,
+            gpsStatus: foundOrder.tracking_metrics.gps_status,
+            gpsLastUpdatedAt: foundOrder.tracking_metrics.gps_last_updated_at,
+            gpsLastUpdatedHuman: foundOrder.tracking_metrics.gps_last_updated_human,
         } : undefined,
         supplier: {
             id: supplierObj?.id || foundOrder?.supplier_id || 2,

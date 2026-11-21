@@ -139,8 +139,8 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
 
     const resolvedDriverLoc =
         driverLocationLabel ||
-        order.productLocation?.currentAddress ||
-        `${fromCity} → ${toCity}`;
+        (hasLiveGps ? order.productLocation?.currentAddress : undefined) ||
+        'Driver location unavailable';
 
     const isCompletedStage =
         order.rawStatus === 'completed' ||
@@ -196,10 +196,12 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                                         />
                                         <span>
                                             {hasLiveGps && isGpsFresh
-                                                ? `GPS Live • ${gpsUpdatedHuman}`
+                                                ? `GPS Live • Updated ${gpsUpdatedHuman}`
                                                 : hasLiveGps
-                                                ? `GPS Offline • Last seen ${gpsUpdatedHuman}`
-                                                : 'GPS Offline • Awaiting Signal'}
+                                                ? (gpsUpdatedHuman.startsWith('Location last updated')
+                                                      ? gpsUpdatedHuman
+                                                      : `Location last updated ${gpsUpdatedHuman} ago`)
+                                                : 'Driver location unavailable'}
                                         </span>
                                     </span>
                                 )}
@@ -252,7 +254,7 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                             <MapPin size={16} className="text-[#ff4a1f] shrink-0" />
                             <div>
                                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
-                                    Total Distance
+                                    Total Shipment Distance
                                 </p>
                                 <p className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-slate-100 mt-0.5">
                                     {displayDistance}
@@ -261,22 +263,10 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2 sm:px-3 py-1">
-                            <Clock size={16} className="text-[#ff4a1f] shrink-0" />
-                            <div>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
-                                    Est. Travel Time
-                                </p>
-                                <p className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-slate-100 mt-0.5">
-                                    {displayEta}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 sm:px-3 py-1">
                             <ArrowLeftRight size={16} className="text-[#ff4a1f] shrink-0" />
                             <div>
                                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
-                                    Remaining
+                                    Distance to Next Destination
                                 </p>
                                 <p className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-slate-100 mt-0.5">
                                     {remainingDistance}
@@ -284,14 +274,29 @@ export const TrackShipmentMainCard: React.FC<TrackShipmentMainCardProps> = ({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 sm:pl-3 py-1">
-                            <Calendar size={16} className="text-[#ff4a1f] shrink-0" />
+                        <div className="flex items-center gap-2 sm:px-3 py-1">
+                            <Clock size={16} className="text-[#ff4a1f] shrink-0" />
                             <div>
                                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
-                                    Est. Delivery
+                                    Estimated Travel Time
                                 </p>
-                                <p className="text-xs font-extrabold text-slate-900 dark:text-slate-100 mt-0.5">
-                                    {displayExpectedDelivery}
+                                <p className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-slate-100 mt-0.5">
+                                    {displayEta}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 sm:pl-3 py-1">
+                            <LocateFixed size={16} className="text-[#ff4a1f] shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                                    Last GPS Update
+                                </p>
+                                <p
+                                    className="text-xs font-extrabold text-slate-900 dark:text-slate-100 mt-0.5 truncate max-w-[155px]"
+                                    title={gpsUpdatedHuman}
+                                >
+                                    {gpsUpdatedHuman}
                                 </p>
                             </div>
                         </div>

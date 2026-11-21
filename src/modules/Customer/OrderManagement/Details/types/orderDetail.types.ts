@@ -36,7 +36,11 @@ export interface OrderDriverInfo {
     latitude?: number | null;
     longitude?: number | null;
     currentLocation?: string;
+    lastLocationUpdatedAt?: string;
     lastUpdatedHuman?: string;
+    isLiveGps?: boolean;
+    isStaleGps?: boolean;
+    gpsStatus?: 'live' | 'stale' | 'unavailable';
 }
 
 export interface ProductLocationDetails {
@@ -47,6 +51,8 @@ export interface ProductLocationDetails {
     latitude?: number | null;
     longitude?: number | null;
     hasLiveGps: boolean;
+    isStaleGps?: boolean;
+    gpsStatus?: 'live' | 'stale' | 'unavailable';
     updatedAt?: string;
     updatedHuman: string;
 }
@@ -175,6 +181,26 @@ export interface NormalizedCustomerOrder {
     isRelay?: boolean;
     currentActiveLeg?: number;
     hubLocation?: string;
+    hubLat?: number | null;
+    hubLng?: number | null;
+    nextDestination?: {
+        type: string;
+        title: string;
+        city: string;
+        latitude?: number | null;
+        longitude?: number | null;
+    };
+    trackingMetrics?: {
+        totalDistanceKm?: number | null;
+        totalDistanceFormatted?: string;
+        distanceToNextKm?: number | null;
+        distanceToNextFormatted?: string;
+        estimatedTravelTimeMinutes?: number | null;
+        estimatedTravelTimeFormatted?: string;
+        gpsStatus?: 'live' | 'stale' | 'unavailable';
+        gpsLastUpdatedAt?: string;
+        gpsLastUpdatedHuman?: string;
+    };
     handover?: {
         status?: string;
         hub_location?: string;

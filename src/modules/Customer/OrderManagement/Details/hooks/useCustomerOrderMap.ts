@@ -70,6 +70,11 @@ interface UseCustomerOrderMapProps {
     deliveryLng?: number | null;
     driverLat?: number | null;
     driverLng?: number | null;
+    hubLat?: number | null;
+    hubLng?: number | null;
+    hubLocation?: string;
+    isRelay?: boolean;
+    currentActiveLeg?: number;
     fromCity: string;
     toCity: string;
     pickupAddress: string;
@@ -120,7 +125,7 @@ const resolveValidCoords = (
     lng?: number | null,
     address?: string,
     city?: string,
-    fallback: [number, number] = [23.8103, 90.4125]
+    fallback: [number, number] = [51.5074, -0.1278]
 ): [number, number] => {
     if (
         lat !== null &&
@@ -207,6 +212,28 @@ const createCleanLollipopPinIcon = (fillColor: string) => {
 };
 
 /**
+ * Clean Intermediate Hub Pin Icon (Amber/Gold Lollipop Pin with 'H')
+ */
+const createCleanHubPinIcon = () => {
+    return L.divIcon({
+        className: 'cd-clean-hub-pin',
+        html: `
+            <div style="position: relative; width: 34px; height: 44px; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
+                <svg width="34" height="44" viewBox="0 0 34 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="17" cy="40" rx="6.5" ry="2.4" fill="rgba(15, 23, 42, 0.26)" />
+                    <line x1="17" y1="26" x2="17" y2="39.5" stroke="#78350F" stroke-width="2.4" stroke-linecap="round" />
+                    <circle cx="17" cy="15" r="12.5" fill="#D97706" stroke="#FFFFFF" stroke-width="2.5" />
+                    <text x="17" y="19" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="800" fill="#FFFFFF" text-anchor="middle">H</text>
+                </svg>
+            </div>
+        `,
+        iconSize: [34, 44],
+        iconAnchor: [17, 40],
+        popupAnchor: [0, -36],
+    });
+};
+
+/**
  * Clean Navigation / Live Driver Puck Marker matching the driver app's clean blue puck.
  */
 const createCleanDriverNavigationIcon = (accentColor: string, isLive: boolean) => {
@@ -257,6 +284,11 @@ export const useCustomerOrderMap = ({
     deliveryLng,
     driverLat,
     driverLng,
+    hubLat,
+    hubLng,
+    hubLocation,
+    isRelay = false,
+    currentActiveLeg = 1,
     fromCity,
     toCity,
     pickupAddress,
@@ -316,11 +348,34 @@ export const useCustomerOrderMap = ({
     );
 
     const pCoords = resolveValidCoords(pickupLat, pickupLng, pickupAddress, fromCity, [
-        23.9999, 90.4203,
+        51.5074, -0.1278,
     ]);
     const dCoords = resolveValidCoords(deliveryLat, deliveryLng, deliveryAddress, toCity, [
-        23.8103, 90.4125,
+        pCoords[0] + 0.05,
+        pCoords[1] + 0.05,
     ]);
+
+    const hasHubCoords = Boolean(
+        hubLat !== null &&
+            hubLat !== undefined &&
+            !isNaN(Number(hubLat)) &&
+            Number(hubLat) !== 0 &&
+            hubLng !== null &&
+            hubLng !== undefined &&
+            !isNaN(Number(hubLng)) &&
+            Number(hubLng) !== 0
+    );
+    const hCoords: [number, number] | null = hasHubCoords
+        ? [Number(hubLat), Number(hubLng)]
+        : hubLocation
+        ? extractCoordinatesFromAddress(hubLocation)
+        : null;
+
+    const isRelayLeg1 = Boolean(
+        isRelay &&
+        Number(currentActiveLeg ?? 1) <= 1 &&
+        hCoords
+    );
 
     const hasExactCoordinates = true;
 
@@ -438,7 +493,11 @@ export const useCustomerOrderMap = ({
         }
 
         const targetDest: [number, number] =
-            trackingStage === 'heading_to_pickup' ? pCoords : dCoords;
+            trackingStage === 'heading_to_pickup'
+                ? pCoords
+                : isRelayLeg1 && hCoords
+                ? hCoords
+                : dCoords;
 
         let cancelled = false;
         isEtaRequestInFlightRef.current = true;
@@ -516,6 +575,9 @@ export const useCustomerOrderMap = ({
         pCoords[1],
         dCoords[0],
         dCoords[1],
+        hCoords?.[0],
+        hCoords?.[1],
+        isRelayLeg1,
         etaMovementThresholdKm,
         etaMinIntervalMs,
     ]);
@@ -581,6 +643,20 @@ export const useCustomerOrderMap = ({
             </div>`
         );
 
+        // Place Intermediate Hub Pin (Amber Lollipop with 'H')
+        if (isRelay && hCoords) {
+            const hubMarker = L.marker(hCoords, {
+                icon: createCleanHubPinIcon(),
+                zIndexOffset: 210,
+            }).addTo(map);
+            hubMarker.bindPopup(
+                `<div style="font-family: Inter, system-ui, sans-serif; font-size: 12px; line-height: 1.35;">
+                    <div style="font-weight: 800; color: #d97706;">Intermediate Hub • Relay</div>
+                    <div style="color: #334155; font-weight: 600; margin-top: 2px;">${hubLocation || 'Intermediate Transfer Hub'}</div>
+                </div>`
+            );
+        }
+
         // Place Clean Delivery Pin (Google Red Lollipop)
         const deliveryMarker = L.marker(dCoords, {
             icon: createCleanLollipopPinIcon('#E53935'),
@@ -606,6 +682,9 @@ export const useCustomerOrderMap = ({
             if (durText) setLiveDurationText(durText);
 
             const bounds = L.latLngBounds([pCoords, dCoords]);
+            if (isRelay && hCoords) {
+                bounds.extend(hCoords);
+            }
             coords.forEach((pt) => bounds.extend(pt));
             if (hasLiveDriverCoords) {
                 bounds.extend([Number(driverLat), Number(driverLng)]);
@@ -619,22 +698,36 @@ export const useCustomerOrderMap = ({
         // Try Google Routes API v2 first, then fallback to OSRM, then air-distance
         (async () => {
             try {
-                const googleRoute = await fetchGoogleDrivingRoute(pCoords, dCoords);
-                if (!isCancelled && googleRoute && googleRoute.points.length > 1) {
-                    applyPrimaryRoute(
-                        googleRoute.points,
-                        googleRoute.distanceKm,
-                        googleRoute.distanceText,
-                        googleRoute.durationText
-                    );
-                    return;
+                if (isRelay && hCoords) {
+                    const leg1 = await fetchGoogleDrivingRoute(pCoords, hCoords);
+                    const leg2 = await fetchGoogleDrivingRoute(hCoords, dCoords);
+                    if (!isCancelled && leg1 && leg2 && leg1.points.length > 1 && leg2.points.length > 1) {
+                        const allPts = [...leg1.points, ...leg2.points.slice(1)];
+                        const totalKm = Math.round(leg1.distanceKm + leg2.distanceKm);
+                        applyPrimaryRoute(allPts, totalKm, `${totalKm} km`, '');
+                        return;
+                    }
+                } else {
+                    const googleRoute = await fetchGoogleDrivingRoute(pCoords, dCoords);
+                    if (!isCancelled && googleRoute && googleRoute.points.length > 1) {
+                        applyPrimaryRoute(
+                            googleRoute.points,
+                            googleRoute.distanceKm,
+                            googleRoute.distanceText,
+                            googleRoute.durationText
+                        );
+                        return;
+                    }
                 }
             } catch (_) {
                 // Fallback to OSRM below
             }
 
             try {
-                const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${pCoords[1]},${pCoords[0]};${dCoords[1]},${dCoords[0]}?overview=full&geometries=geojson`;
+                const waypoints = isRelay && hCoords
+                    ? `${pCoords[1]},${pCoords[0]};${hCoords[1]},${hCoords[0]};${dCoords[1]},${dCoords[0]}`
+                    : `${pCoords[1]},${pCoords[0]};${dCoords[1]},${dCoords[0]}`;
+                const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${waypoints}?overview=full&geometries=geojson`;
                 const res = await fetch(osrmUrl);
                 const data = await res.json();
                 if (isCancelled) return;
@@ -660,14 +753,17 @@ export const useCustomerOrderMap = ({
             }
 
             if (isCancelled) return;
-            const airKm =
-                calculateAirDistanceKm(pCoords[0], pCoords[1], dCoords[0], dCoords[1]) || 0;
+            const routePoints: [number, number][] = isRelay && hCoords ? [pCoords, hCoords, dCoords] : [pCoords, dCoords];
+            const airKm = isRelay && hCoords
+                ? (calculateAirDistanceKm(pCoords[0], pCoords[1], hCoords[0], hCoords[1]) || 0) +
+                  (calculateAirDistanceKm(hCoords[0], hCoords[1], dCoords[0], dCoords[1]) || 0)
+                : calculateAirDistanceKm(pCoords[0], pCoords[1], dCoords[0], dCoords[1]) || 0;
             const totalMins = airKm > 0 ? Math.max(15, Math.round((airKm / 50) * 60)) : 0;
             const hrs = Math.floor(totalMins / 60);
             const mins = totalMins % 60;
             const durText = totalMins > 0 ? (hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`) : '';
             applyPrimaryRoute(
-                [pCoords, dCoords],
+                routePoints,
                 airKm,
                 airKm > 0 ? `${Math.round(airKm)} km` : '',
                 durText
@@ -685,7 +781,18 @@ export const useCustomerOrderMap = ({
                 mapInstanceRef.current = null;
             }
         };
-    }, [pCoords[0], pCoords[1], dCoords[0], dCoords[1], fromCity, toCity]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [
+        pCoords[0],
+        pCoords[1],
+        dCoords[0],
+        dCoords[1],
+        hCoords?.[0],
+        hCoords?.[1],
+        isRelay,
+        hubLocation,
+        fromCity,
+        toCity,
+    ]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // 2. Smooth Live Driver Marker & Stage-Aware Route Polyline Updates (NO Map Destruction!)
     useEffect(() => {
@@ -733,8 +840,9 @@ export const useCustomerOrderMap = ({
                 }
 
                 // Active remaining path ahead of driver: crisp jet-dark #111827
+                const targetPoint = isRelayLeg1 && hCoords ? hCoords : dCoords;
                 const activeAhead =
-                    remainingSegment.length >= 2 ? remainingSegment : [liveDriverPos, dCoords];
+                    remainingSegment.length >= 2 ? remainingSegment : [liveDriverPos, targetPoint];
                 L.polyline(activeAhead, {
                     color: '#111827',
                     weight: 5,
@@ -743,6 +851,17 @@ export const useCustomerOrderMap = ({
                     lineJoin: 'round',
                 }).addTo(dynamicGroup);
 
+                // If relay leg 1, also draw dashed leg 2 from hub to delivery
+                if (isRelayLeg1 && hCoords) {
+                    L.polyline([hCoords, dCoords], {
+                        color: '#94A3B8',
+                        weight: 4,
+                        dashArray: '6, 8',
+                        opacity: 0.85,
+                        lineCap: 'round',
+                    }).addTo(dynamicGroup);
+                }
+
                 // Local interpolation of remaining distance & ETA between throttled API calls
                 let remKm = computePathDistanceKm([liveDriverPos, ...remainingSegment]);
                 if (remKm <= 0) {
@@ -750,8 +869,8 @@ export const useCustomerOrderMap = ({
                         calculateAirDistanceKm(
                             liveDriverPos[0],
                             liveDriverPos[1],
-                            dCoords[0],
-                            dCoords[1]
+                            targetPoint[0],
+                            targetPoint[1]
                         ) || 0;
                     remKm = Number((airRem * 1.2).toFixed(1));
                 }
@@ -932,7 +1051,13 @@ export const useCustomerOrderMap = ({
         }
 
         // Update route bounds with driver's current position (without forcing zoom reset if user panned)
-        const updatedBounds = L.latLngBounds([pCoords, dCoords, liveDriverPos]);
+        const updatedBounds = L.latLngBounds([pCoords, dCoords]);
+        if (liveDriverPos) {
+            updatedBounds.extend(liveDriverPos);
+        }
+        if (isRelay && hCoords) {
+            updatedBounds.extend(hCoords);
+        }
         routeCoords.forEach((pt) => updatedBounds.extend(pt));
         routeBoundsRef.current = updatedBounds;
     }, [
@@ -951,6 +1076,10 @@ export const useCustomerOrderMap = ({
         pCoords[1],
         dCoords[0],
         dCoords[1],
+        hCoords?.[0],
+        hCoords?.[1],
+        isRelay,
+        isRelayLeg1,
     ]);
 
     return {
