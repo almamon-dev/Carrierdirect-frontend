@@ -69,7 +69,7 @@ export default function InvoiceView({ onBack, invoice, onDownload }: InvoiceView
         onExport={handleExport}
       />
 
-      <div className="w-full max-w-2xl bg-white dark:bg-[#1b2027] shadow-xs rounded-lg border border-slate-200 dark:border-slate-800 p-5 md:p-6 space-y-4">
+      <div className="w-full max-w-2xl bg-white dark:bg-[#1b2027] shadow-xs rounded-[2px] border border-slate-200 dark:border-slate-800 p-5 md:p-6 space-y-4">
         <InvoicePaperDetails
           invoiceData={invoiceData}
           isPaid={isPaid}

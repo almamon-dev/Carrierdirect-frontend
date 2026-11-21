@@ -29,7 +29,7 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
             <span className="text-base font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
               Carrier<span className="text-[#FF5A1F]">Direct</span>
             </span>
-            <span className="text-[9.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 ml-1">
+            <span className="text-[9.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-[2px] border border-slate-200 dark:border-slate-700 ml-1">
               Enterprise
             </span>
           </div>
@@ -46,7 +46,7 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
 
         <div className="text-right space-y-1">
           <div>
-            <span className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/80 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 inline-block">
+            <span className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/80 px-2 py-0.5 rounded-[2px] border border-slate-200 dark:border-slate-700 inline-block">
               TAX INVOICE
             </span>
             <h1 className="text-base font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mt-1">
@@ -91,7 +91,7 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
-        <div className="bg-slate-50/80 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 space-y-0.5">
+        <div className="bg-slate-50/80 dark:bg-slate-800/40 p-3 rounded-[2px] border border-slate-200/80 dark:border-slate-800 space-y-0.5">
           <span className="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 mb-1">
             <Building2 size={12} className="text-[#FF5A1F]" /> Billed To
           </span>
@@ -109,7 +109,7 @@ export const InvoicePaperDetails: React.FC<InvoicePaperDetailsProps> = ({
           </p>
         </div>
 
-        <div className="bg-slate-50/80 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 space-y-0.5">
+        <div className="bg-slate-50/80 dark:bg-slate-800/40 p-3 rounded-[2px] border border-slate-200/80 dark:border-slate-800 space-y-0.5">
           <span className="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 mb-1">
             <ShieldCheck size={12} className="text-[#FF5A1F]" /> Settlement Information
           </span>

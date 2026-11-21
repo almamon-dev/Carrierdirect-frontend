@@ -30,7 +30,7 @@ export const InvoiceItemsAndTotals: React.FC<InvoiceItemsAndTotalsProps> = ({ in
 
   return (
     <>
-      <div className="rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
+      <div className="rounded-[2px] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs">
         <table className="w-full text-[11px] text-left border-collapse">
           <thead className="bg-[#172B3F] text-white">
             <tr>
@@ -78,42 +78,32 @@ export const InvoiceItemsAndTotals: React.FC<InvoiceItemsAndTotalsProps> = ({ in
       </div>
 
       <div className="flex justify-end">
-        <div className="w-full sm:w-72 space-y-1.5 text-[11px] bg-slate-50/60 dark:bg-slate-800/40 p-3.5 rounded-lg border border-slate-200/80 dark:border-slate-800">
+        <div className="w-full sm:w-64 space-y-1.5 text-[11px] bg-slate-50/60 dark:bg-slate-800/40 p-3 rounded-[2px] border border-slate-200/80 dark:border-slate-800">
           <div className="flex justify-between text-slate-600 dark:text-slate-400">
             <span>Subtotal:</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">
-              {subtotal}
+              {invoiceData.subtotal_formatted || subtotal}
             </span>
           </div>
           {(rawPlatformFee > 0 || platformFeeFormatted) && (
             <div className="flex justify-between text-slate-600 dark:text-slate-400">
-              <span>Platform Charge ({platformFeePercent}%):</span>
+              <span>Platform Fee:</span>
               <span className="font-semibold text-slate-900 dark:text-slate-100">
                 {platformFeeFormatted || `€ ${rawPlatformFee.toFixed(2)}`}
               </span>
             </div>
           )}
-          {Number(invoiceData.tax_amount || 0) > 0 && (
-            <div className="flex justify-between text-slate-600 dark:text-slate-400">
-              <span>Tax / VAT:</span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">
-                {invoiceData.tax_amount_formatted || `€ ${Number(invoiceData.tax_amount).toFixed(2)}`}
-              </span>
-            </div>
-          )}
+          <div className="flex justify-between text-slate-600 dark:text-slate-400">
+            <span>VAT (15%):</span>
+            <span className="font-semibold text-slate-900 dark:text-slate-100">Included</span>
+          </div>
           <div className="flex justify-between items-baseline pt-1.5 border-t border-slate-200 dark:border-slate-700">
             <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Total Amount:</span>
-            <span className="text-base font-extrabold text-[#FF5A1F]">
-              {totalAmount}
+            <span className="text-base font-extrabold text-[#ff4a1f]">
+              {invoiceData.gross_amount_formatted ||
+                invoiceData.total_amount_formatted ||
+                totalAmount}
             </span>
-          </div>
-          <div className="flex justify-between text-emerald-700 dark:text-emerald-400 font-semibold pt-1">
-            <span>Amount Paid:</span>
-            <span>{amountPaid}</span>
-          </div>
-          <div className="flex justify-between text-slate-700 dark:text-slate-300 font-bold border-t border-slate-200/60 dark:border-slate-700/60 pt-1">
-            <span>Due Amount:</span>
-            <span>{dueAmount}</span>
           </div>
         </div>
       </div>
