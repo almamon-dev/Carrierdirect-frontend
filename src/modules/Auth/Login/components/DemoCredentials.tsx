@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Truck, Mail, MousePointer2, Zap, Check } from 'lucide-react';
 import apiClient from '@/lib/axios';
 import { ENDPOINTS } from '@/config/api';
+import Skeleton from '@/components/ui/skeleton';
 
 interface DemoAccount {
     id: number | string;
@@ -86,7 +87,54 @@ const DEFAULT_ACCOUNTS: Record<RoleType, DemoAccount[]> = {
     ],
 };
 
+export const DemoCredentialsSkeleton: React.FC = () => {
+    return (
+        <div className="mt-4 pt-3 border-t border-dashed border-gray-200 dark:border-[#384150]">
+            {/* Header: Title & Subtitle Skeleton */}
+            <div className="mb-2.5">
+                <div className="flex items-center gap-1.5">
+                    <Skeleton className="w-3.5 h-3.5 rounded-[2px]" />
+                    <Skeleton className="h-3.5 w-28 rounded-[2px]" />
+                </div>
+                <Skeleton className="h-2.5 w-44 rounded-[2px] mt-1" />
+            </div>
+
+            {/* 3 Role Tabs Skeleton */}
+            <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+                <Skeleton className="h-7 w-full rounded-[2px]" />
+                <Skeleton className="h-7 w-full rounded-[2px]" />
+                <Skeleton className="h-7 w-full rounded-[2px]" />
+            </div>
+
+            {/* Account List Card Skeleton */}
+            <div className="bg-white dark:bg-[#181a20] rounded-[2px] border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 shadow-2xs overflow-hidden">
+                {[1, 2].map((idx) => (
+                    <div
+                        key={idx}
+                        className="flex items-center justify-between p-2 sm:px-3 sm:py-2 gap-2"
+                    >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                            {/* Blue Avatar Box Skeleton */}
+                            <Skeleton className="w-7 h-7 rounded-[2px] shrink-0" />
+
+                            {/* Name + Email Skeleton */}
+                            <div className="min-w-0 flex-1 space-y-1">
+                                <Skeleton className="h-3 w-24 rounded-[2px]" />
+                                <Skeleton className="h-2.5 w-36 sm:w-44 rounded-[2px]" />
+                            </div>
+                        </div>
+
+                        {/* Click to Fill Button Skeleton */}
+                        <Skeleton className="h-6 w-20 rounded-[2px] shrink-0" />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [activeRole, setActiveRole] = useState<RoleType>('customer');
     const [accounts, setAccounts] = useState<Record<RoleType, DemoAccount[]>>(DEFAULT_ACCOUNTS);
     const [filledEmail, setFilledEmail] = useState<string | null>(null);
@@ -94,7 +142,8 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
     useEffect(() => {
         let isMounted = true;
 
-        const fetchCredentials = () => {
+        const fetchCredentials = (isInitial = false) => {
+            if (isInitial) setIsLoading(true);
             apiClient
                 .get(ENDPOINTS.AUTH.DEMO_CREDENTIALS || '/auth/demo-credentials')
                 .then((res: any) => {
@@ -127,14 +176,19 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
                 })
                 .catch(() => {
                     // Keep default accounts
+                })
+                .finally(() => {
+                    if (isMounted && isInitial) {
+                        setIsLoading(false);
+                    }
                 });
         };
 
-        fetchCredentials();
+        fetchCredentials(true);
 
-        // Dynamically auto-refresh credentials without requiring a page reload
-        const pollTimer = setInterval(fetchCredentials, 3500);
-        const onFocus = () => fetchCredentials();
+        // Dynamically auto-refresh credentials in the background
+        const pollTimer = setInterval(() => fetchCredentials(false), 3500);
+        const onFocus = () => fetchCredentials(false);
         window.addEventListener('focus', onFocus);
 
         return () => {
@@ -151,6 +205,10 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
             setFilledEmail((current) => (current === account.email ? null : current));
         }, 1600);
     };
+
+    if (isLoading) {
+        return <DemoCredentialsSkeleton />;
+    }
 
     const currentAccounts = accounts[activeRole] || [];
 
@@ -220,7 +278,7 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
             {/* Account List Card (Rounded-2px / Compact, No Limit/Truncate on text) */}
             <div 
                 key={activeRole}
-                className="bg-white dark:bg-[#181a20] rounded-[2px] border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 shadow-2xs overflow-hidden transition-all duration-200 animate-in fade-in max-h-[300px] overflow-y-auto"
+                className="bg-white dark:bg-[#181a20] rounded-[2px] border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 shadow-2xs overflow-hidden transition-all duration-200 animate-in fade-in"
             >
                 {currentAccounts.length === 0 ? (
                     <div className="py-3 px-2 text-center text-[10.5px] text-slate-400">

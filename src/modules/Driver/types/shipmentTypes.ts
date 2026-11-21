@@ -126,6 +126,8 @@ export interface ShipmentItem {
         freightType: string;
         weightKg: number;
         pallets: number;
+        pallets_count?: number;
+        items_count?: number;
         hazardous: boolean;
         temperatureControlled?: string;
         dimensions?: string;

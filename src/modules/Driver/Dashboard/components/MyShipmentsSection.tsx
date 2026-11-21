@@ -366,7 +366,7 @@ export const MyShipmentsSection: React.FC<MyShipmentsSectionProps> = ({
                         const pickupDateFormatted = formatDateTime(item.shipper?.pickupDate, item.shipper?.pickupTimeWindow);
                         const deliveryDateFormatted = formatDateTime(item.consignee?.deliveryDate, item.consignee?.deliveryTimeWindow);
                         const distanceVal = item.route?.distanceKm ? `${item.route.distanceKm} km` : (item.route?.distanceFormatted || '285.1 km');
-                        const palletsVal = item.cargo?.pallets ? `${item.cargo.pallets} Pallets` : '1 Pallets';
+                        const palletsVal = item.cargo?.pallets ? `${item.cargo.pallets} ${item.cargo.pallets === 1 ? 'Pallet' : 'Pallets'}` : '1 Pallet';
                         const weightVal = item.cargo?.weightKg ? `${item.cargo.weightKg} kg` : '4,500.00 kg';
 
                         if (isExpanded) {

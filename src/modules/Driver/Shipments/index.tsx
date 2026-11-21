@@ -163,7 +163,7 @@ export default function DriverShipmentsPage() {
                                 : activeTab === 'all'
                                 ? "No Assigned Loads Found"
                                 : activeTab === 'new'
-                                ? "No New Loads"
+                                ? "No New Jobs Available"
                                 : activeTab === 'awaiting_review'
                                 ? "No Loads Awaiting Review"
                                 : activeTab === 'completed'
@@ -176,7 +176,7 @@ export default function DriverShipmentsPage() {
                                 : activeTab === 'all'
                                 ? "There are currently no active freight loads assigned to your driver profile. New dispatches will appear here automatically."
                                 : activeTab === 'new'
-                                ? "Driver assigned load পাবে এবং delivery শুরু করবে।"
+                                ? "You don't have any unassigned jobs right now. Check the Assigned section to view your active shipments."
                                 : activeTab === 'awaiting_review'
                                 ? "Delivery শেষ করে POD upload করলে load এই tab-এ যাবে।"
                                 : activeTab === 'completed'

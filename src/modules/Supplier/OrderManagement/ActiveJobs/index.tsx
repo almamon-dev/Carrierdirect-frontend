@@ -171,10 +171,25 @@ export default function ActiveJobs() {
                 emptyState={
                     <EmptyState
                         icon={Truck}
-                        title="No Active Jobs Found"
-                        description={activeFilterTab === 'all'
-                            ? "You do not have any active shipments or assigned jobs at the moment."
-                            : `No active jobs match the '${activeFilterTab}' status filter.`
+                        title={
+                            activeFilterTab === 'new'
+                                ? "No New Jobs Available"
+                                : activeFilterTab === 'driver_assigned'
+                                ? "No Assigned Jobs Found"
+                                : activeFilterTab === 'unassigned'
+                                ? "No Unassigned Jobs Found"
+                                : activeFilterTab === 'in_transit'
+                                ? "No Jobs In Transit"
+                                : "No Active Jobs Found"
+                        }
+                        description={
+                            activeFilterTab === 'new'
+                                ? "You don't have any unassigned jobs right now. Check the Assigned section to view your active shipments."
+                                : activeFilterTab === 'driver_assigned'
+                                ? "There are currently no driver-assigned jobs in this view."
+                                : activeFilterTab === 'all'
+                                ? "You do not have any active shipments or assigned jobs at the moment."
+                                : `No active jobs match the '${activeFilterTab}' status filter.`
                         }
                     />
                 }

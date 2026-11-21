@@ -134,7 +134,7 @@ export const ShipmentCard: React.FC<Props> = ({ shipment }) => {
                             {shipment.cargo.weightKg.toLocaleString()} kg
                         </span>
                         <span>•</span>
-                        <span>{shipment.cargo.pallets} Pallets</span>
+                        <span>{shipment.cargo.pallets} {shipment.cargo.pallets === 1 ? 'Pallet' : 'Pallets'}</span>
                     </div>
                 </div>
 

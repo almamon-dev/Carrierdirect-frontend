@@ -52,7 +52,7 @@ export const DriverShipmentCargoSpecsCard: React.FC<Props> = ({ cargo, route }) 
                             <span className="text-slate-500 dark:text-slate-400 font-medium">Pallet Quantity</span>
                             <span className="text-[#FF4A1F] font-bold text-center">:</span>
                             <span className="font-semibold text-slate-800 dark:text-slate-200">
-                                {cargo.pallets || 1} Standard Pallets
+                                {cargo.pallets} {cargo.pallets === 1 ? 'Standard Pallet' : 'Standard Pallets'}
                             </span>
                         </div>
 

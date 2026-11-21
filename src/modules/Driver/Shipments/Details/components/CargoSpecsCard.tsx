@@ -48,7 +48,7 @@ export const CargoSpecsCard: React.FC<Props> = ({ cargo, route }) => {
                         <span>Pallet Count</span>
                     </div>
                     <div className="text-xs font-bold text-slate-900 dark:text-white mt-0.5">
-                        {cargo.pallets} Pallets
+                        {cargo.pallets} {cargo.pallets === 1 ? 'Pallet' : 'Pallets'}
                     </div>
                 </div>
 

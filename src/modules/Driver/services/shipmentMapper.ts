@@ -82,10 +82,25 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
     const deliveryDate = raw.delivery?.date || raw.delivery?.raw_date || 'Upcoming';
     const deliveryTimeWindow = raw.delivery?.time || '12:00 PM - 05:00 PM';
 
-    const rawWeight = raw.cargo?.total_weight ?? raw.cargo?.weightKg ?? raw.weight;
+    const rawWeight = raw.cargo?.total_weight ?? raw.cargo?.weightKg ?? raw.cargo?.weight_kg ?? raw.weight;
     const weightKg = typeof rawWeight === 'number' ? rawWeight : parseFloat(String(rawWeight || '0').replace(/[^0-9.]/g, '')) || 500;
-    const pallets = raw.cargo?.items_count ?? raw.cargo?.pallets ?? (Array.isArray(raw.cargo?.items) ? raw.cargo.items.length : 1);
-    const freightType = raw.cargo?.service_type || raw.cargo?.pallet_type || raw.cargo?.freightType || raw.pallet_type || '-';
+
+    const rawItems = Array.isArray(raw.cargo?.items) ? raw.cargo.items : (Array.isArray(raw.items) ? raw.items : []);
+    const itemsSum = rawItems.length > 0
+        ? rawItems.reduce((acc: number, it: any) => acc + (Number(it.quantity) || 1), 0)
+        : 0;
+
+    const parsedPalletCount = Number(
+        raw.cargo?.pallets_count ??
+        raw.cargo?.pallets ??
+        raw.pallets_count ??
+        raw.pallets ??
+        (itemsSum > 0 ? itemsSum : undefined) ??
+        raw.cargo?.items_count ??
+        raw.items_count
+    );
+    const pallets = (!isNaN(parsedPalletCount) && parsedPalletCount > 0) ? parsedPalletCount : 1;
+    const freightType = raw.cargo?.service_type || raw.cargo?.pallet_type || raw.cargo?.freightType || raw.cargo?.freight_type || raw.pallet_type || '-';
     const description = raw.cargo?.special_instructions || raw.cargo?.description || raw.status_note || 'Commercial Freight Shipment';
 
     const distanceKm = raw.route?.distance_km ?? raw.route?.distanceKm ?? (raw.distance_km ? Number(raw.distance_km) : 0);
@@ -164,8 +179,8 @@ export function mapBackendShipmentToShipmentItem(raw: any): ShipmentItem {
             freightType,
             weightKg,
             pallets,
-            hazardous: Boolean(raw.cargo?.hazardous),
-            temperatureControlled: raw.cargo?.temperature_controlled || raw.cargo?.temperatureControlled,
+            hazardous: Boolean(raw.cargo?.hazardous ?? raw.hazardous),
+            temperatureControlled: raw.cargo?.temperature_controlled || raw.cargo?.temperatureControlled || (raw.temp_controlled ? 'Temperature Controlled' : undefined),
             dimensions: raw.cargo?.dimensions || 'Standard',
             valueEstimate: raw.cargo?.valueEstimate || raw.cargo?.value_estimate,
         },
