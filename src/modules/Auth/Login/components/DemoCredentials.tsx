@@ -93,42 +93,54 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
 
     useEffect(() => {
         let isMounted = true;
-        apiClient
-            .get(ENDPOINTS.AUTH.DEMO_CREDENTIALS || '/auth/demo-credentials')
-            .then((res: any) => {
-                if (!isMounted) return;
-                const data = res.data?.data || res.data;
-                if (!data) return;
 
-                const getList = (raw: any): DemoAccount[] => {
-                    if (Array.isArray(raw) && raw.length > 0) {
-                        return raw.map((item: any) => ({
-                            id: item.id || item.email,
-                            name: item.name,
-                            email: item.email,
-                            role: item.role,
-                            password: item.password || 'Cd#DevTest!2026',
-                        }));
-                    }
-                    return [];
-                };
+        const fetchCredentials = () => {
+            apiClient
+                .get(ENDPOINTS.AUTH.DEMO_CREDENTIALS || '/auth/demo-credentials')
+                .then((res: any) => {
+                    if (!isMounted) return;
+                    const data = res.data?.data || res.data;
+                    if (!data) return;
 
-                const apiCustomers = getList(data.customers);
-                const apiSuppliers = getList(data.suppliers);
-                const apiDrivers = getList(data.drivers);
+                    const getList = (raw: any): DemoAccount[] => {
+                        if (Array.isArray(raw) && raw.length > 0) {
+                            return raw.map((item: any) => ({
+                                id: item.id || item.email,
+                                name: item.name,
+                                email: item.email,
+                                role: item.role,
+                                password: item.password || 'Cd#DevTest!2026',
+                            }));
+                        }
+                        return [];
+                    };
 
-                setAccounts((prev) => ({
-                    customer: apiCustomers.length > 0 ? apiCustomers : prev.customer,
-                    supplier: apiSuppliers.length > 0 ? apiSuppliers : prev.supplier,
-                    driver: apiDrivers.length > 0 ? apiDrivers : prev.driver,
-                }));
-            })
-            .catch(() => {
-                // Keep default accounts
-            });
+                    const apiCustomers = getList(data.customers);
+                    const apiSuppliers = getList(data.suppliers);
+                    const apiDrivers = getList(data.drivers);
+
+                    setAccounts((prev) => ({
+                        customer: apiCustomers.length > 0 ? apiCustomers : prev.customer,
+                        supplier: apiSuppliers.length > 0 ? apiSuppliers : prev.supplier,
+                        driver: apiDrivers.length > 0 ? apiDrivers : prev.driver,
+                    }));
+                })
+                .catch(() => {
+                    // Keep default accounts
+                });
+        };
+
+        fetchCredentials();
+
+        // Dynamically auto-refresh credentials without requiring a page reload
+        const pollTimer = setInterval(fetchCredentials, 3500);
+        const onFocus = () => fetchCredentials();
+        window.addEventListener('focus', onFocus);
 
         return () => {
             isMounted = false;
+            clearInterval(pollTimer);
+            window.removeEventListener('focus', onFocus);
         };
     }, []);
 
@@ -208,7 +220,7 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
             {/* Account List Card (Rounded-2px / Compact, No Limit/Truncate on text) */}
             <div 
                 key={activeRole}
-                className="bg-white dark:bg-[#181a20] rounded-[2px] border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 shadow-2xs overflow-hidden transition-all duration-200 animate-in fade-in"
+                className="bg-white dark:bg-[#181a20] rounded-[2px] border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 shadow-2xs overflow-hidden transition-all duration-200 animate-in fade-in max-h-[300px] overflow-y-auto"
             >
                 {currentAccounts.length === 0 ? (
                     <div className="py-3 px-2 text-center text-[10.5px] text-slate-400">
