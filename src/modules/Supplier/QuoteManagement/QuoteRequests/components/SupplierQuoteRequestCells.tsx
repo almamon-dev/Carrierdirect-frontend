@@ -1,7 +1,7 @@
 import { StandardRouteCell } from '@/components/common/StandardRouteCell';
 import { formatStandardAddress } from '@/utils/addressFormatter';
 import React from 'react';
-import { Plane } from 'lucide-react';
+import { Plane, RotateCcw } from 'lucide-react';
 import { formatDisplayDate } from '@/lib/utils';
 import { encryptId } from '@/lib/encryption';
 import { QuoteRequest } from '../../data/quoteRequestsData';
@@ -10,7 +10,7 @@ export const SupplierRequestIdCell: React.FC<{ row: QuoteRequest; onNavigate: (p
     const reqText = row.id ? (String(row.id).startsWith('REQ-') ? row.id : `REQ-${String(row.id).padStart(4, '0')}`) : 'REQ-0000';
     const rawId = String(row.rawId || row.slug || row.id).replace('REQ-', '').trim();
     return (
-        <div className="flex items-center min-h-[26px]">
+        <div className="flex flex-col items-start gap-1 min-h-[26px]">
             <button
                 type="button"
                 onClick={() => onNavigate(`/supplier/quotes/requests/${encryptId(rawId)}`)}
@@ -18,6 +18,20 @@ export const SupplierRequestIdCell: React.FC<{ row: QuoteRequest; onNavigate: (p
             >
                 {reqText}
             </button>
+            {row.isRepeatOrder && (
+                <span 
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800"
+                    title={row.originalOrderNumber ? `Repeat of Order #${row.originalOrderNumber}` : 'Repeat Order'}
+                >
+                    <RotateCcw size={10} className="shrink-0 text-purple-600 dark:text-purple-400" />
+                    <span>Repeat</span>
+                    {row.originalOrderNumber && (
+                        <span className="font-semibold text-purple-600/90 dark:text-purple-300/90">
+                            #{row.originalOrderNumber}
+                        </span>
+                    )}
+                </span>
+            )}
         </div>
     );
 };

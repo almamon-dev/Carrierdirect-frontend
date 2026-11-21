@@ -99,6 +99,10 @@ export const buildQuoteRequestFormData = (
     if (formData.customerNotes) submitData.append('customer_notes', formData.customerNotes);
     if (formData.specialInstructions) submitData.append('special_instructions', formData.specialInstructions);
     if (formData.internalReference) submitData.append('internal_reference', formData.internalReference);
+    if (formData.originalOrderId || formData.original_order_id) {
+        submitData.append('original_order_id', String(formData.originalOrderId || formData.original_order_id));
+        submitData.append('is_repeat_order', '1');
+    }
 
     // Dynamic services and cargo requirements
     allServices.forEach(srv => {

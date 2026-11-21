@@ -101,6 +101,11 @@ export type QuoteRequest = {
     isUpcoming?: boolean;
     isExpired?: boolean;
     isUrgent?: boolean;
+    isRepeatOrder?: boolean;
+    originalOrderId?: number | string;
+    originalOrderNumber?: string;
+    repeatIndicator?: string;
+    repeatBadge?: string;
 };
 
 export const mockQuoteRequests: QuoteRequest[] = [];

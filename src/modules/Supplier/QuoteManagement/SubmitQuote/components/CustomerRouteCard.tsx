@@ -1,5 +1,5 @@
 import { formatCurrency } from '@/lib/utils';
-import { MapPin, Navigation, Package, ShieldCheck, Star } from 'lucide-react';
+import { MapPin, Navigation, Package, ShieldCheck, Star, RotateCcw } from 'lucide-react';
 import React from 'react';
 import { QuoteRequest } from '../../data/quoteRequestsData';
 
@@ -44,6 +44,12 @@ export const CustomerRouteCard: React.FC<CustomerRouteCardProps> = ({ requestDet
                                 <Package size={10} className="text-blue-500 shrink-0" />
                                 <span>{requestDetails.customerOrdersCount ?? 1} {Number(requestDetails.customerOrdersCount) === 1 ? 'order' : 'orders'}</span>
                             </span>
+                            {requestDetails.isRepeatOrder && (
+                                <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-bold bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200/80">
+                                    <RotateCcw size={10} className="shrink-0" />
+                                    <span>Repeat Order</span>
+                                </span>
+                            )}
                         </div>
                         {requestDetails.requestDate && (
                             <div className="grid grid-cols-[64px_10px_1fr] sm:grid-cols-[68px_12px_1fr] items-baseline text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-normal">

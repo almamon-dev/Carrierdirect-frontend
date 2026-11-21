@@ -68,6 +68,8 @@ export interface QuoteFormData {
     customerNotes: string;
     specialInstructions: string;
     internalReference: string;
+    originalOrderId?: number | string;
+    isRepeatOrder?: boolean;
 
     images: any[];
     packingList: any | null;

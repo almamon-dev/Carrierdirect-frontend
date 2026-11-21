@@ -59,5 +59,10 @@ export function mapRawQuoteRequest(q: any): QuoteRequest {
         isToday: q.isToday ?? q.is_today,
         isUpcoming: q.isUpcoming ?? q.is_upcoming,
         isUrgent: q.isUrgent ?? q.is_urgent,
+        isRepeatOrder: Boolean(q.is_repeat_order || q.original_order_id || (q.internal_reference && String(q.internal_reference).startsWith('REPEAT-'))),
+        originalOrderId: q.original_order_id || q.original_order?.id,
+        originalOrderNumber: q.original_order_number || q.original_order?.order_number || (q.internal_reference && String(q.internal_reference).startsWith('REPEAT-') ? String(q.internal_reference).replace('REPEAT-', '') : undefined),
+        repeatIndicator: q.repeat_indicator || q.repeat_badge,
+        repeatBadge: q.repeat_badge || (q.is_repeat_order ? 'Repeat Order' : undefined),
     };
 }

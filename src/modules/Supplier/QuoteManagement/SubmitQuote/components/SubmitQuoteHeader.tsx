@@ -1,6 +1,6 @@
 import Button from '@/components/ui/button';
 import { encryptId } from '@/lib/encryption';
-import { Check, Clock, Download, MessageSquare, X, Award, CreditCard } from 'lucide-react';
+import { Check, Clock, Download, MessageSquare, X, Award, CreditCard, RotateCcw } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QuoteRequest } from '../../data/quoteRequestsData';
@@ -49,6 +49,13 @@ export const SubmitQuoteHeader: React.FC<SubmitQuoteHeaderProps> = ({
                             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                                 Quote Request: {requestDetails.id}
                             </h1>
+
+                            {requestDetails.isRepeatOrder && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-300 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-700 shadow-2xs">
+                                    <RotateCcw size={12} strokeWidth={2.5} />
+                                    <span>Repeat Order {requestDetails.originalOrderNumber ? `• Prev #${requestDetails.originalOrderNumber}` : ''}</span>
+                                </span>
+                            )}
 
                             {isWon ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-700 shadow-2xs">
@@ -164,6 +171,24 @@ export const SubmitQuoteHeader: React.FC<SubmitQuoteHeaderProps> = ({
                     </div>
                 </div>
             </div>
+
+            {requestDetails.isRepeatOrder && !isWon && !isRejected && (
+                <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 rounded-lg p-3 sm:p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <RotateCcw size={13} strokeWidth={2.5} />
+                        </div>
+                        <div className="min-w-0">
+                            <h4 className="text-xs sm:text-[13px] font-bold text-purple-900 dark:text-purple-200 leading-snug">
+                                Repeat Order Request {requestDetails.originalOrderNumber ? `(from Previous #${requestDetails.originalOrderNumber})` : ''}
+                            </h4>
+                            <p className="text-[11.5px] text-purple-700 dark:text-purple-300 leading-snug mt-0.5">
+                                This shipper is repeating a previous shipment route. Review cargo specifications and submit your best fresh quotation to win this recurring customer business.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {isWon && showBanner ? (
                 isPaid ? (

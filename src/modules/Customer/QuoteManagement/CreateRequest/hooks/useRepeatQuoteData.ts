@@ -13,15 +13,19 @@ export const useRepeatQuoteData = (
 
         setIsRepeatMode(true);
         const sourceId = repeatData.id || repeatData.requestId || 'Previous Order';
-        setRepeatSource(sourceId);
+        const origOrderId = repeatData.rawId || repeatData.order_id || repeatData.id;
+        const origOrderNum = repeatData.order_number || repeatData.orderNumber || sourceId;
+        setRepeatSource(origOrderNum);
 
-        const pickupCityName = repeatData.pickup?.city || repeatData.pickupCity || (typeof repeatData.pickup === 'string' ? repeatData.pickup : '') || (repeatData.route ? repeatData.route.split('→')[0]?.trim() : '') || 'Dhaka';
-        const deliveryCityName = repeatData.delivery?.city || repeatData.deliveryCity || (typeof repeatData.delivery === 'string' ? repeatData.delivery : '') || (repeatData.route ? repeatData.route.split('→')[1]?.trim() : '') || 'Chittagong';
+        const pickupCityName = repeatData.pickup?.city || repeatData.pickupCity || (typeof repeatData.pickup === 'string' ? repeatData.pickup : '') || (repeatData.route ? repeatData.route.split('→')[0]?.trim() : '') || 'Dublin';
+        const deliveryCityName = repeatData.delivery?.city || repeatData.deliveryCity || (typeof repeatData.delivery === 'string' ? repeatData.delivery : '') || (repeatData.route ? repeatData.route.split('→')[1]?.trim() : '') || 'Cork';
         const rawBudget = repeatData.pricing?.total ? String(repeatData.pricing.total) : (repeatData.amount ? String(repeatData.amount).replace(/[^0-9.]/g, '') : (repeatData.lowestBid ? String(repeatData.lowestBid) : ''));
 
         setFormData(prev => ({
             ...prev,
-            requestTitle: repeatData.requestTitle || (repeatData.route ? `Repeat Shipment: ${repeatData.route}` : `Repeat Order Request (${sourceId})`),
+            originalOrderId: origOrderId,
+            isRepeatOrder: true,
+            requestTitle: repeatData.requestTitle || (repeatData.route ? `Repeat Shipment: ${repeatData.route}` : `Repeat Order Request (${origOrderNum})`),
             priority: repeatData.priority || 'Normal',
             shipmentType: repeatData.shipmentType || 'One Way',
             serviceType: repeatData.serviceType || 'Standard',
@@ -34,14 +38,14 @@ export const useRepeatQuoteData = (
             pickupContactName: repeatData.pickup?.contact || repeatData.pickupContactName || '',
             pickupPhone: repeatData.pickupPhone || '',
             pickupEmail: repeatData.pickupEmail || '',
-            pickupCountry: repeatData.pickupCountry || 'Bangladesh',
+            pickupCountry: repeatData.pickupCountry || 'Ireland',
             pickupState: repeatData.pickupState || '',
             pickupCity: pickupCityName,
             deliveryCompany: repeatData.delivery?.company || repeatData.deliveryCompany || '',
             deliveryContactName: repeatData.delivery?.contact || repeatData.deliveryContactName || '',
             deliveryPhone: repeatData.deliveryPhone || '',
             deliveryEmail: repeatData.deliveryEmail || '',
-            deliveryCountry: repeatData.deliveryCountry || 'Bangladesh',
+            deliveryCountry: repeatData.deliveryCountry || 'Ireland',
             deliveryState: repeatData.deliveryState || '',
             deliveryCity: deliveryCityName,
             vehicleType: repeatData.vehicle || repeatData.logistics?.vehicleType || '',
@@ -50,10 +54,10 @@ export const useRepeatQuoteData = (
             volume: repeatData.volume ? String(repeatData.volume).replace(/[^0-9.]/g, '') : '',
             budget: rawBudget,
             customerNotes: repeatData.notes || repeatData.customerNotes || '',
-            internalReference: repeatData.internalReference || `REPEAT-${sourceId}`,
+            internalReference: repeatData.internalReference || `REPEAT-${origOrderNum}`,
             targetSupplierId: repeatData.target_supplier_id || repeatData.supplier_id || repeatData.supplier?.id || '',
             targetSupplierName: repeatData.target_supplier_name || repeatData.supplier?.company_name || repeatData.supplier?.name || '',
-            receiveMultiple: !(repeatData.target_supplier_id || repeatData.supplier_id || repeatData.supplier?.id),
+            receiveMultiple: true,
         }));
     }, [repeatData, setFormData]);
 

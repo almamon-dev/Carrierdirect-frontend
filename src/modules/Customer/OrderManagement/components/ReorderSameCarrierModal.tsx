@@ -44,7 +44,7 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
     const [pickupTimeFrom, setPickupTimeFrom] = useState<string>('09:00');
     const [pickupTimeTill, setPickupTimeTill] = useState<string>('18:00');
     const [agreedAmount, setAgreedAmount] = useState<string>(originalRate > 0 ? String(originalRate) : '500');
-    const [mode, setMode] = useState<'direct_booking' | 'direct_rfq'>('direct_booking');
+    const [mode, setMode] = useState<'direct_rfq' | 'open_rfq'>('direct_rfq');
     const [notes, setNotes] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -53,7 +53,7 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
             setPickupDate(tomorrowStr());
             const rate = Number(order?.total_amount || order?.amount || order?.pricing?.total || 0);
             if (rate > 0) setAgreedAmount(String(rate));
-            setNotes(`Identical repeat shipment of #${order.order_number || order.id}. Same cargo specifications.`);
+            setNotes(`Repeat shipment of previous order #${order.order_number || order.id}. Same cargo specifications.`);
         }
     }, [order]);
 
@@ -82,27 +82,19 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
                 pickup_time_till: pickupTimeTill,
                 amount: cleanAmount,
                 mode: mode,
+                open_market: mode === 'open_rfq',
                 customer_notes: notes,
             };
 
             const res = await apiClient.post(`/customer/orders/${rawId}/reorder-direct`, payload);
             const data = res.data?.data || res.data;
 
-            if (mode === 'direct_booking') {
-                showToast(`Repeat order #${data.order_number || ''} placed directly with ${carrierName}!`, 'success');
-                window.dispatchEvent(new CustomEvent('carrierdirect_order_created', { detail: data }));
-                onClose();
-                if (onSuccess) onSuccess(data);
-                if (data.order_id || data.order?.id) {
-                    navigate(`/customer/orders/${data.order_id || data.order?.id}`);
-                }
-            } else {
-                showToast(`Direct quote request sent directly to ${carrierName}!`, 'success');
-                window.dispatchEvent(new CustomEvent('carrierdirect_quote_updated'));
-                onClose();
-                if (onSuccess) onSuccess(data);
-                navigate('/customer/quotes');
-            }
+            const rfqRef = data.formatted_id || data.rfq_reference || (data.quote_request_id ? `REQ-${String(data.quote_request_id).padStart(4, '0')}` : 'REQ');
+            showToast(data.message || `Repeat quote request ${rfqRef} submitted successfully!`, 'success');
+            window.dispatchEvent(new CustomEvent('carrierdirect_quote_updated'));
+            onClose();
+            if (onSuccess) onSuccess(data);
+            navigate('/customer/quotes');
         } catch (err: any) {
             const msg = err.response?.data?.message || err.message || 'Failed to submit repeat order request';
             showToast(msg, 'error');
@@ -117,6 +109,9 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
             state: {
                 repeatData: {
                     ...order,
+                    rawId: order.rawId || order.id,
+                    order_id: order.id,
+                    order_number: order.order_number,
                     target_supplier_id: order?.supplier_id || order?.supplier?.id,
                     target_supplier_name: carrierName,
                 }
@@ -192,35 +187,9 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
                     {/* Mode Selector */}
                     <div>
                         <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
-                            Select Re-order Workflow
+                            Select Repeat Quotation Workflow
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <div 
-                                onClick={() => setMode('direct_booking')}
-                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                                    mode === 'direct_booking'
-                                        ? 'border-[#ff4a1f] bg-orange-50/50 dark:bg-orange-950/20'
-                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                                }`}
-                            >
-                                <div className="flex items-start justify-between">
-                                    <div className="flex items-center gap-1.5">
-                                        <Sparkles size={14} className={mode === 'direct_booking' ? 'text-[#ff4a1f]' : 'text-slate-400'} />
-                                        <span className="text-xs font-bold text-slate-900 dark:text-white">Instant Booking</span>
-                                    </div>
-                                    <input 
-                                        type="radio" 
-                                        name="reorderMode" 
-                                        checked={mode === 'direct_booking'} 
-                                        onChange={() => setMode('direct_booking')} 
-                                        className="accent-[#ff4a1f]"
-                                    />
-                                </div>
-                                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
-                                    Instantly creates confirmed order at the agreed rate. Carrier dispatches driver immediately.
-                                </p>
-                            </div>
-
                             <div 
                                 onClick={() => setMode('direct_rfq')}
                                 className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
@@ -232,7 +201,7 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-1.5">
                                         <Send size={14} className={mode === 'direct_rfq' ? 'text-[#ff4a1f]' : 'text-slate-400'} />
-                                        <span className="text-xs font-bold text-slate-900 dark:text-white">Direct Quote Request</span>
+                                        <span className="text-xs font-bold text-slate-900 dark:text-white">Direct RFQ to Carrier</span>
                                     </div>
                                     <input 
                                         type="radio" 
@@ -243,7 +212,33 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
                                     />
                                 </div>
                                 <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
-                                    Sends private RFQ only to {carrierName} to confirm truck availability & final quote first.
+                                    Sends repeat request directly to {carrierName} to review cargo specs and submit their fresh quotation.
+                                </p>
+                            </div>
+
+                            <div 
+                                onClick={() => setMode('open_rfq')}
+                                className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                                    mode === 'open_rfq'
+                                        ? 'border-[#ff4a1f] bg-orange-50/50 dark:bg-orange-950/20'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                }`}
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                        <Truck size={14} className={mode === 'open_rfq' ? 'text-[#ff4a1f]' : 'text-slate-400'} />
+                                        <span className="text-xs font-bold text-slate-900 dark:text-white">Open Market RFQ</span>
+                                    </div>
+                                    <input 
+                                        type="radio" 
+                                        name="reorderMode" 
+                                        checked={mode === 'open_rfq'} 
+                                        onChange={() => setMode('open_rfq')} 
+                                        className="accent-[#ff4a1f]"
+                                    />
+                                </div>
+                                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+                                    Publishes repeat request to all verified carriers covering this route for competitive bids.
                                 </p>
                             </div>
                         </div>
@@ -307,7 +302,7 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
                     {/* Rate / Agreed Price */}
                     <div>
                         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                            {mode === 'direct_booking' ? 'Agreed Shipment Rate (€)' : 'Target Budget (€)'}
+                            Target Rate / Budget (€)
                         </label>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">€</span>
@@ -327,7 +322,7 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
                     {/* Special Instructions */}
                     <div>
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                            Notes / Instructions for {carrierName}
+                            {mode === 'direct_rfq' ? `Notes / Instructions for ${carrierName}` : 'Special Instructions for Carriers'}
                         </label>
                         <Textarea 
                             rows={2}
@@ -342,9 +337,9 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
                     <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 text-[11.5px] text-emerald-800 dark:text-emerald-300">
                         <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                         <div>
-                            <p className="font-semibold leading-tight">Driver App Tracking & POD Guaranteed</p>
+                            <p className="font-semibold leading-tight">Fresh Quotations & Driver App Tracking Guaranteed</p>
                             <p className="text-[10.5px] text-emerald-700 dark:text-emerald-400/90 mt-0.5">
-                                Once confirmed, {carrierName} will dispatch their assigned driver. You will receive live GPS telemetry and digital POD in your dashboard.
+                                A fresh RFQ will be published to receive new quotes. Once you review and accept a quote, the carrier dispatches with live GPS tracking and digital POD.
                             </p>
                         </div>
                     </div>
@@ -380,15 +375,15 @@ export const ReorderSameCarrierModal: React.FC<ReorderSameCarrierModalProps> = (
                             >
                                 {isSubmitting ? (
                                     <span>Processing...</span>
-                                ) : mode === 'direct_booking' ? (
-                                    <>
-                                        <Sparkles size={13} />
-                                        <span>Confirm & Book with {carrierName}</span>
-                                    </>
-                                ) : (
+                                ) : mode === 'direct_rfq' ? (
                                     <>
                                         <Send size={13} />
                                         <span>Send Direct RFQ</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Truck size={13} />
+                                        <span>Publish Open RFQ</span>
                                     </>
                                 )}
                             </Button>
