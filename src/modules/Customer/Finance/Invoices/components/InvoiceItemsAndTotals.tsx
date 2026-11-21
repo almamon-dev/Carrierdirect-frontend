@@ -7,7 +7,7 @@ interface InvoiceItemsAndTotalsProps {
 
 export const InvoiceItemsAndTotals: React.FC<InvoiceItemsAndTotalsProps> = ({ invoiceData }) => {
   const isSubscription = invoiceData.invoice_type === 'subscription' || Boolean(invoiceData.subscription_id);
-  const distance = invoiceData.distance || (invoiceData.total_distance_km ? `${invoiceData.total_distance_km} km` : (isSubscription ? '-' : '428 km'));
+  const distance = invoiceData.distance || invoiceData.addresses?.distance || (invoiceData.total_distance_km ? `${invoiceData.total_distance_km} km` : (isSubscription ? '-' : '—'));
   const cycleOrDistance = isSubscription ? (invoiceData.billing_period || 'Monthly') : distance;
 
   const totalAmount = invoiceData.gross_amount_formatted || invoiceData.total_amount_formatted || invoiceData.amount || '€ 120.00';
@@ -20,6 +20,13 @@ export const InvoiceItemsAndTotals: React.FC<InvoiceItemsAndTotalsProps> = ({ in
   const subtotal = invoiceData.subtotal_formatted || (rawPlatformFee > 0 ? `€ ${(rawTotal - rawPlatformFee).toFixed(2)}` : totalAmount);
   const amountPaid = invoiceData.amount_paid_formatted || invoiceData.amount_paid || (invoiceData.status === 'Paid' ? totalAmount : '€ 0.00');
   const dueAmount = invoiceData.due_amount_formatted || (invoiceData.status === 'Paid' ? '€ 0.00' : totalAmount);
+
+  const displayRoute = invoiceData.route 
+    || invoiceData.country_route 
+    || (invoiceData.pickup_location && invoiceData.delivery_location ? `${invoiceData.pickup_location} → ${invoiceData.delivery_location}` : '')
+    || (invoiceData.pickup_city && invoiceData.delivery_city ? `${invoiceData.pickup_city} → ${invoiceData.delivery_city}` : '')
+    || (invoiceData.addresses?.pickup && invoiceData.addresses?.delivery ? `${invoiceData.addresses.pickup.split(',')[0].trim()} → ${invoiceData.addresses.delivery.split(',')[0].trim()}` : '')
+    || 'Standard priority support & escrow protection included.';
 
   return (
     <>
@@ -40,7 +47,7 @@ export const InvoiceItemsAndTotals: React.FC<InvoiceItemsAndTotalsProps> = ({ in
               {
                 id: 1,
                 desc: invoiceData.description || invoiceData.plan_name || invoiceData.service_type || 'Freight Transport Logistics Service',
-                route: invoiceData.route || (invoiceData.pickup_city && invoiceData.delivery_city ? `${invoiceData.pickup_city} → ${invoiceData.delivery_city}` : 'Standard priority support & escrow protection included.'),
+                route: displayRoute,
                 qty: invoiceData.quantity || 1,
                 unitPrice: subtotal,
                 amount: subtotal,
