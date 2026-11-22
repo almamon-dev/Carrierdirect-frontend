@@ -8,11 +8,14 @@ import { Column } from '@/components/tables/data-table';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { HeaderNotification } from '@/hooks/useHeaderNotifications';
 import { 
-    FileText, Truck, MessageSquare, Landmark, AlertTriangle, Clock
+    FileText, Truck, MessageSquare, Landmark, AlertTriangle, Clock, ShieldAlert
 } from 'lucide-react';
 
 export const getCategoryConfig = (type: string) => {
     const t = (type || '').toLowerCase();
+    if (t.includes('license') || t.includes('compliance') || t.includes('document')) {
+        return { icon: ShieldAlert, bg: 'bg-rose-50 dark:bg-rose-950/40', text: 'text-rose-600 dark:text-rose-400', label: 'Compliance' };
+    }
     if (t.includes('quote')) {
         return { icon: FileText, bg: 'bg-orange-50 dark:bg-orange-950/40', text: 'text-[#ff4a1f]', label: 'Quote' };
     }
