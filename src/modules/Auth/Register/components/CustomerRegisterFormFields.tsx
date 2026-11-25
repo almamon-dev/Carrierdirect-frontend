@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Globe } from 'lucide-react';
 import Input from '../../../../components/ui/input';
 import Button from '../../../../components/ui/button';
+import Select from '../../../../components/ui/select';
+import { PasswordStrengthMeter, PasswordMatchIndicator } from '@/components/ui/PasswordStrengthMeter';
+import { useCountryOptions } from '@/hooks/useCountryOptions';
 
 interface CustomerRegisterFormFieldsProps {
     formData: {
         fullName: string;
         email: string;
+        country: string;
         password: string;
         confirmPassword: string;
     };
@@ -29,6 +33,7 @@ export const CustomerRegisterFormFields: React.FC<CustomerRegisterFormFieldsProp
 }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const { countryOptions, isLoading: isCountriesLoading } = useCountryOptions();
 
     return (
         <form onSubmit={onSubmit} className="space-y-3">
@@ -72,6 +77,27 @@ export const CustomerRegisterFormFields: React.FC<CustomerRegisterFormFieldsProp
 
             <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-1">
+                    Country <span className="text-red-500">*</span>
+                </label>
+                <Select
+                    options={countryOptions}
+                    value={formData.country}
+                    onChange={(e: any) => {
+                        const val = typeof e === 'object' ? (e.target?.value ?? e.value ?? e.id ?? '') : String(e);
+                        onInputChange('country', val);
+                    }}
+                    placeholder={isCountriesLoading ? "Loading countries..." : "Select your country"}
+                    icon={Globe}
+                    size="lg"
+                    error={errors.country}
+                />
+                {errors.country && (
+                    <span className="text-[12px] text-[#d82c0d] mt-1 block">{errors.country}</span>
+                )}
+            </div>
+
+            <div>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1">
                     Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -94,6 +120,9 @@ export const CustomerRegisterFormFields: React.FC<CustomerRegisterFormFieldsProp
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                 </div>
+
+                {/* Real-time Password Strength Meter */}
+                <PasswordStrengthMeter password={formData.password} showMatchStatus={false} />
             </div>
 
             <div>
@@ -120,6 +149,9 @@ export const CustomerRegisterFormFields: React.FC<CustomerRegisterFormFieldsProp
                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                 </div>
+
+                {/* Real-time Password Match Status */}
+                <PasswordMatchIndicator password={formData.password} confirmPassword={formData.confirmPassword} />
             </div>
 
             <div className="flex flex-col pt-2">
@@ -138,11 +170,23 @@ export const CustomerRegisterFormFields: React.FC<CustomerRegisterFormFieldsProp
                     <div className="ml-3 text-sm">
                         <label htmlFor="terms" className="font-medium text-gray-700">
                             I agree to the{' '}
-                            <a href="#" className="text-[#FF4A1F] hover:underline font-semibold">
+                            <a
+                                href="/terms-and-conditions"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-[#FF4A1F] hover:underline font-semibold"
+                            >
                                 Terms of Service
                             </a>{' '}
                             and{' '}
-                            <a href="#" className="text-[#FF4A1F] hover:underline font-semibold">
+                            <a
+                                href="/privacy-policy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-[#FF4A1F] hover:underline font-semibold"
+                            >
                                 Privacy Policy
                             </a>
                         </label>

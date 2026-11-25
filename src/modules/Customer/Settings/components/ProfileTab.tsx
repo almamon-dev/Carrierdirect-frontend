@@ -43,6 +43,7 @@ export default function ProfileTab() {
           phone: d.phone || d.phone_number || d.user?.phone || '',
           secondaryPhone: d.secondary_phone || '',
           companyName: d.company_name || d.user?.company_name || '',
+          country: d.country || d.user?.country || '',
           designation: d.designation || '',
           profilePicture: d.profile_picture || null,
           isVerified: Boolean(d.email_verified_at || d.is_verified),
@@ -108,6 +109,7 @@ export default function ProfileTab() {
       formData.append('phone', profile.phone);
       formData.append('secondary_phone', profile.secondaryPhone);
       formData.append('company_name', profile.companyName);
+      formData.append('country', profile.country);
       formData.append('designation', profile.designation);
 
       if (selectedFile) {
@@ -127,6 +129,7 @@ export default function ProfileTab() {
         name: profile.fullName,
         phone: profile.phone,
         company_name: profile.companyName,
+        country: profile.country,
       };
       if (resData.profile_picture) {
         updatedFields.profile_picture = resData.profile_picture;

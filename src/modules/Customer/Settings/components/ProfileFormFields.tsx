@@ -2,8 +2,10 @@ import React from 'react';
 import Input from '@/components/ui/input';
 import Button from '@/components/ui/button';
 import PhoneInput from '@/components/ui/phone-input';
-import { User, Mail, Building2, Briefcase } from 'lucide-react';
+import { User, Mail, Building2, Briefcase, Globe } from 'lucide-react';
 import { ProfileState } from '../types/profileTypes';
+import Select from '@/components/ui/select';
+import { useCountryOptions } from '@/hooks/useCountryOptions';
 
 interface ProfileFormFieldsProps {
   profile: ProfileState;
@@ -16,6 +18,7 @@ export const ProfileFormFields: React.FC<ProfileFormFieldsProps> = ({
   setProfile,
   isSaving,
 }) => {
+  const { countryOptions, isLoading: isCountriesLoading } = useCountryOptions();
   return (
     <div className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
       <h3 className="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
@@ -84,6 +87,23 @@ export const ProfileFormFields: React.FC<ProfileFormFieldsProps> = ({
           onChange={(e) => setProfile({ ...profile, designation: e.target.value })}
           placeholder="e.g. Logistics Manager"
         />
+
+        <div className="flex flex-col gap-1 w-full">
+          <label className="text-[13px] font-semibold text-slate-700 font-sans">
+            Country <span className="text-red-500">*</span>
+          </label>
+          <Select
+            value={profile.country}
+            onChange={(e: any) => {
+              const val = typeof e === 'object' ? (e.target?.value ?? e.value ?? e.id ?? '') : String(e);
+              setProfile({ ...profile, country: val });
+            }}
+            options={countryOptions}
+            placeholder={isCountriesLoading ? "Loading countries..." : "Select Country"}
+            icon={Globe}
+            size="lg"
+          />
+        </div>
       </div>
 
       <div className="pt-2 flex items-center justify-end border-t border-slate-100 mt-2">

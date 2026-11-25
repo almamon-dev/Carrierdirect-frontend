@@ -6,7 +6,7 @@ import { VerifyEmailStatusStates } from '../components/VerifyEmailStatusStates';
 import { useVerifyEmailFlow } from '../hooks/useVerifyEmailFlow';
 
 export default function VerifyEmailPage() {
-    const { status, nextRedirect, isNavigating, handleProceed, navigate } = useVerifyEmailFlow();
+    const { status, email, nextRedirect, isNavigating, handleProceed, navigate } = useVerifyEmailFlow();
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50/50 relative p-4 sm:p-6 font-sans antialiased">
@@ -27,7 +27,7 @@ export default function VerifyEmailPage() {
                         nextRedirect={nextRedirect}
                         isNavigating={isNavigating}
                         handleProceed={handleProceed}
-                        onResendNotice={() => navigate('/web/verify-email-notice')}
+                        onResendNotice={() => navigate('/web/verify-email-notice' + (email ? `?email=${encodeURIComponent(email)}` : ''))}
                     />
                 </div>
             </div>

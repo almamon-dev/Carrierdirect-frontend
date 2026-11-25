@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '@/lib/axios';
 import { useToastStore } from '@/stores/useToastStore';
 import { 
-  Shield, KeyRound, Smartphone, CheckCircle2, Monitor, Laptop, LogOut, Check, Loader2, RefreshCw, AlertCircle 
+  Shield, KeyRound, Smartphone, CheckCircle2, Monitor, Laptop, LogOut, Check, Loader2, RefreshCw, AlertCircle, Sparkles 
 } from 'lucide-react';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
@@ -235,39 +235,26 @@ export default function SecurityTab() {
       <Card className="shadow-2xs border-slate-200 dark:border-slate-800 rounded-[4px]">
         <CardHeader className="py-2 px-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 rounded-t-[4px] flex flex-row items-center justify-between">
           <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
-            <Shield className="w-3.5 h-3.5 text-[#ff4a1f]" />
+            <Shield className="w-3.5 h-3.5 text-amber-500" />
             Two-Factor Authentication (2FA)
           </CardTitle>
-          {twoFactorEnabled ? (
-            <span className="inline-flex items-center text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-1.5 py-0.5 rounded-[3px]">
-              Enabled
-            </span>
-          ) : (
-            <span className="inline-flex items-center text-[10px] font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-[3px]">
-              Disabled
-            </span>
-          )}
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-full">
+            <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+            Upcoming Feature
+          </span>
         </CardHeader>
         <CardContent className="p-3 sm:p-3.5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 p-2.5 bg-slate-50/70 dark:bg-[#1b2028] rounded-[3px] border border-slate-200/70 dark:border-slate-800">
             <div>
               <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Authenticator App (TOTP)</h4>
               <p className="text-[10.5px] text-slate-500 font-normal">
-                Secure your account using Google Authenticator or Authy.
+                Two-step verification via Google Authenticator or Authy will be available in an upcoming release.
               </p>
             </div>
 
-            <Button
-              type="button"
-              onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-              className={`h-7 text-[11px] px-3 font-semibold rounded-[3px] cursor-pointer transition-colors ${
-                twoFactorEnabled 
-                  ? 'bg-slate-200 hover:bg-slate-300 text-slate-800' 
-                  : 'bg-[#ff4a1f] hover:bg-[#e63d15] text-white shadow-2xs'
-              }`}
-            >
-              {twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'}
-            </Button>
+            <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-[3px] select-none cursor-not-allowed">
+              Coming Soon
+            </span>
           </div>
         </CardContent>
       </Card>

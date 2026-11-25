@@ -1,10 +1,13 @@
 import React from 'react';
-import { User, Mail, Lock, Eye, EyeOff, Building2 } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Building2, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Input from '../../../../components/ui/input';
 import Button from '../../../../components/ui/button';
+import Select from '../../../../components/ui/select';
+import { PasswordStrengthMeter, PasswordMatchIndicator } from '@/components/ui/PasswordStrengthMeter';
 import { SupplierFormData } from '../hooks/supplierRegisterUtils';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
+import { useCountryOptions } from '@/hooks/useCountryOptions';
 
 interface SupplierRegisterStep1FieldsProps {
     formData: SupplierFormData;
@@ -29,6 +32,7 @@ export const SupplierRegisterStep1Fields: React.FC<SupplierRegisterStep1FieldsPr
     onInputChange,
     onContinue
 }) => {
+    const { countryOptions, isLoading: isCountriesLoading } = useCountryOptions();
     return (
         <form onSubmit={onContinue} className="space-y-3">
             <div>
@@ -90,6 +94,27 @@ export const SupplierRegisterStep1Fields: React.FC<SupplierRegisterStep1FieldsPr
 
             <div>
                 <label className="block text-[13px] font-medium text-gray-700 dark:text-slate-200 mb-1">
+                    Operating Base Country <span className="text-red-500">*</span>
+                </label>
+                <Select
+                    options={countryOptions}
+                    value={formData.country}
+                    onChange={(e: any) => {
+                        const val = typeof e === 'object' ? (e.target?.value ?? e.value ?? e.id ?? '') : String(e);
+                        onInputChange('country', val);
+                    }}
+                    placeholder={isCountriesLoading ? "Loading countries..." : "Select operating base country"}
+                    icon={Globe}
+                    size="lg"
+                    error={errors.country}
+                />
+                {errors.country && (
+                    <span className="text-[12px] text-[#d82c0d] mt-1 block">{errors.country}</span>
+                )}
+            </div>
+
+            <div>
+                <label className="block text-[13px] font-medium text-gray-700 dark:text-slate-200 mb-1">
                     Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -112,6 +137,9 @@ export const SupplierRegisterStep1Fields: React.FC<SupplierRegisterStep1FieldsPr
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                 </div>
+
+                {/* Real-time Password Strength Meter */}
+                <PasswordStrengthMeter password={formData.password} showMatchStatus={false} />
             </div>
 
             <div>
@@ -138,6 +166,9 @@ export const SupplierRegisterStep1Fields: React.FC<SupplierRegisterStep1FieldsPr
                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                 </div>
+
+                {/* Real-time Password Match Status */}
+                <PasswordMatchIndicator password={formData.password} confirmPassword={formData.confirmPassword} />
             </div>
 
             <Button type="submit" isLoading={isStep1Loading} fullWidth={true} className="mt-6">

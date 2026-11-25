@@ -162,11 +162,23 @@ export const SupplierRegisterStep2Fields: React.FC<SupplierRegisterStep2FieldsPr
                     <div className="ml-3 text-sm">
                         <label htmlFor="terms" className="font-medium text-gray-700 dark:text-slate-300">
                             I agree to the{' '}
-                            <a href="#" className="text-[#FF4A1F] hover:underline font-semibold">
+                            <a
+                                href="/terms-and-conditions"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-[#FF4A1F] hover:underline font-semibold"
+                            >
                                 Terms of Service
                             </a>{' '}
                             and{' '}
-                            <a href="#" className="text-[#FF4A1F] hover:underline font-semibold">
+                            <a
+                                href="/privacy-policy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-[#FF4A1F] hover:underline font-semibold"
+                            >
                                 Privacy Policy
                             </a>
                         </label>

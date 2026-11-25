@@ -161,7 +161,7 @@ export default function Select({
 
     useEffect(() => {
         if (isOpen && shouldShowSearch) {
-            setTimeout(() => { searchInputRef.current?.focus(); }, 50);
+            setTimeout(() => { searchInputRef.current?.focus({ preventScroll: true }); }, 10);
         }
     }, [isOpen, shouldShowSearch]);
 
@@ -191,7 +191,7 @@ export default function Select({
                 onClick={handleToggle}
                 disabled={disabled}
                 className={cn(
-                    "relative w-full cursor-pointer rounded-[4px] border bg-white dark:bg-[#1e2329] text-left font-medium text-[#202223] dark:text-white outline-none focus:outline-none transition-all flex items-center shadow-none",
+                    "relative w-full cursor-pointer rounded-[4px] border bg-white dark:bg-[#1e2329] text-left font-medium text-[#202223] dark:text-white outline-none focus:outline-none flex items-center shadow-none",
                     size === "sm" 
                         ? "h-[30px] text-xs py-0.5 pr-7" 
                         : size === "lg" 
@@ -219,7 +219,7 @@ export default function Select({
                     "pointer-events-none absolute inset-y-0 right-0 flex items-center text-slate-400 dark:text-slate-500",
                     size === "sm" ? "pr-2" : "pr-2.5"
                 )}>
-                    <ChevronDown size={size === "sm" ? 13 : 14} aria-hidden="true" className={cn("transition-transform duration-150", isOpen && "rotate-180")} />
+                    <ChevronDown size={size === "sm" ? 13 : 14} aria-hidden="true" className={cn(isOpen && "rotate-180")} />
                 </span>
             </button>
 

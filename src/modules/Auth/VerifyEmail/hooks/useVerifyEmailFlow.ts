@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../../../../lib/axios';
 import { ENDPOINTS } from '../../../../config/api';
@@ -9,22 +9,31 @@ export const useVerifyEmailFlow = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+    const [errorMessage, setErrorMessage] = useState<string>('');
     const [nextRedirect, setNextRedirect] = useState<string>('/web/login');
     const [verifiedUser, setVerifiedUser] = useState<any>(null);
     const [isNavigating, setIsNavigating] = useState(false);
+    const hasCalledRef = useRef(false);
+
+    const email = searchParams.get('email') || '';
 
     useEffect(() => {
+        if (hasCalledRef.current) return;
+
         async function verifyEmail() {
             const token = searchParams.get('token');
-            const email = searchParams.get('email');
+            const targetEmail = searchParams.get('email');
 
-            if (!token || !email) {
+            if (!token || !targetEmail) {
                 setStatus('error');
+                setErrorMessage('Email and verification token are missing from the link.');
                 return;
             }
 
+            hasCalledRef.current = true;
+
             try {
-                const res = await apiClient.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { token, email });
+                const res = await apiClient.post(ENDPOINTS.AUTH.VERIFY_EMAIL, { token, email: targetEmail });
                 const tokenData = res.access_token || res.data?.access_token || res.token;
                 let userData = res.data?.user || res.user;
 
@@ -66,6 +75,8 @@ export const useVerifyEmailFlow = () => {
                 setStatus('success');
             } catch (err: any) {
                 console.error('Email verification error:', err);
+                const msg = err.data?.message || err.response?.data?.message || err.message || 'Invalid or expired verification link.';
+                setErrorMessage(msg);
                 setStatus('error');
             }
         }
@@ -117,6 +128,8 @@ export const useVerifyEmailFlow = () => {
 
     return {
         status,
+        email,
+        errorMessage,
         nextRedirect,
         isNavigating,
         handleProceed,

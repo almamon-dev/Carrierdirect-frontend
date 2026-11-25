@@ -2,6 +2,7 @@ export interface SupplierFormData {
     fullName: string;
     companyName: string;
     email: string;
+    country: string;
     password: string;
     confirmPassword: string;
     insuranceType: string;
@@ -40,13 +41,22 @@ export const validateStep1 = (data: SupplierFormData): Record<string, string> =>
     if (!data.companyName?.trim()) errs.companyName = 'Company / Business Name is required';
     if (!data.email.trim()) {
         errs.email = 'Email Address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(data.email.trim())) {
         errs.email = 'Please enter a valid email address';
+    }
+    if (!data.country?.trim()) {
+        errs.country = 'Operating Country is required';
     }
     if (!data.password) {
         errs.password = 'Password is required';
     } else if (data.password.length < 8) {
         errs.password = 'Password must be at least 8 characters';
+    } else if (!/[A-Z]/.test(data.password)) {
+        errs.password = 'Password must contain at least one uppercase letter (A-Z)';
+    } else if (!/[0-9]/.test(data.password)) {
+        errs.password = 'Password must contain at least one number (0-9)';
+    } else if (!/[^A-Za-z0-9]/.test(data.password)) {
+        errs.password = 'Password must contain at least one special character (!@#$%^&*)';
     }
     if (!data.confirmPassword) {
         errs.confirmPassword = 'Please confirm your password';

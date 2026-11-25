@@ -59,7 +59,7 @@ export const SelectPortalMenu: React.FC<SelectPortalMenuProps> = ({
                     width: `${dropdownPos.width}px`,
                     ...(dropdownPos.maxHeight ? { maxHeight: `${dropdownPos.maxHeight}px` } : {}),
                 }}
-                className="custom-select-portal-menu z-[999999] overflow-hidden rounded-md bg-white dark:bg-[#1a1f26] text-[12px] shadow-xl border border-slate-200/90 dark:border-slate-700/80 focus:outline-none flex flex-col animate-in fade-in zoom-in-95 duration-100 font-sans"
+                className="custom-select-portal-menu z-[999999] overflow-hidden rounded-md bg-white dark:bg-[#1a1f26] text-[12px] shadow-xl border border-slate-200/90 dark:border-slate-700/80 focus:outline-none flex flex-col font-sans"
             >
                 {shouldShowSearch && (
                     <div className="p-2 bg-slate-50/80 dark:bg-[#151920] border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -71,7 +71,7 @@ export const SelectPortalMenu: React.FC<SelectPortalMenuProps> = ({
                                 placeholder="Type to search..."
                                 value={searchQuery}
                                 onChange={(e) => onSearchChange(e.target.value)}
-                                className="w-full h-7 pl-8 pr-2.5 text-xs bg-white dark:bg-[#10141a] border border-slate-200 dark:border-slate-700/80 rounded-[4px] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-1 focus:ring-slate-200 dark:focus:ring-slate-700 shadow-2xs font-normal transition-all"
+                                className="w-full h-7 pl-8 pr-2.5 text-xs bg-white dark:bg-[#10141a] border border-slate-200 dark:border-slate-700/80 rounded-[4px] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:ring-1 focus:ring-slate-200 dark:focus:ring-slate-700 shadow-2xs font-normal"
                                 onClick={(e) => e.stopPropagation()}
                             />
                         </div>
@@ -97,7 +97,7 @@ export const SelectPortalMenu: React.FC<SelectPortalMenuProps> = ({
                                         <div
                                             key={idx}
                                             onClick={() => onSelectOption(option)}
-                                            className="cursor-pointer select-none py-1.5 px-3 text-[11.5px] text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-600 dark:hover:text-slate-400 border-b border-slate-100/70 dark:border-slate-800/70 transition-colors"
+                                            className="cursor-pointer select-none py-1.5 px-3 text-[11.5px] text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-600 dark:hover:text-slate-400 border-b border-slate-100/70 dark:border-slate-800/70"
                                         >
                                             {option.name || option.label}
                                         </div>
@@ -113,7 +113,7 @@ export const SelectPortalMenu: React.FC<SelectPortalMenuProps> = ({
                                         }}
                                         aria-disabled={isDisabled}
                                         className={cn(
-                                            "select-none border-b border-slate-100/60 dark:border-slate-800/40 last:border-0 flex items-center justify-between transition-colors",
+                                            "select-none border-b border-slate-100/60 dark:border-slate-800/40 last:border-0 flex items-center justify-between",
                                             option.subtitle ? "py-2 px-3" : (size === "sm" ? "py-1.5 px-2.5 text-xs" : "py-2 px-3 text-[12.5px]"),
                                             isDisabled
                                                 ? "opacity-50 cursor-not-allowed bg-slate-50/50 dark:bg-slate-900/30"

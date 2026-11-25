@@ -24,11 +24,11 @@ export const CheckoutTrustBadges: React.FC = () => {
 
       <p className="text-[9.5px] text-slate-400 dark:text-slate-500 text-center leading-normal">
         By subscribing, you agree to our{" "}
-        <a href="/terms" target="_blank" className="underline hover:text-slate-600 dark:hover:text-slate-300">
+        <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600 dark:hover:text-slate-300">
           Terms of Service
         </a>{" "}
         and{" "}
-        <a href="/privacy" target="_blank" className="underline hover:text-slate-600 dark:hover:text-slate-300">
+        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600 dark:hover:text-slate-300">
           Privacy Policy
         </a>
         .

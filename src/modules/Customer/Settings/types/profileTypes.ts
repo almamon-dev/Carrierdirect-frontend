@@ -4,6 +4,7 @@ export interface ProfileState {
   phone: string;
   secondaryPhone: string;
   companyName: string;
+  country: string;
   designation: string;
   profilePicture: string | null;
   isVerified: boolean;
@@ -15,6 +16,7 @@ export const BLANK_PROFILE: ProfileState = {
   phone: '',
   secondaryPhone: '',
   companyName: '',
+  country: '',
   designation: '',
   profilePicture: null,
   isVerified: false,

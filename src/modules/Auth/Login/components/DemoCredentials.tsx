@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { User, Truck, Mail, MousePointer2, Zap, Check } from 'lucide-react';
-import apiClient from '@/lib/axios';
-import { ENDPOINTS } from '@/config/api';
 import Skeleton from '@/components/ui/skeleton';
+import { ENDPOINTS } from '@/config/api';
+import apiClient from '@/lib/axios';
+import { Check, Mail, MousePointer2, Truck, User, Zap } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface DemoAccount {
     id: number | string;
     name?: string;
     email: string;
     role?: 'customer' | 'supplier' | 'driver' | string;
+    badge?: string;
+    country?: string;
     password?: string;
 }
 
@@ -36,55 +38,37 @@ const SteeringWheelIcon: React.FC<{ className?: string }> = ({ className = "w-3.
     </svg>
 );
 
-const DEFAULT_ACCOUNTS: Record<RoleType, DemoAccount[]> = {
-    customer: [
-        {
-            id: 'c1',
-            name: "Aidan O'Connor",
-            email: 'aidanalltrainedup@gmail.com',
-            role: 'customer',
-            password: 'Cd#ClientTest!2026',
-        },
-        {
-            id: 'c2',
-            name: 'Mamon Mia',
-            email: 'mamon193p@gmail.com',
-            role: 'customer',
-            password: 'Cd#DevTest!2026',
-        },
-    ],
-    supplier: [
-        {
-            id: 's1',
-            name: 'Cillian Byrne',
-            email: 'freightforwarder78@gmail.com',
-            role: 'supplier',
-            password: 'Cd#ClientTest!2026',
-        },
-        {
-            id: 's2',
-            name: 'Mamun Khan',
-            email: 'mamunkhan14108@gmail.com',
-            role: 'supplier',
-            password: 'Cd#DevTest!2026',
-        },
-    ],
-    driver: [
-        {
-            id: 'd1',
-            name: 'Aidan Moroney',
-            email: 'balbrigganconnected@gmail.com',
-            role: 'driver',
-            password: 'Cd#ClientTest!2026',
-        },
-        {
-            id: 'd2',
-            name: 'Rafiqul Islam',
-            email: 'mamonsoftvence@gmail.com',
-            role: 'driver',
-            password: 'Cd#DevTest!2026',
-        },
-    ],
+const EMPTY_ACCOUNTS: Record<RoleType, DemoAccount[]> = {
+    customer: [],
+    supplier: [],
+    driver: [],
+};
+
+const DEMO_CACHE_KEY = 'carrierdirect_demo_credentials_cache';
+const DEMO_ROLE_KEY = 'carrierdirect_demo_active_role';
+
+const getInitialAccounts = (): Record<RoleType, DemoAccount[]> => {
+    try {
+        const cached = localStorage.getItem(DEMO_CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (
+                parsed &&
+                ((parsed.customer && parsed.customer.length > 0) ||
+                    (parsed.supplier && parsed.supplier.length > 0) ||
+                    (parsed.driver && parsed.driver.length > 0))
+            ) {
+                return {
+                    customer: Array.isArray(parsed.customer) ? parsed.customer : [],
+                    supplier: Array.isArray(parsed.supplier) ? parsed.supplier : [],
+                    driver: Array.isArray(parsed.driver) ? parsed.driver : [],
+                };
+            }
+        }
+    } catch {
+        // fallback to empty
+    }
+    return EMPTY_ACCOUNTS;
 };
 
 export const DemoCredentialsSkeleton: React.FC = () => {
@@ -114,7 +98,7 @@ export const DemoCredentialsSkeleton: React.FC = () => {
                         className="flex items-center justify-between p-2 sm:px-3 sm:py-2 gap-2"
                     >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                            {/* Blue Avatar Box Skeleton */}
+                            {/* Avatar Box Skeleton */}
                             <Skeleton className="w-7 h-7 rounded-[2px] shrink-0" />
 
                             {/* Name + Email Skeleton */}
@@ -134,16 +118,44 @@ export const DemoCredentialsSkeleton: React.FC = () => {
 };
 
 export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [activeRole, setActiveRole] = useState<RoleType>('customer');
-    const [accounts, setAccounts] = useState<Record<RoleType, DemoAccount[]>>(DEFAULT_ACCOUNTS);
+    const initialAccounts = getInitialAccounts();
+    const hasInitialAccounts =
+        (initialAccounts.customer?.length || 0) +
+        (initialAccounts.supplier?.length || 0) +
+        (initialAccounts.driver?.length || 0) > 0;
+
+    const [isLoading, setIsLoading] = useState<boolean>(!hasInitialAccounts);
+    const [activeRole, setActiveRole] = useState<RoleType>(() => {
+        try {
+            const saved = localStorage.getItem(DEMO_ROLE_KEY) as RoleType;
+            if (saved && ['customer', 'supplier', 'driver'].includes(saved)) {
+                return saved;
+            }
+        } catch {
+            // ignore
+        }
+        return 'customer';
+    });
+    const [accounts, setAccounts] = useState<Record<RoleType, DemoAccount[]>>(initialAccounts);
     const [filledEmail, setFilledEmail] = useState<string | null>(null);
+
+    const handleRoleChange = (role: RoleType) => {
+        setActiveRole(role);
+        try {
+            localStorage.setItem(DEMO_ROLE_KEY, role);
+        } catch {
+            // ignore
+        }
+    };
 
     useEffect(() => {
         let isMounted = true;
 
         const fetchCredentials = (isInitial = false) => {
-            if (isInitial) setIsLoading(true);
+            if (isInitial && !hasInitialAccounts) {
+                setIsLoading(true);
+            }
+
             apiClient
                 .get(ENDPOINTS.AUTH.DEMO_CREDENTIALS || '/auth/demo-credentials')
                 .then((res: any) => {
@@ -158,7 +170,9 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
                                 name: item.name,
                                 email: item.email,
                                 role: item.role,
-                                password: item.password || 'Cd#DevTest!2026',
+                                badge: item.badge,
+                                country: item.country,
+                                password: item.password || 'password',
                             }));
                         }
                         return [];
@@ -168,38 +182,55 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
                     const apiSuppliers = getList(data.suppliers);
                     const apiDrivers = getList(data.drivers);
 
-                    setAccounts((prev) => ({
-                        customer: apiCustomers.length > 0 ? apiCustomers : prev.customer,
-                        supplier: apiSuppliers.length > 0 ? apiSuppliers : prev.supplier,
-                        driver: apiDrivers.length > 0 ? apiDrivers : prev.driver,
-                    }));
+                    const newAccounts: Record<RoleType, DemoAccount[]> = {
+                        customer: apiCustomers,
+                        supplier: apiSuppliers,
+                        driver: apiDrivers,
+                    };
+
+                    setAccounts(newAccounts);
+
+                    try {
+                        localStorage.setItem(DEMO_CACHE_KEY, JSON.stringify(newAccounts));
+                    } catch {
+                        // ignore
+                    }
                 })
-                .catch(() => {
-                    // Keep default accounts
+                .catch((err) => {
+                    // Retain previously loaded/cached accounts on temporary network errors or rate limits
+                    console.warn('Demo credentials fetch notice:', err?.message || err);
                 })
                 .finally(() => {
-                    if (isMounted && isInitial) {
+                    if (isMounted) {
                         setIsLoading(false);
                     }
                 });
         };
 
-        fetchCredentials(true);
+        // Fetch on mount
+        fetchCredentials(!hasInitialAccounts);
 
-        // Dynamically auto-refresh credentials in the background
-        const pollTimer = setInterval(() => fetchCredentials(false), 3500);
-        const onFocus = () => fetchCredentials(false);
-        window.addEventListener('focus', onFocus);
+        // Auto-refresh in background every 20 seconds and on tab focus
+        const pollTimer = setInterval(() => fetchCredentials(false), 20000);
+        const onVisibilityOrFocus = () => {
+            if (document.visibilityState === 'visible') {
+                fetchCredentials(false);
+            }
+        };
+
+        window.addEventListener('focus', onVisibilityOrFocus);
+        document.addEventListener('visibilitychange', onVisibilityOrFocus);
 
         return () => {
             isMounted = false;
             clearInterval(pollTimer);
-            window.removeEventListener('focus', onFocus);
+            window.removeEventListener('focus', onVisibilityOrFocus);
+            document.removeEventListener('visibilitychange', onVisibilityOrFocus);
         };
-    }, []);
+    }, [hasInitialAccounts]);
 
     const handleFill = (account: DemoAccount) => {
-        onSelect(account.email, account.password || 'Cd#DevTest!2026');
+        onSelect(account.email, account.password || 'password');
         setFilledEmail(account.email);
         setTimeout(() => {
             setFilledEmail((current) => (current === account.email ? null : current));
@@ -208,6 +239,27 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
 
     if (isLoading) {
         return <DemoCredentialsSkeleton />;
+    }
+
+    const totalAccounts =
+        (accounts.customer?.length || 0) +
+        (accounts.supplier?.length || 0) +
+        (accounts.driver?.length || 0);
+
+    if (totalAccounts === 0) {
+        return (
+            <div className="mt-4 pt-3 border-t border-dashed border-gray-200 dark:border-[#384150]">
+                <div className="mb-2.5">
+                    <div className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100 font-bold text-xs sm:text-[13px]">
+                        <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
+                        <span>Quick Demo Login</span>
+                    </div>
+                </div>
+                <div className="py-3 px-3 text-center rounded-[2px] bg-slate-50 dark:bg-[#181a20] border border-slate-200/90 dark:border-slate-800 text-[11px] text-slate-400">
+                    No demo accounts available.
+                </div>
+            </div>
+        );
     }
 
     const currentAccounts = accounts[activeRole] || [];
@@ -261,12 +313,11 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
                         <button
                             key={tab.key}
                             type="button"
-                            onClick={() => setActiveRole(tab.key)}
-                            className={`py-1.5 px-1 rounded-[2px] flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-semibold transition-all cursor-pointer select-none whitespace-nowrap ${
-                                isActive
-                                    ? 'bg-[#FF4A1F] text-white shadow-2xs border border-[#FF4A1F]'
-                                    : 'bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
-                            }`}
+                            onClick={() => handleRoleChange(tab.key)}
+                            className={`py-1.5 px-1 rounded-[2px] flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-semibold transition-all cursor-pointer select-none whitespace-nowrap ${isActive
+                                ? 'bg-[#FF4A1F] text-white shadow-2xs border border-[#FF4A1F]'
+                                : 'bg-white dark:bg-[#1e2329] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                }`}
                         >
                             {tab.icon}
                             <span>{tab.label}</span>
@@ -276,7 +327,7 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
             </div>
 
             {/* Account List Card (Rounded-2px / Compact, No Limit/Truncate on text) */}
-            <div 
+            <div
                 key={activeRole}
                 className="bg-white dark:bg-[#181a20] rounded-[2px] border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 shadow-2xs overflow-hidden transition-all duration-200 animate-in fade-in"
             >
@@ -300,9 +351,11 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
 
                                     {/* Name and Email without truncate limits */}
                                     <div className="min-w-0 flex-1">
-                                        <h4 className="text-[11.5px] sm:text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                                            {account.name || 'Demo User'}
-                                        </h4>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <h4 className="text-[11.5px] sm:text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                                                {account.name || 'Demo User'}
+                                            </h4>
+                                        </div>
                                         <div className="flex items-center gap-1 text-[10px] sm:text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5">
                                             <Mail className="w-3 h-3 text-slate-400 shrink-0" />
                                             <span className="font-normal break-all">{account.email}</span>
@@ -314,11 +367,10 @@ export default function DemoCredentials({ onSelect }: DemoCredentialsProps) {
                                 <button
                                     type="button"
                                     onClick={() => handleFill(account)}
-                                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-[2px] border text-[10.5px] font-semibold transition-all cursor-pointer shrink-0 shadow-2xs ${
-                                        isFilled
-                                            ? 'bg-emerald-50 border-emerald-500 text-emerald-600 dark:bg-emerald-950/40 dark:border-emerald-500 dark:text-emerald-400'
-                                            : 'border-[#FF4A1F] text-[#FF4A1F] hover:bg-[#FF4A1F]/5 bg-transparent active:scale-95'
-                                    }`}
+                                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-[2px] border text-[10.5px] font-semibold transition-all cursor-pointer shrink-0 shadow-2xs ${isFilled
+                                        ? 'bg-emerald-50 border-emerald-500 text-emerald-600 dark:bg-emerald-950/40 dark:border-emerald-500 dark:text-emerald-400'
+                                        : 'border-[#FF4A1F] text-[#FF4A1F] hover:bg-[#FF4A1F]/5 bg-transparent active:scale-95'
+                                        }`}
                                 >
                                     {isFilled ? (
                                         <>

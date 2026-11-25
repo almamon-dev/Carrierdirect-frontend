@@ -1,7 +1,9 @@
 import React from 'react';
-import { Building2, Camera, Trash2, Loader2, Lock } from 'lucide-react';
+import { Building2, Camera, Trash2, Loader2, Lock, Globe } from 'lucide-react';
 import Input from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import Select from '@/components/ui/select';
+import { useCountryOptions } from '@/hooks/useCountryOptions';
 
 interface CompanyIdentityCardProps {
   formData: {
@@ -26,6 +28,7 @@ export function CompanyIdentityCard({
   handleLogoUpload,
   handleLogoRemove,
 }: CompanyIdentityCardProps) {
+  const { countryOptions, isLoading: isCountriesLoading } = useCountryOptions();
   return (
     <Card className="shadow-2xs border-slate-200 dark:border-slate-800 rounded-[4px] bg-white dark:bg-[#181a20]">
       <CardHeader className="py-2.5 px-3.5 sm:px-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-[#151921] rounded-t-[4px]">
@@ -130,13 +133,22 @@ export function CompanyIdentityCard({
             required
           />
 
-          <Input
-            label="Country *"
-            value={formData.country}
-            onChange={(e) => handleChange('country', e.target.value)}
-            placeholder="e.g. Germany or United States"
-            required
-          />
+          <div className="flex flex-col gap-1 w-full">
+            <label className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 font-sans">
+              Country <span className="text-red-500">*</span>
+            </label>
+            <Select
+              value={formData.country}
+              onChange={(e: any) => {
+                const val = typeof e === 'object' ? (e.target?.value ?? e.value ?? e.id ?? '') : String(e);
+                handleChange('country', val);
+              }}
+              options={countryOptions}
+              placeholder={isCountriesLoading ? "Loading countries..." : "Select operating base country"}
+              icon={Globe}
+              size="lg"
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

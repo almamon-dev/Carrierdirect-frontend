@@ -26,6 +26,7 @@ export function useSupplierRegisterForm() {
         fullName: '',
         companyName: '',
         email: '',
+        country: '',
         password: '',
         confirmPassword: '',
         insuranceType: '',
@@ -117,6 +118,7 @@ export function useSupplierRegisterForm() {
                 registerPayload.append('name', formData.fullName);
                 registerPayload.append('company_name', formData.companyName);
                 registerPayload.append('email', formData.email);
+                registerPayload.append('country', formData.country);
                 registerPayload.append('password', formData.password);
                 registerPayload.append('password_confirmation', formData.confirmPassword);
                 registerPayload.append('insurance_type', finalInsuranceType);
@@ -130,6 +132,10 @@ export function useSupplierRegisterForm() {
                 await apiClient.post(ENDPOINTS.AUTH.REGISTER, registerPayload, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
+                try {
+                    sessionStorage.setItem(`resend_email_cooldown_${formData.email.trim().toLowerCase()}`, String(Date.now() + 60000));
+                } catch { }
+
                 navigate(`/web/verify-email-notice?email=${encodeURIComponent(formData.email)}`);
             } catch (err: any) {
                 console.error('Supplier registration error:', err);

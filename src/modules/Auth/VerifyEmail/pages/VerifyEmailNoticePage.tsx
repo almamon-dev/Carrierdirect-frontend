@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Mail, CheckCircle2, RefreshCw, ArrowLeft, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, CheckCircle2, RefreshCw, ArrowLeft, Clock } from 'lucide-react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import LogoBlack from '../../../../assets/Images/LogoBlack.png';
 import LogoWhite from '../../../../assets/Images/Logo.png';
@@ -20,9 +20,80 @@ export default function VerifyEmailNoticePage() {
         storedEmail = u?.email || '';
     } catch { }
 
-    const rawEmail = searchParams.get('email') || storedEmail || 'user@example.com';
+    const rawEmail = searchParams.get('email') || storedEmail || '';
     const [isResending, setIsResending] = useState(false);
     const [resentSuccess, setResentSuccess] = useState(false);
+
+    const handleBackToLogin = () => {
+        localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
+        localStorage.removeItem(TOKEN_CONFIG.userKey);
+        localStorage.removeItem('carrierdirect_access_token');
+        localStorage.removeItem('carrierdirect_user_data');
+        localStorage.removeItem('erp_access_token');
+        localStorage.removeItem('erp_user_data');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/web/login');
+    };
+
+    // If database was reset, any existing token in localStorage will be invalid (401). Check and redirect to login automatically.
+    useEffect(() => {
+        const token =
+            localStorage.getItem(TOKEN_CONFIG.accessTokenKey) ||
+            localStorage.getItem('carrierdirect_access_token') ||
+            localStorage.getItem('token');
+
+        if (token) {
+            apiClient.get('/user').catch((err: any) => {
+                const status = err?.response?.status || err?.status;
+                if (status === 401 || status === 404) {
+                    handleBackToLogin();
+                }
+            });
+        } else if (!rawEmail) {
+            // No email and no token - redirect to login
+            navigate('/web/login', { replace: true });
+        }
+    }, [rawEmail]);
+
+    // Cooldown timer (60s) persisted in sessionStorage so refresh does not bypass cooldown
+    const cooldownKey = `resend_email_cooldown_${rawEmail.toLowerCase()}`;
+    const [countdown, setCountdown] = useState<number>(() => {
+        if (!rawEmail || rawEmail === 'user@example.com') return 0;
+        try {
+            const stored = sessionStorage.getItem(`resend_email_cooldown_${rawEmail.toLowerCase()}`);
+            if (stored) {
+                const diff = Math.ceil((parseInt(stored, 10) - Date.now()) / 1000);
+                return diff > 0 ? diff : 0;
+            }
+        } catch { }
+        return 0;
+    });
+
+    useEffect(() => {
+        if (countdown <= 0) return;
+
+        const timer = setInterval(() => {
+            setCountdown((prev) => {
+                if (prev <= 1) {
+                    try {
+                        sessionStorage.removeItem(cooldownKey);
+                    } catch { }
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [countdown, cooldownKey]);
+
+    const startCooldown = (seconds: number = 60) => {
+        setCountdown(seconds);
+        try {
+            sessionStorage.setItem(cooldownKey, String(Date.now() + seconds * 1000));
+        } catch { }
+    };
 
     // Mask email for privacy 
     const maskEmail = (emailStr: string) => {
@@ -39,6 +110,8 @@ export default function VerifyEmailNoticePage() {
     const displayEmail = maskEmail(rawEmail);
 
     const handleResendLink = async () => {
+        if (countdown > 0 || isResending) return;
+
         if (!rawEmail || rawEmail === 'user@example.com') {
             useToastStore.getState().showToast('Email address is missing.', 'error');
             return;
@@ -49,28 +122,29 @@ export default function VerifyEmailNoticePage() {
             const res = await apiClient.post(ENDPOINTS.AUTH.RESEND_OTP, { email: rawEmail });
             if (res && res.success !== false) {
                 setResentSuccess(true);
+                startCooldown(res?.data?.retry_after || 60);
                 useToastStore.getState().showToast(res.message || 'Verification email resent successfully! Please check your inbox.', 'success');
             } else {
                 useToastStore.getState().showToast(res?.message || 'Failed to resend verification email.', 'error');
             }
         } catch (err: any) {
+            const status = err?.response?.status || err?.status;
+            if (status === 404) {
+                // User does not exist in database (e.g. database was reset)
+                handleBackToLogin();
+                useToastStore.getState().showToast('Account not found (database was reset). Please register or sign in.', 'error');
+                return;
+            }
+
+            const retryAfter = err.data?.data?.retry_after || err.response?.data?.data?.retry_after;
+            if (retryAfter && typeof retryAfter === 'number') {
+                startCooldown(retryAfter);
+            }
             const msg = err.data?.message || err.response?.data?.message || err.message || 'Failed to resend verification email.';
             useToastStore.getState().showToast(msg, 'error');
         } finally {
             setIsResending(false);
         }
-    };
-
-    const handleBackToLogin = () => {
-        localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
-        localStorage.removeItem(TOKEN_CONFIG.userKey);
-        localStorage.removeItem('carrierdirect_access_token');
-        localStorage.removeItem('carrierdirect_user_data');
-        localStorage.removeItem('erp_access_token');
-        localStorage.removeItem('erp_user_data');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/web/login');
     };
 
     return (
@@ -120,18 +194,31 @@ export default function VerifyEmailNoticePage() {
                         <button
                             type="button"
                             onClick={handleResendLink}
-                            disabled={isResending}
-                            className="w-full h-11 flex items-center justify-center gap-2 px-4 border border-transparent rounded-[3px] shadow-sm text-xs font-bold text-white bg-[#ff4a1f] hover:bg-[#e03e15] transition-all cursor-pointer disabled:opacity-50"
+                            disabled={isResending || countdown > 0}
+                            className={`w-full h-11 flex items-center justify-center gap-2 px-4 rounded-[4px] text-xs font-semibold transition-all ${
+                                countdown > 0
+                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed select-none'
+                                    : isResending
+                                    ? 'bg-[#ff4a1f]/80 text-white cursor-wait'
+                                    : 'bg-[#ff4a1f] hover:bg-[#e03e15] text-white shadow-sm font-bold cursor-pointer'
+                            }`}
                         >
                             {isResending ? (
                                 <>
                                     <RefreshCw className="w-4 h-4 animate-spin" />
                                     <span>Sending Verification Email...</span>
                                 </>
+                            ) : countdown > 0 ? (
+                                <>
+                                    <Clock className="w-4 h-4 text-slate-400" />
+                                    <span>
+                                        {resentSuccess ? 'Resent! ' : ''}Resend in {countdown}s
+                                    </span>
+                                </>
                             ) : resentSuccess ? (
                                 <>
                                     <CheckCircle2 className="w-4 h-4" />
-                                    <span>Resent Successfully!</span>
+                                    <span>Resend Verification Link</span>
                                 </>
                             ) : (
                                 <>
@@ -144,10 +231,16 @@ export default function VerifyEmailNoticePage() {
                         <button
                             type="button"
                             onClick={handleBackToLogin}
-                            className="w-full h-11 flex items-center justify-center gap-2 px-4 border border-slate-200 rounded-[3px] text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+                            className="w-full h-11 flex items-center justify-center gap-2 px-4 border border-slate-200 rounded-[4px] text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
                         >
                             <span>Back to Sign In</span>
                         </button>
+
+                        {/* Security & Spam Tip */}
+                        <div className="pt-2 p-3 rounded-[4px] bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 text-left flex items-start gap-2">
+                            <span className="font-bold">Tip:</span>
+                            <span>Didn't receive the email? Check your <strong>Spam</strong> or <strong>Junk</strong> folder. To protect against spam, you can request a new link once every 60 seconds.</span>
+                        </div>
                     </div>
                 </div>
             </div>

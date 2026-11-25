@@ -43,9 +43,10 @@ export function handleAuthError(status: number, data: any) {
             localStorage.removeItem('user');
 
             const isAuthPage =
-                window.location.pathname.includes('/login') ||
-                window.location.pathname.includes('/register') ||
-                window.location.pathname.includes('/web/');
+                window.location.pathname === '/web/login' ||
+                window.location.pathname === '/web/register' ||
+                window.location.pathname === '/login' ||
+                window.location.pathname === '/register';
 
             if (!isAuthPage) {
                 window.location.href = '/web/login';

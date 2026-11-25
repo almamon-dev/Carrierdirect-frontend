@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Loader2 } from 'lucide-react';
 import Input from '@/components/ui/input';
+import { PasswordStrengthMeter, PasswordMatchIndicator } from '@/components/ui/PasswordStrengthMeter';
 import apiClient from '@/lib/axios';
 import { ENDPOINTS } from '@/config/api';
 import { useToastStore } from '@/stores/useToastStore';
@@ -67,25 +68,31 @@ export const ChangePasswordCard: React.FC = () => {
           required
         />
 
-        <Input
-          label="New Password *"
-          type="password"
-          icon={<Lock className="w-4 h-4 text-slate-400" />}
-          value={passwords.newPassword}
-          onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
-          placeholder="••••••••"
-          required
-        />
+        <div>
+          <Input
+            label="New Password *"
+            type="password"
+            icon={<Lock className="w-4 h-4 text-slate-400" />}
+            value={passwords.newPassword}
+            onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+            placeholder="••••••••"
+            required
+          />
+          <PasswordStrengthMeter password={passwords.newPassword} showMatchStatus={false} />
+        </div>
 
-        <Input
-          label="Confirm New Password *"
-          type="password"
-          icon={<Lock className="w-4 h-4 text-slate-400" />}
-          value={passwords.confirmPassword}
-          onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-          placeholder="••••••••"
-          required
-        />
+        <div>
+          <Input
+            label="Confirm New Password *"
+            type="password"
+            icon={<Lock className="w-4 h-4 text-slate-400" />}
+            value={passwords.confirmPassword}
+            onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+            placeholder="••••••••"
+            required
+          />
+          <PasswordMatchIndicator password={passwords.newPassword} confirmPassword={passwords.confirmPassword} />
+        </div>
       </div>
 
       <div className="flex justify-end pt-1">

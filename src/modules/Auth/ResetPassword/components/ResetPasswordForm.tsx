@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import Input from '../../../../components/ui/input';
 import Button from '../../../../components/ui/button';
+import { PasswordStrengthMeter, PasswordMatchIndicator } from '@/components/ui/PasswordStrengthMeter';
 
 interface ResetPasswordFormProps {
     email: string;
@@ -72,6 +73,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
                         error={errors.password}
                         disabled={isLoading}
                     />
+                    <PasswordStrengthMeter password={password} showMatchStatus={false} />
                 </div>
 
                 <div>
@@ -99,6 +101,9 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
                         error={errors.confirmPassword}
                         disabled={isLoading}
                     />
+
+                    {/* Real-time Password Match Status */}
+                    <PasswordMatchIndicator password={password} confirmPassword={confirmPassword} />
                 </div>
 
                 <div className="pt-2">
