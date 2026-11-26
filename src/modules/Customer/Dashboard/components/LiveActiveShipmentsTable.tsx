@@ -70,7 +70,7 @@ export const LiveActiveShipmentsTable: React.FC<LiveActiveShipmentsTableProps> =
         </Link>
       </div>
 
-      <div className="[&_.border]:border-0 [&_.rounded-\\[3px\\]]:rounded-none">
+      <div className="[&_.border]:border-0 [&>div]:rounded-none">
         <DataTable
           data={mappedData}
           columns={columns}

@@ -4,6 +4,12 @@ import { create } from 'zustand';
 
 export type ToastType = 'success' | 'error' | 'info' | 'destructive';
 
+let toastNavigator: ((to: string) => void) | null = null;
+
+export const setToastNavigator = (navigator: (to: string) => void) => {
+  toastNavigator = navigator;
+};
+
 interface ToastState {
   message: React.ReactNode | null;
   type: ToastType;
@@ -49,9 +55,11 @@ export const useToastStore = create<ToastState>((set) => ({
             type: 'button',
             onClick: (e: React.MouseEvent) => {
               e.preventDefault();
-              import('@/routes/appRouter').then(({ router }) => {
-                router.navigate('/customer/settings?tab=payment');
-              });
+              if (toastNavigator) {
+                toastNavigator('/customer/settings?tab=payment');
+              } else if (typeof window !== 'undefined') {
+                window.location.assign('/customer/settings?tab=payment');
+              }
             },
             className: 'inline-flex items-center gap-1 font-bold text-[#ff4a1f] dark:text-orange-400 hover:underline text-xs cursor-pointer mt-1 bg-transparent border-none p-0',
           },
