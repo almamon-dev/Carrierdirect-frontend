@@ -106,6 +106,9 @@ export type QuoteRequest = {
     originalOrderNumber?: string;
     repeatIndicator?: string;
     repeatBadge?: string;
+    is_pay_later?: boolean;
+    payment_term?: string;
+    expected_payout_at?: string | null;
 };
 
 export const mockQuoteRequests: QuoteRequest[] = [];

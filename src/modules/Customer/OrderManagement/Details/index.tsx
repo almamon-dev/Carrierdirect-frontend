@@ -27,8 +27,14 @@ export default function CustomerOrderDetailPage() {
         handleOpenChat,
         handleApprovePOD,
         handleRejectPOD,
+        handleReportIssue,
+        handleCancelPayLater,
         handleRatingSubmit,
     } = useOrderDetails();
+
+    const [isCancelPlOpen, setIsCancelPlOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
+    const [isCancellingPl, setIsCancellingPl] = useState(false);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -155,13 +161,68 @@ export default function CustomerOrderDetailPage() {
                 </div>
             )}
 
-            {/* POD Review / Approval / Rejected Banner (Shown when POD is uploaded, approved, or rejected) */}
-            {(order.pod.isAvailable || order.pod.isAccepted || order.pod.isRejected || order.pod.replacementRequested) && (
+            {/* POD Review / Approval / Rejected / Disputed Banner */}
+            {(order.pod.isAvailable || order.pod.isAccepted || order.pod.isRejected || order.pod.replacementRequested || order.activeDispute) && (
                 <CustomerOrderPODAction
                     order={order}
                     onApprovePOD={handleApprovePOD}
                     onRejectPOD={handleRejectPOD}
+                    onReportIssue={handleReportIssue}
                 />
+            )}
+
+            {/* Net-30 Pay Later Cancellation Bar (Pre-Completion) */}
+            {order.isPayLater && !['completed', 'cancelled'].includes(order.rawStatus) && !order.activeDispute && (
+                <div className="bg-white dark:bg-[#1e2329] border border-slate-200 dark:border-slate-800 rounded-[4px] p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="text-slate-600 dark:text-slate-300">
+                        <strong className="text-slate-900 dark:text-slate-100">Net-30 Pay Later Policy:</strong>{' '}
+                        Free cancellation before carrier assignment; cancellation fee applies after assignment prior to pickup; post-pickup cancellations enter dispute review.
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsCancelPlOpen(true)}
+                        className="h-7 px-2.5 text-[11px] font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 shrink-0 cursor-pointer"
+                    >
+                        Cancel Pay Later Order
+                    </Button>
+                </div>
+            )}
+
+            {isCancelPlOpen && (
+                <div className="bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-[4px] p-3 space-y-2 text-xs">
+                    <p className="font-bold text-rose-900 dark:text-rose-200">Cancel Net-30 Order — Provide Reason</p>
+                    <textarea
+                        rows={2}
+                        value={cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                        placeholder="State why this shipment needs to be cancelled..."
+                        className="w-full p-2 rounded border border-rose-200 dark:border-rose-800 bg-white dark:bg-[#12161c] text-xs"
+                    />
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setIsCancelPlOpen(false)} className="h-7 px-3 text-xs">
+                            Keep Order
+                        </Button>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            disabled={!cancelReason.trim() || isCancellingPl}
+                            onClick={async () => {
+                                setIsCancellingPl(true);
+                                try {
+                                    await handleCancelPayLater(cancelReason.trim());
+                                    setIsCancelPlOpen(false);
+                                    setCancelReason('');
+                                } finally {
+                                    setIsCancellingPl(false);
+                                }
+                            }}
+                            className="h-7 px-3 text-xs bg-rose-600 hover:bg-rose-700 text-white"
+                        >
+                            {isCancellingPl ? 'Processing...' : 'Confirm Cancellation'}
+                        </Button>
+                    </div>
+                </div>
             )}
 
             {/* Main Unified Card (Header + 4 Metrics + Map + Shipment Progress) */}

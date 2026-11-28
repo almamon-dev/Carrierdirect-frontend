@@ -10,6 +10,7 @@ interface OfferSubmitButtonsProps {
     onCancelEdit?: () => void;
     isSubmitting: boolean;
     totalAmountNum: number;
+    disabledReason?: boolean;
     onSubmit: () => void;
 }
 
@@ -20,6 +21,7 @@ export const OfferSubmitButtons: React.FC<OfferSubmitButtonsProps> = ({
     onCancelEdit,
     isSubmitting,
     totalAmountNum,
+    disabledReason = false,
     onSubmit,
 }) => {
     const navigate = useNavigate();
@@ -62,7 +64,7 @@ export const OfferSubmitButtons: React.FC<OfferSubmitButtonsProps> = ({
                     icon={!isSubmitting && !isExpired ? <Send size={12} /> : undefined}
                     isLoading={isSubmitting}
                     onClick={onSubmit}
-                    disabled={isExpired || totalAmountNum <= 0 || isSubmitting}
+                    disabled={isExpired || totalAmountNum <= 0 || isSubmitting || disabledReason}
                 >
                     {isExpired
                         ? 'Quote Request Expired (Closed)'

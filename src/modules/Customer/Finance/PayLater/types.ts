@@ -93,4 +93,68 @@ export interface PayLaterStats {
     availableCreditFormatted?: string;
     usedCreditFormatted?: string;
     overdueAmountFormatted?: string;
+    hasOverdueBlock?: boolean;
+}
+
+export interface BankTransferInstructions {
+    invoice_id: number;
+    invoice_number: string;
+    amount_cents: number;
+    amount_formatted: string;
+    currency: string;
+    due_at?: string | null;
+    reference: string;
+    instructions: Record<string, any> | string;
+}
+
+export interface StructuredPayLaterInvoice {
+    id: number;
+    invoice_id?: number | null;
+    invoice_number: string;
+    order_id: number;
+    order_number?: string | null;
+    status: 'open' | 'disputed' | 'paid' | 'void' | string;
+    is_overdue: boolean;
+    in_collections: boolean;
+    collections_status?: string | null;
+    currency: string;
+    subtotal_cents: number;
+    platform_fee_cents: number;
+    discount_cents: number;
+    cancellation_fee_cents: number;
+    credit_adjustment_cents: number;
+    total_amount_cents: number;
+    total_amount: number;
+    total_amount_formatted: string;
+    payment_channel?: string | null;
+    bank_transfer_reference?: string | null;
+    bank_transfer_instructions?: Record<string, any> | string | null;
+    requires_sca_action: boolean;
+    sca_client_secret?: string | null;
+    pending_payment_intent_id?: string | null;
+    pod_submitted_at?: string | null;
+    issued_at?: string | null;
+    due_at?: string | null;
+    due_date_formatted?: string | null;
+    days_until_due?: number | null;
+    disputed_at?: string | null;
+    paid_at?: string | null;
+    voided_at?: string | null;
+    void_reason?: string | null;
+    retry_stage: number;
+    next_retry_at?: string | null;
+    supplier_name?: string | null;
+    pickup_address?: string | null;
+    delivery_address?: string | null;
+}
+
+export interface StructuredPayLaterStats {
+    open_count: number;
+    overdue_count: number;
+    disputed_count: number;
+    open_total_cents: number;
+    credit_limit_cents: number;
+    used_credit_cents: number;
+    available_credit_cents: number;
+    has_overdue_block: boolean;
 }

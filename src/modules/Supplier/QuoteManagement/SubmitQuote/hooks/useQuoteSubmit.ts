@@ -26,6 +26,7 @@ interface UseQuoteSubmitProps {
     paymentTerm: string;
     customPaymentTerm: string;
     notes: string;
+    acceptedPayLaterTerms?: boolean;
     isExpired: boolean;
     isStripeConnected: boolean | null;
     setShowConnectModal: (show: boolean) => void;
@@ -43,6 +44,7 @@ export const useQuoteSubmit = ({
     paymentTerm,
     customPaymentTerm,
     notes,
+    acceptedPayLaterTerms = false,
     isExpired,
     isStripeConnected,
     setShowConnectModal,
@@ -81,6 +83,12 @@ export const useQuoteSubmit = ({
             return;
         }
 
+        const isPayLaterOrder = Boolean(requestDetails.is_pay_later || requestDetails.payment_term === 'net_30');
+        if (isPayLaterOrder && !acceptedPayLaterTerms) {
+            setErrorMessage('Please confirm acceptance of Net-30 Pay Later payout terms before submitting.');
+            return;
+        }
+
         const rawCleanId = String(requestDetails.rawId || (slug ? (slug.startsWith('enc_') ? decryptId(slug) : slug) : '') || requestDetails.id || '1').replace('REQ-', '').trim();
         const cleanId = rawCleanId || '1';
         const effectiveValidity = validity === 'custom' ? (customValidity || 'Custom Duration') : validity;
@@ -98,6 +106,7 @@ export const useQuoteSubmit = ({
                 estimated_time: effectiveValidity,
                 payment_terms: effectivePaymentTerm,
                 notes: notes || 'Standard offer',
+                ...(isPayLaterOrder ? { accepted_pay_later_terms: Boolean(acceptedPayLaterTerms) } : {}),
                 extra_charges: extraCharges
                     .filter(c => c.type && parseFloat(c.amount) > 0)
                     .map(c => ({
@@ -127,11 +136,11 @@ export const useQuoteSubmit = ({
             onSubmittedSuccess(finalTotal, submissionPayloadMeta);
         } catch (err: any) {
             console.error('Failed to submit quote via API', err);
-            const errCode = err?.response?.data?.code;
+            const errCode = err?.data?.code || err?.response?.data?.code;
             if (errCode === 'COMPLIANCE_PENDING_VERIFICATION' && setShowComplianceModal) {
                 setShowComplianceModal(true);
             }
-            const msg = err?.response?.data?.message || err?.message || 'Failed to submit quote.';
+            const msg = err?.data?.message || err?.response?.data?.message || err?.message || 'Failed to submit quote.';
             setErrorMessage(msg);
             setIsSubmitting(false);
         }

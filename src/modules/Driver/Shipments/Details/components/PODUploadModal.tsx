@@ -12,7 +12,8 @@ import {
     FileText,
     ExternalLink,
     UploadCloud,
-    Maximize2
+    Maximize2,
+    MapPin,
 } from 'lucide-react';
 import { DigitalSignaturePad } from './DigitalSignaturePad';
 
@@ -26,6 +27,11 @@ interface Props {
         documentPhotos?: string[];
         file?: File | null;
         notes?: string;
+        latitude?: number;
+        longitude?: number;
+        accuracy?: number;
+        captureSource?: 'camera' | 'file_upload';
+        clientCapturedAt?: string;
     }) => Promise<void>;
 }
 
@@ -33,16 +39,44 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
     const [receiverName, setReceiverName] = useState('');
     const [signatureUrl, setSignatureUrl] = useState('');
     const [notes, setNotes] = useState('');
-    
+
     // File upload state
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [captureSource, setCaptureSource] = useState<'camera' | 'file_upload'>('file_upload');
+    const [clientCapturedAt, setClientCapturedAt] = useState<string | undefined>(undefined);
+    const [coords, setCoords] = useState<{ latitude: number; longitude: number; accuracy?: number } | null>(null);
+    const [gpsStatus, setGpsStatus] = useState<'acquiring' | 'captured' | 'unavailable'>('acquiring');
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [isDragActive, setIsDragActive] = useState(false);
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        if (typeof navigator === 'undefined' || !navigator.geolocation) {
+            setGpsStatus('unavailable');
+            return;
+        }
+        setGpsStatus('acquiring');
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setCoords({
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    accuracy: Math.round(pos.coords.accuracy || 0),
+                });
+                setGpsStatus('captured');
+            },
+            () => {
+                setGpsStatus('unavailable');
+            },
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+    }, [isOpen]);
 
     // Clean up object URLs on unmount
     useEffect(() => {
@@ -55,7 +89,7 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
 
     if (!isOpen) return null;
 
-    const handleFile = (file: File) => {
+    const handleFile = (file: File, source: 'camera' | 'file_upload' = 'file_upload') => {
         if (file.size > 25 * 1024 * 1024) {
             setErrorMsg('File size must be under 25MB.');
             return;
@@ -67,14 +101,16 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
         }
 
         setSelectedFile(file);
+        setCaptureSource(source);
+        setClientCapturedAt(new Date().toISOString());
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
     };
 
-    const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>, source: 'camera' | 'file_upload' = 'file_upload') => {
         const file = e.target.files?.[0];
         if (file) {
-            handleFile(file);
+            handleFile(file, source);
         }
     };
 
@@ -84,7 +120,7 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
         setIsDragActive(false);
         const file = e.dataTransfer.files?.[0];
         if (file) {
-            handleFile(file);
+            handleFile(file, 'file_upload');
         }
     };
 
@@ -132,11 +168,16 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
                 documentPhotos: previewUrl ? [previewUrl] : undefined,
                 file: selectedFile || undefined,
                 notes: notes.trim(),
+                latitude: coords?.latitude,
+                longitude: coords?.longitude,
+                accuracy: coords?.accuracy,
+                captureSource,
+                clientCapturedAt: clientCapturedAt || new Date().toISOString(),
             });
             onClose();
         } catch (err: any) {
             console.error('POD submit error:', err);
-            setErrorMsg(err?.response?.data?.message || err?.message || 'Failed to submit Proof of Delivery. Please try again.');
+            setErrorMsg(err?.data?.message || err?.response?.data?.message || err?.message || 'Failed to submit Proof of Delivery. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -178,6 +219,22 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
                             {errorMsg}
                         </div>
                     )}
+
+                    {/* Geofence / GPS Status Bar */}
+                    <div className={`px-2.5 py-1.5 rounded-[4px] border text-[11px] flex items-center justify-between gap-2 ${
+                        gpsStatus === 'captured'
+                            ? 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                    }`}>
+                        <span className="inline-flex items-center gap-1.5 font-medium">
+                            <MapPin size={12} className={gpsStatus === 'captured' ? 'text-emerald-600' : 'text-slate-400'} />
+                            {gpsStatus === 'captured' && coords
+                                ? `GPS location verified (±${coords.accuracy ?? 0}m)`
+                                : gpsStatus === 'acquiring'
+                                    ? 'Acquiring delivery GPS coordinates...'
+                                    : 'GPS location unavailable — upload may undergo compliance check'}
+                        </span>
+                    </div>
 
                     {/* Receiver Name */}
                     <div>
@@ -313,20 +370,52 @@ export const PODUploadModal: React.FC<Props> = ({ isOpen, orderNumber, onClose, 
                                 </div>
                                 <div>
                                     <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                                        Take photo or upload Signed BOL / Cargo Photo
+                                        Take live photo or upload Signed BOL
                                     </div>
                                     <div className="text-[10px] text-slate-400 mt-0.5">
-                                        Drag & drop or click to browse (JPG, PNG, WEBP, PDF up to 25MB)
+                                        In-app camera capture recommended (JPG, PNG, WEBP, PDF up to 25MB)
+                                    </div>
+                                    <div className="flex items-center justify-center gap-2 mt-2">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                cameraInputRef.current?.click();
+                                            }}
+                                            className="px-2.5 py-1 bg-[#FF4A1F] hover:bg-[#e03e15] text-white rounded text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                                        >
+                                            <Camera size={12} />
+                                            <span>Camera Photo</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                fileInputRef.current?.click();
+                                            }}
+                                            className="px-2.5 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                                        >
+                                            <UploadCloud size={12} />
+                                            <span>Browse File</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         <input
+                            ref={cameraInputRef}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={(e) => handlePhotoSelect(e, 'camera')}
+                            className="hidden"
+                        />
+                        <input
                             ref={fileInputRef}
                             type="file"
                             accept="image/*,application/pdf"
-                            onChange={handlePhotoSelect}
+                            onChange={(e) => handlePhotoSelect(e, 'file_upload')}
                             className="hidden"
                         />
                     </div>

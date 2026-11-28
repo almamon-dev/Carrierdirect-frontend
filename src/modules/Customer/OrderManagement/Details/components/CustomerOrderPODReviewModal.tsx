@@ -7,9 +7,11 @@ interface CustomerOrderPODReviewModalProps {
     isOpen: boolean;
     order: NormalizedCustomerOrder;
     isSubmitting: boolean;
+    initialMode?: 'review' | 'dispute';
     onClose: () => void;
     onAccept: () => void;
     onReject?: (reason: string) => Promise<void> | void;
+    onReportIssue?: (reason: string, description: string) => Promise<void> | void;
 }
 
 const REJECTION_CATEGORIES = [
@@ -25,14 +27,26 @@ export const CustomerOrderPODReviewModal: React.FC<CustomerOrderPODReviewModalPr
     isOpen,
     order,
     isSubmitting,
+    initialMode = 'review',
     onClose,
     onAccept,
     onReject,
+    onReportIssue,
 }) => {
-    const [isRejectMode, setIsRejectMode] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<string>('Illegible POD document');
+    const [isRejectMode, setIsRejectMode] = useState(initialMode === 'dispute');
+    const [issueActionType, setIssueActionType] = useState<'dispute' | 'reupload'>(
+        onReportIssue ? 'dispute' : 'reupload'
+    );
+    const [selectedCategory, setSelectedCategory] = useState<string>('Damage to cargo');
     const [rejectionNote, setRejectionNote] = useState<string>('');
     const [validationError, setValidationError] = useState<string>('');
+
+    React.useEffect(() => {
+        if (isOpen) {
+            setIsRejectMode(initialMode === 'dispute');
+            setIssueActionType(onReportIssue ? 'dispute' : 'reupload');
+        }
+    }, [isOpen, initialMode, onReportIssue]);
 
     if (!isOpen) return null;
 
@@ -49,10 +63,14 @@ export const CustomerOrderPODReviewModal: React.FC<CustomerOrderPODReviewModalPr
 
     const handleConfirmReject = async () => {
         if (!rejectionNote.trim()) {
-            setValidationError('Please explain the reason for rejecting this Proof of Delivery.');
+            setValidationError('Please explain the issue so our team or carrier can act promptly.');
             return;
         }
         setValidationError('');
+        if (issueActionType === 'dispute' && onReportIssue) {
+            await onReportIssue(selectedCategory, rejectionNote.trim());
+            return;
+        }
         const fullReason = `${selectedCategory}: ${rejectionNote.trim()}`;
         if (onReject) {
             await onReject(fullReason);
@@ -95,11 +113,46 @@ export const CustomerOrderPODReviewModal: React.FC<CustomerOrderPODReviewModalPr
                 <div className="p-3.5 sm:p-4 space-y-3 overflow-y-auto font-sans text-xs">
                     {isRejectMode ? (
                         <div className="space-y-3">
+                            {onReportIssue && onReject && (
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIssueActionType('dispute')}
+                                        className={`p-2 rounded-lg border text-left text-[11px] cursor-pointer ${
+                                            issueActionType === 'dispute'
+                                                ? 'border-red-400 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 font-bold'
+                                                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                                        }`}
+                                    >
+                                        Report Issue & Hold Payout (Admin Dispute)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIssueActionType('reupload')}
+                                        className={`p-2 rounded-lg border text-left text-[11px] cursor-pointer ${
+                                            issueActionType === 'reupload'
+                                                ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 font-bold'
+                                                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                                        }`}
+                                    >
+                                        Request Legible POD Re-upload Only
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="p-2.5 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 text-[11px] flex items-start gap-2">
                                 <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
                                 <div>
-                                    <span className="font-semibold block">Replacement POD Required</span>
-                                    <span>Rejecting will pause escrow release and notify the carrier to provide a corrected POD or address the issue.</span>
+                                    <span className="font-semibold block">
+                                        {issueActionType === 'dispute'
+                                            ? 'Immediate Payout & Auto-Charge Hold'
+                                            : 'Replacement POD Required'}
+                                    </span>
+                                    <span>
+                                        {issueActionType === 'dispute'
+                                            ? 'Reporting an issue immediately holds the carrier Stripe Transfer (and pauses Net-30 auto-charges) while an administrator reviews POD & GPS evidence.'
+                                            : 'Rejecting will pause escrow release and notify the carrier to provide a corrected POD document.'}
+                                    </span>
                                 </div>
                             </div>
 

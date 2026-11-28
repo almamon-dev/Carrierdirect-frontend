@@ -145,13 +145,17 @@ export const useOrderDetails = () => {
     const handleApprovePOD = useCallback(async () => {
         try {
             await orderDetailService.approvePod(cleanId);
-        } catch (err) {
-            console.warn('API pod approval fallback triggered:', err);
+            setIsPodAccepted(true);
+            setActionMessage('Proof of Delivery confirmed! Escrow funds have been released to the carrier.');
+            fetchDetail(true);
+            setTimeout(() => setActionMessage(null), 5000);
+        } catch (err: any) {
+            const msg = err?.data?.message || err?.message || 'Unable to approve Proof of Delivery at this time.';
+            setActionMessage(msg);
+            setTimeout(() => setActionMessage(null), 6000);
+            throw err;
         }
-        setIsPodAccepted(true);
-        setActionMessage('Proof of Delivery confirmed! Escrow funds have been released to the carrier.');
-        setTimeout(() => setActionMessage(null), 5000);
-    }, [cleanId]);
+    }, [cleanId, fetchDetail]);
 
     const handleRejectPOD = useCallback(async (reason: string) => {
         try {
@@ -163,6 +167,30 @@ export const useOrderDetails = () => {
         setActionMessage('Proof of Delivery rejected. Replacement requested from the carrier.');
         fetchDetail(true);
         setTimeout(() => setActionMessage(null), 5000);
+    }, [cleanId, fetchDetail]);
+
+    const handleReportIssue = useCallback(async (reason: string, description: string) => {
+        const res = await orderDetailService.reportIssue(cleanId, reason, description);
+        setIsPodAccepted(false);
+        setActionMessage(
+            `Issue reported (${res?.dispute_number || 'Dispute Opened'}). Carrier payout is held pending administrator review.`
+        );
+        fetchDetail(true);
+        setTimeout(() => setActionMessage(null), 6000);
+    }, [cleanId, fetchDetail]);
+
+    const handleCancelPayLater = useCallback(async (reason: string) => {
+        const res = await orderDetailService.cancelPayLaterOrder(cleanId, reason);
+        const stage = res?.stage;
+        if (stage === 'before_assignment_free') {
+            setActionMessage('Order cancelled free of charge and Pay Later invoice voided.');
+        } else if (stage === 'after_assignment_fee') {
+            setActionMessage('Order cancelled prior to pickup. Standard cancellation fee applied to Net-30 invoice.');
+        } else {
+            setActionMessage(`Post-pickup cancellation routed to Dispute #${res?.dispute_number || ''} for admin review.`);
+        }
+        fetchDetail(true);
+        setTimeout(() => setActionMessage(null), 6000);
     }, [cleanId, fetchDetail]);
 
     const handleRatingSubmit = useCallback(async (ratingData: any) => {
@@ -192,6 +220,8 @@ export const useOrderDetails = () => {
         handleOpenChat,
         handleApprovePOD,
         handleRejectPOD,
+        handleReportIssue,
+        handleCancelPayLater,
         handleRatingSubmit,
         handleRefreshLive,
     };

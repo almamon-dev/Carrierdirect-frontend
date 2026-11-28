@@ -17,6 +17,7 @@ import PayLaterTableSection from './components/PayLaterTableSection';
 import PayLaterIncreaseModal from './components/PayLaterIncreaseModal';
 import PayLaterCreditRequestsTable from './components/PayLaterCreditRequestsTable';
 import PayLaterSettleModal from './components/PayLaterSettleModal';
+import Net30InvoicesSection from './components/Net30InvoicesSection';
 
 export default function CustomerPayLaterPage() {
   const navigate = useNavigate();
@@ -35,12 +36,16 @@ export default function CustomerPayLaterPage() {
 
   const {
     invoices,
+    net30Invoices,
+    net30Stats,
     creditRequests,
     stats,
     calculatedStats,
     isLoading,
     isRefreshing,
     fetchPayLaterData,
+    initiateBankTransfer,
+    completeScaAuthentication,
   } = useCustomerPayLater();
 
   const [activeTab, setActiveTab] = useState<PayLaterFilterTab>('all');
@@ -146,6 +151,13 @@ export default function CustomerPayLaterPage() {
       {!canUsePayLater && <PayLaterUpgradeBanner onUpgrade={() => checkPayLaterOrLock()} />}
 
       <PayLaterMetricsRow calculatedStats={calculatedStats} isLoading={isLoading} />
+
+      <Net30InvoicesSection
+        invoices={net30Invoices}
+        stats={net30Stats}
+        onInitiateBankTransfer={initiateBankTransfer}
+        onCompleteSca={completeScaAuthentication}
+      />
 
       {pendingRequest && (
         <div className="p-3.5 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800/60 rounded-[4px] text-xs flex items-center justify-between gap-3 font-sans shadow-2xs">

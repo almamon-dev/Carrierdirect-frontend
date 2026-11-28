@@ -65,6 +65,11 @@ export const driverShipmentService = {
             documentPhotos?: string[];
             file?: File | null;
             notes?: string;
+            latitude?: number;
+            longitude?: number;
+            accuracy?: number;
+            captureSource?: 'camera' | 'file_upload';
+            clientCapturedAt?: string;
         }
     ): Promise<ShipmentItem> {
         const formData = new FormData();
@@ -72,6 +77,11 @@ export const driverShipmentService = {
         if (podData.receiverName) formData.append('receiver_name', podData.receiverName);
         if (podData.notes) formData.append('note', podData.notes);
         if (podData.signatureUrl) formData.append('signature', podData.signatureUrl);
+        if (typeof podData.latitude === 'number') formData.append('latitude', String(podData.latitude));
+        if (typeof podData.longitude === 'number') formData.append('longitude', String(podData.longitude));
+        if (typeof podData.accuracy === 'number') formData.append('accuracy', String(podData.accuracy));
+        if (podData.captureSource) formData.append('capture_source', podData.captureSource);
+        if (podData.clientCapturedAt) formData.append('client_captured_at', podData.clientCapturedAt);
 
         if (podData.file instanceof File) {
             formData.append('proof_of_delivery', podData.file, podData.file.name);

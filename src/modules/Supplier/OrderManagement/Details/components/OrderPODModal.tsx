@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Textarea from '@/components/ui/textarea';
-import { X, Loader2, CheckCircle2, AlertCircle, User, ShieldCheck } from 'lucide-react';
+import { X, Loader2, CheckCircle2, AlertCircle, User, ShieldCheck, Camera, MapPin, UploadCloud } from 'lucide-react';
 import SignaturePadCanvas from './SignaturePadCanvas';
 
 interface OrderPODModalProps {
@@ -24,15 +24,41 @@ export const OrderPODModal: React.FC<OrderPODModalProps> = ({
     const [signatureData, setSignatureData] = useState<string>('');
     const [hasDrawn, setHasDrawn] = useState(false);
     const [note, setNote] = useState<string>('');
+    const [proofFile, setProofFile] = useState<File | null>(null);
+    const [captureSource, setCaptureSource] = useState<'camera' | 'file_upload'>('file_upload');
+    const [clientCapturedAt, setClientCapturedAt] = useState<string | undefined>(undefined);
+    const [coords, setCoords] = useState<{ latitude: number; longitude: number; accuracy?: number } | null>(null);
+    const [gpsStatus, setGpsStatus] = useState<'acquiring' | 'captured' | 'unavailable'>('acquiring');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (!isOpen) return;
         setReceiverName(customerName || '');
         setSignatureData('');
         setHasDrawn(false);
+        setProofFile(null);
         setErrorMsg(null);
+
+        if (typeof navigator === 'undefined' || !navigator.geolocation) {
+            setGpsStatus('unavailable');
+            return;
+        }
+        setGpsStatus('acquiring');
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setCoords({
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    accuracy: Math.round(pos.coords.accuracy || 0),
+                });
+                setGpsStatus('captured');
+            },
+            () => setGpsStatus('unavailable'),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
     }, [isOpen, customerName]);
 
     if (!isOpen) return null;
@@ -57,11 +83,25 @@ export const OrderPODModal: React.FC<OrderPODModalProps> = ({
             formData.append('receiver_name', receiverName || 'Receiver');
             formData.append('signature', signatureData);
             formData.append('note', note || `Delivery confirmed & signed by ${receiverName || 'Receiver'}.`);
-            
+            if (proofFile) {
+                formData.append('proof_of_delivery', proofFile, proofFile.name);
+                formData.append('capture_source', captureSource);
+            } else {
+                formData.append('capture_source', 'camera');
+            }
+            formData.append('client_captured_at', clientCapturedAt || new Date().toISOString());
+            if (coords) {
+                formData.append('driver_lat', String(coords.latitude));
+                formData.append('driver_lng', String(coords.longitude));
+                if (typeof coords.accuracy === 'number') {
+                    formData.append('gps_accuracy_meters', String(coords.accuracy));
+                }
+            }
+
             await onSubmit(formData);
         } catch (err: any) {
             console.error('Error submitting POD signature:', err);
-            setErrorMsg(err?.response?.data?.message || 'Failed to submit signature. Please try again.');
+            setErrorMsg(err?.data?.message || err?.response?.data?.message || err?.message || 'Failed to submit signature. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -109,6 +149,21 @@ export const OrderPODModal: React.FC<OrderPODModalProps> = ({
                     </div>
                 )}
 
+                <div className={`px-2.5 py-1.5 rounded border text-[11px] flex items-center gap-1.5 ${
+                    gpsStatus === 'captured'
+                        ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                        : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                }`}>
+                    <MapPin size={12} className={gpsStatus === 'captured' ? 'text-emerald-600' : 'text-slate-400'} />
+                    <span>
+                        {gpsStatus === 'captured' && coords
+                            ? `GPS location verified (±${coords.accuracy ?? 0}m)`
+                            : gpsStatus === 'acquiring'
+                                ? 'Acquiring delivery GPS coordinates...'
+                                : 'GPS unavailable — submission may require compliance review'}
+                    </span>
+                </div>
+
                 {/* Receiver Name */}
                 <div>
                     <Input
@@ -128,6 +183,65 @@ export const OrderPODModal: React.FC<OrderPODModalProps> = ({
                     onSignatureChange={handleSignatureChange}
                     disabled={isSubmitting}
                 />
+
+                {/* Optional Photo / Signed BOL Attachment */}
+                <div className="space-y-1.5">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        Signed BOL / Delivery Photo (Optional)
+                    </label>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => cameraInputRef.current?.click()}
+                            className="px-2.5 py-1.5 bg-[#ff4a1f] hover:bg-[#e03e15] text-white rounded-[4px] text-[11px] font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <Camera size={12} />
+                            <span>Take Camera Photo</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-[4px] text-[11px] font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <UploadCloud size={12} />
+                            <span>Upload Document</span>
+                        </button>
+                        {proofFile && (
+                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium truncate max-w-[190px]">
+                                Attached: {proofFile.name}
+                            </span>
+                        )}
+                    </div>
+                    <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) {
+                                setProofFile(f);
+                                setCaptureSource('camera');
+                                setClientCapturedAt(new Date().toISOString());
+                            }
+                        }}
+                        className="hidden"
+                    />
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) {
+                                setProofFile(f);
+                                setCaptureSource('file_upload');
+                                setClientCapturedAt(new Date().toISOString());
+                            }
+                        }}
+                        className="hidden"
+                    />
+                </div>
 
                 {/* Remarks Textarea */}
                 <div>

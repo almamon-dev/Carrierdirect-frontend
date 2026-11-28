@@ -125,7 +125,7 @@ export const useComplianceForm = ({
             onClose();
         } catch (err: any) {
             console.error("Failed to submit driver compliance:", err);
-            setErrorMessage(err?.response?.data?.message || err?.message || "Failed to complete account setup. Please try again.");
+            setErrorMessage(err?.data?.message || err?.response?.data?.message || err?.message || "Failed to complete account setup. Please try again.");
         } finally {
             setIsSubmitting(false);
         }

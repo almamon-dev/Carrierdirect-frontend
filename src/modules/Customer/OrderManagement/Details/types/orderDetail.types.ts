@@ -106,6 +106,11 @@ export interface OrderPodDetails {
     isAvailable: boolean;
     isAccepted: boolean;
     isRejected?: boolean;
+    isFlagged?: boolean;
+    flagReason?: string | null;
+    autoApproveAt?: string | null;
+    secondsUntilAutoApproval?: number | null;
+    distanceMeters?: number | null;
     rejectionReason?: string;
     rejectedAt?: string;
     acceptedAt?: string;
@@ -141,6 +146,27 @@ export interface NormalizedCustomerOrder {
     isPaid: boolean;
     isEscrow: boolean;
     isPayLater: boolean;
+    paymentModel?: string;
+    paymentTerm?: string;
+    payoutStatus?: string | null;
+    activeDispute?: {
+        id: number;
+        dispute_number: string;
+        type: string;
+        status: string;
+        reason: string;
+    } | null;
+    payLaterInvoice?: {
+        id: number;
+        invoice_number: string;
+        status: string;
+        total_amount_cents: number;
+        due_at?: string | null;
+        is_overdue?: boolean;
+        requires_sca_action?: boolean;
+        sca_client_secret?: string | null;
+        bank_transfer_reference?: string | null;
+    } | null;
     payLaterDueDate: string;
     payLaterDaysLeft?: number;
     payLaterTimeLeftFormatted?: string;

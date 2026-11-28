@@ -30,6 +30,7 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({
   const [expiry, setExpiry] = useState("");
   const [cvc, setCvc] = useState("");
   const [isPrimary, setIsPrimary] = useState(true);
+  const [mandateConsent, setMandateConsent] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -111,6 +112,7 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({
         expiry,
         cvc: cvc.trim(),
         is_primary: isPrimary,
+        consent: mandateConsent,
       });
 
       const newCard = res.data?.data?.new_card || res.data?.new_card || res.data || res;
@@ -173,6 +175,23 @@ export const AddPaymentMethodModal: React.FC<ModalProps> = ({
           setIsPrimary={setIsPrimary}
           markTouched={markTouched}
         />
+
+        <div className="p-3 rounded-[4px] border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/50 text-xs">
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={mandateConsent}
+              onChange={(e) => setMandateConsent(e.target.checked)}
+              className="mt-0.5 rounded border-slate-300 text-[#ff4a1f] focus:ring-[#ff4a1f]"
+            />
+            <span className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+              <strong className="text-slate-900 dark:text-slate-100 block">
+                Off-Session Payment Mandate (Required for Net-30 Pay Later)
+              </strong>
+              I authorize CarrierDirect to store this card and charge it off-session on Net-30 invoice due dates (and scheduled retry days 3, 7, and 14) unless settled earlier via bank transfer or paused by an open dispute.
+            </span>
+          </label>
+        </div>
       </form>
     </Drawer>
   );

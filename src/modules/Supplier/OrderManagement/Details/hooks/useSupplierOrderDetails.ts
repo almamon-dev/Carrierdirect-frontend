@@ -8,6 +8,7 @@ import {
     buildSupplierOrderTimeline,
     NormalizedSupplierOrder,
 } from '../utils/supplierOrderTrackUtils';
+import type { SupplierPayoutStatus } from '../components/SupplierPayoutStatusCard';
 
 export const useSupplierOrderDetails = () => {
     const { slug, id } = useParams<{ slug?: string; id?: string }>();
@@ -29,6 +30,7 @@ export const useSupplierOrderDetails = () => {
         journeyLeg?: string;
     } | null>(null);
     const [isPodUploaded, setIsPodUploaded] = useState<boolean>(false);
+    const [payoutStatus, setPayoutStatus] = useState<SupplierPayoutStatus | null>(null);
 
     const [showStatusModal, setShowStatusModal] = useState<boolean>(false);
     const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
@@ -47,13 +49,20 @@ export const useSupplierOrderDetails = () => {
     const refetch = useCallback(async () => {
         if (!cleanId) return;
         try {
-            const res = await apiClient.get(`/supplier/orders/${cleanId}`);
+            const [res, payoutRes] = await Promise.all([
+                apiClient.get(`/supplier/orders/${cleanId}`),
+                apiClient.get(`/supplier/orders/${cleanId}/payout-status`).catch(() => null),
+            ]);
             const data = res.data?.data || res.data;
             if (data) {
                 setApiOrder(data);
                 if (data.status === 'completed' || data.status === 'pod_accepted' || data.pod_status === 'confirmed') {
                     setIsPodUploaded(true);
                 }
+            }
+            const payoutData = payoutRes?.data?.data || payoutRes?.data;
+            if (payoutData && payoutData.order_id) {
+                setPayoutStatus(payoutData);
             }
         } catch (err) {
             console.warn('Could not fetch supplier order details from API:', err);
@@ -149,20 +158,23 @@ export const useSupplierOrderDetails = () => {
     };
 
     const handleUploadPOD = async (formData: FormData) => {
-        try {
-            await apiClient.post(`/supplier/orders/${cleanId}/status`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-        } catch (err) {
-            console.error('Error uploading POD:', err);
-        } finally {
-            setIsPodUploaded(true);
-            setStatusOverride('delivered');
-            setShowUploadModal(false);
-            setActionMessage('Proof of Delivery & Signature submitted successfully! Awaiting customer verification.');
-            setTimeout(() => setActionMessage(null), 4000);
-        }
+        await apiClient.post(`/supplier/orders/${cleanId}/status`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        setIsPodUploaded(true);
+        setStatusOverride('delivered');
+        setShowUploadModal(false);
+        setActionMessage('Proof of Delivery & Signature submitted successfully! Awaiting customer verification.');
+        setTimeout(() => setActionMessage(null), 4000);
+        await refetch();
     };
+
+    const handleAcceptPayLaterTerms = useCallback(async () => {
+        await apiClient.post(`/supplier/orders/${cleanId}/accept-pay-later-terms`, {});
+        setActionMessage('Net-30 Pay Later settlement terms confirmed.');
+        setTimeout(() => setActionMessage(null), 4000);
+        await refetch();
+    }, [cleanId, refetch]);
 
     const handleDownloadInvoice = useCallback(() => {
         exportInvoicePdf(order);
@@ -180,6 +192,7 @@ export const useSupplierOrderDetails = () => {
     return {
         order,
         timeline,
+        payoutStatus,
         isLoading,
         cleanId,
         actionMessage,
@@ -190,6 +203,7 @@ export const useSupplierOrderDetails = () => {
         setShowUploadModal,
         handleStatusUpdate,
         handleUploadPOD,
+        handleAcceptPayLaterTerms,
         handleNavigateAssignDriver,
         handleDownloadInvoice,
         handlePrint,

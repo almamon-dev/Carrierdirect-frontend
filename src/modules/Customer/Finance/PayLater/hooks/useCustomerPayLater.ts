@@ -1,9 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '@/lib/axios';
-import { CustomerPayLaterItem, PayLaterStats } from '../types';
+import { getStripe } from '@/lib/stripe';
+import {
+    BankTransferInstructions,
+    CustomerPayLaterItem,
+    PayLaterStats,
+    StructuredPayLaterInvoice,
+    StructuredPayLaterStats,
+} from '../types';
 
 export const useCustomerPayLater = () => {
     const [invoices, setInvoices] = useState<CustomerPayLaterItem[]>([]);
+    const [net30Invoices, setNet30Invoices] = useState<StructuredPayLaterInvoice[]>([]);
+    const [net30Stats, setNet30Stats] = useState<StructuredPayLaterStats | null>(null);
     const [creditRequests, setCreditRequests] = useState<any[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [userProfile, setUserProfile] = useState<any>(null);
@@ -15,9 +24,10 @@ export const useCustomerPayLater = () => {
         else setIsRefreshing(true);
 
         try {
-            const [profileRes, invoicesRes, requestsRes] = await Promise.all([
+            const [profileRes, invoicesRes, net30Res, requestsRes] = await Promise.all([
                 apiClient.get('/customer/profile').catch(() => ({})),
                 apiClient.get('/customer/finance/invoices', { params: { type: 'pay_later' } }).catch(() => ({})),
+                apiClient.get('/customer/pay-later/invoices').catch(() => ({})),
                 apiClient.get('/customer/pay-later/requests').catch(() => ({})),
             ]);
 
@@ -44,6 +54,13 @@ export const useCustomerPayLater = () => {
             }
 
             setInvoices(list);
+
+            const net30Payload = net30Res?.data || net30Res;
+            const structuredList = Array.isArray(net30Payload?.invoices) ? net30Payload.invoices : [];
+            setNet30Invoices(structuredList);
+            if (net30Payload?.stats) {
+                setNet30Stats(net30Payload.stats);
+            }
 
             const reqList = requestsRes?.data?.data || requestsRes?.data || [];
             setCreditRequests(Array.isArray(reqList) ? reqList : []);
@@ -124,11 +141,36 @@ export const useCustomerPayLater = () => {
             paidCount: stats?.invoices_paid ?? paidCount,
             dueCount: stats?.invoices_due ?? dueCount,
             overdueCount,
+            hasOverdueBlock: Boolean(net30Stats?.has_overdue_block),
         };
-    }, [invoices, stats, userProfile]);
+    }, [invoices, stats, userProfile, net30Stats]);
+
+    const initiateBankTransfer = useCallback(async (invoiceId: number): Promise<BankTransferInstructions> => {
+        const res = await apiClient.post(`/customer/pay-later/invoices/${invoiceId}/bank-transfer`, {});
+        await fetchPayLaterData(true);
+        return (res?.data || res) as BankTransferInstructions;
+    }, [fetchPayLaterData]);
+
+    const completeScaAuthentication = useCallback(async (invoice: StructuredPayLaterInvoice): Promise<{ success: boolean; message?: string }> => {
+        if (!invoice.sca_client_secret) {
+            return { success: false, message: 'No 3DS challenge available for this invoice.' };
+        }
+        const stripe = await getStripe();
+        if (!stripe) {
+            return { success: false, message: 'Stripe.js could not be initialized.' };
+        }
+        const result = await stripe.confirmCardPayment(invoice.sca_client_secret);
+        if (result.error) {
+            return { success: false, message: result.error.message || '3DS card authentication failed.' };
+        }
+        await fetchPayLaterData(true);
+        return { success: true, message: `Authentication completed for ${invoice.invoice_number}.` };
+    }, [fetchPayLaterData]);
 
     return {
         invoices,
+        net30Invoices,
+        net30Stats,
         creditRequests,
         stats,
         calculatedStats,
@@ -136,6 +178,8 @@ export const useCustomerPayLater = () => {
         isLoading,
         isRefreshing,
         fetchPayLaterData,
+        initiateBankTransfer,
+        completeScaAuthentication,
     };
 };
 

@@ -36,6 +36,7 @@ import SupplierTimelineSection from './components/SupplierTimelineSection';
 import { SupplierOrderDetailsSkeleton } from './components/SupplierOrderDetailsSkeleton';
 import { useSupplierOrderDetails } from './hooks/useSupplierOrderDetails';
 import SupplierDocumentsTab from './components/SupplierDocumentsTab';
+import SupplierPayoutStatusCard from './components/SupplierPayoutStatusCard';
 import { formatLocationName, formatVehiclePlate } from './utils/supplierOrderTrackUtils';
 
 export type SupplierOrderDetailsTab =
@@ -47,6 +48,7 @@ export default function OrderDetails() {
     const {
         order,
         timeline,
+        payoutStatus,
         isLoading,
         cleanId,
         actionMessage,
@@ -56,6 +58,7 @@ export default function OrderDetails() {
         setShowUploadModal,
         handleStatusUpdate,
         handleUploadPOD,
+        handleAcceptPayLaterTerms,
         handleNavigateAssignDriver,
         handleDownloadInvoice,
         handlePrint,
@@ -460,6 +463,10 @@ export default function OrderDetails() {
                         <div className="lg:col-span-8 flex flex-col gap-2.5">
                             <SupplierMapSection order={order} timeline={timeline} />
                             <SupplierBottomCards order={order} />
+                            <SupplierPayoutStatusCard
+                                payoutStatus={payoutStatus}
+                                onAcceptPayLaterTerms={handleAcceptPayLaterTerms}
+                            />
                         </div>
 
                         {/* Right Column (4 cols) */}

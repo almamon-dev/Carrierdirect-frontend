@@ -35,6 +35,33 @@ export const orderDetailService = {
     },
 
     /**
+     * Fetch POD review details & 48-hour auto-approval countdown
+     */
+    async fetchPodReview(orderId: string | number): Promise<any> {
+        const res = await apiClient.get(`/customer/orders/${orderId}/pod-review`);
+        return res.data?.data || res.data;
+    },
+
+    /**
+     * Customer "Report issue" — immediately holds supplier transfer and opens an admin-reviewed dispute
+     */
+    async reportIssue(orderId: string | number, reason: string, description?: string): Promise<any> {
+        const res = await apiClient.post(`/customer/orders/${orderId}/report-issue`, {
+            reason,
+            description,
+        });
+        return res.data?.data || res.data;
+    },
+
+    /**
+     * Cancel a Net-30 Pay Later order according to the 3-stage cancellation policy
+     */
+    async cancelPayLaterOrder(orderId: string | number, reason: string): Promise<any> {
+        const res = await apiClient.post(`/customer/orders/${orderId}/cancel-pay-later`, { reason });
+        return res.data?.data || res.data;
+    },
+
+    /**
      * Submit carrier rating and review
      */
     async submitReview(orderId: string | number, reviewData: any): Promise<any> {

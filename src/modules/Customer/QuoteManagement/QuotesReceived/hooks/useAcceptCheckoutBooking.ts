@@ -181,11 +181,12 @@ export function useAcceptCheckoutBooking({
             }
         } catch (error: any) {
             console.error("Booking error:", error);
-            if (error?.response?.data?.upgrade_required) {
+            const errData = error?.data || error?.response?.data;
+            if (errData?.upgrade_required) {
                 checkPayLaterOrLock();
                 return;
             }
-            const msg = error?.response?.data?.message || error?.message || "Failed to confirm booking.";
+            const msg = errData?.message || error?.message || "Failed to confirm booking.";
             showToast(msg, "error");
         } finally {
             setIsProcessing(false);

@@ -28,6 +28,7 @@ export const Step3RequestsTable: React.FC<Step3RequestsTableProps> = ({
                             <th className="py-2 px-2.5">Vehicle</th>
                             <th className="py-2 px-2 text-center">Items</th>
                             <th className="py-2 px-3 text-right">Budget</th>
+                            <th className="py-2 px-2 text-center">AI Confidence</th>
                             <th className="py-2 px-2 text-center w-10"></th>
                         </tr>
                     </thead>
@@ -41,6 +42,8 @@ export const Step3RequestsTable: React.FC<Step3RequestsTableProps> = ({
                             const rawBudget = row.budget || row.amount || "";
                             const budgetNum = Number(String(rawBudget).replace(/[^0-9.]/g, ""));
                             const itemsCount = row.items?.length || row.items_count || row.itemsCount || 1;
+                            const rawConf = row.overallConfidence ?? row.overall_confidence;
+                            const confPct = typeof rawConf === "number" ? Math.round(rawConf * 100) : null;
 
                             return (
                                 <tr
@@ -72,6 +75,24 @@ export const Step3RequestsTable: React.FC<Step3RequestsTableProps> = ({
                                     </td>
                                     <td className="py-2 px-3 text-right font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
                                         {budgetNum > 0 ? `€${budgetNum.toLocaleString()}` : "-"}
+                                    </td>
+                                    <td className="py-2 px-2 text-center whitespace-nowrap">
+                                        {confPct !== null ? (
+                                            <span
+                                                title="Verify extracted values before confirming"
+                                                className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                                    confPct >= 85
+                                                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                                        : confPct >= 65
+                                                            ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                                                            : "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
+                                                }`}
+                                            >
+                                                {confPct}% {confPct >= 85 ? "High" : "Review"}
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] text-slate-400">Manual check</span>
+                                        )}
                                     </td>
                                     <td className="py-2 px-2 text-center">
                                         <button

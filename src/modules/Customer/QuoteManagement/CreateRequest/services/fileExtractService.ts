@@ -79,6 +79,10 @@ export const extractFileRequests = async (file: File, uploadedZipName?: string) 
                 budget: r.budget || r.amount || '',
                 cargoLoadType: r.cargoLoadType || r.load_type || r.pallet_type || 'Pallets',
                 totalWeight: r.totalWeight || r.weight || '2500',
+                overallConfidence: typeof r.overall_confidence === 'number' ? r.overall_confidence : null,
+                confidenceScores: r.confidence_scores || null,
+                requiresCustomerConfirmation: Boolean(r.requires_customer_confirmation ?? true),
+                securityWarnings: Array.isArray(r.security_warnings) ? r.security_warnings : (Array.isArray(responseData?.security_warnings) ? responseData.security_warnings : []),
             }));
 
             const primary = serverRows[0] || {};
@@ -87,6 +91,9 @@ export const extractFileRequests = async (file: File, uploadedZipName?: string) 
                     ...primary,
                     attachment_path: responseData.attachment_path || null,
                     attachedZip: uploadedZipName || '',
+                    requires_customer_confirmation: Boolean(responseData?.requires_customer_confirmation ?? true),
+                    average_confidence: responseData?.average_confidence ?? null,
+                    security_warnings: responseData?.security_warnings || [],
                     rows: serverRows,
                     totalCount: serverRows.length,
                 },

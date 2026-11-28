@@ -31,8 +31,11 @@ export const buildNormalizedCustomerOrder = (
     // Payment Status Normalization
     const { paymentStatus, isPaid, isEscrow, isPayLater } = resolveCustomerPaymentStatus(foundOrder, cleanNumericId, isPaidOverride);
 
-    const payLaterDueDate = foundOrder?.due_date || foundOrder?.pay_later_due_date || '17 Oct 2026';
-    const payLaterDaysLeft = isPayLater ? calculatePayLaterDaysLeft(payLaterDueDate) : undefined;
+    const plInvoiceObj = foundOrder?.pay_later_invoice || null;
+    const payLaterDueDate = plInvoiceObj?.due_at
+        ? new Date(plInvoiceObj.due_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        : (foundOrder?.due_date || foundOrder?.pay_later_due_date || (isPayLater ? '30 Days after POD' : ''));
+    const payLaterDaysLeft = (isPayLater && plInvoiceObj?.due_at) ? calculatePayLaterDaysLeft(payLaterDueDate) : undefined;
     const payLaterTimeLeftFormatted = isPayLater
         ? (payLaterDaysLeft === 0 ? 'Due Today' : payLaterDaysLeft === 1 ? '1 Day Left' : `${payLaterDaysLeft} Days Left`)
         : undefined;
@@ -169,6 +172,9 @@ export const buildNormalizedCustomerOrder = (
 
     // POD Info
     const rawPod = String(foundOrder?.pod_status || foundOrder?.tracking?.pod_status || '').toLowerCase().trim();
+    const podReviewObj = foundOrder?.pod_review || null;
+    const isPodFlagged = rawPod === 'flagged' || Boolean(podReviewObj?.is_flagged);
+    const isPodDisputed = rawPod === 'disputed' || Boolean(foundOrder?.active_dispute);
     const isPodRejected = rawPod === 'rejected' || Boolean(foundOrder?.pod_replacement_requested);
     const hasPodDoc = Boolean(
         foundOrder?.proof_of_delivery || foundOrder?.pod?.file_url || foundOrder?.pod?.proof ||
@@ -177,14 +183,14 @@ export const buildNormalizedCustomerOrder = (
     );
 
     const isPodAcceptedCalculated = Boolean(
-        !isPodRejected && (
+        !isPodRejected && !isPodDisputed && !isPodFlagged && (
             isPodAccepted || rawStatus === 'completed' || rawStatus === 'pod_accepted' ||
             rawPod === 'confirmed' || rawPod === 'accepted' || rawPod === 'approved'
         )
     );
 
     const isDeliveredStage = rawStatus === 'delivered' || rawStatus === 'pod_uploaded' || rawStatus === 'pod_review';
-    const isPodAvailable = !isPodAcceptedCalculated && !isPodRejected && (hasPodDoc || isDeliveredStage);
+    const isPodAvailable = !isPodAcceptedCalculated && !isPodRejected && (hasPodDoc || isDeliveredStage || isPodFlagged || isPodDisputed);
 
     return {
         id: formattedId,
@@ -201,7 +207,12 @@ export const buildNormalizedCustomerOrder = (
         paymentStatus: paymentStatus,
         isPaid: isPaid,
         isEscrow: isEscrow,
-        isPayLater: isPayLater,
+        isPayLater: isPayLater || foundOrder?.payment_term === 'pay_later',
+        paymentModel: foundOrder?.payment_model,
+        paymentTerm: foundOrder?.payment_term,
+        payoutStatus: foundOrder?.payout_status || null,
+        activeDispute: foundOrder?.active_dispute || null,
+        payLaterInvoice: plInvoiceObj,
         payLaterDueDate: payLaterDueDate,
         payLaterDaysLeft: payLaterDaysLeft,
         payLaterTimeLeftFormatted: payLaterTimeLeftFormatted,
@@ -314,6 +325,11 @@ export const buildNormalizedCustomerOrder = (
             isAvailable: isPodAvailable,
             isAccepted: isPodAcceptedCalculated,
             isRejected: isPodRejected,
+            isFlagged: isPodFlagged,
+            flagReason: podReviewObj?.flag_reason || null,
+            autoApproveAt: podReviewObj?.auto_approve_at || null,
+            secondsUntilAutoApproval: podReviewObj?.seconds_until_auto_approval ?? null,
+            distanceMeters: podReviewObj?.distance_meters ?? null,
             rejectionReason: foundOrder?.pod_rejection_reason || foundOrder?.pod?.rejection_reason || '',
             rejectedAt: foundOrder?.pod_rejected_at || '',
             acceptedAt: foundOrder?.pod_accepted_at || '',
