@@ -57,7 +57,7 @@ export const VerificationUnderReviewView: React.FC<VerificationUnderReviewViewPr
     const submittedDocs: SubmittedDocItem[] = allDocs.filter((doc) => doc.isUploaded);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 backdrop-blur-xs p-0 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[1100] flex items-end justify-center bg-slate-900/60 backdrop-blur-xs p-0 animate-in fade-in duration-300">
             <div className="fixed inset-0" onClick={canDismiss ? onClose : undefined} />
 
             <div className="bg-white dark:bg-[#181a20] rounded-t-3xl border-t border-slate-200/90 dark:border-slate-800 w-full max-w-full shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 ease-out flex flex-col h-auto max-h-[92vh] md:max-h-[88vh] relative z-10 font-sans mx-auto">
@@ -192,33 +192,35 @@ export const VerificationUnderReviewView: React.FC<VerificationUnderReviewViewPr
                         </div>
 
                         {/* Footer Action Bar */}
-                        <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-[#181a20] shrink-0 flex items-center justify-end gap-2.5 sm:gap-3">
-                            <button
-                                type="button"
-                                onClick={handleRefresh}
-                                disabled={isRefreshing}
-                                className="py-2 px-4 bg-white dark:bg-[#161a22] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-[4px] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                            >
-                                <RotateCw size={13} className={isRefreshing ? 'animate-spin' : ''} />
-                                <span>{isRefreshing ? 'Checking...' : refreshSuccess ? 'Checked - In Review' : 'Check Status'}</span>
-                            </button>
-
-                            <Link
-                                to="/driver/profile"
-                                onClick={onClose}
-                                className="py-2 px-4 bg-white dark:bg-[#161a22] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-[4px] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                            >
-                                <span>View Profile</span>
-                            </Link>
-
+                        <div className="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-[#181a20] shrink-0 flex items-center justify-between gap-2.5 sm:gap-3">
                             <button
                                 type="button"
                                 onClick={handleLogout}
-                                className="py-2 px-5 bg-[#FF4A1F] hover:bg-[#E03E15] text-white rounded-[4px] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                                className="py-2 px-4 bg-white dark:bg-[#161a22] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 rounded-[4px] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                             >
                                 <LogOut size={13} />
                                 <span>Log Out</span>
                             </button>
+
+                            <div className="flex items-center justify-end gap-2.5 sm:gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing}
+                                    className="py-2 px-4 bg-white dark:bg-[#161a22] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-[4px] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                                >
+                                    <RotateCw size={13} className={isRefreshing ? 'animate-spin' : ''} />
+                                    <span>{isRefreshing ? 'Checking...' : refreshSuccess ? 'Checked - In Review' : 'Check Status'}</span>
+                                </button>
+
+                                <Link
+                                    to="/driver/profile"
+                                    onClick={onClose}
+                                    className="py-2 px-5 bg-[#FF4A1F] hover:bg-[#E03E15] text-white rounded-[4px] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                                >
+                                    <span>View Profile</span>
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>

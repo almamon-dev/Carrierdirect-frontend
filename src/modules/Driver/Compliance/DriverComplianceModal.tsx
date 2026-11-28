@@ -1,6 +1,7 @@
 import { FileText, X } from "lucide-react";
 import React from "react";
-import { COMPLIANCE_STEPS } from "./components/complianceConstants";
+import { useNavigate } from "react-router-dom";
+import { COMPLIANCE_STEPS, performDriverLogout } from "./components/complianceConstants";
 import { ComplianceModalFooter } from "./components/ComplianceModalFooter";
 import { ComplianceSidebar } from "./components/ComplianceSidebar";
 import { ComplianceStepDocuments } from "./components/ComplianceStepDocuments";
@@ -15,6 +16,7 @@ interface Props {
     canDismiss?: boolean;
     onClose: () => void;
     onComplete?: (data?: any) => Promise<void> | void;
+    onLogout?: () => void;
 }
 
 export const DriverComplianceModal: React.FC<Props> = ({
@@ -23,7 +25,10 @@ export const DriverComplianceModal: React.FC<Props> = ({
     canDismiss = true,
     onClose,
     onComplete,
+    onLogout,
 }) => {
+    const navigate = useNavigate();
+    const handleLogout = onLogout ?? (() => performDriverLogout(navigate));
     const {
         step,
         setStep,
@@ -81,7 +86,7 @@ export const DriverComplianceModal: React.FC<Props> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 backdrop-blur-xs p-0 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[1100] flex items-end justify-center bg-slate-900/60 backdrop-blur-xs p-0 animate-in fade-in duration-300">
             <div className="fixed inset-0" onClick={canDismiss ? onClose : undefined} />
 
             <div className="bg-white dark:bg-[#181a20] rounded-t-3xl border-t border-slate-200/90 dark:border-slate-800 w-full max-w-full shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 ease-out flex flex-col h-auto max-h-[92vh] md:max-h-[88vh] relative z-10 font-sans mx-auto">
@@ -210,6 +215,7 @@ export const DriverComplianceModal: React.FC<Props> = ({
                             onBack={() => { setErrors({}); setStep((s) => (s - 1) as any); }}
                             onClose={onClose}
                             onNext={handleNextStep}
+                            onLogout={handleLogout}
                         />
                     </div>
                 </div>

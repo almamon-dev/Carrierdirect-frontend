@@ -1,7 +1,7 @@
-import { TOKEN_CONFIG } from '@/config/auth';
-import { AlertTriangle, LogOut, X } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { performDriverLogout } from './components/complianceConstants';
 import { VerificationRejectedView } from './components/VerificationRejectedView';
 import { VerificationUnderReviewView } from './components/VerificationUnderReviewView';
 import { DriverComplianceModal } from './DriverComplianceModal';
@@ -51,16 +51,7 @@ export const DriverVerificationRequiredModal: React.FC<Props> = ({
     };
 
     const handleLogout = () => {
-        localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
-        localStorage.removeItem(TOKEN_CONFIG.refreshTokenKey);
-        localStorage.removeItem(TOKEN_CONFIG.userKey);
-        localStorage.removeItem('carrierdirect_access_token');
-        localStorage.removeItem('carrierdirect_user_data');
-        localStorage.removeItem('erp_access_token');
-        localStorage.removeItem('erp_user_data');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/web/login');
+        performDriverLogout(navigate);
     };
 
     // ── IF UNDER REVIEW: Render Step 4 Admin Review layout ──
@@ -81,7 +72,7 @@ export const DriverVerificationRequiredModal: React.FC<Props> = ({
     // ── IF REJECTED: Render revision requested view ──
     if (status === 'rejected') {
         return (
-            <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 backdrop-blur-xs p-0 animate-in fade-in duration-300">
+            <div className="fixed inset-0 z-[1100] flex items-end justify-center bg-slate-900/60 backdrop-blur-xs p-0 animate-in fade-in duration-300">
                 <div className="fixed inset-0" onClick={canDismiss ? onClose : undefined} />
                 <div className="bg-white dark:bg-[#181a20] rounded-t-3xl border-t border-slate-200/90 dark:border-slate-800 w-full max-w-[1360px] shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 ease-out flex flex-col h-auto max-h-[92vh] md:max-h-[88vh] relative z-10 font-sans mx-auto">
                     <button
@@ -137,6 +128,7 @@ export const DriverVerificationRequiredModal: React.FC<Props> = ({
             canDismiss={canDismiss}
             onClose={onClose}
             onComplete={onComplete}
+            onLogout={handleLogout}
         />
     );
 };

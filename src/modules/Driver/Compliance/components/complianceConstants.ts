@@ -1,3 +1,4 @@
+import { TOKEN_CONFIG } from "@/config/auth";
 import { FileText, Truck, User as UserIcon } from "lucide-react";
 
 export const EXPERIENCE_OPTIONS = [
@@ -40,4 +41,17 @@ export const formatFileSize = (bytes?: number) => {
     if (!bytes) return "";
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+export const performDriverLogout = (navigate: (path: string) => void): void => {
+    localStorage.removeItem(TOKEN_CONFIG.accessTokenKey);
+    localStorage.removeItem(TOKEN_CONFIG.refreshTokenKey);
+    localStorage.removeItem(TOKEN_CONFIG.userKey);
+    localStorage.removeItem("carrierdirect_access_token");
+    localStorage.removeItem("carrierdirect_user_data");
+    localStorage.removeItem("erp_access_token");
+    localStorage.removeItem("erp_user_data");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/web/login");
 };
